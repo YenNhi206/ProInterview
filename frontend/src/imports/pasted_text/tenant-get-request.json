@@ -1,0 +1,120 @@
+{
+  "event_message": "lfkqzoiaklbudigidhyh | GET | 200 | 10.103.39.143 | req-f0q | /tenants/lfkqzoiaklbudigidhyh | @supabase-infra/mgmt-api/2cfcfa7",
+  "id": "a0d8623f-7902-4c30-af1c-203be01eae3d",
+  "metadata": [
+    {
+      "appVersion": null,
+      "context": [
+        {
+          "host": "ip-10-103-28-63.ap-southeast-1.compute.internal",
+          "pid": 1,
+          "service": null,
+          "type": "request"
+        }
+      ],
+      "err": [],
+      "error": [],
+      "event": null,
+      "executionTime": 2,
+      "exportIntervalMs": null,
+      "job": null,
+      "jodId": null,
+      "level": "info",
+      "metadata": null,
+      "objectPath": null,
+      "objectVersion": null,
+      "operation": null,
+      "otlpEndpoint": null,
+      "owner": null,
+      "payload": null,
+      "project": "lfkqzoiaklbudigidhyh",
+      "rawError": [],
+      "region": "ap-southeast-1",
+      "req": [
+        {
+          "headers": [
+            {
+              "host": "storage-api-canary-lb-ap-southeast-1-adm.supabase.co",
+              "x_client_trace_id": null,
+              "expires": null,
+              "x_forwarded_prefix": null,
+              "cf_connecting_ip": null,
+              "cf_ray": null,
+              "location": null,
+              "cf_ipcountry": null,
+              "tus_resumable": null,
+              "sb_gateway_mode": null,
+              "x_forwarded_proto": "https",
+              "x_forwarded_host": null,
+              "x_client_info": null,
+              "transfer_encoding": null,
+              "x_real_ip": null,
+              "content_type": "application/json",
+              "accept": "application/json",
+              "user_agent": "@supabase-infra/mgmt-api/2cfcfa7",
+              "cf_cache_status": null,
+              "upload_metadata": null,
+              "range": null,
+              "referer": null,
+              "x_forwarded_port": "443",
+              "content_range": null,
+              "content_length": null,
+              "cache_control": null,
+              "sb_gateway_version": null,
+              "content_disposition": null,
+              "upload_length": null,
+              "date": null,
+              "x_upsert": null,
+              "if_none_match": null,
+              "if_modified_since": null,
+              "upload_offset": null
+            }
+          ],
+          "hostname": "storage-api-canary-lb-ap-southeast-1-adm.supabase.co",
+          "method": "GET",
+          "region": "ap-southeast-1",
+          "remoteAddress": "10.103.39.143",
+          "remotePort": 56508,
+          "traceId": "req-f0q",
+          "url": "/tenants/lfkqzoiaklbudigidhyh"
+        }
+      ],
+      "reqId": "req-f0q",
+      "reqMetadata": "{}",
+      "res": [
+        {
+          "headers": [
+            {
+              "cache_control": null,
+              "content_disposition": null,
+              "content_length": "1837",
+              "content_range": null,
+              "content_type": "application/json; charset=utf-8",
+              "etag": null,
+              "expires": null,
+              "last_modified": null,
+              "location": null,
+              "tus_resumable": null,
+              "upload_length": null,
+              "upload_metadata": null,
+              "upload_offset": null,
+              "x_transformations": null
+            }
+          ],
+          "statusCode": 200
+        }
+      ],
+      "resources": [
+        "/lfkqzoiaklbudigidhyh"
+      ],
+      "responseTime": 2.4698060005903244,
+      "role": null,
+      "serverTimes": [],
+      "span_id": null,
+      "tenantId": "lfkqzoiaklbudigidhyh",
+      "trace_flags": null,
+      "trace_id": null
+    }
+  ],
+  "timestamp": 1773761401577000
+}

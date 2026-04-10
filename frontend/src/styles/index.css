@@ -1,0 +1,264 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+@theme {
+  --color-secondary-fixed-dim: #cfbdff;
+  --color-on-primary: #263500;
+  --color-primary-fixed-dim: #a1d800;
+  --color-surface-container-lowest: #0b0a0f;
+  --color-secondary: #7000ff;
+  --color-on-tertiary-container: #980de8;
+  --color-outline-variant: #434933;
+  --color-surface-variant: #2a2730;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-fixed: #2f004c;
+  --color-on-surface-variant: #c3caac;
+  --color-on-secondary-fixed: #ffffff;
+  --color-tertiary-fixed-dim: #e3b5ff;
+  --color-on-error-container: #ffdad6;
+  --color-secondary-fixed: #7000ff;
+  --color-on-background: #e6e0ee;
+  --color-surface-container-highest: #36333e;
+  --color-secondary-container: #7000ff;
+  --color-on-surface: #f1eff4;
+  --color-inverse-surface: #e6e0ee;
+  --color-surface-tint: #a1d800;
+  --color-tertiary-fixed: #f3daff;
+  --color-surface-dim: #0e0d14;
+  --color-on-primary-container: #506e00;
+  --color-tertiary-container: #f3daff;
+  --color-error: #ffb4ab;
+  --color-surface-bright: #3b3842;
+  --color-outline: #8d9479;
+  --color-on-secondary-container: #ffffff;
+  --color-on-error: #690005;
+  --color-surface: #0e0d14;
+  --color-on-primary-fixed-variant: #384e00;
+  --color-on-tertiary-fixed-variant: #6e00ab;
+  --color-surface-container: #181621;
+  --color-on-secondary: #ffffff;
+  --color-error-container: #93000a;
+  --color-on-secondary-fixed-variant: #ffffff;
+  --color-inverse-primary: #4b6700;
+  --color-inverse-on-surface: #322f39;
+  --color-primary-fixed: #BFFF00;
+  --color-on-primary-fixed: #141f00;
+  --color-tertiary: #ffffff;
+  --color-surface-container-low: #121019;
+  --color-primary-container: #BFFF00;
+  --color-background: #0b0a0f;
+  --color-primary: #BFFF00;
+  --color-surface-container-high: #1f1c2b;
+
+  --radius-DEFAULT: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+
+  --font-headline: "Plus Jakarta Sans";
+  --font-body: "Manrope";
+  --font-label: "Manrope";
+}
+
+/* ── Global modern base ────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* ── Custom scrollbar ──────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(110, 53, 232, 0.25);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(110, 53, 232, 0.45);
+}
+
+/* ── Smooth transitions for interactive elements ───── */
+button,
+a,
+input,
+select,
+textarea {
+  transition: all 0.2s ease;
+}
+
+/* ── Global focus ring ─────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(110, 53, 232, 0.6);
+  outline-offset: 2px;
+}
+
+/* ── Glassmorphism utility ─────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(7, 6, 14, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(112, 0, 255, 0.05) 0%, rgba(14, 14, 15, 0.8) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ── Modern card ───────────────────────────────────── */
+.card-premium {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(110, 53, 232, 0.08);
+  /* Very subtle primary border */
+  box-shadow: 0 4px 20px -2px rgba(110, 53, 232, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.card-premium:hover {
+  box-shadow: 0 12px 32px -4px rgba(110, 53, 232, 0.12), 0 4px 12px rgba(110, 53, 232, 0.04);
+  transform: translateY(-2px);
+  border-color: rgba(110, 53, 232, 0.2);
+}
+
+/* ── Premium Buttons ───────────────────────────────── */
+.btn-gradient {
+  background: linear-gradient(135deg, #6E35E8 0%, #8B4DFF 100%);
+  color: white;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px 0 rgba(110, 53, 232, 0.25);
+}
+
+.btn-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(110, 53, 232, 0.4);
+}
+
+.btn-gradient:active {
+  transform: translateY(1px);
+}
+
+.glow-purple {
+  position: relative;
+}
+
+.glow-purple::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, #6E35E8, #B4F500);
+  filter: blur(12px);
+  opacity: 0;
+  border-radius: inherit;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.glow-purple:hover::before {
+  opacity: 0.6;
+}
+
+/* ── Gradient text ─────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #6E35E8, #9B6DFF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-lime {
+  background: linear-gradient(135deg, #B4F500, #6E35E8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Shimmer loading skeleton ──────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+/* ── Fade-in animation ─────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+/* ── Badge ─────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ── Section divider gradient ──────────────────────── */
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(110, 53, 232, 0.2), transparent);
+}

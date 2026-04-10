@@ -1,0 +1,161 @@
+Gemini API Rate Limit
+Free tier
+Project
+ProInterview
+Time Range
+28 Days
+Rate limits by model
+info
+Peak usage per model compared to its limit over the last 28 days
+Model
+Category
+RPM
+TPM
+RPD
+Charts
+Gemini 2.5 Flash
+Text-out models	
+0 / 5
+0 / 250K
+0 / 20
+Gemini 2.5 Pro
+Text-out models	
+0 / 0
+0 / 0
+0 / 0
+Gemini 2 Flash
+Text-out models	
+0 / 0
+0 / 0
+0 / 0
+Gemini 2 Flash Exp
+Text-out models	
+0 / 0
+0 / 0
+0 / 0
+Gemini 2 Flash Lite
+Text-out models	
+0 / 0
+0 / 0
+0 / 0
+Gemini 2.5 Flash TTS
+Multi-modal generative models	
+0 / 3
+0 / 10K
+0 / 10
+Gemini 2.5 Pro TTS
+Multi-modal generative models	
+0 / 0
+0 / 0
+0 / 0
+Gemma 3 1B
+Other models	
+0 / 30
+0 / 15K
+0 / 14.4K
+Gemma 3 4B
+Other models	
+0 / 30
+0 / 15K
+0 / 14.4K
+Gemma 3 12B
+Other models	
+0 / 30
+0 / 15K
+0 / 14.4K
+Gemma 3 27B
+Other models	
+0 / 30
+0 / 15K
+0 / 14.4K
+Imagen 4 Generate
+Multi-modal generative models	-	-	
+0 / 25
+Imagen 4 Ultra Generate
+Multi-modal generative models	-	-	
+0 / 25
+Imagen 4 Fast Generate
+Multi-modal generative models	-	-	
+0 / 25
+Gemma 3 2B
+Other models	
+0 / 30
+0 / 15K
+0 / 14.4K
+Gemini Embedding 1
+Other models	
+0 / 100
+0 / 30K
+0 / 1K
+Gemini 3 Flash
+Text-out models	
+0 / 5
+0 / 250K
+0 / 20
+Gemini 2.5 Flash Lite
+Text-out models	
+0 / 10
+0 / 250K
+0 / 20
+Gemini 3.1 Pro
+Text-out models	
+0 / 0
+0 / 0
+0 / 0
+Nano Banana (Gemini 2.5 Flash Preview Image)
+Multi-modal generative models	
+0 / 0
+0 / 0
+0 / 0
+Gemini 3.1 Flash Lite
+Text-out models	
+0 / 15
+0 / 250K
+0 / 500
+Nano Banana Pro (Gemini 3 Pro Image)
+Multi-modal generative models	
+0 / 0
+0 / 0
+0 / 0
+Nano Banana 2 (Gemini 3.1 Flash Image)
+Multi-modal generative models	
+0 / 0
+0 / 0
+0 / 0
+Veo 3 Generate
+info
+Multi-modal generative models	
+0 / 0
+-	
+0 / 0
+Veo 3 Fast Generate
+info
+Multi-modal generative models	
+0 / 0
+-	
+0 / 0
+Gemini Robotics ER 1.5 Preview
+Other models	
+0 / 10
+0 / 250K
+0 / 20
+Computer Use Preview
+Other models	
+0 / 0
+0 / 0
+0 / 0
+Gemini Embedding 2
+Other models	
+0 / 100
+0 / 30K
+0 / 1K
+Deep Research Pro Preview
+Agents	
+0 / 0
+0 / 0
+0 / 0
+Gemini 2.5 Flash Native Audio Dialog
+Live API	
+0 / Unlimited
+0 / 1M
+0 / Unlimited

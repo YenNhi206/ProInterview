@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+build/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+
+# scratch
+scratch/
+
+# misc
+*.local
+coverage/
