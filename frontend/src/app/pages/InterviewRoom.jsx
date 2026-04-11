@@ -180,7 +180,7 @@ function HRVideoPanel({
                 backdropFilter: "blur(8px)",
               }}
             >
-              <div className={`w-1.5 h-1.5 rounded-full ${isListening ? "bg-white animate-pulse" : "bg-[#B4F000]"}`} />
+              <div className={`w-1.5 h-1.5 rounded-full ${isListening ? "bg-white animate-pulse" : "bg-[#c4ff47]"}`} />
               <span className={isListening ? "text-white" : "text-[#B4F000]"}>
                 {isListening ? "Đang ghi âm câu trả lời..." : "Lượt của bạn — Nhấn 🎤 để trả lời"}
               </span>
@@ -194,7 +194,7 @@ function HRVideoPanel({
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
             style={{ background: "rgba(110, 53, 232,0.85)", backdropFilter: "blur(8px)" }}
           >
-            <div className="w-1.5 h-1.5 bg-[#B4F000] rounded-full animate-pulse" />
+            <div className="w-1.5 h-1.5 bg-[#c4ff47] rounded-full animate-pulse" />
             <span className="text-white">HR đang hỏi...</span>
           </div>
         </div>
@@ -362,7 +362,7 @@ function UpgradeModal({
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-2 mb-2">
               <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(180,240,0,0.15)" }}>
-                <div className="w-1.5 h-1.5 rounded-full bg-[#B4F000]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#c4ff47]" />
               </div>
               <p className="text-white/70 text-xs">{item}</p>
             </div>
@@ -388,7 +388,7 @@ function UpgradeModal({
           className="w-full py-3 rounded-2xl text-sm transition-all hover:bg-white/8"
           style={{ color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
         >
-          Kết thúc và xem k���t quả {completedCount} câu
+          Kết thúc và xem kết quả {completedCount} câu
         </button>
       </div>
     </div>
@@ -565,11 +565,8 @@ export default function InterviewRoom() {
   if (phase === "ready") {
     return (
       <div
-        className="flex flex-col items-center justify-center overflow-hidden relative"
-        style={{
-          height: "calc(100vh - 56px)",
-          background: "linear-gradient(160deg, #0a0a18 0%, #0f0b22 50%, #0a0a18 100%)",
-        }}
+        className="pi-page-dashboard-bg relative flex flex-col items-center justify-center overflow-hidden"
+        style={{ height: "calc(100vh - 56px)" }}
       >
         <div
           className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
@@ -612,7 +609,7 @@ export default function InterviewRoom() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
               style={{ background: "rgba(110, 53, 232,0.15)", border: "1px solid rgba(139, 77, 255,0.3)", color: "#c4b5fd" }}
             >
-              <div className="w-2 h-2 rounded-full bg-[#B4F000] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#c4ff47] animate-pulse" />
               AI Interview đã sẵn sàng
             </div>
 
@@ -685,10 +682,11 @@ export default function InterviewRoom() {
             </button>
 
             <button
-              onClick={() => navigate("/interview/gender")}
-              className="w-full text-center text-white/35 text-sm hover:text-white/60 transition-colors"
+              type="button"
+              onClick={() => navigate(-1)}
+              className="w-full text-center text-sm text-white/35 transition-colors hover:text-white/60"
             >
-              ← Quay lại chọn HR AI
+              ← Quay lại
             </button>
           </div>
         </div>
@@ -699,11 +697,8 @@ export default function InterviewRoom() {
   /* ══ RENDER — Main interview room ═════════════════════════ */
   return (
     <div
-      className="flex flex-col overflow-hidden relative"
-      style={{
-        height: "calc(100vh - 56px)",
-        background: "linear-gradient(160deg, #0a0a18 0%, #0f0b22 50%, #0a0a18 100%)",
-      }}
+      className="pi-page-dashboard-bg relative flex flex-col overflow-hidden"
+      style={{ height: "calc(100vh - 56px)" }}
     >
       {/* ── Upgrade modal overlay (non-Pro, after FREE_LIMIT) ── */}
       {showUpgradeModal && (

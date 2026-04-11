@@ -527,7 +527,7 @@ export function MentorReview() {
                   className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
                   style={sel
                     ? { background: "#6E35E8", color: "#fff", boxShadow: "0 2px 10px rgba(110, 53, 232,0.25)" }
-                    : { background: "#F4F5F7", color: "#374151", border: "1.5px solid #E5E7EB" }
+                    : { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.65)", border: "1.5px solid rgba(255,255,255,0.12)" }
                   }
                 >
                   <opt.Icon

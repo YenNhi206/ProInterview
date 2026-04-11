@@ -23,6 +23,22 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { getUser } from "../utils/auth";
 import { UPCOMING_MENTOR_MEETINGS, COMPLETED_MENTOR_MEETINGS } from "../data/mentorMockData";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
+
+const MENTOR_MEETING_DETAIL_EXTRA_CSS = `
+        .neon-border { position: relative; }
+        .neon-border::after {
+           content: ''; position: absolute; inset: 0;
+           border-radius: inherit;
+           padding: 1px;
+           background: linear-gradient(135deg, rgba(180, 245, 0, 0.4), transparent, rgba(110, 53, 232, 0.4));
+           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+           mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+           -webkit-mask-composite: xor;
+           mask-composite: exclude;
+           pointer-events: none;
+        }
+`;
 
 export function MentorMeetingDetail() {
   const { id } = useParams();
@@ -46,41 +62,12 @@ export function MentorMeetingDetail() {
   const isCompleted = meeting.status === "completed" || meeting.overallScore > 0;
 
   return (
-    <div className="min-h-screen text-white font-sans pb-32 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
-      <style>{`
-        .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 40px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.95; }
-        .neon-border { position: relative; }
-        .neon-border::after {
-           content: ''; position: absolute; inset: 0;
-           border-radius: inherit;
-           padding: 1px;
-           background: linear-gradient(135deg, rgba(180, 245, 0, 0.4), transparent, rgba(110, 53, 232, 0.4));
-           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-           mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-           -webkit-mask-composite: xor;
-           mask-composite: exclude;
-           pointer-events: none;
-        }
-      `}</style>
-
-      {/* Atmospheric Background Glows */}
-      <div className="fixed top-0 right-0 w-[1200px] h-[1200px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[800px] h-[800px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
+    <MentorPageShell bottomPad="pb-32" extraStyles={MENTOR_MEETING_DETAIL_EXTRA_CSS}>
       <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
         {/* Header Navigation */}
         <div className="flex items-center justify-between mb-16">
-           <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all group">
-              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Quay lại danh sách
+           <button type="button" onClick={() => navigate(-1)} className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 transition-all hover:text-white">
+              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" /> Quay lại
            </button>
            <div className="flex gap-4">
               <button className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-all">
@@ -151,7 +138,7 @@ export function MentorMeetingDetail() {
                        {[
                          { label: "Situation", key: "situation", color: "#6E35E8", desc: "Xác định hoàn cảnh và bối cảnh cụ thể" },
                          { label: "Task", key: "task", color: "#8B4DFF", desc: "Nhiệm vụ và mục tiêu cần đạt được" },
-                         { label: "Action", key: "action", color: "#B4F500", desc: "Hành động thực tế đã triển khai" },
+                         { label: "Action", key: "action", color: "#c4ff47", desc: "Hành động thực tế đã triển khai" },
                          { label: "Result", key: "result", color: "#FF8C42", desc: "Kết quả cuối cùng và giá trị đạt được" }
                        ].map((item) => {
                          const score = meeting.starScores?.[item.key] || 0;
@@ -238,7 +225,7 @@ export function MentorMeetingDetail() {
                  <div className="space-y-4">
                     {!isCompleted ? (
                        <>
-                          <button className="w-full py-5 rounded-3xl bg-primary-fixed text-black text-[10px] font-black uppercase tracking-widest shadow-[0_15px_40px_rgba(180,245,0,0.3)] hover:scale-105 transition-all">
+                          <button className="w-full py-5 rounded-3xl bg-primary-fixed text-black text-[10px] font-black uppercase tracking-widest shadow-[0_15px_40px_rgba(196, 255, 71,0.32)] hover:scale-105 transition-all">
                              Vào phòng họp ngay
                           </button>
                           <button className="w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
@@ -250,7 +237,7 @@ export function MentorMeetingDetail() {
                        </>
                     ) : (
                        <>
-                          <button className="w-full py-5 rounded-3xl bg-primary-fixed text-black text-[10px] font-black uppercase tracking-widest shadow-[0_15px_40px_rgba(180,245,0,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-2">
+                          <button className="w-full py-5 rounded-3xl bg-primary-fixed text-black text-[10px] font-black uppercase tracking-widest shadow-[0_15px_40px_rgba(196, 255, 71,0.32)] hover:scale-105 transition-all flex items-center justify-center gap-2">
                              <TrendingUp size={16} /> Gửi feedback bổ sung
                           </button>
                           <button className="w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
@@ -263,6 +250,6 @@ export function MentorMeetingDetail() {
            </div>
         </div>
       </div>
-    </div>
+    </MentorPageShell>
   );
 }

@@ -180,7 +180,7 @@ export function ReportMentorModal({
               type="button"
               onClick={onClose}
               className="flex-1 py-3 rounded-xl font-semibold text-sm transition-colors hover:bg-gray-200"
-              style={{ background: "#F4F5F7", color: "#1F1F1F" }}
+              style={{ background: "rgba(22,11,46,0.95)", color: "#f4f4f5" }}
             >
               Huỷ
             </button>

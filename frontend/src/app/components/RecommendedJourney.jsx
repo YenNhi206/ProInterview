@@ -223,7 +223,7 @@ export function RecommendedJourney({
                     className="w-24 h-24 rounded-2xl flex items-center justify-center relative transition-all group-hover:scale-105"
                     style={{
                       background: isCompleted
-                        ? "linear-gradient(135deg, #B4F000, #80C800)"
+                        ? "linear-gradient(135deg, #c4ff47, #8fbc24)"
                         : isActive
                         ? `linear-gradient(135deg, ${step.color}DD, ${step.color})`
                         : step.bgColor,

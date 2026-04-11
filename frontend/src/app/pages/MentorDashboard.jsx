@@ -32,6 +32,7 @@ import {
   MENTOR_DASHBOARD_STATS,
   WEEKLY_STATS,
 } from "../data/mentorMockData";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
 
 /* ── Mentee Progress Modal ────────────────────────────────────────────────── */
 function MenteeProgressModal({
@@ -258,41 +259,19 @@ export function MentorDashboard() {
   const stats = MENTOR_DASHBOARD_STATS;
 
   return (
-    <div className="min-h-screen text-white font-sans pb-20 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
+    <MentorPageShell bottomPad="pb-20">
       <style>{`
-        .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 48px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-           position: relative;
-        }
-        .glass-card::before {
-           content: ''; position: absolute; inset: 0;
-           background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
-           pointer-events: none; border-radius: inherit;
-        }
-        .glass-card:hover { border-color: rgba(180, 245, 0, 0.4); background: rgba(255, 255, 255, 0.06); }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.9; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
       `}</style>
-
-      {/* Rrich Atmospheric Background Glows */}
-      <div className="fixed top-0 right-0 w-[1400px] h-[1400px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[1000px] h-[1000px] bg-primary-fixed/5 blur-[250px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
-      <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
+      <div className="relative z-10 mx-auto max-w-7xl p-10 pt-20">
         <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
             <h1 className="text-7xl font-black text-white font-headline tracking-tighter mb-4">
                Xin chào, <span className="text-primary-fixed">{user.name.split(" ")[0]}!</span> 👋
             </h1>
-            <p className="text-zinc-500 text-lg font-medium">Bảng điều khiển tối ưu dành cho Mentor của ProInterview</p>
+            <p className="text-lg font-medium leading-relaxed text-white/55">Bảng điều khiển tối ưu dành cho Mentor của ProInterview</p>
           </div>
           <div className="flex gap-4">
               <button onClick={() => navigate("/mentor/schedule")} className="px-8 py-4 rounded-3xl bg-primary-fixed text-black text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_10px_40px_rgba(180,245,0,0.3)] flex items-center gap-2">
@@ -314,10 +293,10 @@ export function MentorDashboard() {
                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 bg-white/5 group-hover:bg-white/10 transition-all">
                       <stat.icon size={22} style={{ color: stat.color }} />
                    </div>
-                   <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{stat.label}</span>
+                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">{stat.label}</span>
                 </div>
                 <h3 className="text-5xl font-black text-white tracking-tighter mb-2">{stat.value}</h3>
-                <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/45">
                    <ArrowUpRight size={14} className="text-primary-fixed" /> {stat.sub}
                 </p>
              </div>
@@ -340,7 +319,7 @@ export function MentorDashboard() {
                       </div>
                       <div>
                          <p className="text-xs font-black text-white uppercase tracking-widest mb-1">{nav.label}</p>
-                         <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">{nav.desc}</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-white/45">{nav.desc}</p>
                       </div>
                    </button>
                  ))}
@@ -368,7 +347,7 @@ export function MentorDashboard() {
                          <div className="flex items-center gap-10">
                             <div className="text-right hidden sm:block">
                                <p className="text-xs font-black text-white">{meeting.scheduledTime}</p>
-                               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{new Date(meeting.scheduledDate).toLocaleDateString("vi-VN")}</p>
+                               <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">{new Date(meeting.scheduledDate).toLocaleDateString("vi-VN")}</p>
                             </div>
                             <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-primary-fixed opacity-0 group-hover:opacity-100 transition-all">
                                <ArrowRight size={18} />
@@ -383,7 +362,7 @@ export function MentorDashboard() {
            {/* Sidebar: Recent Activity & Peer Review */}
            <div className="lg:col-span-4 space-y-10">
               <div className="glass-card p-10">
-                 <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                 <h4 className="mb-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
                     <CheckCircle size={14} className="text-primary-fixed" /> Hoàn thành gần đây
                  </h4>
                  <div className="space-y-6">
@@ -394,7 +373,7 @@ export function MentorDashboard() {
                          <img src={meeting.mentee.avatar} className="w-10 h-10 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all" />
                          <div className="flex-1">
                             <p className="text-xs font-black text-white mb-0.5 tracking-tight">{meeting.mentee.name}</p>
-                            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{new Date(meeting.scheduledDate).toLocaleDateString("vi-VN")}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-white/45">{new Date(meeting.scheduledDate).toLocaleDateString("vi-VN")}</p>
                          </div>
                          <div className="flex items-center gap-1.5 text-primary-fixed">
                             <Star size={12} className="fill-current" />
@@ -427,6 +406,6 @@ export function MentorDashboard() {
       <AnimatePresence>
         {selectedMeeting && <MenteeProgressModal meeting={selectedMeeting} onClose={() => setSelectedMeeting(null)} />}
       </AnimatePresence>
-    </div>
+    </MentorPageShell>
   );
 }

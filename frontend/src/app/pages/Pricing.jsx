@@ -42,7 +42,7 @@ export function Pricing() {
   const toggleFaq = (i) => setOpenFaq(openFaq === i ? null : i);
 
   return (
-    <div className="min-h-screen bg-[#07060E] text-white selection:bg-primary-fixed selection:text-black">
+    <div className="min-h-screen bg-[#120B2E] text-white selection:bg-primary-fixed selection:text-[#120B2E]">
       <style>{`
         .glass-card {
            background: rgba(255, 255, 255, 0.03);

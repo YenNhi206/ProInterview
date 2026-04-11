@@ -176,7 +176,7 @@ export function AILipSyncAvatar({
     ? `rgba(180,240,0,${(0.48 + ringPulse * 0.44).toFixed(3)})`
     : "rgba(139, 77, 255,0.18)";
   const dotBg = isVideoMode
-    ? (isSpeaking ? "#B4F000" : "#22c55e")
+    ? (isSpeaking ? "#c4ff47" : "#22c55e")
     : isConnecting ? "#f59e0b" : "#6E35E8";
 
   /* Unique IDs per size instance */
@@ -575,7 +575,7 @@ export function AILipSyncAvatar({
               cx={cx + Math.cos(rad) * (fR + size * 0.043)}
               cy={cy + Math.sin(rad) * (fR + size * 0.043)}
               r={size * 0.015}
-              fill={isSpeaking ? "#B4F000" : "#6E35E8"}
+              fill={isSpeaking ? "#c4ff47" : "#6E35E8"}
               opacity={isSpeaking ? (0.85 + ringPulse * 0.15).toFixed(3) : "0.32"}
               style={{ transition: "fill 0.3s, opacity 0.15s" }}
             />
@@ -611,7 +611,7 @@ export function AILipSyncAvatar({
                   y={-h / 2}
                   width={size * 0.022} height={h}
                   rx={size * 0.011}
-                  fill={i === 4 ? "#B4F000" : "#8B4DFF"}
+                  fill={i === 4 ? "#c4ff47" : "#8B4DFF"}
                   opacity={(0.55 + amp * 0.45).toFixed(3)}
                 />
               );
@@ -648,7 +648,7 @@ export function AILipSyncAvatar({
                     y={-h / 2}
                     width={size * 0.022} height={h}
                     rx={size * 0.011}
-                    fill={i === 4 ? "#B4F000" : "#8B4DFF"}
+                    fill={i === 4 ? "#c4ff47" : "#8B4DFF"}
                     opacity="0.85"
                   />
                 );

@@ -138,11 +138,11 @@ export function Booking() {
     <div className="p-6 max-w-3xl mx-auto">
       {/* Back button */}
       <button
-        onClick={() => step === 1 ? navigate(`/mentors/${id}`) : setStep(1)}
+        onClick={() => (step === 1 ? navigate(-1) : setStep(1))}
         className="group flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm mb-6 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 -ml-3"
       >
         <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-        {step === 1 ? "Quay lại hồ sơ mentor" : "Quay lại chọn lịch"}
+        {step === 1 ? "Quay lại" : "Quay lại chọn lịch"}
       </button>
 
       {/* ── Step bar (2 steps) ──────────────────────────── */}
@@ -235,7 +235,7 @@ export function Booking() {
                               ? { background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", boxShadow: "0 4px 14px rgba(110, 53, 232,0.3)" }
                               : d.available
                               ? { background: "#F8F9FA", border: "1px solid #EDEEF0", cursor: "pointer" }
-                              : { background: "#F4F5F7", opacity: 0.4, cursor: "not-allowed" }
+                              : { background: "rgba(255,255,255,0.06)", opacity: 0.45, cursor: "not-allowed" }
                           }
                           onMouseEnter={(e) => { if (!isSelected && d.available) (e.currentTarget).style.borderColor = "rgba(110, 53, 232,0.35)"; }}
                           onMouseLeave={(e) => { if (!isSelected && d.available) (e.currentTarget).style.borderColor = "#EDEEF0"; }}
@@ -306,7 +306,7 @@ export function Booking() {
                               selected
                                 ? { background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", color: "#fff", boxShadow: "0 4px 12px rgba(110, 53, 232,0.3)", border: "none" }
                                 : booked
-                                ? { background: "#F4F5F7", color: "#C4C9D4", cursor: "not-allowed", border: "1px solid #EDEEF0" }
+                                ? { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)", cursor: "not-allowed", border: "1px solid rgba(255,255,255,0.08)" }
                                 : { background: "#fff", color: "#1F1F1F", border: "1.5px solid #E5E7EB" }
                             }
                             onMouseEnter={(e) => { if (!selected && !booked) { (e.currentTarget).style.borderColor = "rgba(110, 53, 232,0.4)"; (e.currentTarget).style.color = "#6E35E8"; } }}

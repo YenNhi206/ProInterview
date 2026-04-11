@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import { connectDatabase } from "./db/connect.js";
+import { mentorsRouter } from "./routes/mentors.js";
+import { authRouter } from "./routes/auth.js";
 
 dotenv.config();
 
@@ -9,13 +12,24 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
-app.use(cors());
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean)
+  : true;
+
+app.use(
+  cors({
+    origin: corsOrigins,
+    credentials: false,
+  })
+);
 app.use(express.json());
 
 app.get("/", (_req, res) => {
   res.json({
     message: "ProInterview backend is running",
     docs: "/api/health",
+    mentors: "/api/mentors",
+    auth: "/api/auth",
   });
 });
 
@@ -28,17 +42,54 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+app.use("/api/auth", authRouter);
+app.use("/api/mentors", mentorsRouter);
+
+console.log(
+  `API: /api/health, /api/auth (login, register, google, me), /api/mentors — nếu POST /api/auth/google trả 404 HTML thì tiến trình cũ trên cổng ${PORT} cần tắt và chạy lại backend từ repo này.`,
+);
+
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ success: false, error: "Internal server error" });
+});
+
 const startServer = async () => {
   try {
     if (MONGO_URI) {
-      await mongoose.connect(MONGO_URI);
-      console.log("MongoDB connected");
+      await connectDatabase(MONGO_URI);
+      const dbName = mongoose.connection.db?.databaseName ?? "?";
+      console.log(`MongoDB connected (database: ${dbName})`);
     } else {
-      console.warn("MONGO_URI is missing. Server runs without database connection.");
+      console.warn("MONGO_URI is missing. /api/mentors will return 503 until MongoDB is configured.");
     }
 
-    app.listen(PORT, () => {
-      console.log(`Backend running at http://localhost:${PORT}`);
+    if (!process.env.JWT_SECRET) {
+      console.warn("JWT_SECRET is missing. Đăng nhập /api/auth sẽ lỗi cho đến khi bạn set trong .env");
+    }
+
+    const server = app.listen(PORT);
+    server.once("listening", () => {
+      const addr = server.address();
+      const bound = typeof addr === "object" && addr ? addr.port : PORT;
+      console.log(`Backend running at http://localhost:${bound}`);
+      console.log(`Sanity: GET / phải trả JSON có "auth" và "mentors" — nếu thiếu thì trình duyệt đang trỏ nhầm host/port.`);
+    });
+    server.on("error", (err) => {
+      // Windows đôi khi bắn EADDRINUSE muộn dù đã listen OK — không exit nếu server đang lắng nghe.
+      if (err.code === "EADDRINUSE" && server.listening) return;
+      if (err.code === "EADDRINUSE") {
+        console.error(
+          `\nCổng ${PORT} đang bị chiếm (thường là tiến trình Node/backend cũ không có /api/auth).\n` +
+            `Chạy: netstat -ano | findstr :${PORT}\n` +
+            `Rồi: taskkill /PID <số_PID> /F\n` +
+            `Sau đó: npm start lại trong thư mục backend của repo này.\n`
+        );
+        process.exit(1);
+        return;
+      }
+      console.error(err);
+      process.exit(1);
     });
   } catch (error) {
     console.error("Failed to start backend:", error.message);

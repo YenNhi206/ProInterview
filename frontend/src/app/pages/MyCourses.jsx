@@ -212,7 +212,7 @@ function CourseCard({ item, onContinue }) {
             <p className="text-xs font-semibold text-gray-800 truncate">{course.mentorName}</p>
             <p className="text-xs text-gray-400 truncate">{course.mentorTitle}</p>
           </div>
-          <SealCheck className="w-4 h-4 text-[#6E35E8] flex-shrink-0" />
+          <BadgeCheck className="h-4 w-4 flex-shrink-0 text-[#6E35E8]" aria-hidden />
         </div>
 
         {/* Progress bar */}
@@ -503,7 +503,7 @@ export function MyCourses() {
   });
 
   return (
-    <div className="min-h-screen" style={{ background: "#F4F5F7" }}>
+    <div className="min-h-full bg-transparent text-foreground">
       {/* ── Hero Banner ── */}
       <div
         className="relative overflow-hidden"

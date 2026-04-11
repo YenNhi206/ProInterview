@@ -46,7 +46,7 @@ const PLANS = {
     monthlyPrice: 99000,
     yearlyPrice: 79000,
     badge: "TỐT NHẤT",
-    accentColor: "#B4F000",
+    accentColor: "#c4ff47",
     features: ["AI phỏng vấn không giới hạn", "AI nhận dạng giọng nói — Turbo 2×", "CV/JD phân tích không giới hạn", "Phân tích hành vi: Giao tiếp mắt, Tư thế", "Phân tích giọng nói: Tốc độ, Từ đệm", "Mentor 1-1 ưu tiên"],
   },
 };
@@ -169,16 +169,19 @@ export function Checkout() {
   /* ── Booking vs Plan mode ─────────────────────────────── */
   const isBooking = searchParams.get("type") === "booking";
   const mentorId = searchParams.get("mentorId") ?? "";
-  const [bookingMentor, setBookingMentor] = React.useState(
-    (MENTORS.find((m) => m.id === mentorId) ?? MENTORS[0])
+  const [bookingMentor, setBookingMentor] = React.useState(() =>
+    mentorId ? MENTORS.find((m) => m.id === mentorId) ?? null : null
   );
 
   React.useEffect(() => {
     if (!isBooking || !mentorId) return;
-    fetchMentor(mentorId).then((m) => { if (m) setBookingMentor(m); });
+    setBookingMentor(MENTORS.find((m) => m.id === mentorId) ?? null);
+    fetchMentor(mentorId).then((m) => {
+      if (m) setBookingMentor(m);
+    });
   }, [isBooking, mentorId]);
 
-  const bookingPrice = Number(searchParams.get("price") ?? bookingMentor.price);
+  const bookingPrice = Number(searchParams.get("price") ?? bookingMentor?.price ?? 0);
   const bookingDate = searchParams.get("date") ?? "";
   const bookingTime = searchParams.get("time") ?? "";
 
@@ -231,7 +234,7 @@ export function Checkout() {
         if (planKey === "all") activateAllPlans();
         else if (["textPro", "voicePro", "cvPro"].includes(planKey)) setActivePlan(planKey );
         else if (["starterPro", "elitePro"].includes(planKey)) setActivePlan(planKey );
-      } else {
+      } else if (bookingMentor) {
         // Save booking via unified utility
         const endTime = bookingTime
           ? String(parseInt(bookingTime.split(":")[0]) + 1).padStart(2, "0") + ":00"
@@ -279,7 +282,7 @@ export function Checkout() {
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary-fixed/5 blur-[150px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
         <div className="max-w-xl w-full text-center fade-in relative z-10">
-          <div className="w-24 h-24 rounded-[32px] bg-primary-fixed flex items-center justify-center mx-auto mb-8 shadow-[0_20px_50px_rgba(180,245,0,0.3)] scale-110">
+          <div className="w-24 h-24 rounded-[32px] bg-primary-fixed flex items-center justify-center mx-auto mb-8 shadow-[0_20px_50px_rgba(196, 255, 71,0.3)] scale-110">
             <SealCheck className="w-12 h-12 text-black" />
           </div>
 
@@ -294,7 +297,9 @@ export function Checkout() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">Active Plan</p>
-                <p className="text-xl font-black text-white">{isBooking ? `1-1 with ${bookingMentor.name}` : plan.name}</p>
+                <p className="text-xl font-black text-white">
+                  {isBooking ? `1-1 with ${bookingMentor?.name ?? "mentor"}` : plan.name}
+                </p>
                 <p className="text-[10px] font-bold text-primary-fixed mt-1">Status: Active ✓</p>
               </div>
             </div>
@@ -303,7 +308,7 @@ export function Checkout() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={() => navigate("/dashboard")} 
-              className="px-10 h-14 rounded-full bg-primary-fixed text-black font-black uppercase tracking-widest text-xs shadow-[0_10px_30px_rgba(180,245,0,0.2)] hover:scale-105 transition-all"
+              className="px-10 h-14 rounded-full bg-primary-fixed text-black font-black uppercase tracking-widest text-xs shadow-[0_10px_30px_rgba(196, 255, 71,0.2)] hover:scale-105 transition-all"
             >
               Go to Dashboard →
             </button>
@@ -329,7 +334,7 @@ export function Checkout() {
             <div className="absolute inset-0 rounded-[32px] bg-primary-fixed/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <svg className="absolute inset-0 w-full h-full -rotate-90 scale-90" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
-              <circle cx="50" cy="50" r="45" fill="none" stroke="#B4F500" strokeWidth="6"
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#c4ff47" strokeWidth="6"
                 strokeDasharray="282.7"
                 strokeDashoffset={282.7 * (1 - progress / 100)}
                 strokeLinecap="round"
@@ -342,7 +347,7 @@ export function Checkout() {
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-8">Please do not close this window</p>
           
           <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-3">
-            <div className="h-full bg-gradient-to-r from-secondary to-primary-fixed transition-all duration-300 shadow-[0_0_20px_rgba(180,245,0,0.5)]" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-gradient-to-r from-secondary to-primary-fixed transition-all duration-300 shadow-[0_0_20px_rgba(196, 255, 71,0.5)]" style={{ width: `${progress}%` }} />
           </div>
           <p className="text-[10px] font-black tracking-[0.2em] text-primary-fixed">{progress}% COMPLETE</p>
         </div>
@@ -377,9 +382,9 @@ export function Checkout() {
         }
         .card-input:focus { 
           outline: none; 
-          border-color: #B4F500; 
+          border-color: #c4ff47; 
           background: rgba(255,255,255,0.06);
-          box-shadow: 0 0 20px rgba(180,245,0,0.1);
+          box-shadow: 0 0 20px rgba(196, 255, 71,0.1);
         }
         .card-input::placeholder { color: rgba(255,255,255,0.2); }
         .glass-panel {
@@ -432,7 +437,7 @@ export function Checkout() {
               {/* Account info bar */}
               <div className="flex items-center justify-between px-8 py-4 border-b border-white/5 bg-white/5">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-[#BFFF00] flex items-center justify-center shadow-[0_0_20px_rgba(180,245,0,0.2)]">
+                  <div className="w-10 h-10 rounded-2xl bg-[#c4ff47] flex items-center justify-center shadow-[0_0_20px_rgba(196, 255, 71,0.2)]">
                     <span className="text-sm font-black text-black">U</span>
                   </div>
                   <div>
@@ -459,7 +464,7 @@ export function Checkout() {
                         onClick={() => { setMethod(m.id); setCardError(""); setSavedCard(null); }}
                         className={`group relative flex flex-col items-center justify-center py-6 rounded-3xl transition-all duration-500 gap-2 border ${
                           active 
-                            ? "bg-white/10 border-primary-fixed shadow-[0_0_30px_rgba(180,245,0,0.1)] scale-[1.02] z-10" 
+                            ? "bg-white/10 border-primary-fixed shadow-[0_0_30px_rgba(196, 255, 71,0.1)] scale-[1.02] z-10" 
                             : "bg-white/5 border-white/5 hover:border-white/20"
                         }`}
                       >
@@ -702,12 +707,22 @@ export function Checkout() {
                 /* ── BOOKING summary ── */
                 <>
                   <div className="px-8 py-6 border-b border-white/5">
-                    <div className="flex items-center gap-4 mb-6">
-                      <img src={bookingMentor.avatar} alt={bookingMentor.name} className="w-12 h-12 rounded-2xl object-cover border border-white/10" />
-                      <div>
-                        <p className="text-white font-bold text-sm">{bookingMentor.name}</p>
-                        <p className="text-white/40 text-xs">{bookingMentor.title}</p>
-                      </div>
+                    <div className="mb-6 flex items-center gap-4">
+                      {bookingMentor ? (
+                        <>
+                          <img
+                            src={bookingMentor.avatar}
+                            alt={bookingMentor.name}
+                            className="h-12 w-12 rounded-2xl border border-white/10 object-cover"
+                          />
+                          <div>
+                            <p className="text-sm font-bold text-white">{bookingMentor.name}</p>
+                            <p className="text-xs text-white/40">{bookingMentor.title}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-white/50">Đang tải thông tin mentor…</p>
+                      )}
                     </div>
                     <div className="space-y-4">
                       {[
@@ -739,7 +754,7 @@ export function Checkout() {
                   </div>
 
                   <div className="px-8 py-6 border-b border-white/5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#BFFF00] mb-4">What's included</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#c4ff47] mb-4">What's included</p>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-black text-white uppercase tracking-tighter">{plan.name} Package</span>
@@ -774,7 +789,7 @@ export function Checkout() {
                         />
                         <button
                           onClick={() => { if (coupon.trim()) setCouponApplied(true); }}
-                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-primary-fixed text-black transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(180,245,0,0.3)]"
+                          className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-primary-fixed text-black transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(196, 255, 71,0.3)]"
                         >
                           Apply
                         </button>
@@ -793,13 +808,13 @@ export function Checkout() {
                 {billing === "yearly" && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-white/40">Yearly Discount</span>
-                    <span className="text-[#BFFF00] font-bold">−{fmt(baseTotal - total)}</span>
+                    <span className="text-[#c4ff47] font-bold">−{fmt(baseTotal - total)}</span>
                   </div>
                 )}
                 {couponApplied && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-white/40">Coupon Discount (10%)</span>
-                    <span className="text-[#BFFF00] font-bold">−{fmt(discount)}</span>
+                    <span className="text-[#c4ff47] font-bold">−{fmt(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center text-xs">

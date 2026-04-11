@@ -82,7 +82,7 @@ function VideoPlayer({
       {lesson.isPreview && (
         <div
           className="absolute top-4 left-4 text-xs font-bold px-3 py-1.5 rounded-full z-10"
-          style={{ background: "#B4F000", color: "#1F1F1F" }}
+          style={{ background: "#c4ff47", color: "#1F1F1F" }}
         >
           ▶ Xem miễn phí
         </div>
@@ -133,17 +133,17 @@ function VideoPlayer({
         <div className="relative h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group">
           <div
             className="absolute left-0 top-0 h-full rounded-full transition-all duration-200"
-            style={{ width: `${progress}%`, background: "#B4F000" }}
+            style={{ width: `${progress}%`, background: "#c4ff47" }}
           />
           <div
             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ left: `${progress}%`, transform: `translateX(-50%) translateY(-50%)`, background: "#B4F000" }}
+            style={{ left: `${progress}%`, transform: `translateX(-50%) translateY(-50%)`, background: "#c4ff47" }}
           />
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={onTogglePlay} className="text-white hover:text-[#B4F000] transition-colors">
+            <button onClick={onTogglePlay} className="text-white hover:text-[#c4ff47] transition-colors">
               {isPlaying ? (
                 <PauseCircle className="w-5 h-5" />
               ) : (
@@ -190,9 +190,9 @@ function CertificateModal({
         >
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-1/4 w-40 h-40 rounded-full blur-3xl opacity-30" style={{ background: "#6E35E8" }} />
-            <div className="absolute bottom-0 right-1/4 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ background: "#B4F000" }} />
+            <div className="absolute bottom-0 right-1/4 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ background: "#c4ff47" }} />
           </div>
-          <Confetti className="w-14 h-14 mx-auto mb-3" style={{ color: "#B4F000" }} />
+          <Confetti className="w-14 h-14 mx-auto mb-3" style={{ color: "#c4ff47" }} />
           <h2 className="text-2xl font-bold text-white mb-1">Chúc mừng</h2>
           <p className="text-white/60 text-sm">Bạn đã hoàn thành khóa học</p>
         </div>
@@ -216,7 +216,7 @@ function CertificateModal({
             <h3 className="font-bold text-gray-900 text-lg mb-1 leading-tight">{courseName}</h3>
             <p className="text-sm text-gray-500 mb-3">Được chứng nhận bởi <span className="font-semibold text-[#6E35E8]">{mentorName}</span></p>
             <div className="flex items-center justify-center gap-2">
-              <SealCheck className="w-4 h-4" style={{ color: "#B4F000" }} />
+              <SealCheck className="w-4 h-4" style={{ color: "#c4ff47" }} />
               <span className="text-xs text-gray-500">ProInterview Verified · {new Date().toLocaleDateString("vi-VN")}</span>
             </div>
           </div>
@@ -248,7 +248,7 @@ function CertificateModal({
           <div className="flex gap-3">
             <button
               className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110"
-              style={{ background: "#B4F000", color: "#1F1F1F" }}
+              style={{ background: "#c4ff47", color: "#1F1F1F" }}
             >
               <Download className="w-4 h-4" />
               Tải chứng chỉ
@@ -423,11 +423,12 @@ export function CourseLearning() {
           <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Không tìm thấy khóa học</h2>
           <button
-            onClick={() => navigate("/courses")}
-            className="mt-4 px-6 py-3 rounded-xl text-sm font-semibold"
+            type="button"
+            onClick={() => navigate(-1)}
+            className="mt-4 rounded-xl px-6 py-3 text-sm font-semibold"
             style={{ background: "#6E35E8", color: "#fff" }}
           >
-            Quay lại khóa học
+            Quay lại
           </button>
         </div>
       </div>
@@ -444,18 +445,19 @@ export function CourseLearning() {
         {/* Logo + Back */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate(`/courses/${id}`)}
-            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+            type="button"
+            onClick={() => navigate(-1)}
+            className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-[0_1px_0_rgba(255,255,255,0.06)_inset] transition-all hover:border-white/35 hover:bg-white/[0.18] active:scale-[0.97]"
+            aria-label="Quay lại trang trước"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Thoát</span>
+            <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} />
           </button>
           <div className="w-px h-5 bg-white/10" />
           <div
             className="flex items-center gap-1.5 cursor-pointer"
             onClick={() => navigate("/")}
           >
-            <Lightning className="w-5 h-5" style={{ color: "#B4F000" }} />
+            <Lightning className="w-5 h-5" style={{ color: "#c4ff47" }} />
             <span className="font-bold text-white text-sm hidden sm:inline">ProInterview</span>
           </div>
         </div>
@@ -474,7 +476,7 @@ export function CourseLearning() {
             <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${progressPct}%`, background: "#B4F000" }}
+                style={{ width: `${progressPct}%`, background: "#c4ff47" }}
               />
             </div>
             <span className="text-white/60 text-xs font-medium">{progressPct}%</span>
@@ -484,7 +486,7 @@ export function CourseLearning() {
             <button
               onClick={() => setShowCertificate(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:brightness-110"
-              style={{ background: "rgba(180,240,0,0.15)", color: "#B4F000", border: "1px solid rgba(180,240,0,0.3)" }}
+              style={{ background: "rgba(196, 255, 71,0.15)", color: "#c4ff47", border: "1px solid rgba(196, 255, 71,0.3)" }}
             >
               <Certificate className="w-3.5 h-3.5" />
               Chứng chỉ
@@ -524,7 +526,7 @@ export function CourseLearning() {
                     Bài {currentLessonIdx + 1}
                   </span>
                   {completedLessons.includes(currentLesson.id) && (
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1" style={{ background: "rgba(180,240,0,0.15)", color: "#4A7A00" }}>
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1" style={{ background: "rgba(196, 255, 71,0.15)", color: "#4A7A00" }}>
                       <CheckCircle className="w-3.5 h-3.5" />
                       Đã hoàn thành
                     </span>
@@ -541,7 +543,7 @@ export function CourseLearning() {
               {completedLessons.includes(currentLesson.id) ? (
                 <div
                   className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold"
-                  style={{ background: "rgba(180,240,0,0.1)", color: "#B4F000", border: "1px solid rgba(180,240,0,0.2)" }}
+                  style={{ background: "rgba(196, 255, 71,0.1)", color: "#c4ff47", border: "1px solid rgba(196, 255, 71,0.2)" }}
                 >
                   <CheckCircle className="w-4.5 h-4.5" />
                   Hoàn thành
@@ -550,7 +552,7 @@ export function CourseLearning() {
                 <button
                   onClick={markComplete}
                   className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all hover:brightness-110 active:scale-[0.98]"
-                  style={{ background: "#B4F000", color: "#1F1F1F" }}
+                  style={{ background: "#c4ff47", color: "#1F1F1F" }}
                 >
                   <CheckCircle className="w-4.5 h-4.5" />
                   Đánh dấu hoàn thành
@@ -689,12 +691,12 @@ export function CourseLearning() {
           <div className="px-4 py-3 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-white/50 text-xs">Tiến độ học</span>
-              <span className="text-xs font-bold" style={{ color: progressPct === 100 ? "#B4F000" : "#8B4DFF" }}>{progressPct}%</span>
+              <span className="text-xs font-bold" style={{ color: progressPct === 100 ? "#c4ff47" : "#8B4DFF" }}>{progressPct}%</span>
             </div>
             <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${progressPct}%`, background: progressPct === 100 ? "#B4F000" : "#6E35E8" }}
+                style={{ width: `${progressPct}%`, background: progressPct === 100 ? "#c4ff47" : "#6E35E8" }}
               />
             </div>
           </div>
@@ -720,7 +722,7 @@ export function CourseLearning() {
                     className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold transition-all"
                     style={{
                       background: isCompleted
-                        ? "rgba(180,240,0,0.15)"
+                        ? "rgba(196, 255, 71,0.15)"
                         : isCurrent
                         ? "rgba(110, 53, 232,0.2)"
                         : "rgba(255,255,255,0.06)",
@@ -749,7 +751,7 @@ export function CourseLearning() {
                         {formatDuration(lesson.duration)}
                       </span>
                       {lesson.isPreview && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(180,240,0,0.12)", color: "#4A7A00" }}>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "rgba(196, 255, 71,0.12)", color: "#4A7A00" }}>
                           Preview
                         </span>
                       )}
@@ -810,7 +812,7 @@ export function CourseLearning() {
       {justCompleted && (
         <div
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-3 duration-300"
-          style={{ background: "rgba(180,240,0,0.95)", color: "#1F1F1F" }}
+          style={{ background: "rgba(196, 255, 71,0.95)", color: "#1F1F1F" }}
         >
           <CheckCircle className="w-5 h-5" />
           <span className="text-sm font-bold">Bài học đã hoàn thành 🎉</span>

@@ -20,6 +20,19 @@ import {
 } from "lucide-react";
 import { COMPLETED_MENTOR_MEETINGS } from "../data/mentorMockData";
 import { getUser } from "../utils/auth";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
+
+const MENTOR_REVIEWS_INPUT_CSS = `
+        .input-glass {
+           background: rgba(255, 255, 255, 0.03);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 20px;
+           padding: 14px 24px;
+           color: white;
+           transition: all 0.3s;
+        }
+        .input-glass:focus { border-color: #c4ff47; background: rgba(255, 255, 255, 0.06); outline: none; }
+`;
 
 export function MentorReviews() {
   const navigate = useNavigate();
@@ -57,34 +70,7 @@ export function MentorReviews() {
   const recommendCount = reviewedMeetings.filter((m) => m.menteeReview.wouldRecommend).length;
 
   return (
-    <div className="min-h-screen text-white font-sans pb-32 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
-      <style>{`
-        .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 40px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .glass-card:hover { border-color: rgba(180, 245, 0, 0.3); transform: translateY(-4px); }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.95; }
-        .input-glass {
-           background: rgba(255, 255, 255, 0.03);
-           border: 1px solid rgba(255, 255, 255, 0.1);
-           border-radius: 20px;
-           padding: 14px 24px;
-           color: white;
-           transition: all 0.3s;
-        }
-        .input-glass:focus { border-color: #B4F500; background: rgba(255, 255, 255, 0.06); outline: none; }
-      `}</style>
-
-      {/* Background Glows */}
-      <div className="fixed top-0 right-0 w-[1200px] h-[1200px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[800px] h-[800px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
+    <MentorPageShell bottomPad="pb-32" extraStyles={MENTOR_REVIEWS_INPUT_CSS}>
       <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-16">
@@ -92,7 +78,7 @@ export function MentorReviews() {
             <h1 className="text-6xl font-black text-white font-headline tracking-tighter mb-4 uppercase">
                Đánh giá <span className="text-primary-fixed tracking-tighter">từ Mentees</span>
             </h1>
-            <p className="text-zinc-500 text-lg font-medium">Lắng nghe ý kiến và xây dựng uy tín Mentor của bạn</p>
+            <p className="text-white/55 text-lg font-medium">Lắng nghe ý kiến và xây dựng uy tín Mentor của bạn</p>
           </div>
         </div>
 
@@ -236,6 +222,6 @@ export function MentorReviews() {
           )}
         </div>
       </div>
-    </div>
+    </MentorPageShell>
   );
 }

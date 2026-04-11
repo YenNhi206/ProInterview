@@ -2,14 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Upload,
-  FileText,
   ChevronDown,
-  ChevronRight,
   Check,
   Building2,
   BriefcaseBusiness,
   LayoutGrid,
-  Layers,
   Users,
   Brain,
   Timer,
@@ -19,11 +16,9 @@ import {
   BadgeCheck,
   Video,
   Mic,
-  FileText as FilePdf,
-  X,
-  MessageSquare,
-  TrendingUp,
-  Lightbulb,
+  FileCheck,
+  CloudUpload,
+  FileStack,
 } from "lucide-react";
 import { getLatestCVAnalysis, getUploadedCV, saveUploadedCV } from "../utils/history";
 
@@ -33,63 +28,77 @@ const FIELDS_LIST = [
   "Product", "Design", "Sales", "Operations",
 ];
 
-/* ── Palette ─────────────────────────────────────────────── */
-const P = {
-  purple: "#6E35E8",
-  purpleAlt: "#8B4DFF",
-  lime: "#B4F000",
-  gold: "#FFD600",
-  orange: "#FF8C42",
-  bg: "#F4F5F7",
-  card: "#FFFFFF",
-  text: "#1F1F1F",
-  muted: "#6B7280",
-  border: "rgba(0,0,0,0.08)",
-};
+/** Stroke Lucide chuẩn UI — đồng bộ toàn trang */
+const IS = { strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" };
 
-/* ── Step bar ────────────────────────────────────────────── */
-const STEPS = [
-  { n: 1, label: "Thiết lập" },
-  { n: 2, label: "Phỏng vấn" },
-  { n: 3, label: "Kết quả" },
+const PREVIEW_ITEMS = [
+  { icon: Brain, color: "#a78bfa", title: "5 câu hỏi cá nhân hóa", desc: "AI tạo câu hỏi dựa trên JD & CV của bạn" },
+  { icon: Video, color: "#c4b5fd", title: "Phân tích hành vi theo thời gian thực", desc: "AI đánh giá ánh mắt, biểu cảm, ngôn ngữ cơ thể" },
+  { icon: BarChart3, color: "#fb923c", title: "Phân tích lời nói & diễn đạt", desc: "Nội dung STAR, tốc độ nói, từ đệm" },
+  { icon: BadgeCheck, color: "#fbbf24", title: "Phản hồi chi tiết từng câu", desc: "Điểm số + gợi ý câu trả lời mẫu tốt hơn" },
 ];
 
-function StepBar({ current = 1 }) {
+/** Khung icon — cùng họ glass như Dashboard metric */
+function IconFrame({ size = "md", tone = "neutral", className = "", children }) {
+  const sz = size === "sm" ? "h-9 w-9" : size === "lg" ? "h-14 w-14" : "h-11 w-11";
+  const tones = {
+    neutral:
+      "border-white/12 bg-gradient-to-br from-white/[0.11] to-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]",
+    lime: "border-[#c4ff47]/28 bg-gradient-to-br from-[#c4ff47]/14 to-[#c4ff47]/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+    violet:
+      "border-violet-400/25 bg-gradient-to-br from-violet-500/18 to-violet-900/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+    fuchsia:
+      "border-fuchsia-400/22 bg-gradient-to-br from-fuchsia-500/14 to-violet-900/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+  };
   return (
-    <div className="flex items-center gap-0 mb-8 select-none">
-      {STEPS.map((s, i) => (
-        <span key={s.n} style={{ display: "contents" }}>
+    <div
+      className={`flex shrink-0 items-center justify-center rounded-xl border ${sz} ${tones[tone]} ${className}`}
+      aria-hidden
+    >
+      {children}
+    </div>
+  );
+}
+
+function StepBar({ current = 1 }) {
+  const steps = [
+    { n: 1, label: "Thiết lập" },
+    { n: 2, label: "Phỏng vấn" },
+    { n: 3, label: "Kết quả" },
+  ];
+  return (
+    <div className="mb-10 flex select-none flex-wrap items-center gap-0">
+      {steps.map((s, i) => (
+        <span key={s.n} className="contents">
           <div className="flex items-center gap-2">
             <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-              style={
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all ${
                 s.n === current
-                  ? {
-                    background: `linear-gradient(135deg, ${P.purple}, ${P.purpleAlt})`,
-                    color: "#fff",
-                    boxShadow: `0 0 0 3px rgba(110, 53, 232,0.15)`,
-                  }
+                  ? "bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-white shadow-[0_0_0_3px_rgba(110,53,232,0.2)]"
                   : s.n < current
-                    ? { background: P.lime, color: P.text }
-                    : { background: "#E9EAEC", color: "#9CA3AF" }
-              }
+                    ? "bg-[#c4ff47] text-[#0a0814]"
+                    : "border border-white/15 bg-white/[0.06] text-zinc-500"
+              }`}
             >
-              {s.n < current ? <Check strokeWidth={3} className="w-3.5 h-3.5" /> : s.n}
+              {s.n < current ? <Check className="h-3.5 w-3.5" {...IS} strokeWidth={2.25} /> : s.n}
             </div>
             <span
-              className="text-sm font-medium"
-              style={{
-                color:
-                  s.n === current ? P.purple : s.n < current ? P.muted : "#CBD5E1",
-              }}
+              className={`text-sm font-semibold ${
+                s.n === current
+                  ? "text-[#c4ff47]"
+                  : s.n < current
+                    ? "text-white/55"
+                    : "text-zinc-500"
+              }`}
             >
               {s.label}
             </span>
           </div>
-          {i < STEPS.length - 1 && (
+          {i < steps.length - 1 && (
             <div
-              className="flex-1 h-0.5 mx-3 rounded-full"
-              style={{ background: s.n < current ? P.lime : "#E9EAEC" }}
+              className={`mx-3 h-0.5 min-w-[2rem] flex-1 rounded-full ${
+                s.n < current ? "bg-[#c4ff47]/70" : "bg-white/10"
+              }`}
             />
           )}
         </span>
@@ -98,41 +107,15 @@ function StepBar({ current = 1 }) {
   );
 }
 
-/* ── Preview items ──────────────────────────────────────── */
-const PREVIEW_ITEMS = [
-  { icon: Brain, color: P.purple, title: "5 câu hỏi cá nhân hóa", desc: "AI tạo câu hỏi dựa trên JD & CV của bạn" },
-  { icon: Video, color: P.purpleAlt, title: "Phân tích hành vi theo thời gian thực", desc: "AI đánh giá ánh mắt, biểu cảm, ngôn ngữ cơ thể" },
-  { icon: BarChart3, color: P.orange, title: "Phân tích lời nói & diễn đạt", desc: "Nội dung STAR, tốc độ nói, từ đệm" },
-  { icon: BadgeCheck, color: P.gold, title: "Phản hồi chi tiết từng câu", desc: "Điểm số + gợi ý câu trả lời mẫu tốt hơn" },
-];
-
-/* ── Shared input style ──────────────────────────────────── */
-const inputStyle = {
-  width: "100%",
-  padding: "10px 14px",
-  borderRadius: "10px",
-  border: "1.5px solid #E5E7EB",
-  background: "#FAFAFA",
-  color: P.text,
-  fontSize: "0.875rem",
-  outline: "none",
-  transition: "border-color 0.15s, box-shadow 0.15s",
-};
-
-function FInput({
-  placeholder,
-  value,
-  onChange,
-}) {
+function FInput({ placeholder, value, onChange }) {
   const [focus, setFocus] = useState(false);
   return (
     <input
-      style={{
-        ...inputStyle,
-        borderColor: focus ? P.purple : "#E5E7EB",
-        boxShadow: focus ? `0 0 0 3px rgba(110, 53, 232,0.1)` : "none",
-        background: focus ? "#fff" : "#FAFAFA",
-      }}
+      className={`w-full rounded-xl border px-4 py-2.5 text-sm text-white outline-none transition-all placeholder:text-white/35 ${
+        focus
+          ? "border-[#c4ff47]/45 bg-white/[0.08] ring-2 ring-[#c4ff47]/15"
+          : "border-white/12 bg-white/[0.05]"
+      }`}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -142,7 +125,6 @@ function FInput({
   );
 }
 
-/* ── Interview page ──────────────────────────────────────── */
 export function Interview() {
   const navigate = useNavigate();
 
@@ -154,7 +136,6 @@ export function Interview() {
   const [fieldOpen, setFieldOpen] = useState(false);
   const [levelOpen, setLevelOpen] = useState(false);
 
-  // Check if user has previous CV analysis
   const latestCV = getLatestCVAnalysis();
   const storedCV = getUploadedCV();
 
@@ -177,7 +158,6 @@ export function Interview() {
   const handleStart = () => {
     if (!canStart) return;
 
-    // Prepare interview data
     const interviewData = {
       option,
       inputMethod,
@@ -186,218 +166,188 @@ export function Interview() {
       ...(option === "B" && inputMethod === "form" && { form }),
     };
 
-    // Navigate to gender selection
     navigate("/interview/gender", { state: interviewData });
   };
 
-  return (
-    <div className="min-h-screen" style={{ background: "#F4F5F7" }}>
-      {/* ── Hero Banner ─────────────────────────────────── */}
-      <div
-        className="relative overflow-hidden border-b border-white/5 bg-background"
-        style={{
-          background:
-            "linear-gradient(145deg, #0E0922 0%, #1a0d35 100%)",
-        }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-20 -left-20 w-80 h-80 bg-white rounded-full blur-3xl" />
-          <div className="absolute top-20 right-10 w-96 h-96 bg-[#B4F000] rounded-full blur-3xl" />
-        </div>
+  const optBase =
+    "relative rounded-2xl border p-5 text-left transition-all duration-300 sm:p-6";
+  const optIdle = "border-white/10 bg-white/[0.04] hover:border-[#c4ff47]/25 hover:bg-white/[0.07]";
+  const optOn = "border-[#c4ff47]/45 bg-[#c4ff47]/[0.08] shadow-[0_0_28px_rgba(196,255,71,0.12)]";
 
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)",
-          backgroundSize: "40px 40px"
-        }} />
-        <div className="relative max-w-7xl mx-auto px-6 py-16 text-left">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-3 mb-4">
-              <Sparkles className="text-primary-fixed size-5" />
-              <span className="text-secondary font-bold uppercase tracking-[0.2em] text-xs">AI INTERVIEW CHAMBER</span>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none text-white mb-4 whitespace-nowrap">
-              Thiết lập <span className="text-primary-fixed">Phỏng vấn AI.</span>
-            </h1>
-            <p className="text-lg text-zinc-400 leading-relaxed mb-4 max-w-2xl">
-              Khởi động không gian phỏng vấn mô phỏng. Cung cấp thông tin để AI tối ưu hóa bộ câu hỏi cá nhân hoá dành riêng cho bạn.
-            </p>
-          </div>
-        </div>
+  return (
+    <div className="pi-page-dashboard-bg relative min-h-screen overflow-x-hidden pb-24 font-sans text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white">
+      <style>{`
+        .interview-glass {
+          background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 1.5rem;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(196, 255, 71, 0.06) inset;
+        }
+        @keyframes interview-shimmer {
+          0% { opacity: 0.4; transform: translate(0,0) scale(1); }
+          50% { opacity: 0.7; transform: translate(2%, -2%) scale(1.05); }
+          100% { opacity: 0.4; transform: translate(0,0) scale(1); }
+        }
+      `}</style>
+
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 opacity-90"
+        style={{ animation: "interview-shimmer 14s ease-in-out infinite" }}
+        aria-hidden
+      >
+        <div className="absolute top-[-20%] right-[-10%] h-[70vh] w-[70vh] rounded-full bg-gradient-to-bl from-fuchsia-600/35 via-violet-600/20 to-transparent blur-[100px]" />
+        <div className="absolute bottom-[-25%] left-[-15%] h-[85vh] w-[85vh] rounded-full bg-gradient-to-tr from-[#c4ff47]/18 via-cyan-500/10 to-fuchsia-500/20 blur-[110px]" />
+        <div className="absolute top-1/2 left-1/2 h-[50vh] w-[50vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6E35E8]/12 blur-[90px]" />
+        <div className="absolute top-[30%] right-[5%] h-[40vh] w-[40vh] rounded-full bg-[#c4ff47]/10 blur-[80px]" />
       </div>
 
-      <div className="p-6 max-w-3xl mx-auto relative z-10">
+      <header className="relative border-b border-white/[0.07] pt-12 pb-12 sm:pt-14 sm:pb-14">
+        <div
+          className="absolute inset-0 opacity-[0.11]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.55) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10 mx-auto max-w-4xl px-6 text-left sm:px-8">
+          <div className="mb-4 flex items-center gap-3">
+            <IconFrame size="sm" tone="lime" className="rounded-lg">
+              <Sparkles className="h-4 w-4 text-[#c4ff47]" {...IS} />
+            </IconFrame>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+              ProInterview <span className="text-[#c4ff47]/95">· Phỏng vấn AI</span>
+            </span>
+          </div>
+          <h1 className="mb-4 text-3xl font-black leading-[1.08] tracking-tighter text-white sm:text-4xl md:text-5xl">
+            <span className="bg-gradient-to-r from-white via-fuchsia-100 to-zinc-300 bg-clip-text text-transparent">
+              Thiết lập{" "}
+            </span>
+            <span className="bg-gradient-to-r from-[#c4ff47] via-fuchsia-300 to-violet-300 bg-clip-text text-transparent">
+              Phỏng vấn AI
+            </span>
+          </h1>
+          <p className="max-w-2xl text-base font-medium leading-relaxed text-white/50 sm:text-lg">
+            Khởi động không gian phỏng vấn mô phỏng. Cung cấp thông tin để AI tối ưu hóa bộ câu hỏi cá nhân hoá dành riêng cho bạn.
+          </p>
+        </div>
+      </header>
 
+      <main className="relative z-10 mx-auto max-w-3xl px-6 pb-16 pt-8 sm:px-8">
         <StepBar current={1} />
 
-        {/* ── Step 1: Source ─────────────────────────────────── */}
-        <div
-          className="rounded-2xl p-6 mb-4"
-          style={{ background: P.card, border: `1px solid ${P.border}`, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
-        >
-          {/* Section title */}
-          <div className="flex items-center gap-2.5 mb-5">
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-              style={{ background: `linear-gradient(135deg, ${P.purple}, ${P.purpleAlt})`, color: "#fff" }}
-            >
+        <section className="interview-glass mb-6 p-6 sm:p-8">
+          <div className="mb-6 flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-xs font-bold text-white shadow-lg">
               1
             </div>
-            <h2 className="font-semibold text-sm" style={{ color: P.text }}>
-              Chọn nguồn thông tin
-            </h2>
+            <h2 className="text-sm font-bold text-white">Chọn nguồn thông tin</h2>
           </div>
 
-          {/* Option cards */}
-          <div className="grid sm:grid-cols-2 gap-4 mb-5">
-            {/* Option A */}
+          <div className="mb-6 grid gap-4 sm:grid-cols-2">
             <button
+              type="button"
               onClick={() => { setOption("A"); setInputMethod(null); }}
-              className="relative p-4 rounded-2xl text-left transition-all"
-              style={{
-                border: option === "A" ? `2px solid ${P.purple}` : "2px solid #E9EAEC",
-                background: option === "A" ? "rgba(110, 53, 232,0.04)" : "#FAFAFA",
-              }}
+              className={`${optBase} ${option === "A" ? optOn : optIdle}`}
             >
               {option === "A" && (
-                <div
-                  className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ background: P.purple }}
-                >
-                  <Check className="w-3 h-3 text-white" />
+                <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-[#c4ff47]/40 bg-[#c4ff47] shadow-[0_2px_12px_rgba(196,255,71,0.35)]">
+                  <Check className="h-3.5 w-3.5 text-[#0a0814]" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round" />
                 </div>
               )}
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                style={{ background: "rgba(180,240,0,0.1)", border: "1px solid rgba(180,240,0,0.2)" }}
-              >
-                <Check className="w-5 h-5" style={{ color: "#6E9900" }} />
-              </div>
-              <p className="font-semibold text-sm mb-1" style={{ color: P.text }}>
-                Dùng CV/JD đã phân tích
-              </p>
-              <p className="text-xs leading-relaxed" style={{ color: P.muted }}>
+              <IconFrame tone="lime" className="mb-3">
+                <FileCheck className="h-5 w-5 text-[#c4ff47]" {...IS} />
+              </IconFrame>
+              <p className="mb-1 text-sm font-bold text-white">Dùng CV/JD đã phân tích</p>
+              <p className="text-xs leading-relaxed text-zinc-400">
                 Sử dụng từ phiên phân tích CV/JD trước — AI hiểu rõ bạn nhất
               </p>
             </button>
 
-            {/* Option B */}
             <button
+              type="button"
               onClick={() => { setOption("B"); setInputMethod(null); }}
-              className="relative p-4 rounded-2xl text-left transition-all"
-              style={{
-                border: option === "B" ? `2px solid ${P.purple}` : "2px solid #E9EAEC",
-                background: option === "B" ? "rgba(110, 53, 232,0.04)" : "#FAFAFA",
-              }}
+              className={`${optBase} ${option === "B" ? optOn : optIdle}`}
             >
               {option === "B" && (
-                <div
-                  className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ background: P.purple }}
-                >
-                  <Check className="w-3 h-3 text-white" />
+                <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-[#c4ff47]/40 bg-[#c4ff47] shadow-[0_2px_12px_rgba(196,255,71,0.35)]">
+                  <Check className="h-3.5 w-3.5 text-[#0a0814]" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round" />
                 </div>
               )}
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                style={{ background: "rgba(110, 53, 232,0.08)", border: `1px solid rgba(110, 53, 232,0.18)` }}
-              >
-                <Upload className="w-5 h-5" style={{ color: P.purple }} />
-              </div>
-              <p className="font-semibold text-sm mb-1" style={{ color: P.text }}>
-                Upload mới / Nhập thông tin
-              </p>
-              <p className="text-xs leading-relaxed" style={{ color: P.muted }}>
+              <IconFrame tone="fuchsia" className="mb-3">
+                <CloudUpload className="h-5 w-5 text-fuchsia-200" {...IS} />
+              </IconFrame>
+              <p className="mb-1 text-sm font-bold text-white">Upload mới / Nhập thông tin</p>
+              <p className="text-xs leading-relaxed text-zinc-400">
                 Upload CV hoặc điền thông tin công ty và vị trí ứng tuyển
               </p>
             </button>
           </div>
 
-          {/* Option B: sub-options */}
           {option === "B" && (
-            <div>
-              {/* Tabs */}
-              <div className="flex gap-2 mb-4">
+            <div className="border-t border-white/10 pt-6">
+              <div className="mb-5 flex flex-wrap gap-2">
                 {([
                   { id: "cv", icon: Upload, label: "Tải lên CV" },
-                  { id: "form", icon: Upload, label: "Điền thông tin" },
+                  { id: "form", icon: LayoutGrid, label: "Điền thông tin" },
                 ]).map((t) => (
                   <button
                     key={t.id}
+                    type="button"
                     onClick={() => setInputMethod(t.id)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
-                    style={
+                    className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
                       inputMethod === t.id
-                        ? {
-                          border: `1.5px solid ${P.purple}`,
-                          background: "rgba(110, 53, 232,0.06)",
-                          color: P.purple,
-                        }
-                        : {
-                          border: "1.5px solid #E9EAEC",
-                          background: "#FAFAFA",
-                          color: P.muted,
-                        }
-                    }
+                        ? "border border-[#c4ff47]/40 bg-[#c4ff47]/10 text-[#c4ff47]"
+                        : "border border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                    }`}
                   >
-                    <t.icon className="w-4 h-4" />
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.06]">
+                      <t.icon className="h-4 w-4 text-zinc-300" {...IS} />
+                    </span>
                     {t.label}
                   </button>
                 ))}
               </div>
 
-              {/* Upload CV */}
               {inputMethod === "cv" && (
                 <div
-                  onClick={() => setCvUploaded(true)}
-                  className="rounded-2xl p-8 text-center cursor-pointer transition-all"
-                  style={{
-                    border: cvUploaded
-                      ? `2px dashed ${P.lime}`
-                      : "2px dashed #D1D5DB",
-                    background: cvUploaded ? "rgba(180,240,0,0.04)" : "#FAFAFA",
-                  }}
+                  className={`relative rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
+                    cvUploaded
+                      ? "border-[#c4ff47]/45 bg-[#c4ff47]/[0.06]"
+                      : "border-white/15 bg-white/[0.03] hover:border-white/25"
+                  }`}
                 >
                   {cvUploaded ? (
                     <div className="flex flex-col items-center">
-                      <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                        style={{ background: "rgba(180,240,0,0.12)" }}
-                      >
-                        <Check className="w-6 h-6" style={{ color: "#65A300" }} />
-                      </div>
-                      <p className="font-semibold text-sm" style={{ color: "#4A7A00" }}>
-                        CV đã được tải lên thành công
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: "#7AAA00" }}>
-                        {uploadedFile?.name} · {uploadedFile?.size} MB
+                      <IconFrame size="lg" tone="lime" className="mb-3 rounded-2xl">
+                        <Check className="h-6 w-6 text-[#c4ff47]" {...IS} strokeWidth={2} />
+                      </IconFrame>
+                      <p className="text-sm font-bold text-white">CV đã được tải lên thành công</p>
+                      <p className="mt-1 text-xs text-zinc-400">
+                        {uploadedFile?.name} · {(uploadedFile?.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                       <button
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); setCvUploaded(false); }}
-                        className="mt-3 text-xs underline"
-                        style={{ color: P.muted }}
+                        className="mt-3 text-xs font-semibold text-[#c4ff47] underline underline-offset-2 hover:text-[#e8ffc4]"
                       >
                         Tải lại
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center">
-                      <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                        style={{ background: "#F0F1F3" }}
-                      >
-                        <Layers className="w-6 h-6 text-[#6E35E8]" strokeWidth={2} />
-                      </div>
-                      <p className="font-semibold text-sm" style={{ color: P.text }}>
-                        Kéo & thả CV hoặc click để chọn
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: P.muted }}>
-                        PDF, DOC, DOCX · Tối đa 5 MB
-                      </p>
+                    <div className="relative flex flex-col items-center">
+                      <IconFrame size="lg" tone="violet" className="mb-3 rounded-2xl">
+                        <FileStack className="h-6 w-6 text-violet-200" {...IS} strokeWidth={2} />
+                      </IconFrame>
+                      <p className="text-sm font-bold text-white">Kéo & thả CV hoặc click để chọn</p>
+                      <p className="mt-1 text-xs text-zinc-500">PDF, DOC, DOCX · Tối đa 5 MB</p>
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx"
-                        className="absolute top-0 left-0 right-0 bottom-0 opacity-0 cursor-pointer"
+                        className="absolute inset-0 cursor-pointer opacity-0"
                         onChange={handleFileUpload}
                       />
                     </div>
@@ -405,13 +355,14 @@ export function Interview() {
                 </div>
               )}
 
-              {/* Fill form */}
               {inputMethod === "form" && (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {/* Company */}
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1.5" style={{ color: P.muted }}>
-                      <Building2 className="w-3.5 h-3.5" /> Tên công ty
+                    <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-white/[0.05]">
+                        <Building2 className="h-3.5 w-3.5 text-zinc-300" {...IS} />
+                      </span>
+                      Tên công ty
                     </label>
                     <FInput
                       placeholder="Shopee, Vingroup, FPT..."
@@ -419,11 +370,12 @@ export function Interview() {
                       onChange={(v) => setForm({ ...form, company: v })}
                     />
                   </div>
-
-                  {/* Position */}
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1.5" style={{ color: P.muted }}>
-                      <BriefcaseBusiness className="w-3.5 h-3.5" /> Vị trí ứng tuyển
+                    <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-white/[0.05]">
+                        <BriefcaseBusiness className="h-3.5 w-3.5 text-zinc-300" {...IS} />
+                      </span>
+                      Vị trí ứng tuyển
                     </label>
                     <FInput
                       placeholder="Frontend Developer..."
@@ -431,48 +383,37 @@ export function Interview() {
                       onChange={(v) => setForm({ ...form, position: v })}
                     />
                   </div>
-
-                  {/* Field dropdown */}
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1.5" style={{ color: P.muted }}>
-                      <LayoutGrid className="w-3.5 h-3.5" /> Lĩnh vực / Ngành nghề
+                    <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-white/[0.05]">
+                        <LayoutGrid className="h-3.5 w-3.5 text-zinc-300" {...IS} />
+                      </span>
+                      Lĩnh vực / Ngành nghề
                     </label>
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => { setFieldOpen(!fieldOpen); setLevelOpen(false); }}
-                        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm transition-all focus:outline-none"
-                        style={{
-                          border: fieldOpen ? `1.5px solid ${P.purple}` : "1.5px solid #E5E7EB",
-                          background: "#FAFAFA",
-                          color: form.field ? P.text : "#9CA3AF",
-                          boxShadow: fieldOpen ? `0 0 0 3px rgba(110, 53, 232,0.1)` : "none",
-                        }}
+                        className={`flex w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-sm transition-all ${
+                          fieldOpen
+                            ? "border-[#c4ff47]/45 bg-white/[0.08] ring-2 ring-[#c4ff47]/12"
+                            : "border-white/12 bg-white/[0.05]"
+                        } ${form.field ? "text-white" : "text-zinc-500"}`}
                       >
                         <span>{form.field || "Chọn ngành..."}</span>
                         <ChevronDown
-                          className="w-4 h-4 text-gray-400 transition-transform"
-                          style={{ transform: fieldOpen ? "rotate(180deg)" : "none" }}
+                          className={`h-4 w-4 text-zinc-500 transition-transform ${fieldOpen ? "rotate-180" : ""}`}
+                          {...IS}
                         />
                       </button>
                       {fieldOpen && (
-                        <div
-                          className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-20 card-premium animate-fade-in" style={{ border: "1px solid #E9EAEC" }}
-                        >
+                        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border border-white/12 bg-[#1a0d35]/98 py-1 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                           {FIELDS_LIST.map((f) => (
                             <button
                               key={f}
+                              type="button"
                               onClick={() => { setForm({ ...form, field: f }); setFieldOpen(false); }}
-                              className="w-full text-left px-4 py-2.5 text-sm transition-colors"
-                              style={{ color: P.text }}
-                              onMouseEnter={(e) => {
-                                (e.currentTarget).style.background = "rgba(110, 53, 232,0.05)";
-                                (e.currentTarget).style.color = P.purple;
-                              }}
-                              onMouseLeave={(e) => {
-                                (e.currentTarget).style.background = "transparent";
-                                (e.currentTarget).style.color = P.text;
-                              }}
+                              className="w-full px-4 py-2.5 text-left text-sm text-zinc-200 hover:bg-white/[0.08] hover:text-white"
                             >
                               {f}
                             </button>
@@ -481,48 +422,37 @@ export function Interview() {
                       )}
                     </div>
                   </div>
-
-                  {/* Level dropdown */}
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5 flex items-center gap-1.5" style={{ color: P.muted }}>
-                      <Users className="w-3.5 h-3.5" /> Level kinh nghiệm
+                    <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-zinc-400">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-white/[0.05]">
+                        <Users className="h-3.5 w-3.5 text-zinc-300" {...IS} />
+                      </span>
+                      Level kinh nghiệm
                     </label>
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => { setLevelOpen(!levelOpen); setFieldOpen(false); }}
-                        className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm transition-all focus:outline-none"
-                        style={{
-                          border: levelOpen ? `1.5px solid ${P.purple}` : "1.5px solid #E5E7EB",
-                          background: "#FAFAFA",
-                          color: form.level ? P.text : "#9CA3AF",
-                          boxShadow: levelOpen ? `0 0 0 3px rgba(110, 53, 232,0.1)` : "none",
-                        }}
+                        className={`flex w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-sm transition-all ${
+                          levelOpen
+                            ? "border-[#c4ff47]/45 bg-white/[0.08] ring-2 ring-[#c4ff47]/12"
+                            : "border-white/12 bg-white/[0.05]"
+                        } ${form.level ? "text-white" : "text-zinc-500"}`}
                       >
                         <span>{form.level || "Chọn level..."}</span>
                         <ChevronDown
-                          className="w-4 h-4 text-gray-400 transition-transform"
-                          style={{ transform: levelOpen ? "rotate(180deg)" : "none" }}
+                          className={`h-4 w-4 text-zinc-500 transition-transform ${levelOpen ? "rotate-180" : ""}`}
+                          {...IS}
                         />
                       </button>
                       {levelOpen && (
-                        <div
-                          className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-20 card-premium animate-fade-in" style={{ border: "1px solid #E9EAEC" }}
-                        >
+                        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border border-white/12 bg-[#1a0d35]/98 py-1 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                           {LEVELS.map((l) => (
                             <button
                               key={l}
+                              type="button"
                               onClick={() => { setForm({ ...form, level: l }); setLevelOpen(false); }}
-                              className="w-full text-left px-4 py-2.5 text-sm transition-colors"
-                              style={{ color: P.text }}
-                              onMouseEnter={(e) => {
-                                (e.currentTarget).style.background = "rgba(110, 53, 232,0.05)";
-                                (e.currentTarget).style.color = P.purple;
-                              }}
-                              onMouseLeave={(e) => {
-                                (e.currentTarget).style.background = "transparent";
-                                (e.currentTarget).style.color = P.text;
-                              }}
+                              className="w-full px-4 py-2.5 text-left text-sm text-zinc-200 hover:bg-white/[0.08] hover:text-white"
                             >
                               {l}
                             </button>
@@ -535,96 +465,82 @@ export function Interview() {
               )}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* ── Preview: what will happen ───────────────────────── */}
-        <div
-          className="rounded-2xl p-6 mb-6"
-          style={{ background: P.card, border: `1px solid ${P.border}`, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
-        >
-          <div className="flex items-center gap-2.5 mb-4">
-            <Timer className="w-4 h-4 text-gray-400" />
-            <h2 className="font-semibold text-sm" style={{ color: P.text }}>
-              Những gì sẽ xảy ra trong buổi phỏng vấn
-            </h2>
-            <span className="ml-auto text-xs" style={{ color: P.muted }}>~30–45 phút</span>
+        <section className="interview-glass mb-8 p-6 sm:p-8">
+          <div className="mb-5 flex flex-wrap items-center gap-2.5">
+            <IconFrame size="sm" tone="neutral" className="rounded-lg border-[#c4ff47]/25">
+              <Timer className="h-4 w-4 text-[#c4ff47]" {...IS} />
+            </IconFrame>
+            <h2 className="text-sm font-bold text-white">Những gì sẽ xảy ra trong buổi phỏng vấn</h2>
+            <span className="ml-auto text-xs font-semibold text-zinc-500">~30–45 phút</span>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {PREVIEW_ITEMS.map((item, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 p-3.5 rounded-xl transition-all"
-                style={{ background: "#F8F9FA", border: "1px solid #EDEEF0" }}
+                className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3.5 transition-colors hover:border-[#c4ff47]/20"
               >
                 <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${item.color}15`, border: `1px solid ${item.color}25` }}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  style={{
+                    background: `linear-gradient(145deg, ${item.color}22, ${item.color}08)`,
+                    borderColor: `${item.color}40`,
+                  }}
                 >
-                  <item.icon className="w-4 h-4" style={{ color: item.color }} strokeWidth={2} />
+                  <item.icon className="h-[18px] w-[18px]" style={{ color: item.color }} {...IS} />
                 </div>
-                <div>
-                  <p className="text-xs font-semibold" style={{ color: P.text }}>{item.title}</p>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: P.muted }}>{item.desc}</p>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white">{item.title}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-zinc-400">{item.desc}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Process flow */}
-          <div className="mt-4 pt-4" style={{ borderTop: "1px solid #EDEEF0" }}>
-            <p className="text-xs font-semibold mb-2.5" style={{ color: "#9CA3AF" }}>
+          <div className="mt-6 border-t border-white/10 pt-5">
+            <p className="mb-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500">
               Quy trình buổi phỏng vấn
             </p>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               {["AI giới thiệu", "→", "AI đặt câu hỏi", "→", "Bạn trả lời", "→", "AI hỏi thêm", "→", "Nhận kết quả"].map(
                 (step, i) =>
                   step === "→" ? (
-                    <ArrowRight key={i} className="w-3 h-3 text-gray-300" strokeWidth={3} />
+                    <ArrowRight key={i} className="h-3.5 w-3.5 text-zinc-500" {...IS} />
                   ) : (
                     <span
                       key={i}
-                      className="text-xs font-medium px-2.5 py-1 rounded-lg"
-                      style={{ color: "#4B5563", background: "#F0F1F3", border: "1px solid #E5E7EB" }}
+                      className="rounded-lg border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-semibold text-zinc-300"
                     >
                       {step}
                     </span>
-                  )
+                  ),
               )}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* ── CTA button ─────────────────────────────────────── */}
         <button
+          type="button"
           onClick={handleStart}
           disabled={!canStart}
-          className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-semibold text-sm transition-all"
-          style={
+          className={`flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-sm font-black transition-all active:scale-[0.99] ${
             canStart
-              ? {
-                background: `linear-gradient(135deg, ${P.purple} 0%, ${P.purpleAlt} 100%)`,
-                color: "#fff",
-                boxShadow: "0 6px 20px rgba(110, 53, 232,0.35)",
-              }
-              : {
-                background: "#F0F1F3",
-                color: "#9CA3AF",
-                cursor: "not-allowed",
-                border: "1px solid #E5E7EB",
-              }
-          }
+              ? "bg-gradient-to-r from-[#c4ff47] to-[#8fbc24] text-[#0a0814] shadow-[0_8px_28px_rgba(196,255,71,0.25)] hover:brightness-110"
+              : "cursor-not-allowed border border-white/10 bg-white/[0.04] text-zinc-500"
+          }`}
         >
-          <Mic className="w-5 h-5" strokeWidth={2.5} />
+          <Mic className="h-5 w-5" {...IS} strokeWidth={2} />
           {canStart ? "Bắt đầu Phỏng vấn AI →" : "Hoàn tất các bước trên để bắt đầu"}
         </button>
 
         {!canStart && (
-          <p className="text-center text-xs mt-3" style={{ color: P.muted }}>
+          <p className="mt-3 text-center text-xs font-medium text-zinc-500">
             Vui lòng chọn nguồn thông tin để tiếp tục
           </p>
         )}
-      </div>
+      </main>
     </div>
   );
 }

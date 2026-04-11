@@ -22,6 +22,37 @@ import {
 } from "lucide-react";
 import { getUser } from "../utils/auth";
 import { UPCOMING_MENTOR_MEETINGS } from "../data/mentorMockData";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
+
+const MENTOR_SCHEDULE_EXTRA_CSS = `
+        .calendar-cell {
+           aspect-ratio: 1;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           justify-content: center;
+           border-radius: 18px;
+           transition: all 0.3s;
+           cursor: pointer;
+           position: relative;
+        }
+        .calendar-cell:hover { background: rgba(255, 255, 255, 0.05); }
+        .calendar-cell.active {
+           background: #c4ff47;
+           color: black;
+           box-shadow: 0 10px 30px rgba(180, 245, 0, 0.3);
+           font-weight: 900;
+        }
+        .calendar-cell.dot::after {
+           content: '';
+           position: absolute;
+           bottom: 6px;
+           width: 4px;
+           height: 4px;
+           border-radius: 50%;
+           background: #6E35E8;
+        }
+`;
 
 /* ── Manage Availability Modal ────────────────────────────────────────── */
 function AvailabilityModal({ onClose }) {
@@ -140,51 +171,7 @@ export function MentorSchedule() {
   const finalDays = [...calendarDays, ...paddingDays];
 
   return (
-    <div className="min-h-screen text-white font-sans pb-32 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
-      <style>{`
-        .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 40px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.95; }
-        .calendar-cell {
-           aspect-ratio: 1;
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           justify-content: center;
-           border-radius: 18px;
-           transition: all 0.3s;
-           cursor: pointer;
-           position: relative;
-        }
-        .calendar-cell:hover { background: rgba(255, 255, 255, 0.05); }
-        .calendar-cell.active { 
-           background: #B4F500; 
-           color: black; 
-           box-shadow: 0 10px 30px rgba(180, 245, 0, 0.3);
-           font-weight: 900;
-        }
-        .calendar-cell.dot::after {
-           content: '';
-           position: absolute;
-           bottom: 6px;
-           width: 4px;
-           height: 4px;
-           border-radius: 50%;
-           background: #6E35E8;
-        }
-      `}</style>
-
-      {/* Atmospheric Glows */}
-      <div className="fixed top-0 right-0 w-[1200px] h-[1200px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[800px] h-[800px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
+    <MentorPageShell bottomPad="pb-32" extraStyles={MENTOR_SCHEDULE_EXTRA_CSS}>
       <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-16">
@@ -292,6 +279,6 @@ export function MentorSchedule() {
       <AnimatePresence>
         {showAvailability && <AvailabilityModal onClose={() => setShowAvailability(false)} />}
       </AnimatePresence>
-    </div>
+    </MentorPageShell>
   );
 }
