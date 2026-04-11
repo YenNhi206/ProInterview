@@ -12,6 +12,7 @@ import {
   Users,
   Zap as Lightning,
   BadgeCheck as SealCheck,
+  AlertCircle,
 } from "lucide-react";
 import { fetchMentors } from "../utils/mentorApi";
 import { FIELDS } from "../data/mockData";
@@ -104,11 +105,11 @@ export function Mentors() {
       <div className="relative">
         <button
           onClick={() => setOpenDropdown(isOpen ? null : id)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all"
+          className="flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all"
           style={{
-            background: value !== "Tất cả" ? "rgba(110, 53, 232,0.08)" : "#fff",
-            borderColor: value !== "Tất cả" ? "#6E35E8" : "#E5E7EB",
-            color: value !== "Tất cả" ? "#6E35E8" : "#6B7280"
+            background: value !== "Tất cả" ? "rgba(110, 53, 232,0.2)" : "rgba(255,255,255,0.06)",
+            borderColor: value !== "Tất cả" ? "rgba(110,53,232,0.55)" : "rgba(255,255,255,0.12)",
+            color: value !== "Tất cả" ? "#c4b5fd" : "rgba(255,255,255,0.72)",
           }}
         >
           {icon}
@@ -117,9 +118,9 @@ export function Mentors() {
         </button>
 
         {isOpen && (
-          <div 
-            className="absolute top-full left-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-xl z-50 min-w-[200px] py-2 max-h-[300px] overflow-y-auto"
-            style={{ boxShadow: "0 10px 40px rgba(0,0,0,0.12)" }}
+          <div
+            className="absolute left-0 top-full z-50 mt-2 max-h-[300px] min-w-[200px] overflow-y-auto rounded-xl border border-white/12 bg-[#160f36] py-2 shadow-2xl"
+            style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.45)" }}
           >
             {id === "field" && (
               <>
@@ -130,10 +131,10 @@ export function Mentors() {
                       setSelectedField(f);
                       setOpenDropdown(null);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                      selectedField === f 
-                        ? "bg-[#6E35E8]/10 text-[#6E35E8] font-semibold" 
-                        : "text-gray-700 hover:bg-gray-50"
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-all ${
+                      selectedField === f
+                        ? "bg-[#6E35E8]/25 font-semibold text-[#c4b5fd]"
+                        : "text-white/75 hover:bg-white/8"
                     }`}
                   >
                     {f}
@@ -151,10 +152,10 @@ export function Mentors() {
                       setSelectedExp(e);
                       setOpenDropdown(null);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                      selectedExp === e 
-                        ? "bg-[#6E35E8]/10 text-[#6E35E8] font-semibold" 
-                        : "text-gray-700 hover:bg-gray-50"
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-all ${
+                      selectedExp === e
+                        ? "bg-[#6E35E8]/25 font-semibold text-[#c4b5fd]"
+                        : "text-white/75 hover:bg-white/8"
                     }`}
                   >
                     {e}
@@ -172,10 +173,10 @@ export function Mentors() {
                       setSelectedPrice(i);
                       setOpenDropdown(null);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                      selectedPrice === i 
-                        ? "bg-[#6E35E8]/10 text-[#6E35E8] font-semibold" 
-                        : "text-gray-700 hover:bg-gray-50"
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-all ${
+                      selectedPrice === i
+                        ? "bg-[#6E35E8]/25 font-semibold text-[#c4b5fd]"
+                        : "text-white/75 hover:bg-white/8"
                     }`}
                   >
                     {p.label}
@@ -193,10 +194,10 @@ export function Mentors() {
                       setSelectedRating(r);
                       setOpenDropdown(null);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm transition-all ${
-                      selectedRating === r 
-                        ? "bg-[#6E35E8]/10 text-[#6E35E8] font-semibold" 
-                        : "text-gray-700 hover:bg-gray-50"
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-all ${
+                      selectedRating === r
+                        ? "bg-[#6E35E8]/25 font-semibold text-[#c4b5fd]"
+                        : "text-white/75 hover:bg-white/8"
                     }`}
                   >
                     {r === "Tất cả" ? r : (
@@ -215,33 +216,31 @@ export function Mentors() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: "#F4F5F7" }}>
-      {/* ── Hero Banner ─────────────────────────────────── */}
-      <div
-        className="relative overflow-hidden border-b border-white/5 bg-background"
-        style={{ background: "linear-gradient(145deg, #0E0922 0%, #1a0d35 100%)" }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-20 -left-20 w-80 h-80 bg-white rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 right-10 w-96 h-96 bg-[#B4F000] rounded-full blur-3xl" />
-        </div>
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)",
-          backgroundSize: "40px 40px"
-        }} />
-        <div className="relative max-w-7xl mx-auto px-6 py-16">
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="text-primary-fixed size-5" />
-              <span className="text-secondary font-bold uppercase tracking-[0.2em] text-xs">Mentor 1-1</span>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none text-white mb-4 whitespace-nowrap">
-              Tìm Mentor <span className="text-primary-fixed">phù hợp.</span>
-            </h1>
-            <p className="text-lg text-zinc-400 leading-relaxed mb-8 max-w-2xl">
-              Đặt lịch phỏng vấn 1-1 với các HR/Manager từ Shopee, Grab, VNG và 200+ công ty hàng đầu
-            </p>
-          {/* Stats */}
+    <div className="pi-page-dashboard-bg min-h-full w-full font-sans text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white">
+      <header className="relative border-b border-white/[0.07] pb-12 pt-12 sm:pb-16 sm:pt-14">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.09]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8">
+          <div className="mb-4 flex items-center gap-3">
+            <Users className="size-5 text-[#c4ff47]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-fuchsia-300/90">Mentor 1-1</span>
+          </div>
+          <h1 className="mb-4 max-w-4xl text-3xl font-black leading-[1.05] tracking-tighter text-white md:text-5xl">
+            Tìm Mentor{" "}
+            <span className="bg-gradient-to-r from-[#c4ff47] via-fuchsia-300 to-violet-300 bg-clip-text text-transparent">
+              phù hợp.
+            </span>
+          </h1>
+          <p className="mb-8 max-w-2xl text-sm font-semibold leading-relaxed text-white/65 sm:text-base">
+            Đặt lịch phỏng vấn 1-1 với các HR/Manager từ Shopee, Grab, VNG và 200+ công ty hàng đầu
+          </p>
           <div className="flex flex-wrap gap-6">
             {[
               { icon: Users, value: "500+", label: "Mentor chuyên nghiệp" },
@@ -249,27 +248,27 @@ export function Mentors() {
               { icon: SealCheck, value: "4.8★", label: "Điểm hài lòng trung bình" },
             ].map((s, i) => (
               <div key={i} className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(255,255,255,0.12)" }}>
-                  <s.icon className="w-4 h-4 text-white" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.12]">
+                  <s.icon className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-white font-bold text-sm">{s.value}</p>
-                  <p className="text-white/55 text-xs">{s.label}</p>
+                  <p className="text-sm font-bold text-white">{s.value}</p>
+                  <p className="text-xs text-white/55">{s.label}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="relative z-[1] mx-auto max-w-7xl px-6 pb-12 pt-8">
 
       {/* Search */}
       <div className="mb-5">
         <div className="relative">
-          <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <MagnifyingGlass className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
           <input
-            className="w-full pl-11 pr-4 py-3 rounded-2xl border border-gray-200 text-sm focus:outline-none focus:border-[#6E35E8]/50 bg-white shadow-sm focus:shadow-md transition-all"
+            className="w-full rounded-2xl border border-white/12 bg-white/[0.06] py-3 pl-11 pr-4 text-sm text-white shadow-sm transition-all placeholder:text-white/50 focus:border-[#6E35E8]/50 focus:shadow-md focus:outline-none"
             placeholder="Tìm theo tên, ngành, kỹ năng..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -277,9 +276,9 @@ export function Mentors() {
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-white/10"
             >
-              <X className="w-3.5 h-3.5 text-gray-400" />
+              <X className="h-3.5 w-3.5 text-white/40" />
             </button>
           )}
         </div>
@@ -290,7 +289,7 @@ export function Mentors() {
         <div className="card-premium p-4">
           <div className="flex items-center gap-3 mb-3">
             <Funnel className="w-4 h-4 text-[#6E35E8]" />
-            <h2 className="text-gray-800 font-semibold text-sm">Bộ lọc</h2>
+            <h2 className="text-sm font-semibold text-white/90">Bộ lọc</h2>
             {(selectedField !== "Tất cả" || selectedExp !== "Tất cả" || selectedPrice !== 0 || selectedRating !== "Tất cả" || availableOnly) && (
               <button
                 onClick={() => {
@@ -300,7 +299,7 @@ export function Mentors() {
                   setSelectedRating("Tất cả");
                   setAvailableOnly(false);
                 }}
-                className="ml-auto text-xs font-medium px-3 py-1.5 rounded-lg text-gray-500 hover:text-[#6E35E8] hover:bg-[#6E35E8]/5 transition-all"
+                className="ml-auto rounded-lg px-3 py-1.5 text-xs font-medium text-white/45 transition-all hover:bg-[#6E35E8]/15 hover:text-[#c4b5fd]"
               >
                 Xóa bộ lọc
               </button>
@@ -311,13 +310,15 @@ export function Mentors() {
             {/* Available Only Toggle */}
             <button
               onClick={() => setAvailableOnly(!availableOnly)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                availableOnly 
-                  ? "bg-emerald-50 border-emerald-300 text-emerald-700" 
-                  : "bg-white border-gray-200 text-gray-600 hover:border-emerald-200"
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
+                availableOnly
+                  ? "border-emerald-400/45 bg-emerald-500/15 text-emerald-200"
+                  : "border-white/12 bg-white/[0.05] text-white/55 hover:border-emerald-400/35"
               }`}
             >
-              <CheckCircle className={`w-4 h-4 ${availableOnly ? "text-emerald-500 fill-emerald-500" : "text-gray-400"}`} />
+              <CheckCircle
+                className={`h-4 w-4 ${availableOnly ? "fill-emerald-400 text-emerald-400" : "text-white/35"}`}
+              />
               Có lịch trống
             </button>
 
@@ -355,8 +356,14 @@ export function Mentors() {
 
       {/* Results count */}
       <div className="flex items-center justify-between mb-5">
-        <p className="text-gray-500 text-sm">
-          {loading ? "Đang tải..." : <>Tìm thấy <span className="text-gray-900 font-semibold">{filteredMentors.length}</span> mentor phù hợp</>}
+        <p className="text-sm text-white/50">
+          {loading ? (
+            "Đang tải..."
+          ) : (
+            <>
+              Tìm thấy <span className="font-semibold text-white">{filteredMentors.length}</span> mentor phù hợp
+            </>
+          )}
         </p>
       </div>
 
@@ -367,21 +374,21 @@ export function Mentors() {
             <div key={i} className="card-premium overflow-hidden animate-pulse">
               <div className="p-5 pb-3">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-14 h-14 rounded-2xl bg-gray-100 flex-shrink-0" />
+                  <div className="h-14 w-14 shrink-0 rounded-2xl bg-white/10" />
                   <div className="flex-1 space-y-2 pt-1">
-                    <div className="h-3.5 bg-gray-100 rounded-full w-3/4" />
-                    <div className="h-3 bg-gray-100 rounded-full w-1/2" />
-                    <div className="h-3 bg-gray-100 rounded-full w-2/5" />
+                    <div className="h-3.5 w-3/4 rounded-full bg-white/10" />
+                    <div className="h-3 w-1/2 rounded-full bg-white/8" />
+                    <div className="h-3 w-2/5 rounded-full bg-white/8" />
                   </div>
                 </div>
-                <div className="flex gap-1.5 mb-3">
-                  <div className="h-5 w-16 bg-gray-100 rounded-full" />
-                  <div className="h-5 w-20 bg-gray-100 rounded-full" />
+                <div className="mb-3 flex gap-1.5">
+                  <div className="h-5 w-16 rounded-full bg-white/10" />
+                  <div className="h-5 w-20 rounded-full bg-white/10" />
                 </div>
               </div>
-              <div className="border-t border-gray-50 px-5 py-3 flex justify-between items-center">
-                <div className="h-4 w-20 bg-gray-100 rounded-full" />
-                <div className="h-8 w-16 bg-gray-100 rounded-xl" />
+              <div className="flex items-center justify-between border-t border-white/8 px-5 py-3">
+                <div className="h-4 w-20 rounded-full bg-white/10" />
+                <div className="h-8 w-16 rounded-xl bg-white/10" />
               </div>
             </div>
           ))}
@@ -391,8 +398,8 @@ export function Mentors() {
       {/* Error state */}
       {!loading && error && (
         <div className="text-center py-20">
-          <Loader2 className="w-8 h-8 text-[#6E35E8] animate-spin mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">Không thể tải danh sách mentor</p>
+          <AlertCircle className="mx-auto mb-3 h-10 w-10 text-orange-300/90" />
+          <p className="font-medium text-white/55">Không thể tải danh sách mentor</p>
           <button
             onClick={() => { setLoading(true); fetchMentors().then((d) => { setMentors(d); setLoading(false); setError(null); }); }}
             className="mt-3 text-sm font-semibold px-4 py-2 rounded-xl text-white"
@@ -406,97 +413,79 @@ export function Mentors() {
       {/* Mentor Grid */}
       {!loading && !error && (filteredMentors.length === 0 ? (
         <div className="text-center py-20">
-          <MagnifyingGlass className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-          <p className="text-gray-500 font-medium">Không tìm thấy mentor phù hợp</p>
-          <p className="text-gray-400 text-sm mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+          <MagnifyingGlass className="mx-auto mb-4 h-12 w-12 text-white/25" />
+          <p className="font-medium text-white/55">Không tìm thấy mentor phù hợp</p>
+          <p className="mt-1 text-sm text-white/40">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filteredMentors.map((mentor) => (
             <div
               key={mentor.id}
-              className="bg-white rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1"
-              style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
+              className="card-premium group cursor-pointer overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1"
               onClick={() => navigate(`/mentors/${mentor.id}`)}
-              onMouseEnter={e => { (e.currentTarget).style.boxShadow = "0 12px 32px rgba(110, 53, 232,0.15)"; }}
-              onMouseLeave={e => { (e.currentTarget).style.boxShadow = "0 2px 12px rgba(0,0,0,0.05)"; }}
             >
-              {/* Top accent bar */}
-              <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #6E35E8, #9B6DFF)" }} />
+              <div className="h-1 w-full bg-gradient-to-r from-[#6E35E8] to-[#9B6DFF]" />
 
               <div className="p-5">
-                {/* Avatar + info */}
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="relative flex-shrink-0">
+                <div className="mb-4 flex items-start gap-3">
+                  <div className="relative shrink-0">
                     <img
                       src={mentor.avatar}
                       alt={mentor.name}
-                      className="w-14 h-14 rounded-2xl object-cover"
-                      style={{ border: "2px solid rgba(110, 53, 232,0.1)" }}
+                      className="h-14 w-14 rounded-2xl border-2 border-violet-500/25 object-cover"
                     />
                     {mentor.available && (
                       <div
-                        className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white"
+                        className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-[#0c0818]"
                         style={{ background: "#22c55e" }}
                         title="Có lịch trống"
                       />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm truncate" style={{ color: "#1F1F1F", letterSpacing: "-0.01em" }}>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-bold tracking-tight text-white">
                       {mentor.name}
                     </h3>
-                    <p className="text-xs truncate mt-0.5" style={{ color: "#6B7280" }}>{mentor.title}</p>
-                    <p className="text-xs font-semibold mt-0.5" style={{ color: "#6E35E8" }}>{mentor.company}</p>
+                    <p className="mt-0.5 truncate text-xs text-white/60">{mentor.title}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-violet-200">{mentor.company}</p>
                   </div>
                 </div>
 
-                {/* Rating row */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5" style={{ color: "#FFD600", fill: "#FFD600" }} />
-                    <span className="font-bold text-sm" style={{ color: "#1F1F1F" }}>{mentor.rating}</span>
-                    <span className="text-xs" style={{ color: "#9CA3AF" }}>({mentor.reviews} đánh giá)</span>
+                    <Star className="h-3.5 w-3.5" style={{ color: "#FFD600", fill: "#FFD600" }} />
+                    <span className="text-sm font-bold text-white">{mentor.rating}</span>
+                    <span className="text-xs text-white/50">({mentor.reviews} đánh giá)</span>
                   </div>
-                  <div className="flex items-center gap-1 text-xs" style={{ color: "#9CA3AF" }}>
-                    <Clock className="w-3 h-3" />
+                  <div className="flex items-center gap-1 text-xs text-white/50">
+                    <Clock className="h-3 w-3" />
                     {mentor.responseTime}
                   </div>
                 </div>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
+                <div className="mb-4 flex flex-wrap gap-1.5">
                   {mentor.tags.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
-                      className="text-xs px-2.5 py-0.5 rounded-full font-medium"
-                      style={{ background: "rgba(110, 53, 232,0.08)", color: "#6E35E8" }}
+                      className="rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs font-medium text-violet-100"
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
 
-                {/* Footer */}
-                <div
-                  className="flex items-center justify-between pt-3"
-                  style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}
-                >
+                <div className="flex items-center justify-between border-t border-white/10 pt-3">
                   <div>
-                    <span className="font-bold text-sm" style={{ color: "#1F1F1F" }}>
+                    <span className="text-sm font-bold text-white">
                       {mentor.price.toLocaleString("vi")}đ
                     </span>
-                    <span className="text-xs" style={{ color: "#9CA3AF" }}> / giờ</span>
+                    <span className="text-xs text-white/50"> / giờ</span>
                   </div>
                   <button
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); navigate(`/booking/${mentor.id}`); }}
-                    className="text-white text-xs font-bold px-4 py-2 rounded-xl transition-all"
-                    style={{
-                      background: "linear-gradient(135deg, #6E35E8, #8B4DFF)",
-                      boxShadow: "0 4px 12px rgba(110, 53, 232,0.3)",
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.opacity = "0.9")}
-                    onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+                    className="rounded-xl bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-900/40 transition-opacity hover:opacity-90"
                   >
                     Đặt lịch
                   </button>

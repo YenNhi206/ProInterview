@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import { COURSES_DATA } from "../data/coursesData";
 import { isLoggedIn } from "../utils/auth";
-import { apiGet } from "../utils/api";
 import { Footer } from "../components/layout/Footer";
 import { RecommendedJourney } from "../components/RecommendedJourney";
 
@@ -39,11 +38,11 @@ import { RecommendedJourney } from "../components/RecommendedJourney";
 const FEATURES = [
   {
     icon: FileText,
-    accentClass: "from-[#B4F500] to-[#80C800]",
+    accentClass: "from-[#c4ff47] to-[#8fbc24]",
     bgClass: "bg-lime-50 dark:bg-lime-950/30",
-    dotColor: "#B4F500",
-    borderHover: "rgba(180,245,0,0.5)",
-    bgHover: "rgba(180,245,0,0.07)",
+    dotColor: "#c4ff47",
+    borderHover: "rgba(196, 255, 71,0.5)",
+    bgHover: "rgba(196, 255, 71,0.07)",
     title: "Phân tích CV/JD",
     desc: "AI phân tích mức độ phù hợp giữa CV và JD, đưa ra gợi ý tối ưu cụ thể cho từng vị trí.",
     route: "/cv-analysis",
@@ -167,7 +166,6 @@ export function Home() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [apiOnline, setApiOnline] = useState(null);
 
   // Auth-gate: redirect to login with ?redirect= if not logged in
   const handleFeatureClick = (route) => {
@@ -177,19 +175,6 @@ export function Home() {
       navigate(`/login?redirect=${encodeURIComponent(route)}`);
     }
   };
-
-  useEffect(() => {
-    const checkBackendHealth = async () => {
-      try {
-        const data = await apiGet("/api/health");
-        setApiOnline(Boolean(data?.ok));
-      } catch (_error) {
-        setApiOnline(false);
-      }
-    };
-
-    checkBackendHealth();
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -216,8 +201,11 @@ export function Home() {
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "#07060E", color: "#fff" }}
+      className="min-h-screen text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white font-sans overflow-x-hidden relative"
+      style={{
+        background: "linear-gradient(165deg, #0a0618 0%, #07060e 45%, #12081f 100%)",
+        color: "#fff",
+      }}
     >
       <style>{`
         .cute-glass {
@@ -241,8 +229,11 @@ export function Home() {
         }
         .cute-card:hover {
           transform: perspective(1000px) translateY(-7px) rotateX(2.5deg) rotateY(-2.5deg);
-          border-color: rgba(180,245,0,0.35);
-          box-shadow: 0 16px 40px rgba(110,53,232,0.22);
+          border-color: rgba(196, 255, 71,0.42);
+          box-shadow:
+            0 16px 40px rgba(0,0,0,0.4),
+            0 0 36px -8px rgba(196, 255, 71, 0.22),
+            0 0 0 1px rgba(196, 255, 71, 0.1) inset;
         }
         .parallax-layer {
           transform: translateZ(18px);
@@ -290,7 +281,7 @@ export function Home() {
         .sticker-badge {
           border-radius: 999px;
           border: 1px solid rgba(255,255,255,0.24);
-          background: rgba(7,6,14,0.72);
+          background: rgba(18,11,46,0.78);
           backdrop-filter: blur(10px);
           box-shadow: 0 10px 24px rgba(0,0,0,0.25);
         }
@@ -324,11 +315,11 @@ export function Home() {
         }
         @keyframes heroGlowPulse {
           0%, 100% {
-            box-shadow: 0 0 0 rgba(110,53,232,0.0), 0 0 0 rgba(180,245,0,0.0);
+            box-shadow: 0 0 0 rgba(110,53,232,0.0), 0 0 0 rgba(196, 255, 71,0.0);
             transform: translateY(0px);
           }
           50% {
-            box-shadow: 0 8px 28px rgba(110,53,232,0.2), 0 0 20px rgba(180,245,0,0.12);
+            box-shadow: 0 8px 28px rgba(110,53,232,0.2), 0 0 20px rgba(196, 255, 71,0.12);
             transform: translateY(-1px);
           }
         }
@@ -364,18 +355,72 @@ export function Home() {
             filter: blur(0px);
           }
         }
+        @keyframes shimmer-bg {
+          0% { opacity: 0.4; transform: translate(0,0) scale(1); }
+          50% { opacity: 0.7; transform: translate(2%, -2%) scale(1.05); }
+          100% { opacity: 0.4; transform: translate(0,0) scale(1); }
+        }
+        .font-headline {
+          letter-spacing: -0.045em;
+          text-shadow: 0 2px 24px rgba(0,0,0,0.35);
+        }
+        .glass-card {
+          background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
+          backdrop-filter: blur(48px);
+          border-radius: 28px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.45s ease;
+          position: relative;
+          overflow: hidden;
+        }
+        .glass-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(125deg, rgba(236,72,153,0.08) 0%, transparent 42%, rgba(196, 255, 71,0.06) 100%);
+          pointer-events: none;
+          opacity: 0.85;
+        }
+        .glass-card:hover {
+          border-color: rgba(196, 255, 71, 0.42);
+          transform: translateY(-4px) rotate(-0.2deg);
+          box-shadow:
+            0 24px 48px rgba(0,0,0,0.45),
+            0 0 0 1px rgba(196, 255, 71, 0.12) inset,
+            0 0 48px -6px rgba(196, 255, 71, 0.28),
+            0 0 36px -10px rgba(167, 139, 250, 0.22);
+        }
       `}</style>
+
+      {/* Nền blob + shimmer — giống Dashboard */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-10 opacity-90"
+        style={{ animation: "shimmer-bg 14s ease-in-out infinite" }}
+        aria-hidden
+      >
+        <div className="absolute top-[-20%] right-[-10%] h-[70vh] w-[70vh] rounded-full bg-gradient-to-bl from-fuchsia-600/35 via-violet-600/20 to-transparent blur-[100px]" />
+        <div className="absolute bottom-[-25%] left-[-15%] h-[85vh] w-[85vh] rounded-full bg-gradient-to-tr from-[#c4ff47]/18 via-cyan-500/10 to-fuchsia-500/20 blur-[110px]" />
+        <div className="absolute top-1/2 left-1/2 h-[50vh] w-[50vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6E35E8]/12 blur-[90px]" />
+        <div className="absolute top-[30%] right-[5%] h-[40vh] w-[40vh] rounded-full bg-[#c4ff47]/10 blur-[80px]" />
+      </div>
+
       {/* ═══ NAVBAR ════════════════════════════════════════ */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
           background: scrolled
-            ? "rgba(7,6,14,0.88)"
-            : "transparent",
-          backdropFilter: scrolled ? "blur(16px)" : "none",
+            ? "rgba(18, 11, 46, 0.9)"
+            : "rgba(7, 6, 14, 0.72)",
+          backdropFilter: scrolled ? "blur(20px) saturate(1.15)" : "blur(16px) saturate(1.1)",
+          WebkitBackdropFilter: scrolled
+            ? "blur(20px) saturate(1.15)"
+            : "blur(16px) saturate(1.1)",
           borderBottom: scrolled
-            ? "1px solid rgba(255,255,255,0.06)"
-            : "none",
+            ? "1px solid rgba(255,255,255,0.12)"
+            : "1px solid rgba(255,255,255,0.08)",
+          boxShadow: scrolled
+            ? "0 1px 0 rgba(255,255,255,0.06), 0 -1px 24px -8px rgba(196, 255, 71, 0.06) inset, 0 12px 40px -12px rgba(0,0,0,0.45)"
+            : "0 1px 0 rgba(255,255,255,0.05), 0 8px 32px -8px rgba(0,0,0,0.4)",
         }}
       >
         <div className="max-w-7xl mx-auto px-5 h-16 flex items-center gap-6">
@@ -404,18 +449,6 @@ export function Home() {
             >
               ProInterview
             </span>
-            {apiOnline !== null && (
-              <span
-                className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ml-1"
-                style={{
-                  color: apiOnline ? "#B4F500" : "#FF6B6B",
-                  border: `1px solid ${apiOnline ? "rgba(180,245,0,0.35)" : "rgba(255,107,107,0.35)"}`,
-                  background: apiOnline ? "rgba(180,245,0,0.08)" : "rgba(255,107,107,0.08)",
-                }}
-              >
-                {apiOnline ? "API Online" : "API Offline"}
-              </span>
-            )}
           </div>
 
           {/* Desktop nav links */}
@@ -442,15 +475,15 @@ export function Home() {
             {/* Try button — always visible */}
             <button
               onClick={() => navigate("/interview")}
-              className="hidden sm:inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-extrabold transition-all hover:brightness-110 active:scale-95 shadow-[0_8px_20px_rgba(180,245,0,0.22)]"
+              className="hidden sm:inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-extrabold transition-all hover:brightness-110 active:scale-95 shadow-[0_8px_20px_rgba(196, 255, 71,0.22)]"
               style={{
                 background:
-                  "linear-gradient(135deg, #B4F500, #80C800)",
-                color: "#1a1a1a",
-                boxShadow: "0 0 20px rgba(180,245,0,0.25)",
+                  "linear-gradient(135deg, #c4ff47, #8fbc24)",
+                color: "#120B2E",
+                boxShadow: "0 0 24px rgba(196, 255, 71,0.35)",
               }}
             >
-              <Lightning className="w-3.5 h-3.5" />
+              <Lightning className="w-3.5 h-3.5 text-[#120B2E]" />
               Trải nghiệm thử
             </button>
 
@@ -489,7 +522,7 @@ export function Home() {
           <div
             className="md:hidden border-t"
             style={{
-              background: "rgba(7,6,14,0.96)",
+              background: "rgba(18,11,46,0.97)",
               borderColor: "rgba(255,255,255,0.08)",
             }}
           >
@@ -528,11 +561,11 @@ export function Home() {
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold"
                   style={{
                     background:
-                      "linear-gradient(135deg, #B4F500, #80C800)",
-                    color: "#1a1a1a",
+                      "linear-gradient(135deg, #c4ff47, #8fbc24)",
+                    color: "#120B2E",
                   }}
                 >
-                  <Lightning className="w-4 h-4 text-[#B4F000]" />{" "}
+                  <Lightning className="w-4 h-4 text-[#120B2E]" />{" "}
                   Trải nghiệm thử miễn phí
                 </button>
               </div>
@@ -541,15 +574,17 @@ export function Home() {
         )}
       </nav>
 
-      {/* ═══ HERO ═══════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-5 pt-20">
-        {/* BG gradient mesh */}
+      {/* ═══ HERO — layout vibe Dashboard (lưới + glass stats) ═══ */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-5 pt-20 border-b border-white/[0.07]">
+        {/* Lưới 32px giống header Dashboard */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 opacity-[0.11]"
           style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(110, 53, 232,0.45) 0%, transparent 70%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(180,245,0,0.08) 0%, transparent 60%), #07060E",
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
           }}
+          aria-hidden
         />
         {/* Noise grain */}
         <div
@@ -560,20 +595,11 @@ export function Home() {
             backgroundRepeat: "repeat",
             backgroundSize: "200px",
           }}
-        />
-        {/* Grid */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
-          }}
+          aria-hidden
         />
 
         {/* Hero content */}
         <div className="relative z-10 text-center max-w-4xl mx-auto">
-          {/* Badge */}
           <div
             className="inline-flex items-center gap-2 mb-7 px-4 py-2 rounded-full border text-xs font-bold cute-glass hero-badge-animated"
             style={{
@@ -588,27 +614,21 @@ export function Home() {
 
           {/* Headline */}
           <h1
-            className="text-white mb-6 py-2 leading-relaxed cute-heading"
+            className="text-white mb-6 py-2 leading-[1.08] cute-heading font-headline tracking-tighter"
             style={{
               fontSize: "clamp(2rem, 5.5vw, 3.5rem)",
-              textShadow: "0 8px 28px rgba(110,53,232,0.35)",
             }}
           >
-            Phỏng vấn{" "}
+            <span className="bg-gradient-to-r from-white via-fuchsia-100 to-zinc-300 bg-clip-text text-transparent">
+              Phỏng vấn{" "}
+            </span>
             <span
-              className="hero-title-animated hero-orbit-text"
-              style={{
-                background:
-                  "linear-gradient(135deg, #B4F500 0%, #6E35E8 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                padding: "0.1em 0",
-              }}
+              className="hero-title-animated hero-orbit-text bg-gradient-to-r from-[#c4ff47] via-fuchsia-300 to-violet-300 bg-clip-text text-transparent"
+              style={{ padding: "0.1em 0" }}
             >
               1:1 với AI
-            </span>{" "}
-            qua mô phỏng hội thoại thông minh
+            </span>
+            <span className="text-white/90"> qua mô phỏng hội thoại thông minh</span>
           </h1>
 
           {/* Sub */}
@@ -628,11 +648,11 @@ export function Home() {
               className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-black transition-all hover:brightness-110 active:scale-[0.98] hover:-translate-y-0.5"
               style={{
                 background:
-                  "linear-gradient(135deg, #B4F500, #80C800)",
+                  "linear-gradient(135deg, #c4ff47, #8fbc24)",
                 color: "#1a1a1a",
                 fontSize: "0.9375rem",
                 boxShadow:
-                  "0 0 40px rgba(180,245,0,0.3), 0 8px 24px rgba(0,0,0,0.3)",
+                  "0 0 40px rgba(196, 255, 71,0.3), 0 8px 24px rgba(0,0,0,0.3)",
               }}
             >
               <Lightning className="w-5 h-5" />
@@ -654,44 +674,39 @@ export function Home() {
             </button>
           </div>
 
-          {/* Stats */}
-          <div
-            className="grid grid-cols-2 md:grid-cols-4 gap-2 overflow-hidden rounded-3xl p-2 cute-glass"
-            style={{
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(255,255,255,0.03)",
-            }}
-          >
-            {STATS.map((s, i) => (
-              <div
-                key={i}
-                className="text-center py-5 px-4 rounded-2xl"
-                style={{ background: "rgba(255,255,255,0.04)" }}
-              >
+          {/* Stats — glass-card giống khối metric Dashboard */}
+          <div className="glass-card p-3 sm:p-4">
+            <div className="relative z-[1] grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+              {STATS.map((s, i) => (
                 <div
-                  className="text-white font-bold mb-1"
-                  style={{
-                    fontSize: "1.375rem",
-                    letterSpacing: "-0.02em",
-                  }}
+                  key={i}
+                  className="text-center py-5 px-3 sm:px-4 rounded-2xl border border-white/[0.08] bg-white/[0.04]"
                 >
-                  {s.value}
+                  <div
+                    className="text-white font-black mb-1"
+                    style={{
+                      fontSize: "clamp(1.25rem, 3.5vw, 1.5rem)",
+                      letterSpacing: "-0.03em",
+                    }}
+                  >
+                    {s.value}
+                  </div>
+                  <div className="text-white/45 text-[11px] font-semibold leading-snug">
+                    {s.label}
+                  </div>
                 </div>
-                <div className="text-white/45 text-xs">
-                  {s.label}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Bottom fade */}
+        {/* Bottom fade — hòa vào gradient trang */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-32"
+          className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
           style={{
-            background:
-              "linear-gradient(to top, #07060E, transparent)",
+            background: "linear-gradient(to top, #07060e, transparent)",
           }}
+          aria-hidden
         />
       </section>
 
@@ -700,17 +715,20 @@ export function Home() {
       {/* ═══ HOW IT WORKS ════════════════════════════════════ */}
       <section
         id="features"
-        className="relative min-h-screen flex flex-col justify-center py-12 bg-background overflow-hidden"
+        className="relative min-h-screen flex flex-col justify-center py-12 bg-transparent overflow-hidden border-t border-white/[0.06]"
       >
-        {/* BG Glows */}
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-secondary/10 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-primary-fixed/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2"></div>
+        {/* Nền phẳng (xen kẽ với section có lưới) */}
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#c4ff47]/[0.07] blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2" aria-hidden />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#6E35E8]/10 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" aria-hidden />
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full py-8">
           <div className="text-center mb-14">
-            <h2 className="text-4xl md:text-6xl text-white mb-4 leading-[1.1] py-2 cute-heading">
+            <div className="flex justify-center mb-5">
+              <span className="h-1 w-10 rounded-full bg-gradient-to-r from-[#c4ff47] to-emerald-400" />
+            </div>
+            <h2 className="text-4xl md:text-6xl text-white mb-4 leading-[1.1] py-2 cute-heading font-headline tracking-tighter">
               Quy trình tinh gọn,<br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-fixed to-secondary">kết quả đột phá</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c4ff47] via-fuchsia-300 to-violet-300">kết quả đột phá</span>
             </h2>
             <p className="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed">
               Sẵn sàng chinh phục mọi nhà tuyển dụng với lộ trình chuẩn bị được cá nhân hóa bởi trí tuệ nhân tạo.
@@ -719,40 +737,50 @@ export function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {STEPS.map((s, i) => (
-              <div 
-                key={i} 
-                className="cute-card group p-8 relative overflow-hidden"
+              <div
+                key={i}
+                className={`glass-card group p-6 sm:p-8 relative overflow-hidden transition-[border-color,box-shadow] duration-300 ${
+                  i === 1
+                    ? "border-[#c4ff47]/35 shadow-[0_0_0_1px_rgba(196,255,71,0.12)_inset]"
+                    : i === 2
+                      ? "border-violet-400/35 shadow-[0_0_0_1px_rgba(167,139,250,0.15)_inset]"
+                      : "border-white/[0.12]"
+                }`}
               >
-                <div className="card-glow" />
-                <div className="card-shine" />
-                {(i === 1 || i === 2) && (
-                  <span
-                    className="absolute top-4 left-4 px-2.5 py-1 text-[10px] font-black tracking-wide uppercase sticker-badge"
-                    style={{ color: i === 1 ? "#B4F500" : "#B89DFF" }}
-                  >
-                    {i === 1 ? "Hot" : "Mentor Pick"}
-                  </span>
-                )}
-                {/* Number Background */}
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
-                  <span className="text-6xl font-black italic">{s.step}</span>
+                <div className="relative z-[1]">
+                {/* Hàng nhãn cố định — tránh absolute đè lên icon */}
+                <div className="mb-3 min-h-[30px] flex items-center justify-start">
+                  {(i === 1 || i === 2) && (
+                    <span
+                      className={`inline-flex px-2 py-1 text-[10px] sm:text-[11px] font-bold tracking-wide rounded-md border ${
+                        i === 1
+                          ? "border-[#c4ff47]/55 bg-[#c4ff47]/18 text-[#e8ffc4] shadow-[0_0_14px_rgba(196,255,71,0.22)]"
+                          : "border-violet-400/55 bg-violet-950/95 text-violet-50 shadow-[0_0_14px_rgba(139,92,246,0.28)]"
+                      }`}
+                    >
+                      {i === 1 ? "Nổi bật" : "Gợi ý mentor"}
+                    </span>
+                  )}
                 </div>
-                
-                {/* Icon Circle */}
-                <div 
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all duration-500 shadow-xl float-icon parallax-layer ${
-                    i % 2 === 0 
-                      ? "bg-secondary text-white shadow-secondary/20" 
-                      : "bg-white/5 text-primary-fixed group-hover:bg-primary-fixed group-hover:text-on-primary-fixed"
+                <div className="absolute top-0 right-0 p-4 opacity-[0.06] group-hover:opacity-[0.14] transition-opacity pointer-events-none">
+                  <span className="text-6xl font-black italic text-white">{s.step}</span>
+                </div>
+
+                <div
+                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all duration-500 shadow-xl float-icon parallax-layer ${
+                    i % 2 === 0
+                      ? "bg-[#c4ff47] text-[#0a0a0c] shadow-[0_0_24px_rgba(196,255,71,0.25)]"
+                      : "bg-white/5 text-[#c4ff47] border border-white/10 group-hover:bg-[#c4ff47]/15 group-hover:border-[#c4ff47]/35"
                   }`}
                 >
                   <s.icon className="h-7 w-7" />
                 </div>
 
-                <h3 className="text-xl font-bold mb-3 text-white parallax-layer">{s.title}</h3>
-                <p className="text-zinc-400 text-sm leading-relaxed">
+                <h3 className="text-xl font-bold mb-3 text-white parallax-layer font-headline tracking-tight">{s.title}</h3>
+                <p className="text-white/45 text-sm leading-relaxed">
                   {s.desc}
                 </p>
+                </div>
               </div>
             ))}
           </div>
@@ -761,14 +789,14 @@ export function Home() {
           <div className="mt-16 flex flex-col items-center">
             <button 
               onClick={() => handleFeatureClick("/dashboard")}
-              className="group relative bg-primary-fixed text-on-primary-fixed px-12 py-5 rounded-full font-black text-xl tracking-tight uppercase transition-all duration-500 hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(184,246,0,0.15)]"
+              className="group relative bg-primary-fixed text-on-primary-fixed px-12 py-5 rounded-full font-black text-xl tracking-tight uppercase transition-all duration-500 hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(196,255,71,0.22)]"
             >
               Bắt đầu ngay
               <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
             </button>
             <div className="mt-6 flex items-center gap-4">
               <span className="w-12 h-px bg-white/10"></span>
-              <span className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] font-bold">Không cần thẻ tín dụng</span>
+              <span className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-bold">Không cần thẻ tín dụng</span>
               <span className="w-12 h-px bg-white/10"></span>
             </div>
           </div>
@@ -777,23 +805,29 @@ export function Home() {
 
       {/* ═══ INTERVIEW PREVIEW ═══════════════════════════════ */}
       <section
+        className="border-t border-white/[0.07] bg-transparent relative"
         style={{
-          background: "#0D0B1A",
           padding: "64px 0",
           overflow: "hidden",
         }}
       >
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+          aria-hidden
+        />
+        <div className="max-w-7xl mx-auto px-5 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left copy */}
-            <div>
+            <div className="glass-card p-6 sm:p-8 lg:p-10">
+              <div className="relative z-[1]">
+              <div className="mb-5 h-1 w-10 rounded-full bg-gradient-to-r from-[#c4ff47] to-fuchsia-400" aria-hidden />
               <span
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6"
-                style={{
-                  background: "rgba(110, 53, 232,0.15)",
-                  border: "1px solid rgba(110, 53, 232,0.3)",
-                  color: "#B89DFF",
-                }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border border-violet-400/30 bg-violet-500/10 text-violet-200"
               >
                 <Microphone
                   className="w-3.5 h-3.5"
@@ -807,7 +841,7 @@ export function Home() {
                 }}
               >
                 Trải nghiệm phỏng vấn{" "}
-                <span style={{ color: "#B4F500" }}>
+                <span style={{ color: "#c4ff47" }}>
                   như thật
                 </span>
               </h2>
@@ -820,7 +854,7 @@ export function Home() {
               >
                 Phòng phỏng vấn ảo với AI phỏng vấn viên, phản
                 hồi trực quan khi bạn đang nói, và đánh giá chi
-                tiết tng câu trả lời theo mô hình STAR.
+                tiết từng câu trả lời theo mô hình STAR.
               </p>
 
               <ul className="space-y-3.5 mb-10">
@@ -838,12 +872,12 @@ export function Home() {
                     <div
                       className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{
-                        background: "rgba(180,245,0,0.15)",
+                        background: "rgba(196, 255, 71,0.15)",
                       }}
                     >
                       <Check
                         className="w-3 h-3"
-                        style={{ color: "#B4F500" }}
+                        style={{ color: "#c4ff47" }}
                       />
                     </div>
                     <span className="text-sm">{item}</span>
@@ -856,32 +890,32 @@ export function Home() {
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:brightness-110 hover:-translate-y-0.5"
                 style={{
                   background:
-                    "linear-gradient(135deg, #B4F500, #80C800)",
+                    "linear-gradient(135deg, #c4ff47, #8fbc24)",
                   color: "#1a1a1a",
-                  boxShadow: "0 0 28px rgba(180,245,0,0.25)",
+                  boxShadow: "0 0 28px rgba(196, 255, 71,0.25)",
                 }}
               >
                 Thử ngay miễn phí
                 <ArrowRight className="w-4 h-4" />
               </button>
+              </div>
             </div>
 
             {/* Right: mock interview screen with HR video */}
             <div className="relative">
-              {/* Glow */}
               <div
-                className="absolute -inset-8 rounded-3xl opacity-40 blur-3xl"
+                className="absolute -inset-6 rounded-[32px] opacity-50 blur-3xl pointer-events-none"
                 style={{
                   background:
-                    "radial-gradient(circle, rgba(110, 53, 232,0.5) 0%, transparent 70%)",
+                    "radial-gradient(circle, rgba(196,255,71,0.2) 0%, rgba(110, 53, 232,0.35) 45%, transparent 70%)",
                 }}
+                aria-hidden
               />
+              <div className="glass-card p-1 sm:p-1.5 rounded-[28px]">
               <div
-                className="relative rounded-3xl overflow-hidden"
+                className="relative rounded-[24px] overflow-hidden border border-white/[0.08] bg-[#07060e]/95"
                 style={{
-                  background: "#07060E",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+                  boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(196,255,71,0.08) inset",
                 }}
               >
                 {/* Window chrome */}
@@ -961,7 +995,7 @@ export function Home() {
                     {/* Top bar with timer and info */}
                     <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between"
                       style={{
-                        background: "linear-gradient(to bottom, rgba(7,6,14,0.9), transparent)"
+                        background: "linear-gradient(to bottom, rgba(18,11,46,0.92), transparent)"
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -988,7 +1022,7 @@ export function Home() {
                     {/* Current question display */}
                     <div className="absolute bottom-0 left-0 right-0 p-5"
                       style={{
-                        background: "linear-gradient(to top, rgba(7,6,14,0.95), transparent)"
+                        background: "linear-gradient(to top, rgba(18,11,46,0.95), transparent)"
                       }}
                     >
                       <div
@@ -1024,7 +1058,7 @@ export function Home() {
                       {/* Quick stats */}
                       <div className="grid grid-cols-3 gap-2 mt-3">
                         {[
-                          { icon: Microphone, label: "Đang nghe", color: "#B4F500" },
+                          { icon: Microphone, label: "Đang nghe", color: "#c4ff47" },
                           { icon: Brain, label: "Phân tích STAR", color: "#6E35E8" },
                           { icon: ChartBar, label: "Điểm: 3.8/5", color: "#FFB800" },
                         ].map((item, i) => (
@@ -1053,6 +1087,7 @@ export function Home() {
                   </div>
                 </div>
               </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1061,16 +1096,18 @@ export function Home() {
       {/* ═══ COURSES SECTION ═════════════════════════════════ */}
       <section
         id="courses"
-        className="relative min-h-screen flex flex-col justify-center py-20 bg-background overflow-hidden"
+        className="relative min-h-screen flex flex-col justify-center py-20 bg-transparent overflow-hidden border-t border-white/[0.06]"
       >
-        {/* Atmospheric Glows */}
-        <div className="absolute top-0 right-[-100px] w-[500px] h-[500px] bg-secondary/10 blur-[130px] rounded-full"></div>
-        <div className="absolute bottom-[-100px] left-[-100px] w-[600px] h-[600px] bg-primary-fixed/5 blur-[150px] rounded-full"></div>
+        <div className="absolute top-0 right-[-100px] w-[500px] h-[500px] bg-[#c4ff47]/[0.06] blur-[130px] rounded-full" aria-hidden />
+        <div className="absolute bottom-[-100px] left-[-100px] w-[600px] h-[600px] bg-[#6E35E8]/12 blur-[150px] rounded-full" aria-hidden />
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full py-12">
           <div className="flex flex-col md:flex-row items-end gap-10 mb-12">
             <div className="md:w-2/3">
-              <span className="text-secondary font-bold uppercase tracking-[0.2em] text-[10px] mb-3 block">Education Platform</span>
+              <div className="h-1 w-10 rounded-full bg-gradient-to-r from-[#c4ff47] to-emerald-400 mb-4" aria-hidden />
+              <span className="font-bold uppercase tracking-[0.2em] text-[10px] mb-3 block text-[#c4ff47] drop-shadow-[0_0_12px_rgba(196,255,71,0.25)]">
+                Nền tảng học
+              </span>
               <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-[0.95] text-white mb-6">
                 Học từ chuyên gia,<br/>
                 <span className="text-primary-fixed">sửa lỗi ngay.</span>
@@ -1079,14 +1116,16 @@ export function Home() {
                 Nâng tầm sự nghiệp với feedback trực tiếp từ Mentor hàng đầu. Hoàn thiện từng câu trả lời thông qua bài tập thực tế.
               </p>
             </div>
-            <div className="md:w-1/3 flex justify-end">
-              <div className="bg-surface-container-high/50 backdrop-blur-md p-1 rounded-full flex items-center gap-3 border border-white/5">
+            <div className="w-full md:w-1/3 flex justify-end">
+              <div className="glass-card !rounded-full px-2 py-1.5 flex items-center gap-3 min-w-0 max-w-full">
+                <div className="relative z-[1] flex items-center gap-3 w-full">
                 <div className="flex -space-x-3 px-2">
                   {[1, 2, 3].map(i => (
-                    <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} alt="Student" className="w-8 h-8 rounded-full border-2 border-surface-container-high object-cover" />
+                    <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} alt="Student" className="w-8 h-8 rounded-full border-2 border-white/15 object-cover" />
                   ))}
                 </div>
-                <span className="pr-5 pl-1 text-[11px] font-bold text-primary-fixed">10k+ Học viên</span>
+                <span className="pr-4 pl-1 text-[11px] font-bold text-[#c4ff47]">10k+ Học viên</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1098,10 +1137,9 @@ export function Home() {
                 onClick={() =>
                   handleFeatureClick(`/courses/${course.id}`)
                 }
-                className="group cute-card overflow-hidden cursor-pointer"
+                className="group glass-card overflow-hidden cursor-pointer !rounded-[28px]"
               >
-                <div className="card-glow" />
-                <div className="card-shine" />
+                <div className="relative z-[1]">
                 {/* Thumbnail */}
                 <div className="relative h-48 overflow-hidden">
                   <img
@@ -1146,15 +1184,17 @@ export function Home() {
                     />
                     <div>
                       <p className="text-sm font-bold text-white">{course.mentorName}</p>
-                      <span className="text-[9px] uppercase tracking-[0.15em] text-secondary font-black">Reviewed by Expert</span>
+                      <span className="text-[9px] uppercase tracking-[0.15em] font-black text-zinc-400">
+                        Mentor duyệt
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary-fixed text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       <span className="font-bold text-white text-sm">{course.rating}</span>
-                      <span className="text-white/30 text-xs">({(course.reviewsCount || 0) + 700})</span>
+                      <span className="text-white/35 text-xs">({(course.reviewsCount || 0) + 700})</span>
                     </div>
                     <div className="text-lg font-black text-primary-fixed">
                       {new Intl.NumberFormat("vi-VN", {
@@ -1164,6 +1204,7 @@ export function Home() {
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
             ))}
           </div>
@@ -1171,7 +1212,7 @@ export function Home() {
           <div className="text-center">
             <button
               onClick={() => navigate("/courses")}
-              className="px-10 py-3.5 rounded-full border border-white/10 text-white font-bold hover:bg-white/5 transition-all text-sm"
+              className="px-10 py-3.5 rounded-full border border-white/15 text-white font-bold hover:bg-white/[0.06] hover:border-[#c4ff47]/35 transition-all text-sm"
             >
               Xem tất cả khóa học
             </button>
@@ -1184,13 +1225,24 @@ export function Home() {
       {/* ═══ TESTIMONIALS ═══════════════════════════════════ */}
       <section
         id="testimonials"
-        className="min-h-screen flex flex-col justify-center relative overflow-hidden bg-surface-container-lowest border-t border-white/5"
+        className="min-h-screen flex flex-col justify-center relative overflow-hidden bg-transparent border-t border-white/[0.07]"
       >
-        {/* Atmospheric Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-secondary/5 blur-[150px] rounded-full opacity-50 -z-0"></div>
-        
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+          aria-hidden
+        />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#c4ff47]/[0.04] blur-[150px] rounded-full opacity-60 pointer-events-none" aria-hidden />
+
         <div className="max-w-7xl mx-auto px-5 relative z-10">
           <div className="text-center mb-16">
+            <div className="flex justify-center mb-5">
+              <span className="h-1 w-10 rounded-full bg-gradient-to-r from-[#c4ff47] to-violet-400" />
+            </div>
             <h2
               className="text-white mb-4 cute-heading"
               style={{
@@ -1201,7 +1253,7 @@ export function Home() {
               <span
                 style={{
                   background:
-                    "linear-gradient(135deg, #6E35E8, #B4F500)",
+                    "linear-gradient(135deg, #6E35E8, #c4ff47)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -1216,14 +1268,9 @@ export function Home() {
             {TESTIMONIALS.map((t, i) => (
             <div
                 key={i}
-              className="rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 cute-card overflow-hidden"
-                style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03))",
-                border: "1px solid rgba(255,255,255,0.1)",
-                }}
+              className="glass-card p-6 sm:p-7 !rounded-[28px]"
               >
-                <div className="card-glow" />
-                <div className="card-shine" />
+                <div className="relative z-[1]">
                 {/* Stars */}
                 <div className="flex gap-1 mb-4">
                   {[...Array(t.stars)].map((_, j) => (
@@ -1237,9 +1284,9 @@ export function Home() {
                   <span
                     className="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
                     style={{
-                      background: "rgba(180,245,0,0.12)",
-                      color: "#B4F500",
-                      border: "1px solid rgba(180,245,0,0.2)",
+                      background: "rgba(196, 255, 71,0.12)",
+                      color: "#c4ff47",
+                      border: "1px solid rgba(196, 255, 71,0.2)",
                     }}
                   >
                     {t.tag}
@@ -1271,6 +1318,7 @@ export function Home() {
                     </p>
                   </div>
                 </div>
+                </div>
               </div>
             ))}
           </div>
@@ -1280,15 +1328,18 @@ export function Home() {
       {/* ═══ PRICING SECTION ═════════════════════════════════════ */}
       <section 
         id="pricing" 
-        className="min-h-screen flex flex-col justify-center py-24 relative overflow-hidden bg-background"
+        className="min-h-screen flex flex-col justify-center py-24 relative overflow-hidden bg-transparent border-t border-white/[0.06]"
       >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-24 w-[600px] h-[300px] bg-secondary/10 blur-[120px] rounded-full -z-0"></div>
-        
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-24 w-[600px] h-[300px] bg-[#c4ff47]/[0.08] blur-[120px] rounded-full pointer-events-none" aria-hidden />
+
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full py-12">
           <header className="text-center mb-10">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20 text-secondary-fixed text-[10px] font-black tracking-widest uppercase mb-4">
-              <Sparkles className="size-3" />
-              Investment in your future
+            <div className="flex justify-center mb-4">
+              <span className="h-1 w-10 rounded-full bg-gradient-to-r from-[#c4ff47] to-emerald-400" />
+            </div>
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#c4ff47]/12 border border-[#c4ff47]/35 text-[#e8ffc4] text-[10px] font-black tracking-widest uppercase mb-4 shadow-[0_0_20px_rgba(196,255,71,0.12)]">
+              <Sparkles className="size-3 text-[#c4ff47]" />
+              Đầu tư cho tương lai
             </span>
             <h2 className="text-3xl md:text-5xl font-black font-headline tracking-tighter mb-3 leading-tight text-white">
               Bảng giá <span className="text-primary-fixed">linh hoạt</span>
@@ -1300,7 +1351,8 @@ export function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
             {/* Free Tier */}
-            <div className="cute-card p-8 rounded-3xl flex flex-col h-full group">
+            <div className="glass-card p-8 !rounded-[28px] flex flex-col h-full group">
+              <div className="relative z-[1] flex flex-col flex-1">
               <div className="mb-6">
                 <h3 className="font-headline font-bold text-lg mb-1 text-white">Cơ bản (Free)</h3>
                 <div className="flex items-baseline gap-1">
@@ -1311,21 +1363,23 @@ export function Home() {
               <ul className="space-y-3 mb-8 flex-grow">
                 {["2 buổi AI Interview thử nghiệm", "3 lần phân tích CV/JD", "10 câu hỏi mẫu theo ngành"].map((f, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
-                    <CheckCircle2 className="size-4 text-secondary" />
+                    <CheckCircle2 className="size-4 shrink-0 text-secondary" />
                     {f}
                   </li>
                 ))}
               </ul>
-              <button onClick={() => navigate("/register")} className="w-full py-3 rounded-full border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-all">
+              <button onClick={() => navigate("/register")} className="w-full py-3 rounded-full border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-all mt-auto">
                 Bắt đầu ngay
               </button>
+              </div>
             </div>
 
             {/* Pro Tier */}
-            <div className="relative cute-card p-8 rounded-3xl flex flex-col h-full border-2 border-primary-fixed scale-105 z-10 shadow-[0_18px_45px_rgba(180,245,0,0.2)]">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-fixed text-on-primary-fixed px-3 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase">
+            <div className="relative glass-card p-8 !rounded-[28px] flex flex-col h-full border-2 border-primary-fixed md:scale-[1.04] z-10 shadow-[0_18px_45px_rgba(196,255,71,0.18)] !overflow-visible">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-fixed text-on-primary-fixed px-3 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase z-[2] shadow-[0_0_20px_rgba(196,255,71,0.35)]">
                 PHỔ BIẾN NHẤT
               </div>
+              <div className="relative z-[1] flex flex-col flex-1 pt-2">
               <div className="mb-6">
                 <h3 className="font-headline font-bold text-lg mb-1 text-white">Chuyên nghiệp (Pro)</h3>
                 <div className="flex items-baseline gap-1">
@@ -1336,18 +1390,20 @@ export function Home() {
               <ul className="space-y-3 mb-8 flex-grow">
                 {["10 buổi AI Interview/tháng", "Nhận diện giọng nói AI", "20 lần phân tích CV/JD", "Phản hồi chi tiết từng câu"].map((f, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm font-bold text-white">
-                    <CheckCircle2 className="size-4 text-primary-fixed" />
+                    <CheckCircle2 className="size-4 shrink-0 text-primary-fixed" />
                     {f}
                   </li>
                 ))}
               </ul>
-              <button onClick={() => navigate("/checkout?plan=starterPro&billing=monthly&planPrice=79000")} className="w-full py-3 rounded-full bg-primary-fixed text-on-primary-fixed font-black text-sm shadow-[0px_0px_20px_rgba(191,255,0,0.3)] hover:brightness-110 transition-all">
+              <button onClick={() => navigate("/checkout?plan=starterPro&billing=monthly&planPrice=79000")} className="w-full py-3 rounded-full bg-primary-fixed text-on-primary-fixed font-black text-sm shadow-[0px_0px_20px_rgba(191,255,0,0.3)] hover:brightness-110 transition-all mt-auto">
                 Nâng cấp Pro
               </button>
+              </div>
             </div>
 
             {/* Elite Tier */}
-            <div className="cute-card p-8 rounded-3xl flex flex-col h-full border border-secondary/40 group">
+            <div className="glass-card p-8 !rounded-[28px] flex flex-col h-full border border-secondary/40 group !overflow-visible">
+              <div className="relative z-[1] flex flex-col flex-1">
               <div className="mb-6">
                 <h3 className="font-headline font-bold text-lg mb-1 text-secondary-fixed">Thượng hạng (Elite)</h3>
                 <div className="flex items-baseline gap-1">
@@ -1358,25 +1414,28 @@ export function Home() {
               <ul className="space-y-3 mb-8 flex-grow">
                 {["AI Interview KHÔNG GIỚI HẠN", "Phân tích hành vi & tư thế", "Nhận diện giọng nói Turbo", "Hỗ trợ ưu tiên 24/7"].map((f, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm font-bold text-white">
-                    <ShieldCheck className="size-4 text-secondary-fixed" />
+                    <ShieldCheck className="size-4 shrink-0 text-secondary-fixed" />
                     {f}
                   </li>
                 ))}
               </ul>
-              <button onClick={() => navigate("/checkout?plan=elitePro&billing=monthly&planPrice=99000")} className="w-full py-3 rounded-full border border-secondary/50 text-secondary-fixed font-bold text-sm hover:bg-secondary/10 transition-all">
+              <button onClick={() => navigate("/checkout?plan=elitePro&billing=monthly&planPrice=99000")} className="w-full py-3 rounded-full border border-secondary/50 text-secondary-fixed font-bold text-sm hover:bg-secondary/10 transition-all mt-auto">
                 Nâng cấp Elite
               </button>
+              </div>
             </div>
           </div>
 
           {/* CTA Section */}
-          <section className="mt-14 p-8 cute-glass rounded-3xl relative overflow-hidden text-center border-secondary/20">
+          <div className="mt-14 glass-card p-8 sm:p-10 !rounded-[28px] text-center relative overflow-hidden">
+            <div className="relative z-[1]">
             <h2 className="text-3xl font-headline font-black mb-4 text-white">Bạn vẫn còn băn khoăn?</h2>
             <p className="text-zinc-400 mb-8 max-w-xl mx-auto">Thử gói Free để trải nghiệm sức mạnh của AI. Không cần thẻ tín dụng.</p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-              <button onClick={() => navigate("/register")} className="bg-primary-fixed text-on-primary-fixed font-black px-10 py-3 rounded-full hover:scale-105 transition-all">Bắt đầu miễn phí</button>
+              <button onClick={() => navigate("/register")} className="bg-primary-fixed text-on-primary-fixed font-black px-10 py-3 rounded-full hover:scale-105 transition-all shadow-[0_0_28px_rgba(196,255,71,0.25)]">Bắt đầu miễn phí</button>
             </div>
-          </section>
+            </div>
+          </div>
         </div>
       </section>
 

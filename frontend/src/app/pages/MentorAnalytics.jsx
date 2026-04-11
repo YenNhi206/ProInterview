@@ -43,6 +43,20 @@ import {
   WEEKLY_STATS,
   MENTOR_DASHBOARD_STATS,
 } from "../data/mentorMockData";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
+
+const MENTOR_ANALYTICS_INPUT_CSS = `
+        .input-glass {
+           background: rgba(255, 255, 255, 0.05);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 14px;
+           padding: 12px 20px;
+           color: white;
+           font-weight: 500;
+           transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .input-glass:focus { border-color: rgba(196, 255, 71, 0.45); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 0 2px rgba(196, 255, 71, 0.12); }
+`;
 
 export function MentorAnalytics() {
   const navigate = useNavigate();
@@ -83,42 +97,15 @@ export function MentorAnalytics() {
   );
 
   return (
-    <div className="min-h-screen text-white font-sans pb-32 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
-      <style>{`
-        .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 40px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .glass-card:hover { border-color: rgba(180, 245, 0, 0.3); }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.95; }
-        .input-glass {
-           background: rgba(255, 255, 255, 0.03);
-           border: 1px solid rgba(255, 255, 255, 0.1);
-           border-radius: 20px;
-           padding: 12px 20px;
-           color: white;
-           transition: all 0.3s;
-        }
-        .input-glass:focus { border-color: #B4F500; background: rgba(255, 255, 255, 0.06); outline: none; }
-      `}</style>
-
-      {/* Atmospheric Glows */}
-      <div className="fixed top-0 right-0 w-[1200px] h-[1200px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[800px] h-[800px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
-      <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
+    <MentorPageShell bottomPad="pb-32" extraStyles={MENTOR_ANALYTICS_INPUT_CSS}>
+      <div className="relative z-10 mx-auto max-w-7xl p-10 pt-20">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-16">
           <div>
             <h1 className="text-6xl font-black text-white font-headline tracking-tighter mb-4 uppercase">
                Phân tích <span className="text-secondary tracking-tighter">& Thông kê</span>
             </h1>
-            <p className="text-zinc-500 text-lg font-medium">Theo dõi dữ liệu thực tế và tiến độ của các mentees</p>
+            <p className="text-lg font-medium leading-relaxed text-white/55">Theo dõi dữ liệu thực tế và tiến độ của các mentees</p>
           </div>
         </div>
 
@@ -126,7 +113,7 @@ export function MentorAnalytics() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
            {[
              { label: "Buổi mentor", value: stats.totalSessions, trend: "+12", icon: ChartLineIcon, color: "#6E35E8" },
-             { label: "Tổng Mentees", value: MENTEE_ANALYTICS.length, trend: "Ổn định", icon: Users, color: "#B4F500" },
+             { label: "Tổng Mentees", value: MENTEE_ANALYTICS.length, trend: "Ổn định", icon: Users, color: "#c4ff47" },
              { label: "Đang cải thiện", value: MENTEE_ANALYTICS.filter(m => m.progressTrend === "improving").length, trend: "85%", icon: Target, color: "#f59e0b" },
              { label: "Xếp hạng top", value: MENTEE_ANALYTICS[0].avgStarScore.toFixed(1), trend: "/5.0", icon: Star, color: "#secondary" }
            ].map((stat, i) => (
@@ -215,7 +202,7 @@ export function MentorAnalytics() {
                         ]}>
                           <PolarGrid stroke="rgba(255,255,255,0.05)" />
                           <PolarAngleAxis dataKey="subject" tick={{ fill: "#666", fontSize: 9, fontWeight: 800 }} />
-                          <Radar name="Skills" dataKey="A" stroke="#B4F500" fill="#B4F500" fillOpacity={0.2} strokeWidth={2} />
+                          <Radar name="Skills" dataKey="A" stroke="#c4ff47" fill="#c4ff47" fillOpacity={0.2} strokeWidth={2} />
                        </RadarChart>
                     </ResponsiveContainer>
                  </div>
@@ -355,7 +342,7 @@ export function MentorAnalytics() {
                                  <YAxis domain={[0, 5]} hide />
                                  <Tooltip contentStyle={{ background: "#0E0922", borderRadius: "12px", border: "1px solid #333" }} />
                                  <Line type="monotone" dataKey="situation" stroke="#6E35E8" strokeWidth={3} dot={false} />
-                                 <Line type="monotone" dataKey="task" stroke="#B4F500" strokeWidth={3} dot={false} />
+                                 <Line type="monotone" dataKey="task" stroke="#c4ff47" strokeWidth={3} dot={false} />
                                  <Line type="monotone" dataKey="action" stroke="#f59e0b" strokeWidth={3} dot={false} />
                                  <Line type="monotone" dataKey="result" stroke="#FF8C42" strokeWidth={3} dot={false} />
                               </LineChart>
@@ -393,6 +380,6 @@ export function MentorAnalytics() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </MentorPageShell>
   );
 }

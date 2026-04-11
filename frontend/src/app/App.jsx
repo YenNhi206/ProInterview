@@ -4,30 +4,8 @@ import { Toaster } from "sonner";
 import { router } from "./routes";
 import { restoreSession } from "./utils/auth";
 
-/* ── Suppress benign Supabase "Multiple GoTrueClient instances" warning ──────
-   Figma Make's platform creates one GoTrueClient at the environment level
-   (instance 1); our singleton in auth.ts creates a second (instance 2).
-   Both use the same storage key so they share session state automatically.
-   The warning is not an error — we silence it once to keep the console clean.
-   Any OTHER console.warn calls pass through unchanged.
-─────────────────────────────────────────────────────────────────────────── */
-if (typeof window !== "undefined") {
-  const _origWarn = console.warn.bind(console);
-  console.warn = (...args) => {
-    if (
-      typeof args[0] === "string" &&
-      args[0].includes(
-        "Multiple GoTrueClient instances detected",
-      )
-    ) {
-      return; // swallow only this specific message
-    }
-    _origWarn(...args);
-  };
-}
-
 export default function App() {
-  // Restore Supabase session on first load so getUser() stays populated
+  // Khôi phục phiên JWT (/api/auth/me) sau khi refresh trang
   // after a page refresh. We show nothing until the check is done to avoid
   // a flash where protected pages redirect the user away unnecessarily.
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -43,24 +21,22 @@ export default function App() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "#F4F5F7" }}
+        style={{ background: "#120B2E" }}
       >
         <div className="flex flex-col items-center gap-4">
           <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl"
             style={{
-              background:
-                "linear-gradient(135deg, #6E35E8, #8B4DFF)",
+              background: "linear-gradient(135deg, #6E35E8, #8B4DFF)",
+              boxShadow: "0 0 24px rgba(110,53,232,0.35)",
             }}
           >
-            <span className="text-white text-xl font-bold">
-              P
-            </span>
+            <span className="text-xl font-bold text-white">P</span>
           </div>
           <div
-            className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin"
+            className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent"
             style={{
-              borderColor: "#8B4DFF",
+              borderColor: "rgba(196, 255, 71,0.45)",
               borderTopColor: "transparent",
             }}
           />

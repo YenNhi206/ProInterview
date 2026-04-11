@@ -18,7 +18,6 @@ import {
   ChevronRight as CaretRight,
   Zap as Lightning,
   Medal,
-  ArrowLeft,
   GraduationCap,
   X,
   Trophy,
@@ -77,8 +76,8 @@ export function Profile() {
   const initials = getInitials(form.name || "U");
   const isMentor = user?.role === "mentor";
 
-  const handleSave = () => {
-    updateUser({
+  const handleSave = async () => {
+    await updateUser({
       name: form.name,
       email: form.email,
       phone: form.phone,
@@ -169,16 +168,14 @@ export function Profile() {
   }, []);
 
   return (
-    <div className="min-h-screen text-white font-sans pb-20 relative overflow-hidden" 
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
+    <div className="pi-page-dashboard-bg relative min-h-screen overflow-x-hidden pb-20 font-sans text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white">
       <style>{`
         .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 32px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+           background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
+           backdrop-filter: blur(48px);
+           border-radius: 28px;
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.45s ease;
            position: relative;
            overflow: hidden;
         }
@@ -186,57 +183,92 @@ export function Profile() {
            content: '';
            position: absolute;
            inset: 0;
-           background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+           background: linear-gradient(125deg, rgba(236,72,153,0.08) 0%, transparent 42%, rgba(196, 255, 71,0.06) 100%);
            pointer-events: none;
+           opacity: 0.85;
         }
-        .glass-card:hover { border-color: rgba(180, 245, 0, 0.4); background: rgba(255, 255, 255, 0.06); }
-        .font-headline { letter-spacing: -0.04em; }
+        .glass-card:hover {
+           border-color: rgba(196, 255, 71, 0.42);
+           transform: translateY(-4px);
+           box-shadow:
+             0 24px 48px rgba(0,0,0,0.45),
+             0 0 0 1px rgba(196, 255, 71, 0.12) inset,
+             0 0 40px -8px rgba(196, 255, 71, 0.22);
+        }
+        .font-headline {
+          letter-spacing: -0.045em;
+          text-shadow: 0 2px 24px rgba(0,0,0,0.35);
+        }
         .glow-halo { position: relative; display: flex; align-items: center; justify-content: center; }
         .glow-halo::after {
-           content: ''; position: absolute; width: 140%; height: 140%;
-           background: radial-gradient(circle, rgba(110, 53, 232, 0.2) 0%, transparent 70%);
-           border-radius: 50%; z-index: -1; animation: pulse-halo 4s infinite;
+           content: '';
+           position: absolute;
+           width: 150%;
+           height: 150%;
+           background: radial-gradient(circle, rgba(232,121,249,0.35) 0%, rgba(110,53,232,0.15) 40%, transparent 70%);
+           border-radius: 50%;
+           z-index: -1;
+           animation: pulse-halo 3.2s ease-in-out infinite;
         }
         @keyframes pulse-halo {
-           0%, 100% { transform: scale(1); opacity: 0.5; }
-           50% { transform: scale(1.1); opacity: 0.8; }
+           0%, 100% { transform: scale(1); opacity: 0.55; }
+           50% { transform: scale(1.15); opacity: 0.95; }
         }
         .input-glass {
-           background: rgba(255, 255, 255, 0.03);
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           border-radius: 16px;
+           background: rgba(255, 255, 255, 0.05);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 14px;
            color: white;
            padding: 12px 16px;
            font-size: 0.875rem;
-           transition: all 0.3s ease;
+           font-weight: 500;
+           letter-spacing: -0.01em;
+           transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
         .input-glass:focus {
-           background: rgba(255, 255, 255, 0.06);
-           border-color: rgba(180, 245, 0, 0.5);
+           background: rgba(255, 255, 255, 0.08);
+           border-color: rgba(196, 255, 71, 0.45);
            outline: none;
-           box-shadow: 0 0 15px rgba(180, 245, 0, 0.1);
+           box-shadow: 0 0 0 2px rgba(196, 255, 71, 0.12);
         }
-        .input-glass:disabled { opacity: 0.6 cursor: not-allowed; }
+        .input-glass:disabled { opacity: 0.55; cursor: not-allowed; }
+        .input-glass::placeholder { color: rgba(255,255,255,0.32); }
+        .profile-glass-danger:hover {
+          transform: none;
+          border-color: rgba(239, 68, 68, 0.4);
+          box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(239, 68, 68, 0.12) inset;
+        }
+        @keyframes profile-shimmer {
+          0% { opacity: 0.4; transform: translate(0,0) scale(1); }
+          50% { opacity: 0.7; transform: translate(2%, -2%) scale(1.05); }
+          100% { opacity: 0.4; transform: translate(0,0) scale(1); }
+        }
       `}</style>
 
-      {/* Rrich Atmospheric Background Glows */}
-      <div className="fixed top-0 right-0 w-[1400px] h-[1400px] bg-secondary/10 blur-[200px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[1000px] h-[1000px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 opacity-90"
+        style={{ animation: "profile-shimmer 14s ease-in-out infinite" }}
+      >
+        <div className="absolute top-[-20%] right-[-10%] h-[70vh] w-[70vh] rounded-full bg-gradient-to-bl from-fuchsia-600/35 via-violet-600/20 to-transparent blur-[100px]" />
+        <div className="absolute bottom-[-25%] left-[-15%] h-[85vh] w-[85vh] rounded-full bg-gradient-to-tr from-[#c4ff47]/18 via-cyan-500/10 to-fuchsia-500/20 blur-[110px]" />
+        <div className="absolute left-1/2 top-1/2 h-[50vh] w-[50vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6E35E8]/12 blur-[90px]" />
+      </div>
 
-      <div className="relative z-10 p-8 max-w-6xl mx-auto pt-16">
-        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="group inline-flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-primary-fixed transition-colors"
-            >
-              <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
-              Quay lại Bảng điều khiển
-            </button>
-            <h1 className="text-5xl font-black text-white font-headline tracking-tighter mb-2">
-              Hồ sơ <span className="text-primary-fixed">cá nhân</span>
+      <div className="relative z-10 mx-auto max-w-6xl px-6 pb-8 pt-8 sm:px-8 sm:pt-10">
+        <div className="mb-10 flex flex-col justify-between gap-8 border-b border-white/[0.07] pb-10 md:mb-12 md:flex-row md:items-end">
+          <div className="min-w-0">
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">Tài khoản</p>
+            <h1 className="font-headline mb-2 text-4xl font-black tracking-tighter text-white sm:text-5xl md:text-6xl">
+              <span className="bg-gradient-to-r from-white via-fuchsia-100 to-zinc-300 bg-clip-text text-transparent">
+                Hồ sơ{" "}
+              </span>
+              <span className="bg-gradient-to-r from-[#c4ff47] via-lime-300 to-emerald-300 bg-clip-text text-transparent">
+                cá nhân
+              </span>
             </h1>
-            <p className="text-zinc-500 text-sm font-medium">Trung tâm cấu hình và quản trị tài khoản tối ưu</p>
+            <p className="max-w-lg text-sm leading-relaxed text-white/55">
+              Trung tâm cấu hình và quản trị tài khoản tối ưu
+            </p>
           </div>
 
           <div className="flex gap-4">
@@ -279,8 +311,8 @@ export function Profile() {
                   </div>
                </div>
                
-               <h2 className="text-2xl font-black text-white tracking-tight mb-1">{form.name || "Người dùng"}</h2>
-               <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-6">{form.position || "Vị trí chuyên môn"}</p>
+               <h2 className="mb-1 text-2xl font-black tracking-tight text-white sm:text-3xl">{form.name || "Người dùng"}</h2>
+               <p className="mb-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">{form.position || "Vị trí chuyên môn"}</p>
                
                {!isMentor && (
                  <div className="pt-8 border-t border-white/5">
@@ -298,13 +330,13 @@ export function Profile() {
             </div>
 
             <div className="glass-card p-8">
-               <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
-                  <TrendUp size={14} className="text-primary-fixed" /> Thống kê vận hành
+               <h3 className="mb-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                  <TrendUp size={14} className="text-[#c4ff47]" strokeWidth={2} /> Thống kê vận hành
                </h3>
                <div className="grid grid-cols-2 gap-6">
                   {STATS.map((stat, i) => (
                     <div key={i}>
-                       <p className="text-[8px] font-black text-zinc-600 uppercase mb-2 leading-none">{stat.label}</p>
+                       <p className="mb-2 text-[9px] font-bold uppercase leading-none tracking-wide text-white/40">{stat.label}</p>
                        <p className="text-xl font-black text-white tracking-tighter" style={{ color: stat.color }}>{stat.value}</p>
                     </div>
                   ))}
@@ -312,8 +344,8 @@ export function Profile() {
             </div>
 
             <div className="glass-card p-8">
-               <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
-                  <Trophy size={14} className="text-secondary" /> Huy chương đạt được
+               <h3 className="mb-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                  <Trophy size={14} className="text-fuchsia-300" strokeWidth={2} /> Huy chương đạt được
                </h3>
                <div className="grid grid-cols-3 gap-6">
                   {ACHIEVEMENTS.map((ach, i) => (
@@ -321,7 +353,7 @@ export function Profile() {
                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${ach.color} flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:scale-110 transition-transform`}>
                           <ach.icon size={20} className="text-white" />
                        </div>
-                       <p className="text-[7px] font-black text-zinc-500 uppercase leading-tight line-clamp-2">{ach.label}</p>
+                       <p className="line-clamp-2 text-[8px] font-bold uppercase leading-tight tracking-wide text-white/40">{ach.label}</p>
                     </div>
                   ))}
                </div>
@@ -332,14 +364,14 @@ export function Profile() {
           <div className="lg:col-span-8 space-y-10">
             <div className="glass-card p-10">
                <div className="flex items-center justify-between mb-10">
-                  <h2 className="text-xl font-black text-white font-headline tracking-tight flex items-center gap-3">
-                     <User size={20} className="text-primary-fixed" /> Thông tin cốt lõi
+                  <h2 className="font-headline flex items-center gap-3 text-xl font-black tracking-tight text-white sm:text-2xl">
+                     <User size={20} className="text-[#c4ff47]" strokeWidth={2} /> Thông tin cốt lõi
                   </h2>
                </div>
                <div className="grid md:grid-cols-2 gap-8">
                   {FORM_FIELDS.map(({ label, key, icon: Icon }) => (
                     <div key={key} className="space-y-3">
-                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                       <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
                           <Icon size={12} /> {label}
                        </label>
                        <input
@@ -401,15 +433,15 @@ export function Profile() {
             <div className="grid md:grid-cols-2 gap-8">
                {settings.map((section, sIdx) => (
                  <div key={sIdx} className="glass-card p-8">
-                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
-                       <section.icon size={14} className="text-secondary" /> {section.title}
+                    <h3 className="mb-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">
+                       <section.icon size={14} className="text-fuchsia-300" strokeWidth={2} /> {section.title}
                     </h3>
                     <div className="space-y-6">
                        {section.items.map((item, iIdx) => (
                          <div key={iIdx} className="flex items-center justify-between group">
                             <div>
                                <p className="text-sm font-bold text-white group-hover:text-primary-fixed transition-colors">{item.label}</p>
-                               <p className="text-[10px] text-zinc-600 mt-0.5">Trình quản lý hệ thống</p>
+                               <p className="mt-0.5 text-[10px] text-white/35">Trình quản lý hệ thống</p>
                             </div>
                             <button
                               onClick={() => toggleSetting(sIdx, iIdx)}
@@ -424,10 +456,10 @@ export function Profile() {
                ))}
             </div>
 
-            <div className="glass-card p-10 flex flex-col md:flex-row items-center justify-between gap-8 border-red-500/20 hover:border-red-500/40 bg-red-500/[0.02]">
+            <div className="profile-glass-danger glass-card flex flex-col items-center justify-between gap-8 border-red-500/20 bg-red-500/[0.02] p-10 md:flex-row hover:border-red-500/40">
                <div className="text-center md:text-left">
                   <h4 className="text-lg font-black text-white tracking-tight mb-2">Vùng nguy hiểm</h4>
-                  <p className="text-xs text-zinc-600 font-medium">Bạn có muốn hủy kích hoạt tài khoản vĩnh viễn?</p>
+                  <p className="text-xs font-medium text-white/45">Bạn có muốn hủy kích hoạt tài khoản vĩnh viễn?</p>
                </div>
                <button onClick={handleLogout} className="px-8 py-4 rounded-2xl border border-red-500/30 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
                   Đăng xuất tài khoản

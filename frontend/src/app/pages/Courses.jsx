@@ -503,43 +503,40 @@ export function Courses() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest">
-      {/* Hero Section */}
-      <div 
-        className="relative overflow-hidden py-16 border-b border-white/5 bg-background"
-        style={{ background: "linear-gradient(145deg, #0E0922 0%, #1a0d35 100%)" }}
-      >
-        {/* Atmospheric Glows */}
-        <div className="absolute top-0 right-[-100px] w-[600px] h-[600px] bg-secondary/10 blur-[130px] rounded-full"></div>
-        <div className="absolute bottom-[-100px] left-[-100px] w-[500px] h-[500px] bg-primary-fixed/5 blur-[150px] rounded-full"></div>
-
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)",
-          backgroundSize: "40px 40px"
-        }} />
-
-        <div className="relative max-w-7xl mx-auto px-6 z-10">
+    <div className="pi-page-dashboard-bg min-h-full w-full font-sans text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white">
+      <header className="relative border-b border-white/[0.07] pb-12 pt-12 sm:pb-16 sm:pt-14">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.09]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-3 mb-4">
-              <GraduationCap className="text-primary-fixed size-5" />
-              <span className="text-secondary font-bold uppercase tracking-[0.2em] text-xs">Thư viện kiến thức</span>
+            <div className="mb-4 flex items-center gap-3">
+              <GraduationCap className="size-5 text-[#c4ff47]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-fuchsia-300/90">Thư viện kiến thức</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none text-white mb-4 whitespace-nowrap">
-              Luyện tập cùng <span className="text-primary-fixed">Chuyên gia.</span>
+            <h1 className="mb-4 text-3xl font-black leading-[1.05] tracking-tighter text-white md:text-5xl">
+              Luyện tập cùng{" "}
+              <span className="bg-gradient-to-r from-[#c4ff47] via-fuchsia-300 to-violet-300 bg-clip-text text-transparent">
+                Chuyên gia.
+              </span>
             </h1>
-            <p className="text-lg text-zinc-400 leading-relaxed mb-6 max-w-2xl">
+            <p className="mb-6 max-w-2xl text-sm font-semibold leading-relaxed text-white/65 sm:text-base">
               Trang bị kiến thức cốt lõi qua các video bài giảng ngắn gọn. Áp dụng ngay vào buổi phỏng vấn 1-1 với Mentor để được đánh giá trực tiếp.
             </p>
 
-            {/* Tab Swiper */}
-            <div className="flex p-1.5 bg-surface-container-high/50 backdrop-blur-xl rounded-2xl w-fit border border-white/10 mb-8">
+            <div className="mb-8 flex w-fit rounded-2xl border border-white/12 bg-white/[0.05] p-1.5 backdrop-blur-xl">
               <button
                 onClick={() => setSearchParams({ tab: "explore" })}
-                className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
+                className={`flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-bold transition-all ${
                   activeTab === "explore"
-                    ? "bg-primary-fixed text-on-primary-fixed shadow-lg shadow-primary-fixed/20"
-                    : "text-zinc-400 hover:text-white"
+                    ? "bg-[#c4ff47] text-[#0a0618] shadow-lg shadow-[#c4ff47]/25"
+                    : "text-white/60 hover:text-white"
                 }`}
               >
                 <Compass className="size-4.5" />
@@ -547,10 +544,10 @@ export function Courses() {
               </button>
               <button
                 onClick={() => setSearchParams({ tab: "my-courses" })}
-                className={`px-8 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
+                className={`flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-bold transition-all ${
                   activeTab === "my-courses"
-                    ? "bg-primary-fixed text-on-primary-fixed shadow-lg shadow-primary-fixed/20"
-                    : "text-zinc-400 hover:text-white"
+                    ? "bg-[#c4ff47] text-[#0a0618] shadow-lg shadow-[#c4ff47]/25"
+                    : "text-white/60 hover:text-white"
                 }`}
               >
                 <BookOpen className="size-4.5" />
@@ -558,25 +555,25 @@ export function Courses() {
               </button>
             </div>
 
-            {/* Search & Filter Bar */}
             {activeTab === "explore" && (
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative group">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-primary-fixed transition-colors size-5" />
+              <div className="flex flex-col gap-4 md:flex-row">
+                <div className="group relative flex-1">
+                  <Search className="absolute left-5 top-1/2 size-5 -translate-y-1/2 text-white/40 transition-colors group-focus-within:text-[#c4ff47]" />
                   <input
                     type="text"
                     placeholder="Tìm kiếm khóa học theo tên, kỹ năng, tag..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-14 pr-6 py-4 bg-surface-container-highest/50 backdrop-blur-md rounded-2xl border border-white/5 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary-fixed/30 transition-all font-medium"
+                    className="w-full rounded-2xl border border-white/12 bg-white/[0.06] py-4 pl-14 pr-6 text-sm font-medium text-white backdrop-blur-md placeholder:text-white/45 transition-all focus:outline-none focus:ring-2 focus:ring-[#6E35E8]/40"
                   />
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`px-8 py-4 rounded-2xl font-bold text-sm transition-all border flex items-center gap-3 ${
-                    showFilters 
-                      ? "border-primary-fixed text-primary-fixed bg-primary-fixed/5" 
-                      : "border-white/5 text-white bg-surface-container-highest/30 hover:bg-surface-container-highest/50"
+                  className={`flex items-center gap-3 rounded-2xl border px-8 py-4 text-sm font-bold transition-all ${
+                    showFilters
+                      ? "border-[#c4ff47]/50 bg-[#c4ff47]/10 text-[#d4ff6a]"
+                      : "border-white/12 bg-white/[0.06] text-white hover:border-white/20 hover:bg-white/[0.09]"
                   }`}
                 >
                   <Filter className="size-5" />
@@ -586,21 +583,18 @@ export function Courses() {
             )}
           </div>
         </div>
-      </div>
+      </header>
 
 
       {/* ═══════════════ EXPLORE TAB ═══════════════ */}
       {activeTab === "explore" && (
-        <div className="relative py-20">
-          {/* Atmospheric Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-secondary/5 blur-[150px] rounded-full -z-0"></div>
-
+        <div className="relative z-[1] py-16">
           {/* Filters */}
           {showFilters && (
             <div className="max-w-7xl mx-auto px-6 mb-16 relative z-10">
               <div className="glass-card p-8 rounded-3xl border border-white/5 grid md:grid-cols-2 gap-12">
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-secondary mb-4">Danh mục</label>
+                  <label className="mb-4 block text-xs font-black uppercase tracking-widest text-fuchsia-300/80">Danh mục</label>
                   <div className="flex flex-wrap gap-3">
                     {CATEGORIES.map((cat) => (
                       <button
@@ -609,7 +603,7 @@ export function Courses() {
                         className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all border ${
                           selectedCategory === cat
                             ? "bg-primary-fixed text-on-primary-fixed border-primary-fixed"
-                            : "bg-white/5 text-zinc-400 border-white/5 hover:border-white/20 hover:text-white"
+                            : "border-white/10 bg-white/[0.05] text-white/55 hover:border-white/25 hover:text-white"
                         }`}
                       >
                         {cat}
@@ -618,7 +612,7 @@ export function Courses() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-secondary mb-4">Cấp độ</label>
+                  <label className="mb-4 block text-xs font-black uppercase tracking-widest text-fuchsia-300/80">Cấp độ</label>
                   <div className="flex flex-wrap gap-3">
                     {LEVELS.map((level) => (
                       <button
@@ -627,7 +621,7 @@ export function Courses() {
                         className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all border ${
                           selectedLevel === level
                             ? "bg-primary-fixed text-on-primary-fixed border-primary-fixed"
-                            : "bg-white/5 text-zinc-400 border-white/5 hover:border-white/20 hover:text-white"
+                            : "border-white/10 bg-white/[0.05] text-white/55 hover:border-white/25 hover:text-white"
                         }`}
                       >
                         {level}
@@ -640,10 +634,10 @@ export function Courses() {
           )}
 
           {/* Results Summary */}
-          <div className="max-w-7xl mx-auto px-6 mb-10 flex items-center justify-between relative z-10">
-            <p className="text-zinc-500 font-medium">
-              Hiển thị <span className="text-white font-bold">{filteredCourses.length}</span> khóa học
-              {searchQuery && <span> cho "<span className="text-primary-fixed">{searchQuery}</span>"</span>}
+          <div className="relative z-10 mx-auto mb-10 flex max-w-7xl items-center justify-between px-6">
+            <p className="font-medium text-white/60">
+              Hiển thị <span className="font-bold text-white">{filteredCourses.length}</span> khóa học
+              {searchQuery && <span> cho "<span className="text-[#c4ff47]">{searchQuery}</span>"</span>}
             </p>
           </div>
 
@@ -697,7 +691,7 @@ export function Courses() {
                       />
                       <div>
                         <p className="text-sm font-bold text-white">{course.mentorName}</p>
-                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{course.mentorTitle}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-white/50">{course.mentorTitle}</p>
                       </div>
                     </div>
 
@@ -723,16 +717,16 @@ export function Courses() {
 
             {filteredCourses.length === 0 && (
               <div className="text-center py-32 glass-card rounded-3xl border border-white/5">
-                <Search className="size-16 text-zinc-700 mb-6" />
+                <Search className="mb-6 size-16 text-white/25" />
                 <h3 className="text-2xl font-bold text-white mb-2">Không tìm thấy khóa học</h3>
-                <p className="text-zinc-500 mb-10">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                <p className="mb-10 text-white/55">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                 <button
                   onClick={() => {
                     setSearchQuery("");
                     setSelectedCategory("Tất cả");
                     setSelectedLevel("Tất cả");
                   }}
-                  className="px-8 py-3 bg-secondary text-white rounded-full font-bold hover:scale-105 transition-all"
+                  className="rounded-full bg-violet-600 px-8 py-3 font-bold text-white transition-all hover:scale-105 hover:bg-violet-500"
                 >
                   Xóa tất cả bộ lọc
                 </button>
@@ -744,13 +738,13 @@ export function Courses() {
 
       {/* ═══════════════ MY COURSES TAB ═══════════════ */}
       {activeTab === "my-courses" && (
-        <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
+        <div className="relative z-[1] mx-auto max-w-7xl px-6 py-16">
           {/* Header & Stats */}
           <div className="mb-16">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div>
                 <h2 className="text-4xl font-black text-white tracking-tighter mb-4">Lộ trình của bạn</h2>
-                <p className="text-zinc-500 max-w-xl">Theo dõi tiến độ học tập và các chứng chỉ bạn đã đạt được trên hành trình chinh phục sự nghiệp.</p>
+                <p className="max-w-xl text-white/60">Theo dõi tiến độ học tập và các chứng chỉ bạn đã đạt được trên hành trình chinh phục sự nghiệp.</p>
               </div>
               
               <div className="flex gap-4">
@@ -764,7 +758,7 @@ export function Courses() {
                     </div>
                     <div>
                       <p className="text-xl font-black text-white">{stat.value}</p>
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{stat.label}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">{stat.label}</p>
                     </div>
                   </div>
                 ))}
@@ -785,7 +779,7 @@ export function Courses() {
                   className={`px-6 py-2.5 rounded-lg text-xs font-bold transition-all ${
                     myCoursesTab === t
                       ? "bg-white/10 text-white shadow-lg"
-                      : "text-zinc-500 hover:text-white"
+                      : "text-white/50 hover:text-white"
                   }`}
                 >
                   {t}
@@ -794,13 +788,13 @@ export function Courses() {
             </div>
 
             <div className="relative w-full md:w-96 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-secondary transition-colors size-4.5" />
+              <Search className="absolute left-4 top-1/2 size-4.5 -translate-y-1/2 text-white/40 transition-colors group-focus-within:text-[#c4ff47]" />
               <input
                 type="text"
                 placeholder="Tìm trong khóa học của tôi..."
                 value={myCoursesSearch}
                 onChange={(e) => setMyCoursesSearch(e.target.value)}
-                className="w-full pl-11 pr-5 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-secondary/50 transition-all text-sm"
+                className="w-full rounded-2xl border border-white/12 bg-white/[0.06] py-3.5 pl-11 pr-5 text-sm text-white placeholder:text-white/45 transition-all focus:outline-none focus:ring-2 focus:ring-[#6E35E8]/35"
               />
             </div>
           </div>
@@ -818,9 +812,9 @@ export function Courses() {
 
           {filteredMyCourses.length === 0 && (
             <div className="text-center py-32 glass-card rounded-3xl border border-white/5">
-              <span className="material-symbols-outlined text-6xl text-zinc-700 mb-6">menu_book</span>
+              <span className="material-symbols-outlined mb-6 text-6xl text-white/25">menu_book</span>
               <h3 className="text-2xl font-bold text-white mb-2">Chưa có khóa học nào</h3>
-              <p className="text-zinc-500 mb-10">Khám phá các khóa học mới để bắt đầu hành trình của bạn.</p>
+              <p className="mb-10 text-white/55">Khám phá các khóa học mới để bắt đầu hành trình của bạn.</p>
               <button
                 onClick={() => setSearchParams({ tab: "explore" })}
                 className="px-10 py-4 bg-primary-fixed text-on-primary-fixed rounded-full font-black hover:scale-105 transition-all"

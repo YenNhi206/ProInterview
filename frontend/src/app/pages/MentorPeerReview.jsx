@@ -20,6 +20,19 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { getUser } from "../utils/auth";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
+
+const MENTOR_PEER_REVIEW_INPUT_CSS = `
+        .input-glass {
+           background: rgba(255, 255, 255, 0.03);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 20px;
+           padding: 14px 24px;
+           color: white;
+           transition: all 0.3s;
+        }
+        .input-glass:focus { border-color: #c4ff47; background: rgba(255, 255, 255, 0.06); outline: none; }
+`;
 
 const MOCK_COURSES_FOR_REVIEW = [
    { id: 1, title: "Làm chủ STAR Method trong phỏng vấn hành vi", mentor: "Nguyễn Tuấn Anh", category: "Interview Skills", status: "pending", rating: 0, participants: 120, cover: "https://images.unsplash.com/photo-1573497619292-0b2f5c8e030b?auto=format&fit=crop&q=80&w=400" },
@@ -51,33 +64,7 @@ export function MentorPeerReview() {
    });
 
    return (
-      <div className="min-h-screen text-white font-sans pb-32 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-
-         <style>{`
-        .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 40px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.95; }
-        .input-glass {
-           background: rgba(255, 255, 255, 0.03);
-           border: 1px solid rgba(255, 255, 255, 0.1);
-           border-radius: 20px;
-           padding: 14px 24px;
-           color: white;
-           transition: all 0.3s;
-        }
-        .input-glass:focus { border-color: #B4F500; background: rgba(255, 255, 255, 0.06); outline: none; }
-      `}</style>
-
-         {/* Atmospheric Background Glows */}
-         <div className="fixed top-0 right-0 w-[1200px] h-[1200px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-         <div className="fixed bottom-0 left-0 w-[800px] h-[800px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
+      <MentorPageShell bottomPad="pb-32" extraStyles={MENTOR_PEER_REVIEW_INPUT_CSS}>
          <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-16">
@@ -85,7 +72,7 @@ export function MentorPeerReview() {
                   <h1 className="text-6xl font-black text-white font-headline tracking-tighter mb-6 uppercase">
                      Đánh giá <span className="text-secondary tracking-tighter">Chéo Khóa học</span>
                   </h1>
-                  <p className="text-zinc-500 text-lg font-medium leading-relaxed">
+                  <p className="text-white/55 text-lg font-medium leading-relaxed">
                      Với tư cách mentor trong hệ thống ProInterview, bạn có hành quyền đánh giá chuyên môn các khóa học của đồng nghiệp để đảm bảo chất lượng nội dung toàn hệ thống.
                   </p>
                </div>
@@ -97,7 +84,7 @@ export function MentorPeerReview() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
                {[
                   { label: "Cần đánh giá", value: 4, icon: Clock, color: "#6E35E8" },
-                  { label: "Đã hoàn thành", value: 1, icon: CheckCircle2, color: "#B4F500" },
+                  { label: "Đã hoàn thành", value: 1, icon: CheckCircle2, color: "#c4ff47" },
                   { label: "Review điểm cao", value: 3, icon: TrendingUp, color: "#secondary" },
                   { label: "Rating trung bình", value: "5.0", icon: Star, color: "#f59e0b" }
                ].map((stat, i) => (
@@ -217,6 +204,6 @@ export function MentorPeerReview() {
                </div>
             </div>
          </div>
-      </div>
+      </MentorPageShell>
    );
 }

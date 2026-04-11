@@ -3,10 +3,11 @@
 @import './theme.css';
 
 @theme {
+  /* Lime chủ đạo — dùng với nền #120B2E + chữ sáng */
   --color-secondary-fixed-dim: #cfbdff;
-  --color-on-primary: #263500;
-  --color-primary-fixed-dim: #a1d800;
-  --color-surface-container-lowest: #0b0a0f;
+  --color-on-primary: #0a0a0c;
+  --color-primary-fixed-dim: #8fbc24;
+  --color-surface-container-lowest: #120b2e;
   --color-secondary: #7000ff;
   --color-on-tertiary-container: #980de8;
   --color-outline-variant: #434933;
@@ -23,9 +24,9 @@
   --color-secondary-container: #7000ff;
   --color-on-surface: #f1eff4;
   --color-inverse-surface: #e6e0ee;
-  --color-surface-tint: #a1d800;
+  --color-surface-tint: #c4ff47;
   --color-tertiary-fixed: #f3daff;
-  --color-surface-dim: #0e0d14;
+  --color-surface-dim: #0f0828;
   --color-on-primary-container: #506e00;
   --color-tertiary-container: #f3daff;
   --color-error: #ffb4ab;
@@ -33,7 +34,7 @@
   --color-outline: #8d9479;
   --color-on-secondary-container: #ffffff;
   --color-on-error: #690005;
-  --color-surface: #0e0d14;
+  --color-surface: #150d32;
   --color-on-primary-fixed-variant: #384e00;
   --color-on-tertiary-fixed-variant: #6e00ab;
   --color-surface-container: #181621;
@@ -42,13 +43,13 @@
   --color-on-secondary-fixed-variant: #ffffff;
   --color-inverse-primary: #4b6700;
   --color-inverse-on-surface: #322f39;
-  --color-primary-fixed: #BFFF00;
-  --color-on-primary-fixed: #141f00;
+  --color-primary-fixed: #c4ff47;
+  --color-on-primary-fixed: #0a0a0c;
   --color-tertiary: #ffffff;
-  --color-surface-container-low: #121019;
-  --color-primary-container: #BFFF00;
-  --color-background: #0b0a0f;
-  --color-primary: #BFFF00;
+  --color-surface-container-low: #160f36;
+  --color-primary-container: #d4ff7a;
+  --color-background: #120b2e;
+  --color-primary: #c4ff47;
   --color-surface-container-high: #1f1c2b;
 
   --radius-DEFAULT: 1rem;
@@ -58,6 +59,15 @@
   --font-headline: "Plus Jakarta Sans";
   --font-body: "Manrope";
   --font-label: "Manrope";
+}
+
+/* Lime hệ — dùng trong style inline / shadow */
+:root,
+.dark {
+  --pi-lime: #c4ff47;
+  --pi-lime-soft: rgba(196, 255, 71, 0.14);
+  --pi-lime-glow: rgba(196, 255, 71, 0.38);
+  --pi-lime-border: rgba(196, 255, 71, 0.28);
 }
 
 /* ── Global modern base ────────────────────────────── */
@@ -78,6 +88,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  background: var(--background);
+  color: var(--foreground);
+}
+
+::selection {
+  background: var(--pi-lime-soft);
+  color: #fff;
 }
 
 /* ── Custom scrollbar ──────────────────────────────── */
@@ -96,7 +113,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(110, 53, 232, 0.45);
+  background: color-mix(in srgb, var(--pi-lime) 55%, rgba(110, 53, 232, 0.5));
 }
 
 /* ── Smooth transitions for interactive elements ───── */
@@ -123,10 +140,15 @@ textarea {
 }
 
 .glass-dark {
-  background: rgba(7, 6, 14, 0.7);
+  background: rgba(18, 11, 46, 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Nền gradient giống Dashboard — dùng cho interview flow trong AppLayout */
+.pi-page-dashboard-bg {
+  background: linear-gradient(165deg, #0a0618 0%, #07060e 45%, #12081f 100%);
 }
 
 .glass-card {
@@ -138,20 +160,30 @@ textarea {
 
 /* ── Modern card ───────────────────────────────────── */
 .card-premium {
-  background: var(--card);
+  background-color: var(--card);
+  background-image: linear-gradient(
+    165deg,
+    rgba(196, 255, 71, 0.06) 0%,
+    rgba(255, 255, 255, 0.04) 38%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(110, 53, 232, 0.08);
-  /* Very subtle primary border */
-  box-shadow: 0 4px 20px -2px rgba(110, 53, 232, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(196, 255, 71, 0.12);
+  box-shadow:
+    0 4px 24px -4px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(196, 255, 71, 0.08) inset;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .card-premium:hover {
-  box-shadow: 0 12px 32px -4px rgba(110, 53, 232, 0.12), 0 4px 12px rgba(110, 53, 232, 0.04);
-  transform: translateY(-2px);
-  border-color: rgba(110, 53, 232, 0.2);
+  box-shadow:
+    0 16px 40px -8px rgba(0, 0, 0, 0.45),
+    0 0 36px -6px var(--pi-lime-glow),
+    0 0 0 1px var(--pi-lime-border) inset;
+  transform: translateY(-3px);
+  border-color: var(--pi-lime-border);
 }
 
 /* ── Premium Buttons ───────────────────────────────── */
@@ -183,7 +215,7 @@ textarea {
   content: "";
   position: absolute;
   inset: -2px;
-  background: linear-gradient(135deg, #6E35E8, #B4F500);
+  background: linear-gradient(135deg, #6E35E8, #c4ff47);
   filter: blur(12px);
   opacity: 0;
   border-radius: inherit;
@@ -204,7 +236,7 @@ textarea {
 }
 
 .gradient-text-lime {
-  background: linear-gradient(135deg, #B4F500, #6E35E8);
+  background: linear-gradient(135deg, #c4ff47, #6E35E8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

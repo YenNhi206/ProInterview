@@ -13,20 +13,45 @@ import {
   Sparkles as Sparkle,
   Video as VideoCamera,
   Check,
+  Lightbulb,
+  PanelLeft,
 } from "lucide-react";
+
+const IS = { strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" };
+
+function IconFrame({ size = "md", tone = "neutral", className = "", children }) {
+  const sz = size === "sm" ? "h-9 w-9" : size === "lg" ? "h-14 w-14" : "h-11 w-11";
+  const tones = {
+    neutral:
+      "border-white/12 bg-gradient-to-br from-white/[0.11] to-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]",
+    lime: "border-[#c4ff47]/28 bg-gradient-to-br from-[#c4ff47]/14 to-[#c4ff47]/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+    violet:
+      "border-violet-400/25 bg-gradient-to-br from-violet-500/18 to-violet-900/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+    fuchsia:
+      "border-fuchsia-400/22 bg-gradient-to-br from-fuchsia-500/14 to-violet-900/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+  };
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center rounded-xl border ${sz} ${tones[tone]} ${className}`}
+      aria-hidden
+    >
+      {children}
+    </div>
+  );
+}
 
 /* ── Palette ─────────────────────────────────────────────── */
 const P = {
   purple: "#6E35E8",
   purpleAlt: "#8B4DFF",
-  lime: "#B4F000",
+  lime: "#c4ff47",
   gold: "#FFD600",
   orange: "#FF8C42",
-  bg: "#F4F5F7",
-  card: "#FFFFFF",
-  text: "#1F1F1F",
-  muted: "#6B7280",
-  border: "rgba(0,0,0,0.08)",
+  bg: "transparent",
+  card: "rgba(22,15,50,0.9)",
+  text: "#ffffff",
+  muted: "rgba(255,255,255,0.55)",
+  border: "rgba(255,255,255,0.1)",
 };
 
 /* ── Video URLs ──────────────────────────────────────────── */
@@ -101,9 +126,9 @@ function VideoPlayer({
             }}
           >
             {isMuted ? (
-              <SpeakerX className="w-5 h-5 text-white" />
+              <SpeakerX className="h-5 w-5 text-white" {...IS} />
             ) : (
-              <SpeakerHigh className="w-5 h-5 text-white" />
+              <SpeakerHigh className="h-5 w-5 text-white" {...IS} />
             )}
           </button>
         </div>
@@ -156,22 +181,17 @@ export function AIGenderSelection() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="pi-page-dashboard-bg min-h-full w-full px-6 pb-6 pt-3 sm:pt-4">
+      <div className="mx-auto w-full max-w-6xl">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="mb-8">
+      <div className="mb-4">
         <button
+          type="button"
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm font-medium mb-4 transition-colors"
-          style={{ color: P.muted }}
-          onMouseEnter={(e) => {
-            (e.currentTarget).style.color = P.purple;
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget).style.color = P.muted;
-          }}
+          className="group mb-2 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-[0_1px_0_rgba(255,255,255,0.06)_inset] transition-all hover:border-white/35 hover:bg-white/[0.18] active:scale-[0.97]"
+          aria-label="Quay lại"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Quay lại
+          <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         </button>
 
         <div
@@ -182,8 +202,8 @@ export function AIGenderSelection() {
             border: `1px solid rgba(110, 53, 232,0.15)`,
           }}
         >
-          <Sparkle className="w-3.5 h-3.5" />
-          AI Interview Setup
+          <Sparkle className="h-3.5 w-3.5" {...IS} />
+          Thiết lập phỏng vấn AI
         </div>
 
         <h1
@@ -196,7 +216,7 @@ export function AIGenderSelection() {
             lineHeight: 1.2,
           }}
         >
-          Chọn HR AI của bạn 👋
+          Chọn HR AI của bạn
         </h1>
         <p className="text-base" style={{ color: P.muted, maxWidth: "600px" }}>
           Chọn giới tính HR AI và xem video giới thiệu trước khi bắt đầu phỏng vấn. 
@@ -216,14 +236,9 @@ export function AIGenderSelection() {
             }}
           >
             <div className="flex items-center gap-3 mb-6">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{
-                  background: `linear-gradient(135deg, ${P.purple}, ${P.purpleAlt})`,
-                }}
-              >
-                <User className="w-5 h-5 text-white" />
-              </div>
+              <IconFrame tone="violet">
+                <User className="h-5 w-5 text-violet-200" {...IS} />
+              </IconFrame>
               <div>
                 <h2 className="font-semibold" style={{ color: P.text, fontSize: "1.125rem" }}>
                   Chọn giới tính HR AI
@@ -234,161 +249,80 @@ export function AIGenderSelection() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 gap-4 sm:gap-5">
               {/* Male Option */}
               <button
+                type="button"
                 onClick={() => handleGenderSelect("male")}
-                className="relative p-6 rounded-2xl text-center transition-all group"
-                style={{
-                  border:
-                    selectedGender === "male"
-                      ? `3px solid ${P.purple}`
-                      : "3px solid #E9EAEC",
-                  background:
-                    selectedGender === "male"
-                      ? "rgba(110, 53, 232,0.06)"
-                      : "#FAFAFA",
-                  transform: selectedGender === "male" ? "scale(1.02)" : "scale(1)",
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedGender !== "male") {
-                    (e.currentTarget).style.borderColor = "#D1D5DB";
-                    (e.currentTarget).style.transform = "scale(1.02)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedGender !== "male") {
-                    (e.currentTarget).style.borderColor = "#E9EAEC";
-                    (e.currentTarget).style.transform = "scale(1)";
-                  }
-                }}
+                className={`group relative rounded-2xl border-2 p-6 text-center backdrop-blur-sm transition-all ${
+                  selectedGender === "male"
+                    ? "scale-[1.02] border-[#6E35E8] bg-[#6E35E8]/18 shadow-[0_0_0_1px_rgba(110,53,232,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
+                    : "border-white/12 bg-white/[0.05] hover:border-white/20 hover:bg-white/[0.08]"
+                }`}
               >
                 {selectedGender === "male" && (
                   <div
-                    className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ 
+                    className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full"
+                    style={{
                       background: P.purple,
                       boxShadow: "0 2px 8px rgba(110, 53, 232,0.4)",
                     }}
                   >
-                    <Check className="w-3.5 h-3.5 text-white" />
+                    <Check className="h-3.5 w-3.5 text-white" {...IS} strokeWidth={2.25} />
                   </div>
                 )}
-                <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110"
-                  style={{
-                    background: "rgba(110, 53, 232,0.12)",
-                    border: `2px solid rgba(110, 53, 232,0.25)`,
-                  }}
-                >
-                  <GenderMale
-                    className="w-10 h-10"
-                    style={{ color: P.purple }}
-                   
-                  />
+                <div className="mx-auto mb-4 flex justify-center transition-transform group-hover:scale-105">
+                  <IconFrame size="lg" tone="violet">
+                    <GenderMale className="h-10 w-10 text-violet-300" {...IS} />
+                  </IconFrame>
                 </div>
-                <p className="font-bold mb-1" style={{ color: P.text, fontSize: "1rem" }}>
-                  HR Nam 👨‍💼
-                </p>
-                <p className="text-xs font-medium" style={{ color: P.muted }}>
-                  David - AI Interviewer
-                </p>
+                <p className="mb-1 text-base font-bold text-white">HR Nam</p>
+                <p className="text-xs font-medium text-white/55">David · Người phỏng vấn AI</p>
               </button>
 
               {/* Female Option */}
               <button
+                type="button"
                 onClick={() => handleGenderSelect("female")}
-                className="relative p-6 rounded-2xl text-center transition-all group"
-                style={{
-                  border:
-                    selectedGender === "female"
-                      ? `3px solid ${P.purple}`
-                      : "3px solid #E9EAEC",
-                  background:
-                    selectedGender === "female"
-                      ? "rgba(110, 53, 232,0.06)"
-                      : "#FAFABA",
-                  transform: selectedGender === "female" ? "scale(1.02)" : "scale(1)",
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedGender !== "female") {
-                    (e.currentTarget).style.borderColor = "#D1D5DB";
-                    (e.currentTarget).style.transform = "scale(1.02)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedGender !== "female") {
-                    (e.currentTarget).style.borderColor = "#E9EAEC";
-                    (e.currentTarget).style.transform = "scale(1)";
-                  }
-                }}
+                className={`group relative rounded-2xl border-2 p-6 text-center backdrop-blur-sm transition-all ${
+                  selectedGender === "female"
+                    ? "scale-[1.02] border-[#6E35E8] bg-[#6E35E8]/18 shadow-[0_0_0_1px_rgba(110,53,232,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
+                    : "border-white/12 bg-white/[0.05] hover:border-white/20 hover:bg-white/[0.08]"
+                }`}
               >
                 {selectedGender === "female" && (
                   <div
-                    className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ 
+                    className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full"
+                    style={{
                       background: P.purple,
                       boxShadow: "0 2px 8px rgba(110, 53, 232,0.4)",
                     }}
                   >
-                    <Check className="w-3.5 h-3.5 text-white" />
+                    <Check className="h-3.5 w-3.5 text-white" {...IS} strokeWidth={2.25} />
                   </div>
                 )}
-                <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110"
-                  style={{
-                    background: "rgba(255,141,66,0.12)",
-                    border: `2px solid rgba(255,141,66,0.25)`,
-                  }}
-                >
-                  <GenderFemale
-                    className="w-10 h-10"
-                    style={{ color: P.orange }}
-                   
-                  />
+                <div className="mx-auto mb-4 flex justify-center transition-transform group-hover:scale-105">
+                  <IconFrame size="lg" tone="fuchsia">
+                    <GenderFemale className="h-10 w-10 text-fuchsia-300" {...IS} />
+                  </IconFrame>
                 </div>
-                <p className="font-bold mb-1" style={{ color: P.text, fontSize: "1rem" }}>
-                  HR Nữ 👩‍💼
-                </p>
-                <p className="text-xs font-medium" style={{ color: P.muted }}>
-                  Sarah - AI Interviewer
-                </p>
+                <p className="mb-1 text-base font-bold text-white">HR Nữ</p>
+                <p className="text-xs font-medium text-white/55">Sarah — AI Interviewer</p>
               </button>
             </div>
           </div>
 
           {/* Info box */}
-          <div
-            className="rounded-xl p-5 mt-5"
-            style={{
-              background: "rgba(180,240,0,0.06)",
-              border: "1.5px solid rgba(180,240,0,0.2)",
-            }}
-          >
+          <div className="mt-5 rounded-xl border border-violet-400/20 bg-violet-500/[0.08] p-5 backdrop-blur-sm">
             <div className="flex items-start gap-3">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgba(180,240,0,0.15)" }}
-              >
-                <VideoCamera
-                  className="w-5 h-5"
-                  style={{ color: "#65A300" }}
-                 
-                />
-              </div>
+              <IconFrame tone="violet" className="flex-shrink-0">
+                <VideoCamera className="h-5 w-5 text-violet-200" {...IS} />
+              </IconFrame>
               <div>
-                <p
-                  className="text-sm font-bold mb-1.5"
-                  style={{ color: "#4A7A00" }}
-                >
-                  💡 Xem video giới thiệu
-                </p>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "#5A8A00" }}
-                >
-                  Mỗi HR AI có video giới thiệu ngắn giúp bạn làm quen trước khi phỏng vấn. 
-                  Bạn cũng có thể bỏ qua và vào phòng ngay
+                <p className="mb-1.5 text-sm font-bold text-violet-100">Xem video giới thiệu</p>
+                <p className="text-sm leading-relaxed text-white/65">
+                  Mỗi HR AI có video giới thiệu ngắn giúp bạn làm quen trước khi phỏng vấn. Bạn cũng có thể bỏ qua
+                  và vào phòng ngay.
                 </p>
               </div>
             </div>
@@ -405,16 +339,10 @@ export function AIGenderSelection() {
               boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             }}
           >
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{
-                  background: "rgba(110, 53, 232,0.1)",
-                  border: `1px solid rgba(110, 53, 232,0.2)`,
-                }}
-              >
-                <VideoCamera className="w-5 h-5" style={{ color: P.purple }} />
-              </div>
+            <div className="mb-5 flex items-center gap-3">
+              <IconFrame tone="violet">
+                <VideoCamera className="h-5 w-5 text-violet-200" {...IS} />
+              </IconFrame>
               <div className="flex-1">
                 <h2 className="font-semibold" style={{ color: P.text, fontSize: "1.125rem" }}>
                   Video giới thiệu HR AI
@@ -424,13 +352,7 @@ export function AIGenderSelection() {
                 </p>
               </div>
               {videoWatched && (
-                <span
-                  className="text-xs font-bold px-3 py-1.5 rounded-full"
-                  style={{
-                    background: "rgba(180,240,0,0.15)",
-                    color: "#4A7A00",
-                  }}
-                >
+                <span className="rounded-full border border-[#c4ff47]/30 bg-[#c4ff47]/12 px-3 py-1.5 text-xs font-bold text-[#c4ff47]">
                   ✓ Đã xem
                 </span>
               )}
@@ -463,7 +385,7 @@ export function AIGenderSelection() {
                       (e.currentTarget).style.boxShadow = "0 4px 16px rgba(110, 53, 232,0.3)";
                     }}
                   >
-                    <Play className="w-5 h-5" />
+                    <Play className="h-5 w-5" {...IS} />
                     {videoWatched ? "Xem lại video" : "Phát video"}
                   </button>
                 )}
@@ -479,41 +401,26 @@ export function AIGenderSelection() {
                       marginTop: "1.25rem",
                     }}
                   >
-                    <Pause className="w-5 h-5" />
+                    <Pause className="h-5 w-5" {...IS} />
                     Tạm dừng
                   </button>
                 )}
               </div>
             ) : (
               <div
-                className="rounded-2xl text-center"
-                style={{
-                  background: "linear-gradient(135deg, #FAFAFA 0%, #F0F1F3 100%)",
-                  border: "2px dashed #D1D5DB",
-                  aspectRatio: "16/9",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "2rem",
-                }}
+                className="flex aspect-video items-center justify-center rounded-2xl border-2 border-dashed border-white/15 bg-white/[0.03] p-8 text-center backdrop-blur-sm"
               >
                 <div>
-                  <div
-                    className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5"
-                    style={{ 
-                      background: "#FFFFFF",
-                      border: "2px solid #E5E7EB",
-                    }}
-                  >
-                    <VideoCamera className="w-10 h-10 text-gray-400" />
+                  <div className="mx-auto mb-5 flex justify-center">
+                    <IconFrame size="lg" tone="neutral">
+                      <VideoCamera className="h-10 w-10 text-white/40" {...IS} />
+                    </IconFrame>
                   </div>
-                  <p
-                    className="font-bold mb-2"
-                    style={{ color: P.text, fontSize: "1.125rem" }}
-                  >
-                    Chọn HR AI 👈
+                  <p className="mb-2 flex items-center justify-center gap-2 text-lg font-bold text-white">
+                    <PanelLeft className="h-5 w-5 text-white/50" {...IS} />
+                    Chọn HR AI
                   </p>
-                  <p className="text-sm leading-relaxed" style={{ color: P.muted, maxWidth: "280px", margin: "0 auto" }}>
+                  <p className="mx-auto max-w-[280px] text-sm leading-relaxed text-white/55">
                     Chọn giới tính HR AI bên trái để xem video giới thiệu và bắt đầu
                   </p>
                 </div>
@@ -539,10 +446,10 @@ export function AIGenderSelection() {
                   fontSize: "1rem",
                 }
               : {
-                  background: "#F0F1F3",
-                  color: "#9CA3AF",
+                  background: "rgba(255,255,255,0.06)",
+                  color: "rgba(255,255,255,0.35)",
                   cursor: "not-allowed",
-                  border: "2px solid #E5E7EB",
+                  border: "2px solid rgba(255,255,255,0.1)",
                   fontSize: "1rem",
                 }
           }
@@ -562,10 +469,13 @@ export function AIGenderSelection() {
           {videoWatched ? (
             <>
               Tiếp tục vào phòng phỏng vấn
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="h-5 w-5" {...IS} />
             </>
           ) : (
-            <>📹 Xem video giới thiệu để tiếp tục</>
+            <span className="inline-flex items-center gap-2">
+              <VideoCamera className="h-5 w-5 opacity-70" {...IS} />
+              Xem video giới thiệu để tiếp tục
+            </span>
           )}
         </button>
 
@@ -577,36 +487,41 @@ export function AIGenderSelection() {
             style={{
               background: "transparent",
               color: P.muted,
-              border: "2px solid #E5E7EB",
+              border: "2px solid rgba(255,255,255,0.14)",
               fontSize: "0.95rem",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget).style.borderColor = P.purple;
               (e.currentTarget).style.color = P.purple;
-              (e.currentTarget).style.background = "rgba(110, 53, 232,0.04)";
+              (e.currentTarget).style.background = "rgba(110, 53, 232,0.08)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget).style.borderColor = "#E5E7EB";
+              (e.currentTarget).style.borderColor = "rgba(255,255,255,0.14)";
               (e.currentTarget).style.color = P.muted;
               (e.currentTarget).style.background = "transparent";
             }}
           >
-            Bỏ qua → Vào phòng phỏng vấn ngay
+            <span className="inline-flex items-center gap-2">
+              Bỏ qua, vào phòng phỏng vấn ngay
+              <ArrowRight className="h-4 w-4" {...IS} />
+            </span>
           </button>
         )}
 
         {!videoWatched && selectedGender && (
           <div
-            className="text-center text-sm px-4 py-3 rounded-xl"
-            style={{ 
-              color: P.muted,
-              background: "rgba(0,0,0,0.02)",
-              border: "1px solid rgba(0,0,0,0.05)",
-            }}
+            className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-center text-sm text-white/55 backdrop-blur-sm"
           >
-            💡 <strong>Mẹo:</strong> Xem hết video để mở khóa nút tiếp tục, hoặc nhấn "Bỏ qua" để vào ngay
+            <span className="inline-flex items-start justify-center gap-2">
+              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-violet-300/90" {...IS} />
+              <span>
+                <strong className="text-white/75">Mẹo:</strong> Xem hết video để mở khóa nút tiếp tục, hoặc nhấn
+                &quot;Bỏ qua&quot; để vào ngay.
+              </span>
+            </span>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

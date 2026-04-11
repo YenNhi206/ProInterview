@@ -65,16 +65,17 @@ export function AnalysisHistory() {
   const fieldAnalyses = CV_ANALYSIS_HISTORY.filter(item => item.mode === "field").length;
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] p-6">
+    <div className="min-h-full p-6 text-foreground">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => navigate("/cv-analysis")}
-            className="flex items-center gap-2 text-gray-600 hover:text-[#6E35E8] mb-4 text-sm font-medium transition-colors"
+            type="button"
+            onClick={() => navigate(-1)}
+            className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-[#6E35E8]"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Quay lại Phân tích CV/JD
+            <ArrowLeft className="h-4 w-4" />
+            Quay lại
           </button>
           <div className="flex items-center justify-between">
             <div>

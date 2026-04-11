@@ -85,7 +85,7 @@ export function AvatarDemo() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: "#F4F5F7" }}>
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-xl" style={{ 
         background: "rgba(255,255,255,0.92)", 

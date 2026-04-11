@@ -23,8 +23,9 @@
   --primary-foreground: oklch(1.0000 0 0);
 
   /* ─── Secondary: #B4F000 Lime CTA ───────────────────── */
-  --secondary: oklch(0.9050 0.2500 124.5);
-  --secondary-foreground: oklch(0.2094 0 0);
+  /* Lime CTA ~#c4ff47 */
+  --secondary: oklch(0.93 0.21 124);
+  --secondary-foreground: oklch(0.12 0.02 285);
 
   /* ─── Muted ───────────────────────────────────────────── */
   --muted: oklch(0.9400 0.0050 264.5);
@@ -46,8 +47,8 @@
   /* ─── Chart Colors ────────────────────────────────────── */
   --chart-1: oklch(0.4790 0.2670 287.0);
   /* #6E35E8 */
-  --chart-2: oklch(0.9050 0.2500 124.5);
-  /* #B4F000 */
+  --chart-2: oklch(0.93 0.21 124);
+  /* ~#c4ff47 */
   --chart-3: oklch(0.9020 0.1950 91.0);
   /* #FFD600 */
   --chart-4: oklch(0.7240 0.1650 47.0);
@@ -95,10 +96,11 @@
 
 /* ── Dark mode (only used for standalone public pages like /home) ── */
 .dark {
-  --background: oklch(0.065 0.018 287);
+  /* Shell ~#120B2E — cùng vibe Dashboard / Home */
+  --background: oklch(0.12 0.045 292);
   --foreground: oklch(1.0000 0 0);
 
-  --card: oklch(0.105 0.022 287);
+  --card: oklch(0.14 0.038 292);
   --card-foreground: oklch(1.0000 0 0);
   --popover: oklch(0.105 0.022 287);
   --popover-foreground: oklch(1.0000 0 0);
@@ -106,8 +108,9 @@
   --primary: oklch(0.62 0.25 287);
   --primary-foreground: oklch(1.0000 0 0);
 
-  --secondary: oklch(0.9050 0.2500 124.5);
-  --secondary-foreground: oklch(0.2094 0 0);
+  /* Lime CTA ~#c4ff47 */
+  --secondary: oklch(0.93 0.21 124);
+  --secondary-foreground: oklch(0.12 0.02 285);
 
   --muted: oklch(0.140 0.018 287);
   --muted-foreground: oklch(0.55 0.04 287);
@@ -123,7 +126,7 @@
   --ring: oklch(0.62 0.25 287);
 
   --chart-1: oklch(0.62 0.25 287);
-  --chart-2: oklch(0.9050 0.2500 124.5);
+  --chart-2: oklch(0.93 0.21 124);
   --chart-3: oklch(0.9020 0.1950 91.0);
   --chart-4: oklch(0.7240 0.1650 47.0);
   --chart-5: oklch(0.7373 0.1310 245.0);

@@ -46,6 +46,13 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { getCourseById } from "../data/coursesData";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
+
+const MENTOR_COURSE_EDIT_EXTRA_CSS = `
+        .tab-btn { position: relative; padding: 16px 24px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); transition: all 0.3s; }
+        .tab-btn.active { color: #fff; }
+        .tab-indicator { position: absolute; bottom: 0; left: 24px; right: 24px; height: 3px; background: #c4ff47; box-shadow: 0 0 15px #c4ff47; border-radius: 10px; }
+`;
 
 /* ── Helpers ─────────────────────────────────────────────────── */
 const formatDuration = (minutes) => {
@@ -108,7 +115,7 @@ function ReviewsTab({ mentorAvatar, mentorName }) {
     <div className="space-y-10">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: "Rating TB", value: "4.9", color: "#B4F500" },
+          { label: "Rating TB", value: "4.9", color: "#c4ff47" },
           { label: "Tổng đánh giá", value: 124, color: "#6E35E8" },
           { label: "Chờ phản hồi", value: 3, color: "#FF8C42" },
           { label: "Tỷ lệ hữu ích", value: "98%", color: "#secondary" }
@@ -177,7 +184,7 @@ function StudentsTab({ students }) {
     <div className="space-y-10">
        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[
-            { label: "Đang hoạt động", value: students.filter(s => s.status === 'active').length, color: "#B4F500" },
+            { label: "Đang hoạt động", value: students.filter(s => s.status === 'active').length, color: "#c4ff47" },
             { label: "Hoàn thành", value: students.filter(s => s.status === 'completed').length, color: "#6E35E8" },
             { label: "Tiến độ trung bình", value: "68%", color: "#f59e0b" },
             { label: "Drop-off Rate", value: "4.2%", color: "#secondary" }
@@ -208,7 +215,7 @@ function StudentsTab({ students }) {
                      </td>
                      <td className="px-8 py-6">
                         <div className="flex items-center gap-4 w-40">
-                           <MiniBar value={s.progress} color={s.progress === 100 ? "#B4F500" : "#6E35E8"} />
+                           <MiniBar value={s.progress} color={s.progress === 100 ? "#c4ff47" : "#6E35E8"} />
                            <span className="text-[10px] font-black text-white">{s.progress}%</span>
                         </div>
                      </td>
@@ -318,21 +325,7 @@ export function MentorCourseEdit() {
   ];
 
   return (
-    <div className="min-h-screen text-white font-sans pb-40 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
-      <style>{`
-        .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(40px); border-radius: 40px; border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.95; }
-        .tab-btn { position: relative; padding: 16px 24px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); transition: all 0.3s; }
-        .tab-btn.active { color: #fff; }
-        .tab-indicator { position: absolute; bottom: 0; left: 24px; right: 24px; height: 3px; background: #B4F500; box-shadow: 0 0 15px #B4F500; border-radius: 10px; }
-      `}</style>
-
-      {/* Atmospheric Background Glows */}
-      <div className="fixed top-0 right-0 w-[1200px] h-[1200px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[800px] h-[800px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
+    <MentorPageShell bottomPad="pb-40" extraStyles={MENTOR_COURSE_EDIT_EXTRA_CSS}>
       <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
         {/* Navigation Hero */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20">
@@ -407,6 +400,6 @@ export function MentorCourseEdit() {
             </div>
          </div>
       </div>
-    </div>
+    </MentorPageShell>
   );
 }

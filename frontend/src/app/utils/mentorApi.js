@@ -1,63 +1,40 @@
-import { projectId, publicAnonKey } from "/utils/supabase/info.js";
-import { MENTORS } from "../data/mockData";
+import { apiUrl } from "./api";
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/make-server-64a0c849`;
-
-// Mentor endpoints are public — no Authorization header needed
-const headers = () => ({
+const jsonHeaders = {
+  Accept: "application/json",
   "Content-Type": "application/json",
-});
+};
 
-// Fallback to local mock data if server is unreachable
-const FALLBACK = MENTORS;
-
+/**
+ * Danh sách mentor — fetch từ Express + MongoDB (GET /api/mentors).
+ */
 export async function fetchMentors() {
-  try {
-    const res = await fetch(`${BASE}/mentors`, { headers: headers() });
-    if (!res.ok) {
-      // Silently fallback for 401/403/500 errors
-      if (res.status === 401 || res.status === 403 || res.status >= 500) {
-        console.log(`📦 Using local mentor data (API unavailable: ${res.status})`);
-        return FALLBACK;
-      }
-      console.log(`fetchMentors: API returned ${res.status}, using fallback`);
-      return FALLBACK;
-    }
-    const data = await res.json();
-    if (data.success && Array.isArray(data.mentors) && data.mentors.length > 0) {
-      console.log(`✅ Loaded ${data.mentors.length} mentors from API`);
-      return data.mentors;
-    }
-    console.log("📦 Using local mentor data (API returned empty data)");
-    return FALLBACK;
-  } catch (err) {
-    // Network error - silently use fallback
-    console.log("📦 Using local mentor data (network error)");
-    return FALLBACK;
+  const res = await fetch(apiUrl("/api/mentors"), { headers: jsonHeaders });
+  if (!res.ok) {
+    console.error(`fetchMentors: HTTP ${res.status}`);
+    return [];
   }
+  const data = await res.json();
+  if (data.success && Array.isArray(data.mentors)) {
+    return data.mentors;
+  }
+  console.error("fetchMentors: response không hợp lệ", data);
+  return [];
 }
 
+/**
+ * Một mentor theo id — GET /api/mentors/:id
+ */
 export async function fetchMentor(id) {
-  try {
-    const res = await fetch(`${BASE}/mentors/${id}`, { headers: headers() });
-    if (res.status === 404) return null;
-    if (!res.ok) {
-      // Silently fallback for auth/server errors
-      if (res.status === 401 || res.status === 403 || res.status >= 500) {
-        console.log(`📦 Using local mentor data for ID ${id} (API unavailable: ${res.status})`);
-        return FALLBACK.find((m) => m.id === id) ?? null;
-      }
-      throw new Error(`HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    if (data.success && data.mentor) {
-      console.log(`✅ Loaded mentor ${id} from API`);
-      return data.mentor;
-    }
-    return FALLBACK.find((m) => m.id === id) ?? null;
-  } catch (err) {
-    // Network error - silently use fallback
-    console.log(`📦 Using local mentor data for ID ${id}`);
-    return FALLBACK.find((m) => m.id === id) ?? null;
+  const res = await fetch(apiUrl(`/api/mentors/${encodeURIComponent(id)}`), {
+    headers: jsonHeaders,
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    console.error(`fetchMentor: HTTP ${res.status}`);
+    return null;
   }
+  const data = await res.json();
+  if (data.success && data.mentor) return data.mentor;
+  return null;
 }

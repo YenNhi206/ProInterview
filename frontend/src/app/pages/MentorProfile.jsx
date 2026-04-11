@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Star,
@@ -26,6 +26,7 @@ import { MENTORS } from "../data/mockData";
 import { fetchMentor } from "../utils/mentorApi";
 import { getReviewsByMentor } from "../utils/bookings";
 import { ReportMentorModal } from "../components/modals/ReportMentorModal";
+import { MentorPageShell } from "../components/mentor/MentorPageShell";
 
 const REVIEWS = [
   { name: "Nguyễn Văn A", role: "Kỹ sư phần mềm", avatar: "NA", rating: 5, text: "Buổi phỏng vấn thử rất thực tế, mentor chia sẻ nhiều kinh nghiệm nội bộ. Sau buổi này mình tự tin hơn hẳn.", date: "15/02/2026" },
@@ -35,17 +36,32 @@ const REVIEWS = [
 export function MentorProfile() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [mentor, setMentor] = React.useState(MENTORS.find((m) => m.id === id) ?? MENTORS[0]);
+  const [mentor, setMentor] = React.useState(() =>
+    id ? MENTORS.find((m) => m.id === id) ?? null : null
+  );
   const [loadingMentor, setLoadingMentor] = React.useState(true);
   const [showReportModal, setShowReportModal] = React.useState(false);
   const [realReviews, setRealReviews] = React.useState([]);
 
+  useLayoutEffect(() => {
+    if (!id) {
+      setMentor(null);
+      return;
+    }
+    setMentor(MENTORS.find((m) => m.id === id) ?? null);
+  }, [id]);
+
   React.useEffect(() => {
-    if (!id) return;
-    fetchMentor(id).then((m) => {
-      if (m) setMentor(m);
+    if (!id) {
       setLoadingMentor(false);
-    });
+      return;
+    }
+    setLoadingMentor(true);
+    fetchMentor(id)
+      .then((m) => {
+        if (m) setMentor(m);
+      })
+      .finally(() => setLoadingMentor(false));
   }, [id]);
 
   React.useEffect(() => {
@@ -61,33 +77,16 @@ export function MentorProfile() {
   if (!mentor) return <div className="p-20 text-center text-zinc-500 bg-[#07060E] min-h-screen">Không tìm thấy mentor.</div>;
 
   return (
-    <div className="min-h-screen text-white font-sans pb-32 relative overflow-hidden"
-         style={{ background: "linear-gradient(145deg, #0E0922 0%, #07060E 100%)" }}>
-      
-      <style>{`
-        .glass-card {
-           background: rgba(255, 255, 255, 0.04);
-           backdrop-filter: blur(40px);
-           border-radius: 40px;
-           border: 1px solid rgba(255, 255, 255, 0.08);
-           transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .font-headline { letter-spacing: -0.05em; line-height: 0.95; }
-        .neon-glow { color: #fff; text-shadow: 0 0 10px rgba(180, 245, 0, 0.3); }
-      `}</style>
-
-      {/* Atmospheric Background Glows */}
-      <div className="fixed top-0 right-0 w-[1200px] h-[1200px] bg-secondary/10 blur-[250px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none -z-0"></div>
-      <div className="fixed bottom-0 left-0 w-[800px] h-[800px] bg-primary-fixed/5 blur-[200px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none -z-0"></div>
-
-      <div className="relative z-10 p-10 max-w-7xl mx-auto pt-20">
+    <MentorPageShell bottomPad="pb-32">
+      <div className="relative z-10 mx-auto max-w-7xl px-10 pb-10 pt-8 sm:pt-10">
         {/* Navigation */}
         <button
-          onClick={() => navigate("/mentors")}
-          className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all mb-12"
+          type="button"
+          onClick={() => navigate(-1)}
+          className="group mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-[0_1px_0_rgba(255,255,255,0.06)_inset] transition-all hover:border-white/35 hover:bg-white/[0.18] active:scale-[0.97]"
+          aria-label="Quay lại trang trước"
         >
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 
-          Quay lại danh sách Mentor
+          <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} />
         </button>
 
         <div className="grid lg:grid-cols-12 gap-10 items-start">
@@ -109,7 +108,7 @@ export function MentorProfile() {
                   </div>
                   <div className="flex-1">
                      <div className="flex flex-wrap items-center gap-2 mb-6">
-                        <span className="px-4 py-1.5 bg-primary-fixed/20 text-primary-fixed text-[10px] font-black uppercase tracking-widest rounded-xl border border-primary-fixed/20">Hạng {mentor.id === 'm1' ? 'Pro' : 'Elite'}</span>
+                        <span className="px-4 py-1.5 bg-primary-fixed/20 text-primary-fixed text-[10px] font-black uppercase tracking-widest rounded-xl border border-primary-fixed/20">Hạng {mentor.id === "1" ? "Pro" : "Elite"}</span>
                         <span className="px-4 py-1.5 bg-white/5 text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-xl border border-white/10">{mentor.company}</span>
                      </div>
                      <h1 className="text-6xl font-black text-white font-headline tracking-tighter mb-4 leading-none">{mentor.name}</h1>
@@ -205,7 +204,7 @@ export function MentorProfile() {
 
           {/* ── Right Column: Booking Widget ── */}
           <div className="lg:col-span-4">
-             <div className="glass-card p-10 sticky top-10 border-primary-fixed/30 overflow-hidden shadow-[0_20px_80px_rgba(180,245,0,0.1)]">
+             <div className="glass-card p-10 sticky top-10 border-primary-fixed/30 overflow-hidden shadow-[0_20px_80px_rgba(196, 255, 71,0.12)]">
                 <div className="absolute top-0 right-0 p-8 opacity-5 -rotate-12 translate-x-10 -translate-y-10">
                    <Target size={180} />
                 </div>
@@ -267,6 +266,6 @@ export function MentorProfile() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </MentorPageShell>
   );
 }

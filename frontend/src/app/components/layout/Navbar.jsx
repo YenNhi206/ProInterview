@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
 import { Bell } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
 import {
@@ -19,6 +19,13 @@ const PAGE_TITLES = {
   "/pricing": { label: "Bảng giá", sub: "Nâng cấp để mở khoá đầy đủ tính năng" },
   "/booking": { label: "Đặt lịch", sub: "Chọn thời gian phù hợp với mentor" },
   "/courses": { label: "Khóa học", sub: "Khám phá các khóa học nâng cao kỹ năng" },
+  "/mentor/dashboard": { label: "Mentor", sub: "Bảng điều khiển mentor" },
+  "/mentor/schedule": { label: "Lịch họp", sub: "Quản lý slot & buổi họp" },
+  "/mentor/courses": { label: "Khóa học", sub: "Quản lý nội dung khóa" },
+  "/mentor/finance": { label: "Tài chính", sub: "Thu nhập & giao dịch" },
+  "/mentor/analytics": { label: "Phân tích", sub: "Số liệu & hiệu suất" },
+  "/mentor/reviews": { label: "Đánh giá", sub: "Phản hồi từ học viên" },
+  "/mentor/peer-review": { label: "Đánh giá chéo", sub: "Peer review mentor" },
 };
 
 const MOCK_NOTIFICATIONS = [
@@ -36,7 +43,7 @@ const MOCK_NOTIFICATIONS = [
     message: "Xem chi tiết đánh giá buổi phỏng vấn",
     time: "3 giờ trước",
     unread: true,
-    color: "#B4F000",
+    color: "#c4ff47",
   },
   {
     id: 3,
@@ -49,74 +56,72 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export function Navbar() {
-  const navigate = useNavigate();
   const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
 
-  /* Resolve current page info */
   const pageKey = Object.keys(PAGE_TITLES).find(
     (k) => k === location.pathname || location.pathname.startsWith(k + "/")
   ) || location.pathname;
-  const pageInfo = PAGE_TITLES[pageKey] || { label: "ProInterview" };
+  const pageInfo = PAGE_TITLES[pageKey] || { label: "ProInterview", sub: "" };
   const unreadCount = MOCK_NOTIFICATIONS.filter((n) => n.unread).length;
 
   return (
     <header
-      className="sticky top-0 z-30 h-16 flex items-center px-5 gap-4"
+      className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/10 px-5 backdrop-blur-xl"
       style={{
-        background: "#FFFFFF",
-        borderBottom: "1px solid rgba(0,0,0,0.07)",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        background: "rgba(18, 11, 46, 0.82)",
+        boxShadow:
+          "0 1px 0 rgba(255,255,255,0.06), 0 -1px 24px -8px rgba(196, 255, 71, 0.06) inset",
       }}
     >
-      {/* Sidebar toggle */}
-      <SidebarTrigger className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors" />
+      <SidebarTrigger className="rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white" />
 
-      {/* Divider */}
-      <div className="h-6 w-px bg-gray-200 flex-shrink-0" />
+      <div className="h-6 w-px shrink-0 bg-white/15" />
 
-      {/* Page title */}
-      <div className="flex flex-col gap-0 min-w-0">
+      <div className="min-w-0 flex flex-col gap-0">
         <h1
-          className="text-gray-900 truncate"
+          className="truncate text-white"
           style={{ fontSize: "0.9375rem", fontWeight: 700, lineHeight: 1.2, letterSpacing: "-0.015em" }}
         >
           {pageInfo.label}
         </h1>
         {pageInfo.sub && (
-          <p className="text-gray-400 text-xs truncate hidden sm:block">{pageInfo.sub}</p>
+          <p className="hidden truncate text-xs text-white/45 sm:block">{pageInfo.sub}</p>
         )}
       </div>
 
-      {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Right: Notifications only */}
       <div className="flex items-center gap-2">
         <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
           <DropdownMenuTrigger asChild>
             <button
-              className="relative inline-flex items-center justify-center rounded-xl size-9 transition-all focus:outline-none"
+              type="button"
+              className="relative inline-flex size-9 items-center justify-center rounded-xl transition-all focus:outline-none"
               style={{
-                background: notifOpen ? "rgba(110,53,232,0.08)" : "transparent",
-                border: "1px solid transparent",
+                background: notifOpen ? "rgba(110,53,232,0.2)" : "transparent",
+                border: notifOpen ? "1px solid rgba(110,53,232,0.35)" : "1px solid transparent",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget).style.background = "rgba(110,53,232,0.06)";
-                (e.currentTarget).style.border = "1px solid rgba(110,53,232,0.12)";
+                e.currentTarget.style.background = "rgba(110,53,232,0.15)";
+                e.currentTarget.style.border = "1px solid rgba(110,53,232,0.28)";
               }}
               onMouseLeave={(e) => {
                 if (!notifOpen) {
-                  (e.currentTarget).style.background = "transparent";
-                  (e.currentTarget).style.border = "1px solid transparent";
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.border = "1px solid transparent";
                 }
               }}
             >
-              <Bell className="h-5 w-5 text-gray-600" />
+              <Bell className="h-5 w-5 text-white/65" />
               {unreadCount > 0 && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full flex items-center justify-center font-bold text-white"
-                  style={{ background: "#6E35E8", fontSize: "0.6rem", boxShadow: "0 2px 6px rgba(110,53,232,0.5)" }}
+                  className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full font-bold text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #6E35E8, #9B6DFF)",
+                    fontSize: "0.6rem",
+                    boxShadow: "0 2px 8px rgba(110,53,232,0.55)",
+                  }}
                 >
                   {unreadCount}
                 </span>
@@ -124,51 +129,49 @@ export function Navbar() {
             </button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-80 p-0 overflow-hidden">
-            {/* Header */}
+          <DropdownMenuContent
+            align="end"
+            className="w-80 overflow-hidden border border-white/10 bg-[#160f36] p-0 text-white shadow-2xl"
+          >
             <div
-              className="px-4 py-3 flex items-center justify-between"
-              style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
+              className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
             >
-              <span className="font-semibold text-gray-800" style={{ fontSize: "0.875rem" }}>
-                Thông báo
-              </span>
+              <span className="text-sm font-semibold text-white">Thông báo</span>
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(110,53,232,0.1)", color: "#6E35E8" }}
+                className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                style={{ background: "rgba(196, 255, 71,0.15)", color: "#c5f076" }}
               >
                 {unreadCount} mới
               </span>
             </div>
 
-            {/* Items */}
             <div className="py-1">
               {MOCK_NOTIFICATIONS.map((n) => (
                 <DropdownMenuItem
                   key={n.id}
-                  className="flex items-start gap-3 px-4 py-3 cursor-pointer focus:bg-gray-50"
+                  className="flex cursor-pointer items-start gap-3 px-4 py-3 focus:bg-white/8"
                 >
                   <div
-                    className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                    className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                     style={{
                       background: n.unread ? n.color : "transparent",
-                      border: n.unread ? "none" : "1px solid #e5e7eb",
+                      border: n.unread ? "none" : "1px solid rgba(255,255,255,0.2)",
                     }}
                   />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{n.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{n.message}</p>
-                    <p className="text-[10px] text-gray-300 mt-1">{n.time}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-white/95">{n.title}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-white/50">{n.message}</p>
+                    <p className="mt-1 text-[10px] text-white/35">{n.time}</p>
                   </div>
                 </DropdownMenuItem>
               ))}
             </div>
 
-            {/* Footer */}
-            <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <button
-                className="w-full py-3 text-xs font-semibold transition-colors hover:bg-gray-50"
-                style={{ color: "#6E35E8" }}
+                type="button"
+                className="w-full py-3 text-xs font-semibold text-[#c4f06a] transition-colors hover:bg-white/6"
               >
                 Xem tất cả thông báo
               </button>

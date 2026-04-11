@@ -113,7 +113,7 @@ export function AppSidebar() {
                   boxShadow: "0 4px 12px rgba(110,53,232,0.45)",
                 }}
               >
-                <Sparkles className="w-4 h-4 text-[#B4F000]" strokeWidth={2.5} />
+                <Sparkles className="w-4 h-4 text-[#c4ff47]" strokeWidth={2.5} />
               </div>
 
               {/* Logo text — hidden when collapsed */}
@@ -127,7 +127,7 @@ export function AppSidebar() {
                   </span>
                   <span
                     className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-md"
-                    style={{ background: "#B4F000", color: "#1F1F1F" }}
+                    style={{ background: "#c4ff47", color: "#120B2E" }}
                   >
                     MVP
                   </span>
@@ -204,7 +204,7 @@ export function AppSidebar() {
                         {active && (
                           <span
                             className="ml-auto size-1.5 rounded-full shrink-0 group-data-[collapsible=icon]:hidden"
-                            style={{ background: "#B4F000" }}
+                            style={{ background: "#c4ff47" }}
                           />
                         )}
                       </SidebarMenuButton>
@@ -250,7 +250,7 @@ export function AppSidebar() {
                         {active && (
                           <span
                             className="ml-auto size-1.5 rounded-full shrink-0 group-data-[collapsible=icon]:hidden"
-                            style={{ background: "#B4F000" }}
+                            style={{ background: "#c4ff47" }}
                           />
                         )}
                       </SidebarMenuButton>
@@ -331,15 +331,15 @@ export function AppSidebar() {
               className="rounded-2xl p-3.5"
               style={{
                 background: "linear-gradient(135deg, rgba(110,53,232,0.22) 0%, rgba(139,77,255,0.12) 100%)",
-                border: "1px solid rgba(180,240,0,0.18)",
+                border: "1px solid rgba(196, 255, 71,0.22)",
               }}
             >
               <div className="flex items-center gap-2.5 mb-3">
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(180,240,0,0.14)" }}
+                  style={{ background: "rgba(196, 255, 71,0.12)" }}
                 >
-                  <Zap className="w-3.5 h-3.5" style={{ color: "#B4F000" }} />
+                  <Zap className="w-3.5 h-3.5" style={{ color: "#c4ff47" }} />
                 </div>
                 <div className="min-w-0">
                   <p className="text-white text-xs font-bold truncate">Nâng cấp lên Pro</p>
@@ -350,9 +350,9 @@ export function AppSidebar() {
                 onClick={() => navigate("/pricing")}
                 className="w-full py-1.5 rounded-xl text-xs font-bold transition-all hover:brightness-110 active:scale-[0.97]"
                 style={{
-                  background: "#B4F000",
-                  color: "#1F1F1F",
-                  boxShadow: "0 3px 10px rgba(180,240,0,0.28)",
+                  background: "#c4ff47",
+                  color: "#120B2E",
+                  boxShadow: "0 3px 14px rgba(196, 255, 71,0.32)",
                 }}
               >
                 Xem gói Pro →
@@ -368,9 +368,9 @@ export function AppSidebar() {
               onClick={() => navigate("/pricing")}
               title="Nâng cấp Pro"
               className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:brightness-110"
-              style={{ background: "rgba(180,240,0,0.14)", border: "1px solid rgba(180,240,0,0.22)" }}
+              style={{ background: "rgba(196, 255, 71,0.12)", border: "1px solid rgba(196, 255, 71,0.22)" }}
             >
-              <Zap className="w-4 h-4" style={{ color: "#B4F000" }} />
+              <Zap className="w-4 h-4" style={{ color: "#c4ff47" }} />
             </button>
           </div>
         )}

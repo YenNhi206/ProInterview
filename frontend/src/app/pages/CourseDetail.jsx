@@ -56,8 +56,8 @@ const formatDuration = (minutes) => {
 const getLevelLabel = (level) =>
   level === "Beginner" ? "Cơ bản" : level === "Intermediate" ? "Trung cấp" : "Nâng cao";
 const getLevelColor = (level) => {
-  if (level === "Beginner") return { bg: "rgba(180,240,0,0.12)", text: "#4A7A00", border: "rgba(180,240,0,0.3)" };
-  if (level === "Intermediate") return { bg: "rgba(110, 53, 232,0.1)", text: "#6E35E8", border: "rgba(110, 53, 232,0.25)" };
+  if (level === "Beginner") return { bg: "rgba(196, 255, 71,0.12)", text: "#4A7A00", border: "rgba(196, 255, 71,0.3)" };
+  if (level === "Intermediate") return { bg: "rgba(110, 53, 232,0.2)", text: "#ddd6fe", border: "rgba(167, 139, 250, 0.45)" };
   return { bg: "rgba(255,140,66,0.12)", text: "#CC5C00", border: "rgba(255,140,66,0.35)" };
 };
 
@@ -66,31 +66,31 @@ function LessonRow({ lesson, index }) {
   return (
     <div
       className="flex items-center gap-4 py-3 px-4 rounded-xl transition-all"
-      style={{ background: lesson.isPreview ? "rgba(180,240,0,0.04)" : "transparent" }}
+      style={{ background: lesson.isPreview ? "rgba(196, 255, 71,0.04)" : "transparent" }}
     >
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold"
         style={{
-          background: lesson.isPreview ? "rgba(180,240,0,0.15)" : "rgba(110, 53, 232,0.08)",
+          background: lesson.isPreview ? "rgba(196, 255, 71,0.15)" : "rgba(110, 53, 232,0.08)",
           color: lesson.isPreview ? "#4A7A00" : "#6E35E8",
         }}
       >
         {index + 1}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">{lesson.title}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{formatDuration(lesson.duration)}</p>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-white">{lesson.title}</p>
+        <p className="mt-0.5 text-xs text-white/50">{formatDuration(lesson.duration)}</p>
       </div>
       {lesson.isPreview ? (
         <span
           className="text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0"
-          style={{ background: "rgba(180,240,0,0.15)", color: "#4A7A00" }}
+          style={{ background: "rgba(196, 255, 71,0.15)", color: "#4A7A00" }}
         >
           <PlayCircle className="w-3.5 h-3.5" />
           Preview
         </span>
       ) : (
-        <Lock className="w-4 h-4 text-gray-300 shrink-0" />
+        <Lock className="h-4 w-4 shrink-0 text-white/35" />
       )}
     </div>
   );
@@ -207,7 +207,7 @@ function ReviewsSection({ course, enrolled }) {
   return (
     <div className="space-y-6">
       {/* Rating summary */}
-      <div className="bg-white rounded-3xl p-6 border border-gray-100">
+      <div className="rounded-3xl border border-white/12 bg-white/[0.04] p-6 backdrop-blur-sm">
         <div className="flex items-center gap-8 mb-6">
           <div className="text-center">
             <p
@@ -217,16 +217,16 @@ function ReviewsSection({ course, enrolled }) {
               {course.rating}
             </p>
             <StarRating rating={course.rating} size="lg" />
-            <p className="text-xs text-gray-400 mt-1">{course.reviewsCount} đánh giá</p>
+            <p className="text-xs text-white/50 mt-1">{course.reviewsCount} đánh giá</p>
           </div>
           <div className="flex-1">
             {[5, 4, 3, 2, 1].map((star) => (
               <div key={star} className="flex items-center gap-3 mb-1.5">
                 <div className="flex items-center gap-1 w-6 shrink-0">
-                  <span className="text-xs text-gray-500">{star}</span>
+                  <span className="text-xs text-white/55">{star}</span>
                   <Star className="w-3 h-3 text-[#FFD600]" />
                 </div>
-                <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
                   <div
                     className="h-full rounded-full transition-all"
                     style={{
@@ -235,7 +235,7 @@ function ReviewsSection({ course, enrolled }) {
                     }}
                   />
                 </div>
-                <span className="text-xs text-gray-400 w-8 shrink-0 text-right">
+                <span className="text-xs text-white/50 w-8 shrink-0 text-right">
                   {star === 5 ? "72%" : star === 4 ? "20%" : star === 3 ? "6%" : star === 2 ? "2%" : "0%"}
                 </span>
               </div>
@@ -250,7 +250,7 @@ function ReviewsSection({ course, enrolled }) {
             className="w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-105"
             style={{ background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", color: "#fff" }}
           >
-            <PencilSimple className="w-4 h-4" />
+            <Pencil className="w-4 h-4" />
             Viết đánh giá cho khóa học này
           </button>
         )}
@@ -259,12 +259,12 @@ function ReviewsSection({ course, enrolled }) {
         {submitted && (
           <div
             className="p-4 rounded-2xl flex items-center gap-3"
-            style={{ background: "rgba(180,240,0,0.08)", border: "1px solid rgba(180,240,0,0.25)" }}
+            style={{ background: "rgba(196, 255, 71,0.08)", border: "1px solid rgba(196, 255, 71,0.25)" }}
           >
             <CheckCircle className="w-5 h-5 text-[#4A7A00]" />
             <div>
               <p className="font-bold text-[#4A7A00] text-sm">Đánh giá đã được gửi thành công</p>
-              <p className="text-xs text-gray-500 mt-0.5">Cảm ơn bạn đã chia sẻ trải nghiệm. Đánh giá sẽ hiển thị sau khi được kiểm duyệt.</p>
+              <p className="text-xs text-white/55 mt-0.5">Cảm ơn bạn đã chia sẻ trải nghiệm. Đánh giá sẽ hiển thị sau khi được kiểm duyệt.</p>
             </div>
           </div>
         )}
@@ -274,15 +274,15 @@ function ReviewsSection({ course, enrolled }) {
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Sparkle className="w-5 h-5 text-[#6E35E8]" />
-          <h3 className="font-bold text-gray-900">Đánh giá từ Mentor chuyên nghiệp</h3>
+          <h3 className="font-bold text-white">Đánh giá từ Mentor chuyên nghiệp</h3>
           <span
             className="text-xs font-bold px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(180,240,0,0.15)", color: "#4A7A00" }}
+            style={{ background: "rgba(196, 255, 71,0.15)", color: "#4A7A00" }}
           >
             Peer Review
           </span>
         </div>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-white/55 mb-4">
           Các khóa học được đánh giá chéo bởi các mentor khác trong hệ thống, đảm bảo chất lượng và độ chính xác.
         </p>
 
@@ -290,7 +290,7 @@ function ReviewsSection({ course, enrolled }) {
           {(course.reviews || []).map((review) => (
             <div
               key={review.id}
-              className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-[rgba(110, 53, 232,0.2)] transition-all"
+              className="rounded-2xl border border-white/12 bg-white/[0.04] p-5 backdrop-blur-sm transition-all hover:border-violet-400/30"
             >
               <div className="flex items-start gap-4">
                 <img
@@ -300,7 +300,7 @@ function ReviewsSection({ course, enrolled }) {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-bold text-gray-900">{review.mentorName}</span>
+                    <span className="font-bold text-white">{review.mentorName}</span>
                     {review.verified && (
                       <span
                         className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
@@ -311,10 +311,10 @@ function ReviewsSection({ course, enrolled }) {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mb-2">{review.mentorTitle}</p>
+                  <p className="text-xs text-white/55 mb-2">{review.mentorTitle}</p>
                   <StarRating rating={review.rating} />
-                  <p className="text-sm text-gray-700 mt-3 leading-relaxed">{review.comment}</p>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-sm text-white/85 mt-3 leading-relaxed">{review.comment}</p>
+                  <p className="text-xs text-white/50 mt-2">
                     {new Date(review.createdAt).toLocaleDateString("vi-VN", {
                       day: "numeric",
                       month: "long",
@@ -332,9 +332,9 @@ function ReviewsSection({ course, enrolled }) {
       <div>
         <div className="flex items-center gap-2 mb-4">
           <ThumbsUp className="w-5 h-5 text-[#6E35E8]" />
-          <h3 className="font-bold text-gray-900">Đánh giá từ Học viên</h3>
+          <h3 className="font-bold text-white">Đánh giá từ Học viên</h3>
         </div>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-white/55 mb-4">
           Những đánh giá chân thật từ học viên đã hoàn thành khóa học.
         </p>
 
@@ -342,7 +342,7 @@ function ReviewsSection({ course, enrolled }) {
           {STUDENT_REVIEWS.map((review) => (
             <div
               key={review.id}
-              className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-[rgba(110, 53, 232,0.2)] transition-all"
+              className="rounded-2xl border border-white/12 bg-white/[0.04] p-5 backdrop-blur-sm transition-all hover:border-violet-400/30"
             >
               <div className="flex items-start gap-4">
                 <img
@@ -352,7 +352,7 @@ function ReviewsSection({ course, enrolled }) {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-bold text-gray-900">{review.name}</span>
+                    <span className="font-bold text-white">{review.name}</span>
                     {review.verified && (
                       <span
                         className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
@@ -363,10 +363,10 @@ function ReviewsSection({ course, enrolled }) {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mb-2">{review.role}</p>
+                  <p className="text-xs text-white/55 mb-2">{review.role}</p>
                   <StarRating rating={review.rating} />
-                  <p className="text-sm text-gray-700 mt-3 leading-relaxed">{review.comment}</p>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-sm text-white/85 mt-3 leading-relaxed">{review.comment}</p>
+                  <p className="text-xs text-white/50 mt-2">
                     {new Date(review.date).toLocaleDateString("vi-VN", {
                       day: "numeric",
                       month: "long",
@@ -394,11 +394,11 @@ function ReviewsSection({ course, enrolled }) {
                 className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                 style={{ background: "linear-gradient(135deg, #6E35E8, #8B4DFF)" }}
               >
-                <PencilSimple className="w-6 h-6 text-white" />
+                <Pencil className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-gray-900 mb-1">Chia sẻ trải nghiệm của bạn</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-bold text-white mb-1">Chia sẻ trải nghiệm của bạn</p>
+                <p className="text-sm text-white/70">
                   Bạn đã hoàn thành khóa học? Hãy viết đánh giá để giúp học viên khác đưa ra quyết định đúng đắn.
                 </p>
               </div>
@@ -410,34 +410,34 @@ function ReviewsSection({ course, enrolled }) {
 
       {/* Review Dialog */}
       <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="border border-white/12 bg-[#120d24] text-white sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <PencilSimple className="w-5 h-5 text-[#6E35E8]" />
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-white">
+              <Pencil className="w-5 h-5 text-[#6E35E8]" />
               Đánh giá khóa học
             </DialogTitle>
-            <DialogDescription className="text-sm text-gray-500">
+            <DialogDescription className="text-sm text-white/60">
               Chia sẻ trải nghiệm của bạn để giúp học viên khác có cái nhìn đúng đắn hơn về khóa học.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 mt-4">
             {/* Course info quick reference */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] p-3">
               <img
                 src={course.thumbnail}
                 alt={course.title}
                 className="w-16 h-16 rounded-xl object-cover shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-gray-900 text-sm truncate">{course.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Bởi {course.mentorName}</p>
+                <p className="font-bold text-white text-sm truncate">{course.title}</p>
+                <p className="text-xs text-white/55 mt-0.5">Bởi {course.mentorName}</p>
               </div>
             </div>
 
             {/* Star rating picker */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-3">
+              <p className="text-sm font-medium text-white/85 mb-3">
                 Bạn đánh giá khóa học này mấy sao?
                 <span className="text-red-400 ml-1">*</span>
               </p>
@@ -453,7 +453,7 @@ function ReviewsSection({ course, enrolled }) {
                     <Star
                       fill={s <= (hoverRating || reviewRating) ? "#FFD600" : "none"}
                       className="w-10 h-10"
-                      style={{ color: s <= (hoverRating || reviewRating) ? "#FFD600" : "#d1d5db" }}
+                      style={{ color: s <= (hoverRating || reviewRating) ? "#FFD600" : "rgba(255,255,255,0.28)" }}
                     />
                   </button>
                 ))}
@@ -475,7 +475,7 @@ function ReviewsSection({ course, enrolled }) {
 
             {/* Comment textarea */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className="text-sm font-medium text-white/85 mb-2 block">
                 Chia sẻ trải nghiệm của bạn
                 <span className="text-red-400 ml-1">*</span>
               </label>
@@ -484,22 +484,21 @@ function ReviewsSection({ course, enrolled }) {
                 onChange={(e) => setReviewComment(e.target.value)}
                 placeholder="Khóa học đã giúp bạn cải thiện điều gì? Điểm nổi bật nhất là gì? Bạn có đề xuất gì cho mentor không?..."
                 rows={5}
-                className="w-full rounded-2xl px-4 py-3 text-sm border border-gray-200 outline-none resize-none transition-all leading-relaxed focus:border-[#6E35E8] focus:ring-2 focus:ring-[rgba(110, 53, 232,0.1)]"
-                style={{ background: "#fafafa" }}
+                className="w-full resize-none rounded-2xl border border-white/15 bg-[#0c0818]/80 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-white/40 focus:border-[#6E35E8] focus:ring-2 focus:ring-violet-500/25"
                 maxLength={800}
               />
               <div className="flex justify-between mt-1.5">
                 <p 
                   className="text-xs"
                   style={{ 
-                    color: reviewComment.length >= 30 ? "#4A7A00" : reviewComment.length > 0 ? "#CC5C00" : "#9ca3af" 
+                    color: reviewComment.length >= 30 ? "#4A7A00" : reviewComment.length > 0 ? "#CC5C00" : "rgba(255,255,255,0.45)" 
                   }}
                 >
                   {reviewComment.length >= 30 
                     ? "✓ Đủ độ dài để gửi" 
                     : "Tối thiểu 30 ký tự để đánh giá được chấp thuận"}
                 </p>
-                <p className="text-xs text-gray-400">{reviewComment.length}/800</p>
+                <p className="text-xs text-white/50">{reviewComment.length}/800</p>
               </div>
             </div>
 
@@ -508,7 +507,7 @@ function ReviewsSection({ course, enrolled }) {
               <button
                 onClick={handleCloseDialog}
                 disabled={submitting}
-                className="flex-1 py-3 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-40"
+                className="flex-1 rounded-xl border border-white/15 py-3 text-sm font-medium text-white/70 transition-all hover:bg-white/[0.08] disabled:opacity-40"
               >
                 Huỷ
               </button>
@@ -525,7 +524,7 @@ function ReviewsSection({ course, enrolled }) {
                   </>
                 ) : (
                   <>
-                    <ChatCircle className="w-4 h-4" />
+                    <MessageCircle className="w-4 h-4" />
                     Gửi đánh giá
                   </>
                 )}
@@ -551,13 +550,14 @@ export function CourseDetail() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="pi-page-dashboard-bg flex min-h-full w-full items-center justify-center px-6 py-20 font-sans text-white">
         <div className="text-center">
-          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Không tìm thấy khóa học</h2>
+          <BookOpen className="mx-auto mb-4 h-16 w-16 text-white/30" />
+          <h2 className="mb-2 text-xl font-bold text-white">Không tìm thấy khóa học</h2>
           <button
+            type="button"
             onClick={() => navigate("/courses")}
-            className="px-6 py-3 bg-[#6E35E8] text-white rounded-xl font-semibold hover:bg-[#8B4DFF] transition-colors"
+            className="rounded-xl bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] px-6 py-3 font-semibold text-white transition-colors hover:opacity-95"
           >
             Quay lại danh sách
           </button>
@@ -579,36 +579,35 @@ export function CourseDetail() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ── Hero ────────────────────────────────────────────── */}
-      <div
-        className="relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #1a0a3e 0%, #2d1060 50%, #1F1F1F 100%)" }}
-      >
-        {/* BG blobs */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl" style={{ background: "#6E35E8" }} />
-          <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full opacity-10 blur-3xl" style={{ background: "#B4F000" }} />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-6 pt-8 pb-16">
-          {/* Breadcrumb */}
+    <div className="pi-page-dashboard-bg min-h-full w-full font-sans text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white">
+      <header className="relative border-b border-white/[0.07] pb-14 pt-4 sm:pb-16 sm:pt-5">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.09]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8">
           <button
-            onClick={() => navigate("/courses")}
-            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8 text-sm"
+            type="button"
+            onClick={() => navigate(-1)}
+            className="group mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-[0_1px_0_rgba(255,255,255,0.06)_inset] transition-all hover:border-white/35 hover:bg-white/[0.18] active:scale-[0.97]"
+            aria-label="Quay lại trang trước"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Quay lại khóa học
+            <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} />
           </button>
 
-          <div className="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
+          <div className="grid items-start gap-10 lg:grid-cols-[1fr_380px]">
             {/* Left: Course Info */}
             <div>
               {/* Category + Level badges */}
               <div className="flex items-center gap-2 mb-4 flex-wrap">
                 <span
                   className="text-xs font-bold px-3 py-1 rounded-full"
-                  style={{ background: "rgba(180,240,0,0.15)", color: "#B4F000", border: "1px solid rgba(180,240,0,0.25)" }}
+                  style={{ background: "rgba(196, 255, 71,0.15)", color: "#c4ff47", border: "1px solid rgba(196, 255, 71,0.25)" }}
                 >
                   {course.category}
                 </span>
@@ -620,10 +619,10 @@ export function CourseDetail() {
                 </span>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+              <h1 className="mb-4 text-3xl font-black leading-tight tracking-tighter text-white md:text-4xl">
                 {course.title}
               </h1>
-              <p className="text-white/70 text-base mb-6 leading-relaxed max-w-2xl">
+              <p className="mb-6 max-w-2xl text-base font-semibold leading-relaxed text-white/65">
                 {course.description}
               </p>
 
@@ -658,7 +657,7 @@ export function CourseDetail() {
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-white font-semibold">{course.mentorName}</span>
-                    <SealCheck className="w-4 h-4 text-[#B4F000]" />
+                    <SealCheck className="w-4 h-4 text-[#c4ff47]" />
                   </div>
                   <p className="text-white/55 text-sm">{course.mentorTitle} · {course.mentorCompany}</p>
                 </div>
@@ -683,18 +682,18 @@ export function CourseDetail() {
                 </div>
                 <div
                   className="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full"
-                  style={{ background: "#B4F000", color: "#1F1F1F" }}
+                  style={{ background: "#c4ff47", color: "#1F1F1F" }}
                 >
                   Xem trước miễn phí
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="border-t border-white/10 bg-[#0c0818]/40 p-6 backdrop-blur-sm">
                 {/* Price */}
-                <div className="flex items-end gap-2 mb-4">
-                  <span className="text-2xl font-bold text-[#6E35E8]">{formatPrice(course.price)}</span>
+                <div className="mb-4 flex items-end gap-2">
+                  <span className="text-2xl font-bold text-violet-200">{formatPrice(course.price)}</span>
                   {course.price > 0 && (
-                    <span className="text-xs text-gray-400 line-through mb-1">
+                    <span className="mb-1 text-xs text-white/45 line-through">
                       {formatPrice(Math.round(course.price * 1.4))}
                     </span>
                   )}
@@ -723,7 +722,7 @@ export function CourseDetail() {
                     <button
                       onClick={() => setEnrolled(true)}
                       className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] shadow-lg"
-                      style={{ background: "#B4F000", color: "#1F1F1F", boxShadow: "0 6px 20px rgba(180,240,0,0.3)" }}
+                      style={{ background: "#c4ff47", color: "#1F1F1F", boxShadow: "0 6px 20px rgba(196, 255, 71,0.3)" }}
                     >
                       <ShoppingCart className="w-4.5 h-4.5" />
                       {course.price === 0 ? "Đăng ký miễn phí" : "Đăng ký khóa học"}
@@ -731,31 +730,32 @@ export function CourseDetail() {
                   )}
                   <div className="flex gap-2">
                     <button
+                      type="button"
                       onClick={() => setWishlisted(!wishlisted)}
-                      className="flex-1 py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 border transition-all"
-                      style={{
-                        border: wishlisted ? "1px solid rgba(110, 53, 232,0.4)" : "1px solid #e5e7eb",
-                        color: wishlisted ? "#6E35E8" : "#6b7280",
-                        background: wishlisted ? "rgba(110, 53, 232,0.06)" : "transparent",
-                      }}
+                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-xs font-semibold transition-all ${
+                        wishlisted
+                          ? "border-violet-400/45 bg-violet-500/15 text-violet-100"
+                          : "border-white/15 bg-transparent text-white/60 hover:border-white/25 hover:bg-white/[0.06]"
+                      }`}
                     >
-                      <Heart 
-                        fill={wishlisted ? "#6E35E8" : "none"}
-                        className="w-3.5 h-3.5" 
+                      <Heart
+                        fill={wishlisted ? "#a78bfa" : "none"}
+                        className="h-3.5 w-3.5"
                       />
                       Yêu thích
                     </button>
                     <button
-                      className="flex-1 py-2.5 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all"
+                      type="button"
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/15 py-2.5 text-xs font-semibold text-white/60 transition-all hover:bg-white/[0.06]"
                     >
-                      <ShareNetwork className="w-3.5 h-3.5" />
+                      <ShareNetwork className="h-3.5 w-3.5" />
                       Chia sẻ
                     </button>
                   </div>
                 </div>
 
                 {/* Course stats */}
-                <div className="space-y-2.5 border-t border-gray-100 pt-5">
+                <div className="space-y-2.5 border-t border-white/10 pt-5">
                   {[
                     { icon: Clock, label: "Thời lượng", value: formatDuration(course.duration) },
                     { icon: BookOpen, label: "Số bài học", value: `${course.lessonsCount} bài` },
@@ -764,11 +764,11 @@ export function CourseDetail() {
                     { icon: CalendarBlank, label: "Truy cập mãi mãi", value: "Không giới hạn" },
                   ].map((item) => (
                     <div key={item.label} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <item.icon className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-white/55">
+                        <item.icon className="h-4 w-4" />
                         {item.label}
                       </div>
-                      <span className="font-semibold text-gray-800">{item.value}</span>
+                      <span className="font-semibold text-white">{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -784,10 +784,10 @@ export function CourseDetail() {
                       <img src={course.mentorAvatar} alt={course.mentorName} className="w-10 h-10 rounded-full object-cover" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-[#6E35E8] mb-0.5">Sau khi học xong →</p>
-                        <p className="text-sm font-semibold text-gray-900">Book 1-1 với {course.mentorName}</p>
-                        <p className="text-xs text-gray-500">Confirm kiến thức & nhận feedback cá nhân</p>
+                        <p className="text-sm font-semibold text-white">Book 1-1 với {course.mentorName}</p>
+                        <p className="text-xs text-white/55">Confirm kiến thức & nhận feedback cá nhân</p>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-[#6E35E8] shrink-0" />
+                      <ArrowRight className="h-4 w-4 shrink-0 text-violet-300" />
                     </div>
                   </div>
                 )}
@@ -795,23 +795,22 @@ export function CourseDetail() {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* ── Tabs + Content ───────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Tab bar */}
-        <div className="flex gap-1 border-b border-gray-200 mt-8 -mx-6 px-6 overflow-x-auto">
+      <div className="relative z-[1] mx-auto max-w-7xl px-6 sm:px-8">
+        <div className="-mx-6 mt-8 flex gap-1 overflow-x-auto border-b border-white/10 px-6">
           {TABS.map((tab) => (
             <button
               key={tab.key}
+              type="button"
               onClick={() => setActiveTab(tab.key)}
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all"
-              style={{
-                borderBottomColor: activeTab === tab.key ? "#6E35E8" : "transparent",
-                color: activeTab === tab.key ? "#6E35E8" : "#6b7280",
-              }}
+              className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-all ${
+                activeTab === tab.key
+                  ? "border-violet-400 text-violet-100"
+                  : "border-transparent text-white/50 hover:text-white/80"
+              }`}
             >
-              <tab.icon className="w-4 h-4" />
+              <tab.icon className="h-4 w-4" />
               {tab.label}
             </button>
           ))}
@@ -824,8 +823,8 @@ export function CourseDetail() {
             {activeTab === "overview" && (
               <div className="space-y-8">
                 {/* Learning outcomes */}
-                <div className="bg-white rounded-3xl p-6 border border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="rounded-3xl border border-white/12 bg-white/[0.04] p-6 backdrop-blur-sm">
+                  <h2 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-[#6E35E8]" />
                     Bạn sẽ học được gì?
                   </h2>
@@ -833,15 +832,15 @@ export function CourseDetail() {
                     {course.learningOutcomes.map((outcome, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <CheckCircle className="w-5 h-5 text-[#6E35E8] shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-700">{outcome}</span>
+                        <span className="text-sm text-white/85">{outcome}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Requirements */}
-                <div className="bg-white rounded-3xl p-6 border border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="rounded-3xl border border-white/12 bg-white/[0.04] p-6 backdrop-blur-sm">
+                  <h2 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
                     <Target className="w-5 h-5 text-[#FF8C42]" />
                     Yêu cầu
                   </h2>
@@ -849,15 +848,15 @@ export function CourseDetail() {
                     {course.requirements.map((req, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <WarningCircle className="w-4 h-4 text-[#FF8C42] shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-700">{req}</span>
+                        <span className="text-sm text-white/85">{req}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Target audience */}
-                <div className="bg-white rounded-3xl p-6 border border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                <div className="rounded-3xl border border-white/12 bg-white/[0.04] p-6 backdrop-blur-sm">
+                  <h2 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
                     <Users className="w-5 h-5 text-[#FFD600]" />
                     Dành cho ai?
                   </h2>
@@ -865,7 +864,7 @@ export function CourseDetail() {
                     {course.targetAudience.map((aud, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <CheckCircle className="w-4 h-4 text-[#FFD600] shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-700">{aud}</span>
+                        <span className="text-sm text-white/85">{aud}</span>
                       </div>
                     ))}
                   </div>
@@ -873,13 +872,13 @@ export function CourseDetail() {
 
                 {/* Tags */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 mb-3">Tags khóa học</h3>
+                  <h3 className="text-sm font-semibold text-white/55 mb-3">Tags khóa học</h3>
                   <div className="flex flex-wrap gap-2">
                     {course.tags.map((tag) => (
                       <span
                         key={tag}
                         className="text-xs px-3 py-1.5 rounded-full font-medium"
-                        style={{ background: "rgba(110, 53, 232,0.08)", color: "#6E35E8", border: "1px solid rgba(110, 53, 232,0.15)" }}
+                        style={{ background: "rgba(110, 53, 232,0.15)", color: "#ddd6fe", border: "1px solid rgba(139, 77, 255, 0.35)" }}
                       >
                         #{tag}
                       </span>
@@ -891,23 +890,23 @@ export function CourseDetail() {
 
             {/* ── Curriculum Tab ───────────────────────────── */}
             {activeTab === "curriculum" && (
-              <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">Nội dung khóa học</h2>
-                  <p className="text-sm text-gray-500">
+              <div className="overflow-hidden rounded-3xl border border-white/12 bg-white/[0.04] backdrop-blur-sm">
+                <div className="border-b border-white/10 p-6">
+                  <h2 className="mb-1 text-xl font-bold text-white">Nội dung khóa học</h2>
+                  <p className="text-sm text-white/55">
                     {course.lessonsCount} bài học · {formatDuration(course.duration)} · Cập nhật{" "}
                     {new Date(course.updatedAt).toLocaleDateString("vi-VN", { month: "long", year: "numeric" })}
                   </p>
                 </div>
 
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-white/10">
                   {displayedLessons.map((lesson, i) => (
                     <LessonRow key={lesson.id} lesson={lesson} index={i} />
                   ))}
                 </div>
 
                 {(course.lessons || []).length > 5 && (
-                  <div className="p-4 border-t border-gray-100">
+                  <div className="border-t border-white/10 p-4">
                     <button
                       onClick={() => setShowAllLessons(!showAllLessons)}
                       className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
@@ -933,16 +932,16 @@ export function CourseDetail() {
             {/* ── Instructor Tab ──────────────────────────── */}
             {activeTab === "instructor" && (
               <div className="space-y-6">
-                <div className="bg-white rounded-3xl p-6 border border-gray-100">
+                <div className="rounded-3xl border border-white/12 bg-white/[0.04] p-6 backdrop-blur-sm">
                   <div className="flex items-start gap-5 mb-6">
                     <img
                       src={course.mentorAvatar}
                       alt={course.mentorName}
-                      className="w-20 h-20 rounded-2xl object-cover border-2 border-gray-100 shadow-sm"
+                      className="h-20 w-20 rounded-2xl border-2 border-white/15 object-cover shadow-sm"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h2 className="text-xl font-bold text-gray-900">{course.mentorName}</h2>
+                        <h2 className="text-xl font-bold text-white">{course.mentorName}</h2>
                         <SealCheck className="w-5 h-5 text-[#6E35E8]" />
                         <span
                           className="text-xs font-bold px-2.5 py-1 rounded-full"
@@ -951,16 +950,16 @@ export function CourseDetail() {
                           Mentor xác thực
                         </span>
                       </div>
-                      <p className="text-gray-600 mb-1">{course.mentorTitle}</p>
-                      <p className="text-sm text-gray-400">{course.mentorCompany}</p>
+                      <p className="text-white/70 mb-1">{course.mentorTitle}</p>
+                      <p className="text-sm text-white/50">{course.mentorCompany}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mb-6 pb-6 border-b border-gray-100">
+                  <div className="mb-6 grid grid-cols-3 gap-4 border-b border-white/10 pb-6">
                     {[
                       { icon: Star, value: course.rating, label: "Rating", color: "#FFD600" },
                       { icon: Users, value: `${course.studentsCount}+`, label: "Học viên", color: "#6E35E8" },
-                      { icon: BookOpen, value: "3", label: "Khóa học", color: "#B4F000" },
+                      { icon: BookOpen, value: "3", label: "Khóa học", color: "#c4ff47" },
                     ].map((stat) => (
                       <div key={stat.label} className="text-center">
                         <div
@@ -969,13 +968,13 @@ export function CourseDetail() {
                         >
                           <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
                         </div>
-                        <p className="font-bold text-gray-900">{stat.value}</p>
-                        <p className="text-xs text-gray-400">{stat.label}</p>
+                        <p className="font-bold text-white">{stat.value}</p>
+                        <p className="text-xs text-white/50">{stat.label}</p>
                       </div>
                     ))}
                   </div>
 
-                  <p className="text-sm text-gray-600 leading-relaxed mb-5">
+                  <p className="text-sm text-white/70 leading-relaxed mb-5">
                     {course.mentorName} là chuyên gia với hơn 10 năm kinh nghiệm trong ngành. Tại {course.mentorCompany}, 
                     {course.mentorName} đã dẫn dắt team và phỏng vấn hàng trăm ứng viên mỗi năm. 
                     Với niềm đam mê chia sẻ kiến thức, {course.mentorName} đã tạo ra các khóa học thực tế 
@@ -1006,8 +1005,8 @@ export function CourseDetail() {
             <div className="sticky top-6 space-y-4">
               {/* Related courses */}
               {relatedCourses.length > 0 && (
-                <div className="bg-white rounded-3xl p-5 border border-gray-100">
-                  <h3 className="font-bold text-gray-900 mb-4">Khóa học liên quan</h3>
+                <div className="rounded-3xl border border-white/12 bg-white/[0.04] p-5 backdrop-blur-sm">
+                  <h3 className="mb-4 font-bold text-white">Khóa học liên quan</h3>
                   <div className="space-y-4">
                     {relatedCourses.map((related) => (
                       <div
@@ -1021,18 +1020,18 @@ export function CourseDetail() {
                           className="w-16 h-12 rounded-xl object-cover shrink-0 group-hover:opacity-90 transition-opacity"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-[#6E35E8] transition-colors leading-snug">
+                          <p className="line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-violet-200 leading-snug">
                             {related.title}
                           </p>
-                          <p className="text-xs text-[#6E35E8] font-bold mt-1">{formatPrice(related.price)}</p>
+                          <p className="mt-1 text-xs font-bold text-violet-200">{formatPrice(related.price)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                   <button
+                    type="button"
                     onClick={() => navigate("/courses")}
-                    className="w-full py-2.5 rounded-xl font-semibold text-sm mt-4 transition-all"
-                    style={{ color: "#6E35E8", background: "rgba(110, 53, 232,0.06)", border: "1px solid rgba(110, 53, 232,0.12)" }}
+                    className="mt-4 w-full rounded-xl border border-violet-400/25 bg-violet-500/10 py-2.5 text-sm font-semibold text-violet-100 transition-all hover:bg-violet-500/18"
                   >
                     Xem tất cả khóa học
                   </button>
@@ -1044,15 +1043,12 @@ export function CourseDetail() {
       </div>
 
       {/* ── Book Mentor Banner ───────────────────────────────── */}
-      <div
-        className="mx-4 mb-8 rounded-3xl overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #1a0a3e 0%, #2d1060 100%)" }}
-      >
-        <div className="max-w-7xl mx-auto px-8 py-10 flex flex-col md:flex-row items-center gap-6">
+      <div className="mx-auto mb-10 max-w-7xl overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-br from-violet-950/50 to-[#0c0818]/90 px-6 py-10 sm:px-8">
+        <div className="flex flex-col items-center gap-6 md:flex-row">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-3">
-              <GraduationCap className="w-5 h-5 text-[#B4F000]" />
-              <span className="text-[#B4F000] font-bold text-sm">BƯỚC TIẾP THEO</span>
+              <GraduationCap className="w-5 h-5 text-[#c4ff47]" />
+              <span className="text-[#c4ff47] font-bold text-sm">BƯỚC TIẾP THEO</span>
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">
               Sau khi học xong, book 1-1 với mentor
@@ -1070,7 +1066,7 @@ export function CourseDetail() {
               <button
                 onClick={() => navigate(`/mentors/${course.mentorId}`)}
                 className="mt-2 px-5 py-2 rounded-xl font-bold text-sm transition-all hover:brightness-110"
-                style={{ background: "#B4F000", color: "#1F1F1F" }}
+                style={{ background: "#c4ff47", color: "#1F1F1F" }}
               >
                 Đặt lịch ngay →
               </button>

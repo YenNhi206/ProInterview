@@ -108,7 +108,7 @@ export function CourseRecommendations({
           <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}>
             {course.mentorName}
           </span>
-          <SealCheck className="w-3.5 h-3.5 text-[#B4F000]" />
+          <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-[#B4F000]" aria-hidden />
         </div>
 
         {/* Stats + Price */}

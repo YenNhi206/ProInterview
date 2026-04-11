@@ -61,7 +61,7 @@ const course1Lessons = [
 const course1Reviews = [
   {
     id: "r1-1",
-    mentorId: "m2",
+    mentorId: "2",
     mentorName: "Trần Thị Hương",
     mentorAvatar: "https://images.unsplash.com/photo-1736939678218-bd648b5ef3bb?w=200&q=80",
     mentorTitle: "Engineering Manager @ Grab Vietnam",
@@ -72,7 +72,7 @@ const course1Reviews = [
   },
   {
     id: "r1-2",
-    mentorId: "m5",
+    mentorId: "5",
     mentorName: "Võ Thị Lan Anh",
     mentorAvatar: "https://images.unsplash.com/photo-1770364020204-102331b625ea?w=200&q=80",
     mentorTitle: "Senior Frontend Engineer @ MoMo",
@@ -100,7 +100,7 @@ const course2Lessons = [
 const course2Reviews = [
   {
     id: "r2-1",
-    mentorId: "m1",
+    mentorId: "1",
     mentorName: "Nguyễn Văn Minh",
     mentorAvatar: "https://images.unsplash.com/photo-1752118464988-2914fb27d0f0?w=200&q=80",
     mentorTitle: "Senior Software Engineer @ Shopee",
@@ -111,7 +111,7 @@ const course2Reviews = [
   },
   {
     id: "r2-2",
-    mentorId: "m4",
+    mentorId: "4",
     mentorName: "Phạm Minh Tuấn",
     mentorAvatar: "https://images.unsplash.com/photo-1770363760820-b871452de45f?w=200&q=80",
     mentorTitle: "Staff Engineer @ Tiki",
@@ -143,7 +143,7 @@ const course3Lessons = [
 const course3Reviews = [
   {
     id: "r3-1",
-    mentorId: "m5",
+    mentorId: "5",
     mentorName: "Võ Thị Lan Anh",
     mentorAvatar: "https://images.unsplash.com/photo-1770364020204-102331b625ea?w=200&q=80",
     mentorTitle: "Senior Frontend Engineer @ MoMo",
@@ -154,7 +154,7 @@ const course3Reviews = [
   },
   {
     id: "r3-2",
-    mentorId: "m2",
+    mentorId: "2",
     mentorName: "Trần Thị Hương",
     mentorAvatar: "https://images.unsplash.com/photo-1736939678218-bd648b5ef3bb?w=200&q=80",
     mentorTitle: "Engineering Manager @ Grab Vietnam",
@@ -184,7 +184,7 @@ const course4Lessons = [
 const course4Reviews = [
   {
     id: "r4-1",
-    mentorId: "m4",
+    mentorId: "4",
     mentorName: "Phạm Minh Tuấn",
     mentorAvatar: "https://images.unsplash.com/photo-1770363760820-b871452de45f?w=200&q=80",
     mentorTitle: "Staff Engineer @ Tiki",
@@ -195,7 +195,7 @@ const course4Reviews = [
   },
   {
     id: "r4-2",
-    mentorId: "m3",
+    mentorId: "3",
     mentorName: "Lê Quang Đức",
     mentorAvatar: "https://images.unsplash.com/photo-1766066014773-0074bf4911de?w=200&q=80",
     mentorTitle: "Tech Lead @ VNG Corporation",
@@ -225,7 +225,7 @@ const course5Lessons = [
 const course5Reviews = [
   {
     id: "r5-1",
-    mentorId: "m5",
+    mentorId: "5",
     mentorName: "Võ Thị Lan Anh",
     mentorAvatar: "https://images.unsplash.com/photo-1770364020204-102331b625ea?w=200&q=80",
     mentorTitle: "Senior Frontend Engineer @ MoMo",
@@ -236,7 +236,7 @@ const course5Reviews = [
   },
   {
     id: "r5-2",
-    mentorId: "m1",
+    mentorId: "1",
     mentorName: "Nguyễn Văn Minh",
     mentorAvatar: "https://images.unsplash.com/photo-1752118464988-2914fb27d0f0?w=200&q=80",
     mentorTitle: "Senior Software Engineer @ Shopee",
@@ -262,7 +262,7 @@ const course6Lessons = [
 const course6Reviews = [
   {
     id: "r6-1",
-    mentorId: "m1",
+    mentorId: "1",
     mentorName: "Nguyễn Văn Minh",
     mentorAvatar: "https://images.unsplash.com/photo-1752118464988-2914fb27d0f0?w=200&q=80",
     mentorTitle: "Senior Software Engineer @ Shopee",
@@ -273,7 +273,7 @@ const course6Reviews = [
   },
   {
     id: "r6-2",
-    mentorId: "m4",
+    mentorId: "4",
     mentorName: "Phạm Minh Tuấn",
     mentorAvatar: "https://images.unsplash.com/photo-1770363760820-b871452de45f?w=200&q=80",
     mentorTitle: "Staff Engineer @ Tiki",
@@ -291,7 +291,7 @@ export const COURSES_DATA = [
     title: "Làm chủ STAR Method trong phỏng vấn hành vi",
     description: "Học cách trả lời câu hỏi hành vi một cách có cấu trúc và thuyết phục với phương pháp STAR. Khóa học bao gồm 15+ ví dụ thực tế, templates và mock interview practice session với mentor từ Google Vietnam.",
     thumbnail: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80",
-    mentorId: "m1",
+    mentorId: "1",
     mentorName: "Nguyễn Văn Minh",
     mentorAvatar: "https://images.unsplash.com/photo-1752118464988-2914fb27d0f0?w=200&q=80",
     mentorTitle: "Senior Software Engineer",
@@ -326,7 +326,7 @@ export const COURSES_DATA = [
     title: "Viết CV tạo ấn tượng với nhà tuyển dụng",
     description: "Từ Zero đến Hero với CV chuyên nghiệp. Học cách highlight thành tích, dùng action verbs hiệu quả và tối ưu ATS để vượt qua vòng lọc tự động. Có 10+ templates CV miễn phí và session review CV cá nhân.",
     thumbnail: "https://images.unsplash.com/photo-1737729991003-521d47240eb3?w=800&q=80",
-    mentorId: "m2",
+    mentorId: "2",
     mentorName: "Trần Thị Hương",
     mentorAvatar: "https://images.unsplash.com/photo-1736939678218-bd648b5ef3bb?w=200&q=80",
     mentorTitle: "Engineering Manager",
@@ -361,7 +361,7 @@ export const COURSES_DATA = [
     title: "Tech Interview: Data Structures & Algorithms cơ bản",
     description: "Chinh phục phỏng vấn kỹ thuật với kiến thức nền tảng về DSA. Cover Array, LinkedList, Stack, Queue, Tree, Graph với 50+ bài tập LeetCode Easy-Medium được giải thích chi tiết và chiến lược riêng.",
     thumbnail: "https://images.unsplash.com/photo-1738255654134-1877cb984a8f?w=800&q=80",
-    mentorId: "m3",
+    mentorId: "3",
     mentorName: "Lê Quang Đức",
     mentorAvatar: "https://images.unsplash.com/photo-1766066014773-0074bf4911de?w=200&q=80",
     mentorTitle: "Tech Lead",
@@ -396,7 +396,7 @@ export const COURSES_DATA = [
     title: "Soft Skills trong môi trường làm việc đa văn hóa",
     description: "Phát triển kỹ năng giao tiếp, làm việc nhóm và leadership trong công ty đa quốc gia. Đặc biệt hữu ích cho những ai làm việc tại Big Tech hoặc Startup quốc tế, muốn lên Senior/Lead.",
     thumbnail: "https://images.unsplash.com/photo-1621533463397-f292bd0745f9?w=800&q=80",
-    mentorId: "m1",
+    mentorId: "1",
     mentorName: "Nguyễn Văn Minh",
     mentorAvatar: "https://images.unsplash.com/photo-1752118464988-2914fb27d0f0?w=200&q=80",
     mentorTitle: "Senior Software Engineer",
@@ -431,7 +431,7 @@ export const COURSES_DATA = [
     title: "System Design Interview cho Senior Engineer",
     description: "Học cách thiết kế hệ thống phân tán scalable từ con số không. Cover từ Load Balancer, Caching, Database sharding đến Microservices với 10+ real case studies từ các hệ thống như Uber, Instagram, YouTube.",
     thumbnail: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80",
-    mentorId: "m3",
+    mentorId: "3",
     mentorName: "Lê Quang Đức",
     mentorAvatar: "https://images.unsplash.com/photo-1766066014773-0074bf4911de?w=200&q=80",
     mentorTitle: "Tech Lead",
@@ -466,7 +466,7 @@ export const COURSES_DATA = [
     title: "Salary Negotiation: Đàm phán lương hiệu quả",
     description: "Học cách đàm phán lương thông minh để tối đa hóa thu nhập. Cover market research, timing, tactics và real negotiation role-play scenarios từ mentor recruiter 10+ năm kinh nghiệm tại các công ty Fortune 500.",
     thumbnail: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80",
-    mentorId: "m2",
+    mentorId: "2",
     mentorName: "Trần Thị Hương",
     mentorAvatar: "https://images.unsplash.com/photo-1736939678218-bd648b5ef3bb?w=200&q=80",
     mentorTitle: "Engineering Manager",

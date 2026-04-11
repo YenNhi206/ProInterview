@@ -111,7 +111,7 @@ export function MeetingRoom() {
         <style>{`
           .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(40px); border-radius: 40px; border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
           .input-neon { background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.08); border-radius: 20px; transition: all 0.3s; text-align: center; }
-          .input-neon:focus { border-color: #B4F500; background: rgba(255,255,255,0.06); outline: none; box-shadow: 0 0 20px rgba(180,245,0,0.2); }
+          .input-neon:focus { border-color: #c4ff47; background: rgba(255,255,255,0.06); outline: none; box-shadow: 0 0 20px rgba(196, 255, 71,0.2); }
         `}</style>
 
         <div className="fixed top-0 right-0 w-[1000px] h-[1000px] bg-secondary/10 blur-[250px] rounded-full pointer-events-none -z-0"></div>
@@ -122,7 +122,7 @@ export function MeetingRoom() {
            animate={{ opacity: 1, scale: 1 }}
            className="glass-card w-full max-w-lg p-12 relative z-10"
         >
-          <div className="w-20 h-20 rounded-3xl bg-primary-fixed flex items-center justify-center mx-auto mb-10 shadow-[0_0_40px_rgba(180,245,0,0.3)]">
+          <div className="w-20 h-20 rounded-3xl bg-primary-fixed flex items-center justify-center mx-auto mb-10 shadow-[0_0_40px_rgba(196, 255, 71,0.3)]">
             <VideoIcon size={32} className="text-black" />
           </div>
 

@@ -84,11 +84,17 @@ function FooterDark() {
   const [hoveredSocial, setHoveredSocial] = useState(null);
 
   return (
-    <footer style={{ background: "linear-gradient(180deg, #0D0B1A 0%, #0F0B1A 100%)", borderTop: "1px solid rgba(110, 53, 232,0.15)" }}>
+    <footer
+      style={{
+        background: "linear-gradient(180deg, #07060e 0%, #0a0618 55%, #12081f 100%)",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 -1px 0 rgba(196, 255, 71, 0.06)",
+      }}
+    >
       {/* Support 24/7 banner */}
       <div style={{ 
-        background: "linear-gradient(135deg, rgba(110, 53, 232,0.15) 0%, rgba(180,245,0,0.08) 100%)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)"
+        background: "linear-gradient(135deg, rgba(110, 53, 232,0.14) 0%, rgba(196, 255, 71,0.1) 100%)",
+        borderBottom: "1px solid rgba(255,255,255,0.07)"
       }}>
         <div className="max-w-7xl mx-auto px-6 py-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
@@ -115,9 +121,9 @@ function FooterDark() {
                     key={item.title} 
                     className="group flex items-center gap-3 px-5 py-4 rounded-2xl cursor-pointer transition-all hover:scale-[1.03] hover:-translate-y-1"
                     style={{ 
-                      background: "rgba(255,255,255,0.04)", 
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      backdropFilter: "blur(10px)"
+                      background: "rgba(255,255,255,0.05)", 
+                      border: "1px solid rgba(196, 255, 71, 0.12)",
+                      backdropFilter: "blur(12px)"
                     }}
                   >
                     <div 
@@ -158,7 +164,7 @@ function FooterDark() {
                   <span className="text-white font-extrabold" style={{ fontSize: "1.3rem", letterSpacing: "-0.03em" }}>ProInterview</span>
                   <span 
                     className="text-xs font-extrabold px-2 py-1 rounded-lg" 
-                    style={{ background: "linear-gradient(135deg, #B4F500, #9CD600)", color: "#1a1a1a" }}
+                    style={{ background: "linear-gradient(135deg, #c4ff47, #8fbc24)", color: "#120B2E" }}
                   >
                     MVP
                   </span>
@@ -228,7 +234,7 @@ function FooterDark() {
                     >
                       <ArrowRight 
                         className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" 
-                        style={{ color: "#B4F500" }}
+                        style={{ color: "#c4ff47" }}
                         
                       />
                       <span className="group-hover:translate-x-1 transition-transform duration-200">

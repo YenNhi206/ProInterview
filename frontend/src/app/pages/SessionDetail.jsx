@@ -202,11 +202,12 @@ export function SessionDetail() {
     <div className="max-w-5xl mx-auto p-6 pb-12">
       {/* ── Back ── */}
       <button
-        onClick={() => navigate("/dashboard")}
-        className="group flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm mb-6 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 -ml-3"
+        type="button"
+        onClick={() => navigate(-1)}
+        className="group -ml-3 mb-6 flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
       >
-        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-        Quay lại Dashboard
+        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+        Quay lại
       </button>
 
       {/* ══════════════════════════════════════════════ */}

@@ -22,7 +22,7 @@ import {
   Loader2,
   Upload,
   CloudUpload,
-  Download,
+  Download as DownloadSimple,
   Eye,
   RotateCcw as History,
   Search,
@@ -60,65 +60,14 @@ function apiUrl(path) {
 }
 
 /**
- * Force-refresh the Supabase session and return the freshest possible token.
- * Always calls refreshSession() rather than relying on a cached/stored token,
- * so the JWT we send is never stale or expired.
- * Returns empty string if not authenticated (will use demo mode).
+ * JWT từ backend (/api/auth). Edge function Supabase có thể không chấp nhận token này —
+ * khi đó CV vẫn chạy ở chế độ demo (không gửi Bearer).
  */
 async function getForceRefreshedToken() {
   try {
-    const { getSupabaseClient } = await import("../utils/auth");
-    const supabase = getSupabaseClient();
-    
-    // First try to get current session
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
-    if (!currentSession) {
-      // Double-check if user is logged in via localStorage
-      const storedLoggedIn = localStorage.getItem("prointerview_logged_in");
-      if (storedLoggedIn === "true") {
-        console.info("CV: Session not found but localStorage says logged in — attempting refresh");
-        // Try to refresh anyway
-        const { data, error } = await supabase.auth.refreshSession();
-        if (data.session?.access_token) {
-          localStorage.setItem("prointerview_access_token", data.session.access_token);
-          console.log("CV: Successfully recovered session with refresh");
-          return data.session.access_token;
-        }
-      }
-      console.info("CV: No active session — demo mode available");
-      return "";
-    }
-    
-    // Then refresh it to get fresh token
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) {
-      console.info("CV: refreshSession error, trying current session token");
-      // If refresh fails but we have current session, use it
-      if (currentSession.access_token) {
-        localStorage.setItem("prointerview_access_token", currentSession.access_token);
-        console.log("CV: Using current session token as fallback");
-        return currentSession.access_token;
-      }
-      return "";
-    }
-    
-    if (data.session?.access_token) {
-      localStorage.setItem("prointerview_access_token", data.session.access_token);
-      console.log(" CV: force-refreshed token OK");
-      return data.session.access_token;
-    }
-    
-    // No session returned but try current session as fallback
-    if (currentSession.access_token) {
-      localStorage.setItem("prointerview_access_token", currentSession.access_token);
-      console.log("CV: Using current session as fallback");
-      return currentSession.access_token;
-    }
-    
-    console.info("CV: refresh returned no session — demo mode available");
-    return "";
-  } catch (e) {
-    console.info("CV: refreshSession error — demo mode available");
+    const { getFreshAccessToken } = await import("../utils/auth");
+    return await getFreshAccessToken();
+  } catch {
     return "";
   }
 }
@@ -500,42 +449,38 @@ export function CVAnalysis() {
 
   // ────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: "#F4F5F7" }}>
-      {/* ── Hero Banner ─────────────────────────────────── */}
-      <div
-        className="relative overflow-hidden border-b border-white/5 bg-background"
-        style={{
-          background:
-            "linear-gradient(145deg, #0E0922 0%, #1a0d35 100%)",
-        }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#B4F000] rounded-full blur-3xl" />
-        </div>
-
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)",
-          backgroundSize: "40px 40px"
-        }} />
-        <div className="relative max-w-7xl mx-auto px-6 py-16">
+    <div className="pi-page-dashboard-bg min-h-full w-full text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white">
+      {/* ── Hero — cùng họ typography / lưới như Dashboard ── */}
+      <header className="relative border-b border-white/[0.07] pb-14 pt-12 sm:pb-16 sm:pt-14">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.09]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-3 mb-4">
-              <FileText className="text-primary-fixed size-5" />
-              <span className="text-secondary font-bold uppercase tracking-[0.2em] text-xs">Phân tích CV/JD</span>
+            <div className="mb-4 flex items-center gap-3">
+              <FileText className="size-5 text-[#c4ff47]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-fuchsia-300/90">Phân tích CV/JD</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none text-white mb-4 whitespace-nowrap">
-              Phân tích CV <span className="text-primary-fixed">& JD</span>
+            <h1 className="mb-4 text-3xl font-black leading-[1.05] tracking-tighter text-white md:text-5xl">
+              Phân tích CV{" "}
+              <span className="bg-gradient-to-r from-[#c4ff47] via-fuchsia-300 to-violet-300 bg-clip-text text-transparent">
+                {"& JD"}
+              </span>
             </h1>
-            <p className="text-lg text-zinc-400 leading-relaxed mb-8 max-w-2xl">
+            <p className="mb-8 max-w-2xl text-sm font-semibold leading-relaxed text-white/65 sm:text-base">
               Hệ thống AI đa năng tự động phân tích CV, trích xuất kỹ năng chuyên môn từ JD và tạo đề xuất cải thiện hồ sơ phù hợp. Lưu trữ sẵn sàng cho Phỏng vấn AI thực tế.
             </p>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="px-6 max-w-6xl mx-auto pt-10 pb-10">
+      <div className="relative z-[1] mx-auto max-w-6xl px-6 pb-10 pt-10">
 
       {/* Page tabs */}
       <div className="flex gap-2 mb-6">
@@ -546,7 +491,7 @@ export function CVAnalysis() {
           <button
             key={t.val}
             onClick={() => t.val === "history" ? navigate("/cv-analysis/history") : setPageView(t.val)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${pageView === t.val ? "text-white shadow" : "bg-white text-gray-600 border border-gray-200 hover:border-[#6E35E8]/30"}`}
+            className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all ${pageView === t.val ? "text-white shadow" : "border border-white/12 bg-white/[0.06] text-white/65 hover:border-[#6E35E8]/35"}`}
             style={pageView === t.val ? { background: "#6E35E8" } : {}}
           >
             {t.icon}{t.label}
@@ -560,7 +505,7 @@ export function CVAnalysis() {
       {pageView === "history" && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-gray-500 text-sm">Các phân tích đã lưu trên cloud — file gốc có thể tải lại</p>
+            <p className="text-sm text-white/60">Các phân tích đã lưu trên cloud — file gốc có thể tải lại</p>
             <button onClick={loadHistory} className="flex items-center gap-1.5 text-xs font-medium text-[#6E35E8] hover:underline">
               <RefreshCw className="w-3.5 h-3.5" /> Làm mới
             </button>
@@ -580,9 +525,9 @@ export function CVAnalysis() {
 
           {!historyLoading && !historyError && historyList.length === 0 && (
             <div className="text-center py-20">
-              <CloudUpload className="w-14 h-14 mx-auto mb-4 text-gray-200" />
-              <p className="text-gray-400 font-medium">Chưa có phân tích nào được lưu</p>
-              <p className="text-gray-300 text-sm mt-1">Tải lên CV và phân tích để kết quả được lưu tại đây</p>
+              <CloudUpload className="mx-auto mb-4 h-14 w-14 text-white/25" />
+              <p className="font-medium text-white/70">Chưa có phân tích nào được lưu</p>
+              <p className="mt-1 text-sm text-white/50">Tải lên CV và phân tích để kết quả được lưu tại đây</p>
               <button onClick={() => setPageView("analysis")} className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "#6E35E8" }}>
                 <Upload className="w-4 h-4" /> Phân tích ngay
               </button>
@@ -604,10 +549,10 @@ export function CVAnalysis() {
                           <span className="text-xs px-2 py-0.5 rounded-md font-medium" style={{ background: item.mode === "jd" ? "rgba(110, 53, 232,0.08)" : "rgba(255,214,0,0.15)", color: item.mode === "jd" ? "#6E35E8" : "#997F00" }}>
                             {item.mode === "jd" ? "CV+JD" : item.field ?? "Theo ngành"}
                           </span>
-                          {item.company && <span className="text-xs text-gray-500 truncate">{item.company}</span>}
+                          {item.company && <span className="truncate text-xs text-white/50">{item.company}</span>}
                         </div>
-                        <p className="text-gray-800 font-semibold text-sm truncate">{item.position ?? item.cvFileName}</p>
-                        <p className="text-gray-400 text-xs mt-0.5">{new Date(item.createdAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                        <p className="truncate text-sm font-semibold text-white">{item.position ?? item.cvFileName}</p>
+                        <p className="mt-0.5 text-xs text-white/50">{new Date(item.createdAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
                       </div>
                       <div className="flex-shrink-0 text-center px-3 py-1.5 rounded-xl" style={{ background: scoreBg }}>
                         <span className="font-bold text-lg" style={{ color: scoreColor }}>{score}</span>
@@ -652,7 +597,7 @@ export function CVAnalysis() {
                       <button
                         onClick={() => deleteAnalysis(item.analysisId)}
                         disabled={deletingId === item.analysisId}
-                        className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        className="rounded-xl p-2 text-white/45 transition-colors hover:bg-red-500/15 hover:text-red-300"
                       >
                         {deletingId === item.analysisId
                           ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -696,7 +641,7 @@ export function CVAnalysis() {
                       </div>
                     )}
                   </div>
-                  <button onClick={() => setAnalyzeError(null)}><X className="w-4 h-4 text-gray-400" /></button>
+                  <button type="button" onClick={() => setAnalyzeError(null)} className="rounded-lg p-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80" aria-label="Đóng"><X className="h-4 w-4" /></button>
                 </div>
               )}
 
@@ -710,7 +655,7 @@ export function CVAnalysis() {
                     <div>
                       {cvRemaining === 0
                         ? <><p className="text-sm font-semibold text-[#c2550a]">Đã dùng hết {CV_FREE_LIMIT} lượt miễn phí</p><p className="text-xs text-[#c2550a] opacity-70">Nâng cấp để phân tích không giới hạn</p></>
-                        : <><p className="text-sm font-semibold text-[#6E35E8]">{cvRemaining}/{CV_FREE_LIMIT} lượt miễn phí còn lại</p><p className="text-xs text-gray-400">Nâng cấp để dùng không giới hạn</p></>}
+                        : <><p className="text-sm font-semibold text-violet-200">{cvRemaining}/{CV_FREE_LIMIT} lượt miễn phí còn lại</p><p className="text-xs text-white/55">Nâng cấp để dùng không giới hạn</p></>}
                     </div>
                   </div>
                   <button onClick={() => navigate("/pricing")} className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl" style={cvRemaining === 0 ? { background: "#FF8C42", color: "#fff" } : { background: "rgba(110, 53, 232,0.1)", color: "#6E35E8" }}>
@@ -726,8 +671,8 @@ export function CVAnalysis() {
               {/* CV Upload Zone - Always visible with modern full-width design */}
               <div className="mb-8">
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Upload CV của bạn</h3>
-                  <p className="text-gray-500 text-sm">Bắt đầu bằng việc tải lên CV để phân tích chất lượng</p>
+                  <h3 className="mb-2 text-xl font-bold tracking-tight text-white">Upload CV của bạn</h3>
+                  <p className="text-sm text-white/65">Bắt đầu bằng việc tải lên CV để phân tích chất lượng</p>
                 </div>
                 
                 <div
@@ -735,7 +680,7 @@ export function CVAnalysis() {
                   onDragLeave={() => setDragOverCV(false)}
                   onDrop={e => { e.preventDefault(); setDragOverCV(false); const f = e.dataTransfer.files?.[0]; if (f) handleCVFile(f); }}
                   onClick={() => cvInputRef.current?.click()}
-                  className={`relative border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all group ${dragOverCV ? "border-[#6E35E8] bg-[#6E35E8]/5" : (cvUploaded || reuseCV) ? "border-[#B4F000]" : "border-gray-200 bg-white hover:border-[#6E35E8]/50 hover:bg-[#6E35E8]/5"}`}
+                  className={`group relative cursor-pointer rounded-3xl border-2 border-dashed p-12 text-center backdrop-blur-sm transition-all ${dragOverCV ? "border-[#6E35E8] bg-[#6E35E8]/15" : (cvUploaded || reuseCV) ? "border-[#c4ff47]/60 bg-[#c4ff47]/[0.08]" : "border-white/18 bg-white/[0.04] hover:border-violet-400/45 hover:bg-white/[0.08]"}`}
                   style={(cvUploaded || reuseCV) ? { background: "rgba(180,240,0,0.06)" } : {}}
                 >
                   {(cvUploaded || reuseCV) ? (
@@ -745,21 +690,21 @@ export function CVAnalysis() {
                       </div>
                       <p className="font-bold text-lg mb-2 text-[#4A7A00]">{reuseCV ? "Dùng lại file đã lưu" : "CV đã được tải lên"}</p>
                       <p className="text-sm text-[#6E9900] mb-1 font-medium">{cvFile?.name ?? reuseCV?.name}</p>
-                      {cvFile && <p className="text-sm text-gray-400">{(cvFile.size / 1024).toFixed(0)} KB · {cvFile.name.split(".").pop()?.toUpperCase()}</p>}
-                      {reuseCV && <p className="text-sm text-gray-400">Đã lưu trên cloud</p>}
-                      <button onClick={e => { e.stopPropagation(); setCvUploaded(false); setCvFile(null); setReuseCV(null); if (cvInputRef.current) cvInputRef.current.value = ""; }} className="mt-4 text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                      {cvFile && <p className="text-sm text-white/55">{(cvFile.size / 1024).toFixed(0)} KB · {cvFile.name.split(".").pop()?.toUpperCase()}</p>}
+                      {reuseCV && <p className="text-sm text-white/55">Đã lưu trên cloud</p>}
+                      <button onClick={e => { e.stopPropagation(); setCvUploaded(false); setCvFile(null); setReuseCV(null); if (cvInputRef.current) cvInputRef.current.value = ""; }} className="mt-4 flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm text-white/50 transition-colors hover:bg-white/[0.08] hover:text-white/80">
                         <X className="w-4 h-4" /> Xóa và tải lại
                       </button>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
                       <div className="w-20 h-20 rounded-3xl bg-[#6E35E8]/10 flex items-center justify-center mb-5 group-hover:bg-[#6E35E8]/20 transition-colors"><FileText className="w-10 h-10 text-[#6E35E8]" /></div>
-                      <p className="text-gray-800 font-bold text-lg mb-2">Kéo & thả CV vào đây</p>
-                      <p className="text-gray-500 mb-6 max-w-md">hoặc click vào vùng này để chọn file từ máy tính của bạn</p>
+                      <p className="mb-2 text-lg font-bold text-white">Kéo & thả CV vào đây</p>
+                      <p className="mb-6 max-w-md text-white/60">hoặc click vào vùng này để chọn file từ máy tính của bạn</p>
                       <div className="bg-[#6E35E8] text-white text-sm font-bold px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-[#6E35E8]/20 hover:shadow-xl hover:shadow-[#6E35E8]/30 hover:-translate-y-0.5 transition-all">
                         <Upload className="w-4 h-4" /> Chọn file CV
                       </div>
-                      <p className="text-gray-400 text-sm mt-6 flex items-center gap-2">
+                      <p className="mt-6 flex items-center gap-2 text-sm text-white/50">
                         <FileText className="w-4 h-4" /> PDF, DOC, DOCX, TXT · tối đa 10MB
                       </p>
                     </div>
@@ -770,8 +715,8 @@ export function CVAnalysis() {
               {/* Optional modes as modern button toggles */}
               <div className="mb-8">
                 <div className="mb-4">
-                  <h3 className="text-base font-bold text-gray-900 mb-2">Tùy chọn phân tích nâng cao</h3>
-                  <p className="text-gray-500 text-sm">Chọn một trong các tùy chọn để phân tích chuyên sâu hơn</p>
+                  <h3 className="mb-2 text-base font-bold text-white">Tùy chọn phân tích nâng cao</h3>
+                  <p className="text-sm text-white/60">Chọn một trong các tùy chọn để phân tích chuyên sâu hơn</p>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -781,21 +726,21 @@ export function CVAnalysis() {
                       setEnableJD(!enableJD);
                       if (!enableJD) setEnableField(false);
                     }}
-                    className={`relative border-2 rounded-2xl p-6 text-left transition-all group hover:shadow-md ${
-                      enableJD 
-                        ? "border-[#6E35E8] bg-[#6E35E8]/5 shadow-sm" 
-                        : "border-gray-200 bg-white hover:border-[#6E35E8]/30"
+                    className={`group relative rounded-2xl border-2 p-6 text-left backdrop-blur-sm transition-all hover:shadow-md ${
+                      enableJD
+                        ? "border-[#6E35E8] bg-[#6E35E8]/15 shadow-sm"
+                        : "border-white/12 bg-white/[0.04] hover:border-violet-400/35"
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
-                        enableJD ? "bg-[#6E35E8] shadow-lg shadow-[#6E35E8]/25" : "bg-gray-100 group-hover:bg-[#6E35E8]/10"
+                      <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
+                        enableJD ? "bg-[#6E35E8] shadow-lg shadow-[#6E35E8]/25" : "bg-white/[0.08] group-hover:bg-[#6E35E8]/20"
                       }`}>
-                        <Briefcase className={`w-6 h-6 ${enableJD ? "text-white" : "text-gray-500 group-hover:text-[#6E35E8]"}`} fill={enableJD ? "currentColor" : "none"} />
+                        <Briefcase className={`h-6 w-6 ${enableJD ? "text-white" : "text-white/45 group-hover:text-violet-200"}`} fill={enableJD ? "currentColor" : "none"} />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className={`font-bold ${enableJD ? "text-[#6E35E8]" : "text-gray-900"}`}>
+                          <p className={`font-bold ${enableJD ? "text-violet-200" : "text-white"}`}>
                             Có Job Description
                           </p>
                           {enableJD && (
@@ -804,7 +749,7 @@ export function CVAnalysis() {
                             </div>
                           )}
                         </div>
-                        <p className={`text-sm leading-relaxed ${enableJD ? "text-[#6E35E8]/80" : "text-gray-500"}`}>
+                        <p className={`text-sm leading-relaxed ${enableJD ? "text-violet-100/90" : "text-white/60"}`}>
                           Upload JD để phân tích mức độ phù hợp CV với vị trí tuyển dụng cụ thể
                         </p>
                       </div>
@@ -817,21 +762,21 @@ export function CVAnalysis() {
                       setEnableField(!enableField);
                       if (!enableField) setEnableJD(false);
                     }}
-                    className={`relative border-2 rounded-2xl p-6 text-left transition-all group hover:shadow-md ${
-                      enableField 
-                        ? "border-[#8B4DFF] bg-[#8B4DFF]/5 shadow-sm" 
-                        : "border-gray-200 bg-white hover:border-[#8B4DFF]/30"
+                    className={`group relative rounded-2xl border-2 p-6 text-left backdrop-blur-sm transition-all hover:shadow-md ${
+                      enableField
+                        ? "border-[#8B4DFF] bg-[#8B4DFF]/15 shadow-sm"
+                        : "border-white/12 bg-white/[0.04] hover:border-violet-400/35"
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
-                        enableField ? "bg-[#8B4DFF] shadow-lg shadow-[#8B4DFF]/25" : "bg-gray-100 group-hover:bg-[#8B4DFF]/10"
+                      <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl transition-all ${
+                        enableField ? "bg-[#8B4DFF] shadow-lg shadow-[#8B4DFF]/25" : "bg-white/[0.08] group-hover:bg-[#8B4DFF]/20"
                       }`}>
-                        <Users className={`w-6 h-6 ${enableField ? "text-white" : "text-gray-500 group-hover:text-[#8B4DFF]"}`} fill={enableField ? "currentColor" : "none"} />
+                        <Users className={`h-6 w-6 ${enableField ? "text-white" : "text-white/45 group-hover:text-violet-200"}`} fill={enableField ? "currentColor" : "none"} />
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className={`font-bold ${enableField ? "text-[#8B4DFF]" : "text-gray-900"}`}>
+                        <div className="mb-1 flex items-center gap-2">
+                          <p className={`font-bold ${enableField ? "text-violet-200" : "text-white"}`}>
                             Chọn theo ngành nghề
                           </p>
                           {enableField && (
@@ -840,7 +785,7 @@ export function CVAnalysis() {
                             </div>
                           )}
                         </div>
-                        <p className={`text-sm leading-relaxed ${enableField ? "text-[#8B4DFF]/80" : "text-gray-500"}`}>
+                        <p className={`text-sm leading-relaxed ${enableField ? "text-violet-100/90" : "text-white/60"}`}>
                           Đánh giá và tinh chỉnh CV đạt chuẩn chuyên nghiệp của từng nhóm ngành.
                         </p>
                       </div>
@@ -853,8 +798,8 @@ export function CVAnalysis() {
               {enableJD && (
                 <div className="mb-8">
                   <div className="mb-4">
-                    <h3 className="text-base font-bold text-gray-900 mb-1">Upload Job Description</h3>
-                    <p className="text-gray-500 text-sm">Tải lên JD để so sánh với CV của bạn</p>
+                    <h3 className="mb-1 text-base font-bold text-white">Upload Job Description</h3>
+                    <p className="text-sm text-white/60">Tải lên JD để so sánh với CV của bạn</p>
                   </div>
                   
                   <div
@@ -862,8 +807,8 @@ export function CVAnalysis() {
                     onDragLeave={() => setDragOverJD(false)}
                     onDrop={e => { e.preventDefault(); setDragOverJD(false); const f = e.dataTransfer.files?.[0]; if (f) handleJDFile(f); }}
                     onClick={() => jdInputRef.current?.click()}
-                    className={`relative border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all group ${dragOverJD ? "border-[#8B4DFF] bg-[#6E35E8]/5" : (jdUploaded || reuseJD) ? "border-[#B4F000]" : "border-gray-200 bg-white hover:border-[#8B4DFF]/60 hover:bg-[#6E35E8]/5"}`}
-                    style={(jdUploaded || reuseJD) ? { background: "rgba(180,240,0,0.06)" } : {}}
+                    className={`group relative cursor-pointer rounded-3xl border-2 border-dashed p-10 text-center backdrop-blur-sm transition-all ${dragOverJD ? "border-[#8B4DFF] bg-[#6E35E8]/15" : (jdUploaded || reuseJD) ? "border-[#c4ff47]/60 bg-[#c4ff47]/[0.08]" : "border-white/18 bg-white/[0.04] hover:border-violet-400/45 hover:bg-white/[0.08]"}`}
+                    style={(jdUploaded || reuseJD) ? { background: "rgba(180,240,0,0.08)" } : {}}
                   >
                     {(jdUploaded || reuseJD) ? (
                       <div className="flex flex-col items-center">
@@ -872,21 +817,21 @@ export function CVAnalysis() {
                         </div>
                         <p className="font-bold mb-1 text-[#4A7A00]">{reuseJD ? "Dùng lại file đã lưu" : "JD đã được tải lên"}</p>
                         <p className="text-sm text-[#6E9900] mb-1 font-medium">{jdFile?.name ?? reuseJD?.name}</p>
-                        {jdFile && <p className="text-sm text-gray-400">{(jdFile.size / 1024).toFixed(0)} KB · {jdFile.name.split(".").pop()?.toUpperCase()}</p>}
-                        {reuseJD && <p className="text-sm text-gray-400">Đã lưu trên cloud</p>}
-                        <button onClick={e => { e.stopPropagation(); setJdUploaded(false); setJdFile(null); setReuseJD(null); if (jdInputRef.current) jdInputRef.current.value = ""; }} className="mt-3 text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1.5 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        {jdFile && <p className="text-sm text-white/55">{(jdFile.size / 1024).toFixed(0)} KB · {jdFile.name.split(".").pop()?.toUpperCase()}</p>}
+                        {reuseJD && <p className="text-sm text-white/55">Đã lưu trên cloud</p>}
+                        <button onClick={e => { e.stopPropagation(); setJdUploaded(false); setJdFile(null); setReuseJD(null); if (jdInputRef.current) jdInputRef.current.value = ""; }} className="mt-3 flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm text-white/50 transition-colors hover:bg-white/[0.08] hover:text-white/80">
                           <X className="w-4 h-4" /> Xóa
                         </button>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
                         <div className="w-16 h-16 rounded-2xl bg-[#8B4DFF]/10 flex items-center justify-center mb-4 group-hover:bg-[#8B4DFF]/15 transition-colors"><Briefcase className="w-8 h-8 text-[#8B4DFF]" /></div>
-                        <p className="text-gray-800 font-bold mb-1">Upload Job Description</p>
-                        <p className="text-gray-500 text-sm mb-4">Kéo & thả hoặc click để chọn</p>
+                        <p className="mb-1 font-bold text-white">Upload Job Description</p>
+                        <p className="mb-4 text-sm text-white/60">Kéo & thả hoặc click để chọn</p>
                         <div className="bg-[#8B4DFF] text-white text-sm font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
                           <Upload className="w-4 h-4" /> Chọn file JD
                         </div>
-                        <p className="text-gray-400 text-sm mt-4">PDF, DOC, DOCX, TXT</p>
+                        <p className="mt-4 text-sm text-white/50">PDF, DOC, DOCX, TXT</p>
                       </div>
                     )}
                   </div>
@@ -897,20 +842,20 @@ export function CVAnalysis() {
               {enableField && (
                 <div className="mb-8">
                   <div className="mb-4">
-                    <h3 className="text-base font-bold text-gray-900 mb-1">Chọn ngành nghề</h3>
-                    <p className="text-gray-500 text-sm">CV sẽ được đánh giá theo tiêu chuẩn của ngành này</p>
+                    <h3 className="mb-1 text-base font-bold text-white">Chọn ngành nghề</h3>
+                    <p className="text-sm text-white/60">CV sẽ được đánh giá theo tiêu chuẩn của ngành này</p>
                   </div>
                   
-                  <div className="bg-white rounded-2xl border-2 border-gray-200 p-6">
+                  <div className="rounded-2xl border border-white/12 bg-white/[0.04] p-6 backdrop-blur-sm">
                     <div className="relative">
-                      <button onClick={() => setFieldOpen(!fieldOpen)} className="w-full flex items-center justify-between px-5 py-4 border-2 border-gray-200 rounded-xl text-sm hover:border-[#8B4DFF]/40 transition-all bg-white hover:bg-gray-50 group">
-                        <span className={selectedField ? "text-gray-800 font-medium" : "text-gray-400"}>{selectedField || "Chọn ngành nghề..."}</span>
-                        <ChevronDown className={`w-5 h-5 text-gray-400 group-hover:text-[#8B4DFF] transition-all ${fieldOpen ? "rotate-180" : ""}`} />
+                      <button onClick={() => setFieldOpen(!fieldOpen)} className="group flex w-full items-center justify-between rounded-xl border-2 border-white/15 bg-white/[0.04] px-5 py-4 text-sm transition-all hover:border-violet-400/40 hover:bg-white/[0.07]">
+                        <span className={selectedField ? "font-medium text-white" : "text-white/45"}>{selectedField || "Chọn ngành nghề..."}</span>
+                        <ChevronDown className={`h-5 w-5 text-white/40 transition-all group-hover:text-violet-200 ${fieldOpen ? "rotate-180" : ""}`} />
                       </button>
                       {fieldOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-100 rounded-xl shadow-2xl z-10 overflow-hidden">
+                        <div className="absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden rounded-xl border border-white/12 bg-[#120d24] shadow-2xl shadow-black/40">
                           {FIELDS.map(f => (
-                            <button key={f} onClick={() => { setSelectedField(f); setFieldOpen(false); }} className="w-full text-left px-5 py-3 text-sm hover:bg-[#8B4DFF]/5 hover:text-[#8B4DFF] transition-colors font-medium border-b border-gray-50 last:border-0">{f}</button>
+                            <button key={f} onClick={() => { setSelectedField(f); setFieldOpen(false); }} className="w-full border-b border-white/8 px-5 py-3 text-left text-sm font-medium text-white/85 transition-colors last:border-0 hover:bg-violet-500/15 hover:text-violet-100">{f}</button>
                           ))}
                         </div>
                       )}
@@ -920,9 +865,9 @@ export function CVAnalysis() {
               )}
 
               {/* Gemini badge */}
-              <div className="flex items-center gap-2 mb-6 pb-6 border-b border-gray-100">
-                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "rgba(110, 53, 232,0.07)", color: "#6E35E8" }}>
-                  <CloudUpload className="w-3.5 h-3.5" /> Files được lưu vào Supabase Storage · Phân tích bởi Gemini 1.5 Flash
+              <div className="mb-6 flex items-center gap-2 border-b border-white/10 pb-6">
+                <span className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-violet-200" style={{ background: "rgba(110, 53, 232,0.2)", border: "1px solid rgba(139, 77, 255,0.25)" }}>
+                  <CloudUpload className="h-3.5 w-3.5" /> Files được lưu vào Supabase Storage · Phân tích bởi Gemini 1.5 Flash
                 </span>
               </div>
 
@@ -931,7 +876,7 @@ export function CVAnalysis() {
                 <button
                   onClick={handleAnalyze}
                   disabled={!canAnalyze || !(cvUploaded || !!reuseCV)}
-                  className={`flex items-center gap-3 px-12 py-4 rounded-2xl font-bold text-base transition-all ${(canAnalyze && (cvUploaded || reuseCV)) ? "text-white shadow-2xl shadow-[#6E35E8]/30 hover:-translate-y-1 hover:shadow-[#6E35E8]/40" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                  className={`flex items-center gap-3 rounded-2xl px-12 py-4 text-base font-bold transition-all ${(canAnalyze && (cvUploaded || reuseCV)) ? "text-white shadow-2xl shadow-[#6E35E8]/30 hover:-translate-y-1 hover:shadow-[#6E35E8]/40" : "cursor-not-allowed bg-white/[0.06] text-white/35"}`}
                   style={(canAnalyze && (cvUploaded || reuseCV)) ? { background: "linear-gradient(135deg,#6E35E8,#9B6DFF)" } : {}}
                 >
                   <Zap className="w-5 h-5" />
@@ -947,9 +892,9 @@ export function CVAnalysis() {
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-[#6E35E8]/30" style={{ background: "linear-gradient(135deg,#6E35E8,#9B6DFF)" }}>
                 <Loader2 className="w-10 h-10 text-white animate-spin" />
               </div>
-              <h2 className="text-gray-800 mb-3 text-xl font-semibold">Đang xử lý...</h2>
-              <p className="text-gray-400 text-sm mb-8">Gemini AI đang đọc file PDF và phân tích — vui lòng đợi.</p>
-              <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden mb-3">
+              <h2 className="mb-3 text-xl font-semibold text-white">Đang xử lý...</h2>
+              <p className="mb-8 text-sm text-white/60">Gemini AI đang đọc file PDF và phân tích — vui lòng đợi.</p>
+              <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
                 <div className="h-full rounded-full transition-all duration-700" style={{ width: `${progress}%`, background: "linear-gradient(90deg,#6E35E8,#9B6DFF)" }} />
               </div>
               <p className="text-[#6E35E8] text-sm font-medium mb-6">{Math.round(progress)}%</p>
@@ -957,7 +902,7 @@ export function CVAnalysis() {
                 {loadingSteps.map((t, i) => (
                   <div key={i} className={`flex items-center gap-2 text-sm transition-all duration-500 ${loadingStage > i ? "opacity-100" : "opacity-25"}`}>
                     {loadingStage > i ? <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> : <Loader2 className={`w-4 h-4 flex-shrink-0 text-[#6E35E8] ${loadingStage === i ? "animate-spin" : ""}`} />}
-                    <span className="text-gray-600">{t}</span>
+                    <span className="text-white/70">{t}</span>
                   </div>
                 ))}
               </div>
@@ -969,11 +914,11 @@ export function CVAnalysis() {
             <div>
               {/* Mock data notice */}
               {R?._isMocked && (
-                <div className="flex items-center gap-3 rounded-2xl px-5 py-3 mb-4" style={{ background: "rgba(255,214,0,0.1)", border: "1.5px solid rgba(255,214,0,0.35)" }}>
+                <div className="mb-4 flex items-center gap-3 rounded-2xl px-5 py-3" style={{ background: "rgba(255,214,0,0.08)", border: "1.5px solid rgba(250,204,21,0.35)" }}>
                   <span className="text-lg">🔒</span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold" style={{ color: "#7A6000" }}>Kết quả Demo — Cần đăng nhập để phân tích thực tế</p>
-                    <p className="text-xs mt-0.5" style={{ color: "#7A6000", opacity: 0.8 }}>
+                    <p className="text-sm font-semibold text-amber-100">Kết quả Demo — Cần đăng nhập để phân tích thực tế</p>
+                    <p className="mt-0.5 text-xs text-amber-100/80">
                       Phiên đăng nhập hết hạn hoặc chưa đăng nhập. Đây là kết quả mẫu — hãy đăng nhập lại để nhận phân tích CV thực từ AI.
                     </p>
                   </div>
@@ -985,8 +930,8 @@ export function CVAnalysis() {
                 <div className="flex items-center gap-4 rounded-2xl px-5 py-4 mb-6" style={{ background: "linear-gradient(135deg,rgba(110, 53, 232,0.08),rgba(139, 77, 255,0.05))", border: "1.5px solid rgba(110, 53, 232,0.2)" }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(110, 53, 232,0.15)" }}><Lock className="w-5 h-5 text-[#6E35E8]" /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm text-[#4B2B9E]">Đang xem bản xem trước — Gói Free</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Phần đánh giá chi tiết & gợi ý bị ẩn. Nâng cấp để xem đầy đủ.</p>
+                    <p className="text-sm font-bold text-white">Đang xem bản xem trước — Gói Free</p>
+                    <p className="mt-0.5 text-xs text-white/60">Phần đánh giá chi tiết & gợi ý bị ẩn. Nâng cấp để xem đầy đủ.</p>
                   </div>
                   <button onClick={() => navigate("/pricing")} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white flex-shrink-0" style={{ background: "linear-gradient(135deg,#6E35E8,#8B4DFF)" }}>
                     <Zap className="w-3.5 h-3.5" /> Mở khoá
@@ -1012,7 +957,7 @@ export function CVAnalysis() {
                         <DownloadSimple className="w-3.5 h-3.5" /> Tải JD ({savedFileInfo.jdFileName})
                       </a>
                     )}
-                    <span className="text-xs text-gray-400">ID: {savedFileInfo.analysisId?.slice(0, 8)}…</span>
+                    <span className="text-xs text-white/50">ID: {savedFileInfo.analysisId?.slice(0, 8)}…</span>
                   </div>
                 </div>
               )}
@@ -1020,7 +965,7 @@ export function CVAnalysis() {
               {/* Gemini badge */}
               {R && (
                 <div className="flex items-center gap-2 mb-5">
-                  <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "rgba(110, 53, 232,0.07)", color: "#6E35E8" }}>
+                  <span className="flex items-center gap-1.5 rounded-lg border border-violet-400/25 px-3 py-1.5 text-xs font-medium text-violet-100" style={{ background: "rgba(110, 53, 232,0.22)" }}>
                     ✨ {R.summary ?? "Phân tích thực từ Gemini AI"}
                   </span>
                 </div>
@@ -1070,10 +1015,10 @@ export function CVAnalysis() {
                 <div className="relative mb-6">
                   <CVDocumentPreview />
                   {isFreeTier && (
-                    <div className="absolute bottom-0 left-0 right-0 h-2/3 rounded-b-2xl flex flex-col items-center justify-end pb-8" style={{ background: "linear-gradient(to bottom,transparent 0%,rgba(255,255,255,0.92) 40%,rgba(255,255,255,0.98) 100%)" }}>
-                      <div className="text-center px-6">
-                        <Lock className="w-8 h-8 mx-auto mb-2 text-[#6E35E8]" />
-                        <p className="font-semibold text-gray-700 text-sm mb-3">Chi tiết bị ẩn</p>
+                    <div className="absolute bottom-0 left-0 right-0 flex h-2/3 flex-col items-center justify-end rounded-b-2xl pb-8" style={{ background: "linear-gradient(to bottom,transparent 0%,rgba(10,6,24,0.55) 45%,rgba(7,6,14,0.92) 100%)" }}>
+                      <div className="px-6 text-center">
+                        <Lock className="mx-auto mb-2 h-8 w-8 text-violet-300" />
+                        <p className="mb-3 text-sm font-semibold text-white">Chi tiết bị ẩn</p>
                         <button onClick={() => navigate("/pricing")} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white" style={{ background: "linear-gradient(135deg,#6E35E8,#8B4DFF)" }}>
                           <Zap className="w-3.5 h-3.5" /> Xem đầy đủ
                         </button>
@@ -1085,27 +1030,27 @@ export function CVAnalysis() {
 
               {/* Keywords */}
               {derivedMode === "jd" && (
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4"><FileText className="w-4 h-4 text-[#6E35E8]" /><h3 className="text-gray-800 font-semibold text-sm">Từ khóa khớp với JD</h3></div>
+                <div className="mb-6 grid gap-6 md:grid-cols-2">
+                  <div className="rounded-2xl border border-white/12 bg-white/[0.04] p-5 shadow-sm backdrop-blur-sm">
+                    <div className="mb-4 flex items-center gap-2"><FileText className="h-4 w-4 text-violet-300" /><h3 className="text-sm font-semibold text-white">Từ khóa khớp với JD</h3></div>
                     <div className="flex flex-wrap gap-2">
-                      {cvDisplayKWs.map(kw => <span key={kw} className="px-3 py-1 rounded-full text-xs font-medium" style={{ background: "rgba(180,240,0,0.15)", color: "#4A7A00", border: "1px solid rgba(180,240,0,0.3)" }}>{kw} ✓</span>)}
+                      {cvDisplayKWs.map(kw => <span key={kw} className="rounded-full px-3 py-1 text-xs font-medium" style={{ background: "rgba(180,240,0,0.15)", color: "#c4ff47", border: "1px solid rgba(180,240,0,0.35)" }}>{kw} ✓</span>)}
                     </div>
-                    <p className="text-gray-400 text-xs mt-3"><span className="font-medium text-[#4A7A00]">{cvDisplayKWs.length}</span> từ khóa khớp</p>
+                    <p className="mt-3 text-xs text-white/55"><span className="font-medium text-[#c4ff47]">{cvDisplayKWs.length}</span> từ khóa khớp</p>
                   </div>
-                  <div className="relative bg-white rounded-2xl p-5 border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="flex items-center gap-2 mb-4"><Briefcase className="w-4 h-4 text-[#8B4DFF]" /><h3 className="text-gray-800 font-semibold text-sm">Toàn bộ từ khóa JD</h3></div>
+                  <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-white/[0.04] p-5 shadow-sm backdrop-blur-sm">
+                    <div className="mb-4 flex items-center gap-2"><Briefcase className="h-4 w-4 text-violet-300" /><h3 className="text-sm font-semibold text-white">Toàn bộ từ khóa JD</h3></div>
                     <div className="flex flex-wrap gap-2">
                       {jdDisplayKWs.map(kw => (
-                        <span key={kw} className="px-3 py-1 rounded-full text-xs font-medium" style={matchedSet.has(kw) ? { background: "rgba(180,240,0,0.15)", color: "#4A7A00", border: "1px solid rgba(180,240,0,0.3)" } : { background: "rgba(255,140,66,0.1)", color: "#CC5C00", border: "1px solid rgba(255,140,66,0.25)" }}>
+                        <span key={kw} className="rounded-full px-3 py-1 text-xs font-medium" style={matchedSet.has(kw) ? { background: "rgba(180,240,0,0.15)", color: "#c4ff47", border: "1px solid rgba(180,240,0,0.35)" } : { background: "rgba(255,140,66,0.12)", color: "#ffb088", border: "1px solid rgba(255,140,66,0.28)" }}>
                           {kw} {!matchedSet.has(kw) && "⚠"}
                         </span>
                       ))}
                     </div>
-                    <p className="text-gray-400 text-xs mt-3"><span className="font-medium text-[#CC5C00]">{jdDisplayKWs.filter(k => !matchedSet.has(k)).length}</span> từ khóa chưa có trong CV</p>
+                    <p className="mt-3 text-xs text-white/55"><span className="font-medium text-orange-200">{jdDisplayKWs.filter(k => !matchedSet.has(k)).length}</span> từ khóa chưa có trong CV</p>
                     {isFreeTier && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-2xl" style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(6px)" }}>
-                        <div className="text-center px-4"><Lock className="w-7 h-7 mx-auto mb-2 text-[#6E35E8]" /><p className="text-xs font-semibold text-gray-600 mb-2">Từ khóa JD bị ẩn</p><button onClick={() => navigate("/pricing")} className="text-xs font-bold px-4 py-1.5 rounded-lg text-white" style={{ background: "#6E35E8" }}>Mở khoá</button></div>
+                      <div className="absolute inset-0 flex items-center justify-center rounded-2xl" style={{ background: "rgba(7,6,14,0.78)", backdropFilter: "blur(8px)" }}>
+                        <div className="px-4 text-center"><Lock className="mx-auto mb-2 h-7 w-7 text-violet-300" /><p className="mb-2 text-xs font-semibold text-white">Từ khóa JD bị ẩn</p><button type="button" onClick={() => navigate("/pricing")} className="rounded-lg px-4 py-1.5 text-xs font-bold text-white" style={{ background: "#6E35E8" }}>Mở khoá</button></div>
                       </div>
                     )}
                   </div>
@@ -1114,9 +1059,9 @@ export function CVAnalysis() {
 
               {/* Detailed scoring */}
               <div className="relative card-premium mb-6 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5" style={{ background: "rgba(110, 53, 232,0.04)" }}>
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(110, 53, 232,0.12)" }}><BarChart3 className="w-4 h-4 text-[#6E35E8]" /></div>
-                  <div><h3 className="text-gray-900 font-semibold text-sm">Đánh giá chi tiết</h3><p className="text-gray-400 text-xs">4 tiêu chí theo chuẩn tuyển dụng</p></div>
+                <div className="flex items-center gap-2.5 border-b border-white/10 px-6 py-4" style={{ background: "rgba(110, 53, 232,0.08)" }}>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: "rgba(110, 53, 232,0.2)" }}><BarChart3 className="h-4 w-4 text-violet-200" /></div>
+                  <div><h3 className="text-sm font-semibold text-white">Đánh giá chi tiết</h3><p className="text-xs text-white/55">4 tiêu chí theo chuẩn tuyển dụng</p></div>
                   {isFreeTier && <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ background: "rgba(110, 53, 232,0.08)" }}><Lock className="w-3.5 h-3.5 text-[#6E35E8]" /><span className="text-xs font-semibold text-[#6E35E8]">Khoá</span></div>}
                 </div>
                 <div className="p-6" style={isFreeTier ? { filter: "blur(5px)", userSelect: "none", pointerEvents: "none" } : {}}>
@@ -1124,25 +1069,25 @@ export function CVAnalysis() {
                     <div className="flex flex-col items-center flex-shrink-0">
                       <div className="relative w-28 h-28">
                         <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                          <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" strokeWidth="10" />
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="10" />
                           <circle cx="50" cy="50" r="40" fill="none" stroke="url(#sg)" strokeWidth="10" strokeDasharray={`${matchScore * 2.51} 251`} strokeLinecap="round" />
                           <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6E35E8" /><stop offset="100%" stopColor="#8B4DFF" /></linearGradient></defs>
                         </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-gray-900 font-bold" style={{ fontSize: "1.6rem" }}>{matchScore}</span><span className="text-gray-400 text-xs">/ 100</span></div>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="font-bold text-white" style={{ fontSize: "1.6rem" }}>{matchScore}</span><span className="text-xs text-white/50">/ 100</span></div>
                       </div>
-                      <p className="text-gray-500 text-xs mt-2">Overall</p>
+                      <p className="mt-2 text-xs text-white/50">Overall</p>
                     </div>
                     <div className="flex-1 min-w-0 space-y-3">
                       {scoreTableData.map(row => (
                         <div key={row.criteria}>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-gray-700 text-sm">{row.criteria}</span>
+                            <span className="text-sm text-white/85">{row.criteria}</span>
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-lg" style={{ background: row.status === "good" ? "rgba(180,240,0,0.15)" : row.status === "ok" ? "rgba(139, 77, 255,0.1)" : "rgba(255,140,66,0.12)", color: row.status === "good" ? "#4A7A00" : row.status === "ok" ? "#6E35E8" : "#CC5C00" }}>{row.score}/{row.max}</span>
                           </div>
-                          <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                          <div className="h-2 overflow-hidden rounded-full bg-white/10">
                             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(row.score / row.max) * 100}%`, background: row.status === "good" ? "#B4F000" : row.status === "ok" ? "#8B4DFF" : "#FF8C42" }} />
                           </div>
-                          {row.note && <p className="text-gray-400 mt-0.5 text-[0.7rem]">{row.note}</p>}
+                          {row.note && <p className="mt-0.5 text-[0.7rem] text-white/50">{row.note}</p>}
                         </div>
                       ))}
                     </div>
@@ -1150,20 +1095,20 @@ export function CVAnalysis() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="rounded-xl p-4" style={{ background: "rgba(180,240,0,0.07)", border: "1px solid rgba(180,240,0,0.2)" }}>
                       <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-[#4A7A00]"><Check className="w-4 h-4" /> Điểm mạnh</h4>
-                      <ul className="space-y-2">{strengthsData.map((s, i) => <li key={i} className="flex items-start gap-2 text-sm text-[#1F1F1F]"><span className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[#6E9900]" />{s}</li>)}</ul>
+                      <ul className="space-y-2">{strengthsData.map((s, i) => <li key={i} className="flex items-start gap-2 text-sm text-white/88"><span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#6E9900]" />{s}</li>)}</ul>
                     </div>
                     <div className="rounded-xl p-4" style={{ background: "rgba(255,140,66,0.07)", border: "1px solid rgba(255,140,66,0.2)" }}>
                       <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-[#CC5C00]"><Warning className="w-4 h-4" /> Cần cải thiện</h4>
-                      <ul className="space-y-2">{weaknessesData.map((s, i) => <li key={i} className="flex items-start gap-2 text-sm text-[#1F1F1F]"><span className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[#FF8C42]" />{s}</li>)}</ul>
+                      <ul className="space-y-2">{weaknessesData.map((s, i) => <li key={i} className="flex items-start gap-2 text-sm text-white/88"><span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#FF8C42]" />{s}</li>)}</ul>
                     </div>
                   </div>
                 </div>
                 {isFreeTier && (
-                  <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(255,255,255,0.55)", backdropFilter: "blur(3px)" }}>
-                    <div className="text-center px-8 py-6 rounded-2xl bg-white" style={{ border: "1.5px solid rgba(110, 53, 232,0.15)", boxShadow: "0 8px 32px rgba(110, 53, 232,0.12)" }}>
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(110, 53, 232,0.1)" }}><Lock className="w-6 h-6 text-[#6E35E8]" /></div>
-                      <p className="font-bold text-gray-800 mb-1">Đánh giá chi tiết bị khoá</p>
-                      <p className="text-gray-400 text-xs mb-4 max-w-[240px]">Nâng cấp <strong className="text-[#6E35E8]">Elite Pro</strong> để xem điểm số và nhận xét chi tiết.</p>
+                  <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(7,6,14,0.72)", backdropFilter: "blur(6px)" }}>
+                    <div className="rounded-2xl border border-white/12 bg-[#120d24]/95 px-8 py-6 text-center shadow-2xl shadow-black/40" style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.45)" }}>
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ background: "rgba(110, 53, 232,0.25)" }}><Lock className="h-6 w-6 text-violet-200" /></div>
+                      <p className="mb-1 font-bold text-white">Đánh giá chi tiết bị khoá</p>
+                      <p className="mb-4 max-w-[240px] text-xs text-white/60">Nâng cấp <strong className="text-violet-300">Elite Pro</strong> để xem điểm số và nhận xét chi tiết.</p>
                       <button onClick={() => navigate("/pricing")} className="flex items-center gap-2 mx-auto px-6 py-2.5 rounded-xl font-bold text-sm text-white" style={{ background: "linear-gradient(135deg,#6E35E8,#8B4DFF)" }}>
                         <Zap className="w-4 h-4" /> Nâng cấp
                       </button>
@@ -1174,44 +1119,44 @@ export function CVAnalysis() {
 
               {/* Suggestions */}
               <div className="relative card-premium mb-6 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between" style={{ background: "rgba(110, 53, 232,0.04)" }}>
+                <div className="flex items-center justify-between border-b border-white/10 px-6 py-4" style={{ background: "rgba(110, 53, 232,0.08)" }}>
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(110, 53, 232,0.12)" }}><Lightbulb className="w-4 h-4 text-[#6E35E8]" /></div>
-                    <div><h3 className="text-gray-900 font-semibold text-sm">Gợi ý chỉnh sửa cụ thể</h3><p className="text-gray-400 text-xs">Mỗi gợi ý có lý do + ví dụ trước/sau</p></div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: "rgba(110, 53, 232,0.2)" }}><Lightbulb className="h-4 w-4 text-violet-200" /></div>
+                    <div><h3 className="text-sm font-semibold text-white">Gợi ý chỉnh sửa cụ thể</h3><p className="text-xs text-white/55">Mỗi gợi ý có lý do + ví dụ trước/sau</p></div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {highCount   > 0 && <span className="text-xs px-2.5 py-1 rounded-lg font-medium" style={{ background: "rgba(255,140,66,0.12)",  color: "#CC5C00" }}>{highCount} Cao</span>}
-                    {mediumCount > 0 && <span className="text-xs px-2.5 py-1 rounded-lg font-medium" style={{ background: "rgba(255,214,0,0.12)",   color: "#997F00" }}>{mediumCount} TB</span>}
-                    {lowCount    > 0 && <span className="text-xs px-2.5 py-1 rounded-lg font-medium" style={{ background: "rgba(107,114,128,0.1)", color: "#6b7280"  }}>{lowCount} Thấp</span>}
+                    {highCount   > 0 && <span className="rounded-lg px-2.5 py-1 text-xs font-medium" style={{ background: "rgba(255,140,66,0.18)",  color: "#ffb088" }}>{highCount} Cao</span>}
+                    {mediumCount > 0 && <span className="rounded-lg px-2.5 py-1 text-xs font-medium" style={{ background: "rgba(255,214,0,0.14)",   color: "#fde68a" }}>{mediumCount} TB</span>}
+                    {lowCount    > 0 && <span className="rounded-lg px-2.5 py-1 text-xs font-medium" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)" }}>{lowCount} Thấp</span>}
                   </div>
                 </div>
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-white/10">
                   {suggestionsData.map((item, i) => {
                     if (isFreeTier && i > 1) return null;
                     const isAdd = item.type === "add", isFix = item.type === "fix";
-                    const pStyle = item.priority === "high" ? { bg: "rgba(255,140,66,0.1)", border: "rgba(255,140,66,0.25)", color: "#CC5C00", label: "Ưu tiên cao" } : item.priority === "medium" ? { bg: "rgba(255,214,0,0.1)", border: "rgba(255,214,0,0.3)", color: "#997F00", label: "Trung bình" } : { bg: "rgba(107,114,128,0.06)", border: "rgba(107,114,128,0.15)", color: "#6b7280", label: "Thấp" };
+                    const pStyle = item.priority === "high" ? { bg: "rgba(255,140,66,0.1)", border: "rgba(255,140,66,0.25)", color: "#CC5C00", label: "Ưu tiên cao" } : item.priority === "medium" ? { bg: "rgba(255,214,0,0.1)", border: "rgba(255,214,0,0.3)", color: "#997F00", label: "Trung bình" } : { bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", label: "Thấp" };
                     const tStyle = isAdd ? { bg: "rgba(180,240,0,0.12)", color: "#4A7A00", label: "Bổ sung" } : isFix ? { bg: "rgba(110, 53, 232,0.1)", color: "#6E35E8", label: "Chỉnh sửa" } : { bg: "rgba(255,140,66,0.1)", color: "#CC5C00", label: "Loại bỏ" };
                     const isDimmed = isFreeTier && i === 1;
                     return (
-                      <div key={i} className="p-5 hover:bg-gray-50/60 transition-colors" style={isDimmed ? { filter: "blur(4px)", userSelect: "none", pointerEvents: "none", opacity: 0.5 } : {}}>
+                      <div key={i} className="p-5 transition-colors hover:bg-white/[0.04]" style={isDimmed ? { filter: "blur(4px)", userSelect: "none", pointerEvents: "none", opacity: 0.5 } : {}}>
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ background: tStyle.bg, color: tStyle.color }}>
                               {isAdd && <PlusCircle className="w-3 h-3" />}{isFix && <Wrench className="w-3 h-3" />}{!isAdd && !isFix && <Trash className="w-3 h-3" />}
                               {tStyle.label}
                             </span>
-                            <h4 className="text-gray-900 font-semibold text-sm">{item.title}</h4>
+                            <h4 className="text-sm font-semibold text-white">{item.title}</h4>
                           </div>
                           <span className="flex-shrink-0 text-xs font-medium px-2.5 py-1 rounded-lg" style={{ background: pStyle.bg, color: pStyle.color, border: `1px solid ${pStyle.border}` }}>{pStyle.label}</span>
                         </div>
                         <div className="rounded-xl p-3.5 mb-3" style={{ background: "rgba(110, 53, 232,0.04)", border: "1px solid rgba(110, 53, 232,0.1)" }}>
                           <p className="text-xs font-semibold mb-1 text-[#6E35E8]">💡 Lý do</p>
-                          <p className="text-gray-600 text-[0.82rem] leading-relaxed">{item.reason}</p>
+                          <p className="text-[0.82rem] leading-relaxed text-white/70">{item.reason}</p>
                         </div>
                         {(item.before || item.after) && (
                           <div className="grid md:grid-cols-2 gap-2">
-                            {item.before && <div className="rounded-xl p-3" style={{ background: "rgba(255,140,66,0.05)", border: "1px solid rgba(255,140,66,0.18)" }}><p className="text-xs font-semibold mb-1.5 text-[#CC5C00]">✗ Hiện tại</p><code className="text-gray-600 block text-[0.76rem] leading-relaxed font-mono whitespace-pre-wrap">{item.before}</code></div>}
-                            {item.after  && <div className="rounded-xl p-3" style={{ background: "rgba(180,240,0,0.06)",  border: "1px solid rgba(180,240,0,0.22)"  }}><p className="text-xs font-semibold mb-1.5 text-[#4A7A00]">✓ Nên sửa thành</p><code className="text-gray-600 block text-[0.76rem] leading-relaxed font-mono whitespace-pre-wrap">{item.after}</code></div>}
+                            {item.before && <div className="rounded-xl p-3" style={{ background: "rgba(255,140,66,0.05)", border: "1px solid rgba(255,140,66,0.18)" }}><p className="mb-1.5 text-xs font-semibold text-[#ffb088]">✗ Hiện tại</p><code className="block whitespace-pre-wrap font-mono text-[0.76rem] leading-relaxed text-white/75">{item.before}</code></div>}
+                            {item.after  && <div className="rounded-xl p-3" style={{ background: "rgba(180,240,0,0.06)",  border: "1px solid rgba(180,240,0,0.22)"  }}><p className="mb-1.5 text-xs font-semibold text-[#c4ff47]">✓ Nên sửa thành</p><code className="block whitespace-pre-wrap font-mono text-[0.76rem] leading-relaxed text-white/75">{item.after}</code></div>}
                           </div>
                         )}
                       </div>
@@ -1219,10 +1164,10 @@ export function CVAnalysis() {
                   })}
                 </div>
                 {isFreeTier && (
-                  <div className="border-t px-6 py-5 flex items-center gap-4" style={{ background: "linear-gradient(135deg,rgba(110, 53, 232,0.04),rgba(139, 77, 255,0.03))", borderColor: "rgba(110, 53, 232,0.1)" }}>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-800 text-sm">🔒 Còn {suggestionsData.length - 1} gợi ý đang bị ẩn</p>
-                      <p className="text-gray-400 text-xs mt-0.5">Bao gồm gợi ý về từ khóa thiếu, số liệu KPI, format STAR</p>
+                  <div className="flex items-center gap-4 border-t border-white/10 px-6 py-5" style={{ background: "linear-gradient(135deg,rgba(110, 53, 232,0.12),rgba(139, 77, 255,0.06))" }}>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-white">🔒 Còn {suggestionsData.length - 1} gợi ý đang bị ẩn</p>
+                      <p className="mt-0.5 text-xs text-white/55">Bao gồm gợi ý về từ khóa thiếu, số liệu KPI, format STAR</p>
                     </div>
                     <button onClick={() => navigate("/pricing")} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white flex-shrink-0" style={{ background: "linear-gradient(135deg,#6E35E8,#8B4DFF)" }}>
                       <Zap className="w-4 h-4" /> Mở khoá toàn bộ
@@ -1236,14 +1181,14 @@ export function CVAnalysis() {
                 <button onClick={() => navigate("/interview")} className="flex items-center gap-2 text-white px-6 py-3 rounded-xl text-sm font-semibold" style={{ background: "#6E35E8" }} onMouseEnter={e => (e.currentTarget.style.background = "#5C28D9")} onMouseLeave={e => (e.currentTarget.style.background = "#6E35E8")}>
                   <Mic className="w-4 h-4" /> Phỏng vấn với AI
                 </button>
-                <button onClick={() => navigate("/mentors")} className="flex items-center gap-2 bg-white border border-gray-200 hover:border-[#6E35E8]/40 text-gray-700 px-6 py-3 rounded-xl text-sm font-semibold transition-all">
-                  <Users className="w-4 h-4" /> Đặt lịch Mentor
+                <button onClick={() => navigate("/mentors")} className="flex items-center gap-2 rounded-xl border border-[#c4ff47]/45 bg-[#c4ff47]/10 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:border-[#c4ff47]/60 hover:bg-[#c4ff47]/16">
+                  <Users className="h-4 w-4 text-[#d4ff6a]" /> Đặt lịch Mentor
                 </button>
-                <button onClick={() => { setStep("upload"); setAnalysisResult(null); setSavedFileInfo(null); }} className="flex items-center gap-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-500 px-6 py-3 rounded-xl text-sm font-medium transition-all">
+                <button onClick={() => { setStep("upload"); setAnalysisResult(null); setSavedFileInfo(null); }} className="flex items-center gap-2 rounded-xl border border-white/18 bg-white/[0.08] px-6 py-3 text-sm font-medium text-white/90 shadow-sm transition-all hover:border-white/28 hover:bg-white/[0.12]">
                   Phân tích lại
                 </button>
-                <button onClick={() => navigate("/cv-analysis/history")} className="flex items-center gap-2 bg-white border border-gray-200 hover:border-[#6E35E8]/30 text-gray-500 px-6 py-3 rounded-xl text-sm font-medium transition-all">
-                  <History className="w-4 h-4" /> Xem lịch sử
+                <button onClick={() => navigate("/cv-analysis/history")} className="flex items-center gap-2 rounded-xl border border-white/18 bg-white/[0.08] px-6 py-3 text-sm font-medium text-white/90 shadow-sm transition-all hover:border-white/28 hover:bg-white/[0.12]">
+                  <History className="h-4 w-4" /> Xem lịch sử
                 </button>
               </div>
             </div>
