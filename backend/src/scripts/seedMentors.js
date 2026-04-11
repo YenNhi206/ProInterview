@@ -1,12 +1,10 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import dotenv from "dotenv";
+import "../config/loadEnv.js";
 import mongoose from "mongoose";
 import { connectDatabase } from "../db/connect.js";
-import { Mentor } from "../models/Mentor.js";
-
-dotenv.config();
+import { Mentor, mapSeedRowToMentorDoc } from "../models/Mentor.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -28,7 +26,7 @@ async function main() {
     return;
   }
 
-  await Mentor.insertMany(seed);
+  await Mentor.insertMany(seed.map(mapSeedRowToMentorDoc));
   console.log(`Đã seed ${seed.length} mentor vào database.`);
   await mongoose.disconnect();
 }

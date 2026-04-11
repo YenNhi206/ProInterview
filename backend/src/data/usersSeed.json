@@ -1,0 +1,20 @@
+[
+  {
+    "email": "customer@dev.local",
+    "name": "Khách hàng Dev",
+    "role": "customer",
+    "password": "Dev123456"
+  },
+  {
+    "email": "mentor@dev.local",
+    "name": "Mentor Dev",
+    "role": "mentor",
+    "password": "Dev123456"
+  },
+  {
+    "email": "admin@dev.local",
+    "name": "Admin Dev",
+    "role": "admin",
+    "password": "Dev123456"
+  }
+]

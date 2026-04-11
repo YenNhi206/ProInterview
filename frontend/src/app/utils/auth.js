@@ -131,6 +131,30 @@ export async function restoreSession() {
   }
 }
 
+/** Lấy lại profile từ server (có `hasGoogleLogin`, …) — dùng khi localStorage cũ thiếu field. */
+export async function refreshUserProfile() {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(apiUrl("/api/auth/me"), { headers: bearerHeaders() });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(AUTH_KEY);
+      }
+      return null;
+    }
+    if (body.success && body.user) {
+      setLoggedIn(body.user);
+      return body.user;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function getAccessToken() {
   return localStorage.getItem(TOKEN_KEY) ?? "";
 }
@@ -155,7 +179,7 @@ export async function getFreshAccessToken() {
 
 export async function updateUser(partial) {
   const token = getAccessToken();
-  if (!token) return;
+  if (!token) return { success: false, error: "Chưa đăng nhập." };
   try {
     const res = await fetch(apiUrl("/api/auth/me"), {
       method: "PATCH",
@@ -165,13 +189,16 @@ export async function updateUser(partial) {
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.log("updateUser:", body.error || res.status);
-      return;
+      return { success: false, error: body.error || `Lỗi ${res.status}` };
     }
     if (body.success && body.user) {
       setLoggedIn({ ...getUser(), ...body.user });
+      return { success: true };
     }
+    return { success: false, error: body.error || "Cập nhật thất bại." };
   } catch (e) {
     console.log("updateUser error:", e);
+    return { success: false, error: "Không kết nối được server." };
   }
 }
 

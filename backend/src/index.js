@@ -1,12 +1,11 @@
+import "./config/loadEnv.js";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { connectDatabase } from "./db/connect.js";
+import "./models/index.js";
 import { mentorsRouter } from "./routes/mentors.js";
 import { authRouter } from "./routes/auth.js";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

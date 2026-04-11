@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "seed": "node src/scripts/seedMentors.js"
+    "seed": "node src/scripts/seedMentors.js",
+    "seed:users": "node src/scripts/seedUsers.js",
+    "seed:all": "node src/scripts/seedAll.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

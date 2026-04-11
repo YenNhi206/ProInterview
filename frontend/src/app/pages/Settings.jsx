@@ -18,7 +18,8 @@ import {
   ChevronRight,
   ArrowRight
 } from "lucide-react";
-import { logout, getPlans } from "../utils/auth";
+import { toast } from "sonner";
+import { logout, getPlans, getUser, updateUser, refreshUserProfile } from "../utils/auth";
 
 /* ─── Reusable components ───────────────────────────────── */
 function ToggleSwitch({
@@ -124,17 +125,19 @@ function NotificationsTab() {
   const [push, setPush] = useState(DEFAULT_NOTIFS);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const toggle = (id) => {
     setPush((prev) => prev.map((t) => (t.id === id ? { ...t, value: !t.value } : t)));
     setDirty(true);
-    setSaved(false);
   };
 
   const handleSave = () => {
     setSaving(true);
-    setTimeout(() => { setSaving(false); setDirty(false); setSaved(true); setTimeout(() => setSaved(false), 2500); }, 600);
+    setTimeout(() => {
+      setSaving(false);
+      setDirty(false);
+      toast.success("Đã lưu cài đặt thông báo");
+    }, 600);
   };
 
   return (
@@ -152,28 +155,126 @@ function NotificationsTab() {
           ))}
         </div>
       </SectionCard>
-      <SaveBar dirty={dirty} saving={saving} saved={saved} onSave={handleSave} onReset={() => { setPush(DEFAULT_NOTIFS); setDirty(false); }} />
+      <SaveBar dirty={dirty} saving={saving} saved={false} onSave={handleSave} onReset={() => { setPush(DEFAULT_NOTIFS); setDirty(false); }} />
     </div>
   );
 }
 
 /* ─── TAB: Security ─────────────────────────────────────── */
-function SecurityTab() {
+const MIN_PASS = 6;
+
+function SecurityTab({ profileFromServer, onProfileSynced }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  /** Profile có `hasGoogleLogin` từ server (đồng bộ từ trang Settings + sau đổi MK) */
+  const [sessionUser, setSessionUser] = useState(
+    () => profileFromServer ?? getUser()
+  );
+
+  useEffect(() => {
+    setSessionUser(profileFromServer ?? getUser());
+  }, [profileFromServer]);
+
+  const hasGoogleLogin = Boolean(sessionUser?.hasGoogleLogin);
+  /** Chỉ bắt buộc MK hiện tại khi server báo không có Google */
+  const needsCurrentPassword = !hasGoogleLogin;
+
+  const handleUpdatePassword = async () => {
+    const np = newPassword.trim();
+    const cp = confirmPassword.trim();
+    if (np.length < MIN_PASS) {
+      toast.error(`Mật khẩu mới cần ít nhất ${MIN_PASS} ký tự.`);
+      return;
+    }
+    if (np !== cp) {
+      toast.error("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+    if (needsCurrentPassword && !currentPassword.trim()) {
+      toast.error("Vui lòng nhập mật khẩu hiện tại.");
+      return;
+    }
+    setSaving(true);
+    const payload = { newPassword: np };
+    if (needsCurrentPassword) {
+      payload.currentPassword = currentPassword.trim();
+    } else if (currentPassword.trim()) {
+      payload.currentPassword = currentPassword.trim();
+    }
+    const result = await updateUser(payload);
+    setSaving(false);
+    if (result?.success) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      const u = await refreshUserProfile();
+      const next = u ?? getUser();
+      setSessionUser(next);
+      onProfileSynced?.(next);
+      toast.success("Đã cập nhật mật khẩu.");
+    } else {
+      toast.error(result?.error || "Không lưu được.");
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <SectionCard title="Cấu hình Bảo mật" icon={ShieldCheck}>
-         <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div className="space-y-3">
-               <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Mật khẩu hiện tại</label>
-               <input type="password" placeholder="••••••••" className="input-glass w-full" />
+         <div className="grid md:grid-cols-2 gap-8 mb-6">
+            <div className="space-y-3 md:col-span-2">
+               <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                 Mật khẩu hiện tại
+                 {needsCurrentPassword ? (
+                   <span className="text-amber-400/90"> — bắt buộc</span>
+                 ) : (
+                   <span className="text-white/40"> — không bắt buộc (đã liên kết Google)</span>
+                 )}
+               </label>
+               <input
+                 type="password"
+                 autoComplete="current-password"
+                 placeholder={
+                   needsCurrentPassword
+                     ? "Nhập mật khẩu hiện tại"
+                     : "Để trống hoặc nhập mật khẩu cũ nếu có"
+                 }
+                 className="input-glass w-full"
+                 value={currentPassword}
+                 onChange={(e) => setCurrentPassword(e.target.value)}
+               />
             </div>
             <div className="space-y-3">
                <label className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">Mật khẩu mới</label>
-               <input type="password" placeholder="••••••••" className="input-glass w-full" />
+               <input
+                 type="password"
+                 autoComplete="new-password"
+                 placeholder="••••••••"
+                 className="input-glass w-full"
+                 value={newPassword}
+                 onChange={(e) => setNewPassword(e.target.value)}
+               />
+            </div>
+            <div className="space-y-3">
+               <label className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">Xác nhận mật khẩu mới</label>
+               <input
+                 type="password"
+                 autoComplete="new-password"
+                 placeholder="••••••••"
+                 className="input-glass w-full"
+                 value={confirmPassword}
+                 onChange={(e) => setConfirmPassword(e.target.value)}
+               />
             </div>
          </div>
-         <button className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-            Cập nhật mật khẩu
+         <button
+           type="button"
+           disabled={saving}
+           onClick={handleUpdatePassword}
+           className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all disabled:opacity-50"
+         >
+            {saving ? "Đang lưu…" : "Cập nhật mật khẩu"}
          </button>
       </SectionCard>
 
@@ -302,6 +403,18 @@ const TABS = [
 export function Settings() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("notifications");
+  /** Đồng bộ GET /me ngay khi vào Cài đặt — tránh tab Bảo mật đọc localStorage cũ thiếu hasGoogleLogin */
+  const [profileFromServer, setProfileFromServer] = useState(() => getUser());
+
+  useEffect(() => {
+    let cancelled = false;
+    refreshUserProfile().then((u) => {
+      if (!cancelled) setProfileFromServer(u ?? getUser());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -444,7 +557,12 @@ export function Settings() {
             <main className="lg:col-span-9">
                <div className="min-h-[400px]">
                   {activeTab === "notifications" && <NotificationsTab />}
-                  {activeTab === "security" && <SecurityTab />}
+                  {activeTab === "security" && (
+                    <SecurityTab
+                      profileFromServer={profileFromServer}
+                      onProfileSynced={(u) => setProfileFromServer(u)}
+                    />
+                  )}
                   {activeTab === "appearance" && <AppearanceTab />}
                   {activeTab === "account" && <AccountTab />}
                </div>

@@ -25,7 +25,7 @@ export function Login() {
     setLoading(true);
     setError("");
 
-    const result = await loginUser(email.trim(), password);
+    const result = await loginUser(email.trim(), typeof password === "string" ? password.trim() : password);
     setLoading(false);
 
     if (!result.success) {
