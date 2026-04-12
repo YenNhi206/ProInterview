@@ -19,7 +19,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { toast } from "sonner";
-import { logout, getPlans, getUser, updateUser, refreshUserProfile } from "../utils/auth";
+import { logout, getPlans, getUser, updateUser, refreshUserProfile } from "../../utils/auth";
 
 /* ─── Reusable components ───────────────────────────────── */
 function ToggleSwitch({

@@ -37,13 +37,13 @@ import {
   AreaChart,
   Area
 } from "recharts";
-import { getUser } from "../utils/auth";
+import { getUser } from "../../utils/auth";
 import {
   MENTEE_ANALYTICS,
   WEEKLY_STATS,
   MENTOR_DASHBOARD_STATS,
-} from "../data/mentorMockData";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+} from "../../data/mentorMockData";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 const MENTOR_ANALYTICS_INPUT_CSS = `
         .input-glass {

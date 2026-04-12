@@ -45,8 +45,8 @@ import {
   ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { getCourseById } from "../data/coursesData";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+import { getCourseById } from "../../data/coursesData";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 const MENTOR_COURSE_EDIT_EXTRA_CSS = `
         .tab-btn { position: relative; padding: 16px 24px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); transition: all 0.3s; }

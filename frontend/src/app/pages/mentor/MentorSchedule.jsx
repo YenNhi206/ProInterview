@@ -20,9 +20,9 @@ import {
   Clock3,
   Globe
 } from "lucide-react";
-import { getUser } from "../utils/auth";
-import { UPCOMING_MENTOR_MEETINGS } from "../data/mentorMockData";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+import { getUser } from "../../utils/auth";
+import { UPCOMING_MENTOR_MEETINGS } from "../../data/mentorMockData";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 const MENTOR_SCHEDULE_EXTRA_CSS = `
         .calendar-cell {

@@ -31,7 +31,7 @@ import {
 import {
   COURSES_DATA,
   getCourseById,
-} from "../data/coursesData";
+} from "../../data/coursesData";
 
 const CATEGORIES = [
   "Tất cả",

@@ -23,8 +23,8 @@ import {
    Shapes
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { getUser } from "../utils/auth";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+import { getUser } from "../../utils/auth";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 const MENTOR_COURSE_MGMT_INPUT_CSS = `
         .input-glass {

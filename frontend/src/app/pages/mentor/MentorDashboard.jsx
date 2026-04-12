@@ -25,14 +25,14 @@ import {
   ArrowUpRight,
   Plus
 } from "lucide-react";
-import { getUser } from "../utils/auth";
+import { getUser } from "../../utils/auth";
 import {
   UPCOMING_MENTOR_MEETINGS,
   COMPLETED_MENTOR_MEETINGS,
   MENTOR_DASHBOARD_STATS,
   WEEKLY_STATS,
-} from "../data/mentorMockData";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+} from "../../data/mentorMockData";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 /* ── Mentee Progress Modal ────────────────────────────────────────────────── */
 function MenteeProgressModal({

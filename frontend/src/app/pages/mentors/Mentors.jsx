@@ -14,8 +14,8 @@ import {
   BadgeCheck as SealCheck,
   AlertCircle,
 } from "lucide-react";
-import { fetchMentors } from "../utils/mentorApi";
-import { FIELDS } from "../data/mockData";
+import { fetchMentors } from "../../utils/mentorApi";
+import { FIELDS } from "../../data/mockData";
 
 const EXPERIENCE_OPTIONS = ["Tất cả", "1-3 năm", "4-6 năm", "7+ năm"];
 const PRICE_OPTIONS = [

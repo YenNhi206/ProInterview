@@ -29,10 +29,10 @@ import {
   GraduationCap,
   PlayCircle,
 } from "lucide-react";
-import { COURSES_DATA } from "../data/coursesData";
-import { isLoggedIn } from "../utils/auth";
-import { Footer } from "../components/layout/Footer";
-import { RecommendedJourney } from "../components/RecommendedJourney";
+import { COURSES_DATA } from "../../data/coursesData";
+import { isLoggedIn } from "../../utils/auth";
+import { Footer } from "../../components/layout/Footer";
+import { RecommendedJourney } from "../../components/home/RecommendedJourney";
 
 /* ─── Data ──────────────────────────────────────────────── */
 const FEATURES = [

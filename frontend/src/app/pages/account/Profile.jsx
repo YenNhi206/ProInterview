@@ -25,8 +25,8 @@ import {
   Sparkles,
   ArrowRight
 } from "lucide-react";
-import { getUser, updateUser, logout, getInitials } from "../utils/auth";
-import { getPlans } from "../utils/auth";
+import { getUser, updateUser, logout, getInitials } from "../../utils/auth";
+import { getPlans } from "../../utils/auth";
 
 const ACHIEVEMENTS = [
   { icon: Lightning, label: "5 ngày streak", color: "from-amber-400 to-orange-500", earned: true },

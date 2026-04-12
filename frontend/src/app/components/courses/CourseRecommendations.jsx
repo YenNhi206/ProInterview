@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router";
 import { ArrowRight, GraduationCap, Star, Users, BadgeCheck, PlayCircle } from "lucide-react";
 
-import { RecommendedJourney } from "./RecommendedJourney";
-import { COURSES_DATA } from "../data/coursesData";
+import { RecommendedJourney } from "../home/RecommendedJourney";
+import { COURSES_DATA } from "../../data/coursesData";
 
 export function CourseRecommendations({
   courses: propCourses,

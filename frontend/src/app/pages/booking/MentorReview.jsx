@@ -28,8 +28,8 @@ import {
   CheckSquare,
   AlertTriangle as Warning,
 } from "lucide-react";
-import { getBookingById, saveReview, getReview } from "../utils/bookings";
-import { ReportMentorModal } from "../components/modals/ReportMentorModal";
+import { getBookingById, saveReview, getReview } from "../../utils/bookings";
+import { ReportMentorModal } from "../../components/modals/ReportMentorModal";
 
 /* ──────────────────────────────────────────────────────────
    CONSTANTS

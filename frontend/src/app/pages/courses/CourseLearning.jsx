@@ -26,7 +26,7 @@ import {
   Maximize2 as CornersOut,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router";
-import { getCourseById } from "../data/coursesData";
+import { getCourseById } from "../../data/coursesData";
 
 /* ── Helpers ────────────────────────────────────────────────── */
 const formatDuration = (minutes) => {

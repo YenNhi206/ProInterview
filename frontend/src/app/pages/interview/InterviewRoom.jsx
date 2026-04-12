@@ -18,8 +18,8 @@ import {
   MessageCircle as ChatCircle,
   Star,
 } from "lucide-react";
-import { MOCK_INTERVIEW_QUESTIONS } from "../data/mockData";
-import { getPlans } from "../utils/auth";
+import { MOCK_INTERVIEW_QUESTIONS } from "../../data/mockData";
+import { getPlans } from "../../utils/auth";
 
 /* ── Session storage key ─────────────────────────────────── */
 const TRANSCRIPT_KEY = "prointerview_transcripts";

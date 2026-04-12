@@ -15,3 +15,5 @@ Mỗi nhóm màn hình nằm trong một folder; import trong `routes.js` dùng 
 | `mentor/` | Khu vực mentor: dashboard, lịch, tài chính, khóa học mentor, meeting room, … |
 
 Utils / components / data vẫn import từ `../../utils`, `../../components`, `../../data` (hai cấp lên `app/`).
+
+Component tái sử dụng theo domain: xem [`../components/README.md`](../components/README.md).

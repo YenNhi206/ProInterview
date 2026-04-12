@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { AvatarInterviewerSimple } from '../components/AvatarInterviewerSimple';
+import { AvatarInterviewerSimple } from "../../components/interview/AvatarInterviewerSimple";
 import { 
   Play, 
   Pause, 

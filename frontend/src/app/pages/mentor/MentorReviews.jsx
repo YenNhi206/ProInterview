@@ -18,9 +18,9 @@ import {
   TrendingUp,
   Award
 } from "lucide-react";
-import { COMPLETED_MENTOR_MEETINGS } from "../data/mentorMockData";
-import { getUser } from "../utils/auth";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+import { COMPLETED_MENTOR_MEETINGS } from "../../data/mentorMockData";
+import { getUser } from "../../utils/auth";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 const MENTOR_REVIEWS_INPUT_CSS = `
         .input-glass {

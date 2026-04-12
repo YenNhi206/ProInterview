@@ -22,11 +22,11 @@ import {
   Target
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { MENTORS } from "../data/mockData";
-import { fetchMentor } from "../utils/mentorApi";
-import { getReviewsByMentor } from "../utils/bookings";
-import { ReportMentorModal } from "../components/modals/ReportMentorModal";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+import { MENTORS } from "../../data/mockData";
+import { fetchMentor } from "../../utils/mentorApi";
+import { getReviewsByMentor } from "../../utils/bookings";
+import { ReportMentorModal } from "../../components/modals/ReportMentorModal";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 const REVIEWS = [
   { name: "Nguyễn Văn A", role: "Kỹ sư phần mềm", avatar: "NA", rating: 5, text: "Buổi phỏng vấn thử rất thực tế, mentor chia sẻ nhiều kinh nghiệm nội bộ. Sau buổi này mình tự tin hơn hẳn.", date: "15/02/2026" },

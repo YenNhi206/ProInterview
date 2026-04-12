@@ -29,9 +29,9 @@ import {
   RefreshCw,
   BadgeCheck,
 } from "lucide-react";
-import { getPlans, getCVRemaining, incrementCVCount, CV_FREE_LIMIT } from "../utils/auth";
-import { CVDocumentPreview } from "../components/CVDocumentPreview";
-import { addCVAnalysisRecord } from "../utils/history";
+import { getPlans, getCVRemaining, incrementCVCount, CV_FREE_LIMIT } from "../../utils/auth";
+import { CVDocumentPreview } from "../../components/cv/CVDocumentPreview";
+import { addCVAnalysisRecord } from "../../utils/history";
 import { projectId, publicAnonKey } from "/utils/supabase/info.js";
 
 // ─── API base ─────────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ function apiUrl(path) {
  */
 async function getForceRefreshedToken() {
   try {
-    const { getFreshAccessToken } = await import("../utils/auth");
+    const { getFreshAccessToken } = await import("../../utils/auth");
     return await getFreshAccessToken();
   } catch {
     return "";

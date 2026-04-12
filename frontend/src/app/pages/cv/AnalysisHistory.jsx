@@ -19,7 +19,7 @@ import {
   ChevronDown as CaretDown,
   CalendarDays as CalendarBlank,
 } from "lucide-react";
-import { CV_ANALYSIS_HISTORY } from "../data/mockData";
+import { CV_ANALYSIS_HISTORY } from "../../data/mockData";
 
 export function AnalysisHistory() {
   const navigate = useNavigate();

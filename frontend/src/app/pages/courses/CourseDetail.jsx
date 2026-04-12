@@ -33,7 +33,7 @@ import {
   Pencil,
   X,
 } from "lucide-react";
-import { getCourseById, getRelatedCourses, MENTOR_REVIEWERS } from "../data/coursesData";
+import { getCourseById, getRelatedCourses, MENTOR_REVIEWERS } from "../../data/coursesData";
 
 import {
   Dialog,
@@ -41,7 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "../components/ui/dialog";
+} from "../../components/ui/dialog";
 
 /* ── Helpers ─────────────────────────────────────────────── */
 const formatPrice = (price) => {

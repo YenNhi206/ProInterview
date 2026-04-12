@@ -19,8 +19,8 @@ import {
   Sparkles
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { getUser } from "../utils/auth";
-import { getMeetingBySession, joinMeeting, completeMeeting } from "../utils/meetings";
+import { getUser } from "../../utils/auth";
+import { getMeetingBySession, joinMeeting, completeMeeting } from "../../utils/meetings";
 
 export function MeetingRoom() {
   const { sessionId } = useParams();

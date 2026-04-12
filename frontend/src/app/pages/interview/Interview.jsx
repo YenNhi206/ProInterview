@@ -20,7 +20,7 @@ import {
   CloudUpload,
   FileStack,
 } from "lucide-react";
-import { getLatestCVAnalysis, getUploadedCV, saveUploadedCV } from "../utils/history";
+import { getLatestCVAnalysis, getUploadedCV, saveUploadedCV } from "../../utils/history";
 
 const LEVELS = ["Thực tập sinh", "Mới ra trường", "Junior", "Trung cấp", "Senior"];
 const FIELDS_LIST = [

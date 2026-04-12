@@ -28,7 +28,7 @@ import {
   X,
   CircleDollarSign as CurrencyCircleDollar,
 } from "lucide-react";
-import { getBookingById, getReview } from "../utils/bookings";
+import { getBookingById, getReview } from "../../utils/bookings";
 
 /* ─── Types ────────────────────────────────────────────── */
 

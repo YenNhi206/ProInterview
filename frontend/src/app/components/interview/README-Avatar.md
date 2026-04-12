@@ -30,7 +30,7 @@ interface AvatarInterviewerSimpleProps {
 
 **Usage:**
 ```tsx
-import { AvatarInterviewerSimple } from './components/AvatarInterviewerSimple';
+import { AvatarInterviewerSimple } from './AvatarInterviewerSimple';
 
 <AvatarInterviewerSimple 
   isSpeaking={true}
@@ -60,7 +60,7 @@ interface AvatarInterviewerAdvancedProps {
 
 **Usage:**
 ```tsx
-import { AvatarInterviewerAdvanced } from './components/AvatarInterviewerAdvanced';
+import { AvatarInterviewerAdvanced } from './AvatarInterviewerAdvanced';
 
 <AvatarInterviewerAdvanced 
   text="Xin chào! Tôi là AI interviewer."
@@ -74,7 +74,7 @@ Hook để kết nối avatar với custom audio source (audio element).
 
 **Usage:**
 ```tsx
-import { useAvatarAudio } from './components/AvatarInterviewerAdvanced';
+import { useAvatarAudio } from './AvatarInterviewerAdvanced';
 
 const { isSpeaking, audioLevel, connectAudioElement } = useAvatarAudio();
 
@@ -154,7 +154,7 @@ Truy cập `/avatar-demo` để xem demo đầy đủ với:
 Để tích hợp vào InterviewRoom:
 
 ```tsx
-import { AvatarInterviewerAdvanced } from '../components/AvatarInterviewerAdvanced';
+import { AvatarInterviewerAdvanced } from '../../components/interview/AvatarInterviewerAdvanced';
 
 function InterviewRoom() {
   const [currentQuestion, setCurrentQuestion] = useState('');

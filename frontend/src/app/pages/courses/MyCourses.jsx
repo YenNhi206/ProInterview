@@ -16,7 +16,7 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
-import { COURSES_DATA, getCourseById } from "../data/coursesData";
+import { COURSES_DATA, getCourseById } from "../../data/coursesData";
 
 /* ── Constants ─────────────────────────────────────────────── */
 const ENROLLED_KEY = "prointerview_enrolled_courses";

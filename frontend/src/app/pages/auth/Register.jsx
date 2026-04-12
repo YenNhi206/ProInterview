@@ -12,9 +12,9 @@ import {
   FileText,
   Crosshair,
 } from "lucide-react";
-import { registerUser } from "../utils/auth";
-import { AuthShell, AUTH_INPUT_CLASS, AUTH_CTA_FRAME_CLASS } from "../components/auth/AuthShell";
-import { GoogleSignInBlock } from "../components/auth/GoogleSignInBlock";
+import { registerUser } from "../../utils/auth";
+import { AuthShell, AUTH_INPUT_CLASS, AUTH_CTA_FRAME_CLASS } from "../../components/auth/AuthShell";
+import { GoogleSignInBlock } from "../../components/auth/GoogleSignInBlock";
 
 const PERKS = [
   { t: "3 buổi phỏng vấn AI miễn phí", Icon: Bot },

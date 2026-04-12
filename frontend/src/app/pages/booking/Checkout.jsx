@@ -23,10 +23,10 @@ import {
   ExternalLink as ArrowSquareOut,
   ArrowRight,
 } from "lucide-react";
-import { setActivePlan, activateAllPlans } from "../utils/auth";
-import { fetchMentor } from "../utils/mentorApi";
-import { MENTORS } from "../data/mockData";
-import { saveBooking, genMeetLink } from "../utils/bookings";
+import { setActivePlan, activateAllPlans } from "../../utils/auth";
+import { fetchMentor } from "../../utils/mentorApi";
+import { MENTORS } from "../../data/mockData";
+import { saveBooking, genMeetLink } from "../../utils/bookings";
 
 /* ─── Plan meta ─────────────────────────────────────────── */
 

@@ -20,9 +20,9 @@ import {
   X,
   Plus
 } from "lucide-react";
-import { getUser } from "../utils/auth";
-import { MENTOR_FINANCIALS, MENTOR_DASHBOARD_STATS } from "../data/mentorMockData";
-import { MentorPageShell } from "../components/mentor/MentorPageShell";
+import { getUser } from "../../utils/auth";
+import { MENTOR_FINANCIALS, MENTOR_DASHBOARD_STATS } from "../../data/mentorMockData";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 
 const MENTOR_FINANCE_EXTRA_CSS = `
         .glass-tag {

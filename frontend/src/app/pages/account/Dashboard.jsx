@@ -26,10 +26,10 @@ import {
   Trophy,
   Sparkles,
 } from "lucide-react";
-import { getUser, getPlans } from "../utils/auth";
-import { getCVAnalysisHistory, getStoredInterviewHistory } from "../utils/history";
-import { getAllBookings } from "../utils/bookings";
-import { PROGRESS_DATA, SKILLS_DATA } from "../data/mockData";
+import { getUser, getPlans } from "../../utils/auth";
+import { getCVAnalysisHistory, getStoredInterviewHistory } from "../../utils/history";
+import { getAllBookings } from "../../utils/bookings";
+import { PROGRESS_DATA, SKILLS_DATA } from "../../data/mockData";
 
 export function Dashboard() {
   const navigate = useNavigate();

@@ -21,9 +21,9 @@ import {
   Sparkles as Sparkle,
   X,
 } from "lucide-react";
-import { fetchMentor } from "../utils/mentorApi";
-import { MENTORS } from "../data/mockData";
-import { getSuggestedBookingData, getCVAnalysisHistory } from "../utils/history";
+import { fetchMentor } from "../../utils/mentorApi";
+import { MENTORS } from "../../data/mockData";
+import { getSuggestedBookingData, getCVAnalysisHistory } from "../../utils/history";
 
 /* ── Calendar data ─────────────────────────────────── */
 const WEEKS = [

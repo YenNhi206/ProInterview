@@ -26,8 +26,8 @@ import {
   Lock,
   Zap as Lightning,
 } from "lucide-react";
-import { CourseRecommendations } from "../components/CourseRecommendations";
-import { getPlans } from "../utils/auth";
+import { CourseRecommendations } from "../../components/courses/CourseRecommendations";
+import { getPlans } from "../../utils/auth";
 
 const IS = { strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" };
 
