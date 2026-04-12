@@ -22,7 +22,6 @@ import {
   X,
 } from "lucide-react";
 import { fetchMentor } from "../../utils/mentorApi";
-import { MENTORS } from "../../data/mockData";
 import { getSuggestedBookingData, getCVAnalysisHistory } from "../../utils/history";
 
 /* ── Calendar data ─────────────────────────────────── */
@@ -73,13 +72,19 @@ const BOOKED = {
 export function Booking() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [mentor, setMentor] = useState(
-    (MENTORS.find((m) => m.id === id) ?? MENTORS[0])
-  );
+  const [mentor, setMentor] = useState(null);
+  const [mentorLoading, setMentorLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
-    fetchMentor(id).then((m) => { if (m) setMentor(m); });
+    if (!id) {
+      setMentor(null);
+      setMentorLoading(false);
+      return;
+    }
+    setMentorLoading(true);
+    fetchMentor(id)
+      .then((m) => setMentor(m))
+      .finally(() => setMentorLoading(false));
   }, [id]);
 
   const [step, setStep] = useState(1);
@@ -134,436 +139,539 @@ export function Booking() {
     ? String(parseInt(selectedTime.split(":")[0]) + 1).padStart(2, "0") + ":00"
     : "";
 
+  const fieldClass =
+    "w-full rounded-xl border border-white/12 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-zinc-500 transition-colors focus:border-primary-fixed/45 focus:outline-none focus:ring-1 focus:ring-primary-fixed/25";
+
+  if (mentorLoading) {
+    return (
+      <div className="pi-page-dashboard-bg relative flex min-h-screen items-center justify-center text-zinc-400">
+        Đang tải thông tin mentor…
+      </div>
+    );
+  }
+
+  if (!mentor) {
+    return (
+      <div className="pi-page-dashboard-bg relative flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center text-zinc-400">
+        <p>Không tìm thấy mentor hoặc mentor chưa mở nhận booking.</p>
+        <button
+          type="button"
+          onClick={() => navigate("/mentors")}
+          className="rounded-full bg-primary-fixed px-6 py-2 text-sm font-bold text-black"
+        >
+          Về danh sách mentor
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      {/* Back button */}
-      <button
-        onClick={() => (step === 1 ? navigate(-1) : setStep(1))}
-        className="group flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm mb-6 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 -ml-3"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-        {step === 1 ? "Quay lại" : "Quay lại chọn lịch"}
-      </button>
-
-      {/* ── Step bar (2 steps) ──────────────────────────── */}
-      <div className="flex items-center gap-0 mb-8 select-none">
-        {[
-          { n: 1, label: "Chọn lịch" },
-          { n: 2, label: "Thông tin & Xác nhận" },
-        ].map((s, i) => (
-          <span key={s.n} style={{ display: "contents" }}>
-            <div className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-                style={
-                  step > s.n
-                    ? { background: "#B4F000", color: "#1F1F1F" }
-                    : step === s.n
-                    ? { background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", color: "#fff", boxShadow: "0 0 0 3px rgba(110, 53, 232,0.15)" }
-                    : { background: "#E9EAEC", color: "#9CA3AF" }
-                }
-              >
-                {step > s.n ? <Check className="w-4 h-4" /> : s.n}
-              </div>
-              <span
-                className="text-sm font-medium hidden sm:block"
-                style={{ color: step === s.n ? "#6E35E8" : step > s.n ? "#6B7280" : "#CBD5E1" }}
-              >
-                {s.label}
-              </span>
-            </div>
-            {i < 1 && (
-              <div
-                className="flex-1 h-0.5 mx-3 rounded-full transition-all"
-                style={{ background: step > s.n ? "#B4F000" : "#E9EAEC" }}
-              />
-            )}
-          </span>
-        ))}
+    <div className="pi-page-dashboard-bg relative min-h-screen w-full overflow-x-hidden pb-20 font-sans text-white selection:bg-[rgba(196,255,71,0.28)] selection:text-white">
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-90">
+        <div className="absolute top-[-18%] right-[-8%] h-[65vh] w-[65vh] rounded-full bg-gradient-to-bl from-fuchsia-600/30 via-violet-600/18 to-transparent blur-[100px]" />
+        <div className="absolute bottom-[-22%] left-[-12%] h-[80vh] w-[80vh] rounded-full bg-gradient-to-tr from-[#c4ff47]/14 via-cyan-500/8 to-fuchsia-500/16 blur-[110px]" />
+        <div className="absolute top-1/2 left-1/2 h-[45vh] w-[45vh] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6E35E8]/10 blur-[90px]" />
       </div>
 
-      {/* ── Mentor summary bar ─────────────────────────── */}
-      <div
-        className="rounded-2xl p-4 mb-6 flex items-center gap-4"
-        style={{ background: "rgba(110, 53, 232,0.05)", border: "1px solid rgba(110, 53, 232,0.12)" }}
-      >
-        <img src={mentor.avatar} alt={mentor.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-        <div className="min-w-0">
-          <p className="text-gray-900 font-semibold text-sm">{mentor.name}</p>
-          <p className="text-gray-500 text-xs">{mentor.title} · {mentor.company}</p>
-        </div>
-        <div className="ml-auto text-right flex-shrink-0">
-          <p className="font-bold" style={{ color: "#6E35E8", fontSize: "1.1rem" }}>
-            {mentor.price.toLocaleString("vi")}đ
-          </p>
-          <p className="text-gray-400 text-xs">/ 60 phút</p>
-        </div>
-      </div>
+      <div className="relative z-10 mx-auto max-w-3xl px-5 pt-8 sm:px-6 sm:pt-10">
+        <button
+          type="button"
+          onClick={() => (step === 1 ? navigate(-1) : setStep(1))}
+          className="group -ml-1 mb-6 flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          {step === 1 ? "Quay lại" : "Quay lại chọn lịch"}
+        </button>
 
-      {/* ══ STEP 1: Date & Time ══════════════════════════ */}
-      {step === 1 && (
-        <div className="space-y-4">
-
-          {/* Calendar */}
-          <div className="card-premium overflow-hidden">
-            <div className="px-5 py-4 flex items-center gap-3 border-b border-gray-100" style={{ background: "rgba(110, 53, 232,0.03)" }}>
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(110, 53, 232,0.1)" }}>
-                <CalendarBlank className="w-4 h-4" style={{ color: "#6E35E8" }} />
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900" style={{ fontSize: "0.9rem" }}>Chọn ngày phỏng vấn</p>
-                <p className="text-gray-400" style={{ fontSize: "0.75rem" }}>Lịch trống của {mentor.name} — Tháng 2 & 3/2026</p>
-              </div>
-            </div>
-            <div className="p-5 space-y-5">
-              {WEEKS.map((week) => (
-                <div key={week.label}>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{week.label}</p>
-                  <div className="grid grid-cols-7 gap-2">
-                    {week.days.map((d) => {
-                      const isSelected = selectedDay === d.date;
-                      const bookedCount = (BOOKED[d.date] ?? []).length;
-                      const freeSlots = TIME_GROUPS.flatMap((g) => g.slots).length - bookedCount;
-                      return (
-                        <button
-                          key={d.date}
-                          disabled={!d.available}
-                          onClick={() => { setSelectedDay(d.date); setSelectedDayFull(d.full); setSelectedTime(null); }}
-                          className="flex flex-col items-center py-3 rounded-xl transition-all"
-                          style={
-                            isSelected
-                              ? { background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", boxShadow: "0 4px 14px rgba(110, 53, 232,0.3)" }
-                              : d.available
-                              ? { background: "#F8F9FA", border: "1px solid #EDEEF0", cursor: "pointer" }
-                              : { background: "rgba(255,255,255,0.06)", opacity: 0.45, cursor: "not-allowed" }
-                          }
-                          onMouseEnter={(e) => { if (!isSelected && d.available) (e.currentTarget).style.borderColor = "rgba(110, 53, 232,0.35)"; }}
-                          onMouseLeave={(e) => { if (!isSelected && d.available) (e.currentTarget).style.borderColor = "#EDEEF0"; }}
-                        >
-                          <span className="text-xs mb-1" style={{ color: isSelected ? "rgba(255,255,255,0.7)" : "#9CA3AF" }}>{d.day}</span>
-                          <span className="font-bold" style={{ fontSize: "0.95rem", color: isSelected ? "#fff" : d.available ? "#1F1F1F" : "#9CA3AF" }}>
-                            {d.date.split("/")[0]}
-                          </span>
-                          {d.available && (
-                            <span
-                              className="mt-1 text-xs rounded-full px-1.5"
-                              style={{
-                                fontSize: "0.6rem",
-                                color: isSelected ? "rgba(255,255,255,0.75)" : freeSlots <= 3 ? "#CC5C00" : "#4A7A00",
-                                background: isSelected ? "rgba(255,255,255,0.15)" : freeSlots <= 3 ? "rgba(255,140,66,0.12)" : "rgba(180,240,0,0.15)",
-                              }}
-                            >
-                              {freeSlots} chỗ
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+        <div className="mb-8 flex select-none items-center gap-0">
+          {[
+            { n: 1, label: "Chọn lịch" },
+            { n: 2, label: "Thông tin & Xác nhận" },
+          ].map((s, i) => (
+            <span key={s.n} className="contents">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-black transition-all ${
+                    step > s.n
+                      ? "bg-primary-fixed text-black shadow-[0_0_20px_rgba(196,255,71,0.35)]"
+                      : step === s.n
+                        ? "bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-white shadow-[0_0_0_3px_rgba(110,53,232,0.25)]"
+                        : "bg-white/10 text-zinc-500"
+                  }`}
+                >
+                  {step > s.n ? <Check className="h-4 w-4" strokeWidth={2.5} /> : s.n}
                 </div>
-              ))}
-              <div className="flex items-center gap-5 pt-2 border-t border-gray-50">
-                <div className="flex items-center gap-1.5 text-xs text-gray-400"><div className="w-3 h-3 rounded-full" style={{ background: "linear-gradient(135deg, #6E35E8, #8B4DFF)" }} />Đã chọn</div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-400"><div className="w-3 h-3 rounded-full bg-gray-200" />Không khả dụng</div>
-                <div className="flex items-center gap-1.5 text-xs" style={{ color: "#CC5C00" }}><div className="w-3 h-3 rounded-full" style={{ background: "rgba(255,140,66,0.3)" }} />Còn ít chỗ</div>
+                <span
+                  className={`hidden text-sm font-bold sm:block ${
+                    step === s.n ? "text-primary-fixed" : step > s.n ? "text-zinc-400" : "text-zinc-600"
+                  }`}
+                >
+                  {s.label}
+                </span>
               </div>
-            </div>
-          </div>
+              {i < 1 && (
+                <div
+                  className={`mx-3 h-0.5 flex-1 rounded-full transition-colors ${
+                    step > s.n ? "bg-primary-fixed/90" : "bg-white/10"
+                  }`}
+                />
+              )}
+            </span>
+          ))}
+        </div>
 
-          {/* Time slots */}
-          {selectedDay ? (
+        <div className="mb-6 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl">
+          <img src={mentor.avatar} alt={mentor.name} className="h-12 w-12 flex-shrink-0 rounded-xl object-cover ring-1 ring-white/10" />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-white">{mentor.name}</p>
+            <p className="truncate text-xs text-zinc-400">
+              {mentor.title} · {mentor.company}
+            </p>
+          </div>
+          <div className="ml-auto flex-shrink-0 text-right">
+            <p className="text-lg font-black text-primary-fixed">{mentor.price.toLocaleString("vi")}đ</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">/ 60 phút</p>
+          </div>
+        </div>
+
+        {step === 1 && (
+          <div className="space-y-4">
             <div className="card-premium overflow-hidden">
-              <div className="px-5 py-4 flex items-center gap-3 border-b border-gray-100" style={{ background: "rgba(110, 53, 232,0.03)" }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(110, 53, 232,0.1)" }}>
-                  <Clock className="w-4 h-4" style={{ color: "#6E35E8" }} />
+              <div className="flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-5 py-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/20">
+                  <CalendarBlank className="h-4 w-4 text-primary-fixed" strokeWidth={2} />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900" style={{ fontSize: "0.9rem" }}>Chọn khung giờ</p>
-                  <p className="text-gray-400" style={{ fontSize: "0.75rem" }}>{selectedDayFull} · {availableSlotCount} khung giờ trống</p>
-                </div>
-                <div className="ml-auto flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full" style={{ background: "rgba(180,240,0,0.12)", color: "#4A7A00" }}>
-                  <Timer className="w-3.5 h-3.5" />60 phút / buổi
+                  <p className="text-sm font-bold text-white">Chọn ngày phỏng vấn</p>
+                  <p className="text-xs text-zinc-500">Lịch trống của {mentor.name} — Tháng 2 & 3/2026</p>
                 </div>
               </div>
-              <div className="p-5 space-y-5">
-                {TIME_GROUPS.map((group) => (
-                  <div key={group.label}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <group.icon className="w-3.5 h-3.5 text-gray-400" />
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{group.label}</p>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {group.slots.map((time) => {
-                        const booked = isSlotBooked(time);
-                        const selected = selectedTime === time;
+              <div className="space-y-5 p-5">
+                {WEEKS.map((week) => (
+                  <div key={week.label}>
+                    <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{week.label}</p>
+                    <div className="grid grid-cols-7 gap-2">
+                      {week.days.map((d) => {
+                        const isSelected = selectedDay === d.date;
+                        const bookedCount = (BOOKED[d.date] ?? []).length;
+                        const freeSlots = TIME_GROUPS.flatMap((g) => g.slots).length - bookedCount;
                         return (
                           <button
-                            key={time}
-                            disabled={booked}
-                            onClick={() => setSelectedTime(time)}
-                            className="py-3 rounded-xl transition-all text-sm font-medium relative"
-                            style={
-                              selected
-                                ? { background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", color: "#fff", boxShadow: "0 4px 12px rgba(110, 53, 232,0.3)", border: "none" }
-                                : booked
-                                ? { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)", cursor: "not-allowed", border: "1px solid rgba(255,255,255,0.08)" }
-                                : { background: "#fff", color: "#1F1F1F", border: "1.5px solid #E5E7EB" }
-                            }
-                            onMouseEnter={(e) => { if (!selected && !booked) { (e.currentTarget).style.borderColor = "rgba(110, 53, 232,0.4)"; (e.currentTarget).style.color = "#6E35E8"; } }}
-                            onMouseLeave={(e) => { if (!selected && !booked) { (e.currentTarget).style.borderColor = "#E5E7EB"; (e.currentTarget).style.color = "#1F1F1F"; } }}
+                            key={d.date}
+                            type="button"
+                            disabled={!d.available}
+                            onClick={() => {
+                              setSelectedDay(d.date);
+                              setSelectedDayFull(d.full);
+                              setSelectedTime(null);
+                            }}
+                            className={`flex flex-col items-center rounded-xl py-3 transition-all ${
+                              isSelected
+                                ? "bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-white shadow-[0_8px_24px_rgba(110,53,232,0.35)]"
+                                : d.available
+                                  ? "border border-white/12 bg-white/[0.06] text-white hover:border-primary-fixed/35"
+                                  : "cursor-not-allowed bg-white/[0.03] opacity-40"
+                            }`}
                           >
-                            {time}
-                            {booked && <span className="absolute -top-1.5 -right-1.5 text-xs bg-gray-200 text-gray-400 px-1 rounded-full" style={{ fontSize: "0.55rem" }}>Hết</span>}
+                            <span
+                              className={`mb-1 text-xs font-semibold ${
+                                isSelected ? "text-white/75" : d.available ? "text-zinc-500" : "text-zinc-600"
+                              }`}
+                            >
+                              {d.day}
+                            </span>
+                            <span className={`text-[0.95rem] font-black ${isSelected ? "text-white" : d.available ? "text-white" : "text-zinc-600"}`}>
+                              {d.date.split("/")[0]}
+                            </span>
+                            {d.available && (
+                              <span
+                                className={`mt-1 rounded-full px-1.5 text-[0.6rem] font-bold ${
+                                  isSelected
+                                    ? "bg-white/15 text-white/90"
+                                    : freeSlots <= 3
+                                      ? "bg-[#FF8C42]/20 text-[#ffb38a]"
+                                      : "bg-primary-fixed/15 text-primary-fixed"
+                                }`}
+                              >
+                                {freeSlots} chỗ
+                              </span>
+                            )}
                           </button>
                         );
                       })}
                     </div>
                   </div>
                 ))}
+                <div className="flex flex-wrap items-center gap-4 border-t border-white/10 pt-3 text-xs text-zinc-500">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF]" />
+                    Đã chọn
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full border border-white/25 bg-white/10" />
+                    Còn chỗ
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[#ffb38a]">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#FF8C42]/50" />
+                    Còn ít chỗ
+                  </span>
+                </div>
+              </div>
+            </div>
 
-                {selectedTime && (
-                  <div className="rounded-xl p-4 flex items-center gap-3 mt-2" style={{ background: "rgba(110, 53, 232,0.05)", border: "1px solid rgba(110, 53, 232,0.12)" }}>
-                    <Check className="w-5 h-5 flex-shrink-0" style={{ color: "#6E35E8" }} />
+            {selectedDay ? (
+              <div className="card-premium overflow-hidden">
+                <div className="flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-5 py-4">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/20">
+                    <Clock className="h-4 w-4 text-primary-fixed" strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white">Chọn khung giờ</p>
+                    <p className="truncate text-xs text-zinc-500">
+                      {selectedDayFull} · {availableSlotCount} khung giờ trống
+                    </p>
+                  </div>
+                  <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 rounded-full border border-primary-fixed/25 bg-primary-fixed/10 px-3 py-1.5 text-[11px] font-bold text-primary-fixed">
+                    <Timer className="h-3.5 w-3.5" />
+                    60 phút / buổi
+                  </div>
+                </div>
+                <div className="space-y-5 p-5">
+                  {TIME_GROUPS.map((group) => (
+                    <div key={group.label}>
+                      <div className="mb-3 flex items-center gap-2">
+                        <group.icon className="h-3.5 w-3.5 text-zinc-500" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">{group.label}</p>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {group.slots.map((time) => {
+                          const booked = isSlotBooked(time);
+                          const selected = selectedTime === time;
+                          return (
+                            <button
+                              key={time}
+                              type="button"
+                              disabled={booked}
+                              onClick={() => setSelectedTime(time)}
+                              className={`relative rounded-xl py-3 text-sm font-bold transition-all ${
+                                selected
+                                  ? "bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-white shadow-[0_6px_20px_rgba(110,53,232,0.35)]"
+                                  : booked
+                                    ? "cursor-not-allowed border border-white/[0.06] bg-white/[0.03] text-zinc-600"
+                                    : "border border-white/12 bg-white/[0.06] text-white hover:border-primary-fixed/40 hover:text-primary-fixed"
+                              }`}
+                            >
+                              {time}
+                              {booked && (
+                                <span className="absolute -right-1 -top-1 rounded-full bg-white/10 px-1 text-[0.55rem] font-bold text-zinc-500">
+                                  Hết
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  {selectedTime && (
+                    <div className="mt-2 flex items-center gap-3 rounded-xl border border-violet-500/20 bg-violet-500/[0.08] p-4">
+                      <Check className="h-5 w-5 flex-shrink-0 text-primary-fixed" strokeWidth={2.5} />
+                      <div>
+                        <p className="text-sm font-bold text-white">
+                          Lịch đã chọn: {selectedDayFull} lúc {selectedTime}
+                        </p>
+                        <p className="mt-0.5 text-xs text-zinc-500">
+                          Buổi kết thúc lúc {endTime} · Google Meet gửi qua email
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-2 border-t border-white/5 pt-3 text-xs text-zinc-500">
+                    <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-zinc-600" />
+                    <span>
+                      Múi giờ: <strong className="text-zinc-400">Việt Nam (UTC+7)</strong> · Khung giờ được giữ trong 15 phút sau khi tiếp tục.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-5 text-sm text-zinc-500">
+                <Clock className="h-5 w-5 flex-shrink-0 text-zinc-600" />
+                <p>Chọn ngày để xem các khung giờ trống khả dụng</p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              disabled={!selectedDay || !selectedTime}
+              onClick={() => setStep(2)}
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
+                selectedDay && selectedTime
+                  ? "bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-white shadow-[0_8px_28px_rgba(110,53,232,0.35)] hover:shadow-[0_12px_36px_rgba(110,53,232,0.45)]"
+                  : "cursor-not-allowed bg-white/[0.06] text-zinc-600"
+              }`}
+            >
+              {selectedDay && selectedTime ? (
+                <>
+                  Tiếp tục — Thông tin và xác nhận <CaretRight className="h-4 w-4" />
+                </>
+              ) : (
+                "Vui lòng chọn ngày và giờ"
+              )}
+            </button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 backdrop-blur-sm">
+              <CalendarBlank className="h-4 w-4 flex-shrink-0 text-primary-fixed" />
+              <p className="min-w-0 flex-1 truncate text-sm font-bold text-white">
+                {selectedDayFull} · {selectedTime} – {endTime}
+              </p>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="flex-shrink-0 rounded-lg px-3 py-1 text-xs font-bold text-primary-fixed transition-colors hover:bg-primary-fixed/10"
+              >
+                Đổi lịch
+              </button>
+            </div>
+
+            {showSmartBanner && suggestedData && (
+              <div className="flex items-start gap-3 rounded-2xl border border-primary-fixed/25 bg-gradient-to-br from-primary-fixed/[0.08] to-violet-500/[0.06] p-4">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-fixed/15">
+                  <Sparkle className="h-5 w-5 text-primary-fixed" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="mb-1 text-sm font-bold text-primary-fixed">Tự động điền từ phân tích CV/JD gần nhất</p>
+                  <p className="mb-2 text-xs text-zinc-400">
+                    Đã phân tích <span className="font-bold text-white">{suggestedData.position}</span>. Điền nhanh để tiết kiệm thời gian?
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleUseSmartFill}
+                      className="rounded-lg bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] px-4 py-1.5 text-xs font-black text-white shadow-lg"
+                    >
+                      Dùng ngay
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowSmartBanner(false)}
+                      className="rounded-lg px-4 py-1.5 text-xs font-semibold text-zinc-500 hover:bg-white/5 hover:text-white"
+                    >
+                      Bỏ qua
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSmartBanner(false)}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-500 hover:bg-white/10 hover:text-white"
+                  aria-label="Đóng"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+              <div className="card-premium space-y-5 p-5 lg:col-span-3">
+                <div>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                    Vị trí đang ứng tuyển <span className="text-primary-fixed">*</span>
+                  </label>
+                  <input
+                    className={fieldClass}
+                    placeholder="Ví dụ: Frontend Developer tại Shopee"
+                    value={form.position}
+                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                    Tải lên CV <span className="font-normal normal-case text-zinc-600">(bắt buộc)</span>
+                  </label>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setForm({ ...form, cv: true })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") setForm({ ...form, cv: true });
+                    }}
+                    className={`cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-all ${
+                      form.cv
+                        ? "border-primary-fixed/60 bg-primary-fixed/10"
+                        : "border-white/15 hover:border-primary-fixed/35 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    {form.cv ? (
+                      <div className="flex items-center justify-center gap-2 text-sm font-bold text-primary-fixed">
+                        <Check className="h-4 w-4" strokeWidth={2.5} />
+                        Nguyen_Tuan_CV.pdf
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-3">
+                        <FileText className="h-6 w-6 text-zinc-600" />
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-zinc-300">Nhấn để tải lên CV</p>
+                          <p className="text-xs text-zinc-500">PDF, DOC (tối đa 5MB)</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                    Tải lên JD <span className="font-normal normal-case text-zinc-600">(khuyến khích)</span>
+                  </label>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setForm({ ...form, jd: true })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") setForm({ ...form, jd: true });
+                    }}
+                    className={`cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-all ${
+                      form.jd
+                        ? "border-primary-fixed/60 bg-primary-fixed/10"
+                        : "border-white/15 hover:border-violet-400/35 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    {form.jd ? (
+                      <div className="flex items-center justify-center gap-2 text-sm font-bold text-primary-fixed">
+                        <Check className="h-4 w-4" strokeWidth={2.5} />
+                        Shopee_JD.pdf
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-3">
+                        <UploadSimple className="h-6 w-6 text-zinc-600" />
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-zinc-300">Nhấn để tải lên JD</p>
+                          <p className="text-xs text-zinc-500">Giúp mentor chuẩn bị câu hỏi phù hợp hơn</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-zinc-500">Ghi chú (nếu có)</label>
+                  <textarea
+                    className={`${fieldClass} resize-none`}
+                    rows={2}
+                    placeholder="Yêu cầu đặc biệt, tập trung kỹ năng nào, ngôn ngữ phỏng vấn..."
+                    value={form.note}
+                    onChange={(e) => setForm({ ...form, note: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 lg:col-span-2">
+                <div className="card-premium p-5">
+                  <h2 className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Tóm tắt đặt lịch</h2>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between gap-2">
+                      <span className="flex items-center gap-2 text-zinc-500">
+                        <CalendarBlank className="h-3.5 w-3.5 text-zinc-600" />
+                        Ngày
+                      </span>
+                      <span className="max-w-[55%] text-right font-semibold text-white">{selectedDayFull}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="flex items-center gap-2 text-zinc-500">
+                        <Clock className="h-3.5 w-3.5 text-zinc-600" />
+                        Giờ
+                      </span>
+                      <span className="font-semibold text-white">
+                        {selectedTime} – {endTime}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="flex items-center gap-2 text-zinc-500">
+                        <VideoCamera className="h-3.5 w-3.5 text-zinc-600" />
+                        Hình thức
+                      </span>
+                      <span className="font-semibold text-white">Google Meet</span>
+                    </div>
+                    {form.cv && (
+                      <div className="flex justify-between">
+                        <span className="text-zinc-500">CV</span>
+                        <span className="flex items-center gap-1 font-semibold text-primary-fixed">
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                          Đã tải lên
+                        </span>
+                      </div>
+                    )}
+                    {form.jd && (
+                      <div className="flex justify-between">
+                        <span className="text-zinc-500">JD</span>
+                        <span className="flex items-center gap-1 font-semibold text-primary-fixed">
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                          Đã tải lên
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t border-white/10 pt-3">
+                      <span className="font-bold text-white">Tổng tiền</span>
+                      <span className="text-lg font-black text-primary-fixed">{mentor.price.toLocaleString("vi")}đ</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card-premium space-y-3 p-4">
+                  <div className="flex gap-2.5">
+                    <CurrencyCircleDollar className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" />
                     <div>
-                      <p className="text-sm font-semibold" style={{ color: "#6E35E8" }}>Lịch đã chọn: {selectedDayFull} lúc {selectedTime}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Buổi phỏng vấn kết thúc lúc {endTime} · Google Meet link gửi qua email</p>
+                      <p className="mb-0.5 text-xs font-bold text-white">Hoàn tiền 100%</p>
+                      <p className="text-xs text-zinc-500">Nếu mentor hủy hoặc bạn hủy trước 48h</p>
                     </div>
                   </div>
-                )}
-
-                <div className="flex items-start gap-2 text-xs text-gray-400 pt-1">
-                  <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                  <span>Múi giờ: <strong className="text-gray-500">Việt Nam (UTC+7)</strong> · Khung giờ được giữ trong 15 phút sau khi tiếp tục.</span>
+                  <div className="flex gap-2.5">
+                    <ArrowsClockwise className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-fixed" />
+                    <div>
+                      <p className="mb-0.5 text-xs font-bold text-white">Đổi lịch miễn phí</p>
+                      <p className="text-xs text-zinc-500">Thông báo trước 24h · 1 lần mỗi lần đặt lịch</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="rounded-2xl p-5 flex items-center gap-3 text-sm" style={{ background: "#F8F9FA", border: "1.5px dashed #DDDFE3" }}>
-              <Clock className="w-5 h-5 text-gray-300 flex-shrink-0" />
-              <p className="text-gray-400">Chọn ngày để xem các khung giờ trống khả dụng</p>
-            </div>
-          )}
 
-          {/* CTA */}
-          <button
-            disabled={!selectedDay || !selectedTime}
-            onClick={() => setStep(2)}
-            className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-            style={
-              selectedDay && selectedTime
-                ? { background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", color: "#fff", boxShadow: "0 6px 20px rgba(110, 53, 232,0.3)" }
-                : { background: "#F0F1F3", color: "#9CA3AF", cursor: "not-allowed" }
-            }
-            onMouseEnter={(e) => { if (selectedDay && selectedTime) (e.currentTarget).style.boxShadow = "0 10px 28px rgba(110, 53, 232,0.4)"; }}
-            onMouseLeave={(e) => { if (selectedDay && selectedTime) (e.currentTarget).style.boxShadow = "0 6px 20px rgba(110, 53, 232,0.3)"; }}
-          >
-            {selectedDay && selectedTime
-              ? <>Tiếp tục — Thông tin & Xác nhận <CaretRight className="w-4 h-4" /></>
-              : "Vui lòng chọn ngày và giờ"}
-          </button>
-        </div>
-      )}
-
-      {/* ══ STEP 2: Info + Confirm (merged) ══════════════ */}
-      {step === 2 && (
-        <div className="space-y-5">
-
-          {/* Schedule reminder chip */}
-          <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{ background: "rgba(110, 53, 232,0.05)", border: "1px solid rgba(110, 53, 232,0.12)" }}>
-            <CalendarBlank className="w-4 h-4 flex-shrink-0" style={{ color: "#6E35E8" }} />
-            <p className="text-sm font-medium" style={{ color: "#6E35E8" }}>
-              {selectedDayFull} · {selectedTime} – {endTime}
-            </p>
-            <button
-              onClick={() => setStep(1)}
-              className="ml-auto text-xs font-medium px-3 py-1 rounded-lg hover:bg-[#6E35E8]/10 transition-colors"
-              style={{ color: "#6E35E8" }}
-            >
-              Đổi lịch
-            </button>
-          </div>
-
-          {/* Smart auto-fill banner */}
-          {showSmartBanner && suggestedData && (
-            <div className="rounded-2xl p-4 flex items-start gap-3" style={{ background: "linear-gradient(135deg, rgba(180,240,0,0.08), rgba(110, 53, 232,0.04))", border: "1.5px solid rgba(180,240,0,0.3)" }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(180,240,0,0.15)" }}>
-                <Sparkle className="w-5 h-5" style={{ color: "#6E9900" }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm mb-1" style={{ color: "#4A7A00" }}>💡 Tự động điền từ phân tích CV/JD gần nhất</p>
-                <p className="text-xs mb-2" style={{ color: "#6E9900" }}>
-                  Đã phân tích <strong>{suggestedData.position}</strong>. Điền nhanh để tiết kiệm thời gian?
-                </p>
-                <div className="flex gap-2">
-                  <button onClick={handleUseSmartFill} className="px-4 py-1.5 rounded-lg text-xs font-bold text-white" style={{ background: "linear-gradient(135deg, #6E35E8, #8B4DFF)" }}>✨ Dùng ngay</button>
-                  <button onClick={() => setShowSmartBanner(false)} className="px-4 py-1.5 rounded-lg text-xs font-medium text-gray-500">Bỏ qua</button>
-                </div>
-              </div>
-              <button onClick={() => setShowSmartBanner(false)} className="flex-shrink-0 w-6 h-6 rounded-lg hover:bg-black/5 flex items-center justify-center"><X className="w-4 h-4 text-gray-400" /></button>
-            </div>
-          )}
-
-          {/* Info form + Order summary side by side on large screens */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-
-            {/* Left: form */}
-            <div className="lg:col-span-3 card-premium p-5 space-y-5">
-              <div>
-                <label className="block text-gray-700 text-xs font-semibold mb-2">Vị trí đang ứng tuyển *</label>
-                <input
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#6E35E8]/50 bg-gray-50 focus:bg-white transition-all"
-                  placeholder="Ví dụ: Frontend Developer tại Shopee"
-                  value={form.position}
-                  onChange={(e) => setForm({ ...form, position: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-xs font-semibold mb-2">Tải lên CV <span className="text-gray-400 font-normal">(bắt buộc)</span></label>
-                <div
-                  onClick={() => setForm({ ...form, cv: true })}
-                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${form.cv ? "" : "border-gray-200 hover:border-[#6E35E8]/40 hover:bg-[#6E35E8]/5"}`}
-                  style={form.cv ? { borderColor: "#B4F000", background: "rgba(180,240,0,0.06)" } : {}}
-                >
-                  {form.cv ? (
-                    <div className="flex items-center justify-center gap-2" style={{ color: "#4A7A00" }}>
-                      <Check className="w-4 h-4" />
-                      <span className="text-sm font-medium">Nguyen_Tuan_CV.pdf</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-3">
-                      <FileText className="w-6 h-6 text-gray-300" />
-                      <div className="text-left">
-                        <p className="text-gray-500 text-sm">Nhấn để tải lên CV</p>
-                        <p className="text-gray-400 text-xs">PDF, DOC (tối đa 5MB)</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-xs font-semibold mb-2">Tải lên JD <span className="text-gray-400 font-normal">(khuyến khích)</span></label>
-                <div
-                  onClick={() => setForm({ ...form, jd: true })}
-                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${form.jd ? "" : "border-gray-200 hover:border-[#8B4DFF]/40 hover:bg-[#6E35E8]/5"}`}
-                  style={form.jd ? { borderColor: "#B4F000", background: "rgba(180,240,0,0.06)" } : {}}
-                >
-                  {form.jd ? (
-                    <div className="flex items-center justify-center gap-2" style={{ color: "#4A7A00" }}>
-                      <Check className="w-4 h-4" />
-                      <span className="text-sm font-medium">Shopee_JD.pdf</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-3">
-                      <UploadSimple className="w-6 h-6 text-gray-300" />
-                      <div className="text-left">
-                        <p className="text-gray-500 text-sm">Nhấn để tải lên JD</p>
-                        <p className="text-gray-400 text-xs">Giúp mentor chuẩn bị câu hỏi phù hợp hơn</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-xs font-semibold mb-2">Ghi chú (nếu có)</label>
-                <textarea
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#6E35E8]/50 bg-gray-50 focus:bg-white transition-all resize-none"
-                  rows={2}
-                  placeholder="Yêu cầu đặc biệt, tập trung kỹ năng nào, ngôn ngữ phỏng vấn..."
-                  value={form.note}
-                  onChange={(e) => setForm({ ...form, note: e.target.value })}
-                />
-              </div>
+            <div className="flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-500/[0.06] px-4 py-3">
+              <Bell className="h-4 w-4 flex-shrink-0 text-amber-300/90" />
+              <p className="text-xs font-medium leading-relaxed text-amber-100/90">
+                Bạn sẽ nhận email nhắc nhở trước 24 giờ và 1 giờ trước buổi phỏng vấn.
+              </p>
             </div>
 
-            {/* Right: order summary */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="card-premium p-5">
-                <h2 className="text-gray-800 font-semibold mb-4 text-sm">Tóm tắt đặt lịch</h2>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 flex items-center gap-2"><CalendarBlank className="w-3.5 h-3.5" />Ngày</span>
-                    <span className="text-gray-800 font-medium text-right">{selectedDayFull}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 flex items-center gap-2"><Clock className="w-3.5 h-3.5" />Giờ</span>
-                    <span className="text-gray-800 font-medium">{selectedTime} – {endTime}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500 flex items-center gap-2"><VideoCamera className="w-3.5 h-3.5" />Hình thức</span>
-                    <span className="text-gray-800 font-medium">Google Meet</span>
-                  </div>
-                  {form.cv && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">CV</span>
-                      <span className="text-gray-800 font-medium flex items-center gap-1"><Check className="w-3 h-3" style={{ color: "#4A7A00" }} />Đã tải lên</span>
-                    </div>
-                  )}
-                  {form.jd && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">JD</span>
-                      <span className="text-gray-800 font-medium flex items-center gap-1"><Check className="w-3 h-3" style={{ color: "#4A7A00" }} />Đã tải lên</span>
-                    </div>
-                  )}
-                  <div className="border-t border-gray-100 pt-3 flex justify-between">
-                    <span className="text-gray-800 font-semibold">Tổng tiền</span>
-                    <span className="font-bold" style={{ color: "#6E35E8" }}>{mentor.price.toLocaleString("vi")}đ</span>
-                  </div>
-                </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                <ShieldCheck className="h-4 w-4 flex-shrink-0 text-primary-fixed" />
+                Thanh toán bảo mật và mã hóa
               </div>
-
-              {/* Policies — compact */}
-              <div className="card-premium p-4 space-y-3">
-                <div className="flex gap-2.5">
-                  <CurrencyCircleDollar className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#10b981" }} />
-                  <div>
-                    <p className="text-gray-700 font-medium text-xs mb-0.5">Hoàn tiền 100%</p>
-                    <p className="text-xs text-gray-400">Nếu mentor hủy hoặc bạn hủy trước 48h</p>
-                  </div>
-                </div>
-                <div className="flex gap-2.5">
-                  <ArrowsClockwise className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#6E35E8" }} />
-                  <div>
-                    <p className="text-gray-700 font-medium text-xs mb-0.5">Đổi lịch miễn phí</p>
-                    <p className="text-xs text-gray-400">Thông báo trước 24h · 1 lần mỗi lần đặt lịch</p>
-                  </div>
-                </div>
-              </div>
+              <button
+                type="button"
+                disabled={!form.position || !form.cv}
+                onClick={handleProceed}
+                className={`ml-auto flex items-center gap-2 rounded-2xl px-8 py-4 text-sm font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
+                  form.position && form.cv
+                    ? "bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-white shadow-[0_8px_28px_rgba(110,53,232,0.35)] hover:shadow-[0_12px_36px_rgba(110,53,232,0.45)]"
+                    : "cursor-not-allowed bg-white/[0.06] text-zinc-600"
+                }`}
+              >
+                Tiếp tục thanh toán — {mentor.price.toLocaleString("vi")}đ
+                <CaretRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
-
-          {/* Notification note */}
-          <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{ background: "rgba(255,214,0,0.08)", border: "1px solid rgba(255,214,0,0.25)" }}>
-            <Bell className="w-4 h-4 flex-shrink-0" style={{ color: "#997F00" }} />
-            <p className="text-xs" style={{ color: "#997F00" }}>Bạn sẽ nhận email nhắc nhở trước 24 giờ và 1 giờ trước buổi phỏng vấn.</p>
-          </div>
-
-          {/* CTA */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 flex-shrink-0" style={{ color: "#6E35E8" }} />
-              <p className="text-gray-400 text-xs">Thanh toán bảo mật & mã hóa</p>
-            </div>
-            <button
-              disabled={!form.position || !form.cv}
-              onClick={handleProceed}
-              className="ml-auto flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98]"
-              style={
-                form.position && form.cv
-                  ? { background: "linear-gradient(135deg, #6E35E8, #8B4DFF)", color: "#fff", boxShadow: "0 6px 20px rgba(110, 53, 232,0.3)" }
-                  : { background: "#F0F1F3", color: "#9CA3AF", cursor: "not-allowed" }
-              }
-              onMouseEnter={(e) => { if (form.position && form.cv) (e.currentTarget).style.boxShadow = "0 10px 28px rgba(110, 53, 232,0.4)"; }}
-              onMouseLeave={(e) => { if (form.position && form.cv) (e.currentTarget).style.boxShadow = "0 6px 20px rgba(110, 53, 232,0.3)"; }}
-            >
-              Tiếp tục thanh toán — {mentor.price.toLocaleString("vi")}đ
-              <CaretRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -6,6 +6,10 @@ import { connectDatabase } from "./db/connect.js";
 import "./models/index.js";
 import { mentorsRouter } from "./routes/mentors.js";
 import { authRouter } from "./routes/auth.js";
+import { bookingsRouter } from "./routes/bookings.js";
+import { plansRouter } from "./routes/plans.js";
+import { paymentsRouter } from "./routes/payments.js";
+import { usersRouter } from "./routes/users.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,6 +33,10 @@ app.get("/", (_req, res) => {
     docs: "/api/health",
     mentors: "/api/mentors",
     auth: "/api/auth",
+    bookings: "/api/bookings",
+    plans: "/api/plans",
+    payments: "/api/payments",
+    users: "/api/users",
   });
 });
 
@@ -43,9 +51,13 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/mentors", mentorsRouter);
+app.use("/api/bookings", bookingsRouter);
+app.use("/api/plans", plansRouter);
+app.use("/api/payments", paymentsRouter);
+app.use("/api/users", usersRouter);
 
 console.log(
-  `API: /api/health, /api/auth (login, register, google, me), /api/mentors — nếu POST /api/auth/google trả 404 HTML thì tiến trình cũ trên cổng ${PORT} cần tắt và chạy lại backend từ repo này.`,
+  `API: /api/health, /api/auth, /api/mentors, /api/bookings, /api/plans, /api/payments, /api/users — nếu POST /api/auth/google trả 404 HTML thì tiến trình cũ trên cổng ${PORT} cần tắt và chạy lại backend từ repo này.`,
 );
 
 app.use((err, _req, res, _next) => {
@@ -59,6 +71,18 @@ const startServer = async () => {
       await connectDatabase(MONGO_URI);
       const dbName = mongoose.connection.db?.databaseName ?? "?";
       console.log(`MongoDB connected (database: ${dbName})`);
+      if (mongoose.connection.readyState === 1) {
+        const { ensureMentorProfilesForAllMentorUsers } = await import("./services/mentorProfileService.js");
+        const sync = await ensureMentorProfilesForAllMentorUsers().catch((e) => ({
+          ok: false,
+          error: e?.message || e,
+        }));
+        if (sync?.ok && (sync.created > 0 || sync.errors > 0)) {
+          console.log(
+            `[startup] Đồng bộ hồ sơ mentor: tạo mới ${sync.created}, lỗi ${sync.errors ?? 0}, user role mentor: ${sync.totalMentorUsers ?? "?"}`,
+          );
+        }
+      }
     } else {
       console.warn("MONGO_URI is missing. /api/mentors will return 503 until MongoDB is configured.");
     }

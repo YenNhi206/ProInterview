@@ -113,7 +113,7 @@ function parseDateToTimestamp(dateStr, timeStr) {
 }
 
 /* ── Parse date string to milliseconds timestamp ─────────── */
-function parseDateMs(date, time) {
+export function parseDateMs(date, time) {
   try {
     // Remove day name prefix if present
     const cleaned = date.includes(",") ? date.split(",")[1].trim() : date;
@@ -140,7 +140,7 @@ export function saveBooking(data) {
   const user = getUser();
   const full = {
     ...data,
-    sessionId: data.orderNum,
+    sessionId: data.sessionId ?? data.backendId ?? data.orderNum,
     createdAt: new Date().toISOString(),
   };
   

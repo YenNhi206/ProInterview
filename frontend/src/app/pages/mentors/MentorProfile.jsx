@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from "react";
+import React from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Star,
@@ -22,7 +22,6 @@ import {
   Target
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { MENTORS } from "../../data/mockData";
 import { fetchMentor } from "../../utils/mentorApi";
 import { getReviewsByMentor } from "../../utils/bookings";
 import { ReportMentorModal } from "../../components/modals/ReportMentorModal";
@@ -36,27 +35,19 @@ const REVIEWS = [
 export function MentorProfile() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [mentor, setMentor] = React.useState(() =>
-    id ? MENTORS.find((m) => m.id === id) ?? null : null
-  );
+  const [mentor, setMentor] = React.useState(null);
   const [loadingMentor, setLoadingMentor] = React.useState(true);
   const [showReportModal, setShowReportModal] = React.useState(false);
   const [realReviews, setRealReviews] = React.useState([]);
 
-  useLayoutEffect(() => {
-    if (!id) {
-      setMentor(null);
-      return;
-    }
-    setMentor(MENTORS.find((m) => m.id === id) ?? null);
-  }, [id]);
-
   React.useEffect(() => {
     if (!id) {
+      setMentor(null);
       setLoadingMentor(false);
       return;
     }
     setLoadingMentor(true);
+    setMentor(null);
     fetchMentor(id)
       .then((m) => {
         if (m) setMentor(m);

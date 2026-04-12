@@ -5,7 +5,9 @@ import "../config/loadEnv.js";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { connectDatabase } from "../db/connect.js";
+import "../models/index.js";
 import { User } from "../models/User.js";
+import { createMentorProfileForUser } from "../services/mentorProfileService.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SALT_ROUNDS = 10;
@@ -58,6 +60,13 @@ async function main() {
 
   await User.insertMany(docs);
   console.log(`Đã seed ${docs.length} user mặc định (dev).`);
+  const mentorUsers = await User.find({ role: "mentor" });
+  for (const u of mentorUsers) {
+    await createMentorProfileForUser(u).catch((e) => console.error("Mentor profile:", e));
+  }
+  if (mentorUsers.length) {
+    console.log(`Đã tạo / đồng bộ ${mentorUsers.length} hồ sơ Mentor gắn user (role mentor).`);
+  }
   for (const d of docs) {
     console.log(`  - ${d.email} (${d.role})`);
   }

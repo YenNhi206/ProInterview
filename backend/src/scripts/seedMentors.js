@@ -15,10 +15,20 @@ async function main() {
     process.exit(1);
   }
 
+  await connectDatabase(uri);
+
+  if (process.env.SEED_LEGACY_MENTORS !== "1") {
+    console.log(
+      "Bỏ qua seed mentor ảo từ mentorsSeed.json. Chỉ mentor có User (role mentor) mới hiện trên booking.",
+    );
+    console.log("Để nạp dữ liệu demo cũ: SEED_LEGACY_MENTORS=1 npm run seed");
+    await mongoose.disconnect();
+    return;
+  }
+
   const seedPath = join(__dirname, "../data/mentorsSeed.json");
   const seed = JSON.parse(readFileSync(seedPath, "utf8"));
 
-  await connectDatabase(uri);
   const existing = await Mentor.countDocuments();
   if (existing > 0) {
     console.log(`Collection mentors đã có ${existing} bản ghi — bỏ qua seed.`);
@@ -27,7 +37,7 @@ async function main() {
   }
 
   await Mentor.insertMany(seed.map(mapSeedRowToMentorDoc));
-  console.log(`Đã seed ${seed.length} mentor vào database.`);
+  console.log(`Đã seed ${seed.length} mentor (legacy) vào database.`);
   await mongoose.disconnect();
 }
 
