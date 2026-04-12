@@ -29,6 +29,9 @@ import {
   CircleDollarSign as CurrencyCircleDollar,
 } from "lucide-react";
 import { getBookingById, getReview } from "../../utils/bookings";
+import { isLoggedIn } from "../../utils/auth";
+import { fetchBookingById } from "../../utils/bookingsApi";
+import { apiBookingToLocal } from "../../utils/bookingMappers";
 
 /* ─── Types ────────────────────────────────────────────── */
 
@@ -133,10 +136,43 @@ export function SessionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  /* ── Resolve session data ── */
-  const sessionData = useMemo(() => {
-    return getBookingById(id);
+  /* ── Resolve session data (localStorage / mock trước, rồi GET /api/bookings/:id khi đã đăng nhập) ── */
+  const [apiBooking, setApiBooking] = useState(undefined);
+  useEffect(() => {
+    if (!id) {
+      setApiBooking(null);
+      return;
+    }
+    const local = getBookingById(id);
+    if (local) {
+      setApiBooking(null);
+      return;
+    }
+    if (!isLoggedIn()) {
+      setApiBooking(null);
+      return;
+    }
+    let cancelled = false;
+    setApiBooking(undefined);
+    void fetchBookingById(id).then((r) => {
+      if (cancelled) return;
+      if (r.success && r.booking) setApiBooking(r.booking);
+      else setApiBooking(null);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
+
+  const sessionData = useMemo(() => {
+    const local = getBookingById(id);
+    if (local) return local;
+    if (apiBooking && typeof apiBooking === "object") return apiBookingToLocal(apiBooking);
+    return null;
+  }, [id, apiBooking]);
+
+  const sessionLoading =
+    isLoggedIn() && apiBooking === undefined && !getBookingById(id);
 
   /* ── Demo state switcher (for demo purposes) ── */
   const [demoState, setDemoState] = useState("upcoming");
@@ -181,6 +217,14 @@ export function SessionDetail() {
     "Gợi ý cải thiện cụ thể",
     "Tốc độ phù hợp, không áp lực",
   ];
+
+  if (sessionLoading) {
+    return (
+      <div className="p-12 text-center text-gray-500 text-sm">
+        Đang tải thông tin buổi phỏng vấn…
+      </div>
+    );
+  }
 
   if (!sessionData) {
     return (

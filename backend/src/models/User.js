@@ -83,6 +83,23 @@ userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ plan: 1 });
 
+/**
+ * Mỗi khi User được lưu qua Mongoose (đăng ký, PATCH /me, …) mà role là mentor
+ * thì đảm bảo có document tương ứng trong collection `mentors`.
+ * (Cập nhật trực tiếp trong Compass không chạy hook — dùng sync khi start API hoặc npm run sync:mentor-profiles.)
+ */
+userSchema.post("save", async function userPostSaveMentorSync(doc) {
+  try {
+    const d = doc;
+    if (!d || d.isActive === false) return;
+    if (d.role !== "mentor") return;
+    const { createMentorProfileForUser } = await import("../services/mentorProfileService.js");
+    await createMentorProfileForUser(d);
+  } catch (e) {
+    console.error("[User.post save] đồng bộ mentors:", e?.message || e);
+  }
+});
+
 export const User = mongoose.models.User ?? mongoose.model("User", userSchema);
 
 /**

@@ -23,10 +23,11 @@ import {
   ExternalLink as ArrowSquareOut,
   ArrowRight,
 } from "lucide-react";
-import { setActivePlan, activateAllPlans } from "../../utils/auth";
+import { setActivePlan, activateAllPlans, isLoggedIn, refreshUserProfile } from "../../utils/auth";
+import { activatePlanRequest } from "../../utils/plansApi";
 import { fetchMentor } from "../../utils/mentorApi";
-import { MENTORS } from "../../data/mockData";
 import { saveBooking, genMeetLink } from "../../utils/bookings";
+import { createBooking } from "../../utils/bookingsApi";
 
 /* ─── Plan meta ─────────────────────────────────────────── */
 
@@ -169,14 +170,15 @@ export function Checkout() {
   /* ── Booking vs Plan mode ─────────────────────────────── */
   const isBooking = searchParams.get("type") === "booking";
   const mentorId = searchParams.get("mentorId") ?? "";
-  const [bookingMentor, setBookingMentor] = React.useState(() =>
-    mentorId ? MENTORS.find((m) => m.id === mentorId) ?? null : null
-  );
+  const [bookingMentor, setBookingMentor] = React.useState(null);
 
   React.useEffect(() => {
-    if (!isBooking || !mentorId) return;
-    setBookingMentor(MENTORS.find((m) => m.id === mentorId) ?? null);
-    fetchMentor(mentorId).then((m) => {
+    if (!isBooking || !mentorId) {
+      setBookingMentor(null);
+      return;
+    }
+    setBookingMentor(null);
+    void fetchMentor(mentorId).then((m) => {
       if (m) setBookingMentor(m);
     });
   }, [isBooking, mentorId]);
@@ -231,39 +233,103 @@ export function Checkout() {
     const tm = setTimeout(() => {
       clearInterval(iv);
       if (!isBooking) {
-        if (planKey === "all") activateAllPlans();
-        else if (["textPro", "voicePro", "cvPro"].includes(planKey)) setActivePlan(planKey );
-        else if (["starterPro", "elitePro"].includes(planKey)) setActivePlan(planKey );
+        void (async () => {
+          if (isLoggedIn() && ["starterPro", "elitePro"].includes(planKey)) {
+            const months = billing === "yearly" ? 12 : 1;
+            const plan = planKey === "elitePro" ? "elite_pro" : "starter_pro";
+            await activatePlanRequest({ plan, months }).catch(() => {});
+            await refreshUserProfile();
+          }
+          if (planKey === "all") activateAllPlans();
+          else if (["textPro", "voicePro", "cvPro"].includes(planKey)) setActivePlan(planKey);
+          else if (["starterPro", "elitePro"].includes(planKey)) setActivePlan(planKey);
+          setAppStep("success");
+        })();
       } else if (bookingMentor) {
-        // Save booking via unified utility
-        const endTime = bookingTime
-          ? String(parseInt(bookingTime.split(":")[0]) + 1).padStart(2, "0") + ":00"
-          : "";
-        saveBooking({
-          orderNum,
-          mentorId: bookingMentor.id,
-          mentorName: bookingMentor.name,
-          mentorTitle: bookingMentor.title,
-          mentorCompany: bookingMentor.company,
-          mentorAvatar: bookingMentor.avatar,
-          date: bookingDate,
-          time: bookingTime,
-          endTime,
-          price: bookingPrice,
-          meetLink,
-          position: bookingPosition,
-          note: bookingNote,
-          cvFile: bookingCvFile,
-          jdFile: bookingJdFile,
-          status: "confirmed",
-        });
+        void (async () => {
+          const endTime = bookingTime
+            ? String(parseInt(bookingTime.split(":")[0], 10) + 1).padStart(2, "0") + ":00"
+            : "";
+          const paymentMethod = method === "momo" ? "momo" : method === "vnpay" ? "transfer" : "card";
+          let backendId = null;
+          if (isLoggedIn()) {
+            const apiRes = await createBooking({
+              mentorId: bookingMentor.id,
+              date: bookingDate,
+              timeSlot: bookingTime,
+              sessionType: "mock_interview",
+              position: bookingPosition,
+              note: bookingNote,
+              cvFile: bookingCvFile || "",
+              jdFile: bookingJdFile || "",
+              price: bookingPrice,
+              durationMinutes: 60,
+              meetingLink: meetLink,
+              orderNum,
+              paymentStatus: "paid",
+              paymentMethod,
+            });
+            if (apiRes.success && apiRes.booking?.id) backendId = apiRes.booking.id;
+            else if (!apiRes.success) console.warn("createBooking:", apiRes.error);
+          }
+          saveBooking({
+            orderNum,
+            sessionId: backendId || orderNum,
+            mentorId: bookingMentor.id,
+            mentorName: bookingMentor.name,
+            mentorTitle: bookingMentor.title,
+            mentorCompany: bookingMentor.company,
+            mentorAvatar: bookingMentor.avatar,
+            date: bookingDate,
+            time: bookingTime,
+            endTime,
+            price: bookingPrice,
+            meetLink,
+            position: bookingPosition,
+            note: bookingNote,
+            cvFile: bookingCvFile,
+            jdFile: bookingJdFile,
+            status: "confirmed",
+            backendId,
+          });
+          setAppStep("success");
+        })();
+      } else {
+        setAppStep("success");
       }
-      setAppStep("success");
     }, 2600);
     return () => { clearInterval(iv); clearTimeout(tm); };
-  }, [appStep, planKey, isBooking]);
+  }, [
+    appStep,
+    planKey,
+    isBooking,
+    bookingMentor,
+    bookingDate,
+    bookingTime,
+    bookingPrice,
+    orderNum,
+    meetLink,
+    bookingPosition,
+    bookingNote,
+    bookingCvFile,
+    bookingJdFile,
+    method,
+    billing,
+  ]);
 
   const handlePay = () => {
+    if (isBooking) {
+      if (!isLoggedIn()) {
+        setCardError("");
+        const q = searchParams.toString();
+        navigate(`/login?redirect=${encodeURIComponent(`/checkout?${q}`)}`);
+        return;
+      }
+      if (!bookingMentor || !bookingDate || !bookingTime) {
+        setCardError("Thiếu thông tin đặt lịch. Hãy quay lại bước đặt lịch với mentor.");
+        return;
+      }
+    }
     if (method === "visa" && !savedCard) {
       if (cardNum.replace(/\s/g, "").length < 16) return setCardError("Số thẻ không hợp lệ");
       if (!cardName.trim()) return setCardError("Vui lòng nhập tên chủ thẻ");

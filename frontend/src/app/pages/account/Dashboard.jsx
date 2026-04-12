@@ -26,9 +26,12 @@ import {
   Trophy,
   Sparkles,
 } from "lucide-react";
-import { getUser, getPlans } from "../../utils/auth";
+import { getUser, getPlans, isLoggedIn } from "../../utils/auth";
 import { getCVAnalysisHistory, getStoredInterviewHistory } from "../../utils/history";
-import { getAllBookings } from "../../utils/bookings";
+import { getAllBookings, parseDateMs } from "../../utils/bookings";
+import { listBookings } from "../../utils/bookingsApi";
+import { fetchDashboardStats } from "../../utils/dashboardApi";
+import { apiBookingToLocal } from "../../utils/bookingMappers";
 import { PROGRESS_DATA, SKILLS_DATA } from "../../data/mockData";
 
 export function Dashboard() {
@@ -43,36 +46,87 @@ export function Dashboard() {
   const [interviewHistory, setInterviewHistory] = useState(() => getStoredInterviewHistory());
   const [cvHistory, setCvHistory] = useState(() => getCVAnalysisHistory());
   const [upcomingSessions, setUpcomingSessions] = useState([]);
+  const [serverStats, setServerStats] = useState(null);
+  const [statsFetched, setStatsFetched] = useState(false);
 
   useEffect(() => {
-    const load = () => {
+    const load = async () => {
       setPlans(getPlans());
       setInterviewHistory(getStoredInterviewHistory());
       setCvHistory(getCVAnalysisHistory());
       const all = getAllBookings();
       const now = Date.now();
-      const upcoming = all.filter((b) => {
+      const skipStatus = new Set(["cancelled", "completed", "no_show", "done"]);
+      const upcomingFromLocal = all.filter((b) => {
         if (b.status === "rescheduled" || b.status === "cancelled" || b.status === "done") return false;
+        if (skipStatus.has(b.status)) return false;
         const [d, m, y] = b.date.split("/").map(Number);
         const [h] = b.time.split(":").map(Number);
         const ts = new Date(y, m - 1, d, h).getTime();
         return ts >= now - 3600_000;
       });
+
+      if (!isLoggedIn()) {
+        setServerStats(null);
+        setStatsFetched(false);
+        setUpcomingSessions(upcomingFromLocal);
+        return;
+      }
+
+      const [statsRes, listRes] = await Promise.all([fetchDashboardStats(), listBookings()]);
+      setServerStats(statsRes.success ? statsRes.stats : null);
+      setStatsFetched(true);
+
+      const mergeKey = (b) => String(b?.backendId || b?.paymentRef || b?.orderNum || "");
+      const map = new Map();
+      if (listRes.success && Array.isArray(listRes.bookings)) {
+        const apiRows = listRes.bookings
+          .map(apiBookingToLocal)
+          .filter((b) => b && !skipStatus.has(b.status));
+        for (const b of apiRows) {
+          const k = mergeKey(b);
+          if (k) map.set(k, b);
+        }
+      }
+      for (const b of upcomingFromLocal) {
+        const k = mergeKey(b);
+        if (k && !map.has(k)) map.set(k, b);
+      }
+      const merged = Array.from(map.values()).sort((a, b) => {
+        const ta = parseDateMs(a.date, a.time);
+        const tb = parseDateMs(b.date, b.time);
+        const aFuture = ta >= now;
+        const bFuture = tb >= now;
+        if (aFuture && bFuture) return ta - tb;
+        if (!aFuture && !bFuture) return tb - ta;
+        return aFuture ? -1 : 1;
+      });
+      const upcoming = merged.filter((b) => {
+        if (b.status === "rescheduled" || b.status === "cancelled" || b.status === "done") return false;
+        if (skipStatus.has(b.status)) return false;
+        const ta = parseDateMs(b.date, b.time);
+        return ta >= now - 3600_000;
+      });
       setUpcomingSessions(upcoming);
     };
-    load();
+    void load();
     window.addEventListener("focus", load);
     return () => window.removeEventListener("focus", load);
   }, []);
 
-  const totalInterviews = interviewHistory.length;
-  const avgStar =
-    interviewHistory.length > 0
+  const useServerStats = statsFetched && serverStats != null;
+  const totalInterviews = useServerStats ? serverStats.interviewSessionsCompleted : interviewHistory.length;
+  const avgStar = useServerStats
+    ? (Number(serverStats.interviewAverageScore) || 0).toFixed(1)
+    : interviewHistory.length > 0
       ? (interviewHistory.reduce((a, i) => a + i.overall, 0) / interviewHistory.length).toFixed(1)
       : "0.0";
-  const totalCVAnalyses = cvHistory.length;
-  const bestMatch =
-    cvHistory.length > 0 ? Math.max(...cvHistory.map((i) => i.matchScore)) : 0;
+  const totalCVAnalyses = useServerStats ? serverStats.cvAnalysesCount : cvHistory.length;
+  const bestMatch = useServerStats
+    ? Math.round(Number(serverStats.cvBestMatchScore) || 0)
+    : cvHistory.length > 0
+      ? Math.max(...cvHistory.map((i) => i.matchScore))
+      : 0;
 
   // Mapping Song ngữ cho Ma trận năng lực
   const skillMapping = {

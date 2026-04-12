@@ -250,6 +250,20 @@ Token: `getFreshAccessToken()` (JWT backend). Không token hoặc `401` → FE c
 
 ### C.3. Bookings — `/api/bookings`
 
+**POST `/api/bookings` `[AUTH]`** — tạo lịch mentor. Body (JSON) tối thiểu:
+
+| Field | Bắt buộc | Ghi chú |
+|:------|:---------|:--------|
+| `mentorId` | ✓ | `publicId` hoặc `_id` Mongo |
+| `date` | ✓ | Chuỗi như Booking.jsx (vd. `Thứ 4, 01/03`) |
+| `timeSlot` hoặc `time` | ✓ | `HH:mm` |
+| `sessionType` | | Mặc định `mock_interview` |
+| `notes` | | Hoặc gửi `position`, `note`, `cvFile`, `jdFile` để ghép `notes` |
+| `price` | | So khớp giá mentor (lệch quá 5% so với giá server → 400) |
+| `durationMinutes` | | Mặc định 60 |
+| `meetingLink`, `orderNum`, `paymentMethod` | | Checkout mock: `paymentStatus: "paid"` → `status: confirmed` |
+| `timezone` | | Mặc định `Asia/Ho_Chi_Minh` |
+
 | Method | Path |
 |:-------|:-----|
 | POST | `/api/bookings` |
