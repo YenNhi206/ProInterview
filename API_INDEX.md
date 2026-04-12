@@ -180,7 +180,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 | | |
 |:--|:--|
-| **File FE** | `frontend/src/app/pages/CVAnalysis.jsx` |
+| **File FE** | `frontend/src/app/pages/cv/CVAnalysis.jsx` |
 | **Base** | `https://${projectId}.supabase.co/functions/v1/make-server-64a0c849/` |
 
 | Method | Path (sau base) | Mô tả |
@@ -462,7 +462,7 @@ Chi tiết collection và field: [`backend/DATABASE.md`](./backend/DATABASE.md).
 | `apiUrl`, proxy dev | `frontend/src/app/utils/api.js` |
 | Auth client | `frontend/src/app/utils/auth.js` |
 | Mentor client | `frontend/src/app/utils/mentorApi.js` |
-| CV + Supabase Edge | `frontend/src/app/pages/CVAnalysis.jsx` |
+| CV + Supabase Edge | `frontend/src/app/pages/cv/CVAnalysis.jsx` |
 | D-ID stream | `frontend/src/app/hooks/useDIDStream.js` |
 | Mount API | `backend/src/index.js` |
 | Auth controller | `backend/src/controllers/authController.js` |

@@ -2,7 +2,7 @@
 
 **Base URL API:** `/api` · **Auth:** `Authorization: Bearer <jwt>` (JWT Express), trừ route ghi rõ public/webhook.
 
-Nguyên tắc: **đối chiếu từng màn `frontend/src/app/pages/`** → implement endpoint dưới đây rồi nối `fetch` trong FE.
+Nguyên tắc: **đối chiếu từng màn** trong `frontend/src/app/pages/` *(nhóm theo thư mục: `auth/`, `booking/`, `mentor/`, …)* → implement endpoint dưới đây rồi nối `fetch` trong FE.
 
 ### Đồng bộ với `API_INDEX.md`
 
