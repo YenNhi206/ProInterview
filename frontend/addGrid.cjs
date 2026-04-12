@@ -2,7 +2,16 @@ const fs = require('fs');
 const path = require('path');
 
 const dir = 'src/app/pages';
-const files = ['CVAnalysis.jsx', 'MyCourses.jsx', 'Profile.jsx', 'Settings.jsx', 'Pricing.jsx', 'InterviewFeedback.jsx', 'CourseDetail.jsx', 'MentorProfile.jsx'];
+const files = [
+  'cv/CVAnalysis.jsx',
+  'courses/MyCourses.jsx',
+  'account/Profile.jsx',
+  'account/Settings.jsx',
+  'home/Pricing.jsx',
+  'interview/InterviewFeedback.jsx',
+  'courses/CourseDetail.jsx',
+  'mentors/MentorProfile.jsx',
+];
 
 for (const file of files) {
   const filepath = path.join(dir, file);
