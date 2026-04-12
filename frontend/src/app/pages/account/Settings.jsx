@@ -3,17 +3,13 @@ import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import {
   Bell,
-  Moon,
-  Sun,
   LogOut,
   Zap,
   CheckCircle,
   ShieldCheck,
-  Palette as PaintBrush,
   Download,
   UserCircle,
   Trash2 as Trash,
-  Monitor,
   Key,
   ChevronRight,
   ArrowRight
@@ -224,7 +220,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
       <SectionCard title="Cấu hình Bảo mật" icon={ShieldCheck}>
          <div className="grid md:grid-cols-2 gap-8 mb-6">
             <div className="space-y-3 md:col-span-2">
-               <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+               <label className="text-[10px] font-black uppercase tracking-widest text-white/45">
                  Mật khẩu hiện tại
                  {needsCurrentPassword ? (
                    <span className="text-amber-400/90"> — bắt buộc</span>
@@ -297,24 +293,6 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
   );
 }
 
-/* ─── TAB: Appearance ───────────────────────────────────── */
-function AppearanceTab() {
-  return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <SectionCard title="Giao diện Web" icon={PaintBrush}>
-         <div className="grid sm:grid-cols-3 gap-6">
-            {["light", "dark", "system"].map((t) => (
-               <button key={t} className={`flex flex-col items-center gap-4 p-6 rounded-[24px] border-2 transition-all ${t === 'dark' ? 'border-primary-fixed bg-primary-fixed/5' : 'border-white/[0.05] opacity-50'}`}>
-                  {t === 'light' ? <Sun size={20} /> : t === 'dark' ? <Moon size={20} className="text-primary-fixed" /> : <Monitor size={20} />}
-                  <span className="text-[10px] font-black uppercase tracking-widest">{t === 'light' ? 'Sáng' : t === 'dark' ? 'Tối' : 'Hệ thống'}</span>
-               </button>
-            ))}
-         </div>
-      </SectionCard>
-    </div>
-  );
-}
-
 /* ─── TAB: Account ──────────────────────────────────────── */
 function AccountTab() {
   const navigate = useNavigate();
@@ -346,22 +324,22 @@ function AccountTab() {
       <div className="glass-card overflow-hidden group">
          <div className="p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-10" style={{ background: planInfo.grad }}>
             <div className="relative z-10 max-w-lg">
-               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-3">Gói dịch vụ</p>
-               <h3 className="text-3xl font-black text-white tracking-tighter mb-2 flex items-center gap-3">
+               <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Gói dịch vụ</p>
+               <h3 className="mb-2 flex items-center gap-3 text-3xl font-black tracking-tighter text-white">
                   {planInfo.name} <Zap size={24} className="text-primary-fixed" />
                </h3>
-               <p className="text-sm font-medium text-white/60 mb-8">{planInfo.desc}</p>
+               <p className="mb-8 text-sm font-medium text-white/60">{planInfo.desc}</p>
                
                <div className="flex flex-wrap gap-4">
                   <button onClick={() => navigate("/pricing")} className="px-8 py-4 rounded-xl bg-white text-black font-black text-[10px] uppercase tracking-widest transition-all shadow-xl flex items-center gap-2">
                      Khám phá các Gói <ArrowRight size={14} />
                   </button>
-                  <button onClick={() => navigate("/pricing")} className="px-8 py-4 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all">
+                  <button onClick={() => navigate("/pricing")} className="rounded-xl border border-white/20 bg-white/10 px-8 py-4 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-white/20">
                      Bảng giá
                   </button>
                </div>
             </div>
-            <Zap size={80} className="text-white/5 absolute -right-4 -bottom-4 rotate-12" />
+            <Zap size={80} className="absolute -bottom-4 -right-4 rotate-12 text-white/5" />
          </div>
       </div>
 
@@ -383,7 +361,7 @@ function AccountTab() {
                <h4 className="text-red-500 text-[10px] font-black uppercase tracking-widest mb-2">Vùng xóa dữ liệu</h4>
                <p className="text-xs font-medium text-white/45">Tiến trình và đặc quyền sẽ bị gỡ bỏ vĩnh viễn.</p>
             </div>
-            <button className="px-8 py-4 rounded-xl bg-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all shadow-lg">
+            <button className="rounded-xl bg-red-600 px-8 py-4 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-red-500">
                Xác nhận xóa
             </button>
          </div>
@@ -396,7 +374,6 @@ function AccountTab() {
 const TABS = [
   { id: "notifications", label: "Thông báo", icon: Bell },
   { id: "security", label: "Bảo mật", icon: ShieldCheck },
-  { id: "appearance", label: "Giao diện", icon: PaintBrush },
   { id: "account", label: "Tài khoản", icon: UserCircle },
 ];
 
@@ -563,7 +540,6 @@ export function Settings() {
                       onProfileSynced={(u) => setProfileFromServer(u)}
                     />
                   )}
-                  {activeTab === "appearance" && <AppearanceTab />}
                   {activeTab === "account" && <AccountTab />}
                </div>
             </main>

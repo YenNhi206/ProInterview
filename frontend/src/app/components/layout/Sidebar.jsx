@@ -18,6 +18,7 @@ import {
   GraduationCap,
   BookText,
   ClipboardList,
+  Shield,
 } from "lucide-react";
 import {
   Sidebar,
@@ -77,6 +78,10 @@ export function AppSidebar() {
   const displayName = user?.name || "Người dùng";
   const initials = getInitials(displayName);
   const isMentor = user?.role === "mentor";
+  const secondaryNav = [
+    ...(user?.role === "admin" ? [{ title: "Quản trị", url: "/admin", icon: Shield }] : []),
+    ...secondaryItems,
+  ];
 
   const handleLogout = () => { logout(); navigate("/"); };
 
@@ -281,7 +286,7 @@ export function AppSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {secondaryItems.map((item) => {
+              {secondaryNav.map((item) => {
                 const active = isActive(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>

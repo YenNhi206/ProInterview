@@ -23,7 +23,7 @@ function issueToken(user) {
 }
 
 export async function registerUser(body) {
-  const { name, email, password, role } = body ?? {};
+  const { name, email, password, role, adminInviteCode } = body ?? {};
   const trimmedName = typeof name === "string" ? name.trim() : "";
   const trimmedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
@@ -39,8 +39,25 @@ export async function registerUser(body) {
     };
   }
 
-  const allowedRoles = ["customer", "mentor"];
-  const userRole = allowedRoles.includes(role) ? role : "customer";
+  const adminSecret = typeof process.env.ADMIN_INVITE_CODE === "string" ? process.env.ADMIN_INVITE_CODE.trim() : "";
+  const invite =
+    typeof adminInviteCode === "string" ? adminInviteCode.trim() : "";
+
+  let userRole = "customer";
+  if (role === "mentor") userRole = "mentor";
+  if (role === "admin") {
+    if (!adminSecret) {
+      return {
+        ok: false,
+        status: 503,
+        error: "Đăng ký admin chưa bật trên server (thiếu ADMIN_INVITE_CODE trong .env).",
+      };
+    }
+    if (invite !== adminSecret) {
+      return { ok: false, status: 403, error: "Mã mời quản trị không đúng." };
+    }
+    userRole = "admin";
+  }
 
   const exists = await User.findOne({ email: trimmedEmail }).lean();
   if (exists) {

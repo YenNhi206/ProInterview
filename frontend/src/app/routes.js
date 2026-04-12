@@ -33,6 +33,28 @@ import { MentorCourseManagement } from "./pages/mentor/MentorCourseManagement";
 import { MentorCourseEdit } from "./pages/mentor/MentorCourseEdit";
 import { MentorPeerReview } from "./pages/mentor/MentorPeerReview";
 import { Pricing } from "./pages/home/Pricing";
+import { AdminLayout } from "./pages/admin/AdminLayout.jsx";
+import { adminLoader } from "./pages/admin/adminLoader.js";
+import { AdminDashboard } from "./pages/admin/AdminDashboard.jsx";
+import {
+  AdminUsers,
+  AdminUserDetail,
+  AdminMentors,
+  AdminMentorDetail,
+  AdminMentorsPending,
+  AdminFinance,
+  AdminTransactions,
+  AdminPayouts,
+  AdminBookings,
+  AdminBookingDetail,
+  AdminContentQuestions,
+  AdminContentVideos,
+  AdminContentCourses,
+  AdminAnalytics,
+  AdminSystemSettings,
+  AdminReviews,
+  AdminSupport,
+} from "./pages/admin/AdminPlaceholders.jsx";
 
 export const router = createHashRouter([
   { path: "/", Component: Home },
@@ -43,6 +65,31 @@ export const router = createHashRouter([
   { path: "/avatar-demo", Component: AvatarDemo },
   // Course learning — full-screen, no sidebar
   { path: "/courses/:id/learn", Component: CourseLearning },
+  {
+    path: "/admin",
+    Component: AdminLayout,
+    loader: adminLoader,
+    children: [
+      { index: true, Component: AdminDashboard },
+      { path: "analytics", Component: AdminAnalytics },
+      { path: "users", Component: AdminUsers },
+      { path: "users/:id", Component: AdminUserDetail },
+      { path: "mentors/pending", Component: AdminMentorsPending },
+      { path: "mentors/:id", Component: AdminMentorDetail },
+      { path: "mentors", Component: AdminMentors },
+      { path: "finance", Component: AdminFinance },
+      { path: "transactions", Component: AdminTransactions },
+      { path: "payouts", Component: AdminPayouts },
+      { path: "bookings", Component: AdminBookings },
+      { path: "bookings/:id", Component: AdminBookingDetail },
+      { path: "content/questions", Component: AdminContentQuestions },
+      { path: "content/videos", Component: AdminContentVideos },
+      { path: "content/courses", Component: AdminContentCourses },
+      { path: "settings", Component: AdminSystemSettings },
+      { path: "reviews", Component: AdminReviews },
+      { path: "support", Component: AdminSupport },
+    ],
+  },
   {
     Component: AppLayout,
     children: [

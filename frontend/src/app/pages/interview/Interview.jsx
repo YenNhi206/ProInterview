@@ -213,7 +213,7 @@ export function Interview() {
           }}
           aria-hidden
         />
-        <div className="relative z-10 mx-auto max-w-4xl px-6 text-left sm:px-8">
+        <div className="relative z-10 w-full max-w-4xl px-6 text-left sm:px-8">
           <div className="mb-4 flex items-center gap-3">
             <IconFrame size="sm" tone="lime" className="rounded-lg">
               <Sparkles className="h-4 w-4 text-[#c4ff47]" {...IS} />
@@ -236,7 +236,7 @@ export function Interview() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-3xl px-6 pb-16 pt-8 sm:px-8">
+      <main className="relative z-10 w-full max-w-3xl px-6 pb-16 pt-8 sm:px-8">
         <StepBar current={1} />
 
         <section className="interview-glass mb-6 p-6 sm:p-8">

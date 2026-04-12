@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { getUser, loginWithGoogleCredential } from "../../utils/auth";
+import { getUser, loginWithGoogleCredential, getPostLoginPath } from "../../utils/auth";
 import { AUTH_CTA_FRAME_CLASS } from "./AuthShell";
 
 const CLIENT_ID = String(import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
@@ -75,12 +75,7 @@ export function GoogleSignInBlock({ onError }) {
         return;
       }
       const user = getUser();
-      const redirect = params.get("redirect");
-      if (user?.role === "mentor") {
-        navigate(redirect || "/mentor/dashboard");
-      } else {
-        navigate(redirect || "/dashboard");
-      }
+      navigate(getPostLoginPath(user, params.get("redirect")));
     },
     [navigate, onError, params],
   );
