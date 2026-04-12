@@ -207,7 +207,7 @@ export function Dashboard() {
           >
             <div className="relative group" style={{ animation: "float-y 5s ease-in-out infinite" }}>
               <div className="absolute -inset-1 rounded-[36px] bg-gradient-to-br from-fuchsia-500 via-violet-600 to-[#c4ff47] opacity-60 blur-md group-hover:opacity-90 transition-opacity" />
-              <div className="relative w-[5.5rem] h-[5.5rem] sm:w-24 sm:h-24 rounded-[28px] bg-[#140a22] border-2 border-white/25 flex items-center justify-center text-3xl sm:text-4xl font-black text-white shadow-2xl overflow-hidden ring-2 ring-fuchsia-500/25">
+              <div className="relative flex h-[5.5rem] w-[5.5rem] items-center justify-center overflow-hidden rounded-[28px] border-2 border-white/25 bg-[#140a22] text-3xl font-black text-white shadow-2xl ring-2 ring-fuchsia-500/25 sm:h-24 sm:w-24 sm:text-4xl">
                 <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/20 via-transparent to-lime-400/15" />
                 <Sparkles className="absolute top-2 right-2 w-4 h-4 text-[#c4ff47] opacity-80" strokeWidth={2.2} />
                 <span className="relative z-10 tracking-tight">{initials}</span>

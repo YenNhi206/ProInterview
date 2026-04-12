@@ -7,7 +7,7 @@ import {
   Sparkles,
   Zap as Lightning,
 } from "lucide-react";
-import { loginUser, getUser } from "../utils/auth";
+import { loginUser, getUser, getPostLoginPath } from "../utils/auth";
 import { AuthShell, AUTH_INPUT_CLASS, AUTH_CTA_FRAME_CLASS } from "../components/auth/AuthShell";
 import { GoogleSignInBlock } from "../components/auth/GoogleSignInBlock";
 
@@ -34,12 +34,7 @@ export function Login() {
     }
 
     const user = getUser();
-    const redirect = searchParams.get("redirect");
-    if (user?.role === "mentor") {
-      navigate(redirect || "/mentor/dashboard");
-    } else {
-      navigate(redirect || "/dashboard");
-    }
+    navigate(getPostLoginPath(user, searchParams.get("redirect")));
   };
 
   const aside = (

@@ -20,17 +20,30 @@ function bearerHeaders() {
   return h;
 }
 
+/** Đường dẫn sau đăng nhập theo role (và ?redirect= hợp lệ). */
+export function getPostLoginPath(user, redirectParam) {
+  const r = typeof redirectParam === "string" ? redirectParam.trim() : "";
+  if (r.startsWith("/") && !r.startsWith("//")) return r;
+  if (user?.role === "admin") return "/admin";
+  if (user?.role === "mentor") return "/mentor/dashboard";
+  return "/dashboard";
+}
+
 export async function registerUser(data) {
   try {
+    const payload = {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      role: data.role ?? "customer",
+    };
+    if (data.role === "admin" && data.adminInviteCode) {
+      payload.adminInviteCode = data.adminInviteCode;
+    }
     const res = await fetch(apiUrl("/api/auth/register"), {
       method: "POST",
       headers: jsonHeaders,
-      body: JSON.stringify({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        role: data.role ?? "customer",
-      }),
+      body: JSON.stringify(payload),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {

@@ -25,7 +25,13 @@ const PERKS = [
 export function Register() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "customer",
+    adminInviteCode: "",
+  });
   const [showPass, setShowPass] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,10 +43,18 @@ export function Register() {
     setLoading(true);
     setError("");
 
+    if (form.role === "admin" && !form.adminInviteCode.trim()) {
+      setError("Vui lòng nhập mã mời quản trị (ADMIN_INVITE_CODE trùng với backend).");
+      setLoading(false);
+      return;
+    }
+
     const result = await registerUser({
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
+      role: form.role,
+      ...(form.role === "admin" ? { adminInviteCode: form.adminInviteCode.trim() } : {}),
     });
 
     setLoading(false);
@@ -193,6 +207,53 @@ export function Register() {
             </button>
           </div>
         </div>
+
+        <div>
+          <label className="mb-2 ml-1 block text-xs font-bold text-zinc-400">Loại tài khoản</label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "customer", label: "Học viên" },
+              { id: "mentor", label: "Mentor" },
+              { id: "admin", label: "Quản trị viên" },
+            ].map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  handleChange("role", id);
+                  if (id !== "admin") handleChange("adminInviteCode", "");
+                }}
+                className={`rounded-full border px-4 py-2 text-xs font-bold transition-all ${
+                  form.role === id
+                    ? "border-[#c4ff47]/50 bg-[#c4ff47]/15 text-[#e8ffc4]"
+                    : "border-white/15 bg-white/[0.04] text-zinc-400 hover:border-white/25 hover:text-zinc-200"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {form.role === "admin" && (
+            <p className="mt-2 text-[11px] leading-relaxed text-amber-200/90">
+              Cần biến <span className="font-mono text-[10px]">ADMIN_INVITE_CODE</span> trong backend{" "}
+              <span className="font-mono text-[10px]">.env</span> — nhập đúng mã bên dưới.
+            </p>
+          )}
+        </div>
+
+        {form.role === "admin" && (
+          <div>
+            <label className="mb-2 ml-1 block text-xs font-bold text-zinc-400">Mã mời quản trị</label>
+            <input
+              type="password"
+              autoComplete="off"
+              placeholder="Mã từ ADMIN_INVITE_CODE"
+              value={form.adminInviteCode}
+              onChange={(e) => handleChange("adminInviteCode", e.target.value)}
+              className={AUTH_INPUT_CLASS}
+            />
+          </div>
+        )}
 
         <label className="flex items-start gap-3 cursor-pointer pt-2">
           <button
