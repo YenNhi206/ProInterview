@@ -264,6 +264,12 @@ function bookingQueryForUser(rawId) {
   return { paymentRef: id };
 }
 
+async function getMentorByUserId(userId) {
+  const uid = String(userId ?? "").trim();
+  if (!mongoose.isValidObjectId(uid)) return null;
+  return Mentor.findOne({ userId: uid }).lean();
+}
+
 export async function listMyBookings(userId) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
   const uid = String(userId).trim();
@@ -274,6 +280,19 @@ export async function listMyBookings(userId) {
     .populate({ path: "mentorId", select: "name title company avatar publicId" })
     .lean();
 
+  return { ok: true, bookings: rows.map((row) => toPublicBooking(row)) };
+}
+
+export async function listMentorBookings(mentorUserId) {
+  if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
+  const mentor = await getMentorByUserId(mentorUserId);
+  if (!mentor?._id) {
+    return { ok: false, status: 404, error: "Không tìm thấy hồ sơ mentor." };
+  }
+  const rows = await Booking.find({ mentorId: mentor._id })
+    .sort({ createdAt: -1 })
+    .populate({ path: "mentorId", select: "name title company avatar publicId" })
+    .lean();
   return { ok: true, bookings: rows.map((row) => toPublicBooking(row)) };
 }
 
@@ -288,6 +307,66 @@ export async function getMyBooking(userId, rawId) {
     .lean();
   if (!row) return { ok: false, status: 404, error: "Không tìm thấy booking." };
   return { ok: true, booking: toPublicBooking(row) };
+}
+
+export async function confirmMentorBooking(mentorUserId, rawId) {
+  if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
+  const mentor = await getMentorByUserId(mentorUserId);
+  if (!mentor?._id) return { ok: false, status: 404, error: "Không tìm thấy hồ sơ mentor." };
+  if (!mongoose.isValidObjectId(rawId)) return { ok: false, status: 400, error: "id booking không hợp lệ." };
+
+  const booking = await Booking.findOne({ _id: rawId, mentorId: mentor._id });
+  if (!booking) return { ok: false, status: 404, error: "Không tìm thấy booking." };
+
+  if (booking.status === "cancelled") {
+    return { ok: false, status: 400, error: "Booking đã bị hủy." };
+  }
+  if (booking.status === "completed") {
+    return { ok: false, status: 400, error: "Booking đã hoàn thành." };
+  }
+
+  booking.status = "confirmed";
+  await booking.save();
+  return { ok: true, booking: toPublicBooking(booking, mentor) };
+}
+
+export async function completeMentorBooking(mentorUserId, rawId) {
+  if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
+  const mentor = await getMentorByUserId(mentorUserId);
+  if (!mentor?._id) return { ok: false, status: 404, error: "Không tìm thấy hồ sơ mentor." };
+  if (!mongoose.isValidObjectId(rawId)) return { ok: false, status: 400, error: "id booking không hợp lệ." };
+
+  const booking = await Booking.findOne({ _id: rawId, mentorId: mentor._id });
+  if (!booking) return { ok: false, status: 404, error: "Không tìm thấy booking." };
+
+  if (booking.status === "cancelled") {
+    return { ok: false, status: 400, error: "Booking đã bị hủy." };
+  }
+  if (booking.status === "completed") {
+    return { ok: false, status: 400, error: "Booking đã hoàn thành." };
+  }
+
+  booking.status = "completed";
+  booking.completedAt = new Date();
+  await booking.save();
+  return { ok: true, booking: toPublicBooking(booking, mentor) };
+}
+
+export async function updateMentorNotes(mentorUserId, rawId, body) {
+  if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
+  const mentor = await getMentorByUserId(mentorUserId);
+  if (!mentor?._id) return { ok: false, status: 404, error: "Không tìm thấy hồ sơ mentor." };
+  if (!mongoose.isValidObjectId(rawId)) return { ok: false, status: 400, error: "id booking không hợp lệ." };
+
+  const notes = typeof body?.notes === "string" ? body.notes.trim().slice(0, 8000) : "";
+  if (!notes) return { ok: false, status: 400, error: "Thiếu notes." };
+
+  const booking = await Booking.findOne({ _id: rawId, mentorId: mentor._id });
+  if (!booking) return { ok: false, status: 404, error: "Không tìm thấy booking." };
+
+  booking.mentorNotes = notes;
+  await booking.save();
+  return { ok: true, booking: toPublicBooking(booking, mentor) };
 }
 
 export async function cancelMyBooking(userId, rawId, body) {
