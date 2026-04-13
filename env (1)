@@ -1,0 +1,5 @@
+# Dev: không set VITE_API_URL → fetch /api/... trên :5173, Vite proxy sang backend :5000.
+# Chỉ dùng khi cần trỏ thẳng backend: VITE_API_URL=http://localhost:5000
+# Không dùng 5173 làm API URL.
+VITE_GOOGLE_CLIENT_ID=643387745996-q8o819kbc3ib1l4t9v52vmnhiu85q1nc.apps.googleusercontent.com
+VITE_API_URL=http://localhost:5000

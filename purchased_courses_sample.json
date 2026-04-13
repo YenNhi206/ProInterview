@@ -1,0 +1,67 @@
+[
+  {
+    "_id": "enr_67890",
+    "userId": "user_12345",
+    "courseId": {
+      "_id": "course_001",
+      "title": "Kỹ thuật phỏng vấn STAR chuyên sâu",
+      "thumbnail": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
+      "price": 499000,
+      "level": "intermediate",
+      "topics": [
+        "Phỏng vấn",
+        "Kỹ năng mềm"
+      ],
+      "mentorId": {
+        "_id": "mentor_555",
+        "userId": {
+          "name": "Trần Thanh Tâm",
+          "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Tam"
+        }
+      }
+    },
+    "completedLessons": [
+      "lesson_1",
+      "lesson_2"
+    ],
+    "progressPercent": 15,
+    "pricePaid": 499000,
+    "lastAccessedAt": "2026-04-13T09:30:00Z",
+    "createdAt": "2026-04-10T14:20:00Z",
+    "updatedAt": "2026-04-13T09:30:00Z"
+  },
+  {
+    "_id": "enr_67891",
+    "userId": "user_12345",
+    "courseId": {
+      "_id": "course_002",
+      "title": "Tư duy thiết kế hệ thống (System Design)",
+      "thumbnail": "https://images.unsplash.com/photo-1558494949-ef010cbdcc51?w=800&q=80",
+      "price": 899000,
+      "level": "advanced",
+      "topics": [
+        "Architecture",
+        "Backend"
+      ],
+      "mentorId": {
+        "_id": "mentor_777",
+        "userId": {
+          "name": "Lê Quang Đức",
+          "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Duc"
+        }
+      }
+    },
+    "completedLessons": [
+      "sd_1",
+      "sd_2",
+      "sd_3",
+      "sd_4",
+      "sd_5"
+    ],
+    "progressPercent": 100,
+    "pricePaid": 899000,
+    "lastAccessedAt": "2026-04-12T20:00:00Z",
+    "createdAt": "2026-04-05T10:00:00Z",
+    "updatedAt": "2026-04-12T20:00:00Z"
+  }
+]

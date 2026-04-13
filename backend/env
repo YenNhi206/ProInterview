@@ -1,0 +1,22 @@
+# --- Server ---
+PORT=5000
+
+# --- MongoDB ---
+# Tên database nằm trong URI (đoạn sau host), ví dụ .../prointerview → DB tên "prointerview".
+# MongoDB thường TỰ TẠO database + collection khi app ghi dữ liệu lần đầu (seed hoặc API).
+#
+# Local (MongoDB cài trên máy, mặc định port 27017):
+MONGO_URI=mongodb://127.0.0.1:27017/prointerview
+#
+# Có auth local:
+# MONGO_URI=mongodb://user:password@127.0.0.1:27017/prointerview?authSource=admin
+#
+# MongoDB Atlas (thay USER, PASS, CLUSTER, và database cuối URI):
+# MONGO_URI=mongodb+srv://USER:PASS@CLUSTER.mongodb.net/prointerview?retryWrites=true&w=majority
+
+# --- CORS (frontend Vite) ---
+# Nhiều origin: http://localhost:5173,http://127.0.0.1:5173
+CORS_ORIGIN=http://localhost:5173
+JWT_SECRET=1111122222333334511111222223333345
+JWT_EXPIRES_IN=7d
+GOOGLE_CLIENT_ID=643387745996-q8o819kbc3ib1l4t9v52vmnhiu85q1nc.apps.googleusercontent.com
