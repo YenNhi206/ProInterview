@@ -26,7 +26,9 @@ import {
   Maximize2 as CornersOut,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router";
-import { getCourseById } from "../../data/coursesData";
+import { fetchCourseById } from "../../utils/courseApi";
+import { enrollmentApi } from "../../utils/enrollmentApi";
+import { toast } from "sonner";
 
 /* ── Helpers ────────────────────────────────────────────────── */
 const formatDuration = (minutes) => {
@@ -35,7 +37,6 @@ const formatDuration = (minutes) => {
   return h > 0 ? `${h}h ${m > 0 ? m + "m" : ""}`.trim() : `${m}m`;
 };
 
-const PROGRESS_KEY = (courseId) => `prointerview_course_progress_${courseId}`;
 const NOTES_KEY = (courseId, lessonId) =>
   `prointerview_course_notes_${courseId}_${lessonId}`;
 
@@ -352,20 +353,10 @@ export function CourseLearning() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const course = getCourseById(id || "");
-  const lessons = course?.lessons || [];
-
-  // Load progress from localStorage
-  const loadProgress = useCallback(() => {
-    try {
-      const raw = localStorage.getItem(PROGRESS_KEY(id || ""));
-      return raw ? (JSON.parse(raw) ) : [];
-    } catch {
-      return [];
-    }
-  }, [id]);
-
-  const [completedLessons, setCompletedLessons] = useState(loadProgress);
+  const [course, setCourse] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
+  const [completedLessons, setCompletedLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentLessonIdx, setCurrentLessonIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -374,6 +365,49 @@ export function CourseLearning() {
   const [showCertificate, setShowCertificate] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
 
+  // Load course and enrollment data
+  useEffect(() => {
+    if (!id) return;
+    
+    const loadData = async () => {
+      setLoading(true);
+      // Get course data
+      const courseRes = await fetchCourseById(id);
+      if (!courseRes.success) {
+        setLoading(false);
+        return;
+      }
+      
+      const c = courseRes.course;
+      const flatCourse = {
+        id: c._id,
+        title: c.title,
+        thumbnail: c.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
+        mentorId: c.mentorId?._id,
+        mentorName: c.mentorId?.userId?.name || "Khuất danh",
+        mentorAvatar: c.mentorId?.userId?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky",
+        lessons: c.modules?.[0]?.lessons || []
+      };
+      setCourse(flatCourse);
+
+      // Get enrollment data
+      const enrollRes = await enrollmentApi.getMyEnrollments();
+      if (enrollRes.success) {
+        const found = enrollRes.enrollments.find(e => 
+          (e.courseId?._id === id) || (e.courseId === id)
+        );
+        if (found) {
+          setEnrollment(found);
+          setCompletedLessons(found.completedLessons || []);
+        }
+      }
+      setLoading(false);
+    };
+
+    loadData();
+  }, [id]);
+
+  const lessons = course?.lessons || [];
   const currentLesson = lessons[currentLessonIdx];
   const progressPct = lessons.length > 0 ? Math.round((completedLessons.length / lessons.length) * 100) : 0;
 
@@ -393,21 +427,25 @@ export function CourseLearning() {
   }, [notes, currentLesson, id]);
 
   // Save progress
-  const saveProgress = (updated) => {
-    localStorage.setItem(PROGRESS_KEY(id || ""), JSON.stringify(updated));
-  };
-
-  const markComplete = () => {
-    if (!currentLesson || completedLessons.includes(currentLesson.id)) return;
+  const markComplete = async () => {
+    if (!currentLesson || !enrollment || completedLessons.includes(currentLesson.id)) return;
+    
+    // Optimistic update
     const updated = [...completedLessons, currentLesson.id];
     setCompletedLessons(updated);
-    saveProgress(updated);
-    setJustCompleted(true);
-    if (updated.length === lessons.length) {
-      setTimeout(() => setShowCertificate(true), 600);
+    
+    const res = await enrollmentApi.updateProgress(enrollment._id, currentLesson.id, true);
+    if (res.success) {
+      setJustCompleted(true);
+      if (updated.length === lessons.length) {
+        setTimeout(() => setShowCertificate(true), 600);
+      }
+      setTimeout(() => setJustCompleted(false), 2800);
+    } else {
+      // Revert if failed
+      setCompletedLessons(prev => prev.filter(id => id !== currentLesson.id));
+      toast.error("Không thể lưu tiến độ.");
     }
-    // Auto-dismiss toast
-    setTimeout(() => setJustCompleted(false), 2800);
   };
 
   const goToLesson = (idx) => {
@@ -416,7 +454,15 @@ export function CourseLearning() {
     setIsPlaying(false);
   };
 
-  if (!course || !currentLesson) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-fixed border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!course || (!currentLesson && lessons.length > 0)) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">

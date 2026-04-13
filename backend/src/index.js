@@ -13,6 +13,14 @@ import { usersRouter } from "./routes/users.js";
 import { reviewsRouter } from "./routes/reviews.js";
 import { reportsRouter } from "./routes/reports.js";
 import { mentorRouter } from "./routes/mentor.js";
+import { coursesRouter } from "./routes/courses.js";
+import { notificationsRouter } from "./routes/notifications.js";
+import { adminRouter } from "./routes/admin.js";
+import { enrollmentsRouter } from "./routes/enrollments.js";
+import { AdminController } from "./controllers/adminController.js";
+import { authJwt } from "./middleware/authJwt.js";
+import { requireAdmin } from "./middleware/requireAdmin.js";
+import { EnrollmentController } from "./controllers/enrollmentController.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,6 +48,9 @@ app.get("/", (_req, res) => {
     plans: "/api/plans",
     payments: "/api/payments",
     users: "/api/users",
+    courses: "/api/courses",
+    reviews: "/api/reviews",
+    notifications: "/api/notifications",
   });
 });
 
@@ -58,12 +69,29 @@ app.use("/api/bookings", bookingsRouter);
 app.use("/api/plans", plansRouter);
 app.use("/api/payments", paymentsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/courses", coursesRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/mentor", mentorRouter);
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/admin", (req, res, next) => {
+  console.log(`[Admin Access] ${req.method} ${req.url}`);
+  next();
+}, adminRouter);
+app.use("/api/enrollments", enrollmentsRouter);
+
+// Thử nghiệm Route trực tiếp để loại bỏ lỗi 404
+app.get("/api/admin-test/users", authJwt, requireAdmin, AdminController.getAllUsers);
+app.get("/api/admin-test/stats", authJwt, requireAdmin, AdminController.getStats);
+app.get("/api/admin-test/bookings", authJwt, requireAdmin, AdminController.getAllBookings);
+
+// Tuyến đường trực tiếp cho Enrollment để tránh 404
+app.get("/api/enrollment-test/my", authJwt, EnrollmentController.getMyEnrollments);
+app.post("/api/enrollment-test/:id/enroll", authJwt, EnrollmentController.enroll);
+app.patch("/api/enrollment-test/:id/progress", authJwt, EnrollmentController.updateProgress);
 
 console.log(
-  `API: /api/health, /api/auth, /api/mentors, /api/bookings, /api/plans, /api/payments, /api/users — nếu POST /api/auth/google trả 404 HTML thì tiến trình cũ trên cổng ${PORT} cần tắt và chạy lại backend từ repo này.`,
+  `API: /api/health, /api/auth, /api/mentors, /api/bookings, /api/admin, /api/plans, /api/payments, /api/users, /api/enrollments — nếu POST /api/auth/google trả 404 HTML thì tiến trình cũ trên cổng ${PORT} cần tắt và chạy lại backend từ repo này.`,
 );
 
 app.use((err, _req, res, _next) => {

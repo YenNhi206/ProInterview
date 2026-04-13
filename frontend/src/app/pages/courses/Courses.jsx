@@ -28,10 +28,8 @@ import {
   ShieldCheck
 } from "lucide-react";
 
-import {
-  COURSES_DATA,
-  getCourseById,
-} from "../../data/coursesData";
+import { fetchCourses } from "../../utils/courseApi";
+import { enrollmentApi } from "../../utils/enrollmentApi";
 
 const CATEGORIES = [
   "Tất cả",
@@ -45,86 +43,6 @@ const CATEGORIES = [
 const LEVELS = ["Tất cả", "Người mới", "Trung cấp", "Nâng cao"];
 
 /* ── Enrolled Course helpers ───────────────────────────────────── */
-const ENROLLED_KEY = "prointerview_enrolled_courses";
-const PROGRESS_KEY = (id) =>
-  `prointerview_course_progress_${id}`;
-
-function seedDemoEnrollments() {
-  const existing = localStorage.getItem(ENROLLED_KEY);
-  if (!existing) {
-    localStorage.setItem(
-      ENROLLED_KEY,
-      JSON.stringify(["1", "2", "3"]),
-    );
-  }
-  const p1 = localStorage.getItem(PROGRESS_KEY("1"));
-  if (!p1) {
-    localStorage.setItem(
-      PROGRESS_KEY("1"),
-      JSON.stringify([
-        "1-1",
-        "1-2",
-        "1-3",
-        "1-4",
-        "1-5",
-        "1-6",
-        "1-7",
-      ]),
-    );
-  }
-  const p2 = localStorage.getItem(PROGRESS_KEY("2"));
-  if (!p2) {
-    localStorage.setItem(
-      PROGRESS_KEY("2"),
-      JSON.stringify([
-        "2-1",
-        "2-2",
-        "2-3",
-        "2-4",
-        "2-5",
-        "2-6",
-        "2-7",
-        "2-8",
-        "2-9",
-        "2-10",
-      ]),
-    );
-  }
-}
-
-function loadEnrolledCourses() {
-  seedDemoEnrollments();
-  try {
-    const ids = JSON.parse(
-      localStorage.getItem(ENROLLED_KEY) || "[]",
-    );
-    return ids
-      .map((id) => {
-        const course = getCourseById(id);
-        if (!course) return null;
-        const completed = JSON.parse(
-          localStorage.getItem(PROGRESS_KEY(id)) || "[]",
-        );
-        const totalLessons =
-          course.lessons?.length || course.lessonsCount;
-        const progressPct =
-          totalLessons > 0
-            ? Math.round(
-                (completed.length / totalLessons) * 100,
-              )
-            : 0;
-        return {
-          course,
-          completedLessons: completed,
-          progressPct,
-          isCompleted: progressPct === 100,
-        };
-      })
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
-}
 
 const formatDuration = (minutes) => {
   const h = Math.floor(minutes / 60);
@@ -409,8 +327,67 @@ export function Courses() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "explore";
 
-  const [courses, setCourses] =
-    useState(COURSES_DATA);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+
+  // Load all courses and enrolled courses
+  useEffect(() => {
+    // 1. Fetch marketplace courses
+    fetchCourses().then((res) => {
+      if (res.success) {
+        const mapped = res.courses.map((c) => ({
+          id: c._id,
+          title: c.title,
+          description: c.description,
+          thumbnail: c.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
+          category: c.topics?.[0] || "Kỹ năng khác",
+          level: c.level === "basic" ? "Beginner" : c.level === "intermediate" ? "Intermediate" : "Advanced",
+          mentorName: c.mentorId?.userId?.name || "Khuất danh",
+          mentorAvatar: c.mentorId?.userId?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky",
+          mentorTitle: c.mentorId?.userId?.desiredPosition || "Chuyên gia",
+          mentorCompany: c.mentorId?.userId?.currentCompany || "ProInterview",
+          rating: c.stats?.rating || 4.8,
+          duration: c.totalDurationMinutes || 120,
+          price: c.price || 0,
+          tags: c.tags || [],
+        }));
+        setCourses(mapped);
+      }
+      setLoading(false);
+    });
+
+    // 2. Fetch enrolled courses
+    enrollmentApi.getMyEnrollments().then((res) => {
+      if (res.success) {
+        const mapped = res.enrollments
+          .filter(e => e.courseId)
+          .map(e => {
+            const c = e.courseId;
+            const lessons = c.modules?.[0]?.lessons || [];
+            const totalCount = lessons.length || c.totalLessons || 1;
+            const pct = Math.round((e.completedLessons?.length / totalCount) * 100);
+            return {
+              course: {
+                id: c._id,
+                title: c.title,
+                thumbnail: c.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
+                category: c.topics?.[0] || "Khóa học",
+                mentorName: c.mentorId?.userId?.name || "Giảng viên",
+                mentorAvatar: c.mentorId?.userId?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky",
+                mentorTitle: c.mentorId?.userId?.desiredPosition || "Chuyên gia",
+                lessons: lessons
+              },
+              completedLessons: e.completedLessons || [],
+              progressPct: pct,
+              isCompleted: pct === 100
+            };
+          });
+        setEnrolledCourses(mapped);
+      }
+    });
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState("Tất cả");
@@ -418,14 +395,9 @@ export function Courses() {
   const [showFilters, setShowFilters] = useState(false);
 
   // My Courses state
-  const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [myCoursesTab, setMyCoursesTab] = useState("Tất cả");
   const [myCoursesSearch, setMyCoursesSearch] = useState("");
 
-  // Load enrolled courses
-  useEffect(() => {
-    setEnrolledCourses(loadEnrolledCourses());
-  }, []);
 
   // Filter marketplace courses
   const filteredCourses = courses.filter((course) => {

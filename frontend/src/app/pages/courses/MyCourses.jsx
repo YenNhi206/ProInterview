@@ -7,77 +7,17 @@ import {
   Clock,
   BookOpen,
   Trophy,
-  Flame,
-  Search,
   BadgeCheck,
   Star,
-  Award,
-  Zap,
-  Sparkles,
-  ExternalLink,
+  Award as Certificate,
+  Zap as Lightning,
+  Sparkles as Sparkle,
+  ArrowRight,
+  Flame as Fire,
+  Search as MagnifyingGlass
 } from "lucide-react";
-import { COURSES_DATA, getCourseById } from "../../data/coursesData";
-
-/* ── Constants ─────────────────────────────────────────────── */
-const ENROLLED_KEY = "prointerview_enrolled_courses";
-const PROGRESS_KEY = (id) => `prointerview_course_progress_${id}`;
-
-/* ── Helpers ────────────────────────────────────────────────── */
-const formatDuration = (minutes) => {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return h > 0 ? `${h}h ${m > 0 ? m + "m" : ""}`.trim() : `${m}m`;
-};
-
-const formatPrice = (price) => {
-  if (price === 0) return "Miễn phí";
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-};
-
-/* ── Seed demo data (so the page isn't empty on first visit) ── */
-function seedDemoEnrollments() {
-  const existing = localStorage.getItem(ENROLLED_KEY);
-  if (!existing) {
-    // Enroll courses 1, 2, 3 by default for demo
-    localStorage.setItem(ENROLLED_KEY, JSON.stringify(["1", "2", "3"]));
-  }
-  // Seed some progress data if not set
-  const p1 = localStorage.getItem(PROGRESS_KEY("1"));
-  if (!p1) {
-    localStorage.setItem(PROGRESS_KEY("1"), JSON.stringify(["1-1", "1-2", "1-3", "1-4", "1-5", "1-6", "1-7"]));
-  }
-  const p2 = localStorage.getItem(PROGRESS_KEY("2"));
-  if (!p2) {
-    localStorage.setItem(PROGRESS_KEY("2"), JSON.stringify(["2-1", "2-2", "2-3", "2-4", "2-5", "2-6", "2-7", "2-8", "2-9", "2-10"]));
-  }
-  // Course 3: no progress yet
-}
-
-/* ── Enrolled Course Item ───────────────────────────────────── */
-
-function loadEnrolledCourses() {
-  seedDemoEnrollments();
-  try {
-    const ids = JSON.parse(localStorage.getItem(ENROLLED_KEY) || "[]");
-    return ids
-      .map((id) => {
-        const course = getCourseById(id);
-        if (!course) return null;
-        const completed = JSON.parse(localStorage.getItem(PROGRESS_KEY(id)) || "[]");
-        const totalLessons = course.lessons?.length || course.lessonsCount;
-        const progressPct = totalLessons > 0 ? Math.round((completed.length / totalLessons) * 100) : 0;
-        return {
-          course,
-          completedLessons: completed,
-          progressPct,
-          isCompleted: progressPct === 100,
-        };
-      })
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
-}
+import { enrollmentApi } from "../../utils/enrollmentApi";
+import { toast } from "sonner";
 
 /* ── Level Badge ────────────────────────────────────────────── */
 function LevelBadge({ level }) {
@@ -264,7 +204,7 @@ function CourseCard({ item, onContinue }) {
                 className="flex-1 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90"
                 style={{ background: "rgba(180,240,0,0.12)", color: "#4A7A00", border: "1px solid rgba(180,240,0,0.3)" }}
               >
-                <ArrowSquareOut className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4" />
                 Ôn lại
               </button>
               <button
@@ -464,27 +404,86 @@ function RecentActivity({ items }) {
   );
 }
 
+/* ── Helpers ────────────────────────────────────────────────── */
+const formatDuration = (minutes) => {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h > 0 ? `${h}h ${m > 0 ? m + "m" : ""}`.trim() : `${m}m`;
+};
+
+const formatPrice = (price) => {
+  if (price === 0) return "Miễn phí";
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+};
+
 /* ── Main Component ─────────────────────────────────────────── */
 const TABS = ["Tất cả", "Đang học", "Đã hoàn thành"];
 
 export function MyCourses() {
   const navigate = useNavigate();
   const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Load enrolled courses
-  useEffect(() => {
-    setEnrolledCourses(loadEnrolledCourses());
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    console.log("[MyCourses] Fetching enrollments...");
+    const res = await enrollmentApi.getMyEnrollments();
+    console.log("[MyCourses] API Response:", res);
+    
+    if (res.success) {
+      const mapped = res.enrollments
+        .filter(e => e.courseId) // Bỏ qua nếu khóa học không tồn tại
+        .map(e => {
+          const c = e.courseId;
+          const lessons = c.modules?.[0]?.lessons || [];
+          const completedCount = e.completedLessons?.length || 0;
+          const totalCount = lessons.length || c.totalLessons || 1;
+          const pct = Math.round((completedCount / totalCount) * 100);
+          
+          return {
+            course: {
+              id: c._id,
+              title: c.title,
+              thumbnail: c.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
+              category: c.topics?.[0] || "Kỹ năng",
+              level: c.level === "basic" ? "Beginner" : c.level === "intermediate" ? "Intermediate" : "Advanced",
+              mentorName: c.mentorId?.userId?.name || "Sư phụ",
+              mentorAvatar: c.mentorId?.userId?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky",
+              mentorTitle: c.mentorId?.userId?.desiredPosition || "Chuyên gia",
+              rating: c.stats?.rating || 4.8,
+              lessonsCount: totalCount,
+              lessons: lessons
+            },
+            completedLessons: e.completedLessons || [],
+            progressPct: pct,
+            isCompleted: pct === 100,
+            lastAccessed: e.lastAccessed
+          };
+        });
+      console.log("[MyCourses] Mapped courses:", mapped);
+      setEnrolledCourses(mapped);
+    } else {
+      toast.error(res.error || "Không thể tải danh sách khóa học.");
+    }
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Compute stats
   const totalEnrolled = enrolledCourses.length;
   const totalCompleted = enrolledCourses.filter((e) => e.isCompleted).length;
   const totalInProgress = enrolledCourses.filter((e) => e.progressPct > 0 && !e.isCompleted).length;
-  const totalMinutesLearned = enrolledCourses.reduce((sum, { course, completedLessons }) => {
-    if (!course.lessons) return sum;
-    return sum + course.lessons.filter((l) => completedLessons.includes(l.id)).reduce((s, l) => s + l.duration, 0);
+  
+  const totalMinutesLearned = enrolledCourses.reduce((sum, item) => {
+    const lessons = item.course.lessons || [];
+    return sum + lessons
+      .filter((l) => item.completedLessons.includes(l.id))
+      .reduce((s, l) => s + l.duration, 0);
   }, 0);
   const totalHoursLearned = Math.round(totalMinutesLearned / 60 * 10) / 10;
 
@@ -501,6 +500,14 @@ export function MyCourses() {
       (activeTab === "Đã hoàn thành" && item.isCompleted);
     return matchSearch && matchTab;
   });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-10 h-10 border-4 border-[#6E35E8] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-transparent text-foreground">
@@ -685,7 +692,7 @@ export function MyCourses() {
               <div>
                 <p className="font-bold text-gray-900">Khám phá thêm khóa học</p>
                 <p className="text-sm text-gray-500">
-                  Hơn {COURSES_DATA.length} khóa học từ các Mentor hàng đầu đang chờ bạn
+                  Hơn 15 khóa học từ các Mentor hàng đầu đang chờ bạn
                 </p>
               </div>
             </div>

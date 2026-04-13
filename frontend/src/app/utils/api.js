@@ -8,7 +8,7 @@ function resolveApiBase() {
   if (fromEnv != null && String(fromEnv).trim() !== "") {
     return String(fromEnv).replace(/\/$/, "");
   }
-  if (import.meta.env.DEV) return "";
+  // Mặc định luôn gọi sang cổng 5000 của Backend
   return "http://localhost:5000";
 }
 

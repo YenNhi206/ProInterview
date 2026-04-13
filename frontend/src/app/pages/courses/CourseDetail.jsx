@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   ArrowLeft,
@@ -33,7 +33,10 @@ import {
   Pencil,
   X,
 } from "lucide-react";
-import { getCourseById, getRelatedCourses, MENTOR_REVIEWERS } from "../../data/coursesData";
+import { fetchCourseById, submitReview } from "../../utils/courseApi";
+import { enrollmentApi } from "../../utils/enrollmentApi";
+import { toast } from "sonner";
+
 
 import {
   Dialog,
@@ -59,6 +62,11 @@ const getLevelColor = (level) => {
   if (level === "Beginner") return { bg: "rgba(196, 255, 71,0.12)", text: "#4A7A00", border: "rgba(196, 255, 71,0.3)" };
   if (level === "Intermediate") return { bg: "rgba(110, 53, 232,0.2)", text: "#ddd6fe", border: "rgba(167, 139, 250, 0.45)" };
   return { bg: "rgba(255,140,66,0.12)", text: "#CC5C00", border: "rgba(255,140,66,0.35)" };
+};
+
+const getRelatedCourses = (currentId, category, limit) => {
+  // Trả về mảng rỗng tạm thời hoặc logic lọc nếu có danh sách
+  return [];
 };
 
 /* ── Lesson Row ───────────────────────────────────────────── */
@@ -181,20 +189,27 @@ function ReviewsSection({ course, enrolled }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmitReview = () => {
-    if (!reviewRating || !reviewComment.trim()) return;
+  const handleSubmitReview = async () => {
+    if (!reviewRating || reviewComment.trim().length < 30) return;
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    
+    const res = await submitReview({
+      mentorId: course.mentorId,
+      rating: reviewRating,
+      comment: reviewComment,
+    });
+
+    setSubmitting(false);
+    if (res.success) {
       setSubmitted(true);
       setShowReviewDialog(false);
-      // Reset form after closing
-      setTimeout(() => {
-        setReviewRating(0);
-        setReviewComment("");
-        setHoverRating(0);
-      }, 300);
-    }, 900);
+      // Reset form
+      setReviewRating(0);
+      setReviewComment("");
+      setHoverRating(0);
+    } else {
+      alert(res.error || "Gửi đánh giá thất bại.");
+    }
   };
 
   const handleCloseDialog = () => {
@@ -541,12 +556,76 @@ function ReviewsSection({ course, enrolled }) {
 export function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [showAllLessons, setShowAllLessons] = useState(false);
-  const [enrolled, setEnrolled] = useState(true); // Temporarily true for testing review dialog
+  const [enrolled, setEnrolled] = useState(false); 
   const [wishlisted, setWishlisted] = useState(false);
 
-  const course = getCourseById(id || "");
+  useEffect(() => {
+    if (!id) return;
+    fetchCourseById(id).then((res) => {
+      if (res.success) {
+        const c = res.course;
+        setCourse({
+          id: c._id,
+          title: c.title,
+          description: c.description,
+          thumbnail: c.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
+          category: c.topics?.[0] || "Kỹ năng khác",
+          level: c.level === "basic" ? "Beginner" : c.level === "intermediate" ? "Intermediate" : "Advanced",
+          mentorId: c.mentorId?._id,
+          mentorName: c.mentorId?.userId?.name || "Khuất danh",
+          mentorAvatar: c.mentorId?.userId?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky",
+          mentorTitle: c.mentorId?.userId?.desiredPosition || "Chuyên gia",
+          mentorCompany: c.mentorId?.userId?.currentCompany || "ProInterview",
+          rating: c.stats?.rating || 4.8,
+          reviewsCount: c.stats?.reviewCount || 0,
+          studentsCount: c.stats?.enrollmentCount || 0,
+          duration: c.totalDurationMinutes || 120,
+          lessonsCount: c.totalLessons || 0,
+          price: c.price || 0,
+          lessons: c.modules?.[0]?.lessons || [],
+          learningOutcomes: c.learningOutcomes || [],
+          requirements: c.requirements || [],
+          targetAudience: c.targetAudience || [],
+          tags: c.tags || [],
+          updatedAt: c.updatedAt || new Date().toISOString(),
+          reviews: [] 
+        });
+      }
+      setLoading(false);
+    });
+
+    // Check if current user is enrolled
+    enrollmentApi.getMyEnrollments().then(res => {
+      if (res.success) {
+        const isEnrolled = res.enrollments.some(e => 
+          (e.courseId?._id === id) || (e.courseId === id)
+        );
+        setEnrolled(isEnrolled);
+      }
+    });
+  }, [id]);
+
+  const handleEnroll = async () => {
+    const res = await enrollmentApi.enroll(id);
+    if (res.success) {
+      setEnrolled(true);
+      toast.success("Đăng ký khóa học thành công!");
+    } else {
+      toast.error(res.error || "Không thể đăng ký khóa học.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="pi-page-dashboard-bg flex min-h-full w-full items-center justify-center px-6 py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-fixed border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -566,10 +645,9 @@ export function CourseDetail() {
     );
   }
 
-  const relatedCourses = getRelatedCourses(course.id, course.category, 3);
+  const relatedCourses = []; // Tạm thời để trống hoặc lấy từ danh sách nếu có
   const levelColor = getLevelColor(course.level);
   const displayedLessons = showAllLessons ? (course.lessons || []) : (course.lessons || []).slice(0, 5);
-  const mentorOtherCourses = getRelatedCourses("", course.category, 2);
 
   const TABS = [
     { key: "overview", label: "Tổng quan", icon: ListChecks },
@@ -720,7 +798,7 @@ export function CourseDetail() {
                     </button>
                   ) : (
                     <button
-                      onClick={() => setEnrolled(true)}
+                      onClick={handleEnroll}
                       className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] shadow-lg"
                       style={{ background: "#c4ff47", color: "#1F1F1F", boxShadow: "0 6px 20px rgba(196, 255, 71,0.3)" }}
                     >

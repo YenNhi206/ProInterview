@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router";
 import { Bell } from "lucide-react";
+import { fetchNotifications, markNotificationAsRead } from "../../utils/notificationApi";
+
 import { SidebarTrigger } from "../ui/sidebar";
 import {
   DropdownMenu,
@@ -58,12 +60,35 @@ const MOCK_NOTIFICATIONS = [
 export function Navbar() {
   const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  React.useEffect(() => {
+    fetchNotifications().then(res => {
+      if (res.success) setNotifications(res.notifications);
+    });
+    // Optional: set polling
+    const interval = setInterval(() => {
+      fetchNotifications().then(res => {
+        if (res.success) setNotifications(res.notifications);
+      });
+    }, 60000); 
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRead = (id) => {
+    markNotificationAsRead(id).then(res => {
+      if (res.success) {
+        setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+      }
+    });
+  };
+
 
   const pageKey = Object.keys(PAGE_TITLES).find(
     (k) => k === location.pathname || location.pathname.startsWith(k + "/")
   ) || location.pathname;
   const pageInfo = PAGE_TITLES[pageKey] || { label: "ProInterview", sub: "" };
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => n.unread).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <header
@@ -146,23 +171,31 @@ export function Navbar() {
               </span>
             </div>
 
-            <div className="py-1">
-              {MOCK_NOTIFICATIONS.map((n) => (
+            <div className="py-1 max-h-[400px] overflow-y-auto">
+              {notifications.length === 0 && (
+                <div className="px-4 py-8 text-center text-zinc-500 text-xs">Không có thông báo mới</div>
+              )}
+              {notifications.map((n) => (
                 <DropdownMenuItem
-                  key={n.id}
+                  key={n._id}
+                  onClick={() => handleRead(n._id)}
                   className="flex cursor-pointer items-start gap-3 px-4 py-3 focus:bg-white/8"
                 >
                   <div
                     className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                     style={{
-                      background: n.unread ? n.color : "transparent",
-                      border: n.unread ? "none" : "1px solid rgba(255,255,255,0.2)",
+                      background: !n.isRead ? (n.type === "payment" ? "#c4ff47" : "#6E35E8") : "transparent",
+                      border: !n.isRead ? "none" : "1px solid rgba(255,255,255,0.2)",
                     }}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-white/95">{n.title}</p>
+                    <p className={`truncate text-sm ${!n.isRead ? "font-bold text-white" : "font-medium text-white/70"}`}>
+                      {n.title}
+                    </p>
                     <p className="mt-0.5 text-xs leading-relaxed text-white/50">{n.message}</p>
-                    <p className="mt-1 text-[10px] text-white/35">{n.time}</p>
+                    <p className="mt-1 text-[10px] text-white/35">
+                      {new Date(n.createdAt).toLocaleDateString("vi-VN")}
+                    </p>
                   </div>
                 </DropdownMenuItem>
               ))}

@@ -10,7 +10,7 @@ const userSchema = new Schema(
     googleSub: { type: String, unique: true, sparse: true, trim: true, select: false },
 
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, select: false },
     avatar: { type: String, default: "" },
 
@@ -79,7 +79,6 @@ const userSchema = new Schema(
   { collection: "users", timestamps: true }
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ plan: 1 });
 

@@ -36,16 +36,16 @@ import { Pricing } from "./pages/home/Pricing";
 import { AdminLayout } from "./pages/admin/AdminLayout.jsx";
 import { adminLoader } from "./pages/admin/adminLoader.js";
 import { AdminDashboard } from "./pages/admin/AdminDashboard.jsx";
+import { AdminMentors } from "./pages/admin/AdminMentors.jsx";
+import { AdminUsers } from "./pages/admin/AdminUsers.jsx";
+import { AdminBookings } from "./pages/admin/AdminBookings.jsx";
+import { AdminMentorsPending } from "./pages/admin/AdminMentorsPending.jsx";
 import {
-  AdminUsers,
   AdminUserDetail,
-  AdminMentors,
   AdminMentorDetail,
-  AdminMentorsPending,
   AdminFinance,
   AdminTransactions,
   AdminPayouts,
-  AdminBookings,
   AdminBookingDetail,
   AdminContentQuestions,
   AdminContentVideos,

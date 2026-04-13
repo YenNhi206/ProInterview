@@ -23,14 +23,9 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { fetchMentor } from "../../utils/mentorApi";
-import { getReviewsByMentor } from "../../utils/bookings";
+import { fetchCourseReviews } from "../../utils/courseApi";
 import { ReportMentorModal } from "../../components/modals/ReportMentorModal";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-
-const REVIEWS = [
-  { name: "Nguyễn Văn A", role: "Kỹ sư phần mềm", avatar: "NA", rating: 5, text: "Buổi phỏng vấn thử rất thực tế, mentor chia sẻ nhiều kinh nghiệm nội bộ. Sau buổi này mình tự tin hơn hẳn.", date: "15/02/2026" },
-  { name: "Trần Thị B", role: "Chuyên viên Tiếp thị", avatar: "TB", rating: 5, text: "Phản hồi rất chi tiết và mang tính xây dựng. Mentor giải thích rõ tại sao câu trả lời của mình chưa đủ mạnh và cách cải thiện.", date: "10/02/2026" },
-];
 
 export function MentorProfile() {
   const navigate = useNavigate();
@@ -56,7 +51,11 @@ export function MentorProfile() {
   }, [id]);
 
   React.useEffect(() => {
-    if (mentor) setRealReviews(getReviewsByMentor(mentor.id));
+    if (mentor) {
+      fetchCourseReviews(mentor.id).then((res) => {
+        if (res.success) setRealReviews(res.reviews);
+      });
+    }
   }, [mentor?.id]);
 
   if (loadingMentor && !mentor) return (
@@ -171,22 +170,37 @@ export function MentorProfile() {
                   </div>
                </div>
                <div className="space-y-6">
-                  {REVIEWS.map((review, i) => (
-                    <div key={i} className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5">
+                  {realReviews.length === 0 && (
+                    <div className="p-12 text-center border-2 border-dashed border-white/5 rounded-[40px] bg-white/[0.01]">
+                       <p className="text-zinc-500 text-xs font-black uppercase tracking-widest">Chưa có đánh giá nào cho mentor này.</p>
+                    </div>
+                  )}
+                  {realReviews.map((review, i) => (
+                    <div key={i} className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all">
                        <div className="flex items-center justify-between mb-6">
                           <div className="flex items-center gap-4">
-                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-fixed to-secondary flex items-center justify-center text-[10px] font-black text-black">{review.avatar}</div>
+                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-fixed to-secondary flex items-center justify-center text-[10px] font-black text-black">
+                                {review.userId?.name?.charAt(0) || "U"}
+                             </div>
                              <div>
-                                <p className="text-sm font-black text-white">{review.name}</p>
-                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{review.role}</p>
+                                <p className="text-sm font-black text-white">{review.userId?.name || "Học viên"}</p>
+                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Đã tham gia đào tạo</p>
                              </div>
                           </div>
                           <div className="flex gap-1">
-                             {[1,2,3,4,5].map(j => <Star key={j} size={14} className="text-[#FFD600] fill-current" />)}
+                             {[...Array(5)].map((_, j) => (
+                               <Star 
+                                 key={j} 
+                                 size={14} 
+                                 className={`${j < review.rating ? "text-[#FFD600] fill-current" : "text-white/10"}`} 
+                               />
+                             ))}
                           </div>
                        </div>
-                       <p className="text-base font-medium text-zinc-400 italic">"{review.text}"</p>
-                       <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-6 text-right">📅 {review.date}</p>
+                       <p className="text-base font-medium text-zinc-400 italic">"{review.comment}"</p>
+                       <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-6 text-right">
+                          📅 {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+                       </p>
                     </div>
                   ))}
                </div>
@@ -227,7 +241,9 @@ export function MentorProfile() {
                       className="w-full py-5 rounded-3xl bg-white text-black text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center justify-center gap-3 mb-4">
                       Đặt lịch ngay <ArrowRight size={18} />
                    </button>
-                   <button className="w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
+                   <button 
+                      onClick={() => navigate(`/booking/${mentor.id}`)}
+                      className="w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
                       Xem toàn bộ lịch trống
                    </button>
 
