@@ -23,7 +23,7 @@ const mentorSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", unique: true, sparse: true },
 
-    /** ID công khai (seed / URL) — map với `id` cũ từ mentorsSeed.json */
+    /** ID công khai cho URL (vd. `u` + ObjectId user khi tạo từ tài khoản thật) */
     publicId: { type: String, unique: true, sparse: true, index: true, trim: true },
 
     name: { type: String, required: true },
@@ -36,7 +36,6 @@ const mentorSchema = new Schema(
     companies: [{ type: String }],
     linkedinUrl: { type: String, default: "" },
 
-    /** Năm kinh nghiệm (seed cũ) — bổ sung so với file schema gốc */
     experienceYears: { type: Number, default: 0 },
 
     pricePerHour: { type: Number, required: true },
@@ -88,33 +87,6 @@ mentorSchema.index({ pricePerHour: 1 });
 mentorSchema.index({ available: 1 });
 
 export const Mentor = mongoose.models.Mentor ?? mongoose.model("Mentor", mentorSchema);
-
-/** Chuyển một dòng từ mentorsSeed.json sang document Mentor (schema mới). */
-export function mapSeedRowToMentorDoc(row) {
-  const price = row.price ?? 0;
-  return {
-    publicId: String(row.id),
-    name: row.name,
-    title: row.title || "Mentor",
-    company: row.company || "",
-    avatar: row.avatar || "",
-    bio: row.bio || "",
-    specialties: row.specialties || row.tags || [],
-    fields: row.field ? [row.field] : [],
-    companies: row.companies || [],
-    linkedinUrl: "",
-    experienceYears: typeof row.experience === "number" ? row.experience : 0,
-    pricePerHour: price,
-    sessionTypes: [{ type: "mock_interview", durationMinutes: 60, price }],
-    available: row.available !== false,
-    responseTime: row.responseTime || "< 24 giờ",
-    stats: {
-      rating: row.rating ?? 0,
-      reviewCount: row.reviews ?? 0,
-      sessionCount: row.sessionsDone ?? 0,
-    },
-  };
-}
 
 /**
  * Giữ hình dạng JSON cũ cho GET /api/mentors (id, price, reviews, tags, field, sessionsDone, …).

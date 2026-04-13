@@ -15,3 +15,5 @@
 | `shared/` | Khối dùng chung nhiều màn: `PageHeader`, `SupportContact`, `HistoryPanel` |
 
 File đặt ở **root** `components/` chỉ khi là entry chung (vd. còn lại từ prototype). Ưu tiên thêm file mới vào đúng folder domain.
+
+Toàn cảnh `pages` / `data` / `utils`: [`../README.md`](../README.md).

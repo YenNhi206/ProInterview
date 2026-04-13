@@ -33,9 +33,10 @@ Tài liệu mô tả kết nối MongoDB, các collection/model, lệnh seed, te
 |------|----------------|
 | `npm run dev` | Chạy backend có nodemon (sửa code tự restart). |
 | `npm start` | Chạy backend một lần (`node src/index.js`). |
-| `npm run seed` | Nạp **mentor** từ `src/data/mentorsSeed.json` — **chỉ khi** collection `mentors` đang trống. |
+| `npm run seed` | Giống `seed:users`: nạp **user dev** từ `src/data/usersSeed.json` khi `users` trống. |
 | `npm run seed:users` | Nạp **user dev** từ `src/data/usersSeed.json` — **chỉ khi** collection `users` đang trống. |
-| `npm run seed:all` | Seed **mentor** rồi **user** (hai bước trên). |
+| `npm run seed:all` | Seed user dev (không còn seed mentor giả). |
+| `npm run db:prune-fake-mentors` | Xóa trong MongoDB các document `mentors` **không có `userId`** (catalog cũ). |
 
 ### Tài khoản dev mặc định (sau `seed:users`)
 
@@ -61,7 +62,7 @@ JWT_SECRET=chuoi-bi-mat-du-dai
 | Mục đích | URL |
 |----------|-----|
 | Server + DB có nối không | `GET http://localhost:5000/api/health` — trong JSON cần `"database": "connected"`. |
-| Danh sách mentor (tự seed nếu `mentors` trống) | `GET http://localhost:5000/api/mentors` |
+| Danh sách mentor (chỉ mentor có tài khoản, `userId`) | `GET http://localhost:5000/api/mentors` |
 | Đăng nhập (sau khi có user) | `POST http://localhost:5000/api/auth/login` — body JSON: `email`, `password` |
 
 **PowerShell** (ví dụ):
@@ -78,8 +79,8 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/mentors"
 | Model (schema) | `backend/src/models/*.js` |
 | Export tập trung | `backend/src/models/index.js` |
 | Kết nối DB | `backend/src/db/connect.js` |
-| Seed mentor | `backend/src/data/mentorsSeed.json`, script `backend/src/scripts/seedMentors.js` |
 | Seed user dev | `backend/src/data/usersSeed.json`, script `backend/src/scripts/seedUsers.js` |
+| Xóa mentor không user | `backend/src/scripts/pruneFakeMentors.js` (`npm run db:prune-fake-mentors`) |
 | Entry server | `backend/src/index.js` |
 
 ---
@@ -173,19 +174,18 @@ await mongoose.disconnect();
 
 <a id="ref-seed"></a>
 
-## 6. Seed dữ liệu (mentor, user)
+## 6. Seed dữ liệu (user dev; mentor chỉ từ tài khoản thật)
 
 ### Mentor
 
-- Dữ liệu mẫu: **`src/data/mentorsSeed.json`** (format cũ cho FE: `id`, `price`, `reviews`, …).
-- Khi **chạy server**, nếu `mentors` **trống**, `GET /api/mentors` có thể tự insert (map qua `mapSeedRowToMentorDoc` trong `Mentor.js`).
-- Hoặc: **`npm run seed`** (chỉ mentor, bỏ qua nếu đã có bản ghi).
+- **Không** còn file seed mentor giả. Document `mentors` được tạo khi user có `role: mentor` (admin cấp quyền) và hook/sync — luôn có `userId`.
+- Nếu DB còn document cũ không có `userId`: chạy **`npm run db:prune-fake-mentors`** (hoặc xóa tay trong Compass).
 
 ### User mặc định (dev)
 
 - File: **`src/data/usersSeed.json`** — email, tên, `role`, mật khẩu dạng plain (script **bcrypt** trước khi lưu).
 - **`npm run seed:users`** — chỉ chạy khi collection **`users` trống** (đã có user thì bỏ qua).
-- **`npm run seed:all`** — seed mentor rồi user.
+- **`npm run seed:all`** — chỉ seed user (và script user sẽ đồng bộ hồ sơ mentor cho dòng `role: mentor` trong seed).
 
 Không dùng mật khẩu seed trên môi trường thật; có thể sửa `usersSeed.json` hoặc xóa user sau khi test.
 
