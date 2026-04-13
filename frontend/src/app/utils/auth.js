@@ -232,6 +232,14 @@ export function getUser() {
   }
 }
 
+/** Logo / thương hiệu app: đã đăng nhập → hub theo role (dashboard / mentor / admin); chưa → trang chủ. */
+export function getBrandClickPath() {
+  if (!isLoggedIn()) return "/";
+  const u = getUser();
+  if (!u) return "/";
+  return getPostLoginPath(u, "");
+}
+
 export function logout() {
   localStorage.removeItem(AUTH_KEY);
   localStorage.removeItem(TOKEN_KEY);

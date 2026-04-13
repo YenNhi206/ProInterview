@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router";
+import { getBrandClickPath } from "../../utils/auth";
 import { Zap as Lightning } from "lucide-react";
 
 /**
@@ -86,7 +87,7 @@ export function AuthShell({ children, aside, footerNote }) {
         <div className="mx-auto flex h-16 w-full max-w-[min(100%,calc(64rem+2.5cm))] items-center justify-between gap-6 px-5">
           <button
             type="button"
-            onClick={() => navigate("/")}
+            onClick={() => navigate(getBrandClickPath())}
             className="group flex shrink-0 items-center gap-2.5"
           >
             <div

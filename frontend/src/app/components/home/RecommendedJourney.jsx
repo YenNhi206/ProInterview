@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router";
+import { navigateToInterview } from "../../utils/authGate";
 import {
   Zap as Lightning,
   Brain,
@@ -85,7 +86,11 @@ export function RecommendedJourney({
             return (
               <button
                 key={i}
-                onClick={() => navigate(step.route)}
+                onClick={() =>
+                  step.route === "/interview"
+                    ? navigateToInterview(navigate)
+                    : navigate(step.route)
+                }
                 className="w-full flex items-center gap-3 p-3 rounded-xl transition-all hover:brightness-110"
                 style={{
                   background: isActive
@@ -214,7 +219,11 @@ export function RecommendedJourney({
             return (
               <button
                 key={i}
-                onClick={() => navigate(step.route)}
+                onClick={() =>
+                  step.route === "/interview"
+                    ? navigateToInterview(navigate)
+                    : navigate(step.route)
+                }
                 className="group flex flex-col items-center text-center transition-all hover:-translate-y-1"
               >
                 {/* Number badge with icon */}

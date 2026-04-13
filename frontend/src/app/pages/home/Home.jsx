@@ -30,7 +30,7 @@ import {
   PlayCircle,
 } from "lucide-react";
 import { COURSES_DATA } from "../../data/coursesData";
-import { isLoggedIn } from "../../utils/auth";
+import { navigateToInterview, requireLoginNavigate } from "../../utils/authGate";
 import { Footer } from "../../components/layout/Footer";
 import { RecommendedJourney } from "../../components/home/RecommendedJourney";
 
@@ -167,14 +167,7 @@ export function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Auth-gate: redirect to login with ?redirect= if not logged in
-  const handleFeatureClick = (route) => {
-    if (isLoggedIn()) {
-      navigate(route);
-    } else {
-      navigate(`/login?redirect=${encodeURIComponent(route)}`);
-    }
-  };
+  const handleFeatureClick = (route) => requireLoginNavigate(navigate, route);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -474,7 +467,8 @@ export function Home() {
           <div className="ml-auto flex items-center gap-2.5">
             {/* Try button — always visible */}
             <button
-              onClick={() => navigate("/interview")}
+              type="button"
+              onClick={() => navigateToInterview(navigate)}
               className="hidden sm:inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-extrabold transition-all hover:brightness-110 active:scale-95 shadow-[0_8px_20px_rgba(196, 255, 71,0.22)]"
               style={{
                 background:
@@ -557,7 +551,11 @@ export function Home() {
                   Đăng nhập
                 </button>
                 <button
-                  onClick={() => navigate("/register")}
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    navigateToInterview(navigate);
+                  }}
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold"
                   style={{
                     background:
@@ -644,7 +642,8 @@ export function Home() {
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-3.5 justify-center mb-16">
             <button
-              onClick={() => navigate("/interview")}
+              type="button"
+              onClick={() => navigateToInterview(navigate)}
               className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-black transition-all hover:brightness-110 active:scale-[0.98] hover:-translate-y-0.5"
               style={{
                 background:
@@ -659,7 +658,8 @@ export function Home() {
               Phỏng vấn thử miễn phí
             </button>
             <button
-              onClick={() => navigate("/mentors")}
+              type="button"
+              onClick={() => requireLoginNavigate(navigate, "/mentors")}
               className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-semibold transition-all hover:bg-white/12 hover:-translate-y-0.5"
               style={{
                 background: "rgba(255,255,255,0.07)",
@@ -886,7 +886,8 @@ export function Home() {
               </ul>
 
               <button
-                onClick={() => navigate("/interview")}
+                type="button"
+                onClick={() => navigateToInterview(navigate)}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:brightness-110 hover:-translate-y-0.5"
                 style={{
                   background:
@@ -1211,7 +1212,8 @@ export function Home() {
 
           <div className="text-center">
             <button
-              onClick={() => navigate("/courses")}
+              type="button"
+              onClick={() => requireLoginNavigate(navigate, "/courses")}
               className="px-10 py-3.5 rounded-full border border-white/15 text-white font-bold hover:bg-white/[0.06] hover:border-[#c4ff47]/35 transition-all text-sm"
             >
               Xem tất cả khóa học
@@ -1368,7 +1370,11 @@ export function Home() {
                   </li>
                 ))}
               </ul>
-              <button onClick={() => navigate("/register")} className="w-full py-3 rounded-full border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-all mt-auto">
+              <button
+                type="button"
+                onClick={() => requireLoginNavigate(navigate, "/dashboard")}
+                className="w-full py-3 rounded-full border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-all mt-auto"
+              >
                 Bắt đầu ngay
               </button>
               </div>
@@ -1395,7 +1401,16 @@ export function Home() {
                   </li>
                 ))}
               </ul>
-              <button onClick={() => navigate("/checkout?plan=starterPro&billing=monthly&planPrice=79000")} className="w-full py-3 rounded-full bg-primary-fixed text-on-primary-fixed font-black text-sm shadow-[0px_0px_20px_rgba(191,255,0,0.3)] hover:brightness-110 transition-all mt-auto">
+              <button
+                type="button"
+                onClick={() =>
+                  requireLoginNavigate(
+                    navigate,
+                    "/checkout?plan=starterPro&billing=monthly&planPrice=79000",
+                  )
+                }
+                className="w-full py-3 rounded-full bg-primary-fixed text-on-primary-fixed font-black text-sm shadow-[0px_0px_20px_rgba(191,255,0,0.3)] hover:brightness-110 transition-all mt-auto"
+              >
                 Nâng cấp Pro
               </button>
               </div>
@@ -1419,7 +1434,16 @@ export function Home() {
                   </li>
                 ))}
               </ul>
-              <button onClick={() => navigate("/checkout?plan=elitePro&billing=monthly&planPrice=99000")} className="w-full py-3 rounded-full border border-secondary/50 text-secondary-fixed font-bold text-sm hover:bg-secondary/10 transition-all mt-auto">
+              <button
+                type="button"
+                onClick={() =>
+                  requireLoginNavigate(
+                    navigate,
+                    "/checkout?plan=elitePro&billing=monthly&planPrice=99000",
+                  )
+                }
+                className="w-full py-3 rounded-full border border-secondary/50 text-secondary-fixed font-bold text-sm hover:bg-secondary/10 transition-all mt-auto"
+              >
                 Nâng cấp Elite
               </button>
               </div>
@@ -1432,7 +1456,13 @@ export function Home() {
             <h2 className="text-3xl font-headline font-black mb-4 text-white">Bạn vẫn còn băn khoăn?</h2>
             <p className="text-zinc-400 mb-8 max-w-xl mx-auto">Thử gói Free để trải nghiệm sức mạnh của AI. Không cần thẻ tín dụng.</p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-              <button onClick={() => navigate("/register")} className="bg-primary-fixed text-on-primary-fixed font-black px-10 py-3 rounded-full hover:scale-105 transition-all shadow-[0_0_28px_rgba(196,255,71,0.25)]">Bắt đầu miễn phí</button>
+              <button
+                type="button"
+                onClick={() => requireLoginNavigate(navigate, "/dashboard")}
+                className="bg-primary-fixed text-on-primary-fixed font-black px-10 py-3 rounded-full hover:scale-105 transition-all shadow-[0_0_28px_rgba(196,255,71,0.25)]"
+              >
+                Bắt đầu miễn phí
+              </button>
             </div>
             </div>
           </div>
