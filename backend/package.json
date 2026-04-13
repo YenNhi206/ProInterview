@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "seed": "node src/scripts/seedMentors.js",
+    "seed": "node src/scripts/seedUsers.js",
     "seed:users": "node src/scripts/seedUsers.js",
+    "db:prune-fake-mentors": "node src/scripts/pruneFakeMentors.js",
     "seed:all": "node src/scripts/seedAll.js",
     "sync:mentor-profiles": "node src/scripts/syncMentorProfiles.js"
   },

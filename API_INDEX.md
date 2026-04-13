@@ -121,7 +121,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 | Endpoint | Body / header | Response thành công | Lỗi thường gặp |
 |:---------|:--------------|:---------------------|:---------------|
-| `POST /register` | `name`, `email`, `password`, `role?` | `201` `{ success: true }` — **không** có `token` | `400`, `409` |
+| `POST /register` | `name`, `email`, `password`, `role?` (`admin` cần `adminInviteCode`) | `201` `{ success: true }` — **không** có `token` | `400`, `403`, `409` |
 | `POST /login` | `email`, `password` | `{ success, token, user }` | `401`, `503` |
 | `POST /google` | `credential` | `{ success, token, user }` | `400`–`503` |
 | `GET /me` | `Authorization: Bearer` | `{ success, user }` | `401` |
@@ -130,7 +130,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 **Đổi mật khẩu (`PATCH /me`):** gửi `newPassword` hoặc `password`. Chưa liên kết Google → bắt buộc `currentPassword`. Đã liên kết Google → `currentPassword` tùy chọn.  
 **Không** dùng `POST /api/auth/change-password` — gộp trong `PATCH /me`.
 
-**Profile (`PATCH /me` — một phần):** `name`, `phone`, `position`, `school`, `field`, `avatar`, `expertise`, `experience`, `hourlyRate`, `bio`, `email` (check trùng).
+**Profile (`PATCH /me` — một phần):** `name`, `phone`, `position`, `school`, `field`, `avatar`, `expertise`, `experience`, `hourlyRate`, `bio`, `email` (check trùng). **Không** tự đổi `role` lên mentor qua `/me` — chỉ **admin** gán qua `PATCH /api/users/:id/role` (Bearer admin).
 
 #### `user` public (`toPublicUser`)
 
@@ -156,7 +156,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 ### A.4. Module Mentors — `/api/mentors`
 
-**File:** `backend/src/routes/mentors.js` — cần MongoDB; có thể seed `mentorsSeed.json` nếu rỗng.
+**File:** `backend/src/routes/mentors.js` — cần MongoDB; danh sách chỉ gồm mentor có `userId` (tài khoản thật).
 
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
@@ -363,6 +363,7 @@ Token: `getFreshAccessToken()` (JWT backend). Không token hoặc `401` → FE c
 | Method | Path |
 |:-------|:-----|
 | GET | `/api/users/dashboard-stats` |
+| PATCH | `/api/users/:id/role` `[ADMIN]` — JSON `{ "role": "mentor" }` hoặc `"customer"` |
 | GET | `/api/mentor/dashboard` |
 | GET | `/api/mentor/finance` |
 | GET | `/api/mentor/analytics` |

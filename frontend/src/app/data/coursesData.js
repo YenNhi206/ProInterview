@@ -1,6 +1,7 @@
 /**
- * Shared course data with full lessons and peer reviews
- * Used across CourseDetail, Courses listing, and recommendation components
+ * Dữ liệu khóa học tĩnh / demo (full lessons, peer reviewers).
+ * Dùng cho Courses, CourseDetail, CourseLearning, CourseRecommendations.
+ * Khi có API khóa học: thay dần bằng fetch — xem data/README.md
  */
 
 // ── Peer Reviewers (Mentors who cross-review other mentors' courses) ──────────

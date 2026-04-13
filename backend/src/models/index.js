@@ -3,7 +3,7 @@
  * Import file này một lần khi khởi động app.
  */
 export { User, toPublicUser } from "./User.js";
-export { Mentor, toPublicMentor, mapSeedRowToMentorDoc } from "./Mentor.js";
+export { Mentor, toPublicMentor } from "./Mentor.js";
 export { Booking } from "./Booking.js";
 export { CVAnalysis } from "./CVAnalysis.js";
 export { InterviewSession } from "./InterviewSession.js";

@@ -12,6 +12,47 @@ function pickStr(...vals) {
   return "";
 }
 
+/** Map trường profile từ User sang Mentor (dùng khi tạo mới và khi đồng bộ sau mỗi lần save). */
+export function buildMentorProfileFieldsFromUser(user) {
+  const name = pickStr(user.name) || "Mentor";
+  const title = pickStr(user.desiredPosition, user.position) || "Mentor";
+  const company = pickStr(user.currentCompany) || "—";
+  const hr = Number(user.hourlyRate);
+  const pricePerHour = Number.isFinite(hr) && hr > 0 ? Math.round(hr) : 350_000;
+  const skillsRaw =
+    Array.isArray(user.skills) && user.skills.length
+      ? user.skills
+      : Array.isArray(user.expertise)
+        ? user.expertise
+        : [];
+  const skills = skillsRaw.map((s) => String(s).trim()).filter(Boolean);
+  const fieldArr = skills.length ? [skills[0]] : [];
+  const exp = Number(user.experience);
+  const experienceYears = Number.isFinite(exp) && exp >= 0 ? Math.round(exp) : 0;
+  return {
+    name,
+    title,
+    company,
+    avatar: typeof user.avatar === "string" ? user.avatar : "",
+    bio: pickStr(user.bio),
+    specialties: skills,
+    fields: fieldArr,
+    companies: company && company !== "—" ? [company] : [],
+    experienceYears,
+    pricePerHour,
+    sessionTypes: [{ type: "mock_interview", durationMinutes: 60, price: pricePerHour }],
+  };
+}
+
+/**
+ * Cập nhật document Mentor đã có theo User (sau đổi role hoặc PATCH profile).
+ */
+export async function syncMentorProfileFromUser(user) {
+  if (!user?._id) return null;
+  const fields = buildMentorProfileFieldsFromUser(user);
+  return Mentor.findOneAndUpdate({ userId: user._id }, { $set: fields }, { new: true });
+}
+
 /**
  * Tạo document Mentor gắn với user (đăng ký role mentor).
  * publicId ổn định theo user để URL /mentors/:id hoạt động.
@@ -22,15 +63,7 @@ export async function createMentorProfileForUser(user) {
   const existing = await Mentor.findOne({ userId: uid }).select("_id").lean();
   if (existing) return existing;
 
-  const name = pickStr(user.name) || "Mentor";
-  const title = pickStr(user.desiredPosition, user.position) || "Mentor";
-  const company = pickStr(user.currentCompany) || "—";
-  const hr = Number(user.hourlyRate);
-  const pricePerHour = Number.isFinite(hr) && hr > 0 ? Math.round(hr) : 350_000;
-  const skills = Array.isArray(user.skills) ? user.skills.map((s) => String(s).trim()).filter(Boolean) : [];
-  const fields = skills.length ? [skills[0]] : [];
-  const exp = Number(user.experience);
-  const experienceYears = Number.isFinite(exp) && exp >= 0 ? Math.round(exp) : 0;
+  const profile = buildMentorProfileFieldsFromUser(user);
   const publicId = `u${String(uid)}`;
 
   let doc;
@@ -38,17 +71,7 @@ export async function createMentorProfileForUser(user) {
     doc = await Mentor.create({
       userId: uid,
       publicId,
-      name,
-      title,
-      company,
-      avatar: typeof user.avatar === "string" ? user.avatar : "",
-      bio: pickStr(user.bio),
-      specialties: skills,
-      fields,
-      companies: company && company !== "—" ? [company] : [],
-      experienceYears,
-      pricePerHour,
-      sessionTypes: [{ type: "mock_interview", durationMinutes: 60, price: pricePerHour }],
+      ...profile,
       available: true,
       isActive: true,
     });

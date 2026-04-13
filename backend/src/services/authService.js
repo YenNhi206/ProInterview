@@ -44,7 +44,13 @@ export async function registerUser(body) {
     typeof adminInviteCode === "string" ? adminInviteCode.trim() : "";
 
   let userRole = "customer";
-  if (role === "mentor") userRole = "mentor";
+  if (role === "mentor") {
+    return {
+      ok: false,
+      status: 403,
+      error: "Không đăng ký trực tiếp với vai trò mentor. Đăng ký tài khoản thường; quản trị viên sẽ cấp quyền mentor (PATCH /api/users/:id/role).",
+    };
+  }
   if (role === "admin") {
     if (!adminSecret) {
       return {
@@ -292,6 +298,25 @@ export async function patchMeUser(userId, body) {
         return { ok: false, status: 409, error: "Email này đã được tài khoản khác sử dụng." };
       }
       user.email = e;
+    }
+  }
+
+  /** Không tự đổi lên mentor qua /me — chỉ admin (PATCH /api/users/:id/role). */
+  if (body.role !== undefined && body.role !== null) {
+    const want = String(body.role).trim().toLowerCase();
+    if (want === "mentor" && user.role === "customer") {
+      return {
+        ok: false,
+        status: 403,
+        error: "Chỉ quản trị viên mới có thể cấp quyền mentor (PATCH /api/users/:id/role).",
+      };
+    }
+    if (want === "customer" && user.role === "mentor") {
+      return {
+        ok: false,
+        status: 403,
+        error: "Không thể hạ role từ mentor xuống customer qua PATCH /me.",
+      };
     }
   }
 

@@ -2,6 +2,8 @@
 
 Tách theo **miền dữ liệu**; `mockData.js` ở cấp trên chỉ **re-export** để mọi `import … from "../data/mockData"` giữ nguyên.
 
+Tổng quan thư mục `data/` (mock vs courses vs mentor): xem [**`../README.md`**](../README.md).
+
 | File | Export |
 |:--|:--|
 | `mentors.js` | `MENTORS`, `FIELDS` |
