@@ -41,7 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { getUser, logout, getInitials } from "../../utils/auth";
+import { getUser, logout, getInitials, getBrandClickPath } from "../../utils/auth";
 
 /* ── Nav data ─────────────────────────────────────────────── */
 const customerMainItems = [
@@ -100,7 +100,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               size="lg"
               tooltip="ProInterview"
-              onClick={() => navigate("/")}
+              onClick={() => navigate(getBrandClickPath())}
               className="
                 h-14 rounded-none cursor-pointer
                 hover:bg-white/5 active:bg-white/10

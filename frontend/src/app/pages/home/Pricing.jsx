@@ -15,6 +15,7 @@ import {
   Users
 } from "lucide-react";
 import { Footer } from "../../components/layout/Footer";
+import { requireLoginNavigate } from "../../utils/authGate";
 
 const FAQ_DATA = [
   {
@@ -143,8 +144,9 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <button 
-                onClick={() => navigate("/register")}
+              <button
+                type="button"
+                onClick={() => requireLoginNavigate(navigate, "/dashboard")}
                 className="w-full py-4 rounded-2xl border border-white/10 text-white font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all active:scale-[0.98]"
               >
                 Bắt đầu ngay
@@ -184,8 +186,14 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <button 
-                onClick={() => navigate("/checkout?plan=starterPro&billing=monthly&planPrice=79000")}
+              <button
+                type="button"
+                onClick={() =>
+                  requireLoginNavigate(
+                    navigate,
+                    "/checkout?plan=starterPro&billing=monthly&planPrice=79000",
+                  )
+                }
                 className="w-full py-5 rounded-2xl bg-primary-fixed text-black font-black text-xs uppercase tracking-widest shadow-xl shadow-primary-fixed/10 hover:brightness-110 transition-all active:scale-[0.98]"
               >
                 Nâng cấp Pro
@@ -221,8 +229,14 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <button 
-                onClick={() => navigate("/checkout?plan=elitePro&billing=monthly&planPrice=99000")}
+              <button
+                type="button"
+                onClick={() =>
+                  requireLoginNavigate(
+                    navigate,
+                    "/checkout?plan=elitePro&billing=monthly&planPrice=99000",
+                  )
+                }
                 className="w-full py-4 rounded-2xl border border-secondary/40 text-secondary font-black text-xs uppercase tracking-widest hover:bg-secondary/10 transition-all active:scale-[0.98]"
               >
                 Nâng cấp Elite
@@ -272,14 +286,16 @@ export function Pricing() {
               Gia nhập cùng 10,000+ ứng viên đã thành công có được công việc mơ ước với lộ trình từ ProInterview.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-              <button 
-                onClick={() => navigate("/register")}
+              <button
+                type="button"
+                onClick={() => requireLoginNavigate(navigate, "/dashboard")}
                 className="bg-primary-fixed text-black font-black px-12 py-5 rounded-2xl text-lg hover:scale-105 transition-all active:scale-[0.98] shadow-2xl shadow-primary-fixed/20"
               >
                 Bắt đầu miễn phí
               </button>
-              <button 
-                onClick={() => navigate("/mentors")}
+              <button
+                type="button"
+                onClick={() => requireLoginNavigate(navigate, "/mentors")}
                 className="px-10 py-5 rounded-2xl text-white/60 font-bold hover:text-white transition-colors"
               >
                 Hoặc tìm Mentor chuyên gia
