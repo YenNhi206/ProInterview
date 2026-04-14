@@ -1,5 +1,4 @@
-import { apiUrl } from "./api.js";
-import { getAccessToken } from "./auth.js";
+import { authFetch, hasAuthCredentials } from "./auth.js";
 
 const jsonHeaders = {
   Accept: "application/json",
@@ -7,12 +6,11 @@ const jsonHeaders = {
 };
 
 export async function fetchCurrentPlan() {
-  const token = getAccessToken();
-  if (!token) return { success: false, error: "Chưa đăng nhập." };
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {
-    const res = await fetch(apiUrl("/api/plans/current"), {
+    const res = await authFetch("/api/plans/current", {
       method: "GET",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) return { success: false, error: body.error || `Lỗi ${res.status}` };
@@ -31,12 +29,11 @@ export async function fetchCurrentPlan() {
 }
 
 export async function activatePlanRequest({ plan, months = 1 }) {
-  const token = getAccessToken();
-  if (!token) return { success: false, error: "Chưa đăng nhập." };
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {
-    const res = await fetch(apiUrl("/api/plans/activate"), {
+    const res = await authFetch("/api/plans/activate", {
       method: "POST",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
       body: JSON.stringify({ plan, months }),
     });
     const body = await res.json().catch(() => ({}));
@@ -56,12 +53,11 @@ export async function activatePlanRequest({ plan, months = 1 }) {
 }
 
 export async function cancelPlanRequest() {
-  const token = getAccessToken();
-  if (!token) return { success: false, error: "Chưa đăng nhập." };
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {
-    const res = await fetch(apiUrl("/api/plans/cancel"), {
+    const res = await authFetch("/api/plans/cancel", {
       method: "POST",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
       body: "{}",
     });
     const body = await res.json().catch(() => ({}));

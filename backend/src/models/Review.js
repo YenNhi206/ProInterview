@@ -27,6 +27,6 @@ const reviewSchema = new Schema(
 );
 
 reviewSchema.index({ targetType: 1, targetId: 1 });
-reviewSchema.index({ userId: 1 });
+reviewSchema.index({ userId: 1, targetType: 1, targetId: 1 }, { unique: true });
 
 export const Review = mongoose.models.Review ?? mongoose.model("Review", reviewSchema);

@@ -3,7 +3,10 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
   server: {
     // Giúp Google Identity Services / FedCM giao tiếp popup–tab (tránh COOP chặn postMessage trên dev).
     headers: {
@@ -30,6 +33,7 @@ export default defineConfig({
   },
 
   build: {
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -45,4 +49,4 @@ export default defineConfig({
   },
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
-})
+}))

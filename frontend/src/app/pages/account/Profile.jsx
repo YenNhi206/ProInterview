@@ -90,8 +90,8 @@ export function Profile() {
     setTimeout(() => setSaveMsg(null), 2500);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 

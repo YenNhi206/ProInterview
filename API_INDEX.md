@@ -4,9 +4,9 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 | Phần | Nội dung |
 |:-----|:---------|
-| **A** | Backend Express — đã mount trong `backend/src/index.js` |
+| **A** | Backend Express — entrypoint `backend/src/server.js` |
 | **B** | Supabase Edge (CV), D-ID — FE gọi trực tiếp |
-| **C** | Roadmap — chưa có route Express / FE đang mock |
+| **C** | Tham chiếu contract (method/path); **trạng thái triển khai** xem cột trong [`ROADMAP.md`](./ROADMAP.md) |
 
 ---
 
@@ -17,7 +17,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 3. [Base URL & xác thực](#base-url--xác-thực)
 4. [Phần A — Backend Express](#phần-a--backend-express-đã-có-trong-repo)
 5. [Phần B — Tích hợp ngoài](#phần-b--tích-hợp-ngoài-fe-gọi-trực-tiếp)
-6. [Phần C — Roadmap API](#phần-c--roadmap-api-chưa-có-route-express--fe-đang-mock)
+6. [Phần C — Roadmap API (tham chiếu)](#phần-c--roadmap-api-tham-chiếu)
 7. [Query params chuẩn (dự kiến)](#query-params-chuẩn-dự-kiến)
 8. [Định dạng response](#định-dạng-response)
 9. [Mã lỗi gợi ý](#mã-lỗi-gợi-ý)
@@ -74,7 +74,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 ## Phần A — Backend Express (đã có trong repo)
 
-**Mount:** `backend/src/index.js`  
+**Entrypoint:** `backend/src/server.js`  
 `app.use("/api/auth", authRouter)` · `app.use("/api/mentors", mentorsRouter)`
 
 ### A.1. `GET /`
@@ -111,10 +111,14 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
-| POST | `/api/auth/register` | — | Đăng ký |
-| POST | `/api/auth/login` | — | Email + mật khẩu |
-| POST | `/api/auth/google` | — | Google ID token (GIS) |
+| POST | `/api/auth/register` | — | Đăng ký (rate limit theo IP) |
+| POST | `/api/auth/login` | — | Email + mật khẩu → access + **refresh token** |
+| POST | `/api/auth/google` | — | Google ID token (GIS) → access + refresh |
+| POST | `/api/auth/refresh` | — | Body `{ refreshToken }` → access + refresh mới (xoay vòng) |
 | GET | `/api/auth/me` | Bearer | Profile hiện tại |
+| POST | `/api/auth/logout` | Bearer | `tokenVersion++` + xóa mọi refresh session |
+| GET | `/api/auth/sessions` | Bearer | Danh sách phiên đăng nhập (thiết bị, IP, thời gian) |
+| DELETE | `/api/auth/sessions/:sessionId` | Bearer | Thu hồi một phiên (refresh đó hết hiệu lực) |
 | PATCH | `/api/auth/me` | Bearer | Profile + **đặt/đổi mật khẩu** |
 
 #### Chi tiết từng endpoint
@@ -122,13 +126,21 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 | Endpoint | Body / header | Response thành công | Lỗi thường gặp |
 |:---------|:--------------|:---------------------|:---------------|
 | `POST /register` | `name`, `email`, `password`, `role?` (`admin` cần `adminInviteCode`) | `201` `{ success: true }` — **không** có `token` | `400`, `403`, `409` |
-| `POST /login` | `email`, `password` | `{ success, token, user }` | `401`, `503` |
-| `POST /google` | `credential` | `{ success, token, user }` | `400`–`503` |
+| `POST /login` | `email`, `password` | `{ success, token, refreshToken, expiresIn, user }` | `401`, `429`, `503` |
+| `POST /google` | `credential` | `{ success, token, refreshToken, expiresIn, user }` | `400`–`503` |
+| `POST /refresh` | `{ refreshToken }` | `{ success, token, refreshToken, expiresIn, user }` | `400`, `401` |
 | `GET /me` | `Authorization: Bearer` | `{ success, user }` | `401` |
-| `PATCH /me` | JSON: mật khẩu +/ hoặc profile | `{ success, user }` | `400`, `401`, `409` |
+| `GET /sessions` | Bearer | `{ success, sessions: [{ id, createdAt, lastUsedAt, expiresAt, userAgent, ip }] }` | `401` |
+| `DELETE /sessions/:sessionId` | Bearer | `{ success: true }` | `400`, `401`, `404` |
+| `POST /logout` | `Authorization: Bearer` | `{ success: true }` — vô hiệu access + xóa refresh mọi thiết bị | `401` |
+| `PATCH /me` | JSON: mật khẩu +/ hoặc profile | `{ success, user }`; **đổi mật khẩu** thêm `token`, `refreshToken`, `expiresIn` | `400`, `401`, `409` |
 
-**Đổi mật khẩu (`PATCH /me`):** gửi `newPassword` hoặc `password`. Chưa liên kết Google → bắt buộc `currentPassword`. Đã liên kết Google → `currentPassword` tùy chọn.  
+**Đổi mật khẩu (`PATCH /me`):** gửi `newPassword` hoặc `password`. Chưa liên kết Google → bắt buộc `currentPassword`. Đã liên kết Google → `currentPassword` tùy chọn. Đổi mật khẩu → `tokenVersion++`, xóa mọi refresh cũ, trả **access + refresh mới**.  
 **Không** dùng `POST /api/auth/change-password` — gộp trong `PATCH /me`.
+
+**Token:** Access JWT có claim `tv` khớp `User.tokenVersion`. **Refresh** dạng `sessionObjectId:secret` (opaque), lưu hash trong `authSessions` (tối đa 10 phiên/user). Env gợi ý: `JWT_ACCESS_EXPIRES_IN` hoặc `JWT_EXPIRES_IN` (mặc định access **15m** nếu không set), `REFRESH_TOKEN_DAYS` (mặc định 30), `REFRESH_TOKEN_PEPPER` (tuỳ chọn, mặc định dùng `JWT_SECRET`).
+
+**Khóa tài khoản (admin):** `PATCH /api/admin/users/:id/status` với `isActive: false` → tăng `tokenVersion`, xóa `authSessions`, user không dùng được access/refresh.
 
 **Profile (`PATCH /me` — một phần):** `name`, `phone`, `position`, `school`, `field`, `avatar`, `expertise`, `experience`, `hourlyRate`, `bio`, `email` (check trùng). **Không** tự đổi `role` lên mentor qua `/me` — chỉ **admin** gán qua `PATCH /api/users/:id/role` (Bearer admin).
 
@@ -224,17 +236,20 @@ Token: `getFreshAccessToken()` (JWT backend). Không token hoặc `401` → FE c
 
 ---
 
-## Phần C — Roadmap API (chưa có route Express / FE đang mock)
+## Phần C — Roadmap API (tham chiếu)
 
-📋 Kế hoạch thiết kế — `backend/src/index.js` **chưa** mount các router này. Nhiều màn FE dùng **mock / localStorage**.
+Danh sách phẳng method/path (C.1–C.13) để tra cứu nhanh. **Đã có route Express hay chưa:** xem cột **Trạng thái** trong [`ROADMAP.md`](./ROADMAP.md) (Phase 1–4). Entrypoint: `backend/src/server.js`.
 
-**Đồng bộ với [`ROADMAP.md`](./ROADMAP.md):** cùng method + path; bảng dưới là danh sách phẳng (C.1–C.13), `ROADMAP.md` gom theo **phase** (1–4) + mục *Bổ sung auth*. Khi đổi contract, sửa **cả hai** file.
+**Đồng bộ với [`ROADMAP.md`](./ROADMAP.md):** cùng method + path; `ROADMAP.md` gom theo **phase** (1–4) + mục *Bổ sung auth*. Khi đổi contract, sửa **cả hai** file.
 
 ### C.1. Auth bổ sung
 
 | Method | Path | Ghi chú |
 |:-------|:-----|:--------|
-| POST | `/api/auth/logout` | Invalidate token server (blacklist / refresh) |
+| POST | `/api/auth/logout` | Bearer — `tokenVersion++`, xóa refresh sessions |
+| POST | `/api/auth/refresh` | Body `refreshToken` — access ngắn + refresh xoay vòng |
+| GET | `/api/auth/sessions` | Bearer — danh sách phiên |
+| DELETE | `/api/auth/sessions/:id` | Bearer — thu hồi một phiên |
 | POST | `/api/auth/change-password` | **Không cần** — đã gộp `PATCH /api/auth/me` |
 | DELETE | `/api/auth/me` | Xóa tài khoản |
 
@@ -335,7 +350,7 @@ Token: `getFreshAccessToken()` (JWT backend). Không token hoặc `401` → FE c
 |:-------|:-----|
 | GET | `/api/notifications` |
 | PATCH | `/api/notifications/:id/read` |
-| PATCH | `/api/notifications/read-all` |
+| POST | `/api/notifications/read-all` |
 | DELETE | `/api/notifications/:id` |
 | GET | `/api/notifications/unread-count` |
 
@@ -479,7 +494,7 @@ Chi tiết collection và field: [`backend/DATABASE.md`](./backend/DATABASE.md).
 | Mentor client | `frontend/src/app/utils/mentorApi.js` |
 | CV + Supabase Edge | `frontend/src/app/pages/cv/CVAnalysis.jsx` |
 | D-ID stream | `frontend/src/app/hooks/useDIDStream.js` |
-| Mount API | `backend/src/index.js` |
+| Entry server | `backend/src/server.js` |
 | Auth controller | `backend/src/controllers/authController.js` |
 | Mentors controller | `backend/src/controllers/mentorsController.js` |
 | Auth service (logic) | `backend/src/services/authService.js` |

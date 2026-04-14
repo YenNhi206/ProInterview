@@ -5,7 +5,6 @@ export const NotificationsController = {
   list: async (req, res) => {
     try {
       const userId = req.userId;
-      console.log(`[Notifications] Loading for user: ${userId}`);
       const notifications = await Notification.find({ userId })
         .sort({ createdAt: -1 })
         .limit(50);

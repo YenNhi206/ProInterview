@@ -1,5 +1,4 @@
-import { apiUrl } from "./api.js";
-import { getAccessToken } from "./auth.js";
+import { authFetch, hasAuthCredentials } from "./auth.js";
 
 const jsonHeaders = {
   Accept: "application/json",
@@ -11,14 +10,13 @@ const jsonHeaders = {
  * Payload khớp Booking.jsx / Checkout: mentorId, date, time hoặc timeSlot, sessionType, notes/position/note, price, …
  */
 export async function createBooking(payload) {
-  const token = getAccessToken();
-  if (!token) {
+  if (!hasAuthCredentials()) {
     return { success: false, error: "Chưa đăng nhập." };
   }
   try {
-    const res = await fetch(apiUrl("/api/bookings"), {
+    const res = await authFetch("/api/bookings", {
       method: "POST",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
       body: JSON.stringify(payload),
     });
     const body = await res.json().catch(() => ({}));
@@ -41,11 +39,10 @@ export async function createBooking(payload) {
 }
 
 function authedGet(path) {
-  const token = getAccessToken();
-  if (!token) return Promise.resolve({ success: false, error: "Chưa đăng nhập." });
-  return fetch(apiUrl(path), {
+  if (!hasAuthCredentials()) return Promise.resolve({ success: false, error: "Chưa đăng nhập." });
+  return authFetch(path, {
     method: "GET",
-    headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+    headers: { ...jsonHeaders },
   })
     .then(async (res) => {
       const body = await res.json().catch(() => ({}));
@@ -56,11 +53,10 @@ function authedGet(path) {
 }
 
 function authedSend(method, path, payload) {
-  const token = getAccessToken();
-  if (!token) return Promise.resolve({ success: false, error: "Chưa đăng nhập." });
-  return fetch(apiUrl(path), {
+  if (!hasAuthCredentials()) return Promise.resolve({ success: false, error: "Chưa đăng nhập." });
+  return authFetch(path, {
     method,
-    headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+    headers: { ...jsonHeaders },
     body: payload != null ? JSON.stringify(payload) : undefined,
   })
     .then(async (res) => {

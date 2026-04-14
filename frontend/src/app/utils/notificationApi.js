@@ -1,5 +1,4 @@
-import { apiUrl } from "./api.js";
-import { getAccessToken } from "./auth.js";
+import { authFetch, hasAuthCredentials } from "./auth.js";
 
 const jsonHeaders = {
   Accept: "application/json",
@@ -7,12 +6,11 @@ const jsonHeaders = {
 };
 
 export async function fetchNotifications() {
-  const token = getAccessToken();
-  if (!token) return { success: false, notifications: [] };
+  if (!hasAuthCredentials()) return { success: false, notifications: [] };
   try {
-    const res = await fetch(apiUrl("/api/notifications"), {
+    const res = await authFetch("/api/notifications", {
       method: "GET",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
     });
     const body = await res.json().catch(() => ({}));
     return { success: res.ok, notifications: body.notifications || [] };
@@ -22,12 +20,11 @@ export async function fetchNotifications() {
 }
 
 export async function markNotificationAsRead(id) {
-  const token = getAccessToken();
-  if (!token) return { success: false };
+  if (!hasAuthCredentials()) return { success: false };
   try {
-    const res = await fetch(apiUrl(`/api/notifications/${id}/read`), {
+    const res = await authFetch(`/api/notifications/${id}/read`, {
       method: "PATCH",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
     });
     return { success: res.ok };
   } catch {

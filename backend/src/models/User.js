@@ -75,6 +75,33 @@ const userSchema = new Schema(
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
+
+    /** Tăng khi logout / đổi mật khẩu — JWT phải khớp `tv` trong payload (vô hiệu token cũ phía server). */
+    tokenVersion: { type: Number, default: 0 },
+
+    /** Đăng nhập sai liên tiếp (email/mật khẩu) — reset khi đăng nhập thành công. */
+    failedLoginAttempts: { type: Number, default: 0 },
+    /** Sau N lần sai → khóa đăng nhập đến thời điểm này. */
+    lockUntil: { type: Date, default: null },
+
+    /**
+     * Refresh token (thiết bị): chỉ lưu hash; token gửi client = `sessionId:secret` (opaque).
+     * select: false — không lôi nhầm vào toPublicUser.
+     */
+    authSessions: {
+      type: [
+        {
+          tokenHash: { type: String, required: true },
+          expiresAt: { type: Date, required: true },
+          createdAt: { type: Date, default: Date.now },
+          lastUsedAt: { type: Date, default: Date.now },
+          userAgent: { type: String, default: "" },
+          ip: { type: String, default: "" },
+        },
+      ],
+      default: [],
+      select: false,
+    },
   },
   { collection: "users", timestamps: true }
 );

@@ -1,5 +1,4 @@
-import { apiUrl } from "./api.js";
-import { getAccessToken } from "./auth.js";
+import { authFetch, hasAuthCredentials } from "./auth.js";
 
 const jsonHeaders = {
   Accept: "application/json",
@@ -7,12 +6,11 @@ const jsonHeaders = {
 };
 
 export async function initiatePayment(payload) {
-  const token = getAccessToken();
-  if (!token) return { success: false, error: "Chưa đăng nhập." };
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {
-    const res = await fetch(apiUrl("/api/payments/initiate"), {
+    const res = await authFetch("/api/payments/initiate", {
       method: "POST",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
       body: JSON.stringify(payload),
     });
     const body = await res.json().catch(() => ({}));
@@ -36,13 +34,12 @@ export async function initiatePayment(payload) {
 }
 
 export async function fetchPaymentHistory(limit = 50) {
-  const token = getAccessToken();
-  if (!token) return { success: false, error: "Chưa đăng nhập." };
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {
     const q = Number.isFinite(Number(limit)) ? `?limit=${encodeURIComponent(String(limit))}` : "";
-    const res = await fetch(apiUrl(`/api/payments/history${q}`), {
+    const res = await authFetch(`/api/payments/history${q}`, {
       method: "GET",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) return { success: false, error: body.error || `Lỗi ${res.status}` };

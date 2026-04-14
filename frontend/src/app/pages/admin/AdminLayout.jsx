@@ -121,8 +121,8 @@ export function AdminLayout() {
         <div className="border-t border-white/10 p-3">
           <button
             type="button"
-            onClick={() => {
-              logout();
+            onClick={async () => {
+              await logout();
               navigate("/");
             }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-300/90 transition-colors hover:bg-red-500/10 hover:text-red-200"
