@@ -26,7 +26,7 @@ export async function listMentors() {
     console.error("[listMentors] ensureMentorProfilesForAllMentorUsers:", e?.message || e);
     return { ok: false };
   });
-  if (repair?.created > 0) {
+  if (repair?.created > 0 && process.env.NODE_ENV !== "production") {
     console.log(`[listMentors] Đã tạo ${repair.created} hồ sơ mentor thiếu (user role mentor).`);
   }
   const mentors = await Mentor.find({ userId: { $exists: true, $ne: null } })
@@ -47,7 +47,7 @@ export async function getMentorById(rawId) {
     console.error("[getMentorById] ensureMentorProfilesForAllMentorUsers:", e?.message || e);
     return { ok: false };
   });
-  if (repair?.created > 0) {
+  if (repair?.created > 0 && process.env.NODE_ENV !== "production") {
     console.log(`[getMentorById] Đã tạo ${repair.created} hồ sơ mentor thiếu.`);
   }
   const or = [{ publicId: rawId }];

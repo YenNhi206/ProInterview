@@ -1,5 +1,5 @@
 import { apiUrl } from "./api.js";
-import { getAccessToken } from "./auth.js";
+import { authFetch, hasAuthCredentials } from "./auth.js";
 
 const jsonHeaders = {
   Accept: "application/json",
@@ -34,9 +34,10 @@ export async function fetchCourseById(id) {
   }
 }
 
+/** Danh sách review theo mentor — khớp `GET /api/mentors/:id/reviews` (publicId hoặc _id). */
 export async function fetchCourseReviews(mentorId) {
   try {
-    const res = await fetch(apiUrl(`/api/reviews/mentor/${mentorId}`), {
+    const res = await fetch(apiUrl(`/api/mentors/${encodeURIComponent(mentorId)}/reviews`), {
       method: "GET",
       headers: jsonHeaders,
     });
@@ -48,16 +49,21 @@ export async function fetchCourseReviews(mentorId) {
 }
 
 export async function submitReview(data) {
-  const token = getAccessToken();
-  if (!token) return { success: false, error: "Chưa đăng nhập." };
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
+  const body = { ...data };
+  if (body.mentorId != null && body.targetId == null) {
+    body.targetType = body.targetType ?? "mentor";
+    body.targetId = body.mentorId;
+    delete body.mentorId;
+  }
   try {
-    const res = await fetch(apiUrl("/api/reviews"), {
+    const res = await authFetch("/api/reviews", {
       method: "POST",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
-      body: JSON.stringify(data),
+      headers: { ...jsonHeaders },
+      body: JSON.stringify(body),
     });
-    const body = await res.json().catch(() => ({}));
-    return { success: res.ok, review: body.review, error: body.error };
+    const json = await res.json().catch(() => ({}));
+    return { success: res.ok, review: json.review, error: json.error };
   } catch {
     return { success: false, error: "Không kết nối được backend." };
   }

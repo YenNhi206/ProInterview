@@ -1,15 +1,18 @@
 /**
  * Backend gốc — không có dấu / cuối.
- * Dev: mặc định rỗng → gọi /api/... cùng origin, Vite proxy sang :5000 (tránh 404 nhầm cổng).
- * Prod: set VITE_API_URL hoặc mặc định http://localhost:5000.
+ * - Dev: không set VITE_API_URL → gọi trực tiếp http://localhost:5000 (khớp Vite proxy /api nếu chỉ dùng path /api).
+ * - Prod build: không set VITE_API_URL → "" (cùng origin, cần reverse proxy /api → backend hoặc CDN cùng host).
+ * - Prod: set VITE_API_URL=https://api.example.com khi frontend và API khác domain.
  */
 function resolveApiBase() {
   const fromEnv = import.meta.env.VITE_API_URL;
   if (fromEnv != null && String(fromEnv).trim() !== "") {
     return String(fromEnv).replace(/\/$/, "");
   }
-  // Mặc định luôn gọi sang cổng 5000 của Backend
-  return "http://localhost:5000";
+  if (import.meta.env.DEV) {
+    return "http://localhost:5000";
+  }
+  return "";
 }
 
 export const API_BASE_URL = resolveApiBase();

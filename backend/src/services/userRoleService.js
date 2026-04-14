@@ -1,4 +1,5 @@
 import { User, toPublicUser } from "../models/User.js";
+import { Mentor } from "../models/Mentor.js";
 
 /**
  * Admin đặt role `customer` | `mentor` cho user khác (không đụng tài khoản admin).
@@ -34,7 +35,22 @@ export async function setRoleByAdmin(adminId, targetUserId, newRole) {
     };
   }
 
+  const previousRole = target.role;
   target.role = r;
   await target.save();
+
+  if (r === "customer" && previousRole === "mentor") {
+    await Mentor.updateMany(
+      { userId: target._id },
+      { $set: { isActive: false, available: false } },
+    ).catch(() => {});
+  }
+  if (r === "mentor" && previousRole === "customer") {
+    await Mentor.updateMany(
+      { userId: target._id },
+      { $set: { isActive: true, available: true } },
+    ).catch(() => {});
+  }
+
   return { ok: true, user: toPublicUser(target) };
 }

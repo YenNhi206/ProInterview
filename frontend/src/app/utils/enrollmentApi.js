@@ -1,5 +1,4 @@
-import { apiUrl } from "./api.js";
-import { getAccessToken } from "./auth.js";
+import { authFetch, hasAuthCredentials } from "./auth.js";
 
 const jsonHeaders = {
   Accept: "application/json",
@@ -9,12 +8,11 @@ const jsonHeaders = {
 export const enrollmentApi = {
   /** Ghi danh vào một khóa học */
   enroll: async (courseId) => {
-    const token = getAccessToken();
-    if (!token) return { success: false, error: "Chưa đăng nhập." };
+    if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
     try {
-      const res = await fetch(apiUrl(`/api/enrollment-test/${courseId}/enroll`), {
+      const res = await authFetch(`/api/courses/${courseId}/enroll`, {
         method: "POST",
-        headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+        headers: { ...jsonHeaders },
       });
       const body = await res.json().catch(() => ({}));
       return { success: res.ok, ...body };
@@ -25,12 +23,11 @@ export const enrollmentApi = {
 
   /** Lấy danh sách khóa học của tôi */
   getMyEnrollments: async () => {
-    const token = getAccessToken();
-    if (!token) return { success: false, error: "Chưa đăng nhập.", enrollments: [] };
+    if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập.", enrollments: [] };
     try {
-      const res = await fetch(apiUrl("/api/enrollment-test/my"), {
+      const res = await authFetch("/api/enrollments/my", {
         method: "GET",
-        headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+        headers: { ...jsonHeaders },
       });
       const body = await res.json().catch(() => ({}));
       return { success: res.ok, enrollments: body.enrollments || [], error: body.error };
@@ -41,12 +38,11 @@ export const enrollmentApi = {
 
   /** Cập nhật tiến độ học tập */
   updateProgress: async (enrollmentId, lessonId, isCompleted = true) => {
-    const token = getAccessToken();
-    if (!token) return { success: false, error: "Chưa đăng nhập." };
+    if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
     try {
-      const res = await fetch(apiUrl(`/api/enrollment-test/${enrollmentId}/progress`), {
+      const res = await authFetch(`/api/enrollments/${enrollmentId}/progress`, {
         method: "PATCH",
-        headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+        headers: { ...jsonHeaders },
         body: JSON.stringify({ lessonId, isCompleted }),
       });
       const body = await res.json().catch(() => ({}));

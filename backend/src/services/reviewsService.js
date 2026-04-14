@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Review } from "../models/Review.js";
 import { Mentor } from "../models/Mentor.js";
 import { Booking } from "../models/Booking.js";
+import { Course } from "../models/Course.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 function isMongoReady() {
@@ -75,28 +76,55 @@ export async function createReview(userId, body) {
   }
   if (!mongoose.isValidObjectId(targetIdRaw)) return { ok: false, status: 400, error: "targetId không hợp lệ." };
 
-  // If provided bookingId: verify belongs to user
+  if (targetType === "mentor") {
+    const m = await Mentor.findById(targetIdRaw).select("_id isActive").lean();
+    if (!m || m.isActive === false) return { ok: false, status: 404, error: "Không tìm thấy mentor." };
+  } else {
+    const c = await Course.findById(targetIdRaw).select("_id").lean();
+    if (!c) return { ok: false, status: 404, error: "Không tìm thấy khóa học." };
+  }
+
+  const dup = await Review.findOne({ userId: uid, targetType, targetId: targetIdRaw }).select("_id").lean();
+  if (dup) {
+    return { ok: false, status: 409, error: "Bạn đã gửi đánh giá cho mục tiêu này rồi." };
+  }
+
+  // If provided bookingId: verify belongs to user và khớp mentor
   let bookingId = null;
   const bId = String(body?.bookingId ?? "").trim();
   if (bId) {
+    if (targetType !== "mentor") {
+      return { ok: false, status: 400, error: "bookingId chỉ dùng khi đánh giá mentor (theo buổi đã hoàn thành)." };
+    }
     if (!mongoose.isValidObjectId(bId)) return { ok: false, status: 400, error: "bookingId không hợp lệ." };
-    const b = await Booking.findOne({ _id: bId, userId: uid }).select("_id status reviewId").lean();
+    const b = await Booking.findOne({ _id: bId, userId: uid }).select("_id status reviewId mentorId").lean();
     if (!b) return { ok: false, status: 404, error: "Không tìm thấy booking." };
+    if (String(b.mentorId) !== String(targetIdRaw)) {
+      return { ok: false, status: 400, error: "Mentor đánh giá không khớp với booking." };
+    }
     if (b.reviewId) return { ok: false, status: 409, error: "Booking này đã có review." };
     if (b.status !== "completed") return { ok: false, status: 400, error: "Chỉ review khi booking đã hoàn thành." };
     bookingId = b._id;
   }
 
-  const doc = await Review.create({
-    userId: uid,
-    targetType,
-    targetId: targetIdRaw,
-    bookingId: bookingId ?? undefined,
-    rating: Math.round(rating),
-    comment,
-    tags,
-    isVerified: Boolean(bookingId),
-  });
+  let doc;
+  try {
+    doc = await Review.create({
+      userId: uid,
+      targetType,
+      targetId: targetIdRaw,
+      bookingId: bookingId ?? undefined,
+      rating: Math.round(rating),
+      comment,
+      tags,
+      isVerified: Boolean(bookingId),
+    });
+  } catch (e) {
+    if (e && e.code === 11000) {
+      return { ok: false, status: 409, error: "Bạn đã gửi đánh giá cho mục tiêu này rồi." };
+    }
+    throw e;
+  }
 
   if (bookingId) {
     await Booking.updateOne({ _id: bookingId }, { $set: { reviewId: doc._id } });

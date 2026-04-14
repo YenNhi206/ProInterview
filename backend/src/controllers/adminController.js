@@ -55,12 +55,21 @@ export const AdminController = {
     }
   },
 
-  // Khóa/Mở khóa User
+  // Khóa/Mở khóa User — khóa: vô hiệu JWT + xóa refresh (tokenVersion++, authSessions [])
   toggleUserStatus: async (req, res) => {
     try {
       const { id } = req.params;
       const { isActive } = req.body;
-      const user = await User.findByIdAndUpdate(id, { isActive }, { new: true });
+      let user;
+      if (isActive === false) {
+        user = await User.findByIdAndUpdate(
+          id,
+          { $set: { isActive: false, authSessions: [] }, $inc: { tokenVersion: 1 } },
+          { new: true },
+        );
+      } else {
+        user = await User.findByIdAndUpdate(id, { $set: { isActive: true } }, { new: true });
+      }
       if (!user) return res.status(404).json({ success: false, error: "Không tìm thấy người dùng" });
       res.json({ success: true, user });
     } catch (error) {

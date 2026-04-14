@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import { Report } from "../models/Report.js";
 import { Mentor } from "../models/Mentor.js";
+import { Booking } from "../models/Booking.js";
+import { Review } from "../models/Review.js";
+import { Course } from "../models/Course.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 function isMongoReady() {
@@ -27,6 +30,32 @@ export async function createReport(userId, body) {
     targetIdRaw = String(m._id);
   }
   if (!mongoose.isValidObjectId(targetIdRaw)) return { ok: false, status: 400, error: "targetId không hợp lệ." };
+
+  if (targetType === "mentor") {
+    const m = await Mentor.findById(targetIdRaw).select("_id").lean();
+    if (!m) return { ok: false, status: 404, error: "Không tìm thấy mentor." };
+  } else if (targetType === "booking") {
+    const b = await Booking.findById(targetIdRaw).select("userId mentorId").lean();
+    if (!b) return { ok: false, status: 404, error: "Không tìm thấy booking." };
+    const isCustomer = String(b.userId) === uid;
+    let isTheirMentor = false;
+    if (!isCustomer) {
+      const mentorDoc = await Mentor.findOne({ userId: uid }).select("_id").lean();
+      isTheirMentor = Boolean(mentorDoc && String(b.mentorId) === String(mentorDoc._id));
+    }
+    if (!isCustomer && !isTheirMentor) {
+      return { ok: false, status: 403, error: "Chỉ báo cáo booking mà bạn tham gia (với tư cách khách hoặc mentor)." };
+    }
+  } else if (targetType === "review") {
+    const rev = await Review.findById(targetIdRaw).select("userId").lean();
+    if (!rev) return { ok: false, status: 404, error: "Không tìm thấy review." };
+    if (String(rev.userId) === uid) {
+      return { ok: false, status: 400, error: "Không báo cáo review do chính bạn viết." };
+    }
+  } else if (targetType === "course") {
+    const c = await Course.findById(targetIdRaw).select("_id").lean();
+    if (!c) return { ok: false, status: 404, error: "Không tìm thấy khóa học." };
+  }
 
   const reason = String(body?.reason ?? body?.category ?? "").trim();
   const allow = new Set(["late", "unprofessional", "inappropriate", "no_show", "fraud", "other"]);

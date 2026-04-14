@@ -194,7 +194,8 @@ function ReviewsSection({ course, enrolled }) {
     setSubmitting(true);
     
     const res = await submitReview({
-      mentorId: course.mentorId,
+      targetType: "course",
+      targetId: course.id,
       rating: reviewRating,
       comment: reviewComment,
     });

@@ -83,7 +83,10 @@ export function AppSidebar() {
     ...secondaryItems,
   ];
 
-  const handleLogout = () => { logout(); navigate("/"); };
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
 
   const isActive = (url) =>
     url === "/dashboard" || url === "/mentor/dashboard"

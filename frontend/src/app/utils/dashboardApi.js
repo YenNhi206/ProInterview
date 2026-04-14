@@ -1,5 +1,4 @@
-import { apiUrl } from "./api.js";
-import { getAccessToken } from "./auth.js";
+import { authFetch, hasAuthCredentials } from "./auth.js";
 
 const jsonHeaders = {
   Accept: "application/json",
@@ -7,12 +6,11 @@ const jsonHeaders = {
 };
 
 export async function fetchDashboardStats() {
-  const token = getAccessToken();
-  if (!token) return { success: false, error: "Chưa đăng nhập." };
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {
-    const res = await fetch(apiUrl("/api/users/dashboard-stats"), {
+    const res = await authFetch("/api/users/dashboard-stats", {
       method: "GET",
-      headers: { ...jsonHeaders, Authorization: `Bearer ${token}` },
+      headers: { ...jsonHeaders },
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {

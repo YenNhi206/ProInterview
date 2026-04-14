@@ -225,9 +225,14 @@ export function toPublicBooking(doc, mentorLean) {
         : null;
   const mentorPublicId =
     m?.publicId ?? (m?._id ? String(m._id) : mongoose.isValidObjectId(b.mentorId) ? String(b.mentorId) : "");
+  const cust =
+    b.userId && typeof b.userId === "object" && b.userId !== null && "name" in b.userId ? b.userId : null;
+
   return {
     id: String(b._id),
-    userId: String(b.userId),
+    userId: cust ? String(cust._id) : String(b.userId),
+    customerName: cust?.name ?? "",
+    customerEmail: cust?.email ?? "",
     mentorId: mentorPublicId,
     mentorName: m?.name ?? "",
     mentorTitle: m?.title ?? "",
@@ -239,6 +244,8 @@ export function toPublicBooking(doc, mentorLean) {
     timezone: b.timezone,
     sessionType: b.sessionType,
     notes: b.notes,
+    mentorNotes: b.mentorNotes ?? "",
+    reviewId: b.reviewId ? String(b.reviewId) : "",
     meetingLink: b.meetingLink ?? "",
     status: b.status,
     price: b.price,
@@ -292,6 +299,7 @@ export async function listMentorBookings(mentorUserId) {
   const rows = await Booking.find({ mentorId: mentor._id })
     .sort({ createdAt: -1 })
     .populate({ path: "mentorId", select: "name title company avatar publicId" })
+    .populate({ path: "userId", select: "name email avatar" })
     .lean();
   return { ok: true, bookings: rows.map((row) => toPublicBooking(row)) };
 }
@@ -318,16 +326,21 @@ export async function confirmMentorBooking(mentorUserId, rawId) {
   const booking = await Booking.findOne({ _id: rawId, mentorId: mentor._id });
   if (!booking) return { ok: false, status: 404, error: "Không tìm thấy booking." };
 
-  if (booking.status === "cancelled") {
-    return { ok: false, status: 400, error: "Booking đã bị hủy." };
+  if (["cancelled", "completed", "no_show"].includes(booking.status)) {
+    return { ok: false, status: 400, error: "Không thể xác nhận booking ở trạng thái này." };
   }
-  if (booking.status === "completed") {
-    return { ok: false, status: 400, error: "Booking đã hoàn thành." };
+  if (booking.status === "confirmed" || booking.status === "in_progress") {
+    await booking.populate({ path: "userId", select: "name email avatar" });
+    return { ok: true, booking: toPublicBooking(booking) };
+  }
+  if (booking.status !== "pending") {
+    return { ok: false, status: 400, error: "Chỉ xác nhận khi booking đang chờ duyệt (pending)." };
   }
 
   booking.status = "confirmed";
   await booking.save();
-  return { ok: true, booking: toPublicBooking(booking, mentor) };
+  await booking.populate({ path: "userId", select: "name email avatar" });
+  return { ok: true, booking: toPublicBooking(booking) };
 }
 
 export async function completeMentorBooking(mentorUserId, rawId) {
@@ -339,17 +352,22 @@ export async function completeMentorBooking(mentorUserId, rawId) {
   const booking = await Booking.findOne({ _id: rawId, mentorId: mentor._id });
   if (!booking) return { ok: false, status: 404, error: "Không tìm thấy booking." };
 
-  if (booking.status === "cancelled") {
-    return { ok: false, status: 400, error: "Booking đã bị hủy." };
+  if (["cancelled", "completed", "no_show"].includes(booking.status)) {
+    return { ok: false, status: 400, error: "Không thể hoàn thành booking ở trạng thái này." };
   }
-  if (booking.status === "completed") {
-    return { ok: false, status: 400, error: "Booking đã hoàn thành." };
+  if (!["confirmed", "in_progress"].includes(booking.status)) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Chỉ đánh dấu hoàn thành khi booking đã xác nhận hoặc đang diễn ra.",
+    };
   }
 
   booking.status = "completed";
   booking.completedAt = new Date();
   await booking.save();
-  return { ok: true, booking: toPublicBooking(booking, mentor) };
+  await booking.populate({ path: "userId", select: "name email avatar" });
+  return { ok: true, booking: toPublicBooking(booking) };
 }
 
 export async function updateMentorNotes(mentorUserId, rawId, body) {
@@ -366,7 +384,8 @@ export async function updateMentorNotes(mentorUserId, rawId, body) {
 
   booking.mentorNotes = notes;
   await booking.save();
-  return { ok: true, booking: toPublicBooking(booking, mentor) };
+  await booking.populate({ path: "userId", select: "name email avatar" });
+  return { ok: true, booking: toPublicBooking(booking) };
 }
 
 export async function cancelMyBooking(userId, rawId, body) {
