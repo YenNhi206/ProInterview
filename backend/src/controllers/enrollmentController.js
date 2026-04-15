@@ -88,5 +88,56 @@ export const EnrollmentController = {
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
+  },
+
+  // Lấy hoặc tạo chứng chỉ
+  getCertificate: async (req, res) => {
+    try {
+      const { id: enrollmentId } = req.params;
+      const userId = req.userId;
+
+      const enrollment = await Enrollment.findOne({ _id: enrollmentId, userId })
+        .populate("courseId")
+        .populate("userId", "name");
+
+      if (!enrollment) return res.status(404).json({ success: false, error: "Hồ sơ ghi danh không tồn tại" });
+
+      const course = enrollment.courseId;
+      if (!course) return res.status(404).json({ success: false, error: "Không tìm thấy thông tin khóa học" });
+
+      // Kiểm tra khóa học có hỗ trợ chứng chỉ không
+      if (course.settings && course.settings.certificateEnabled === false) {
+        return res.status(400).json({ success: false, error: "Khóa học này không cấp chứng chỉ" });
+      }
+
+      // Kiểm tra xem đã đủ điều kiện nhận chứng chỉ chưa (ví dụ: tiến độ >= 100%)
+      if (enrollment.progressPercent < 100 && !enrollment.isCompleted) {
+        return res.status(400).json({ success: false, error: "Bạn cần hoàn thành 100% khóa học để nhận chứng chỉ" });
+      }
+
+      // Nếu chưa có certificateUrl thì tạo mới
+      if (!enrollment.certificateUrl) {
+        const certCode = `CERT-${enrollmentId.toString().slice(-6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+        enrollment.certificateUrl = `https://prointerview.vn/certificates/${certCode}.pdf`; // Mock URL
+        enrollment.certificateIssuedAt = new Date();
+        enrollment.isCompleted = true;
+        if (!enrollment.completedAt) enrollment.completedAt = new Date();
+        
+        await enrollment.save();
+      }
+
+      res.json({
+        success: true,
+        certificate: {
+          url: enrollment.certificateUrl,
+          issuedAt: enrollment.certificateIssuedAt,
+          courseTitle: course.title,
+          studentName: enrollment.userId?.name || "Học viên",
+          code: enrollment.certificateUrl.split("/").pop().replace(".pdf", "")
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
 };

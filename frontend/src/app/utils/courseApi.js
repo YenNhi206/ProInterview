@@ -68,3 +68,19 @@ export async function submitReview(data) {
     return { success: false, error: "Không kết nối được backend." };
   }
 }
+
+/** Lấy nội dung bài học chi tiết (có Auth) */
+export async function fetchLessonContent(courseId, lessonId) {
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
+  try {
+    const res = await authFetch(`/api/courses/${courseId}/lessons/${lessonId}`, {
+      method: "GET",
+      headers: { ...jsonHeaders },
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: body.error || `Lỗi ${res.status}` };
+    return { success: true, lesson: body.lesson };
+  } catch {
+    return { success: false, error: "Không kết nối được backend." };
+  }
+}

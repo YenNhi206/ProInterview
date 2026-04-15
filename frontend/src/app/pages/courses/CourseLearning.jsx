@@ -26,7 +26,7 @@ import {
   Maximize2 as CornersOut,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router";
-import { fetchCourseById } from "../../utils/courseApi";
+import { fetchCourseById, fetchLessonContent } from "../../utils/courseApi";
 import { enrollmentApi } from "../../utils/enrollmentApi";
 import { toast } from "sonner";
 
@@ -177,10 +177,33 @@ function VideoPlayer({
 
 /* ── Certificate Modal ────────────────────────────────────────── */
 function CertificateModal({
+  enrollmentId,
   courseName,
   mentorName,
   onClose,
 }) {
+  const [certData, setCertData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCert = async () => {
+      setLoading(true);
+      try {
+        const res = await enrollmentApi.getCertificate(enrollmentId);
+        if (res.success) {
+          setCertData(res.certificate);
+        } else {
+          toast.error(res.error || "Không thể lấy chứng chỉ");
+        }
+      } catch (err) {
+        toast.error("Lỗi kết nối khi lấy chứng chỉ");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCert();
+  }, [enrollmentId]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}>
       <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden">
@@ -200,68 +223,89 @@ function CertificateModal({
 
         {/* Certificate preview */}
         <div className="p-6">
-          <div
-            className="rounded-2xl p-6 mb-5 text-center relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #f9f4ff, #fff8e1)",
-              border: "2px solid rgba(110, 53, 232,0.15)",
-            }}
-          >
-            <div className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-[#6E35E8]/30 rounded-tl-lg" />
-            <div className="absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 border-[#6E35E8]/30 rounded-tr-lg" />
-            <div className="absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 border-[#6E35E8]/30 rounded-bl-lg" />
-            <div className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-[#6E35E8]/30 rounded-br-lg" />
-
-            <Certificate className="w-10 h-10 mx-auto mb-3" style={{ color: "#FFD600" }} />
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Chứng chỉ hoàn thành</p>
-            <h3 className="font-bold text-gray-900 text-lg mb-1 leading-tight">{courseName}</h3>
-            <p className="text-sm text-gray-500 mb-3">Được chứng nhận bởi <span className="font-semibold text-[#6E35E8]">{mentorName}</span></p>
-            <div className="flex items-center justify-center gap-2">
-              <SealCheck className="w-4 h-4" style={{ color: "#c4ff47" }} />
-              <span className="text-xs text-gray-500">ProInterview Verified · {new Date().toLocaleDateString("vi-VN")}</span>
+          {loading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#6E35E8] border-t-transparent"></div>
+              <p className="text-gray-400 text-sm">Đang tạo chứng chỉ...</p>
             </div>
-          </div>
+          ) : certData ? (
+            <>
+              <div
+                className="rounded-2xl p-6 mb-5 text-center relative overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, #f9f4ff, #fff8e1)",
+                  border: "2px solid rgba(110, 53, 232,0.15)",
+                }}
+              >
+                <div className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-[#6E35E8]/30 rounded-tl-lg" />
+                <div className="absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 border-[#6E35E8]/30 rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 border-[#6E35E8]/30 rounded-bl-lg" />
+                <div className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-[#6E35E8]/30 rounded-br-lg" />
 
-          {/* What's next */}
-          <div
-            className="rounded-2xl p-4 mb-5"
-            style={{ background: "rgba(110, 53, 232,0.05)", border: "1px solid rgba(110, 53, 232,0.1)" }}
-          >
-            <p className="text-sm font-bold text-[#6E35E8] mb-2 flex items-center gap-1.5">
-              <Lightning className="w-4 h-4" />
-              Bước tiếp theo
-            </p>
-            <ul className="space-y-1.5">
-              {[
-                "Chia sẻ chứng chỉ lên LinkedIn để tăng visibility",
-                "Book 1-1 với mentor để nhận feedback cá nhân",
-                "Áp dụng kiến thức vào Mock Interview thực tế",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-xs text-gray-600">
-                  <CheckCircle className="w-3.5 h-3.5 text-[#6E35E8] shrink-0 mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+                <Certificate className="w-10 h-10 mx-auto mb-3" style={{ color: "#FFD600" }} />
+                <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Chứng chỉ hoàn thành</p>
+                <h3 className="font-bold text-gray-900 text-lg mb-1 leading-tight">{certData.courseTitle || courseName}</h3>
+                <p className="text-sm text-gray-500 mb-3">Được chứng nhận cho <span className="font-semibold text-[#6E35E8]">{certData.studentName}</span></p>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <SealCheck className="w-4 h-4" style={{ color: "#c4ff47" }} />
+                    <span className="text-xs text-gray-500">ProInterview Verified · {new Date(certData.issuedAt).toLocaleDateString("vi-VN")}</span>
+                  </div>
+                  {certData.code && (
+                    <span className="text-[10px] text-gray-400 font-mono">ID: {certData.code}</span>
+                  )}
+                </div>
+              </div>
 
-          {/* Actions */}
-          <div className="flex gap-3">
-            <button
-              className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110"
-              style={{ background: "#c4ff47", color: "#1F1F1F" }}
-            >
-              <Download className="w-4 h-4" />
-              Tải chứng chỉ
-            </button>
-            <button
-              className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 border transition-all hover:bg-gray-50"
-              style={{ border: "1px solid rgba(110, 53, 232,0.2)", color: "#6E35E8" }}
-            >
-              <Share className="w-4 h-4" />
-              Chia sẻ
-            </button>
-          </div>
+              {/* What's next */}
+              <div
+                className="rounded-2xl p-4 mb-5"
+                style={{ background: "rgba(110, 53, 232,0.05)", border: "1px solid rgba(110, 53, 232,0.1)" }}
+              >
+                <p className="text-sm font-bold text-[#6E35E8] mb-2 flex items-center gap-1.5">
+                  <Lightning className="w-4 h-4" />
+                  Bước tiếp theo
+                </p>
+                <ul className="space-y-1.5">
+                  {[
+                    "Chia sẻ chứng chỉ lên LinkedIn để tăng visibility",
+                    "Book 1-1 với mentor để nhận feedback cá nhân",
+                    "Áp dụng kiến thức vào Mock Interview thực tế",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-xs text-gray-600">
+                      <CheckCircle className="w-3.5 h-3.5 text-[#6E35E8] shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <a
+                  href={certData.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110"
+                  style={{ background: "#c4ff47", color: "#1F1F1F" }}
+                >
+                  <Download className="w-4 h-4" />
+                  Tải chứng chỉ
+                </a>
+                <button
+                  className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 border transition-all hover:bg-gray-50"
+                  style={{ border: "1px solid rgba(110, 53, 232,0.2)", color: "#6E35E8" }}
+                >
+                  <Share className="w-4 h-4" />
+                  Chia sẻ
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-gray-500 text-sm">Không thể tải thông tin chứng chỉ.</p>
+            </div>
+          )}
 
           <button
             onClick={onClose}
@@ -364,6 +408,8 @@ export function CourseLearning() {
   const [notes, setNotes] = useState("");
   const [showCertificate, setShowCertificate] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
+  const [lessonContent, setLessonContent] = useState(null);
+  const [lessonLoading, setLessonLoading] = useState(false);
 
   // Load course and enrollment data
   useEffect(() => {
@@ -416,9 +462,28 @@ export function CourseLearning() {
     if (!currentLesson) return;
     const saved = localStorage.getItem(NOTES_KEY(id || "", currentLesson.id)) || "";
     setNotes(saved);
+    setNotes(saved);
     setIsPlaying(false);
     setJustCompleted(false);
   }, [currentLessonIdx, currentLesson, id]);
+
+  // Load detailed lesson content
+  useEffect(() => {
+    if (!id || !currentLesson?._id) return;
+
+    const loadLesson = async () => {
+      setLessonLoading(true);
+      const res = await fetchLessonContent(id, currentLesson._id);
+      if (res.success) {
+        setLessonContent(res.lesson);
+      } else {
+        toast.error(res.error || "Không thể lấy nội dung bài học.");
+      }
+      setLessonLoading(false);
+    };
+
+    loadLesson();
+  }, [id, currentLesson?._id]);
 
   // Save notes
   useEffect(() => {
@@ -554,12 +619,24 @@ export function CourseLearning() {
         <div className="flex-1 flex flex-col overflow-y-auto min-w-0" style={{ background: "#0d0d0d" }}>
           {/* Video Player Container with padding */}
           <div className="p-4 md:p-6">
-            <VideoPlayer
-              lesson={currentLesson}
-              thumbnail={course.thumbnail}
-              isPlaying={isPlaying}
-              onTogglePlay={() => setIsPlaying(!isPlaying)}
-            />
+            {lessonLoading ? (
+              <div className="w-full bg-black/40 rounded-lg flex flex-col items-center justify-center gap-3" style={{ aspectRatio: "16/9" }}>
+                <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#6E35E8] border-t-transparent"></div>
+                <p className="text-white/40 text-sm">Đang tải bài học...</p>
+              </div>
+            ) : lessonContent ? (
+              <VideoPlayer
+                lesson={lessonContent}
+                thumbnail={course.thumbnail}
+                isPlaying={isPlaying}
+                onTogglePlay={() => setIsPlaying(!isPlaying)}
+              />
+            ) : (
+              <div className="w-full bg-black/40 rounded-lg flex flex-col items-center justify-center gap-3" style={{ aspectRatio: "16/9" }}>
+                <X className="w-10 h-10 text-white/20" />
+                <p className="text-white/40 text-sm">Không thể tải nội dung bài học.</p>
+              </div>
+            )}
           </div>
 
           {/* Content below video */}
@@ -848,6 +925,7 @@ export function CourseLearning() {
       {/* ── Certificate Modal ──────────────────────────────── */}
       {showCertificate && (
         <CertificateModal
+          enrollmentId={enrollment._id}
           courseName={course.title}
           mentorName={course.mentorName}
           onClose={() => setShowCertificate(false)}

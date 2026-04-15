@@ -125,11 +125,11 @@ Các nhóm endpoint theo phase (bookings, payments, plans, courses, enrollments,
 | ✅ | GET | `/api/enrollments/my` | `[AUTH]` | Khóa học của tôi |
 | ✅ | PATCH | `/api/enrollments/:id/progress` | `[AUTH]` | Cập nhật bài học đã xem — thay `PROGRESS_KEY` |
 | ✅ | GET | `/api/enrollments/:id/certificate` | `[AUTH]` | URL / metadata chứng chỉ (khớp C.7) |
-| 📋 | GET | `/api/courses/:id/lessons/:lessonId` | `[AUTH]` | *(tuỳ thiết kế)* Nội dung bài |
-| 📋 | POST | `/api/courses` | `[AUTH][MENTOR]` | Tạo khóa |
-| 📋 | PUT | `/api/courses/:id` | `[AUTH][MENTOR]` | Sửa khóa |
-| 📋 | PATCH | `/api/courses/:id/publish` | `[AUTH][MENTOR]` | Xuất bản |
-| 📋 | DELETE | `/api/courses/:id` | `[AUTH][MENTOR]` | Archive / xóa mềm |
+| ✅ | GET | `/api/courses/:id/lessons/:lessonId` | `[AUTH]` | *(tuỳ thiết kế)* Nội dung bài |
+| ✅ | POST | `/api/courses` | `[AUTH][MENTOR]` | Tạo khóa |
+| ✅ | PUT | `/api/courses/:id` | `[AUTH][MENTOR]` | Sửa khóa |
+| ✅ | PATCH | `/api/courses/:id/publish` | `[AUTH][MENTOR]` | Xuất bản |
+| ✅ | DELETE | `/api/courses/:id` | `[AUTH][MENTOR]` | Archive / xóa mềm |
 
 **Gợi ý model:** `Course.js`, `Enrollment.js` (đã có file trong `backend/src/models/`).
 

@@ -175,6 +175,36 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 | GET | `/api/mentors` | — | Danh sách |
 | GET | `/api/mentors/:id` | — | Chi tiết — `id` = `publicId` hoặc `_id` |
 
+---
+
+### A.5. Module Courses — `/api/courses`
+
+**File:** `backend/src/routes/courses.js`
+
+| Method | Path | Auth | Mô tả |
+|:-------|:-----|:-----|:------|
+| GET | `/api/courses` | — | Danh sách khóa học (published) |
+| GET | `/api/courses/:id` | — | Chi tiết khóa học |
+| GET | `/api/courses/:id/lessons/:lessonId` | Bearer | Nội dung bài học (có kiểm tra ghi danh) |
+| POST | `/api/courses` | Bearer + Mentor | Tạo khóa học mới |
+| PUT | `/api/courses/:id` | Bearer + Mentor | Cập nhật khóa học |
+| PATCH | `/api/courses/:id/publish` | Bearer + Mentor | Xuất bản khóa học |
+| DELETE | `/api/courses/:id` | Bearer + Mentor | Lưu trữ / xóa mềm khóa học |
+
+---
+
+### A.6. Module Enrollments — `/api/enrollments`
+
+**File:** `backend/src/routes/enrollments.js`
+
+| Method | Path | Auth | Mô tả |
+|:-------|:-----|:-----|:------|
+| GET | `/api/enrollments/my` | Bearer | Khóa học tôi đã ghi danh |
+| POST | `/api/courses/:id/enroll` | Bearer | Ghi danh khóa học (nằm trong `courses.js`) |
+| PATCH | `/api/enrollments/:id/progress` | Bearer | Cập nhật tiến độ học tập |
+| GET | `/api/enrollments/:id/certificate` | Bearer | Lấy hoặc tạo chứng chỉ hoàn thành |
+
+---
 | Trường hợp | Response |
 |:-----------|:---------|
 | `GET /api/mentors` | `{ success: true, mentors: [...] }` |

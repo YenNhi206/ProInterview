@@ -51,4 +51,19 @@ export const enrollmentApi = {
       return { success: false, error: "Không kết nối được backend." };
     }
   },
+
+  /** Lấy hoặc tạo chứng chỉ */
+  getCertificate: async (enrollmentId) => {
+    if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
+    try {
+      const res = await authFetch(`/api/enrollments/${enrollmentId}/certificate`, {
+        method: "GET",
+        headers: { ...jsonHeaders },
+      });
+      const body = await res.json().catch(() => ({}));
+      return { success: res.ok, ...body };
+    } catch {
+      return { success: false, error: "Không kết nối được backend." };
+    }
+  },
 };
