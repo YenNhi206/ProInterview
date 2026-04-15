@@ -124,7 +124,7 @@ Các nhóm endpoint theo phase (bookings, payments, plans, courses, enrollments,
 | ✅ | POST | `/api/courses/:id/enroll` | `[AUTH]` | Ghi danh — thay `localStorage` enroll |
 | ✅ | GET | `/api/enrollments/my` | `[AUTH]` | Khóa học của tôi |
 | ✅ | PATCH | `/api/enrollments/:id/progress` | `[AUTH]` | Cập nhật bài học đã xem — thay `PROGRESS_KEY` |
-| 📋 | GET | `/api/enrollments/:id/certificate` | `[AUTH]` | URL / metadata chứng chỉ (khớp C.7) |
+| ✅ | GET | `/api/enrollments/:id/certificate` | `[AUTH]` | URL / metadata chứng chỉ (khớp C.7) |
 | 📋 | GET | `/api/courses/:id/lessons/:lessonId` | `[AUTH]` | *(tuỳ thiết kế)* Nội dung bài |
 | 📋 | POST | `/api/courses` | `[AUTH][MENTOR]` | Tạo khóa |
 | 📋 | PUT | `/api/courses/:id` | `[AUTH][MENTOR]` | Sửa khóa |
