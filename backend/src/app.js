@@ -15,6 +15,9 @@ import { coursesRouter } from "./routes/courses.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { adminRouter } from "./routes/admin.js";
 import { enrollmentsRouter } from "./routes/enrollments.js";
+import { cvRouter } from "./routes/cv.js";
+import { interviewsRouter } from "./routes/interviews.js";
+import { uploadRouter } from "./routes/upload.js";
 
 export function createApp() {
   const app = express();
@@ -85,6 +88,9 @@ export function createApp() {
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/enrollments", enrollmentsRouter);
+  app.use("/api/cv", cvRouter);
+  app.use("/api/interviews", interviewsRouter);
+  app.use("/api/upload", uploadRouter);
 
   // Error handler cuối
   // eslint-disable-next-line no-unused-vars

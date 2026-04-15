@@ -141,24 +141,24 @@ Các nhóm endpoint theo phase (bookings, payments, plans, courses, enrollments,
 
 | Trạng thái | Method | Endpoint | Auth | Mô tả ngắn |
 |:-----------|:-------|:---------|:-----|:-----------|
-| 📋 | POST | `/api/cv/analyses` | `[AUTH]` | Upload phân tích — nếu migrate từ Edge |
-| 📋 | GET | `/api/cv/analyses` | `[AUTH]` | Lịch sử |
-| 📋 | GET | `/api/cv/analyses/:id` | `[AUTH]` | Chi tiết |
-| 📋 | DELETE | `/api/cv/analyses/:id` | `[AUTH]` | Xóa |
-| 📋 | GET | `/api/cv/quota` | `[AUTH]` | Quota còn — đồng bộ với `User.quota` |
-| 📋 | POST | `/api/interviews/sessions` | `[AUTH]` | Tạo session phỏng vấn AI |
-| 📋 | PATCH | `/api/interviews/sessions/:id` | `[AUTH]` | Cập nhật câu trả lời / transcript |
-| 📋 | POST | `/api/interviews/sessions/:id/complete` | `[AUTH]` | Kết thúc + feedback |
-| 📋 | GET | `/api/interviews/sessions` | `[AUTH]` | Lịch sử |
-| 📋 | GET | `/api/interviews/sessions/:id` | `[AUTH]` | Chi tiết một session (khớp C.5) |
+| ✅ | POST | `/api/cv/analyses` | `[AUTH]` | Upload phân tích — nếu migrate từ Edge |
+| ✅ | GET | `/api/cv/analyses` | `[AUTH]` | Lịch sử |
+| ✅ | GET | `/api/cv/analyses/:id` | `[AUTH]` | Chi tiết |
+| ✅ | DELETE | `/api/cv/analyses/:id` | `[AUTH]` | Xóa |
+| ✅ | GET | `/api/cv/quota` | `[AUTH]` | Quota còn — đồng bộ với `User.quota` |
+| ✅ | POST | `/api/interviews/sessions` | `[AUTH]` | Tạo session phỏng vấn AI |
+| ✅ | PATCH | `/api/interviews/sessions/:id` | `[AUTH]` | Cập nhật câu trả lời / transcript |
+| ✅ | POST | `/api/interviews/sessions/:id/complete` | `[AUTH]` | Kết thúc + feedback |
+| ✅ | GET | `/api/interviews/sessions` | `[AUTH]` | Lịch sử |
+| ✅ | GET | `/api/interviews/sessions/:id` | `[AUTH]` | Chi tiết một session (khớp C.5) |
 | ✅ | GET | `/api/notifications` | `[AUTH]` | Danh sách thông báo |
 | ✅ | PATCH | `/api/notifications/:id/read` | `[AUTH]` | Đã đọc |
 | ✅ | POST | `/api/notifications/read-all` | `[AUTH]` | Đánh dấu tất cả đã đọc *(trong code là `POST`, không phải `PATCH`)* |
-| 📋 | DELETE | `/api/notifications/:id` | `[AUTH]` | Xóa thông báo |
-| 📋 | GET | `/api/notifications/unread-count` | `[AUTH]` | Badge |
-| 📋 | POST | `/api/upload/avatar` | `[AUTH]` | Upload ảnh → URL lưu `PATCH /me` `avatar` |
-| 📋 | POST | `/api/upload/cv` | `[AUTH]` | Upload CV (nếu chuyển từ Edge) |
-| 📋 | POST | `/api/upload/course-thumbnail` | `[AUTH][MENTOR]` | Ảnh bìa khóa học |
+| ✅ | DELETE | `/api/notifications/:id` | `[AUTH]` | Xóa thông báo |
+| ✅ | GET | `/api/notifications/unread-count` | `[AUTH]` | Badge |
+| ✅ | POST | `/api/upload/avatar` | `[AUTH]` | Upload ảnh → URL lưu `PATCH /me` `avatar` |
+| ✅ | POST | `/api/upload/cv` | `[AUTH]` | Upload CV (nếu chuyển từ Edge) |
+| ✅ | POST | `/api/upload/course-thumbnail` | `[AUTH][MENTOR]` | Ảnh bìa khóa học |
 
 ---
 

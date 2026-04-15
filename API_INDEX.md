@@ -205,6 +205,46 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 | GET | `/api/enrollments/:id/certificate` | Bearer | Lấy hoặc tạo chứng chỉ hoàn thành |
 
 ---
+
+### A.7. Module CV — `/api/cv`
+
+**File:** `backend/src/routes/cv.js`
+
+| Method | Path | Auth | Mô tả |
+|:-------|:-----|:-----|:------|
+| GET | `/api/cv/quota` | Bearer | Kiểm tra quota phân tích CV |
+| POST | `/api/cv/analyses` | Bearer | Tạo bản phân tích CV mới |
+| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích |
+| GET | `/api/cv/analyses/:id` | Bearer | Chi tiết bản phân tích |
+| DELETE | `/api/cv/analyses/:id` | Bearer | Xóa bản phân tích |
+
+---
+
+### A.8. Module Interviews — `/api/interviews`
+
+**File:** `backend/src/routes/interviews.js`
+
+| Method | Path | Auth | Mô tả |
+|:-------|:-----|:-----|:------|
+| POST | `/api/interviews/sessions` | Bearer | Tạo phiên phỏng vấn thử |
+| PATCH | `/api/interviews/sessions/:id` | Bearer | Cập nhật câu trả lời |
+| POST | `/api/interviews/sessions/:id/complete` | Bearer | Hoàn thành và nhận feedback |
+| GET | `/api/interviews/sessions` | Bearer | Lịch sử phỏng vấn |
+| GET | `/api/interviews/sessions/:id` | Bearer | Chi tiết phiên phỏng vấn |
+
+---
+
+### A.9. Module Upload — `/api/upload`
+
+**File:** `backend/src/routes/upload.js`
+
+| Method | Path | Auth | Mô tả |
+|:-------|:-----|:-----|:------|
+| POST | `/api/upload/avatar` | Bearer | Tải lên ảnh đại diện |
+| POST | `/api/upload/cv` | Bearer | Tải lên CV |
+| POST | `/api/upload/course-thumbnail` | Bearer + Mentor | Tải lên ảnh bìa khóa học |
+
+---
 | Trường hợp | Response |
 |:-----------|:---------|
 | `GET /api/mentors` | `{ success: true, mentors: [...] }` |

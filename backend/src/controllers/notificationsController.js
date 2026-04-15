@@ -47,4 +47,28 @@ export const NotificationsController = {
       res.status(500).json({ success: false, error: error.message });
     }
   },
+
+  /** Đếm số lượng chưa đọc */
+  getUnreadCount: async (req, res) => {
+    try {
+      const userId = req.userId;
+      const count = await Notification.countDocuments({ userId, isRead: false });
+      res.json({ success: true, count });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  },
+
+  /** Xóa thông báo */
+  delete: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const deleted = await Notification.findOneAndDelete({ _id: id, userId });
+      if (!deleted) return res.status(404).json({ success: false, error: "Không tìm thấy thông báo để xóa" });
+      res.json({ success: true, message: "Đã xóa thông báo" });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  },
 };

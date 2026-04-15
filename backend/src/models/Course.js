@@ -69,5 +69,24 @@ const courseSchema = new Schema(
 courseSchema.index({ mentorId: 1 });
 courseSchema.index({ status: 1, level: 1 });
 courseSchema.index({ tags: 1 });
+courseSchema.index({ "modules.lessons._id": 1 });
+
+courseSchema.pre("save", function (next) {
+  if (this.isModified("modules")) {
+    let count = 0;
+    let duration = 0;
+    this.modules.forEach((mod) => {
+      if (mod.lessons) {
+        count += mod.lessons.length;
+        mod.lessons.forEach((lesson) => {
+          duration += lesson.durationMinutes || 0;
+        });
+      }
+    });
+    this.totalLessons = count;
+    this.totalDurationMinutes = duration;
+  }
+  next();
+});
 
 export const Course = mongoose.models.Course ?? mongoose.model("Course", courseSchema);
