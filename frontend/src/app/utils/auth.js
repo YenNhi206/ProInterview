@@ -100,13 +100,26 @@ export async function authFetch(path, init = {}) {
   return res;
 }
 
-/** Đường dẫn sau đăng nhập theo role (và ?redirect= hợp lệ). */
+const AUTH_ONLY_PATHS = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
+
+/** `?redirect=` hợp lệ — không trỏ trang auth; /admin chỉ cho admin. */
+export function isSafeAppRedirect(path, user) {
+  const r = typeof path === "string" ? path.trim() : "";
+  if (!r.startsWith("/") || r.startsWith("//")) return false;
+  if (AUTH_ONLY_PATHS.some((b) => r === b || r.startsWith(`${b}?`) || r.startsWith(`${b}/`))) {
+    return false;
+  }
+  if (r.startsWith("/admin") && user?.role !== "admin") return false;
+  return true;
+}
+
+/** Đường dẫn sau đăng nhập: ưu tiên ?redirect=; không có thì customer → trang chủ. */
 export function getPostLoginPath(user, redirectParam) {
   const r = typeof redirectParam === "string" ? redirectParam.trim() : "";
-  if (r.startsWith("/") && !r.startsWith("//")) return r;
+  if (isSafeAppRedirect(r, user)) return r;
   if (user?.role === "admin") return "/admin";
   if (user?.role === "mentor") return "/mentor/dashboard";
-  return "/dashboard";
+  return "/";
 }
 
 /** Logo / thương hiệu app: đã đăng nhập → hub theo role; chưa → trang chủ. */

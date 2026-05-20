@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useLocation } from "react-router";
 import {
   FileText,
   ChevronDown,
@@ -29,7 +29,8 @@ import {
   RefreshCw,
   BadgeCheck,
 } from "lucide-react";
-import { getPlans, getCVRemaining, incrementCVCount, CV_FREE_LIMIT } from "../../utils/auth";
+import { getPlans, getCVRemaining, incrementCVCount, CV_FREE_LIMIT, isLoggedIn } from "../../utils/auth";
+import { requireLoginNavigate, buildLoginPath } from "../../utils/authGate";
 import { apiUrl as expressApiUrl, isExpressBackendConfigured } from "../../utils/api";
 import { CVDocumentPreview } from "../../components/cv/CVDocumentPreview";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
@@ -155,8 +156,14 @@ const DEMO_SUGGESTIONS = [
 // ─── Component ────────────────────────────────────────────────────────────────
 export function CVAnalysis() {
   const navigate    = useNavigate();
+  const location    = useLocation();
   const [searchParams] = useSearchParams();
+<<<<<<< Updated upstream
 
+=======
+  const cvReturnPath = `${location.pathname}${location.search}` || "/cv-analysis";
+  
+>>>>>>> Stashed changes
   const [plans]            = useState(getPlans());
   const [cvRemaining, setCvRemaining] = useState(getCVRemaining());
 
@@ -277,6 +284,11 @@ export function CVAnalysis() {
     const hasCVInput = cvUploaded || !!reuseCV;
     if (!hasCVInput) return;
     if (!canAnalyze) return;
+
+    if (USE_EXPRESS_CV && !isLoggedIn()) {
+      requireLoginNavigate(navigate, cvReturnPath);
+      return;
+    }
 
     if (!plans.starterPro && !plans.elitePro) {
       setCvRemaining(prev => Math.max(0, prev - 1));
@@ -1140,6 +1152,14 @@ export function CVAnalysis() {
                       Phiên đăng nhập hết hạn hoặc chưa đăng nhập. Đây là kết quả mẫu — hãy đăng nhập lại để nhận phân tích CV thực từ AI.
                     </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate(buildLoginPath(cvReturnPath))}
+                    className="shrink-0 rounded-xl px-4 py-2 text-xs font-bold text-white"
+                    style={{ background: "linear-gradient(135deg,#6E35E8,#8B4DFF)" }}
+                  >
+                    Đăng nhập
+                  </button>
                 </div>
               )}
 

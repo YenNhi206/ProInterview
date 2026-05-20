@@ -16,6 +16,7 @@ import {
   getPostLoginPath,
   getBrandClickPath,
 } from "../../utils/auth";
+import { buildRegisterPath } from "../../utils/authGate";
 import { GoogleSignInBlock } from "../../components/auth/GoogleSignInBlock";
 import { BrandLogo } from "../../components/brand/BrandLogo";
 import { SparkleGlyph } from "../../components/decor/SparkleGlyph.jsx";
@@ -64,6 +65,8 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const isRegistered = searchParams.get("registered") === "1";
+  const redirectParam = searchParams.get("redirect");
+  const registerHref = buildRegisterPath(redirectParam || undefined);
   const t = TESTIMONIALS[0];
 
   const handleLogin = async (e) => {
@@ -74,7 +77,7 @@ export function Login() {
     setLoading(false);
     if (!result.success) { setError(result.error); return; }
     const user = getUser();
-    navigate(getPostLoginPath(user, searchParams.get("redirect")));
+    navigate(getPostLoginPath(user, redirectParam));
   };
 
   const handleFieldChange = (setter) => (e) => {
@@ -123,7 +126,7 @@ export function Login() {
           </button>
           <p className="text-sm text-gray-500">
             Chưa có tài khoản?{" "}
-            <Link to="/register" className="font-semibold hover:underline" style={{ color: "#6E35E8" }}>
+            <Link to={registerHref} className="font-semibold hover:underline" style={{ color: "#6E35E8" }}>
               Đăng ký
             </Link>
           </p>

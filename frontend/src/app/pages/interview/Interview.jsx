@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { useNavigate } from "react-router";
+import { requireLoginNavigate } from "../../utils/authGate";
 import {
   Upload,
   ChevronDown,
@@ -27,7 +28,7 @@ import {
   Award,
 } from "lucide-react";
 import { getLatestCVAnalysis, getUploadedCV, saveUploadedCV } from "../../utils/history";
-import { hasAuthCredentials } from "../../utils/auth";
+import { hasAuthCredentials, isLoggedIn } from "../../utils/auth";
 import { generateInterviewQuestions, extractCvTextFromFile, createInterviewSession } from "../../utils/interviewsApi";
 
 const LEVELS = ["Thực tập sinh", "Mới ra trường", "Junior", "Trung cấp", "Senior"];
@@ -219,8 +220,16 @@ export function Interview() {
   };
 
   const handleStart = async () => {
+<<<<<<< Updated upstream
     if (!canStart || generating) return;
     setGenerating(true);
+=======
+    if (!canStart || loadingStep) return;
+    if (!isLoggedIn()) {
+      requireLoginNavigate(navigate, "/interview");
+      return;
+    }
+>>>>>>> Stashed changes
     setExtractWarning("");
 
     let questions = null;

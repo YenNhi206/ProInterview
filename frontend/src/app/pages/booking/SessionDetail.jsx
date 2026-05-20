@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useLocation } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft,
@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { isLoggedIn } from "../../utils/auth";
+import { buildLoginPath } from "../../utils/authGate";
 import {
   cancelBooking,
   fetchBookingById,
@@ -203,6 +204,8 @@ function useCountdown(targetDate, targetTime) {
 export function SessionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const sessionReturnPath = id ? `/session/${id}` : `${location.pathname}${location.search}`;
 
   /* ── Resolve session data — GET /api/bookings/:id (không dùng mock local) ── */
   const [apiBooking, setApiBooking] = useState(undefined);
@@ -604,7 +607,7 @@ export function SessionDetail() {
         {!isLoggedIn() ? (
           <button
             type="button"
-            onClick={() => navigate("/login")}
+            onClick={() => navigate(buildLoginPath(sessionReturnPath))}
             className="mt-4 px-4 py-2 rounded-xl text-sm font-medium text-white"
             style={{ background: "#6E35E8" }}
           >

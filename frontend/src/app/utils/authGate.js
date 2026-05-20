@@ -1,4 +1,33 @@
-import { isLoggedIn } from "./auth.js";
+import { isLoggedIn, isSafeAppRedirect } from "./auth.js";
+
+/** Path hiện tại (pathname + search) để quay lại sau đăng nhập. */
+export function getAuthReturnPath(location) {
+  if (location && typeof location === "object") {
+    const combined = `${location.pathname || ""}${location.search || ""}`;
+    if (isSafeAppRedirect(combined, null)) return combined;
+  }
+  if (typeof window !== "undefined") {
+    const combined = `${window.location.pathname || ""}${window.location.search || ""}`;
+    if (isSafeAppRedirect(combined, null)) return combined;
+  }
+  return "/";
+}
+
+export function buildLoginPath(returnTo) {
+  const target =
+    typeof returnTo === "string" && isSafeAppRedirect(returnTo, null)
+      ? returnTo.trim()
+      : getAuthReturnPath();
+  return `/login?redirect=${encodeURIComponent(target)}`;
+}
+
+export function buildRegisterPath(returnTo) {
+  const target =
+    typeof returnTo === "string" && isSafeAppRedirect(returnTo, null)
+      ? returnTo.trim()
+      : getAuthReturnPath();
+  return `/register?redirect=${encodeURIComponent(target)}`;
+}
 
 /** Vào phòng phỏng vấn AI; bắt buộc đăng nhập, sau login quay lại /interview. */
 export function navigateToInterview(navigate) {
@@ -6,7 +35,7 @@ export function navigateToInterview(navigate) {
     navigate("/interview");
     return;
   }
-  navigate(`/login?redirect=${encodeURIComponent("/interview")}`);
+  navigate(buildLoginPath("/interview"));
 }
 
 /**
@@ -19,5 +48,5 @@ export function requireLoginNavigate(navigate, path) {
     navigate(path);
     return;
   }
-  navigate(`/login?redirect=${encodeURIComponent(path)}`);
+  navigate(buildLoginPath(path));
 }

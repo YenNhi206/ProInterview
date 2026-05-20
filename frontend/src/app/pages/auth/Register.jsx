@@ -12,6 +12,7 @@ import {
   Mail,
 } from "lucide-react";
 import { registerUser, getBrandClickPath } from "../../utils/auth";
+import { buildLoginPath } from "../../utils/authGate";
 import { GoogleSignInBlock } from "../../components/auth/GoogleSignInBlock";
 import { BrandLogo } from "../../components/brand/BrandLogo";
 import { SparkleGlyph } from "../../components/decor/SparkleGlyph.jsx";
@@ -58,6 +59,7 @@ export function Register() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const loginHref = buildLoginPath(searchParams.get("redirect") || undefined);
 
   const strength = pwStrength(form.password);
 
@@ -106,7 +108,7 @@ export function Register() {
           </p>
           <div className="space-y-4">
             <Link
-              to="/login"
+              to={loginHref}
               className="w-full inline-flex items-center justify-center rounded-2xl px-6 py-4 text-base font-black text-white transition-all active:scale-[0.98]"
               style={{ background: "linear-gradient(135deg, #6E35E8, #9B6DFF)" }}
             >
@@ -161,7 +163,7 @@ export function Register() {
           </button>
           <p className="text-sm text-gray-500">
             Đã có tài khoản?{" "}
-            <Link to="/login" className="font-semibold hover:underline" style={{ color: "#6E35E8" }}>
+            <Link to={loginHref} className="font-semibold hover:underline" style={{ color: "#6E35E8" }}>
               Đăng nhập
             </Link>
           </p>

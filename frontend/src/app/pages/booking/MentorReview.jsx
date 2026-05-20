@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { isLoggedIn } from "../../utils/auth";
+import { buildLoginPath } from "../../utils/authGate";
 import { submitReview } from "../../utils/reviewsApi";
 import { fetchBookingById } from "../../utils/bookingsApi";
 import { apiBookingToLocal } from "../../utils/bookingMappers";
@@ -152,7 +153,7 @@ export function MentorReview() {
         </p>
         {!isLoggedIn() ? (
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate(buildLoginPath(`/review/${sessionId}`))}
             className="px-8 py-3 rounded-2xl text-sm font-black text-white shadow-xl shadow-violet-900/20"
             style={{ background: "linear-gradient(135deg, #6E35E8, #8B4DFF)" }}
           >
