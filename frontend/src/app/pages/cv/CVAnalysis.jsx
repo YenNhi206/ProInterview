@@ -158,12 +158,8 @@ export function CVAnalysis() {
   const navigate    = useNavigate();
   const location    = useLocation();
   const [searchParams] = useSearchParams();
-<<<<<<< Updated upstream
-
-=======
   const cvReturnPath = `${location.pathname}${location.search}` || "/cv-analysis";
-  
->>>>>>> Stashed changes
+
   const [plans]            = useState(getPlans());
   const [cvRemaining, setCvRemaining] = useState(getCVRemaining());
 

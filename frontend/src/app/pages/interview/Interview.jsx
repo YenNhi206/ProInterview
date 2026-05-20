@@ -220,16 +220,12 @@ export function Interview() {
   };
 
   const handleStart = async () => {
-<<<<<<< Updated upstream
     if (!canStart || generating) return;
-    setGenerating(true);
-=======
-    if (!canStart || loadingStep) return;
     if (!isLoggedIn()) {
       requireLoginNavigate(navigate, "/interview");
       return;
     }
->>>>>>> Stashed changes
+    setGenerating(true);
     setExtractWarning("");
 
     let questions = null;
