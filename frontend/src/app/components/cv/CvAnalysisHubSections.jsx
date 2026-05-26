@@ -189,7 +189,7 @@ export function CvAnalysisHubHero({ onJd, onField }) {
             {/* Card đánh giá — hubPreview; gấu căn đáy card (desktop) */}
             <div className="relative hidden w-full overflow-visible lg:block">
               <div
-                className="pointer-events-none absolute bottom-0 left-0 z-20 -translate-x-[16.35rem] translate-y-[1rem] xl:-translate-x-[16.85rem]"
+                className="pointer-events-none absolute bottom-0 left-0 z-20 -translate-x-[17.65rem] translate-y-[2.5rem] xl:-translate-x-[18.15rem]"
                 aria-hidden
               >
                 <MascotSparkle className="left-[27%] top-[8%] h-2.5 w-2.5" />
