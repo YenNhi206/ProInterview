@@ -13,7 +13,8 @@ import {
   BadgeCheck as SealCheck,
   Target,
   ArrowUpRight,
-  Plus
+  Plus,
+  Zap as Lightning
 } from "lucide-react";
 import { getUser, getDisplayName } from "../../utils/auth";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
