@@ -73,6 +73,7 @@ import {
 } from "../../components/mentor/course-create/mentorCourseCreateTheme";
 import { toast } from "sonner";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { mediaSrc, DEFAULT_COURSE_THUMB, avatarSrc, normalizeStoredUploadUrl } from "../../utils/shared/mediaUrl.js";
 import { getVideoDurationMinutes } from "../../utils/shared/videoDuration.js";
 
@@ -97,8 +98,7 @@ const formatDuration = (minutes) => {
    const m = minutes % 60;
    return h > 0 ? `${h}h ${m > 0 ? m + "m" : ""}`.trim() : `${m}m`;
 };
-const formatPrice = (price) =>
-   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+const formatPrice = (price) => formatVnd(price);
 
 function TabPanelState({ loading, error, empty, emptyMessage, children }) {
    if (loading) {

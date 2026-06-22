@@ -6,10 +6,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { MENTOR_BOOKING_COPY } from "../../../constants/brandVoice";
-import { formatRecurringScheduleRows } from "../../../utils/mentor/mentorProfileHelpers.js";
+import { formatVnd } from "../../../utils/shared/formatVnd.js";
 
 function formatPriceVnd(amount) {
-  return `${Number(amount || 0).toLocaleString("vi-VN")}đ`;
+  return formatVnd(amount);
 }
 
 export function MentorProfileAside({

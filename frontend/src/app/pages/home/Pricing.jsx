@@ -16,6 +16,7 @@ import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layo
 import { CustomerPageHeader, CustomerPageSplitTitle } from "../../components/layout/CustomerPageHeader";
 import { PRICING_SUBTITLE, PRICING_FAQ } from "../../constants/brandVoice";
 import { buildPlanCheckoutPath, getPlanDisplayAmount } from "../../constants/planCatalog.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 function PricingFaqAnswer({ item }) {
   return (
@@ -84,7 +85,7 @@ const PLANS = [
 
 
 function fmtVnd(amount) {
-  return new Intl.NumberFormat("vi-VN").format(amount) + "đ";
+  return formatVnd(amount);
 }
 
 const UNLIMITED_HIGHLIGHT = "KHÔNG GIỚI HẠN";
@@ -253,18 +254,14 @@ export function Pricing() {
                     </h3>
 
                     <div className={`mt-3 flex flex-col justify-start space-y-1.5 ${priceBlockMin}`}>
-                      {isFree ? (
-                        <p className="text-3xl font-black tracking-tight text-[#630ed4] sm:text-4xl">
-                          0đ
-                        </p>
-                      ) : (
-                        <p className="text-3xl font-black tracking-tight text-[#630ed4] sm:text-4xl">
-                          {fmtVnd(displayAmount)}
+                      <p className="text-3xl font-black tracking-tight text-[#630ed4] sm:text-4xl">
+                        {fmtVnd(displayAmount)}
+                        {!isFree ? (
                           <span className="ml-1 text-base font-bold text-slate-500">
                             {isYearly ? "/năm" : "/tháng"}
                           </span>
-                        </p>
-                      )}
+                        ) : null}
+                      </p>
                     </div>
                   </div>
 

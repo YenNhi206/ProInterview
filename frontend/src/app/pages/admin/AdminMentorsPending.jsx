@@ -7,10 +7,12 @@ import { formatEducationDisplay } from "../../utils/profile/profileEducationHist
 import { formatWorkHistoryLines, parseWorkHistory } from "../../utils/profile/profileWorkHistory.js";
 import { toast } from "sonner";
 
+import { formatVnd as formatVndUtil } from "../../utils/shared/formatVnd.js";
+
 function formatVnd(n) {
   const x = Number(n);
   if (!Number.isFinite(x) || x <= 0) return "—";
-  return `${x.toLocaleString("vi-VN")} ₫`;
+  return formatVndUtil(x);
 }
 
 function ChipList({ items, empty }) {

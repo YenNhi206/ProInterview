@@ -23,8 +23,10 @@ import { tryApi } from "../../utils/shared/apiToast.js";
 import { avatarSrc } from "../../utils/shared/mediaUrl.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
 
+import { formatVnd } from "../../utils/shared/formatVnd.js";
+
 function vnd(amount) {
-  return `${Number(amount || 0).toLocaleString("vi-VN")} đ`;
+  return formatVnd(amount);
 }
 
 function formatDate(iso) {

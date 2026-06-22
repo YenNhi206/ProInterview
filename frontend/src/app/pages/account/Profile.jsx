@@ -1019,7 +1019,7 @@ export function Profile() {
                         }
                       />
                       <span className="profile-muted pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold">
-                        ₫
+                        VND
                       </span>
                     </div>
                   </ProfileCvAccordionSection>

@@ -406,18 +406,15 @@ html.app-route-home body {
 }
 
 @media (min-width: 1024px) {
-  .app-user-shell--home {
-    overflow-x: auto;
-  }
-
   .home-layout-fixed {
-    width: max(100%, 90rem);
-    min-width: 90rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   html.app-route-home .top-nav-pill {
     flex-wrap: nowrap;
-    min-width: 64rem;
+    min-width: 0;
   }
 
   html.app-route-home .top-nav-pill>* {
@@ -427,46 +424,6 @@ html.app-route-home body {
   .home-hero-section {
     overflow-x: clip;
     overflow-y: visible;
-  }
-
-  .hero-scale-wrapper {
-    display: flex;
-    justify-content: flex-start;
-    width: max-content;
-    max-width: none;
-    min-width: 100%;
-    margin-inline: auto;
-    margin-top: -5rem;
-    padding-inline: max(0px, calc((100% - 90rem) / 2));
-    box-sizing: border-box;
-    overflow: visible;
-  }
-
-  /* Grid: cột chữ rộng theo nội dung, cột video cố định — không đè khi zoom */
-  .hero-scale-canvas {
-    display: grid;
-    grid-template-columns: max-content 29.5rem;
-    column-gap: 3.4rem;
-    align-items: center;
-    width: max-content;
-    min-width: 81rem;
-  }
-
-  .hero-scale-canvas__copy {
-    grid-column: 1;
-    width: max-content;
-    max-width: none;
-    justify-self: start;
-    position: relative;
-    z-index: 2;
-  }
-
-  .hero-scale-canvas__media {
-    grid-column: 2;
-    width: 29.5rem;
-    justify-self: end;
-    position: relative;
-    z-index: 1;
   }
 
   .home-hero-section .home-hero-title {

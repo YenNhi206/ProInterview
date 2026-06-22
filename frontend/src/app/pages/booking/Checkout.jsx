@@ -31,17 +31,16 @@ import {
   getSubscriptionChargeAmount,
   resolveCheckoutPlan,
 } from "../../constants/planCatalog.js";
-import { sessionTypeLabel } from "../../utils/booking/sessionTypeLabels.js";
+import { formatVnd, formatVndParts } from "../../utils/shared/formatVnd.js";
 
 /* ─── Plan meta (UI) — giá lấy từ planCatalog ───────────── */
 
 function fmt(n) {
-  return new Intl.NumberFormat("vi-VN").format(n) + "đ";
+  return formatVnd(n);
 }
 
 function formatAmountParts(amount) {
-  const value = new Intl.NumberFormat("vi-VN").format(Number(amount) || 0);
-  return { value, suffix: "đ" };
+  return formatVndParts(amount);
 }
 
 /** Số tiền gom một khối, căn giữa, số và đ cùng kiểu chữ */

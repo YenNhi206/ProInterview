@@ -4,10 +4,8 @@ import { Users, Star, ChevronLeft, ChevronRight, ArrowRight, BadgeCheck, Sparkle
 import { SparkleGlyph } from "../decor/SparkleGlyph.jsx";
 import { HOME_SECTION_INNER } from "../layout/customerShellLayout";
 import { MENTOR_SHOWCASE_COPY } from "../../constants/brandVoice";
-import {
-  HOME_SECTION_TITLE_CLAMP,
-  homeSectionClasses as ty,
-} from "../../constants/homeTypography";
+import { homeSectionClasses as ty } from "../../constants/homeTypography";
+import { HomeSectionHeader } from "./HomeSectionHeader";
 import { fetchMentors } from "../../api/mentorApi";
 import { HOME_DEMO_MENTORS } from "../../data/homeLandingDemo";
 
@@ -15,7 +13,7 @@ import { HOME_DEMO_MENTORS } from "../../data/homeLandingDemo";
 function formatPrice(price) {
   if (!price) return null;
   if (price >= 1000) return `${Math.round(price / 1000)}k/h`;
-  return `${price}đ/h`;
+  return `${price} VND/h`;
 }
 
 function MentorAvatar({ src, name, size = "lg" }) {
@@ -145,45 +143,31 @@ export function MentorFeatureShowcase() {
   }
 
   return (
-    <section
-      id="find-mentor"
-      className="relative z-10 overflow-hidden px-0 py-14 sm:py-18 lg:py-24"
-    >
+    <section id="find-mentor" className={ty.section}>
+      <div className={HOME_SECTION_INNER}>
+        <HomeSectionHeader
+          icon={Users}
+          badge={MENTOR_SHOWCASE_COPY.badge}
+          lines={[
+            { text: MENTOR_SHOWCASE_COPY.titleLine1, tone: "dark" },
+            { text: MENTOR_SHOWCASE_COPY.titleLine2, tone: "lime" },
+          ]}
+          className="mb-8 sm:mb-10"
+        />
 
-      <div className={`relative z-10 w-full ${HOME_SECTION_INNER} !px-6 sm:!px-12 lg:!px-20`}>
-        {/* Heading */}
-        <div className="mb-10 flex flex-col items-start gap-3 sm:mb-12 sm:gap-4 lg:-translate-x-4">
-          <span className={ty.badge}>
-            <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            {MENTOR_SHOWCASE_COPY.badge}
-          </span>
-          <h2
-            className={`${ty.title} max-w-full`}
-            style={{ fontSize: HOME_SECTION_TITLE_CLAMP }}
-          >
-            <span className="block lg:whitespace-nowrap">
-              {MENTOR_SHOWCASE_COPY.titleLine1}
-            </span>
-            <span className="block text-[#8037f4] lg:whitespace-nowrap">
-              {MENTOR_SHOWCASE_COPY.titleLine2}
-            </span>
-          </h2>
-        </div>
-
-        {/* Carousel */}
         <div className="relative">
           {/* Prev/Next arrows */}
           <button
             onClick={() => scroll(-1)}
             aria-label="Cuộn trái"
-            className="absolute -left-4 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-violet-200 bg-white p-2 shadow-md transition hover:bg-violet-50 lg:flex"
+            className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-violet-200 bg-white p-2 shadow-md transition hover:bg-violet-50 lg:flex"
           >
             <ChevronLeft className="h-5 w-5 text-violet-600" />
           </button>
           <button
             onClick={() => scroll(1)}
             aria-label="Cuộn phải"
-            className="absolute -right-4 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-violet-200 bg-white p-2 shadow-md transition hover:bg-violet-50 lg:flex"
+            className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-violet-200 bg-white p-2 shadow-md transition hover:bg-violet-50 lg:flex"
           >
             <ChevronRight className="h-5 w-5 text-violet-600" />
           </button>

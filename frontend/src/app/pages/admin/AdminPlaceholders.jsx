@@ -41,8 +41,10 @@ import { adminApi } from "../../api/adminApi.js";
 import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiToast.js";
 import { AnimatePresence, motion } from "motion/react";
 
+import { formatVnd } from "../../utils/shared/formatVnd.js";
+
 function vnd(amount) {
-  return `${Number(amount || 0).toLocaleString("vi-VN")} đ`;
+  return formatVnd(amount);
 }
 
 function copyAdminText(text, successMsg = "Đã sao chép.") {

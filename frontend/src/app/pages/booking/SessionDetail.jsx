@@ -29,6 +29,7 @@ import {
   Target,
 } from "lucide-react";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { isLoggedIn } from "../../utils/auth/auth.js";
 import {
   cancelBooking,
@@ -532,7 +533,7 @@ export function SessionDetail() {
       const credit = Number(res.rebookCreditVnd ?? res.booking?.rebookCreditVnd ?? 0);
       toastApiSuccess(
         credit > 0
-          ? `Đã kích hoạt credit ${credit.toLocaleString("vi-VN")}₫, chọn mentor khác, không cần CK lại nếu giá ≤ credit.`
+          ? `Đã kích hoạt credit ${formatVnd(credit)}, chọn mentor khác, không cần CK lại nếu giá ≤ credit.`
           : "Hãy chọn mentor mới để đặt lịch.",
       );
       if (res.booking) setApiBooking(res.booking);
@@ -742,7 +743,7 @@ export function SessionDetail() {
       String(res.booking?.paymentStatus || "").toLowerCase() === "paid";
     let extra = "";
     if (refundAmt > 0) {
-      extra = ` Yêu cầu hoàn ${Math.round(refundAmt).toLocaleString("vi-VN")}₫${refundPct != null ? ` (${refundPct}%)` : ""} đã ghi nhận. Admin CK hoàn sau, bạn được báo khi xong.`;
+      extra = ` Yêu cầu hoàn ${formatVnd(Math.round(refundAmt))}${refundPct != null ? ` (${refundPct}%)` : ""} đã ghi nhận. Admin CK hoàn sau, bạn được báo khi xong.`;
     } else if (paid && refundPct === 0) {
       extra = " Theo chính sách, không hoàn tiền cho khoảng thời gian này.";
     } else if (pol?.ledger === "cancelled_pending_transfer") {
@@ -1034,7 +1035,7 @@ export function SessionDetail() {
             <div className="card-premium p-5">
               <div className="flex justify-between items-center mb-3">
                 <span className={`text-sm font-semibold ${paymentMeta.titleClass}`}>{paymentMeta.title}</span>
-                <span className="font-bold text-gray-900">{sessionData.price.toLocaleString("vi")}đ</span>
+                <span className="font-bold text-gray-900">{formatVnd(sessionData.price)}</span>
               </div>
               <div className="flex items-start gap-2 pt-3 border-t border-gray-100 mb-4">
                 <ShieldCheck
@@ -1053,10 +1054,11 @@ export function SessionDetail() {
                         ? "Phần tiền thừa sau đổi mentor, hoàn: "
                         : "Số hoàn dự kiến: "}
                       <strong>
-                        {Math.round(
-                          sessionData.rebookCreditRemainderVnd ?? sessionData.cancelRefundAmountVnd,
-                        ).toLocaleString("vi-VN")}
-                        ₫
+                        {formatVnd(
+                          Math.round(
+                            sessionData.rebookCreditRemainderVnd ?? sessionData.cancelRefundAmountVnd,
+                          ),
+                        )}
                       </strong>
                     </p>
                   ) : null}
@@ -1516,7 +1518,7 @@ export function SessionDetail() {
                   { label: "Giờ", value: `${sessionData.time} – ${sessionData.endTime}` },
                   { label: "Thời lượng", value: "60 phút" },
                   { label: "Vị trí", value: sessionData.position },
-                  { label: "Phí", value: `${sessionData.price.toLocaleString("vi")}đ` },
+                  { label: "Phí", value: formatVnd(sessionData.price) },
                 ].map((r) => (
                   <div key={r.label} className="flex justify-between gap-3 text-sm">
                     <span className="text-violet-500">{r.label}</span>

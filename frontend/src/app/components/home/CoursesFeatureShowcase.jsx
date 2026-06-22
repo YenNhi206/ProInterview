@@ -9,10 +9,8 @@ import {
 } from "lucide-react";
 import { HOME_DEMO_COURSES } from "../../data/homeLandingDemo";
 import { COURSES_SHOWCASE_COPY } from "../../constants/brandVoice";
-import {
-  HOME_SECTION_TITLE_CLAMP,
-  homeSectionClasses as ty,
-} from "../../constants/homeTypography";
+import { homeSectionClasses as ty } from "../../constants/homeTypography";
+import { HomeSectionHeader } from "./HomeSectionHeader";
 import { SparkleGlyph } from "../decor/SparkleGlyph";
 
 /** Một khóa mẫu cố định (STAR), tab lọc chỉ minh họa UI. */
@@ -217,10 +215,7 @@ function CoursesLearningMockup() {
 /** Showcase khóa học — desktop: mockup trái, copy phải (khớp mock). */
 export function CoursesFeatureShowcase({ onCtaClick }) {
   return (
-    <section
-      id="courses"
-      className="relative z-10 flex lg:h-screen lg:max-h-screen flex-col justify-center overflow-hidden lg:overflow-visible px-0 py-4 sm:py-6 max-lg:py-8"
-    >
+    <section id="courses" className={ty.section}>
       <style>{`
         .courses-mock-panel {
           background: linear-gradient(165deg, #f0ebf8 0%, #ebe4f6 50%, #e6ddf3 100%);
@@ -228,68 +223,47 @@ export function CoursesFeatureShowcase({ onCtaClick }) {
           box-shadow: 0 12px 32px rgba(99, 14, 212, 0.1);
         }
       `}</style>
-      <div
-        className={`home-mobile-gutter relative z-10 flex w-full items-center overflow-visible py-2 ${HOME_SECTION_INNER} lg:!px-6 xl:!px-8 2xl:!px-12`}
-      >
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-8 overflow-visible max-lg:gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-4 xl:max-w-[68rem] xl:gap-5">
-          <div className="relative z-10 flex w-full min-w-0 justify-center max-lg:order-last lg:justify-start lg:-translate-x-[5.9rem]">
-            <div className="w-full origin-top max-lg:mx-auto lg:scale-[1.05]">
+      <div className={`${ty.sectionShell} ${HOME_SECTION_INNER}`}>
+        <div className={ty.sectionGrid}>
+          <div className="relative z-10 flex w-full min-w-0 justify-center max-lg:order-last">
+            <div className="w-full min-w-0 max-w-[42rem] lg:max-w-none">
               <CoursesLearningMockup />
             </div>
           </div>
 
-          <article className="relative z-10 flex min-w-0 flex-col items-start gap-[0.825rem] sm:gap-[0.95rem] max-lg:order-first lg:-translate-x-[4rem] lg:pl-0 xl:-translate-x-[4.5rem]">
+          <div className="relative max-lg:order-first">
             <SparkleGlyph
-              className="pointer-events-none absolute right-0 top-0 z-[3] h-9 w-9 rotate-12 drop-shadow-md sm:h-11 sm:w-11 lg:right-2"
+              className="pointer-events-none absolute right-0 top-0 z-[3] h-8 w-8 rotate-12 drop-shadow-md sm:h-9 sm:w-9"
               tone="violet"
             />
-            <span className={ty.badge}>
-              <GraduationCap className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              {COURSES_SHOWCASE_COPY.badge}
-            </span>
-            <h2
-              className={`${ty.title} max-w-full sm:max-w-none`}
-              style={{ fontSize: HOME_SECTION_TITLE_CLAMP }}
+            <HomeSectionHeader
+              icon={GraduationCap}
+              badge={COURSES_SHOWCASE_COPY.badge}
+              lines={[
+                { text: COURSES_SHOWCASE_COPY.titleLine1, tone: "dark" },
+                { text: COURSES_SHOWCASE_COPY.titleLine2, tone: "accent" },
+              ]}
+              body={COURSES_SHOWCASE_COPY.body}
             >
-              <span
-                className={`${ty.titleLineSecond} ${ty.titleLineDark} block lg:whitespace-nowrap`}
-              >
-                {COURSES_SHOWCASE_COPY.titleLine1}
-              </span>
-              <span
-                className={`${ty.titleLineSecond} ${ty.titleLineAccent} block lg:whitespace-nowrap`}
-              >
-                {COURSES_SHOWCASE_COPY.titleLine2}
-              </span>
-            </h2>
-            <p
-              className={`${ty.coursesBody} flex w-full max-w-none flex-col gap-[0.25rem]`}
-            >
-              <span className="block max-lg:text-pretty lg:whitespace-nowrap">
-                {COURSES_SHOWCASE_COPY.bodyLine1}
-              </span>
-              <span className="block max-lg:text-pretty lg:whitespace-nowrap">
-                {COURSES_SHOWCASE_COPY.bodyLine2}
-              </span>
-            </p>
-            <ul className={`${ty.coursesBulletList} w-full max-w-none`}>
-              {COURSES_SHOWCASE_COPY.bullets.map((item) => (
-                <li key={item} className="flex items-start gap-2">
-                  <CircleCheck className={ty.bulletIcon} strokeWidth={2.5} />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            {onCtaClick ? (
-              <button
-                type="button"
-                onClick={onCtaClick}
-                className={`courses-cta-primary mt-1 ${ty.cta} text-[#0f172a]`}
-              >
-                {COURSES_SHOWCASE_COPY.cta}
-              </button>
-            ) : null}
-          </article>
+              <ul className={ty.coursesBulletList}>
+                {COURSES_SHOWCASE_COPY.bullets.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <CircleCheck className={ty.bulletIcon} strokeWidth={2.5} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              {onCtaClick ? (
+                <button
+                  type="button"
+                  onClick={onCtaClick}
+                  className={`courses-cta-primary mt-1 ${ty.cta} text-[#0f172a]`}
+                >
+                  {COURSES_SHOWCASE_COPY.cta}
+                </button>
+              ) : null}
+            </HomeSectionHeader>
+          </div>
         </div>
       </div>
     </section>

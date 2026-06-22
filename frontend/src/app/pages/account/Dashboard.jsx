@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { getUser, isLoggedIn, getDisplayName, getInitials, setLoggedIn } from "../../utils/auth/auth.js";
 import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { fetchCurrentPlan } from "../../api/plansApi.js";
 import { parseDateMs } from "../../utils/booking/bookings.js";
 import { listBookings, cancelBooking } from "../../api/bookingsApi.js";
@@ -593,9 +594,9 @@ export function Dashboard() {
     if (pol?.ledger === "cancelled_pending_transfer") {
       toastApiSuccess("Đã hủy lịch. Giao dịch chờ chuyển khoản đã hủy, chưa thu tiền.");
     } else if (refundAmt > 0) {
-      const tail = retained > 0 ? ` Giữ lại: ${Math.round(retained).toLocaleString("vi-VN")}₫.` : "";
+      const tail = retained > 0 ? ` Giữ lại: ${formatVnd(Math.round(retained))}.` : "";
       toastApiSuccess(
-        `Đã hủy lịch. Yêu cầu hoàn ${Math.round(refundAmt).toLocaleString("vi-VN")}₫${pct != null ? ` (${pct}%)` : ""} đã ghi nhận.${tail} Admin sẽ CK hoàn, bạn được báo khi hoàn xong.`,
+        `Đã hủy lịch. Yêu cầu hoàn ${formatVnd(Math.round(refundAmt))}${pct != null ? ` (${pct}%)` : ""} đã ghi nhận.${tail} Admin sẽ CK hoàn, bạn được báo khi hoàn xong.`,
       );
     } else {
       toastApiSuccess(

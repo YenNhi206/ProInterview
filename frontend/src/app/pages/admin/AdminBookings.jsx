@@ -19,8 +19,10 @@ import { AdminSepayOverrideAction } from "../../components/admin/AdminSepayOverr
 import { AdminBookingStatusStack } from "../../components/admin/AdminStatusPill.jsx";
 import { AdminFilterSelect, AdminListFilterBar } from "../../components/admin/AdminListFilters.jsx";
 
+import { formatVnd } from "../../utils/shared/formatVnd.js";
+
 function vnd(n) {
-  return `${Number(n || 0).toLocaleString("vi-VN")} đ`;
+  return formatVnd(n);
 }
 
 function paymentStatusOf(b) {
@@ -114,7 +116,7 @@ export function AdminBookings() {
     const amt = Number(booking.cancelRefundAmountVnd || 0);
     if (
       !window.confirm(
-        `Xác nhận đã chuyển khoản hoàn ${amt.toLocaleString("vi-VN")} đ cho học viên?\n\nChỉ bấm sau khi đã chuyển tiền thật vào số tài khoản trên đơn.`,
+        `Xác nhận đã chuyển khoản hoàn ${formatVnd(amt)} cho học viên?\n\nChỉ bấm sau khi đã chuyển tiền thật vào số tài khoản trên đơn.`,
       )
     ) {
       return;

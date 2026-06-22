@@ -21,6 +21,7 @@ import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/Mentor
 import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 import { fetchMentorFinance, requestMentorPayout, updateMentorPayoutAccount } from "../../api/mentorApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { AppSelect } from "../../components/ui/AppSelect";
 
 const MENTOR_FINANCE_EXTRA_CSS = `
@@ -806,7 +807,7 @@ export function MentorFinance() {
                           }`}
                         >
                           {tx.type === "income" ? "+" : "−"}
-                          {Number(tx.amount || 0).toLocaleString("vi-VN")}&nbsp;₫
+                          {formatVnd(tx.amount || 0)}
                         </p>
                       </td>
                       <td className="whitespace-nowrap px-4 py-4 sm:px-6">
