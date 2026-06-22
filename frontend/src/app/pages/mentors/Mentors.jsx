@@ -12,6 +12,7 @@ import { MentorListCard } from "../../components/mentor/MentorListCard";
 import { fetchMentors } from "../../api/mentorApi.js";
 import { fetchRebookCredit } from "../../api/bookingsApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import {
   MENTOR_FILTER_FIELDS,
   mentorMatchesFilterField,
@@ -258,7 +259,7 @@ export function Mentors() {
             <div className="mb-6 rounded-2xl border border-violet-200/80 bg-violet-50/95 px-4 py-3 text-sm text-violet-950">
               <p className="font-bold">Credit đổi mentor</p>
               <p className="mt-1 text-xs leading-relaxed text-violet-900/90">
-                Bạn có <strong>{Number(rebookCredit.creditVnd || 0).toLocaleString("vi-VN")}₫</strong> từ lịch mentor đã
+                Bạn có <strong>{formatVnd(rebookCredit.creditVnd || 0)}</strong> từ lịch mentor đã
                 hủy. Chọn <strong>mentor khác</strong> — nếu giá buổi mới ≤ credit thì{" "}
                 <strong>không cần chuyển khoản lại</strong>.
               </p>

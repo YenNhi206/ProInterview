@@ -19,6 +19,7 @@ import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames";
 import { fetchMentorPeerReviews, submitMentorPeerReview } from "../../api/mentorApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { toast } from "sonner";
 import { mediaSrc, DEFAULT_COURSE_THUMB } from "../../utils/shared/mediaUrl.js";
 
@@ -626,7 +627,7 @@ export function MentorPeerReview() {
                     <span>
                       {selectedCourse.isFree
                         ? "Miễn phí"
-                        : `${Number(selectedCourse.price || 0).toLocaleString("vi-VN")} ₫`}
+                        : formatVnd(selectedCourse.price || 0)}
                     </span>
                     <span>{Number(selectedCourse.lessonCount || 0)} bài học</span>
                   </div>

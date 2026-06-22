@@ -31,10 +31,9 @@ import { ReviewReplyBlock } from "../reviews/ReviewReplyBlock";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { avatarSrc, mediaSrc } from "../../utils/shared/mediaUrl.js";
 
-export const formatCoursePrice = (price) => {
-  if (price === 0) return "Miễn phí";
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-};
+import { formatVnd } from "../../utils/shared/formatVnd.js";
+
+export const formatCoursePrice = (price) => formatVnd(price, { freeLabel: "Miễn phí" });
 
 export const formatCourseDuration = (minutes) => {
   const h = Math.floor(minutes / 60);

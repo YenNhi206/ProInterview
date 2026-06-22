@@ -6,8 +6,10 @@ import { adminApi } from "../../api/adminApi.js";
 import { AdminSepayOverrideAction } from "../../components/admin/AdminSepayOverrideAction.jsx";
 import { StatusPill } from "../../components/admin/AdminStatusPill.jsx";
 
+import { formatVnd } from "../../utils/shared/formatVnd.js";
+
 function vnd(n) {
-  return `${Number(n || 0).toLocaleString("vi-VN")} đ`;
+  return formatVnd(n);
 }
 
 function planLabel(plan) {

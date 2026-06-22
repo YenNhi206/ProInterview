@@ -1,25 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "../../../styles/home.css";
-import { createPortal } from "react-dom";
-import { useNavigate, Link } from "react-router";
+import { useNavigate } from "react-router";
 import {
-  FileText,
-  Users,
-  TrendingUp as TrendUp,
   Star,
-  ChevronRight as CaretRight,
-  Brain,
-  Target as Crosshair,
   Award as Medal,
   ArrowRight,
-  Zap as Lightning,
-  Upload as UploadSimple,
-  Video as VideoCamera,
-  BadgeCheck as SealCheck,
-  GraduationCap
 } from "lucide-react";
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
-import { RecommendedJourney } from "../../components/home/RecommendedJourney";
 import { CvAnalysisFeatureShowcase } from "../../components/home/CvAnalysisFeatureShowcase";
 import { MentorFeatureShowcase } from "../../components/home/MentorFeatureShowcase";
 
@@ -31,84 +17,18 @@ const HOME_MENTOR_MASCOTS = {
   fallback: "/mascot-courses-ready.png?v=8",
 };
 import { CoursesFeatureShowcase } from "../../components/home/CoursesFeatureShowcase";
-import { HeroInterviewVideoCard } from "../../components/home/HeroInterviewVideoCard";
+import { InterviewFeatureShowcase } from "../../components/home/InterviewFeatureShowcase";
+import { HomeSectionHeader } from "../../components/home/HomeSectionHeader";
 import { SparkleGlyph } from "../../components/decor/SparkleGlyph.jsx";
-import {
-  SectionReveal,
-  LandingReveal,
-  LandingStagger,
-  LandingItem,
-} from "../../components/home/landing/LandingReveal";
-import {
-  HOME_SHELL_MAX,
-  HOME_SECTION_INNER,
-} from "../../components/layout/customerShellLayout";
+import { SectionReveal } from "../../components/home/landing/LandingReveal";
+import { HOME_SECTION_INNER } from "../../components/layout/customerShellLayout";
 import { HOME_COPY, HOME_SECTION_COPY } from "../../constants/brandVoice";
 import {
   HOME_HERO_TITLE_CLAMP,
-  HOME_SECTION_TITLE_CLAMP,
+  HOME_SECTION_TITLE_SIZE,
   homeSectionClasses as homeTy,
 } from "../../constants/homeTypography";
-/* ─── Data ──────────────────────────────────────────────── */
-const FEATURES = [
-  {
-    icon: FileText,
-    accentClass: "from-[#93f72b] to-[#8fbc24]",
-    bgClass: "bg-lime-50 dark:bg-lime-950/30",
-    dotColor: "#93f72b",
-    borderHover: "rgba(196, 255, 71,0.5)",
-    bgHover: "rgba(196, 255, 71,0.07)",
-    title: HOME_SECTION_COPY.features[0].title,
-    desc: HOME_SECTION_COPY.features[0].desc,
-    route: "/cv-analysis",
-    cta: HOME_SECTION_COPY.features[0].cta,
-  },
-  {
-    icon: Brain,
-    accentClass: "from-[#8037f4] to-[#a66ff8]",
-    bgClass: "bg-purple-50 dark:bg-purple-950/30",
-    dotColor: "#8037f4",
-    borderHover: "rgba(128, 55, 244,0.5)",
-    bgHover: "rgba(128, 55, 244,0.08)",
-    title: HOME_SECTION_COPY.features[1].title,
-    desc: HOME_SECTION_COPY.features[1].desc,
-    route: "/interview",
-    cta: HOME_SECTION_COPY.features[1].cta,
-  },
-  {
-    icon: Users,
-    accentClass: "from-[#FFB800] to-[#FF8C42]",
-    bgClass: "bg-amber-50 dark:bg-amber-950/30",
-    dotColor: "#FFB800",
-    borderHover: "rgba(255,184,0,0.5)",
-    bgHover: "rgba(255,184,0,0.07)",
-    title: HOME_SECTION_COPY.features[2].title,
-    desc: HOME_SECTION_COPY.features[2].desc,
-    route: "/mentors",
-    cta: HOME_SECTION_COPY.features[2].cta,
-  },
-  {
-    icon: TrendUp,
-    accentClass: "from-sky-400 to-blue-600",
-    bgClass: "bg-sky-50 dark:bg-sky-950/30",
-    dotColor: "#38BDF8",
-    borderHover: "rgba(167,139,250,0.)",
-    bgHover: "rgba(167,139,250,0.)",
-    title: HOME_SECTION_COPY.features[3].title,
-    desc: HOME_SECTION_COPY.features[3].desc,
-    route: "/my-bookings",
-    cta: HOME_SECTION_COPY.features[3].cta,
-  },
-];
-
-const STEP_ICONS = [FileText, Brain, Users, GraduationCap];
-const STEP_COLORS = ["#7000ff", "#b8f600", "#7000ff", "#7000ff"];
-
-const STEPS = HOME_SECTION_COPY.steps.map((s, i) => ({
-  ...s,
-  icon: STEP_ICONS[i],
-  color: STEP_COLORS[i],
-}));
+import { achievementsApi } from "../../api/achievementsApi.js";
 
 const TESTIMONIAL_MASCOTS = [
   HOME_MENTOR_MASCOTS.pro,
@@ -121,11 +41,6 @@ const TESTIMONIALS = HOME_SECTION_COPY.testimonials.items.map((t, i) => ({
   mascot: TESTIMONIAL_MASCOTS[i],
   stars: 5,
 }));
-
-import { achievementsApi } from "../../api/achievementsApi.js";
-
-
-
 
 export function Home() {
   const navigate = useNavigate();
@@ -192,15 +107,11 @@ export function Home() {
       {/* ═══ HERO (chỉ copy + CTA, clip bling ~1 màn; video section riêng bên dưới) ═══ */}
       <section
         id="home-hero-section"
-        className="home-hero-section relative z-10 flex min-h-[100svh] flex-col justify-center px-6 pb-8 pt-24 sm:px-10 sm:pt-28 lg:px-16 lg:pb-10 lg:pt-32 -mb-[17rem] lg:mb-0"
+        className="home-hero-section relative z-10 flex min-h-[100svh] flex-col justify-center overflow-x-hidden pb-8 pt-24 max-lg:-mb-6 sm:pt-28 lg:mb-0 lg:pb-10 lg:pt-32"
       >
-
-
-        {/* Note: HeroAtmosphere now handles both the background mesh and the mouse particles */}
-
         <div
           id="home-hero-sparkle-zone"
-          className={`home-hero-sparkle-zone relative z-10 mx-auto flex w-full -translate-y-40 lg:-translate-y-8 flex-col items-center px-4 py-6 text-center sm:px-8 sm:py-10 ${HOME_SHELL_MAX}`}
+          className={`home-hero-sparkle-zone relative z-10 mx-auto flex w-full max-lg:-translate-y-16 flex-col items-center py-6 text-center sm:py-10 lg:-translate-y-6 ${HOME_SECTION_INNER}`}
         >
           <div className="hero-intro-badge mb-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#630ed4] bg-white/80 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.03em] text-[#630ed4] shadow-[0_2px_12px_rgba(99,14,212,0.1)] backdrop-blur-sm sm:text-xs">
@@ -264,7 +175,7 @@ export function Home() {
 
 
 
-      {/* ═══ CV ANALYSIS (navbar #features) ═══ */}
+      {/* ═══ CV ANALYSIS (#features) ═══ */}
       <div className="landing-section-flow">
         <SectionReveal variant="cv">
           <CvAnalysisFeatureShowcase />
@@ -274,47 +185,7 @@ export function Home() {
       {/* ═══ AI INTERVIEW SHOWCASE ═══ */}
       <div className="landing-section-flow">
         <SectionReveal variant="interview">
-          <section
-            id="ai-interview"
-            aria-label="Luyện phỏng vấn với AI"
-            className="relative z-10 flex min-h-screen flex-col justify-center overflow-x-hidden overflow-y-visible px-0 py-16 sm:px-10 lg:px-16 max-lg:min-h-0 max-lg:py-8 max-lg:px-0"
-          >
-            <div className={`${HOME_SECTION_INNER} home-mobile-gutter relative z-10 py-2 lg:!pr-6`}>
-              <div className="flex flex-col-reverse items-center gap-10 lg:flex-row lg:items-center lg:gap-2">
-
-                <div className="relative mx-auto w-full flex-1 lg:flex-[3.75] lg:-ml-16 lg:-translate-y-8">
-                  {/* Mascot peeking from bottom-right corner of card */}
-                  <div className="pointer-events-none absolute -bottom-[1.5rem] right-[-5.25rem] z-20 hidden lg:block">
-                    <img
-                      src="/mascot-features.png"
-                      alt=""
-                      aria-hidden
-                      className="h-[15rem] w-auto object-contain drop-shadow-xl"
-                    />
-                  </div>
-                  <HeroInterviewVideoCard overlap={true} />
-                </div>
-
-                <div className="w-full flex-1 lg:flex-[2] flex flex-col items-start gap-3 sm:gap-3.5 lg:-translate-y-[6rem] lg:translate-x-[1.1rem] relative">
-                  <span className={homeTy.cvShowcaseBadge}>
-                    <Brain className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Luyện PV với AI
-                  </span>
-                  <h2
-                    className={`max-w-full ${homeTy.title} sm:max-w-none max-lg:flex-row max-lg:flex-wrap`}
-                    style={{ fontSize: HOME_SECTION_TITLE_CLAMP }}
-                  >
-                    <span className="lg:block text-slate-900 lg:whitespace-nowrap">Luyện phỏng vấn </span>
-                    <span className="lg:block text-slate-900 lg:whitespace-nowrap">với AI sẵn sàng </span>
-                    <span className="lg:block text-[#630ed4] lg:whitespace-nowrap">cho cơ hội thật</span>
-                  </h2>
-                  <p className={`mt-2 max-w-[22rem] ${homeTy.body} !font-normal`}>
-                    Thực chiến phỏng vấn 1-1 cùng AI với bộ câu hỏi được cá nhân hoá theo CV & JD.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
+          <InterviewFeatureShowcase />
         </SectionReveal>
       </div>
 
@@ -333,27 +204,24 @@ export function Home() {
 
 
       {/* ═══ TESTIMONIALS ═══════════════════════════════════ */}
-      <section
-        id="mentors"
-        className="landing-section-flow relative z-10 -mt-[5rem] h-[calc(100vh+3rem)] max-h-[calc(100vh+3rem)] min-h-[calc(100vh+3rem)] overflow-x-hidden max-lg:mt-0 max-lg:h-auto max-lg:max-h-none max-lg:min-h-0 max-lg:py-4 lg:overflow-x-visible"
-      >
+      <section id="testimonials" className={`${homeTy.section} landing-section-flow`}>
         {renderSectionSticks([
           { x: 78, y: 12, size: 34, opacity: 0.46 },
           { x: 92, y: 52, size: 36, opacity: 0.5 },
           { x: 10, y: 86, size: 30, opacity: 0.38 },
         ])}
-        <div className={`${HOME_SECTION_INNER} home-mobile-gutter relative z-10 flex h-full w-full flex-col justify-center py-4 sm:py-6 max-lg:h-auto max-lg:py-0`}>
-          <div className="flex min-w-0 w-full flex-col items-start gap-8 overflow-visible lg:flex-row lg:items-center lg:gap-16">
-            <div className="relative z-20 w-full shrink-0 lg:w-fit lg:max-w-[min(100%,40rem)] lg:-translate-x-[2rem]">
-              <div className={`${homeTy.badge} mb-4`}>
+        <div className={`${homeTy.sectionShell} ${HOME_SECTION_INNER}`}>
+          <div className={`${homeTy.sectionGrid} lg:items-center`}>
+            <div className={homeTy.sectionCopy}>
+              <span className={homeTy.badge}>
                 <SparkleGlyph className="size-3.5" />
                 {HOME_SECTION_COPY.testimonials.badge}
-              </div>
+              </span>
               <h2
-                className={`mb-0 flex w-full max-w-none flex-col items-start gap-0 ${homeTy.title}`}
-                style={{ fontSize: HOME_SECTION_TITLE_CLAMP }}
+                className={homeTy.sectionTitle}
+                style={{ fontSize: HOME_SECTION_TITLE_SIZE }}
               >
-                <span className="block max-w-full leading-none lg:whitespace-nowrap">
+                <span className={homeTy.sectionTitleLineDark}>
                   {HOME_SECTION_COPY.testimonials.titleLine}
                 </span>
                 <span
@@ -370,11 +238,11 @@ export function Home() {
                   />
                 </span>
               </h2>
-              <p className={`mt-1 lg:max-w-none ${homeTy.body}`}>
+              <p className={homeTy.sectionBody}>
                 {HOME_SECTION_COPY.testimonials.body}
               </p>
 
-              <div className="mt-4 flex items-center gap-3">
+              <div className="mt-1 flex items-center gap-3">
                 <div className="flex -space-x-3">
                   {TESTIMONIALS.map((t) => (
                     <div
@@ -394,16 +262,16 @@ export function Home() {
                     </div>
                   ))}
                 </div>
-                <p className={homeTy.body}>
-                  <span className="font-black text-[#8037f4]">500+</span>{" "}
+                <p className={homeTy.sectionBody}>
+                  <span className="font-bold text-[#8037f4]">500+</span>{" "}
                   {HOME_SECTION_COPY.testimonials.socialProof}
                 </p>
               </div>
             </div>
 
-            <div className="relative z-10 flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-visible py-[0.9rem] lg:min-h-[22rem] lg:min-w-0 lg:pl-0">
+            <div className="relative z-10 flex min-h-0 min-w-0 w-full flex-col overflow-hidden py-2 lg:min-h-[20rem]">
               <div
-                className="relative w-full overflow-hidden lg:-mx-[3rem] lg:w-[calc(100%+6rem)]"
+                className="relative w-full overflow-hidden"
                 style={{
                   maskImage:
                     "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
@@ -468,29 +336,21 @@ export function Home() {
       </section>
 
       {/* ═══ ACHIEVEMENTS / NEWS SECTION ═══ */}
-      <section className="relative z-10 mx-auto max-w-[84.35rem] px-4 py-16 sm:px-6 sm:py-24">
-        {/* Decorative blur orbs */}
+      <section className={`${homeTy.section} ${HOME_SECTION_INNER}`}>
         <div className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-[#8037f4]/8 blur-[140px]" aria-hidden />
         <div className="pointer-events-none absolute bottom-0 right-1/4 -z-10 h-[300px] w-[400px] rounded-full bg-[#a3ff3d]/6 blur-[100px]" aria-hidden />
 
-        {/* Section header */}
-        <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className={homeTy.badge}>
-            <Medal className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            Tin tức & Hoạt động
-          </span>
-          <h2
-            className={`${homeTy.title} max-w-none`}
-            style={{ fontSize: HOME_SECTION_TITLE_CLAMP }}
-          >
-            <span className={homeTy.titleLineDark}>Tin tức và hoạt động{" "}
-              <span className="text-[#630ed4]">từ ProInterview</span>
-            </span>
-          </h2>
-          <p className={homeTy.body}>
-            Cập nhật những tin tức, sự kiện và cột mốc phát triển mới nhất của chúng tôi.
-          </p>
-        </div>
+        <HomeSectionHeader
+          icon={Medal}
+          badge="Tin tức & Hoạt động"
+          lines={[
+            { text: "Tin tức và hoạt động", tone: "dark" },
+            { text: "từ ProInterview", tone: "accent" },
+          ]}
+          body="Cập nhật những tin tức, sự kiện và cột mốc phát triển mới nhất của chúng tôi."
+          align="center"
+          className="mb-12"
+        />
 
         {achievements.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 mx-auto max-w-[24rem] md:max-w-none">

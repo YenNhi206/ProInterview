@@ -14,7 +14,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { refreshUserProfile } from "../../utils/auth/auth.js";
 import { apiUrl } from "../../api/http.js";
-import { toastApiError } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 export function PaymentReturn() {
   const [searchParams] = useSearchParams();
@@ -38,7 +38,7 @@ export function PaymentReturn() {
 
     const responseCode = combinedParams.get("vnp_ResponseCode");
     const amountVal = combinedParams.get("vnp_Amount");
-    const amount = amountVal ? (Number(amountVal) / 100).toLocaleString('vi-VN') + "đ" : "0đ";
+    const amount = amountVal ? formatVnd(Number(amountVal) / 100) : formatVnd(0);
     const orderId = combinedParams.get("vnp_TxnRef");
     const transNo = combinedParams.get("vnp_BankTranNo") || combinedParams.get("vnp_TransactionNo");
     const payDate = combinedParams.get("vnp_PayDate");

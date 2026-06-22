@@ -30,6 +30,7 @@ import {
 import { listMentorBookings } from "../../api/bookingsApi.js";
 import { fetchMentorDashboard } from "../../api/mentorApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { avatarSrc, DEFAULT_AVATAR } from "../../utils/shared/mediaUrl.js";
 import { parseBookingNotes } from "../../utils/booking/bookingMappers.js";
 import { parseMentorNotesSections, sessionTypeLabel } from "../../utils/booking/sessionTypeLabels.js";
@@ -293,10 +294,6 @@ function MenteeProgressModal({
   );
 }
 
-function formatVnd(amount) {
-  return `${Number(amount || 0).toLocaleString("vi-VN")} Đ`;
-}
-
 function formatVndCompact(amount) {
   const n = Number(amount) || 0;
   if (n >= 1_000_000) {
@@ -326,9 +323,6 @@ function pickFeaturedTestimonial(bookings) {
   };
 }
 
-function formatVndShort(amount) {
-  return Number(amount || 0).toLocaleString("vi-VN");
-}
 
 function padStat(n) {
   return String(Math.max(0, Number(n) || 0)).padStart(2, "0");
@@ -624,7 +618,7 @@ export function MentorDashboard() {
               accent="purple"
               value={formatVndCompact(stats.totalEarned)}
               title="Tổng thu nhập"
-              subtitle={`Khả dụng để rút: ${formatVndShort(stats.availableBalance)}Đ`}
+              subtitle={`Khả dụng để rút: ${formatVnd(stats.availableBalance)}`}
               cornerIcon={Landmark}
             />
           </MentorStatPanel>

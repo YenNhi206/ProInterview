@@ -2,7 +2,7 @@
 export const HOME_LANDING_ANCHORS = [
   { label: "Lộ trình", hash: "#features" },
   { label: "Khóa học", hash: "#courses" },
-  { label: "Đánh giá", hash: "#mentors" },
+  { label: "Đánh giá", hash: "#testimonials" },
 ];
 
 /** Menu ngang customer — xem & chọn tùy chọn tự do; đăng nhập khi bấm Phân tích / Bắt đầu phỏng vấn. */

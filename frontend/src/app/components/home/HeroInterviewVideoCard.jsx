@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 const HOME_AI_DEMO_VIDEO = "https://res.cloudinary.com/dee4bvivu/video/upload/v1774336640/Female_delxmy.mp4";
 
-export function HeroInterviewVideoCard({ overlap = false, center = false }) {
+export function HeroInterviewVideoCard({ overlap = false, center = false, compact = false }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const streamRef = useRef(null);
@@ -84,8 +84,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false }) {
       <div
         id="home-hero-video-card"
         ref={containerRef}
-        className={`relative w-full overflow-visible ${center ? "mx-auto max-w-[min(95vw,68rem)] lg:max-w-[min(95vw,69rem)]" : ""} ${overlap ? "-mt-2" : "mt-[3.8rem]"
-          }`}
+        className={`relative w-full overflow-visible ${center ? "mx-auto max-w-[min(95vw,68rem)] lg:max-w-[min(95vw,69rem)]" : ""} ${overlap ? "-mt-2" : "mt-[3.8rem]"}`}
       >
         <div className="relative overflow-hidden rounded-[1rem] bg-white border-2 border-[#8037f4] shadow-[0_20px_50px_rgba(99,14,212,0.14)] sm:rounded-[1.25rem]">
 
@@ -104,7 +103,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false }) {
           </div>
 
           {/* Interview Room Mockup */}
-          <div className="flex flex-col h-[476px] sm:h-[532px] lg:h-[632px] bg-[#f3f0f9]">
+          <div className={`flex flex-col bg-[#f3f0f9] ${compact ? "h-[380px] sm:h-[420px] lg:h-[480px]" : "h-[476px] sm:h-[532px] lg:h-[632px]"}`}>
 
             {/* Top bar */}
             <div className="flex shrink-0 items-center justify-between border-b border-violet-200/80 bg-white/85 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-sm">
@@ -137,7 +136,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false }) {
             </div>
 
             {/* Main video panels */}
-            <div className="grid min-h-0 flex-1 gap-2 px-3 pb-2 grid-cols-2 grid-rows-[minmax(0,1fr)_4.5rem]">
+            <div className={`grid min-h-0 flex-1 gap-2 px-3 pb-2 grid-cols-2 ${compact ? "grid-rows-[minmax(0,1fr)_3.5rem]" : "grid-rows-[minmax(0,1fr)_4.5rem]"}`}>
 
               {/* HR panel */}
               <div className="relative overflow-hidden rounded-lg sm:rounded-xl border-2 border-violet-300/80 bg-[#0a0a18] shadow-[0_8px_32px_rgba(110,53,232,0.12)]">
@@ -180,7 +179,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false }) {
               </div>
 
               {/* Transcript panel (Inside Grid) */}
-              <div className="flex h-[4.5rem] max-h-[4.5rem] shrink-0 flex-col overflow-hidden rounded-md border bg-white transition-all col-span-2 border-violet-300">
+              <div className={`flex shrink-0 flex-col overflow-hidden rounded-md border bg-white transition-all col-span-2 border-violet-300 ${compact ? "h-[3.5rem] max-h-[3.5rem]" : "h-[4.5rem] max-h-[4.5rem]"}`}>
                 <div className="flex shrink-0 items-center justify-between border-b border-violet-100 bg-violet-50/60 px-2.5 py-1.5">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-[#b5e636]" />
@@ -210,7 +209,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false }) {
             </div>
 
             {/* Bottom Control Bar */}
-            <div className="flex shrink-0 items-center justify-center gap-4 border-t border-violet-200/80 bg-white/90 px-4 py-2.5 backdrop-blur-sm select-none">
+            <div className={`flex shrink-0 items-center justify-center gap-3 border-t border-violet-200/80 bg-white/90 px-4 backdrop-blur-sm select-none ${compact ? "py-2" : "gap-4 py-2.5"}`}>
               {/* Hang Up Button (Static) */}
               <div
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-violet-200 bg-[#f3f0ff]"
@@ -233,7 +232,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false }) {
 
               {/* Next Question Button (Static) */}
               <div
-                className="flex items-center gap-1.5 rounded-full bg-[#caff1a] px-6 py-2.5 text-sm font-black text-[#2e0066] shadow-[0_6px_20px_rgba(196,255,71,0.15)]"
+                className={`flex items-center gap-1.5 rounded-full bg-[#caff1a] text-[#2e0066] shadow-[0_6px_20px_rgba(196,255,71,0.15)] ${compact ? "px-4 py-2 text-xs font-bold" : "px-6 py-2.5 text-sm font-black"}`}
               >
                 <span>Câu tiếp theo</span>
                 <svg className="w-3.5 h-3.5 stroke-[3.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

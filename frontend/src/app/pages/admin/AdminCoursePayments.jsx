@@ -17,8 +17,10 @@ import {
   adminThCell,
 } from "../../components/admin/AdminPageShell.jsx";
 
+import { formatVnd } from "../../utils/shared/formatVnd.js";
+
 function vnd(n) {
-  return `${Number(n || 0).toLocaleString("vi-VN")} đ`;
+  return formatVnd(n);
 }
 
 function amountOf(row) {

@@ -1,15 +1,12 @@
 import { Star, Video, BadgeCheck } from "lucide-react";
 import { MENTOR_BOOKING_COPY } from "../../constants/brandVoice";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 const TZ_LOCATION = {
   "Asia/Ho_Chi_Minh": "TP. Hồ Chí Minh",
   "Asia/Hanoi": "Hà Nội",
   "Asia/Bangkok": "Bangkok",
 };
-
-function formatVnd(amount) {
-  return `${Number(amount || 0).toLocaleString("vi-VN")} VND`;
-}
 
 /** Mobile: giá gọn, tránh tràn sang cột giữa */
 function formatVndMobile(amount) {

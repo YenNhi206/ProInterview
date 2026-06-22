@@ -2,7 +2,7 @@
  * Map API booking (POST/GET /api/bookings) sang shape dùng chung với mock/local (Dashboard, SessionDetail, …).
  */
 
-import { resolveProInterviewMeetLink } from "../shared/meetingLinks.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 export function parseBookingNotes(notes = "") {
   const n = String(notes || "");
@@ -116,7 +116,7 @@ export function buildMentorIssueAlerts(bookings = []) {
         priority: 1,
         tone: "violet",
         headline: "Mentor đã hủy lịch hẹn",
-        detail: `Buổi ${row.date} lúc ${row.time} — chọn đổi lịch, đổi mentor hoặc hoàn 100%${refundAmt > 0 ? ` (${refundAmt.toLocaleString("vi-VN")}₫)` : ""}.`,
+        detail: `Buổi ${row.date} lúc ${row.time} — chọn đổi lịch, đổi mentor hoặc hoàn 100%${refundAmt > 0 ? ` (${formatVnd(refundAmt)})` : ""}.`,
         cta: "Chọn phương án ngay",
       });
       continue;
@@ -131,7 +131,7 @@ export function buildMentorIssueAlerts(bookings = []) {
         headline: "Mentor hủy gấp (dưới 24 giờ)",
         detail: hasStk
           ? "Đã có STK nhận hoàn — chờ admin chuyển khoản."
-          : `Hoàn ưu tiên 100%${refundAmt > 0 ? ` (${refundAmt.toLocaleString("vi-VN")}₫)` : ""} — vui lòng điền tài khoản nhận hoàn.`,
+          : `Hoàn ưu tiên 100%${refundAmt > 0 ? ` (${formatVnd(refundAmt)})` : ""} — vui lòng điền tài khoản nhận hoàn.`,
         cta: hasStk ? "Xem buổi hẹn" : "Điền STK nhận hoàn",
       });
       continue;
@@ -146,7 +146,7 @@ export function buildMentorIssueAlerts(bookings = []) {
         headline: "Mentor không tham gia (no-show)",
         detail: hasStk
           ? "Buổi đã ghi no-show — chờ admin hoàn tiền CK."
-          : `Hoàn ưu tiên 100%${refundAmt > 0 ? ` (${refundAmt.toLocaleString("vi-VN")}₫)` : ""} — điền STK trên trang buổi hẹn.`,
+          : `Hoàn ưu tiên 100%${refundAmt > 0 ? ` (${formatVnd(refundAmt)})` : ""} — điền STK trên trang buổi hẹn.`,
         cta: hasStk ? "Xem buổi hẹn" : "Điền STK nhận hoàn",
       });
       continue;

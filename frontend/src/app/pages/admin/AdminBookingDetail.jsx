@@ -20,6 +20,7 @@ import { formatTransferConfirmedAt } from "../../utils/admin/adminPaymentUi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { parseBookingNotes } from "../../utils/booking/bookingMappers.js";
 import { avatarSrc, resolveMediaUrl } from "../../utils/shared/mediaUrl.js";
+import { formatVnd as formatVndAmount } from "../../utils/shared/formatVnd.js";
 
 const SESSION_TYPE_VI = {
   mock_interview: "Phỏng vấn giả lập",
@@ -29,7 +30,7 @@ const SESSION_TYPE_VI = {
 };
 
 function vnd(amount) {
-  return `${Number(amount || 0).toLocaleString("vi-VN")} đ`;
+  return formatVndAmount(amount);
 }
 
 function formatWhen(date, timeSlot) {

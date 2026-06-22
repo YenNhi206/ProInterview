@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { ArrowRight, GraduationCap, Star, Users, BadgeCheck, PlayCircle } from "lucide-react";
 
 import { fetchCourses, mapApiCourseToCard } from "../../api/courseApi.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 export function CourseRecommendations({
   courses: propCourses,
@@ -149,12 +150,7 @@ export function CourseRecommendations({
             </div>
           </div>
           <span style={{ fontWeight: 700, color: "#B4F000" }}>
-            {course.price === 0
-              ? "Miễn phí"
-              : new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(course.price)}
+            {course.price === 0 ? "Miễn phí" : formatVnd(course.price)}
           </span>
         </div>
       </div>

@@ -38,6 +38,7 @@ import {
   resolveSessionTypePrice,
   sessionTypeLabel,
 } from "../../utils/booking/sessionTypeLabels.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 const SESSION_TYPE_ICONS = {
   mock_interview: VideoCamera,
@@ -421,7 +422,7 @@ export function Booking() {
             </p>
           </div>
           <div className="ml-auto flex-shrink-0 text-right">
-            <p className="text-lg font-black text-[#3d5200]">{mentor.price.toLocaleString("vi")}đ</p>
+            <p className="text-lg font-black text-[#3d5200]">{formatVnd(mentor.price)}</p>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">/ 60 phút</p>
           </div>
         </div>
@@ -872,7 +873,7 @@ export function Booking() {
                     </div>
                     <div className="flex justify-between border-t border-slate-200 pt-3">
                       <span className="font-bold text-slate-900">Tổng tiền</span>
-                      <span className="text-lg font-black text-[#3d5200]">{sessionPrice.toLocaleString("vi")}đ</span>
+                      <span className="text-lg font-black text-[#3d5200]">{formatVnd(sessionPrice)}</span>
                     </div>
                   </div>
                 </div>
@@ -910,7 +911,7 @@ export function Booking() {
                     : undefined
                 }
               >
-                Tiếp tục thanh toán, {sessionPrice.toLocaleString("vi")}đ
+                Tiếp tục thanh toán, {formatVnd(sessionPrice)}
                 <CaretRight className="h-4 w-4" />
               </button>
             </div>

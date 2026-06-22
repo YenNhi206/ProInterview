@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { AlertCircle as WarningCircle } from "lucide-react";
 import { AppSelect } from "../../components/ui/AppSelect";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 /**
  * Giao diện xử lý sau khi mentor hủy / no-show — học viên chọn phương án hoặc điền STK.
@@ -72,7 +73,7 @@ export function MentorCancelSessionPanel({
                   {refundAmt > 0 ? (
                     <>
                       {" "}
-                      (<strong>{refundAmt.toLocaleString("vi-VN")}₫</strong>)
+                      (<strong>{formatVnd(refundAmt)}</strong>)
                     </>
                   ) : null}
                   .
@@ -218,7 +219,7 @@ export function MentorCancelSessionPanel({
           </p>
           <p className="text-xs font-semibold text-violet-700">#{sessionData.orderNum}</p>
         </div>
-        <p className="text-lg font-black text-slate-900">{Number(sessionData.price || 0).toLocaleString("vi-VN")}₫</p>
+        <p className="text-lg font-black text-slate-900">{formatVnd(sessionData.price || 0)}</p>
       </div>
     </motion.div>
   );
@@ -246,7 +247,7 @@ function RefundForm({
       <p className="text-xs font-black uppercase tracking-wider text-slate-900">{title}</p>
       {refundAmount > 0 ? (
         <p className="text-sm text-slate-700">
-          Số hoàn dự kiến: <strong>{Math.round(refundAmount).toLocaleString("vi-VN")}₫</strong>
+          Số hoàn dự kiến: <strong>{formatVnd(Math.round(refundAmount))}</strong>
         </p>
       ) : null}
       <input

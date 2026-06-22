@@ -1,8 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { Heart, Mail, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "../brand/BrandLogo";
 import { FOOTER_TAGLINE } from "../../constants/brandVoice";
+import { HOME_SECTION_INNER } from "./customerShellLayout";
+
+const FOOTER_SHELL_DEFAULT = "mx-auto w-full max-w-7xl px-6";
 
 /* ── Social icon SVGs ── */
 function FacebookIcon({ className, style }) {
@@ -233,7 +236,7 @@ function FooterDark() {
 /* ══════════════════════════════════════════════════════════════
    LIGHT variant, cùng nền / chữ với trang home (#f3f0f9)
 ══════════════════════════════════════════════════════════════ */
-function FooterLight() {
+function FooterLight({ shellInner = FOOTER_SHELL_DEFAULT }) {
   const navigate = useNavigate();
   const [hoveredSocial, setHoveredSocial] = useState(null);
 
@@ -245,7 +248,7 @@ function FooterLight() {
         aria-hidden
       />
 
-      <div className="relative z-[1] mx-auto max-w-7xl px-6 py-16">
+      <div className={`relative z-[1] ${shellInner} py-16`}>
         <div className={FOOTER_MAIN_GRID}>
           <div className="sm:col-span-2 lg:col-span-1 flex flex-col items-center sm:items-start text-center sm:text-left">
             <div className="-mt-1 mb-1 flex items-center justify-center sm:justify-start gap-3">
@@ -323,7 +326,7 @@ function FooterLight() {
       </div>
 
       <div className="relative z-[1] border-t border-slate-200/90 bg-white/85">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-5 sm:flex-row">
+        <div className={`${shellInner} flex flex-col items-center justify-between gap-3 py-5 sm:flex-row`}>
           <p className="text-xs text-slate-500">
             © {new Date().getFullYear()} ProInterview. All rights reserved.
           </p>
@@ -345,5 +348,9 @@ function FooterLight() {
 
 /* ── Public export ── */
 export function Footer({ variant = "light" }) {
-  return variant === "dark" ? <FooterDark /> : <FooterLight />;
+  const location = useLocation();
+  const isHome = location.pathname === "/" || location.pathname === "";
+  const shellInner = isHome ? HOME_SECTION_INNER : FOOTER_SHELL_DEFAULT;
+
+  return variant === "dark" ? <FooterDark /> : <FooterLight shellInner={shellInner} />;
 }

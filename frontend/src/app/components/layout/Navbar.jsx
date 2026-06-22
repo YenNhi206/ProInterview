@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { TopNavShell } from "./TopNavShell";
+import { HOME_SHELL_MAX } from "./customerShellLayout";
 import { useNavbarNotifications } from "../../hooks/useNavbarNotifications.js";
 import {
   DropdownMenu,
@@ -192,7 +193,11 @@ function CustomerNavbar() {
 
   return (
     <>
-      <TopNavShell variant="light" alignTop={isHome}>
+      <TopNavShell
+        variant="light"
+        alignTop={isHome}
+        shellMax={isHome ? HOME_SHELL_MAX : undefined}
+      >
         <Link
           to="/"
           className="flex shrink-0 items-center leading-none"

@@ -28,6 +28,7 @@ import {
   FilterRadio,
   FilterSection,
 } from "../../components/shared/ExploreFilterSidebar";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 const LEVEL_OPTIONS = [
   { label: "Người mới", value: "Beginner" },
@@ -456,13 +457,7 @@ export function Courses() {
     if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [currentPage, totalPages]);
 
-  const formatPrice = (price) => {
-    if (price === 0) return "Miễn phí";
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
+  const formatPrice = (price) => formatVnd(price, { freeLabel: "Miễn phí" });
 
   return (
     <MentorPageShell bottomPad="pb-20">

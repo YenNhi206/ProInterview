@@ -32,10 +32,11 @@ import {
 import { BookingStatusPill, PaymentStatusPill } from "../../components/admin/AdminStatusPill.jsx";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { formatDurationMs, labelAction, labelRoute } from "../../utils/analytics/analyticsLabels.js";
 
 function vnd(n) {
-  return `${Number(n || 0).toLocaleString("vi-VN")} đ`;
+  return formatVnd(n);
 }
 
 const BOOKING_STATUS_LABELS = {

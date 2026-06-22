@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
-import { AppSelect } from "../../components/ui/AppSelect";
+import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 /** Cùng thứ tự ưu tiên với sidebar admin */
 const TILES = [
@@ -200,19 +200,19 @@ export function AdminDashboard() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <StatCard
             label={`Tổng thu - ${monthLabel}`}
-            value={loading ? "..." : `${Number(platformFinance?.totals?.grossCollected || 0).toLocaleString("vi-VN")}đ`}
+            value={loading ? "..." : formatVnd(platformFinance?.totals?.grossCollected || 0)}
             icon={Banknote}
             color="#4f46e5"
           />
           <StatCard
             label={`Chia mentor - ${monthLabel}`}
-            value={loading ? "..." : `${Number(platformFinance?.totals?.mentorNet || 0).toLocaleString("vi-VN")}đ`}
+            value={loading ? "..." : formatVnd(platformFinance?.totals?.mentorNet || 0)}
             icon={Users}
             color="#0f766e"
           />
           <StatCard
             label={`Lợi nhuận nền tảng - ${monthLabel}`}
-            value={loading ? "..." : `${Number(platformFinance?.totals?.platformRevenue || 0).toLocaleString("vi-VN")}đ`}
+            value={loading ? "..." : formatVnd(platformFinance?.totals?.platformRevenue || 0)}
             icon={Activity}
             color="#b45309"
           />
