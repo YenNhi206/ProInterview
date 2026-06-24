@@ -73,7 +73,8 @@ Mật khẩu mặc định tất cả: **`Dev123456`**
 MONGO_URI=mongodb://127.0.0.1:27017/prointerview
 JWT_SECRET=<chuỗi dài ngẫu nhiên>
 CORS_ORIGIN=http://localhost:5173
-JWT_EXPIRES_IN=7d
+JWT_ACCESS_EXPIRES_IN=15m   # tên cũ JWT_EXPIRES_IN vẫn được đọc làm fallback; mặc định code: 15m
+REFRESH_TOKEN_DAYS=30
 GOOGLE_CLIENT_ID=<từ GCP>
 ADMIN_INVITE_CODE=<optional>
 CV_ANALYZER_URL=https://your-cv-analyzer.example.com   # Python FastAPI URL (prod)
@@ -81,6 +82,13 @@ CV_ANALYZER_URL=https://your-cv-analyzer.example.com   # Python FastAPI URL (pro
 LLM_API_KEY=<your-key>
 LLM_BASE_URL=https://api.openai.com/v1   # hoặc DS2API / GLM / DeepSeek endpoint
 LLM_MODEL=gpt-4o-mini
+# AI avatar stack — xem "D-ID / ElevenLabs / Cloudinary — Avatar phỏng vấn" bên dưới
+ELEVENLABS_API_KEY=<sk_...>
+ELEVENLABS_VOICE_ID_MALE=<voice id>
+ELEVENLABS_VOICE_ID_FEMALE=<voice id>
+D_ID_API_KEY=<base64 key:>
+UPSTASH_REDIS_REST_URL=<https://...upstash.io>   # KHÔNG có dấu "" — xem gotcha Render bên dưới
+UPSTASH_REDIS_REST_TOKEN=<token>
 ```
 
 Xem `backend/.env.example` để biết đầy đủ biến.
@@ -131,16 +139,22 @@ Thực tế: auth, bookings, payments, plans, mentor dashboard, reviews, reports
 | `/api/cv` | `cv.js` + `cvMatch.js` | cv.js: CRUD/quota; cvMatch.js: proxy sang Python |
 | `/api/interviews` | `interviews.js` | |
 | `/api/upload` | `upload.js` | Cloudinary + fallback `/uploads` |
-| `/api/ai` | `aiProviders.js` | STT/TTS/emotion/avatar pregen |
+| `/api/ai` | `aiProviders.js` | STT/TTS/emotion/avatar pregen — xem chi tiết ở "D-ID / ElevenLabs" bên dưới |
 | `/api/mock` | `mockCourses.js` | Mock data cho dev/test |
+| `/api/achievements` | `achievements.js` | Badge/achievement user |
+| `/api/analytics` | `analytics.js` | Tracking event FE (`trackAction()`) |
 
 ### Services (`services/`)
 
-`authService`, `bookingsService`, `dashboardStatsService`, `mentorDashboardService`, `mentorMeService`, `mentorProfileService`, `mentorsService`, `paymentsService`, `plansService`, `reportsService`, `reviewsService`, `userRoleService`
+- **Domain chính:** `authService`, `bookingsService`, `dashboardStatsService`, `mentorDashboardService`, `mentorMeService`, `mentorProfileService`, `mentorsService`, `paymentsService`, `plansService`, `reportsService`, `reviewsService`, `userRoleService`
+- **Mentor analytics/payout:** `mentorCommissionService`, `mentorEarningsService`, `courseMentorInsightsService`, `courseStatsService`, `notificationDeliveryService`
+- **Payment ops:** `sepayWebhookService`, `transferPaymentExpiryService`, `normalizeTransferRefsService`
+- **AI / Avatar / Cost stack** (xem "D-ID / ElevenLabs / Cloudinary" bên dưới): `interviewQuestionService`, `competencyFramework`, `avatarService`, `videoPregenService`, `ttsService`, `sttService`, `emotionService`, `cacheService`, `langfuseService`, `costLedgerService`, `costCalculator`, `alertService`, `errorRateMonitor`
+- **Khác:** `analyticsService`, `emailService`, `jaasService`, `accessTokenBlacklist`
 
-### Models (`models/`) — 17 Mongoose schemas
+### Models (`models/`) — 21 Mongoose schemas
 
-`User`, `Mentor`, `Booking`, `Payment`, `Course`, `Enrollment`, `Review`, `Notification`, `CVAnalysis`, `InterviewSession`, `Report`, `Subscription`, `Activity`, `CourseQA`, `MentorPeerReview`, `PayoutRequest`, `index.js`
+`User`, `Mentor`, `Booking`, `Payment`, `Course`, `Enrollment`, `Review`, `Notification`, `CVAnalysis`, `InterviewSession`, `Report`, `Subscription`, `Activity`, `CourseQA`, `MentorPeerReview`, `PayoutRequest`, `MentorKnowledge`, `SecurityLog`, `SepayWebhookEvent`, `CostEvent`, `Achievement`, `UserEvent`, `index.js`
 
 Plan và quota được lưu trực tiếp trên **`User`** (field `plan`, `planExpiresAt`, `cvAnalysisUsed`, `interviewUsed`, v.v.).
 
@@ -162,8 +176,8 @@ Plan và quota được lưu trực tiếp trên **`User`** (field `plan`, `plan
 
 ### Auth & tokens
 
-- **Access JWT:** claim `tv` phải khớp `User.tokenVersion`. Hết hạn (mặc định 15m, hoặc `JWT_EXPIRES_IN`).
-- **Refresh token:** dạng `sessionObjectId:secret` (opaque), lưu hash trong `User.authSessions` (tối đa 10 phiên/user).
+- **Access JWT:** claim `tv` phải khớp `User.tokenVersion`. Hết hạn theo `JWT_ACCESS_EXPIRES_IN` (fallback `JWT_EXPIRES_IN` cũ), mặc định **15m**.
+- **Refresh token:** dạng `sessionObjectId:secret` (opaque), lưu hash trong `User.authSessions` (tối đa 10 phiên/user), sống `REFRESH_TOKEN_DAYS` (mặc định 30 ngày).
 - Logout → `tokenVersion++`, xóa toàn bộ refresh sessions.
 - Đổi mật khẩu → tương tự logout + trả token mới.
 
@@ -210,7 +224,10 @@ hooks/
   useDIDStream.js   D-ID streaming avatar
 
 utils/
-  api.js            apiUrl(), API_BASE_URL
+  api.js            apiUrl(), API_BAS
+  
+  
+  E_URL
   auth.js           JWT lưu/đọc localStorage
   authGate.js       Route guard
   bookingMappers.js
@@ -282,11 +299,17 @@ utils/
 - Chỉ khi có `VITE_SUPABASE_PROJECT_ID` — `CVAnalysis.jsx` vẫn có nhánh Edge legacy
 - **Production khuyến nghị:** không set Supabase env; chỉ Express + Python
 
-### D-ID / AI providers — Avatar phỏng vấn
+### D-ID / ElevenLabs / Cloudinary — Avatar phỏng vấn
 
-- FE: `useDIDStream.js` → `https://api.d-id.com` (Basic auth) khi gọi trực tiếp
-- BE: `/api/ai/*` — pregen TTS, presenters, usage (`aiProviders.js`)
-- Interview: session CRUD `/api/interviews/*` + `generate-questions`, `analyze-face`
+**Pipeline chính (pre-generated video, không phải live stream):** ElevenLabs TTS (`ttsService.js`, giọng theo gender qua `ELEVENLABS_VOICE_ID_MALE/FEMALE`) → upload audio lên Cloudinary → D-ID `/talks` lipsync với audio đó (`avatarService.js generateVideoForQuestion`) → poll tới `status=done` → trả `result_url`. Nếu ElevenLabs chưa cấu hình, D-ID tự dùng Azure TTS (text script, không qua ElevenLabs).
+
+- **Baseline (3 câu free, cố định text):** `videoPregenService.pregenerateSync` với `persistVideo: true` — mirror `result_url` về Cloudinary (`prointerview/avatar-videos/`) rồi cache **vĩnh viễn** trong Redis. Cache key dùng chung toàn hệ thống (không theo user) vì text cố định.
+- **Follow-up (2 câu Pro, cá nhân hóa):** `POST /api/ai/interview/pregenerate` — không `persistVideo`, không cache permanent.
+- ⚠️ **Gotcha đã vá (xem `avatarService.js`):** `result_url` của D-ID là presigned S3 URL, tự hết hạn theo `X-Amz-Expires` (~24h). Chỉ link đã mirror sang Cloudinary mới được cache TTL dài (180 ngày). Nếu bước mirror lỗi, link D-ID gốc chỉ cache TTL ngắn (`RAW_DID_URL_FALLBACK_TTL` = 1h) để lần gọi sau tự retry — KHÔNG bao giờ cache link tự-hết-hạn với TTL dài, vì FE sẽ load video chết (403 từ S3) sau khi hết hạn.
+- **Circuit breaker:** `avatarService.js` mở sau 3 lỗi D-ID liên tiếp (`isCircuitOpen()`), tự reset sau 5 phút — `pregenerateVideos` luôn probe câu đầu trước khi chạy song song các câu còn lại, để fail-fast không tốn credit nếu D-ID đang down.
+- **Live WebRTC fallback** (ít dùng): FE `useDIDStream.js` → `https://api.d-id.com` (Basic auth) trực tiếp — chỉ kích hoạt khi không có pregen video VÀ có `VITE_DID_API_KEY` ở FE; nếu không có cả hai, room rơi về Web Speech API (browser TTS, KHÔNG phải ElevenLabs) với ảnh avatar tĩnh (không lipsync).
+- BE status tổng hợp: `GET /api/ai/config` (provider nào đang enabled, circuit breaker, redis mode).
+- Interview flow: `POST /api/interviews/sessions` (tạo + baseline questions) → `POST /api/interviews/sessions/:id/generate-followup-questions` (2 câu cá nhân hóa giữa buổi, chỉ Pro — xem quyết định #3 trong "V5 plan" bên dưới) → `analyze-face`. `POST /api/interviews/generate-questions` còn route nhưng KHÔNG còn được FE gọi (rollback path cũ, giữ lại chưa xoá).
 
 ### Google Identity Services
 
@@ -351,7 +374,7 @@ Phase 1–4 + **Phase 5 (mở rộng)** đã có route trong Express (100+ endpo
 | Session detail (`/session/:id`) | 🔧 chủ yếu API; một số UI demo |
 | CV Analysis | 🔧 phân tích: Express `/api/cv/analyze*`; lịch sử: `cvApi.js`; Supabase chỉ khi có env |
 | Analysis history | ✅ `/api/cv/analyses` |
-| Interview (AI avatar) | 🔧 session + `/api/ai/*`; D-ID stream |
+| Interview (AI avatar) | ✅ 3 baseline (free) + 2 follow-up cá nhân hóa (Pro) qua `/api/interviews/*`; avatar qua D-ID pregen video (ElevenLabs audio), TTS browser khi không có pregen |
 | Courses | ✅ list/detail/enrollment API |
 | Mentor dashboard/schedule/finance | ✅ `/api/mentor/*` |
 | Mentor meeting room | 🔧 một phần state local |
@@ -386,7 +409,9 @@ healthCheckPath: /api/health
 region: singapore
 ```
 
-Env vars cần set trên Render: `NODE_ENV=production`, `MONGO_URI`, `JWT_SECRET`, `CORS_ORIGIN`, `GOOGLE_CLIENT_ID`, `CV_ANALYZER_URL`.
+Env vars cần set trên Render: `NODE_ENV=production`, `MONGO_URI`, `JWT_SECRET`, `CORS_ORIGIN`, `GOOGLE_CLIENT_ID`, `CV_ANALYZER_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `D_ID_API_KEY`, `ELEVENLABS_API_KEY` + voice IDs.
+
+⚠️ Nhập giá trị **không kèm dấu ngoặc kép** dù `.env` local có viết `KEY="value"` — Render lưu nguyên văn, không tự strip quote như `dotenv` (xem gotcha chi tiết ở "V5 plan" → quyết định #4).
 
 ### Frontend (Vercel)
 
@@ -403,14 +428,15 @@ Có `Procfile` + `runtime.txt` — deploy được lên Heroku/Render. Sau deplo
 
 ---
 
-## Quyết định kiến trúc đang triển khai (V5 plan — 2026-06-21)
+## Quyết định kiến trúc V5 plan (2026-06-21)
 
 Plan tối ưu hóa 8 sprint / 16 tuần, 4 quyết định đã chốt (chi tiết: memory `project_v5_roadmap`):
 
 1. **Trial flow có scoring nhẹ** — 3 câu baseline ở free trial hiển thị điểm + nhận xét ngắn (không phải feedback đầy đủ như session thật).
 2. **Bank transfer cho MVP launch** — không tích hợp VNPay/MoMo/Stripe trong giai đoạn này. Flow chuyển khoản + admin xác nhận + auto-confirm qua SePay webhook (`sepayWebhookService.js`) đã có sẵn cho booking/enrollment/subscription — khi thêm gói mới (câu hỏi/phân tích sâu), tái dùng rail này, không build lại từ đầu.
-3. **Refactor sinh câu hỏi: 5 câu liền → 3 baseline cố định (free) + 2 personalized (paid)** — baseline tĩnh tại `backend/src/config/baselineQuestions.js`; phần personalized vẫn qua `interviewQuestionService.js` nhưng chỉ sinh sau khi có CV/JD.
+3. ✅ **Đã merge (PR #109, `main`)** — Refactor sinh câu hỏi: 5 câu liền → 3 baseline cố định (free, `backend/src/config/baselineQuestions.js`) + 2 personalized sinh GIỮA buổi qua `POST /api/interviews/sessions/:id/generate-followup-questions` (chỉ Pro, dùng CV/JD + câu trả lời thật của 3 câu baseline làm context — xem `generateFollowUpQuestions` trong `interviewsController.js`). Route `generate-questions` cũ vẫn còn nhưng không còn được FE gọi.
 4. **Cache/observability fail-fast, không trì hoãn rủi ro vận hành** — Redis bắt buộc ở production (`cacheService.js` throw khi Redis lỗi, không fallback im lặng sang Map, server fail-fast lúc start nếu thiếu cấu hình); Sentry + Slack alert (cost spike, error rate, baseline render bất thường) tích hợp từ Sprint 1 (`config/sentry.js`, `services/alertService.js`, `services/costLedgerService.js`).
+   - ⚠️ **Gotcha Render đã gặp thực tế:** `.env` local dùng cú pháp `KEY="value"` (dotenv tự strip dấu `"`), nhưng Render dashboard lưu **nguyên văn** giá trị paste vào — nếu copy cả dấu `"` từ `.env` dán vào ô Value trên Render, biến sẽ chứa luôn dấu `"` (vd: `UPSTASH_REDIS_REST_URL` thành `"https://...upstash.io"` với dấu ngoặc literal) → `fetch()` lỗi `Failed to parse URL` → mọi request Redis fail-fast → toàn bộ avatar pregen trả `null` (không lipsync, không voice). Khi nhập env var nhạy cảm dạng URL/token lên Render, gõ/paste KHÔNG kèm dấu ngoặc kép.
 
 ## Quy tắc phát triển
 
