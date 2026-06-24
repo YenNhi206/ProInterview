@@ -321,7 +321,7 @@ function validateGeneratedQuestions(questions) {
 const QUESTION_GEN_STATIC_PROMPT = `Bạn là chuyên gia phỏng vấn tuyển dụng kỹ thuật người Việt với 15 năm kinh nghiệm, được đào tạo theo chuẩn SHRM (Society for Human Resource Management) và DDI (Development Dimensions International) Targeted Selection®.
 
 ## NHIỆM VỤ CHÍNH XÁC
-Phân tích kỹ CV và JD được cung cấp, sau đó sinh đúng 5 câu hỏi phỏng vấn cá nhân hóa — mỗi câu PHẢI reference trực tiếp đến nội dung trong CV hoặc yêu cầu trong JD. Danh sách competency mục tiêu, ví dụ tham khảo chất lượng cao, và yêu cầu phân phối 5 câu sẽ được cung cấp ở phần tiếp theo của system prompt.
+Phân tích kỹ CV và JD được cung cấp, sau đó sinh các câu hỏi phỏng vấn cá nhân hóa theo đúng số lượng được chỉ định ở phần dưới — mỗi câu PHẢI reference trực tiếp đến nội dung trong CV hoặc yêu cầu trong JD. Danh sách competency mục tiêu, ví dụ tham khảo chất lượng cao, số lượng câu hỏi cần sinh, và yêu cầu phân phối sẽ được cung cấp ở phần tiếp theo của system prompt.
 
 ## QUY TẮC CHẤT LƯỢNG BẮT BUỘC
 1. **Cá nhân hóa tuyệt đối**: Mỗi câu PHẢI gọi tên cụ thể project, công nghệ, hoặc trách nhiệm trong CV. KHÔNG có câu nào có thể hỏi cho bất kỳ ứng viên nào khác.
@@ -377,8 +377,14 @@ Trả về JSON hợp lệ (không markdown, không giải thích thêm):
 /**
  * Phần system prompt thay đổi theo request — KHÔNG cache.
  * Đặt SAU static prompt để static prompt luôn là prefix giống hệt nhau giữa các lần gọi.
+ *
+ * @param {string[]} competencyIds
+ * @param {string[]} [fewShotExamples]
+ * @param {number} [questionCount=5]
+ * @param {string} [priorQAPromptBlock] - Câu hỏi baseline + câu trả lời thật của ứng viên
+ *   (dùng cho follow-up — questionCount=2). Không đưa vào static prompt vì nội dung riêng từng session.
  */
-function buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples = []) {
+function buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples = [], questionCount = 5, priorQAPromptBlock = "") {
   const competencyBlock = buildCompetencyPromptBlock(competencyIds);
   const distributionGuide = buildDistributionGuide(competencyIds);
 
@@ -386,18 +392,32 @@ function buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples = []) {
     ? `\n## Ví dụ câu hỏi chất lượng cao từ phỏng vấn thực tế (cùng role/competency — học từ dữ liệu tích lũy)\n${fewShotExamples.map(e => `  - ${e}`).join("\n")}\nĐây là ngưỡng chất lượng tối thiểu. Câu hỏi của bạn phải có độ sâu TƯƠNG ĐƯƠNG hoặc HƠN.\n`
     : "";
 
+  const priorQABlock = priorQAPromptBlock
+    ? `\n## CÂU HỎI MỞ ĐẦU + CÂU TRẢ LỜI THỰC TẾ CỦA ỨNG VIÊN\n${priorQAPromptBlock}\n`
+    : "";
+
+  const distributionRule = questionCount <= 2
+    ? `Đây là ${questionCount} câu hỏi follow-up — PHẢI dựa trên câu trả lời thực tế của ứng viên ở phần "CÂU HỎI MỞ ĐẦU + CÂU TRẢ LỜI THỰC TẾ" trên (không lặp lại nội dung đã hỏi). Ít nhất 1 câu phải trực tiếp tham chiếu một chi tiết cụ thể ứng viên vừa nói (tên dự án, số liệu, quyết định họ vừa kể) và đào sâu hơn (deep-dive) vào điều đó, kết hợp với CV/JD.`
+    : `Đảm bảo: ít nhất 2 câu behavior (STAR), ít nhất 1 câu theory chuyên sâu, ít nhất 1 câu project từ dự án CÓ THẬT trong CV.`;
+
   return `## COMPETENCY FRAMEWORK ĐÃ PHÁT HIỆN TỪ CV/JD
 Câu hỏi PHẢI nhắm vào các competency sau (được xác định bằng SHRM & DDI từ thông tin thực tế của ứng viên):
 
 ${competencyBlock}
-${fewShotBlock}
-## PHÂN PHỐI BẮT BUỘC (5 câu)
+${fewShotBlock}${priorQABlock}
+## PHÂN PHỐI BẮT BUỘC (${questionCount} câu)
 ${distributionGuide}
-Đảm bảo: ít nhất 2 câu behavior (STAR), ít nhất 1 câu theory chuyên sâu, ít nhất 1 câu project từ dự án CÓ THẬT trong CV.`;
+${distributionRule}`;
 }
 
 // ── XML-delimited user prompt (delimiter defense) ────────────────────────────
-function buildSecureUserPrompt(cvText, jdText) {
+/**
+ * @param {string} cvText
+ * @param {string} jdText
+ * @param {number} [questionCount=5]
+ * @param {string} [priorQAXmlBlock] - `<prior_answers>` block đã build sẵn (follow-up case)
+ */
+function buildSecureUserPrompt(cvText, jdText, questionCount = 5, priorQAXmlBlock = "") {
   // Variety seed: đảm bảo mỗi session sinh câu hỏi khác nhau dù cùng CV
   const varietyHints = [
     "Tập trung vào các tình huống xử lý áp lực và deadline.",
@@ -419,18 +439,22 @@ function buildSecureUserPrompt(cvText, jdText) {
     jdText,
     "</job_description>",
     "",
+    ...(priorQAXmlBlock ? [priorQAXmlBlock, ""] : []),
     `Góc độ ưu tiên phiên này: ${hint}`,
-    "Sinh 5 câu hỏi STAR cá nhân hóa, đa dạng, không trùng lặp với các buổi phỏng vấn thông thường. Trả về JSON đúng schema.",
+    `Sinh ${questionCount} câu hỏi STAR cá nhân hóa, đa dạng, không trùng lặp với các buổi phỏng vấn thông thường. Trả về JSON đúng schema.`,
   ].join("\n");
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────────
 
 /**
- * Sinh 5 câu hỏi từ CV + JD, grounded in SHRM/DDI framework.
+ * Sinh N câu hỏi từ CV + JD, grounded in SHRM/DDI framework.
  * Trả về { questions, inferredRole, inferredSeniority, competencyProfile }.
  *
  * @param {string[]} fewShotExamples - Câu hỏi tốt từ sessions cùng role/field (MongoDB accumulation)
+ * @param {number} [questionCount=5] - Số câu cần sinh (2 = follow-up mid-interview)
+ * @param {{question: string, transcript: string}[]} [priorQA] - Câu hỏi baseline + câu trả lời thật
+ *   của ứng viên (chỉ dùng khi questionCount nhỏ, để đào sâu dựa trên ngữ cảnh thực tế)
  */
 export async function generateQuestionsFromText({
   cvText = "",
@@ -441,6 +465,8 @@ export async function generateQuestionsFromText({
   fewShotExamples = [],
   sessionId = null,
   userId = null,
+  questionCount = 5,
+  priorQA = [],
 }) {
   const { apiKey, anthropicKey } = cfg();
   if (!apiKey && !anthropicKey) {
@@ -454,7 +480,7 @@ export async function generateQuestionsFromText({
     name:      "generate_questions",
     userId,
     sessionId,
-    metadata:  { position, field, cvTextLen: cvText.length, jdTextLen: jdText.length },
+    metadata:  { position, field, cvTextLen: cvText.length, jdTextLen: jdText.length, questionCount, isFollowUp: priorQA.length > 0 },
     tags:      ["question_generation", "personalized"],
   });
 
@@ -462,19 +488,29 @@ export async function generateQuestionsFromText({
   const { text: cleanCV, injectionAttempts: cvInjections } = sanitizeUserInput(cvText, 6000);
   const { text: cleanJD, injectionAttempts: jdInjections } = sanitizeUserInput(jdText, 4000);
 
-  const totalInjections = cvInjections + jdInjections;
+  // priorQA transcripts are also user-controlled free text fed into the LLM prompt — same
+  // injection risk class as cvText/jdText, must go through the same sanitization + counting.
+  let priorAnswerInjections = 0;
+  const cleanPriorQA = priorQA.map(({ question, transcript }) => {
+    const { text: cleanTranscript, injectionAttempts } = sanitizeUserInput(transcript ?? "", 2000);
+    priorAnswerInjections += injectionAttempts;
+    return { question, transcript: cleanTranscript };
+  });
+
+  const totalInjections = cvInjections + jdInjections + priorAnswerInjections;
   if (totalInjections > 0) {
     logger.warn("prompt_injection_attempt", {
       sessionId, userId,
       cvAttempts: cvInjections,
       jdAttempts: jdInjections,
+      priorAnswerAttempts: priorAnswerInjections,
     });
     // Fire-and-forget — a logging failure must never block question generation
     SecurityLog.create({
       userId,
       sessionId,
       type: "prompt_injection_attempt",
-      details: { cvAttempts: cvInjections, jdAttempts: jdInjections },
+      details: { cvAttempts: cvInjections, jdAttempts: jdInjections, priorAnswerAttempts: priorAnswerInjections },
     }).catch(err => logger.error("security_log_write_failed", { error: err.message }));
   }
 
@@ -483,20 +519,28 @@ export async function generateQuestionsFromText({
     position, field,
     cleanCV.slice(0, 4000),
     cleanJD.slice(0, 4000),
-    4,
+    questionCount,
   );
+
+  // Build prior-Q&A blocks (follow-up case only) — dynamic prompt (non-cached) + XML user block
+  const priorQAPromptBlock = cleanPriorQA.length > 0
+    ? cleanPriorQA.map((qa, i) => `Câu ${i + 1}: ${qa.question}\nTrả lời: ${qa.transcript || "(không trả lời)"}`).join("\n\n")
+    : "";
+  const priorQAXmlBlock = cleanPriorQA.length > 0
+    ? ["<prior_answers>", priorQAPromptBlock, "</prior_answers>"].join("\n")
+    : "";
 
   // Step 2: Build system prompt — static phần khung (cacheable) + dynamic phần competency/few-shot
   const systemPrompt = {
     static:  QUESTION_GEN_STATIC_PROMPT,
-    dynamic: buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples),
+    dynamic: buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples, questionCount, priorQAPromptBlock),
   };
 
   const ctxCV = cleanCV;
   const ctxJD = cleanJD ||
     `Vị trí: ${position || "chưa xác định"}. Lĩnh vực: ${field || "chưa xác định"}. Level: ${level || "chưa xác định"}.`;
 
-  const userMsg = buildSecureUserPrompt(ctxCV, ctxJD);
+  const userMsg = buildSecureUserPrompt(ctxCV, ctxJD, questionCount, priorQAXmlBlock);
 
   // Step 3: LLM call với SHRM/DDI grounded prompt
   let rawContent = await callLLM(systemPrompt, userMsg, { traceId, traceName: "question_generation" });
@@ -511,7 +555,7 @@ export async function generateQuestionsFromText({
   }
 
   // Step 3b: Validate output structure + screen for suspicious content
-  let validation = validateQuestionSet(parsed);
+  let validation = validateQuestionSet(parsed, questionCount);
   if (!validation.valid) {
     logger.error("llm_output_invalid", { reason: validation.reason, sessionId, userId });
 
@@ -535,7 +579,7 @@ export async function generateQuestionsFromText({
       parsed = JSON.parse(extractJson(retryRaw));
     }
 
-    validation = validateQuestionSet(parsed);
+    validation = validateQuestionSet(parsed, questionCount);
     if (!validation.valid) {
       logger.error("llm_output_still_invalid", { reason: validation.reason, sessionId, userId });
       finalizeTrace(traceId, "error", validation.reason);
@@ -544,7 +588,7 @@ export async function generateQuestionsFromText({
   }
 
   // Step 4: Normalize sang camelCase + enrich với SHRM rubric
-  const questions = parsed.questions.slice(0, 5).map((q, i) => {
+  const questions = parsed.questions.slice(0, questionCount).map((q, i) => {
     const libEntry = COMPETENCY_LIBRARY[q.competency_id] ?? null;
     return {
       id: q.id || `q${i + 1}`,

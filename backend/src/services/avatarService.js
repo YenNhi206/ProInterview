@@ -7,9 +7,10 @@
  *   2. ElevenLabs TTS → audio buffer (qua ttsService.js)
  *   3. Upload audio buffer → Cloudinary → public audio URL
  *   4. POST /talks → D-ID job ID
- *   5. Poll GET /talks/:id until status=done
+ *   5. Poll GET /talks/:id until status=done — result_url là presigned S3 URL, tự hết hạn ~24h
  *   6. Nếu opts.persistVideo: mirror result_url → Cloudinary, cache vĩnh viễn (không TTL)
- *      Ngược lại: cache result_url (D-ID CDN) → Redis (180 ngày)
+ *      Ngược lại (hoặc mirror lỗi): cache result_url gốc với TTL ngắn (RAW_DID_URL_FALLBACK_TTL)
+ *      — không bao giờ cache link tự-hết-hạn này dài hạn.
  *
  * Env vars:
  *   D_ID_API_KEY=<raw key>          — format: Basic base64(key:)
@@ -35,8 +36,10 @@ const DEFAULT_AVATAR_MALE_URL =
 /** @deprecated use DEFAULT_AVATAR_FEMALE_URL */
 const DEFAULT_AVATAR_URL = DEFAULT_AVATAR_FEMALE_URL;
 
-// Cache TTL 180 ngày (video URLs D-ID CDN không expire sớm)
-const VIDEO_CACHE_TTL = 180 * 24 * 3600;
+// D-ID result_url là presigned S3 URL, tự hết hạn sau ~24h (X-Amz-Expires=86400). TTL ngắn (1h)
+// dùng cho mọi trường hợp cache link D-ID gốc (chưa/không mirror sang Cloudinary), để lần gọi
+// sau tự render lại/retry mirror thay vì phục vụ link đã hỏng trong thời gian dài.
+const RAW_DID_URL_FALLBACK_TTL = 3600;
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
@@ -369,11 +372,14 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
 
   // 4. Poll until done — pass signal so polling stops on client disconnect
   let videoUrl = await pollDIDTalk(talkId, 120_000, signal);
-  let cacheTtl = VIDEO_CACHE_TTL;
+  // result_url là presigned S3 URL của D-ID, tự hết hạn ~24h (X-Amz-Expires) — không bao giờ
+  // cache nó với TTL dài (180 ngày). Chỉ link đã mirror sang Cloudinary mới cache vĩnh viễn.
+  let cacheTtl = RAW_DID_URL_FALLBACK_TTL;
 
   // 5. Mirror sang Cloudinary nếu được yêu cầu (vd: baseline questions — cache dùng chung
   //    toàn hệ thống, không phụ thuộc D-ID giữ file CDN lâu dài). Cache vĩnh viễn vì mình
-  //    kiểm soát file. Nếu mirror lỗi → giữ URL D-ID gốc + TTL như cũ (degrade gracefully).
+  //    kiểm soát file. Nếu mirror lỗi → giữ URL D-ID gốc với TTL ngắn ở trên, để lần gọi sau
+  //    tự retry mirror thay vì phục vụ link đã hỏng.
   if (opts.persistVideo) {
     const mirrored = await mirrorVideoToCloudinary(videoUrl);
     if (mirrored) {
