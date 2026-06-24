@@ -65,6 +65,31 @@ export async function generateInterviewQuestions({ cvText = "", jdText = "", pos
 }
 
 /**
+ * Sinh 2 câu hỏi cá nhân hóa GIỮA buổi phỏng vấn — dựa trên CV/JD + câu trả lời thật của
+ * ứng viên cho 3 câu baseline. Chỉ Pro user gọi tới (free user dừng ở 3 câu baseline).
+ * @param {string} sessionId
+ * @param {{ cvText?, jdText?, position?, field?, level?, baselineAnswers: {questionIndex:number, transcript:string}[] }} params
+ * @returns {{ success, questions, error? }}
+ */
+export async function generateFollowUpQuestions(sessionId, { cvText = "", jdText = "", position = "", field = "", level = "", baselineAnswers = [] } = {}) {
+  if (!hasAuthCredentials() || !sessionId) return { success: false, error: "Thiếu phiên." };
+  try {
+    const res = await authFetch(`/api/interviews/sessions/${encodeURIComponent(sessionId)}/generate-followup-questions`, {
+      method: "POST",
+      headers: { ...jsonHeaders },
+      body: JSON.stringify({ cvText, jdText, position, field, level, baselineAnswers }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || !body.success) {
+      return { success: false, error: body.error || `Lỗi ${res.status}` };
+    }
+    return { success: true, questions: body.questions ?? [] };
+  } catch {
+    return { success: false, error: "Không kết nối được backend." };
+  }
+}
+
+/**
  * Trích xuất text thuần từ file PDF CV qua Python service.
  * @param {File} file - File object từ input[type=file]
  * @returns {{ success, text, pageCount }}

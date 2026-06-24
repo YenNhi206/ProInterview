@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useRef,
   useCallback,
+  useMemo,
   forwardRef,
 } from "react";
 import { useNavigate, useLocation } from "react-router";
@@ -26,6 +27,8 @@ import {
   saveAnswer,
   completeInterviewSession,
   analyzeFaceSnapshot,
+  generateFollowUpQuestions,
+  pregenerateInterviewVideos,
 } from "../../api/interviewsApi.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
 import { useDIDStream } from "../../hooks/useDIDStream";
@@ -519,22 +522,49 @@ export default function InterviewRoom() {
     ?? sessionStorage.getItem("prointerview_sessionId")
     ?? null;
 
-  const QUESTIONS = apiQuestions?.length
-    ? apiQuestions.map((q) => (typeof q === "string" ? q : q.question))
-    : [];
-  const QUESTION_OBJECTS = apiQuestions?.length ? apiQuestions : null;
-
   // Pre-generated video URLs từ D-ID Express API (truyền từ Interview.jsx)
   // Fallback về sessionStorage để giữ URLs khi user refresh trang trong phòng phỏng vấn.
-  const videoUrls = location.state?.videoUrls ?? (() => {
+  const baseVideoUrls = location.state?.videoUrls ?? (() => {
     try { return JSON.parse(sessionStorage.getItem("prointerview_video_urls") ?? "null"); }
     catch { return null; }
   })();
-  const hasPregenVideos = Array.isArray(videoUrls) && videoUrls.some(Boolean);
 
   // Free trial (anonymous, không CV/login) — 3 câu baseline, không lưu DB, kết thúc ở /interview/trial/done
   const trialMode = location.state?.trialMode === true
     || sessionStorage.getItem("prointerview_trial_mode") === "true";
+
+  /* ── Câu hỏi/video "lớn lên" giữa buổi: baseline (biết trước, ≤3 câu) + follow-up cá nhân hóa
+     (sinh sau khi trả lời xong baseline, dựa trên CV/JD + câu trả lời thật — xem
+     triggerFollowUpGeneration). trialMode và free user không bao giờ append gì. ── */
+  const [baseQuestionObjects]              = useState(apiQuestions?.length ? apiQuestions : []);
+  const [followUpQuestionObjects, setFollowUpQuestionObjects] = useState([]);
+  const [followUpVideoUrls,       setFollowUpVideoUrls]       = useState([]);
+
+  const QUESTION_OBJECTS = useMemo(
+    () => (baseQuestionObjects.length ? [...baseQuestionObjects, ...followUpQuestionObjects] : null),
+    [baseQuestionObjects, followUpQuestionObjects],
+  );
+  const QUESTIONS = useMemo(
+    () => (QUESTION_OBJECTS ?? []).map((q) => (typeof q === "string" ? q : q.question)),
+    [QUESTION_OBJECTS],
+  );
+  const videoUrls = useMemo(
+    () => [...(baseVideoUrls ?? []), ...followUpVideoUrls],
+    [followUpVideoUrls], // eslint-disable-line react-hooks/exhaustive-deps -- baseVideoUrls cố định sau mount
+  );
+  const hasPregenVideos = Array.isArray(videoUrls) && videoUrls.some(Boolean);
+
+  // Pro user, session mới có baseline (≤3 câu) lúc mount → còn 2 câu cá nhân hóa cần sinh giữa
+  // buổi. Free user/trial/session cũ đã có sẵn ≥4 câu (trước khi refactor này) đều bỏ qua.
+  const [personalizedPending, setPersonalizedPending] = useState(
+    () => isPro && !trialMode && Boolean(resolvedSessionId) && (apiQuestions?.length ?? 0) <= 3,
+  );
+  const followUpInFlightRef = useRef(false);
+  const [generatingFollowUp, setGeneratingFollowUp] = useState(false);
+
+  // Lobby/ready screen: trial luôn hiện đúng số câu thật (3, cố định). Flow chính luôn hiện "5"
+  // ngay cả khi 2 câu follow-up chưa sinh xong — tránh hiểu nhầm "chỉ có 3 câu" cho Pro user.
+  const displayQuestionCount = trialMode ? QUESTIONS.length : 5;
 
   /* ── UI state ─────────────────────────────────────────── */
   const [phase,             setPhase]             = useState("ready");
@@ -618,6 +648,12 @@ export default function InterviewRoom() {
     if (location.state?.trialMode) {
       sessionStorage.setItem("prointerview_trial_mode", "true");
     }
+    // Cần cho triggerFollowUpGeneration giữa buổi — sống sót qua refresh trang trong phòng.
+    if (location.state?.cvText)   sessionStorage.setItem("prointerview_cv_text", location.state.cvText);
+    if (location.state?.jdText)   sessionStorage.setItem("prointerview_jd_text", location.state.jdText);
+    if (location.state?.position) sessionStorage.setItem("prointerview_position", location.state.position);
+    if (location.state?.field)    sessionStorage.setItem("prointerview_field", location.state.field);
+    if (location.state?.level)    sessionStorage.setItem("prointerview_level", location.state.level);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── startListening, dùng chung cho TTS callback và HRVideoPanel fallback ── */
@@ -1049,6 +1085,61 @@ export default function InterviewRoom() {
     navigate("/interview/feedback", { state: { sessionId } });
   };
 
+  /* ── Sinh 2 câu hỏi cá nhân hóa giữa buổi (Pro user, sau khi trả lời xong baseline) ──
+     Dùng CV/JD + câu trả lời thật của ứng viên cho 3 câu baseline làm context. Thất bại/timeout
+     → graceful degradation: kết thúc phỏng vấn ở baseline, không để user bị treo. ── */
+  const triggerFollowUpGeneration = async (latestTranscripts) => {
+    if (followUpInFlightRef.current) return;
+    followUpInFlightRef.current = true;
+    setGeneratingFollowUp(true);
+
+    try {
+      const cvText   = location.state?.cvText   ?? sessionStorage.getItem("prointerview_cv_text")   ?? "";
+      const jdText   = location.state?.jdText   ?? sessionStorage.getItem("prointerview_jd_text")   ?? "";
+      const position = location.state?.position ?? sessionStorage.getItem("prointerview_position") ?? "";
+      const field    = location.state?.field    ?? sessionStorage.getItem("prointerview_field")    ?? "";
+      const level    = location.state?.level    ?? sessionStorage.getItem("prointerview_level")    ?? "";
+
+      const baselineAnswers = latestTranscripts.slice(0, baseQuestionObjects.length).map((t, i) => ({
+        questionIndex: i,
+        transcript:    t ?? "",
+      }));
+
+      const qRes = await generateFollowUpQuestions(resolvedSessionId, {
+        cvText, jdText, position, field, level, baselineAnswers,
+      });
+      if (!qRes.success || !qRes.questions?.length) {
+        throw new Error(qRes.error || "no_questions");
+      }
+
+      let newVideoUrls = qRes.questions.map(() => null);
+      const pregenTimeout = new Promise((resolve) => setTimeout(() => resolve({ success: false }), 60_000));
+      const pregenResult = await Promise.race([
+        pregenerateInterviewVideos(qRes.questions.map((q) => q.question), { gender: hrGender }),
+        pregenTimeout,
+      ]);
+      if (pregenResult.success && pregenResult.videoUrls?.some(Boolean)) {
+        newVideoUrls = pregenResult.videoUrls;
+      }
+
+      const addCount = qRes.questions.length;
+      setFollowUpQuestionObjects(qRes.questions);
+      setFollowUpVideoUrls(newVideoUrls);
+      setAllTranscripts((prev) => [...prev, ...Array(addCount).fill("")]);
+      behavioralPerQRef.current.push(...Array(addCount).fill(null));
+      durationPerQRef.current.push(...Array(addCount).fill(0));
+      emotionsRef.current.push(...Array(addCount).fill(null));
+      setPersonalizedPending(false);
+      setCurrentQ((prev) => prev + 1);
+    } catch {
+      setPersonalizedPending(false);
+      goToFeedback(latestTranscripts);
+    } finally {
+      setGeneratingFollowUp(false);
+      followUpInFlightRef.current = false;
+    }
+  };
+
   /* ── Next / end handlers ──────────────────────────────── */
   const handleNextQuestion = () => {
     isListeningRef.current = false;
@@ -1059,12 +1150,20 @@ export default function InterviewRoom() {
     // Fire-and-forget Vision snapshot BEFORE moving question
     captureAndAnalyzeFace(currentQ);
 
-    if (currentQ >= QUESTIONS.length - 1) {
-      goToFeedback(updated);
-      return;
-    }
+    // Free user vừa xong câu baseline cuối — chặn ở đây, KHÔNG bao giờ tốn LLM/D-ID cho 2 câu sau
     if (!isPro && currentQ >= FREE_LIMIT - 1) {
       setShowUpgradeModal(true);
+      return;
+    }
+
+    // Pro user vừa xong câu cuối đang biết (baseline) — sinh 2 câu cá nhân hóa từ câu trả lời thật
+    if (personalizedPending && currentQ === QUESTIONS.length - 1) {
+      triggerFollowUpGeneration(updated);
+      return;
+    }
+
+    if (currentQ >= QUESTIONS.length - 1) {
+      goToFeedback(updated);
       return;
     }
     setCurrentQ((prev) => prev + 1);
@@ -1134,27 +1233,30 @@ export default function InterviewRoom() {
                     </h3>
                     <p className="mt-1.5 text-sm leading-relaxed text-violet-600">
                       Buổi phỏng vấn gồm{" "}
-                      <span className="font-semibold text-violet-900">{QUESTIONS.length} câu hỏi</span>
+                      <span className="font-semibold text-violet-900">{displayQuestionCount} câu hỏi</span>
                       {!isPro && !trialMode && <span className="text-violet-700"> · 3 câu miễn phí, 2 câu sau cần Pro</span>}.
                       AI sẽ phân tích giọng nói, ánh mắt và ngôn ngữ cơ thể.
                     </p>
                   </div>
 
                   <ul className="flex flex-col gap-2">
-                    {QUESTIONS.map((q, i) => {
-                      const isLocked = !isPro && i >= FREE_LIMIT;
+                    {Array.from({ length: displayQuestionCount }).map((_, i) => {
+                      const q = QUESTIONS[i];
+                      const isLocked  = !isPro && i >= FREE_LIMIT;
+                      const isPending = isPro && i >= FREE_LIMIT && !q;
+                      const dimmed = isLocked || isPending;
                       return (
                         <li key={i}
                           className={`flex min-h-[2.5rem] items-center gap-3 rounded-md border px-3 py-2 ${
-                            isLocked ? "border-violet-100 bg-violet-50/40 opacity-65" : "border-violet-200/70 bg-violet-50/30"
+                            dimmed ? "border-violet-100 bg-violet-50/40 opacity-65" : "border-violet-200/70 bg-violet-50/30"
                           }`}>
                           <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                            isLocked ? "bg-violet-100 text-violet-300" : "bg-violet-200/80 text-[#630ed4]"
+                            dimmed ? "bg-violet-100 text-violet-300" : "bg-violet-200/80 text-[#630ed4]"
                           }`}>
                             {isLocked ? <Lock className="h-3 w-3" /> : i + 1}
                           </span>
-                          <p className={`min-w-0 flex-1 text-xs leading-snug ${isLocked ? "text-violet-400" : "text-violet-800"}`}>
-                            {isLocked ? "Yêu cầu gói Pro" : q}
+                          <p className={`min-w-0 flex-1 text-xs leading-snug ${dimmed ? "text-violet-400" : "text-violet-800"}`}>
+                            {isLocked ? "Yêu cầu gói Pro" : isPending ? "Sẽ được tạo từ câu trả lời của bạn" : q}
                           </p>
                           {isLocked && (
                             <span className="shrink-0 rounded-full border border-violet-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#630ed4]">Pro</span>
@@ -1216,6 +1318,19 @@ export default function InterviewRoom() {
             onUpgrade={() => navigate("/pricing")}
             onFinish={() => { setShowUpgradeModal(false); goToFeedback(allTranscripts); }}
           />
+        )}
+
+        {generatingFollowUp && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-violet-950/40 backdrop-blur-sm">
+            <div className="mx-4 w-full max-w-sm rounded-md bg-white p-8 shadow-2xl">
+              <div className="mb-4 flex items-center justify-center">
+                <span className="h-8 w-8 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600" />
+              </div>
+              <p className="text-center text-sm font-semibold text-violet-800">
+                AI đang phân tích câu trả lời của bạn để tạo câu hỏi nâng cao...
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Top bar */}
@@ -1607,7 +1722,7 @@ export default function InterviewRoom() {
             </button>
           </div>
 
-          {currentQ < QUESTIONS.length - 1 ? (
+          {currentQ < QUESTIONS.length - 1 || personalizedPending ? (
             <button type="button" onClick={handleNextQuestion}
               className="flex items-center gap-2 rounded-md bg-gradient-to-r from-[#c4ff47] to-[#d4ff00] px-4 py-2 text-sm font-bold text-violet-950 shadow-[0_6px_20px_rgba(196,255,71,0.2)] transition-all hover:brightness-105">
               {!isPro && currentQ === FREE_LIMIT - 1 ? <><Lock className="h-4 w-4" /> Câu tiếp theo</> : <>Câu tiếp theo <CaretRight className="h-4 w-4" /></>}

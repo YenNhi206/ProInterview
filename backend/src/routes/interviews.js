@@ -39,11 +39,20 @@ interviewsRouter.post(
 );
 
 // AI question generation — injectionRateLimit blocks users with ≥3 injection attempts/hour
+// Không còn được Interview.jsx gọi (xem generate-followup-questions) — giữ làm rollback path.
 interviewsRouter.post(
   "/generate-questions",
   authJwt,
   injectionRateLimit,
   asyncHandler(InterviewsController.generateQuestions),
+);
+
+// Mid-interview: 2 câu hỏi cá nhân hóa dựa trên CV/JD + câu trả lời thật của 3 câu baseline
+interviewsRouter.post(
+  "/sessions/:id/generate-followup-questions",
+  authJwt,
+  injectionRateLimit,
+  asyncHandler(InterviewsController.generateFollowUpQuestions),
 );
 interviewsRouter.post(
   "/extract-cv-text",

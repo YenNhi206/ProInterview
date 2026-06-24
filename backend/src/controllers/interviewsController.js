@@ -7,6 +7,7 @@ import {
   extractPDFText,
   evaluateTranscripts,
 } from "../services/interviewQuestionService.js";
+import { resolveTopCompetencies } from "../services/competencyFramework.js";
 import { BASELINE_QUESTIONS } from "../config/baselineQuestions.js";
 import { logger } from "../config/logger.js";
 
@@ -107,12 +108,31 @@ export const InterviewsController = {
   /** POST /api/interviews/sessions — Tạo buổi phỏng vấn mới */
   createSession: async (req, res) => {
     try {
-      const { hrGender = "female", competencyProfile, questions, inferredRole, inferredSeniority, coverageScore } = req.body;
+      const {
+        hrGender = "female", competencyProfile, questions, inferredRole, inferredSeniority, coverageScore,
+        cvText = "", jdText = "", position = "", field = "",
+      } = req.body;
       const userId = req.userId;
 
       const user = await User.findById(userId);
       if (user.quota.interviewUsed >= user.quota.interviewLimit) {
         return res.status(403).json({ success: false, error: "Bạn đã hết lượt phỏng vấn thử miễn phí." });
+      }
+
+      // Baseline-question flow không gọi LLM trước khi tạo session → competencyProfile sẽ trống
+      // cho user free (không bao giờ trigger follow-up generation). Tính trước bằng keyword
+      // matching (zero LLM cost) để few-shot accumulation + admin analytics vẫn có data cho
+      // mọi user, không chỉ Pro user đã sinh được follow-up questions.
+      let resolvedProfile = competencyProfile;
+      if (!resolvedProfile && (cvText || jdText || position)) {
+        const { roleCategory, competencyIds } = resolveTopCompetencies(position, field, cvText, jdText, 3);
+        resolvedProfile = {
+          roleCategory,
+          competencyIds,
+          competencyCoverage: competencyIds,
+          detectedFromText: competencyIds,
+          generatedAt: new Date().toISOString(),
+        };
       }
 
       const session = await InterviewSession.create({
@@ -122,7 +142,7 @@ export const InterviewsController = {
         status: "in_progress",
         planAtTime: user.plan,
         // Lưu competency data từ generate step (passed from frontend)
-        ...(competencyProfile && { competencyProfile }),
+        ...(resolvedProfile    && { competencyProfile: resolvedProfile }),
         ...(questions?.length  && { questions }),
         ...(inferredRole       && { inferredRole }),
         ...(inferredSeniority  && { inferredSeniority }),
@@ -292,6 +312,9 @@ export const InterviewsController = {
    *  1. getFewShotExamples — query MongoDB (trả [] nếu chưa có data)
    *  2. generateQuestionsFromText — SHRM/DDI competency-grounded generation
    *  3. Trả về questions + competencyProfile (frontend lưu sessionStorage để attach vào session)
+   *
+   * Không còn được Interview.jsx gọi từ sau khi chuyển sang flow 3 baseline + 2 follow-up
+   * (xem generateFollowUpQuestions dưới). Giữ lại làm rollback path — xoá sau khi flow mới ổn định.
    */
   generateQuestions: async (req, res) => {
     try {
@@ -361,6 +384,66 @@ export const InterviewsController = {
       });
     } catch (error) {
       logger.error("generate_questions_failed", { userId: req.userId, error: error.message });
+      res.status(500).json({ success: false, error: error.message });
+    }
+  },
+
+  /**
+   * POST /api/interviews/sessions/:id/generate-followup-questions
+   * Body: { cvText?, jdText?, position?, field?, level?, baselineAnswers: [{questionIndex, transcript}] }
+   *
+   * Sinh 2 câu hỏi cá nhân hóa GIỮA buổi phỏng vấn — dựa trên CV/JD + câu trả lời thật của
+   * ứng viên cho 3 câu baseline (đào sâu vào điều ứng viên vừa nói, không chỉ CV facts chung).
+   * Chỉ Pro user gọi tới đây (free user bị chặn ở UpgradeModal trước khi tới bước này) — đây
+   * chính là cost-win của refactor: free user không tốn LLM/D-ID nào cho 2 câu này nữa.
+   */
+  generateFollowUpQuestions: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const session = await InterviewSession.findOne({ _id: id, userId: req.userId, status: "in_progress" });
+      if (!session) {
+        return res.status(404).json({ success: false, error: "Phiên phỏng vấn không tồn tại hoặc đã kết thúc" });
+      }
+
+      // Idempotency: double-click / retry / back-forward-cache replay → trả lại kết quả đã có,
+      // không gọi LLM lại lần thứ 2.
+      if (session.questions.length > 3) {
+        return res.json({ success: true, questions: session.questions.slice(3), alreadyGenerated: true });
+      }
+
+      const { cvText = "", jdText = "", position = "", field = "", level = "", baselineAnswers = [] } = req.body;
+
+      const priorQA = session.questions.slice(0, 3).map((q, i) => ({
+        question: q.question,
+        transcript: baselineAnswers.find((a) => a.questionIndex === i)?.transcript ?? "",
+      }));
+
+      const { roleCategory, competencyIds } = resolveTopCompetencies(position, field, cvText, jdText, 2);
+      const fewShotExamples = await getFewShotExamples(roleCategory, competencyIds);
+
+      logger.info("generate_followup_start", { userId: req.userId, sessionId: id });
+
+      const result = await generateQuestionsFromText({
+        cvText, jdText, position, field, level, fewShotExamples, priorQA,
+        questionCount: 2,
+        userId: req.userId,
+        sessionId: id,
+      });
+
+      session.questions.push(...result.questions);
+      if (!session.competencyProfile?.competencyIds?.length) {
+        session.competencyProfile = result.competencyProfile;
+      }
+      if (!session.inferredRole && result.inferredRole) {
+        session.inferredRole = result.inferredRole;
+      }
+      await session.save();
+
+      logger.info("generate_followup_ok", { userId: req.userId, sessionId: id, questionCount: result.questions.length });
+
+      res.json({ success: true, questions: result.questions });
+    } catch (error) {
+      logger.error("generate_followup_failed", { userId: req.userId, sessionId: req.params.id, error: error.message });
       res.status(500).json({ success: false, error: error.message });
     }
   },

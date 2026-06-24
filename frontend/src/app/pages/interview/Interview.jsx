@@ -24,7 +24,7 @@ import { getLatestCVAnalysisAsync, getUploadedCV, saveUploadedCV } from "../../u
 import { hasAuthCredentials, isLoggedIn } from "../../utils/auth/auth.js";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
-import { generateInterviewQuestions, extractCvTextFromFile, createInterviewSession, pregenerateInterviewVideos } from "../../api/interviewsApi.js";
+import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos } from "../../api/interviewsApi.js";
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { InterviewHistoryPanel } from "../../components/interview/InterviewHistoryPanel";
 import { InterviewPageTabs } from "../../components/interview/InterviewPageTabs";
@@ -359,12 +359,11 @@ export function Interview() {
     sessionStorage.removeItem("prointerview_question_objects");
 
     let questions = null;
-    let result = null;
+    // Khai báo ngoài try để dùng lại sau (createInterviewSession + forward sang InterviewRoom)
+    let cvText = "";
+    // JD text: ưu tiên file PDF > textarea paste
+    let jdText = jdInputText.trim();
     try {
-      let cvText = "";
-      // JD text: ưu tiên file PDF > textarea paste
-      let jdText = jdInputText.trim();
-
       if (option === "A" && latestCV) {
         // Fetch raw CV text from stored analysis, the list API strips cvText to save bandwidth,
         // so we need a separate call to get the full document for genuine personalization.
@@ -428,20 +427,15 @@ export function Interview() {
         }
       }
 
+      // 3 câu hỏi đầu = baseline cố định (text không đổi → video D-ID cache dùng chung toàn hệ
+      // thống, không tốn LLM/D-ID nào). 2 câu cá nhân hóa tiếp theo sẽ được sinh GIỮA buổi phỏng
+      // vấn (sau khi trả lời xong 3 câu này) dựa trên CV/JD + câu trả lời thật — xem InterviewRoom.
       setLoadingStep("generating_questions");
-      result = await generateInterviewQuestions({
-        cvText,
-        jdText,
-        // Option A: ưu tiên position từ CV phân tích; nếu null thì dùng input bổ sung
-        position: option === "A" ? (latestCV?.position || "") : "",
-        field: "",
-        level: "",
-      });
-
-      if (result?.success && result.questions?.length) {
-        questions = result.questions;
-      } else if (result && !result.success) {
-        setExtractWarning(`AI không thể tạo câu hỏi cá nhân hóa (${result.error || "lỗi không xác định"}).`);
+      const qRes = await getBaselineQuestions();
+      if (qRes.success && qRes.questions?.length) {
+        questions = qRes.questions;
+      } else {
+        setExtractWarning(`Không thể tải câu hỏi (${qRes.error || "lỗi không xác định"}). Vui lòng thử lại.`);
         setLoadingStep(null);
         return;
       }
@@ -451,6 +445,10 @@ export function Interview() {
       return;
     }
 
+    const position = option === "A" ? (latestCV?.position || "") : "";
+    const field = "";
+    const level = "";
+
     // Tạo session ngay sau khi có questions, trước khi vào phòng
     // sessionId được truyền vào InterviewRoom để lưu từng câu trả lời
     setLoadingStep("creating_session");
@@ -458,11 +456,10 @@ export function Interview() {
     if (hasAuthCredentials()) {
       try {
         const created = await createInterviewSession(hrGender, {
-          ...(questions                  && { questions }),
-          ...(result?.inferredRole       && { inferredRole: result.inferredRole }),
-          ...(result?.inferredSeniority  && { inferredSeniority: result.inferredSeniority }),
-          ...(result?.competencyProfile  && { competencyProfile: result.competencyProfile }),
-          ...(result?.coverageScore      && { coverageScore: result.coverageScore }),
+          ...(questions && { questions }),
+          // cvText/jdText không lưu vào session (giống generateQuestions cũ) — chỉ dùng để BE
+          // tính competencyProfile rẻ (zero LLM cost) cho few-shot accumulation/analytics.
+          cvText, jdText, position, field,
         });
         if (created.success) sessionId = created.sessionId;
       } catch {
@@ -470,11 +467,12 @@ export function Interview() {
       }
     }
 
-    // Bước cuối: pre-generate video HR lipsync (D-ID Express API).
+    // Bước cuối: pre-generate video HR lipsync cho 3 câu baseline (D-ID Express API, cache dùng
+    // chung toàn hệ thống — nhanh ngay từ lần render đầu tiên/gender, gần như instant sau đó).
     // Guards:
     //   1. sessionId phải tồn tại — nếu session creation thất bại thì room sẽ show error page,
     //      không có lý do tiêu D-ID credits cho videos không ai dùng được.
-    //   2. Timeout 45s — nếu D-ID render chậm, graceful fallback sang TTS thay vì chặn user.
+    //   2. Timeout — nếu D-ID render chậm (cold-cache), graceful fallback sang TTS thay vì chặn user.
     let videoUrls = null;
     if (sessionId) {
       try {
@@ -484,29 +482,20 @@ export function Interview() {
 
         if (didEnabled) {
           setLoadingStep("pregenerating_videos");
-          const questionTexts = (questions ?? []).map(q =>
-            typeof q === "string" ? q : (q.question ?? "")
-          ).filter(Boolean);
-
-          if (questionTexts.length > 0) {
-            const pregenTimeout = new Promise((resolve) =>
-              // 180s: ElevenLabs x5 (~60s) + D-ID Express render x5 sequential (~55s) + buffer
-              // Tăng từ 100s: backend thực tế đo được 115s do ElevenLabs multilingual processing.
-              setTimeout(() => resolve({ success: false, timedOut: true }), 180_000)
-            );
-            const pregenResult = await Promise.race([
-              pregenerateInterviewVideos(questionTexts, { gender: hrGender }),
-              pregenTimeout,
-            ]);
-            if (pregenResult.success && pregenResult.videoUrls?.some(Boolean)) {
-              videoUrls = pregenResult.videoUrls;
-            }
+          const pregenTimeout = new Promise((resolve) =>
+            setTimeout(() => resolve({ success: false, timedOut: true }), 150_000)
+          );
+          const pregenResult = await Promise.race([
+            pregenerateBaselineVideos(hrGender),
+            pregenTimeout,
+          ]);
+          if (pregenResult.success && pregenResult.videoUrls?.some(Boolean)) {
+            videoUrls = pregenResult.videoUrls;
           }
         }
       } catch {
         // D-ID chưa set hoặc lỗi mạng — phỏng vấn vẫn chạy với TTS fallback
       }
-
     }
 
     setLoadingStep(null);
@@ -517,6 +506,9 @@ export function Interview() {
       questions,
       sessionId,
       videoUrls,
+      // Cần thiết để InterviewRoom sinh 2 câu cá nhân hóa giữa buổi phỏng vấn (sau câu baseline thứ 3)
+      cvText, jdText, position, field, level,
+      personalizedPending: Boolean(sessionId),
       ...(option === "A" && { useLatestAnalysis: true, latestCV }),
       ...(option === "B" && { storedCV }),
     };

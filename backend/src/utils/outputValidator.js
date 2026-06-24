@@ -23,9 +23,10 @@ const SUSPICIOUS_PATTERNS = [
  * Field names match the actual SHRM/DDI LLM output schema (snake_case from LLM).
  *
  * @param {unknown} obj
+ * @param {number} [expectedCount=5]
  * @returns {{ valid: boolean, reason?: string }}
  */
-function validateQuestionSet(obj) {
+function validateQuestionSet(obj, expectedCount = 5) {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
     return { valid: false, reason: "not_an_object" };
   }
@@ -34,8 +35,8 @@ function validateQuestionSet(obj) {
     return { valid: false, reason: "questions_not_array" };
   }
 
-  if (obj.questions.length !== 5) {
-    return { valid: false, reason: `expected_5_got_${obj.questions.length}` };
+  if (obj.questions.length !== expectedCount) {
+    return { valid: false, reason: `expected_${expectedCount}_got_${obj.questions.length}` };
   }
 
   for (let i = 0; i < obj.questions.length; i++) {
