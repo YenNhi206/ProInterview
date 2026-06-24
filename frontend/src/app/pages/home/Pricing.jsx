@@ -165,7 +165,7 @@ export function Pricing() {
                 rest="mọi buổi phỏng vấn"
               />
             }
-            titleClassName="font-headline text-[clamp(1.5rem,3.5vw,3.25rem)] font-extrabold leading-[1.12] tracking-tight"
+            titleClassName="font-headline text-[clamp(1.45rem,2.8vw,2.65rem)] font-extrabold leading-[1.12] tracking-tight"
             subtitle={PRICING_SUBTITLE}
             subtitleClassName="mt-3 max-w-2xl text-base font-medium leading-relaxed text-violet-700/90"
           />

@@ -268,7 +268,7 @@ export function Mentors() {
 
           <CustomerPageHeader
             title={<CustomerPageSplitTitle accent="Kết nối Mentor" rest="phù hợp" />}
-            titleClassName="font-headline text-[clamp(1.5rem,3.5vw,3.25rem)] font-extrabold leading-[1.12] tracking-tight"
+            titleClassName="font-headline text-[clamp(1.45rem,2.8vw,2.65rem)] font-extrabold leading-[1.12] tracking-tight"
             subtitle="Kết nối với Mentor để có thêm góc nhìn thực tế từ ngành, hiểu kỳ vọng của nhà tuyển dụng và chuẩn bị tự tin hơn cho buổi phỏng vấn thật."
             subtitleClassName="mt-3 max-w-none text-base font-medium leading-relaxed text-violet-700/90 lg:whitespace-nowrap"
             className="mb-6"

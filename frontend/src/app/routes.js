@@ -126,7 +126,7 @@ export const router = createBrowserRouter([
           );
         },
       },
-      { path: "interview", loader: requireCustomerAuthLoader, Component: Interview },
+      { path: "interview", Component: Interview },
       { path: "interview/gender", loader: requireCustomerAuthLoader, Component: AIGenderSelection },
       { path: "interview/room", loader: requireCustomerAuthLoader, Component: InterviewRoom },
       { path: "interview/feedback", loader: requireCustomerAuthLoader, Component: InterviewFeedback },

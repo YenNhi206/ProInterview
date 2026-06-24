@@ -470,7 +470,7 @@ export function Courses() {
                 rest="tự tin hơn khi ứng tuyển"
               />
             }
-            titleClassName="font-headline text-[clamp(1.5rem,3.5vw,3.25rem)] font-extrabold leading-[1.12] tracking-tight"
+            titleClassName="font-headline text-[clamp(1.45rem,2.8vw,2.65rem)] font-extrabold leading-[1.12] tracking-tight"
             subtitle="Các khóa học do Mentor xây dựng, giúp bạn bổ sung kỹ năng cần thiết cho hành trình ứng tuyển."
             subtitleClassName="mt-3 max-w-none text-base font-medium leading-relaxed text-violet-700/90 lg:whitespace-nowrap"
           />

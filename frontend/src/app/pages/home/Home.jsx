@@ -195,7 +195,7 @@ export function Home() {
         </SectionReveal>
       </div>
 
-      <div className="landing-section-flow">
+      <div className="landing-section-flow mt-12 sm:mt-16 lg:mt-24">
         <SectionReveal variant="courses" delay={0.05}>
           <CoursesFeatureShowcase />
         </SectionReveal>
@@ -204,7 +204,7 @@ export function Home() {
 
 
       {/* ═══ TESTIMONIALS ═══════════════════════════════════ */}
-      <section id="testimonials" className={`${homeTy.section} landing-section-flow`}>
+      <section id="testimonials" className={`${homeTy.section} mt-12 sm:mt-16 lg:mt-24 landing-section-flow`}>
         {renderSectionSticks([
           { x: 78, y: 12, size: 34, opacity: 0.46 },
           { x: 92, y: 52, size: 36, opacity: 0.5 },
@@ -336,9 +336,7 @@ export function Home() {
       </section>
 
       {/* ═══ ACHIEVEMENTS / NEWS SECTION ═══ */}
-      <section className={`${homeTy.section} ${HOME_SECTION_INNER}`}>
-        <div className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-[#8037f4]/8 blur-[140px]" aria-hidden />
-        <div className="pointer-events-none absolute bottom-0 right-1/4 -z-10 h-[300px] w-[400px] rounded-full bg-[#a3ff3d]/6 blur-[100px]" aria-hidden />
+      <section className={`${homeTy.section} mt-20 sm:mt-28 lg:mt-36 ${HOME_SECTION_INNER}`}>
 
         <HomeSectionHeader
           icon={Medal}

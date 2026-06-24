@@ -103,7 +103,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
           </div>
 
           {/* Interview Room Mockup */}
-          <div className={`flex flex-col bg-[#f3f0f9] ${compact ? "h-[380px] sm:h-[420px] lg:h-[480px]" : "h-[476px] sm:h-[532px] lg:h-[632px]"}`}>
+          <div className={`flex flex-col bg-[#f3f0f9] ${compact ? "h-[380px] sm:h-[420px] lg:h-[480px]" : "h-[460px] sm:h-[516px] lg:h-[616px]"}`}>
 
             {/* Top bar */}
             <div className="flex shrink-0 items-center justify-between border-b border-violet-200/80 bg-white/85 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-sm">

@@ -197,8 +197,10 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
                   <span className="block text-[#630ed4]">Làm sao để CV ấn tượng</span>
                   <span className="mt-0.5 block text-[#1a1b23] sm:whitespace-nowrap">trong mắt nhà tuyển dụng?</span>
                 </span>
-                <p className="mt-2 min-w-0 max-w-full text-sm font-medium leading-relaxed text-violet-700/90 sm:text-lg lg:whitespace-nowrap">
-                  {CV_SHOWCASE_COPY.body}
+                <p className="mt-2 min-w-0 max-w-full text-sm font-medium leading-relaxed text-violet-700/90 sm:text-lg">
+                  ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà
+                  <br className="hidden lg:block" />
+                  tuyển dụng.
                 </p>
               </h1>
 

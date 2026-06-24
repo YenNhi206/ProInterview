@@ -223,7 +223,7 @@ export function CoursesFeatureShowcase({ onCtaClick }) {
           box-shadow: 0 12px 32px rgba(99, 14, 212, 0.1);
         }
       `}</style>
-      <div className={`${ty.sectionShell} ${HOME_SECTION_INNER}`}>
+      <div className={`${ty.sectionShell} ${HOME_SECTION_INNER} !overflow-visible`}>
         <div className={ty.sectionGrid}>
           <div className="relative z-10 flex w-full min-w-0 justify-center max-lg:order-last">
             <div className="w-full min-w-0 max-w-[42rem] lg:max-w-none">

@@ -150,7 +150,7 @@ export function MentorFeatureShowcase() {
           badge={MENTOR_SHOWCASE_COPY.badge}
           lines={[
             { text: MENTOR_SHOWCASE_COPY.titleLine1, tone: "dark" },
-            { text: MENTOR_SHOWCASE_COPY.titleLine2, tone: "lime" },
+            { text: MENTOR_SHOWCASE_COPY.titleLine2, tone: "accent" },
           ]}
           className="mb-8 sm:mb-10"
         />

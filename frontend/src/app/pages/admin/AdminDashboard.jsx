@@ -17,6 +17,7 @@ import {
 import { adminApi } from "../../api/adminApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { AppSelect } from "../../components/ui/AppSelect.jsx";
 
 /** Cùng thứ tự ưu tiên với sidebar admin */
 const TILES = [

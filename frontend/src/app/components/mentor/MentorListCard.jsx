@@ -67,7 +67,7 @@ function StarRating({ rating, reviewCount }) {
             <Star
               key={i}
               className={`size-4 ${
-                i <= filled ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"
+                i <= filled ? "fill-lime-400 text-lime-400" : "fill-slate-200 text-slate-200"
               }`}
             />
           ))}
@@ -116,10 +116,10 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
         >
           <h3 className="flex min-w-0 items-center gap-0.5 text-sm font-bold leading-tight text-slate-900 group-hover:text-[#8037f4] md:flex-wrap md:gap-1.5 md:text-lg">
             <span className="min-w-0 flex-1 truncate">{mentor.name}</span>
-            {mentor.isVerified ? (
+            {Boolean(mentor.name && mentor.title && mentor.company && mentor.avatar) ? (
               <BadgeCheck
                 className="size-3.5 shrink-0 fill-amber-400 text-white md:size-5"
-                aria-label="Mentor đã xác minh"
+                aria-label="Mentor đầy đủ thông tin"
               />
             ) : null}
           </h3>

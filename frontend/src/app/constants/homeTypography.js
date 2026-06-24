@@ -30,14 +30,14 @@ export const homeSectionClasses = {
   badge:
     "inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-3.5 py-1 font-semibold text-violet-700 text-xs sm:text-sm",
   sectionTitle:
-    "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-semibold leading-[1.15] tracking-tight text-[#1a1b23]",
+    "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-extrabold leading-[1.15] tracking-tight text-[#1a1b23]",
   sectionTitleLineDark: "block text-slate-900",
   sectionTitleLineAccent: "block text-[#630ed4]",
   sectionTitleLineLime: "block text-lime-600",
   sectionBody: HOME_SECTION_BODY,
 
   /** Legacy aliases — giữ tương thích, trỏ về token mới */
-  title: "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-semibold leading-[1.15] tracking-tight text-[#1a1b23]",
+  title: "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-extrabold leading-[1.15] tracking-tight text-[#1a1b23]",
   titleLineDark: "block text-slate-900",
   titleLineAccent: "block text-[#630ed4]",
   titleLineSecond: "block w-full",
