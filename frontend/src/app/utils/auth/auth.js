@@ -502,6 +502,8 @@ export function isProtectedAppPath(pathname) {
   if (p === "/courses" || /^\/courses\/[^/]+$/.test(p)) return false;
   if (p.startsWith("/admin")) return true;
   if (p === "/mentor" || p.startsWith("/mentor/")) return true;
+  if (p === "/interview") return false;
+  if (p.startsWith("/interview/")) return true;
   const roots = [
     "/dashboard",
     "/profile",
@@ -509,7 +511,6 @@ export function isProtectedAppPath(pathname) {
     "/my-bookings",
     "/my-courses",
     "/cv-analysis",
-    "/interview",
     "/booking",
   ];
   if (roots.some((root) => p === root || p.startsWith(`${root}/`))) return true;

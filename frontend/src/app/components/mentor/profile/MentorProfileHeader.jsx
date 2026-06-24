@@ -70,10 +70,10 @@ export function MentorProfileHeader({ mentor, ratingDisplay, reviewCount, experi
         <div className="min-w-0 flex-1 text-center sm:text-left">
           <h1 className="flex flex-wrap items-center justify-center gap-2 text-2xl font-bold text-slate-900 sm:justify-start sm:text-3xl">
             {mentor.name}
-            {mentor.isVerified ? (
+            {Boolean(mentor.name && mentor.title && mentor.company && mentor.avatar) ? (
               <BadgeCheck
                 className="size-6 shrink-0 fill-amber-400 text-white"
-                aria-label="Mentor đã xác minh"
+                aria-label="Mentor đầy đủ thông tin"
               />
             ) : null}
           </h1>

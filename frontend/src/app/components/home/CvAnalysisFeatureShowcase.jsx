@@ -69,7 +69,7 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
           .cv-score-card-reveal { animation: none; opacity: 1; }
         }
       `}</style>
-      <div className={`${ty.sectionShell} ${HOME_SECTION_INNER}`}>
+      <div className={`${ty.sectionShell} ${HOME_SECTION_INNER} !overflow-visible`}>
         <div className={ty.sectionGrid}>
           <HomeSectionHeader
             icon={FileText}
@@ -78,7 +78,13 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
               { text: "Làm sao để CV ấn tượng", tone: "accent" },
               { text: "trong mắt nhà tuyển dụng?", tone: "dark" },
             ]}
-            body={CV_SHOWCASE_COPY.body}
+            body={
+              <>
+                <span className="lg:whitespace-nowrap">ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà</span>
+                <br className="hidden lg:block" />
+                tuyển dụng.
+              </>
+            }
           >
             {onCtaClick ? (
               <button
@@ -95,8 +101,8 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
             ) : null}
           </HomeSectionHeader>
 
-          <div className="relative z-10 flex min-w-0 flex-col items-center justify-center overflow-hidden">
-            <div className="relative mx-auto w-full max-w-[31.6rem]">
+          <div className="relative z-10 flex min-w-0 flex-col items-center justify-center !overflow-visible lg:translate-x-[2.0rem]">
+            <div className="relative mx-auto w-full max-w-[33.6rem] !overflow-visible">
               <div className="pointer-events-none absolute left-1/2 top-0 z-[5] w-[14.5rem] -translate-x-1/2 -translate-y-[1.73rem] sm:w-[16.5rem] sm:-translate-y-[2.93rem] lg:w-[18rem] lg:-translate-y-[3.13rem]">
                 <img
                   src="/mascot-cv-analysis-pose7.png?v=1"
