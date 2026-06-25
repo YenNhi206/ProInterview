@@ -383,8 +383,12 @@ Trả về JSON hợp lệ (không markdown, không giải thích thêm):
  * @param {number} [questionCount=5]
  * @param {string} [priorQAPromptBlock] - Câu hỏi baseline + câu trả lời thật của ứng viên
  *   (dùng cho follow-up — questionCount=2). Không đưa vào static prompt vì nội dung riêng từng session.
+ * @param {boolean} [hasRealAnswers=false] - true nếu ít nhất 1 baseline answer có nội dung thật
+ *   (không phải bỏ trống/"(không trả lời)"). Quyết định distributionRule có ép tham chiếu câu trả
+ *   lời thật hay không — ép khi không có gì để tham chiếu khiến LLM hoặc bịa, hoặc lờ đi và sinh
+ *   câu hỏi chung chung từ CV, dễ trùng lặp giữa các lần gọi (cùng CV → cùng competencyIds).
  */
-function buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples = [], questionCount = 5, priorQAPromptBlock = "") {
+function buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples = [], questionCount = 5, priorQAPromptBlock = "", hasRealAnswers = false) {
   const competencyBlock = buildCompetencyPromptBlock(competencyIds);
   const distributionGuide = buildDistributionGuide(competencyIds);
 
@@ -396,9 +400,11 @@ function buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples = [], ques
     ? `\n## CÂU HỎI MỞ ĐẦU + CÂU TRẢ LỜI THỰC TẾ CỦA ỨNG VIÊN\n${priorQAPromptBlock}\n`
     : "";
 
-  const distributionRule = questionCount <= 2
-    ? `Đây là ${questionCount} câu hỏi follow-up — PHẢI dựa trên câu trả lời thực tế của ứng viên ở phần "CÂU HỎI MỞ ĐẦU + CÂU TRẢ LỜI THỰC TẾ" trên (không lặp lại nội dung đã hỏi). Ít nhất 1 câu phải trực tiếp tham chiếu một chi tiết cụ thể ứng viên vừa nói (tên dự án, số liệu, quyết định họ vừa kể) và đào sâu hơn (deep-dive) vào điều đó, kết hợp với CV/JD.`
-    : `Đảm bảo: ít nhất 2 câu behavior (STAR), ít nhất 1 câu theory chuyên sâu, ít nhất 1 câu project từ dự án CÓ THẬT trong CV.`;
+  const distributionRule = questionCount > 2
+    ? `Đảm bảo: ít nhất 2 câu behavior (STAR), ít nhất 1 câu theory chuyên sâu, ít nhất 1 câu project từ dự án CÓ THẬT trong CV.`
+    : hasRealAnswers
+      ? `Đây là ${questionCount} câu hỏi follow-up — PHẢI dựa trên câu trả lời thực tế của ứng viên ở phần "CÂU HỎI MỞ ĐẦU + CÂU TRẢ LỜI THỰC TẾ" trên (không lặp lại nội dung đã hỏi). Ít nhất 1 câu phải trực tiếp tham chiếu một chi tiết cụ thể ứng viên vừa nói (tên dự án, số liệu, quyết định họ vừa kể) và đào sâu hơn (deep-dive) vào điều đó, kết hợp với CV/JD.`
+      : `Đây là ${questionCount} câu hỏi follow-up. Ứng viên KHÔNG trả lời 3 câu mở đầu (mục "CÂU HỎI MỞ ĐẦU" ở trên toàn ghi "(không trả lời)") — KHÔNG bịa ra hoặc giả định một câu trả lời nào của ứng viên, KHÔNG dùng cụm "bạn vừa nói/chia sẻ". Hãy đào sâu trực tiếp vào project/công nghệ CỤ THỂ trong CV (gọi tên dự án, công nghệ, số liệu thật trong CV) theo góc độ ưu tiên phiên này ở dưới, tránh khung câu hỏi chung kiểu "bạn đã nhận ra xu hướng/mẫu hình gì khi..." lặp lại giữa các phiên.`;
 
   return `## COMPETENCY FRAMEWORK ĐÃ PHÁT HIỆN TỪ CV/JD
 Câu hỏi PHẢI nhắm vào các competency sau (được xác định bằng SHRM & DDI từ thông tin thực tế của ứng viên):
@@ -529,11 +535,13 @@ export async function generateQuestionsFromText({
   const priorQAXmlBlock = cleanPriorQA.length > 0
     ? ["<prior_answers>", priorQAPromptBlock, "</prior_answers>"].join("\n")
     : "";
+  // Bỏ qua câu trả lời quá ngắn (vd "ok", STT bắt thiếu) — không đủ để LLM tham chiếu thật.
+  const hasRealAnswers = cleanPriorQA.some((qa) => (qa.transcript ?? "").trim().length > 5);
 
   // Step 2: Build system prompt — static phần khung (cacheable) + dynamic phần competency/few-shot
   const systemPrompt = {
     static:  QUESTION_GEN_STATIC_PROMPT,
-    dynamic: buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples, questionCount, priorQAPromptBlock),
+    dynamic: buildQuestionGenDynamicPrompt(competencyIds, fewShotExamples, questionCount, priorQAPromptBlock, hasRealAnswers),
   };
 
   const ctxCV = cleanCV;
