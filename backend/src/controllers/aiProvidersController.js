@@ -226,6 +226,10 @@ export const AIProvidersController = {
    * Render TẤT CẢ video song song rồi trả về — đợi 30-90s.
    * Frontend hiện progress bar trong lúc chờ.
    * Dùng khi muốn đơn giản hóa: 1 request → tất cả URLs.
+   *
+   * persistVideo: true — mirror result_url D-ID (S3 us-west-2, không CDN) sang Cloudinary trước
+   * khi trả về. Không mirror sẽ khiến browser phát thẳng từ S3 Oregon → khoảng cách xa, không edge
+   * cache → buffer giữa chừng → video VÀ audio (chung 1 file mp4) cùng bị ngắt quãng khi phát.
    */
   pregenerateSync: async (req, res) => {
     if (!isDIDEnabled()) {
@@ -255,7 +259,7 @@ export const AIProvidersController = {
     });
 
     try {
-      const result = await pregenerateSync(questions, { gender, voiceId, userId: req.userId }, ac.signal);
+      const result = await pregenerateSync(questions, { gender, voiceId, userId: req.userId, persistVideo: true }, ac.signal);
 
       logger.info("pregen_sync_ok", {
         userId:    req.userId,

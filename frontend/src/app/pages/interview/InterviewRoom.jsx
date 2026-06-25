@@ -1113,7 +1113,10 @@ export default function InterviewRoom() {
       }
 
       let newVideoUrls = qRes.questions.map(() => null);
-      const pregenTimeout = new Promise((resolve) => setTimeout(() => resolve({ success: false }), 60_000));
+      // 150s (giống Interview.jsx baseline pregen) — D-ID render (≤120s) + mirror Cloudinary (≤30s)
+      // nay đã bật persistVideo cho follow-up, cần budget tương đương baseline thay vì 60s cũ
+      // (quá ngắn, hay timeout sớm khiến follow-up rơi về no-video trước khi mirror xong).
+      const pregenTimeout = new Promise((resolve) => setTimeout(() => resolve({ success: false }), 150_000));
       const pregenResult = await Promise.race([
         pregenerateInterviewVideos(qRes.questions.map((q) => q.question), { gender: hrGender }),
         pregenTimeout,
