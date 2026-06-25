@@ -1,20 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
-const MASCOT_VIDEO_SRC = "/watingvid.mp4";
-// Video nguồn pillarbox 1280x720, mascot chỉ chiếm vùng giữa ~766x718 (viền đen 2 bên).
-const MASCOT_CROP = { x: 257, y: 0, w: 766, h: 718 };
+const MASCOT_VIDEO_SRC = "/mascot-loading.mp4";
+// Video nguồn pillarbox 1280x720, mascot chỉ chiếm vùng giữa ~766x720 (viền đen 2 bên,
+// không letterbox trên/dưới). Frame cuối ăn khớp frame đầu (đo bằng pixel) nên loop tự
+// nhiên đã mượt — không cần xử lý crossfade/artifact riêng như video cũ.
+const MASCOT_CROP = { x: 257, y: 0, w: 766, h: 720 };
 
-// Video nguồn, ở 1 vài thời điểm trong vòng loop, đôi lúc render ra 1 frame lỗi
-// (đường line đen mảnh dọc giữa khung) -- không tái hiện được khi trích từng
-// frame tĩnh nên nhiều khả năng là glitch lúc loop lại (seam) của trình duyệt,
-// không phải lỗi crop/scale. Vẽ qua <canvas> + tự kiểm tra từng frame, bỏ qua
-// (giữ nguyên frame tốt trước đó) nếu phát hiện artifact, để không bao giờ hiện
-// đường lỗi này ra UI.
-function MascotVideo({ className }) {
+export function MascotVideo({ className }) {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const stagingRef = useRef(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -24,63 +19,24 @@ function MascotVideo({ className }) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    if (!stagingRef.current) stagingRef.current = document.createElement("canvas");
-    const staging = stagingRef.current;
-    const stagingCtx = staging.getContext("2d", { willReadFrequently: true });
-    stagingCtx.imageSmoothingEnabled = true;
-    stagingCtx.imageSmoothingQuality = "high";
-
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
       const { width, height } = container.getBoundingClientRect();
-      const w = Math.max(1, Math.round(width * dpr));
-      const h = Math.max(1, Math.round(height * dpr));
-      canvas.width = w;
-      canvas.height = h;
-      staging.width = w;
-      staging.height = h;
+      canvas.width = Math.max(1, Math.round(width * dpr));
+      canvas.height = Math.max(1, Math.round(height * dpr));
     };
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(container);
 
-    // Quét vài cột mỏng toàn đen, chạy suốt >=40% chiều cao -> dấu hiệu của
-    // glitch (mascot thật không có cột nào tối như vậy trên diện rộng vậy).
-    const hasArtifactLine = () => {
-      const w = staging.width, h = staging.height;
-      if (w < 6 || h < 6) return false;
-      const data = stagingCtx.getImageData(0, 0, w, h).data;
-      const rowStep = Math.max(1, Math.floor(h / 60));
-      let run = 0;
-      for (let x = 2; x < w - 2; x++) {
-        let dark = 0, total = 0;
-        for (let y = 0; y < h; y += rowStep) {
-          const idx = (y * w + x) * 4;
-          const lum = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-          if (lum < 40) dark++;
-          total++;
-        }
-        if (dark / total > 0.6) {
-          run++;
-        } else {
-          if (run > 0 && run <= 12) return true;
-          run = 0;
-        }
-      }
-      return run > 0 && run <= 12;
-    };
-
     let rafId;
     const draw = () => {
       if (video.readyState >= 2) {
-        stagingCtx.drawImage(
+        ctx.drawImage(
           video,
           MASCOT_CROP.x, MASCOT_CROP.y, MASCOT_CROP.w, MASCOT_CROP.h,
-          0, 0, staging.width, staging.height,
+          0, 0, canvas.width, canvas.height,
         );
-        if (!hasArtifactLine()) {
-          ctx.drawImage(staging, 0, 0);
-        }
       }
       rafId = requestAnimationFrame(draw);
     };
@@ -131,7 +87,7 @@ const STEP_INDEX = {
   pregenerating_videos: 4,
 };
 
-const TIPS = [
+export const TIPS = [
   "Mẹo nhỏ: trả lời theo cấu trúc STAR (Tình huống – Nhiệm vụ – Hành động – Kết quả) sẽ thuyết phục hơn đấy.",
   "Đây là cơ hội để bạn luyện tập trước buổi phỏng vấn thật — trả lời chưa hoàn hảo cũng không sao cả!",
   "Hãy ngồi thẳng, hít thở sâu và mỉm cười — sự tự tin luôn là điểm cộng lớn nhất.",
@@ -177,7 +133,7 @@ export function InterviewLoadingState({ currentStep }) {
 
   return (
     <div className="flex flex-col items-center">
-      <MascotVideo className="mb-4 mx-auto h-36 aspect-[766/718] overflow-hidden rounded-md sm:h-44" />
+      <MascotVideo className="mb-4 mx-auto h-36 aspect-[766/720] overflow-hidden rounded-md sm:h-44" />
 
       <p className="text-center text-sm font-semibold text-violet-800">
         {step.message}
