@@ -36,6 +36,7 @@ import { useFaceAnalysis } from "../../hooks/useFaceAnalysis";
 // AILipSyncAvatar removed — portrait now renders as full-panel img in Nhánh 1/2
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { InterviewStepBar } from "../../components/interview/InterviewStepBar";
+import { MascotVideo, TIPS } from "../../components/interview/InterviewLoadingState";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { CustomerPageHeader } from "../../components/layout/CustomerPageHeader";
 
@@ -561,6 +562,24 @@ export default function InterviewRoom() {
   );
   const followUpInFlightRef = useRef(false);
   const [generatingFollowUp, setGeneratingFollowUp] = useState(false);
+  // Progress "creep" + tip xoay vòng — cùng pattern với InterviewLoadingState (setup flow),
+  // vì bước này cũng có thể chờ tới ~150s (sinh câu hỏi LLM + pregen video D-ID/Cloudinary).
+  const [followUpProgress, setFollowUpProgress] = useState(0);
+  const [followUpTipIdx, setFollowUpTipIdx] = useState(0);
+  useEffect(() => {
+    if (!generatingFollowUp) { setFollowUpProgress(0); return; }
+    const interval = setInterval(() => {
+      setFollowUpProgress((prev) => Math.min(prev + 1, 92));
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [generatingFollowUp]);
+  useEffect(() => {
+    if (!generatingFollowUp) return;
+    const interval = setInterval(() => {
+      setFollowUpTipIdx((i) => (i + 1) % TIPS.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [generatingFollowUp]);
 
   // Lobby/ready screen: trial luôn hiện đúng số câu thật (3, cố định). Flow chính luôn hiện "5"
   // ngay cả khi 2 câu follow-up chưa sinh xong — tránh hiểu nhầm "chỉ có 3 câu" cho Pro user.
@@ -1325,13 +1344,20 @@ export default function InterviewRoom() {
 
         {generatingFollowUp && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-violet-950/40 backdrop-blur-sm">
-            <div className="mx-4 w-full max-w-sm rounded-md bg-white p-8 shadow-2xl">
-              <div className="mb-4 flex items-center justify-center">
-                <span className="h-8 w-8 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600" />
-              </div>
+            <div className="mx-4 w-full max-w-sm rounded-md bg-white p-6 shadow-2xl sm:p-8">
+              <MascotVideo className="mb-4 mx-auto h-28 aspect-[766/720] overflow-hidden rounded-md sm:h-36" />
               <p className="text-center text-sm font-semibold text-violet-800">
                 AI đang phân tích câu trả lời của bạn để tạo câu hỏi nâng cao...
               </p>
+              <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-violet-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#630ed4] to-[#93f72b] transition-all duration-700 ease-out"
+                  style={{ width: `${followUpProgress}%` }}
+                />
+              </div>
+              <div className="mt-4 w-full rounded-md bg-violet-50 px-3 py-2.5 text-center text-xs text-violet-700">
+                {TIPS[followUpTipIdx]}
+              </div>
             </div>
           </div>
         )}

@@ -450,7 +450,7 @@ export function Interview() {
     const level = "";
 
     // Tạo session ngay sau khi có questions, trước khi vào phòng
-    // sessionId được truyền vào InterviewRoom để lưu từng câu trả lời
+    // sessionId được truyền vào InterviewRoom để lưu từng câu trả lời  
     setLoadingStep("creating_session");
     let sessionId = null;
     if (hasAuthCredentials()) {

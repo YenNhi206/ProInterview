@@ -596,12 +596,18 @@ export async function generateQuestionsFromText({
   }
 
   // Step 4: Normalize sang camelCase + enrich với SHRM rubric
+  // Mongoose enum không cho qua giá trị lạ — LLM đôi lúc trả "Chưa xác định" hoặc text tự do
+  // thay vì đúng 1 trong các giá trị enum được yêu cầu trong prompt, làm session.save() throw
+  // validation error. Check thuộc enum thay vì chỉ check truthy (q.layer || "theory" vẫn lọt
+  // qua y hệt string rác nếu nó truthy).
+  const LAYER_ENUM     = ["theory", "project", "behavior"];
+  const SENIORITY_ENUM = ["intern", "junior", "middle", "senior"];
   const questions = parsed.questions.slice(0, questionCount).map((q, i) => {
     const libEntry = COMPETENCY_LIBRARY[q.competency_id] ?? null;
     return {
       id: q.id || `q${i + 1}`,
-      layer: q.layer || "theory",
-      seniority: q.seniority || "junior",
+      layer: LAYER_ENUM.includes(q.layer) ? q.layer : "theory",
+      seniority: SENIORITY_ENUM.includes(q.seniority) ? q.seniority : "junior",
       competencyId:   q.competency_id   || competencyIds[i] || "problem_solving",
       competencyName: q.competency_name || libEntry?.nameVi || "",
       ddiKeyActionTargeted: q.ddi_key_action_targeted || "",
