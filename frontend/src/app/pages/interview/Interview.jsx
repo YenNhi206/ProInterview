@@ -461,18 +461,27 @@ export function Interview() {
           // tính competencyProfile rẻ (zero LLM cost) cho few-shot accumulation/analytics.
           cvText, jdText, position, field,
         });
-        if (created.success) sessionId = created.sessionId;
+        if (created.success) {
+          sessionId = created.sessionId;
+        } else {
+          // InterviewRoom luôn yêu cầu sessionId hợp lệ (bounce về /interview nếu thiếu) — báo lỗi
+          // ngay tại đây (vd hết quota free) thay vì âm thầm điều hướng vào room rồi bị đẩy ngược lại.
+          setExtractWarning(created.error || "Không thể tạo phiên phỏng vấn. Vui lòng thử lại.");
+          setLoadingStep(null);
+          return;
+        }
       } catch {
-        // graceful degradation, phỏng vấn vẫn chạy, không lưu MongoDB
+        setExtractWarning("Không thể kết nối tới máy chủ để tạo phiên phỏng vấn. Vui lòng thử lại.");
+        setLoadingStep(null);
+        return;
       }
     }
 
     // Bước cuối: pre-generate video HR lipsync cho 3 câu baseline (D-ID Express API, cache dùng
     // chung toàn hệ thống — nhanh ngay từ lần render đầu tiên/gender, gần như instant sau đó).
-    // Guards:
-    //   1. sessionId phải tồn tại — nếu session creation thất bại thì room sẽ show error page,
-    //      không có lý do tiêu D-ID credits cho videos không ai dùng được.
-    //   2. Timeout — nếu D-ID render chậm (cold-cache), graceful fallback sang TTS thay vì chặn user.
+    // sessionId luôn có giá trị ở đây (đã return sớm phía trên nếu tạo session thất bại) —
+    // guard if (sessionId) chỉ còn để an toàn khi !hasAuthCredentials().
+    // Timeout — nếu D-ID render chậm (cold-cache), graceful fallback sang TTS thay vì chặn user.
     let videoUrls = null;
     if (sessionId) {
       try {
@@ -779,7 +788,21 @@ export function Interview() {
           {extractWarning && (
             <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-              <p className="text-xs leading-relaxed text-amber-900">{extractWarning}</p>
+              <p className="text-xs leading-relaxed text-amber-900">
+                {extractWarning}
+                {extractWarning.includes("hết lượt") && (
+                  <>
+                    {" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/pricing")}
+                      className="font-semibold text-[#630ed4] hover:underline"
+                    >
+                      Nâng cấp Pro
+                    </button>
+                  </>
+                )}
+              </p>
             </div>
           )}
 

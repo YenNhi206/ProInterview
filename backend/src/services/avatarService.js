@@ -192,8 +192,14 @@ async function generateAndUploadAudio(text, opts = {}) {
  */
 async function mirrorVideoToCloudinary(resultUrl) {
   try {
-    const res = await fetch(resultUrl, { signal: AbortSignal.timeout(30_000) });
-    if (!res.ok) return null;
+    // 60s (không phải 30s) — tải MP4 từ D-ID S3 (us-west-2, không CDN) có thể chậm tùy khoảng cách
+    // mạng tới Oregon; quan sát thực tế: 30s không đủ ngay cả từ datacenter, để timeout ngắn sẽ
+    // luôn rớt về raw URL (chính là nguồn gốc bug ngắt quãng đang sửa).
+    const res = await fetch(resultUrl, { signal: AbortSignal.timeout(60_000) });
+    if (!res.ok) {
+      logger.warn("avatar_video_mirror_fetch_not_ok", { status: res.status, resultUrl });
+      return null;
+    }
     const buffer = Buffer.from(await res.arrayBuffer());
 
     const cdn = await uploadToCloudinary(buffer, {
@@ -202,6 +208,9 @@ async function mirrorVideoToCloudinary(resultUrl) {
       format:        "mp4",
       overwrite:     false,
     });
+    if (!cdn?.url) {
+      logger.warn("avatar_video_mirror_upload_failed", { resultUrl });
+    }
     return cdn?.url ?? null;
   } catch (err) {
     logger.warn("avatar_video_mirror_failed", { error: err.message, resultUrl });
@@ -288,13 +297,20 @@ async function pollDIDTalk(talkId, timeoutMs = 120_000, signal) {
 
     interval = Math.min(interval * 1.3, 8000); // exponential backoff, max 8s
 
+    // Một lần poll timeout/lỗi mạng (10s) là chuyện tạm thời trong vòng poll 120s, không phải lỗi
+    // nghiêm trọng — trước đây để fetch() throw thẳng ra ngoài sẽ làm toàn bộ pregenerateVideos()
+    // (cả batch nhiều câu) fail oan vì 1 lần network hiccup. Nuốt lỗi tạm thời, tiếp tục poll tới deadline.
     const res = await fetch(`${DID_BASE}/talks/${talkId}`, {
       headers: didHeaders(),
       signal:  AbortSignal.timeout(10_000),
+    }).catch((err) => {
+      logger.warn("did_poll_transient_error", { talkId, error: err.message });
+      return null;
     });
 
-    if (!res.ok) continue;
-    const data = await res.json();
+    if (!res || !res.ok) continue;
+    const data = await res.json().catch(() => null);
+    if (!data) continue;
 
     if (data.status === "done") return data.result_url;
     if (data.status === "error") {
@@ -421,6 +437,13 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
  * Trước đây dùng Promise.all cho tất cả: D-ID throttle/stuck → 5 job × 120s = 2 phút
  * waste + 5× credit. Với probe-first: chỉ 1 job × 35s → fail fast, tiết kiệm 80% credit.
  *
+ * Batch ≤2 câu (đúng case follow-up — luôn đúng 2 câu) bỏ qua probe-first: "phần còn lại"
+ * sau probe chỉ có ≤1 câu nên chạy HOÀN TOÀN tuần tự — đo thực tế với persistVideo bật
+ * (mirror Cloudinary), 2 câu tuần tự mất ~195s, vượt timeout FE khiến cả 2 video bị bỏ dù
+ * câu 1 đã render xong từ giây 86. Chạy song song ngay đưa về ~max(Q1,Q2) thay vì tổng.
+ * An toàn vì generateVideoForQuestion tự fail-fast theo circuit breaker (đã có dữ liệu từ
+ * các lần gọi baseline ngay trước đó trong buổi) — không cần probe riêng cho batch nhỏ.
+ *
  * @param {string[]} questions - Danh sách câu hỏi text
  * @param {object} [opts]     - Shared options (gender, voiceId, avatarImageUrl)
  * @param {Function} [onProgress] - Callback(done, total) khi mỗi video xong
@@ -431,6 +454,26 @@ export async function pregenerateVideos(questions, opts = {}, onProgress, signal
   const total = questions.length;
   if (total === 0) return [];
   let done = 0;
+
+  if (total <= 2) {
+    const tasks = questions.map(async (questionText) => {
+      try {
+        const result = await generateVideoForQuestion(questionText, opts, signal);
+        didCircuit.recordSuccess();
+        done++;
+        onProgress?.(done, total);
+        return result;
+      } catch (err) {
+        done++;
+        onProgress?.(done, total);
+        const isClientAbort = err.message.includes("pregen_aborted_client_disconnect");
+        if (!isClientAbort) didCircuit.recordFailure();
+        logger.error("pregen_video_failed", { questionText: questionText.slice(0, 80), error: err.message });
+        return { videoUrl: null, fromCache: false, error: err.message };
+      }
+    });
+    return Promise.all(tasks);
+  }
 
   // Step 1: Probe — chạy Q1 trước để xác nhận D-ID đang hoạt động.
   // Probe cũng cập nhật circuit breaker để ảnh hưởng đến các request tiếp theo.
