@@ -66,7 +66,7 @@ function uniq(values) {
   return [...new Set((values || []).map((v) => String(v).trim()).filter(Boolean))];
 }
 
-function quota({ cvUsed = 0, cvLimit = 3, interviewUsed = 0, interviewLimit = 1, questions = 3, resetAt = new Date() } = {}) {
+function quota({ cvUsed = 0, cvLimit = 5, interviewUsed = 0, interviewLimit = 1, questions = 3, resetAt = new Date() } = {}) {
   return {
     cvAnalysisUsed: cvUsed,
     cvAnalysisLimit: cvLimit,
@@ -292,7 +292,7 @@ async function main() {
       role: "customer",
       plan: "starter_pro",
       planExpiresAt: addMonths(today, 2),
-      quota: quota({ cvUsed: 4, cvLimit: 20, interviewUsed: 2, interviewLimit: 10, questions: 5, resetAt: addDays(today, -1) }),
+      quota: quota({ cvUsed: 4, cvLimit: 20, interviewUsed: 2, interviewLimit: 3, questions: 5, resetAt: addDays(today, -1) }),
       desiredPosition: "Business Analyst",
       currentCompany: "Techcombank",
       skills: ["Business Analysis", "SQL", "Stakeholder Management"],

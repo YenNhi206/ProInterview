@@ -792,14 +792,19 @@ async function applySubscriptionPlanFromPayment(pay) {
   }
   const quota =
     plan === "elite_pro"
-      ? { cvAnalysisLimit: 999, interviewLimit: 999 }
-      : { cvAnalysisLimit: 20, interviewLimit: 10 };
+      ? { cvAnalysisLimit: 40, interviewLimit: 8, interviewQuestionsAllowed: 5 }
+      : { cvAnalysisLimit: 20, interviewLimit: 3, interviewQuestionsAllowed: 5 };
   await User.findByIdAndUpdate(pay.userId, {
     $set: {
       plan,
       planExpiresAt,
       "quota.cvAnalysisLimit": quota.cvAnalysisLimit,
       "quota.interviewLimit": quota.interviewLimit,
+      "quota.interviewQuestionsAllowed": quota.interviewQuestionsAllowed,
+      // Mỗi lần thanh toán thành công (kích hoạt/gia hạn) → trả lại quota đầy cho chu kỳ mới.
+      "quota.cvAnalysisUsed": 0,
+      "quota.interviewUsed": 0,
+      "quota.resetAt": new Date(),
     },
   });
 }

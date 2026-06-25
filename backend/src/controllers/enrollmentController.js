@@ -37,8 +37,11 @@ export const EnrollmentController = {
 
       const price = Number(course.price || 0);
       const courseMentor = course?.mentorId
-        ? await Mentor.findById(course.mentorId).select("pricing").lean()
+        ? await Mentor.findById(course.mentorId).select("pricing userId").lean()
         : null;
+      if (courseMentor?.userId && String(courseMentor.userId) === String(userId)) {
+        return res.status(400).json({ success: false, error: "Không thể tự ghi danh khóa học của chính mình." });
+      }
       const { rate: coursePlatformFeeRate } = resolveCoursePlatformFeeRate(courseMentor);
       const coursePlatformFee = Math.round(Math.max(0, price) * coursePlatformFeeRate);
       const existing = await Enrollment.findOne({ userId, courseId });

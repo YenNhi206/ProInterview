@@ -18,7 +18,7 @@ import {
   RefreshCw,
   BadgeCheck,
 } from "lucide-react";
-import { getPlans, isLoggedIn, getUser, hasAuthCredentials, CV_FREE_LIMIT } from "../../utils/auth/auth.js";
+import { getPlans, isLoggedIn, hasAuthCredentials, CV_FREE_LIMIT } from "../../utils/auth/auth.js";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
 import { apiUrl as expressApiUrl, isExpressBackendConfigured } from "../../api/http.js";
@@ -256,9 +256,8 @@ export function CVAnalysis() {
     }
     const res = await fetchCvQuota();
     if (!res.success || !res.quota) return;
-    const planKey = getUser()?.plan ?? "free";
-    const remaining = computeCvRemainingFromQuota(res.quota, planKey);
-    setCvRemaining(Number.isFinite(remaining) ? remaining : 999);
+    const remaining = computeCvRemainingFromQuota(res.quota);
+    setCvRemaining(remaining);
     setCvQuotaLimit(Number(res.quota.cvAnalysisLimit) || CV_FREE_LIMIT);
   }, []);
 

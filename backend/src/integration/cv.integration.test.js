@@ -83,7 +83,7 @@ describe("CV API integration (MongoDB)", () => {
       name: "CV Test",
       email: `cv-int-${Date.now()}@test.local`,
       role: "customer",
-      quota: { cvAnalysisUsed: 0, cvAnalysisLimit: 3 },
+      quota: { cvAnalysisUsed: 0, cvAnalysisLimit: 5 },
     });
 
     const res = await fetch(`${http.baseUrl}/api/cv/analyses`, {
@@ -152,7 +152,7 @@ describe("CV API integration (MongoDB)", () => {
     const user = await User.create({
       name: "CV Quota",
       email: `cv-quota-${Date.now()}@test.local`,
-      quota: { cvAnalysisUsed: 3, cvAnalysisLimit: 3 },
+      quota: { cvAnalysisUsed: 5, cvAnalysisLimit: 5 },
     });
 
     const res = await fetch(`${http.baseUrl}/api/cv/analyses`, {

@@ -10,6 +10,8 @@ import {
 import { resolveTopCompetencies } from "../services/competencyFramework.js";
 import { BASELINE_QUESTIONS } from "../config/baselineQuestions.js";
 import { logger } from "../config/logger.js";
+import { syncPlanExpiry } from "../services/plansService.js";
+import { mergeInterviewAnswersForEval } from "../utils/mergeInterviewAnswers.js";
 
 // ── Accumulation helper ───────────────────────────────────────────────────────
 /**
@@ -114,6 +116,7 @@ export const InterviewsController = {
       } = req.body;
       const userId = req.userId;
 
+      await syncPlanExpiry(userId);
       const user = await User.findById(userId);
       if (user.quota.interviewUsed >= user.quota.interviewLimit) {
         return res.status(403).json({ success: false, error: "Bạn đã hết lượt phỏng vấn thử miễn phí." });
@@ -323,6 +326,7 @@ export const InterviewsController = {
       // Quota pre-check BEFORE calling LLM — prevents token waste when user has no quota left.
       // createSession also checks quota, but that runs after the LLM call. Checking here ensures
       // we never consume expensive LLM tokens for a request that will be rejected at session creation.
+      await syncPlanExpiry(req.userId);
       const userForQuota = await User.findById(req.userId).select("quota").lean();
       if (!userForQuota) {
         return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
@@ -513,8 +517,7 @@ export const InterviewsController = {
         });
       }
 
-      // Ưu tiên answers từ request body (tránh race condition với saveAnswer fire-and-forget)
-      const answersToEval = answers.length > 0 ? answers : session.answers;
+      const answersToEval = mergeInterviewAnswersForEval(session.answers, answers);
 
       // Resolve questions: session > body > build từ questionText trong answers
       let questionsToUse = session.questions;

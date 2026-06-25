@@ -1,7 +1,26 @@
 const LOCAL_BACKEND = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?/i;
+const ALLOWED_MEDIA_HOSTS = new Set(["res.cloudinary.com"]);
 
 function publicBase() {
   return (process.env.BACKEND_URL || "").replace(/\/$/, "");
+}
+
+/**
+ * Chỉ cho phép URL trỏ tới file đã upload thật qua hệ thống (local /uploads hoặc
+ * Cloudinary) — chặn mentor dán link ảnh/video ngoài (hotlink) vào nội dung khóa học.
+ * Rỗng luôn hợp lệ (field optional).
+ */
+export function isAllowedMediaUrl(value) {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return true;
+  if (raw.startsWith("/uploads/")) return true;
+  try {
+    const u = new URL(raw);
+    if (u.pathname.startsWith("/uploads/")) return true;
+    return ALLOWED_MEDIA_HOSTS.has(u.hostname);
+  } catch {
+    return false;
+  }
 }
 
 /** Lưu MongoDB dạng `/uploads/...` — tránh gắn cứng host/port. */

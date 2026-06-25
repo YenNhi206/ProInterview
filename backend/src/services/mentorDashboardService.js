@@ -10,7 +10,6 @@ import { User } from "../models/User.js";
 import { InterviewSession } from "../models/InterviewSession.js";
 import { MentorKnowledge } from "../models/MentorKnowledge.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
-import { recalcCourseReviewStats } from "./reviewsService.js";
 import {
   mentorCommissionConfig,
   resolveBookingPlatformFeeRate,
@@ -1158,7 +1157,9 @@ export async function submitMentorPeerReview(userId, courseId, body) {
     { upsert: true, new: true, setDefaultsOnInsert: true },
   ).lean();
 
-  await recalcCourseReviewStats(course._id);
+  // Đánh giá chéo mentor KHÔNG ảnh hưởng course.stats.rating công khai (xem
+  // recalcCourseReviewStats trong reviewsService.js) — chỉ hiển thị riêng qua
+  // GET /api/courses/:id/peer-reviews, nên không cần recalc ở đây.
 
   const avg = (contentRating + qualityRating + priceValueRating) / 3;
   return {

@@ -618,6 +618,9 @@ export async function createBooking(userId, body) {
   if (!mentor.userId) {
     return { ok: false, status: 404, error: "Mentor chưa có tài khoản đăng nhập — không thể đặt lịch." };
   }
+  if (String(mentor.userId) === uid) {
+    return { ok: false, status: 400, error: "Không thể tự đặt lịch với chính mình." };
+  }
   const mentorAccount = await User.findById(mentor.userId).select("role isActive").lean();
   if (!mentorAccount || mentorAccount.role !== "mentor" || mentorAccount.isActive === false) {
     return { ok: false, status: 404, error: "Mentor không khả dụng để đặt lịch." };
@@ -1476,6 +1479,17 @@ export async function completeMentorBooking(mentorUserId, rawId) {
       error: "Chưa tới giờ bắt đầu buổi học. Bạn có thể vào phòng trước nhưng chỉ kết thúc sau khi buổi đã bắt đầu.",
     };
   }
+  // Cùng grace period với báo no-show của học viên (15') — tránh mentor "chốt" completed
+  // trước khi học viên kịp báo no-show nếu mentor không thực sự tham gia.
+  const startAt = parseBookingDateTime(booking.date, booking.timeSlot);
+  const completeGraceMs = 15 * 60 * 1000;
+  if (startAt && Number.isFinite(startAt.getTime()) && startAt.getTime() + completeGraceMs > Date.now()) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Chỉ đánh dấu hoàn thành sau khi buổi đã bắt đầu tối thiểu 15 phút.",
+    };
+  }
 
   booking.status = "completed";
   booking.completedAt = new Date();
@@ -1838,7 +1852,13 @@ export async function cancelMyBooking(userId, rawId, body) {
 
   const sessionAt = parseBookingDateTime(booking.date, booking.timeSlot);
   const hoursUntilStart = sessionAt instanceof Date ? (sessionAt.getTime() - Date.now()) / 3_600_000 : Number.POSITIVE_INFINITY;
-  const feePercent = userCancellationFeePercent(hoursUntilStart);
+  // Nếu lần dời lịch gần nhất là do mentor chủ động (khách không chọn giờ này) — miễn phí hủy
+  // hoàn toàn, không áp bậc phí hủy muộn thông thường (khách không có lỗi).
+  const lastReschedule = Array.isArray(booking.rescheduleHistory) && booking.rescheduleHistory.length
+    ? booking.rescheduleHistory[booking.rescheduleHistory.length - 1]
+    : null;
+  const rescheduledByMentor = lastReschedule?.changedBy === "mentor";
+  const feePercent = rescheduledByMentor ? 0 : userCancellationFeePercent(hoursUntilStart);
   const refundPercent = Math.max(0, 100 - feePercent);
 
   let settlement = await applyUserCancellationLedger(booking, refundPercent, { dryRun: true });
