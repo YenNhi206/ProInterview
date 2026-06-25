@@ -369,6 +369,43 @@ describe("Course enrollment bank transfer (CK)", () => {
     const paidLedger = await Payment.findById(ledger._id).lean();
     assert.equal(paidLedger.status, "success");
   });
+
+  it("mentor không thể tự ghi danh khóa học của chính mình → 400", async () => {
+    const { mentorUser, mentor } = await createVerifiedMentor();
+    const course = await createPublishedCourse(mentor._id, 599000);
+
+    const enrollRes = await fetch(`${http.baseUrl}/api/courses/${course._id}/enroll`, {
+      method: "POST",
+      headers: bearer(mentorUser._id),
+      body: JSON.stringify({ paymentMethod: "transfer", orderNum: `PI-SELF-${Date.now()}` }),
+    });
+    assert.equal(enrollRes.status, 400);
+    const body = await enrollRes.json();
+    assert.match(body.error, /tự ghi danh/);
+  });
+
+  it("mentor không thể tự đánh giá khóa học của chính mình → 400", async () => {
+    const { mentorUser, mentor } = await createVerifiedMentor();
+    const course = await createPublishedCourse(mentor._id, 0);
+    // Mô phỏng enrollment có sẵn (vd. dữ liệu cũ/đường khác) — review service phải tự chặn độc lập.
+    await Enrollment.create({
+      userId: mentorUser._id,
+      courseId: course._id,
+      pricePaid: 0,
+      paymentStatus: "paid",
+    });
+
+    const { createReview } = await import("../services/reviewsService.js");
+    const res = await createReview(String(mentorUser._id), {
+      targetType: "course",
+      targetId: String(course._id),
+      rating: 5,
+      comment: "Tự khen khóa học",
+    });
+    assert.equal(res.ok, false);
+    assert.equal(res.status, 400);
+    assert.match(res.error, /tự đánh giá/);
+  });
 });
 
 describe("CK — lỗi nghiệp vụ & phân quyền", () => {

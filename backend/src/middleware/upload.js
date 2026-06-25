@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { isUploadSizeAllowed } from "../utils/securityGuards.js";
 
@@ -17,7 +18,9 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    // crypto.randomBytes (không phải Math.random) — file CV/JD chứa PII, /uploads public nên
+    // tên file phải không đoán/brute-force được.
+    const uniqueSuffix = Date.now() + "-" + crypto.randomBytes(16).toString("hex");
     const ext = path.extname(file.originalname);
     cb(null, file.fieldname + "-" + uniqueSuffix + ext);
   },

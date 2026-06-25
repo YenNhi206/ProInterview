@@ -12,6 +12,7 @@ import {
   serializeCourseForApi,
   resolveStoredUploadUrl,
   normalizeUploadPathForStorage,
+  isAllowedMediaUrl,
 } from "../utils/resolveStoredUploadUrl.js";
 import * as courseMentorInsights from "../services/courseMentorInsightsService.js";
 import * as reviewsService from "../services/reviewsService.js";
@@ -24,7 +25,7 @@ function normalizeCoursePayload(body = {}) {
     lessons: (Array.isArray(ch.lessons) ? ch.lessons : []).map((lesson, lidx) => ({
       title: String(lesson.title || `Bài ${lidx + 1}`).trim(),
       type: "video",
-      videoUrl: String(lesson.videoUrl || lesson.videoFileName || "").trim(),
+      videoUrl: normalizeUploadPathForStorage(lesson.videoUrl || lesson.videoFileName || ""),
       durationMinutes: Number(lesson.duration || lesson.durationMinutes || 0),
       order: lidx + 1,
       isFree: Boolean(lesson.isPreview || lesson.isFree),
@@ -58,13 +59,32 @@ function normalizeCoursePayload(body = {}) {
     level: ["basic", "intermediate", "advanced"].includes(String(body.level))
       ? String(body.level)
       : "basic",
-    price: Number(body.price || 0),
-    isFree: Number(body.price || 0) <= 0,
+    price: Math.max(0, Number(body.price || 0)),
+    isFree: Math.max(0, Number(body.price || 0)) <= 0,
     tags,
     topics: [topic],
     whatYoullLearn,
     modules,
   };
+}
+
+/**
+ * Trả về tên field đầu tiên có link media không hợp lệ (hotlink ngoài), hoặc null nếu ổn.
+ * Validate trên giá trị RAW từ request body — normalizeUploadPathForStorage có heuristic
+ * tự rewrite path đuôi ảnh/video thành "/uploads/..." (bỏ host gốc), nên phải chặn TRƯỚC
+ * khi normalize, không phải sau (nếu không hotlink sẽ bị "tẩy trắng" qua được check).
+ */
+function findInvalidMediaUrl(body = {}) {
+  if (!isAllowedMediaUrl(body.thumbnail)) return "ảnh đại diện khóa học";
+  const chapters = Array.isArray(body.chapters) ? body.chapters : [];
+  for (const ch of chapters) {
+    const lessons = Array.isArray(ch.lessons) ? ch.lessons : [];
+    for (const lesson of lessons) {
+      const videoUrl = lesson.videoUrl || lesson.videoFileName || "";
+      if (!isAllowedMediaUrl(videoUrl)) return `video bài "${lesson.title || "không tên"}"`;
+    }
+  }
+  return null;
 }
 
 export const CoursesController = {
@@ -185,6 +205,13 @@ export const CoursesController = {
       const mentor = await Mentor.findOne({ userId });
       if (!mentor) return res.status(403).json({ success: false, error: "Tài khoản chưa được thiết lập hồ sơ Mentor" });
 
+      const invalidMedia = findInvalidMediaUrl(req.body ?? {});
+      if (invalidMedia) {
+        return res.status(400).json({
+          success: false,
+          error: `Link ${invalidMedia} không hợp lệ — chỉ chấp nhận file đã upload qua hệ thống.`,
+        });
+      }
       const payload = normalizeCoursePayload(req.body ?? {});
       if (!payload.title) {
         return res.status(400).json({ success: false, error: "Thiếu tiêu đề khóa học." });
@@ -215,7 +242,30 @@ export const CoursesController = {
         return res.status(403).json({ success: false, error: "Bạn không có quyền chỉnh sửa khóa học này" });
       }
 
+      const invalidMedia = findInvalidMediaUrl(req.body ?? {});
+      if (invalidMedia) {
+        return res.status(400).json({
+          success: false,
+          error: `Link ${invalidMedia} không hợp lệ — chỉ chấp nhận file đã upload qua hệ thống.`,
+        });
+      }
       const payload = normalizeCoursePayload(req.body ?? {});
+
+      // Khóa học đang public (published) hoặc đã có bản chờ duyệt — lưu vào pendingUpdate,
+      // KHÔNG ghi đè trực tiếp nội dung đang hiển thị public. Tránh mentor né luồng admin
+      // duyệt nội dung/giá bằng cách gọi update() thay vì publish() (xem approveCourse ở
+      // adminController.js — đó là nơi duy nhất áp pendingUpdate vào khóa học live).
+      if (course.status === "published" || course.status === "pending_update") {
+        course.pendingUpdate = payload;
+        course.status = "pending_update";
+        await course.save();
+        return res.json({
+          success: true,
+          course: serializeCourseForApi(course),
+          message: "Đã lưu bản chỉnh sửa, chờ admin duyệt trước khi áp dụng cho khóa học đang public.",
+        });
+      }
+
       const updated = await Course.findByIdAndUpdate(id, payload, { new: true });
       res.json({ success: true, course: serializeCourseForApi(updated) });
     } catch (error) {
@@ -238,6 +288,13 @@ export const CoursesController = {
 
       // Published -> lưu bản chỉnh sửa vào pendingUpdate, không làm khóa public biến mất.
       if (course.status === "published" || course.status === "pending_update") {
+        const invalidMedia = findInvalidMediaUrl(req.body ?? {});
+        if (invalidMedia) {
+          return res.status(400).json({
+            success: false,
+            error: `Link ${invalidMedia} không hợp lệ — chỉ chấp nhận file đã upload qua hệ thống.`,
+          });
+        }
         const pendingPayload = normalizeCoursePayload(req.body ?? {});
         if (!pendingPayload.title || !pendingPayload.modules?.length) {
           return res.status(400).json({

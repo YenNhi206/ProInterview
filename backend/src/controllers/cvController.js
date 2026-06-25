@@ -2,6 +2,7 @@ import { CVAnalysis } from "../models/CVAnalysis.js";
 import { User } from "../models/User.js";
 import { validateSaveAnalysis, formatValidationError } from "../dto/cvAnalysis.dto.js";
 import { logger } from "../config/logger.js";
+import { syncPlanExpiry } from "../services/plansService.js";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ export const CVController = {
   /** Lấy quota còn lại */
   getQuota: async (req, res) => {
     try {
+      await syncPlanExpiry(req.userId);
       const user = await User.findById(req.userId).select("quota");
       if (!user) return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
       res.json({ success: true, quota: user.quota });
@@ -103,6 +105,7 @@ export const CVController = {
     }
 
     // ── Step 2: Kiểm tra quota ────────────────────────────────────────────
+    await syncPlanExpiry(userId);
     const user = await User.findById(userId).select("+quota").catch(() => null);
     if (!user) {
       return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });

@@ -816,7 +816,7 @@ export function activateAllPlans() {
 }
 
 const CV_COUNT_KEY = "prointerview_cv_count";
-export const CV_FREE_LIMIT = 3;
+export const CV_FREE_LIMIT = 5;
 export const CV_STARTER_LIMIT = 20;
 
 export function getCVAnalysisCount() {

@@ -167,3 +167,59 @@ describe("createReview", () => {
     assert.equal(dup.status, 409);
   });
 });
+
+describe("recalcCourseReviewStats — không trộn đánh giá chéo mentor vào rating công khai", () => {
+  it("đánh giá chéo mentor (MentorPeerReview) không ảnh hưởng course.stats", async () => {
+    const { Mentor } = await import("../models/Mentor.js");
+    const { MentorPeerReview } = await import("../models/MentorPeerReview.js");
+    const { recalcCourseReviewStats } = await import("./reviewsService.js");
+
+    const course = await createPublishedCourse();
+    const reviewerUser = await User.create({
+      name: "Mentor Reviewer",
+      email: `peer-reviewer-${Date.now()}@test.local`,
+      role: "mentor",
+    });
+    let reviewerMentor = await Mentor.findOne({ userId: reviewerUser._id });
+    if (!reviewerMentor) {
+      reviewerMentor = await Mentor.create({
+        userId: reviewerUser._id,
+        name: "Mentor Reviewer",
+        title: "Senior",
+        company: "ProInterview",
+        pricePerHour: 100000,
+      });
+    }
+
+    // 2 mentor "thông đồng" tự cho nhau điểm tối đa — không được phép ảnh hưởng rating công khai.
+    await MentorPeerReview.create({
+      reviewerId: reviewerMentor._id,
+      courseId: course._id,
+      contentRating: 5,
+      qualityRating: 5,
+      priceValueRating: 5,
+      feedback: "Tuyệt vời",
+    });
+
+    await recalcCourseReviewStats(course._id);
+    let stored = await Course.findById(course._id).lean();
+    assert.equal(stored.stats.rating, 0);
+    assert.equal(stored.stats.reviewCount, 0);
+
+    // Học viên thật review 3 sao — chỉ con số này được phản ánh, không bị kéo lên bởi peer review 5/5/5.
+    const student = await createCustomer();
+    await Enrollment.create({ userId: student._id, courseId: course._id, paymentStatus: "paid" });
+    const { createReview } = await import("./reviewsService.js");
+    const res = await createReview(String(student._id), {
+      targetType: "course",
+      targetId: String(course._id),
+      rating: 3,
+      comment: "Nội dung tạm được, cần cải thiện thêm phần thực hành.",
+    });
+    assert.equal(res.ok, true);
+
+    stored = await Course.findById(course._id).lean();
+    assert.equal(stored.stats.rating, 3);
+    assert.equal(stored.stats.reviewCount, 1);
+  });
+});

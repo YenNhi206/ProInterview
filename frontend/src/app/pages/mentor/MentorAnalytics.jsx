@@ -439,7 +439,7 @@ export function MentorAnalytics() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal header — gradient */}
-              <div className="relative overflow-hidden bg-gradient-to-r from-[#630ed4] to-[#8037f4] px-5 py-5 text-white sm:px-6">
+              <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#630ed4] to-[#8037f4] px-5 py-5 text-white sm:px-6">
                 <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" aria-hidden />
                 <div className="relative flex items-center justify-between gap-4">
                   <div className="flex min-w-0 items-center gap-4">
@@ -470,7 +470,7 @@ export function MentorAnalytics() {
               </div>
 
               {/* Quick stats */}
-              <div className="grid grid-cols-3 gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 sm:px-6">
+              <div className="grid shrink-0 grid-cols-3 gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 sm:px-6">
                 <div className="rounded-xl border border-slate-100 bg-white px-3 py-3 text-center shadow-sm">
                   <p className="mentor-label mb-1">Số buổi</p>
                   <p className="mentor-stat-num mentor-stat-num--card">{selectedMentee.totalSessions}</p>
@@ -490,7 +490,7 @@ export function MentorAnalytics() {
               </div>
 
               {/* Modal body */}
-              <div className="overflow-y-auto p-5 sm:p-6">
+              <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
                 <div className="grid gap-5 md:grid-cols-2">
                   {/* STAR chart */}
                   <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
@@ -582,7 +582,7 @@ export function MentorAnalytics() {
               </div>
 
               {/* Modal footer */}
-              <div className="flex justify-end border-t border-slate-100 bg-slate-50/50 px-5 py-4 sm:px-6">
+              <div className="flex shrink-0 justify-end border-t border-slate-100 bg-slate-50/50 px-5 py-4 sm:px-6">
                 <button
                   type="button"
                   onClick={() => setSelectedMentee(null)}

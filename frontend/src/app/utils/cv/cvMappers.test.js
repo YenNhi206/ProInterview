@@ -266,40 +266,28 @@ describe("mapAnalysisDocToHistoryItem / mapAnalysisDocToUiResult", () => {
 describe("computeCvRemainingFromQuota", () => {
   it("returns limit minus used for free plan", () => {
     assert.equal(
-      computeCvRemainingFromQuota(
-        { cvAnalysisLimit: 3, cvAnalysisUsed: 1 },
-        "free",
-      ),
-      2,
+      computeCvRemainingFromQuota({ cvAnalysisLimit: 5, cvAnalysisUsed: 1 }),
+      4,
     );
   });
 
-  it("returns Infinity for elite_pro", () => {
+  it("returns limit minus used for elite_pro", () => {
     assert.equal(
-      computeCvRemainingFromQuota(
-        { cvAnalysisLimit: 3, cvAnalysisUsed: 3 },
-        "elite_pro",
-      ),
-      Number.POSITIVE_INFINITY,
+      computeCvRemainingFromQuota({ cvAnalysisLimit: 40, cvAnalysisUsed: 3 }),
+      37,
     );
   });
 
-  it("returns 0 when used equals limit on free plan", () => {
+  it("returns 0 when used equals limit", () => {
     assert.equal(
-      computeCvRemainingFromQuota(
-        { cvAnalysisLimit: 3, cvAnalysisUsed: 3 },
-        "free",
-      ),
+      computeCvRemainingFromQuota({ cvAnalysisLimit: 3, cvAnalysisUsed: 3 }),
       0,
     );
   });
 
   it("never returns negative remaining", () => {
     assert.equal(
-      computeCvRemainingFromQuota(
-        { cvAnalysisLimit: 2, cvAnalysisUsed: 99 },
-        "free",
-      ),
+      computeCvRemainingFromQuota({ cvAnalysisLimit: 2, cvAnalysisUsed: 99 }),
       0,
     );
   });

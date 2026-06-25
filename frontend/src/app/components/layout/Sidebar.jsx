@@ -107,7 +107,7 @@ export function AppSidebar() {
   const isPro = !!plans?.starterPro && !isElite;
   const upgradeTitle = isPro ? "Nâng cấp lên Elite" : "Nâng cấp lên Pro";
   const upgradeButton = isPro ? "Xem gói Elite →" : "Xem gói Pro →";
-  const upgradeHint = isPro ? "Mở khóa toàn bộ tính năng" : "AI không giới hạn";
+  const upgradeHint = isPro ? "Mở khóa toàn bộ tính năng" : "Mở khóa thêm lượt luyện tập";
   const mainNavItems = !loggedIn
     ? guestMainItems
     : isMentor

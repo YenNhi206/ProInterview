@@ -14,6 +14,13 @@ function isMongoReady() {
   return mongoose.connection.readyState === 1;
 }
 
+/**
+ * Chỉ tính từ review THẬT của học viên đã ghi danh. Đánh giá chéo giữa mentor (MentorPeerReview)
+ * KHÔNG được trộn vào đây — đó là tín hiệu chuyên môn nội bộ, hiển thị riêng qua
+ * GET /api/courses/:id/peer-reviews (có nhãn "Đánh giá chéo mentor"), không phải rating công
+ * khai mà khách hàng dùng để quyết định mua khóa học. Trộn vào sẽ tạo kẽ hở: 2 mentor thông
+ * đồng tự cho nhau điểm cao để thổi phồng rating công khai của chính khóa học mình.
+ */
 export async function recalcCourseReviewStats(courseId) {
   if (!mongoose.isValidObjectId(String(courseId))) return;
   const oid = new mongoose.Types.ObjectId(String(courseId));
@@ -24,30 +31,11 @@ export async function recalcCourseReviewStats(courseId) {
   ]);
   const studentRow = studentAgg[0];
   const studentN = studentRow?.n ?? 0;
-  const studentAvg = studentRow?.avgRating ?? 0;
-
-  const peerRows = await MentorPeerReview.find({
-    courseId: oid,
-    isVisibleToOwner: { $ne: false },
-  })
-    .select("contentRating qualityRating priceValueRating")
-    .lean();
-  const peerRatings = peerRows.map(
-    (r) =>
-      (Number(r.contentRating || 0) + Number(r.qualityRating || 0) + Number(r.priceValueRating || 0)) /
-      3,
-  );
-  const peerN = peerRatings.length;
-  const peerAvg = peerN ? peerRatings.reduce((sum, n) => sum + n, 0) / peerN : 0;
-
-  const totalN = studentN + peerN;
-  const combinedAvg =
-    totalN > 0 ? (studentAvg * studentN + peerAvg * peerN) / totalN : 0;
-  const avg = combinedAvg != null ? Math.round(combinedAvg * 10) / 10 : 0;
+  const avg = studentRow?.avgRating != null ? Math.round(studentRow.avgRating * 10) / 10 : 0;
 
   await Course.updateOne(
     { _id: courseId },
-    { $set: { "stats.rating": avg, "stats.reviewCount": totalN } },
+    { $set: { "stats.rating": avg, "stats.reviewCount": studentN } },
   );
 }
 
@@ -350,13 +338,22 @@ export async function createReview(userId, body) {
   if (!mongoose.isValidObjectId(targetIdRaw)) return { ok: false, status: 400, error: "targetId không hợp lệ." };
 
   if (targetType === "mentor") {
-    const m = await Mentor.findById(targetIdRaw).select("_id isActive").lean();
+    const m = await Mentor.findById(targetIdRaw).select("_id isActive userId").lean();
     if (!m || m.isActive === false) return { ok: false, status: 404, error: "Không tìm thấy mentor." };
+    if (m.userId && String(m.userId) === uid) {
+      return { ok: false, status: 400, error: "Không thể tự đánh giá chính mình." };
+    }
   } else {
-    const c = await Course.findById(targetIdRaw).select("_id status").lean();
+    const c = await Course.findById(targetIdRaw).select("_id status mentorId").lean();
     if (!c) return { ok: false, status: 404, error: "Không tìm thấy khóa học." };
     if (c.status !== "published") {
       return { ok: false, status: 400, error: "Chỉ đánh giá khóa học đã xuất bản." };
+    }
+    if (c.mentorId) {
+      const owner = await Mentor.findById(c.mentorId).select("userId").lean();
+      if (owner?.userId && String(owner.userId) === uid) {
+        return { ok: false, status: 400, error: "Không thể tự đánh giá khóa học của chính mình." };
+      }
     }
     const enrollment = await Enrollment.findOne({ userId: uid, courseId: targetIdRaw }).lean();
     if (!enrollment || !enrollmentAccessGranted(enrollment)) {

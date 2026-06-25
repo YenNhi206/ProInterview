@@ -12,7 +12,7 @@ export const SUBSCRIPTION_PLANS = {
     badge: "PHỔ BIẾN",
     accentColor: "#8037f4",
     features: [
-      "10 buổi AI Interview / tháng",
+      "3 phiên AI Interview / tháng (5 câu hỏi/phiên)",
       "Nhận diện giọng nói tiếng Việt",
       "20 lượt phân tích CV/JD / tháng",
       "Phản hồi & đánh giá chi tiết",
@@ -26,8 +26,8 @@ export const SUBSCRIPTION_PLANS = {
     badge: "TỐT NHẤT",
     accentColor: "#93f72b",
     features: [
-      "AI Interview KHÔNG GIỚI HẠN",
-      "CV/JD phân tích KHÔNG GIỚI HẠN",
+      "8 phiên AI Interview / tháng (5 câu hỏi/phiên)",
+      "40 lượt phân tích CV/JD / tháng",
       "Nhận diện giọng nói tiếng Việt",
       "Hỗ trợ ưu tiên 24/7",
     ],
