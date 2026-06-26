@@ -100,10 +100,10 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
           alt=""
           className="size-12 rounded-full border-2 border-violet-100 object-cover sm:size-14 md:size-[88px]"
         />
-        {mentor.available ? (
+        {mentor.isOnline ? (
           <span
             className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white bg-emerald-500 md:bottom-0.5 md:right-0.5 md:size-3.5"
-            title="Có lịch trống"
+            title="Đang hoạt động"
           />
         ) : null}
       </button>
@@ -170,7 +170,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
         <button
           type="button"
           onClick={onBook}
-          className="w-full rounded-md bg-[#8037f4] px-2 py-1.5 text-[11px] font-bold leading-none text-white shadow-sm transition-colors hover:bg-violet-700 sm:py-2 sm:text-xs md:mt-1 md:rounded-lg md:px-4 md:py-2.5 md:text-sm"
+          className="w-full rounded-md bg-lime-400 px-2 py-1.5 text-[11px] font-bold leading-none text-violet-950 shadow-sm transition-colors hover:bg-lime-300 sm:py-2 sm:text-xs md:mt-1 md:rounded-lg md:px-4 md:py-2.5 md:text-sm"
         >
           Đặt lịch
         </button>

@@ -97,7 +97,7 @@ def rewrite_bullets(
         return {"rewritten_bullets": []}
 
     prompt = _build_bullet_prompt(bullets, missing_skills, scores, jd_text)
-    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=1500, temperature=0.3,
+    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=16384, temperature=0.3,
                       ollama_model=model)
     result = extract_json(raw, fallback={"rewritten_bullets": []})
 
@@ -210,7 +210,7 @@ def suggest_missing_skills(
         taxonomy_context = build_taxonomy_context_for_prompt(enriched)
 
     prompt = _build_missing_prompt(missing_skills, cv_text, jd_text, taxonomy_context, inferred_role)
-    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=1400, temperature=0.25,
+    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=16384, temperature=0.25,
                       ollama_model=model)
     return extract_json(raw, fallback={"missing_skill_suggestions": []})
 
@@ -267,7 +267,7 @@ def generate_summary(
 ) -> str:
     """Returns plain string summary."""
     prompt = _build_summary_prompt(matching, missing, scores, rewritten_count)
-    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=300, temperature=0.3,
+    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=8192, temperature=0.3,
                       ollama_model=model)
     parsed = extract_json(raw, fallback={"summary": raw[:400]})
     return parsed.get("summary", raw[:400])

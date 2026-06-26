@@ -36,11 +36,16 @@ export function AdminUsers() {
     }
   };
 
-  const filtered = users.filter(
-    (u) =>
-      u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filtered = users
+    .filter(
+      (u) =>
+        u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+    .sort((a, b) => {
+      if (a.isOnline === b.isOnline) return 0;
+      return a.isOnline ? -1 : 1;
+    });
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

@@ -46,3 +46,13 @@ export const baselineTrialLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, error: "Quá nhiều yêu cầu. Thử lại sau ít phút." },
 });
+
+/** CV Analysis — tối đa 5 lần phân tích/phút/user. Chống bot đốt Gemini quota. */
+export const cvAnalyzeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isProd ? 5 : 30,
+  keyGenerator: (req) => req.userId ?? req.ip,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Quá nhiều yêu cầu phân tích. Vui lòng thử lại sau 1 phút." },
+});

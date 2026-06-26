@@ -7,8 +7,8 @@ export function filterHighlightKeywords(list) {
   return arr.map((k) => String(k ?? "").trim()).filter((k) => k.length >= 2);
 }
 
-/** Số lượt CV còn lại từ quota API. */
-export function computeCvRemainingFromQuota(quota) {
+/** Số lượt CV còn lại từ quota API (elite = không giới hạn). */
+export function computeCvRemainingFromQuota(quota, planKey) {
   if (!quota) return 0;
   const limit = Number(quota.cvAnalysisLimit) || 5;
   const used = Number(quota.cvAnalysisUsed) || 0;
@@ -241,16 +241,43 @@ export function mapPythonCvPipelineToAnalysis(raw, { usedFallback = false, field
   const m = raw.match ?? {};
   const s = raw.scores ?? null;
   const sugg = raw.suggestions ?? {};
+  const isSemantic = Boolean(m._semantic);
 
   const matchedSkills = m.matching ?? [];
   const missingSkills = m.missing ?? [];
+  const transferable = m._transferable ?? [];
 
-  const strengths =
-    sugg.strengths ??
-    matchedSkills.slice(0, 6).map((sk) => `Có kỹ năng "${sk}" phù hợp với yêu cầu`);
-  const weaknesses =
-    sugg.weaknesses ??
-    missingSkills.slice(0, 6).map((sk) => `Thiếu kỹ năng "${sk}" cần bổ sung`);
+  // Semantic: dùng evidence cụ thể thay vì chỉ tên kỹ năng
+  const strengths = isSemantic && (m._matched_details?.length ?? 0) > 0
+    ? m._matched_details.slice(0, 6).map((d) =>
+        d.match_type === "implicit"
+          ? `${d.requirement}: ${d.evidence ?? "có trong CV (suy luận)"}`
+          : d.match_type === "transferable"
+            ? `${d.requirement}: có kỹ năng tương đương (${d.evidence ?? "chuyển đổi"})`
+            : d.evidence
+              ? `${d.requirement}: ${d.evidence}`
+              : `Đáp ứng yêu cầu "${d.requirement}"`
+      )
+    : sugg.strengths ??
+      matchedSkills.slice(0, 6).map((sk) => `Có kỹ năng "${sk}" phù hợp với yêu cầu`);
+
+  const weaknesses = isSemantic && (m._missing_details?.length ?? 0) > 0
+    ? m._missing_details.slice(0, 6).map((d) =>
+        d.importance === "critical"
+          ? `[Bắt buộc] Thiếu "${d.requirement}"`
+          : `Thiếu "${d.requirement}"`
+      )
+    : sugg.weaknesses ??
+      missingSkills.slice(0, 6).map((sk) => `Thiếu kỹ năng "${sk}" cần bổ sung`);
+
+  const missingDetails = isSemantic
+    ? (m._missing_details ?? []).map((d) => ({
+        requirement: d.requirement,
+        importance:  d.importance ?? "important",
+        skillType:   d.skill_type ?? "market_standard",
+        gapSize:     d.gap_size ?? "medium",
+      }))
+    : [];
 
   const bulletSuggestions = (sugg.rewritten_bullets ?? []).map((b) => ({
     type: "fix",
@@ -313,13 +340,20 @@ export function mapPythonCvPipelineToAnalysis(raw, { usedFallback = false, field
     },
     strengths,
     weaknesses,
+    missingDetails,
     suggestions: [...bulletSuggestions, ...missSuggestions],
-    summary: sugg.executive_summary ?? s?.summary ?? "",
+    summary: m._overall_assessment || sugg.executive_summary || s?.summary || "",
     cvText: raw.resume_text ?? "",
     jdText: raw.jd_text ?? "",
     position: raw.position ?? null,
     company: null,
     field: field ?? raw.field ?? null,
+    transferableSkills: transferable.map((t) => ({
+      requirement: t.requirement ?? "",
+      existingSkill: t.existing_skill ?? "",
+      estimatedTime: t.estimated_time ?? "",
+    })),
+    isSemantic,
   };
 }
 

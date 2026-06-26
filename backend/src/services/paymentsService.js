@@ -798,13 +798,11 @@ async function applySubscriptionPlanFromPayment(pay) {
     $set: {
       plan,
       planExpiresAt,
-      "quota.cvAnalysisLimit": quota.cvAnalysisLimit,
-      "quota.interviewLimit": quota.interviewLimit,
+      "quota.cvAnalysisLimit":           quota.cvAnalysisLimit,
+      "quota.cvAnalysisUsed":            0,
+      "quota.interviewLimit":            quota.interviewLimit,
+      "quota.interviewUsed":             0,
       "quota.interviewQuestionsAllowed": quota.interviewQuestionsAllowed,
-      // Mỗi lần thanh toán thành công (kích hoạt/gia hạn) → trả lại quota đầy cho chu kỳ mới.
-      "quota.cvAnalysisUsed": 0,
-      "quota.interviewUsed": 0,
-      "quota.resetAt": new Date(),
     },
   });
 }

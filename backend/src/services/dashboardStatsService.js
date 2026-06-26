@@ -6,7 +6,7 @@ import { InterviewSession } from "../models/InterviewSession.js";
 import { Enrollment } from "../models/Enrollment.js";
 import { Activity } from "../models/Activity.js";
 import { computeLearningStreak, toVnDayKey } from "../utils/learningStreak.js";
-import { syncPlanExpiry } from "./plansService.js";
+import { enforceExpiry } from "../utils/planGuard.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 
@@ -18,11 +18,12 @@ export async function getDashboardStats(userId) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
   if (!mongoose.isValidObjectId(userId)) return { ok: false, status: 401, error: "Phiên không hợp lệ." };
 
-  await syncPlanExpiry(userId);
   const uid = new mongoose.Types.ObjectId(userId);
 
-  const [user, cvCount, interviewCompleted, completedSessions, bookingsTotal, bookingsUpcoming] = await Promise.all([
-    User.findById(uid).select("plan planExpiresAt quota name").lean(),
+  let user = await User.findById(uid).select("plan planExpiresAt quota name");
+  if (user) user = await enforceExpiry(user);
+
+  const [cvCount, interviewCompleted, completedSessions, bookingsTotal, bookingsUpcoming] = await Promise.all([
     CVAnalysis.countDocuments({ userId: uid }),
     InterviewSession.countDocuments({ userId: uid, status: "completed" }),
     InterviewSession.find({ userId: uid, status: "completed" })

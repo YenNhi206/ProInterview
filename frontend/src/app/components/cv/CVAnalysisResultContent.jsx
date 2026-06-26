@@ -17,6 +17,8 @@ import {
   RotateCcw as History,
   ThumbsUp,
   ThumbsDown,
+  ArrowRightLeft,
+  Clock,
 } from "lucide-react";
 import { submitCvFeedback } from "../../api/cvApi.js";
 import { CVDocumentPreview } from "./CVDocumentPreview";
@@ -332,14 +334,49 @@ export function CVAnalysisResultContent({
                       <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-orange-900">
                         <Warning className="h-4 w-4" /> Cần cải thiện
                       </h4>
-                      <ul className="space-y-2">
-                        {weaknessesData.map((s, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-slate-800">
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
-                            {s}
-                          </li>
-                        ))}
-                      </ul>
+                      {R?.missingDetails?.length > 0 ? (
+                        <div className="space-y-3">
+                          {/* Market standard skills */}
+                          {R.missingDetails.filter(d => d.skillType === "market_standard").length > 0 && (
+                            <div>
+                              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-red-700">Kỹ năng chuẩn ngành — hầu hết cty yêu cầu</p>
+                              <ul className="space-y-1.5">
+                                {R.missingDetails.filter(d => d.skillType === "market_standard").map((d, i) => (
+                                  <li key={i} className="flex items-center gap-2 text-sm text-slate-800">
+                                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${d.importance === "critical" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"}`}>
+                                      {d.importance === "critical" ? "Bắt buộc" : "Quan trọng"}
+                                    </span>
+                                    {d.requirement}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {/* Company specific skills */}
+                          {R.missingDetails.filter(d => d.skillType === "company_specific").length > 0 && (
+                            <div>
+                              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-amber-700">Yêu cầu riêng công ty này</p>
+                              <ul className="space-y-1.5">
+                                {R.missingDetails.filter(d => d.skillType === "company_specific").map((d, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                                    {d.requirement}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <ul className="space-y-2">
+                          {weaknessesData.map((s, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-slate-800">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -364,6 +401,42 @@ export function CVAnalysisResultContent({
                   </div>
                 )}
               </div>
+
+              {/* Transferable Skills */}
+              {R?.transferableSkills?.length > 0 && (
+                <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50/60 shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-2.5 border-b border-blue-200 bg-blue-100/60 px-6 py-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-200">
+                      <ArrowRightLeft className="h-4 w-4 text-blue-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Kỹ năng có thể chuyển đổi nhanh</h3>
+                      <p className="text-xs text-slate-600">Bạn chưa có nhưng đã có nền tảng — không cần học từ đầu</p>
+                    </div>
+                    <span className="ml-auto rounded-full bg-blue-200 px-2.5 py-1 text-xs font-bold text-blue-800">
+                      {R.transferableSkills.length} kỹ năng
+                    </span>
+                  </div>
+                  <div className="divide-y divide-blue-100">
+                    {R.transferableSkills.map((t, i) => (
+                      <div key={i} className="flex flex-col gap-1.5 px-6 py-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-900">{t.requirement}</p>
+                          <p className="mt-0.5 text-xs text-slate-600">
+                            Nền tảng có sẵn: <span className="font-medium text-blue-700">{t.existingSkill}</span>
+                          </p>
+                        </div>
+                        {t.estimatedTime && (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-blue-300 bg-white px-3 py-1 text-xs font-semibold text-blue-700">
+                            <Clock className="h-3 w-3" />
+                            {t.estimatedTime}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Suggestions, theme sáng, tương phản rõ */}
               <div className="relative mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
