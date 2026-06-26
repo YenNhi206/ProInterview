@@ -2,7 +2,7 @@ import { CVAnalysis } from "../models/CVAnalysis.js";
 import { User } from "../models/User.js";
 import { validateSaveAnalysis, formatValidationError } from "../dto/cvAnalysis.dto.js";
 import { logger } from "../config/logger.js";
-import { syncPlanExpiry } from "../services/plansService.js";
+import { enforceExpiry } from "../utils/planGuard.js";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,7 +69,6 @@ export const CVController = {
   /** Lấy quota còn lại */
   getQuota: async (req, res) => {
     try {
-      await syncPlanExpiry(req.userId);
       const user = await User.findById(req.userId).select("quota");
       if (!user) return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
       res.json({ success: true, quota: user.quota });
@@ -104,23 +103,30 @@ export const CVController = {
       });
     }
 
-    // ── Step 2: Kiểm tra quota ────────────────────────────────────────────
-    await syncPlanExpiry(userId);
-    const user = await User.findById(userId).select("+quota").catch(() => null);
+    // ── Step 2: Kiểm tra quota (với auto-downgrade nếu plan hết hạn) ─────
+    let user = await User.findById(userId).select("+quota plan planExpiresAt").catch(() => null);
     if (!user) {
       return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
     }
 
-    if (user.quota?.cvAnalysisUsed >= user.quota?.cvAnalysisLimit) {
+    user = await enforceExpiry(user);
+
+    // Atomic: chỉ increment nếu used < limit — tránh race condition
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, "quota.cvAnalysisUsed": { $lt: user.quota?.cvAnalysisLimit ?? 5 } },
+      { $inc: { "quota.cvAnalysisUsed": 1 } },
+      { new: true }
+    );
+    if (!updatedUser) {
       logger.warn("cv_analysis_quota_exceeded", {
         userId,
-        used:  user.quota.cvAnalysisUsed,
-        limit: user.quota.cvAnalysisLimit,
+        used:  user.quota?.cvAnalysisUsed,
+        limit: user.quota?.cvAnalysisLimit,
       });
       return res.status(403).json({
         success: false,
         error: "quota_exceeded",
-        message: "Bạn đã hết lượt phân tích CV miễn phí. Vui lòng nâng cấp gói.",
+        message: "Bạn đã hết lượt phân tích CV. Vui lòng nâng cấp gói.",
       });
     }
 
@@ -135,9 +141,6 @@ export const CVController = {
         status:      "completed",
         completedAt: new Date(),
       });
-
-      user.quota.cvAnalysisUsed += 1;
-      await user.save();
 
       logger.info("cv_analysis_created", {
         userId,

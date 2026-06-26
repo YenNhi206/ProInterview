@@ -818,6 +818,7 @@ export function activateAllPlans() {
 const CV_COUNT_KEY = "prointerview_cv_count";
 export const CV_FREE_LIMIT = 5;
 export const CV_STARTER_LIMIT = 20;
+export const CV_ELITE_LIMIT = 40;
 
 export function getCVAnalysisCount() {
   return parseInt(localStorage.getItem(CV_COUNT_KEY) || "0", 10);
@@ -831,7 +832,7 @@ export function incrementCVCount() {
 
 export function getCVRemaining() {
   const plans = getPlans();
-  if (plans.elitePro) return Infinity;
+  if (plans.elitePro) return Math.max(0, CV_ELITE_LIMIT - getCVAnalysisCount());
   if (plans.starterPro) return Math.max(0, CV_STARTER_LIMIT - getCVAnalysisCount());
   return Math.max(0, CV_FREE_LIMIT - getCVAnalysisCount());
 }

@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { authJwt } from "../middleware/authJwt.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
+import { cvAnalyzeLimiter } from "../middleware/rateLimiters.js";
 
 export const cvMatchRouter = Router();
 
@@ -47,6 +48,12 @@ async function proxyToAnalyzer(path, files, res, extraFields = {}) {
     });
   }
 
+  // Surface LLM key errors as 502 with actionable message
+  if (response.status === 502 && data?.detail) {
+    const detail = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
+    return res.status(502).json({ success: false, error: detail });
+  }
+
   res.status(response.status).json(data);
 }
 
@@ -54,6 +61,7 @@ async function proxyToAnalyzer(path, files, res, extraFields = {}) {
 cvMatchRouter.post(
   "/analyze",
   authJwt,
+  cvAnalyzeLimiter,
   upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
@@ -67,6 +75,7 @@ cvMatchRouter.post(
 cvMatchRouter.post(
   "/analyze/full",
   authJwt,
+  cvAnalyzeLimiter,
   upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
@@ -80,6 +89,7 @@ cvMatchRouter.post(
 cvMatchRouter.post(
   "/analyze/suggestions",
   authJwt,
+  cvAnalyzeLimiter,
   upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
@@ -93,6 +103,7 @@ cvMatchRouter.post(
 cvMatchRouter.post(
   "/analyze/field",
   authJwt,
+  cvAnalyzeLimiter,
   upload.fields([{ name: "resume", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];

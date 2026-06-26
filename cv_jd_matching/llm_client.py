@@ -111,10 +111,18 @@ def _call_cloud(
                 payload_plain = {k: v for k, v in payload.items() if k != "response_format"}
                 r = httpx.post(url, json=payload_plain, headers=headers, timeout=timeout)
 
-            if r.status_code == 429:
+            if r.status_code in (429, 503):
                 if attempt < len(_RETRY_DELAYS):
                     continue
-                raise RuntimeError("RATE_LIMIT_429")
+                raise RuntimeError("Gemini đang quá tải (503). Vui lòng thử lại sau ít phút.")
+
+            if r.status_code in (401, 403):
+                provider = _detect_provider(cfg["base_url"])
+                raise RuntimeError(
+                    f"API key {provider} không hợp lệ hoặc đã hết hạn (HTTP {r.status_code}). "
+                    "Vào Google AI Studio (aistudio.google.com) → tạo key mới → "
+                    "cập nhật LLM_API_KEY trong cv_jd_matching/.env."
+                )
 
             r.raise_for_status()
             content = r.json()["choices"][0]["message"].get("content") or ""

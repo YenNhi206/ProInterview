@@ -26,6 +26,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pdf_parser import parse_pdf
 from skill_extractor import extract_skills
 from matcher import compute_match
+from semantic_matcher import semantic_match
 from scorer import score_resume
 from suggester import generate_suggestions, extract_bullets_from_text
 from llm_client import check_llm_health
@@ -33,7 +34,7 @@ from field_analyzer import analyze_cv_by_field
 import cache as cv_cache
 from cache import md5_of_bytes
 
-app = FastAPI(title="Resume Analyzer API", version="0.3.0")
+app = FastAPI(title="Resume Analyzer API", version="0.4.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -133,8 +134,8 @@ async def analyze_full(
     model:  str = Query(default="mistral:7b", description="Ollama model name"),
 ):
     """
-    Day 1+2: skill matching + scoring 4 dimensions.
-    Yêu cầu Ollama đang chạy.
+    Semantic matching + scoring 4 dimensions.
+    LLM đọc nguyên văn CV+JD, hiểu kỹ năng ẩn và chuyển đổi — không chỉ so từ khóa.
     """
     resume_data = await _process_upload("resume", resume)
     jd_data     = await _process_upload("jd", jd)
@@ -143,10 +144,20 @@ async def analyze_full(
     if cached:
         return cached
 
-    match = compute_match(
-        cv_skills=resume_data["skills"]["skills"],
-        jd_skills=jd_data["skills"]["skills"],
-    )
+    try:
+        match = semantic_match(
+            cv_text=resume_data["text"],
+            jd_text=jd_data["text"],
+            model=model,
+        )
+    except (ConnectionError, TimeoutError):
+        # Fallback về heuristic nếu mạng/timeout
+        match = compute_match(
+            cv_skills=resume_data["skills"]["skills"],
+            jd_skills=jd_data["skills"]["skills"],
+        )
+    except RuntimeError as e:
+        raise HTTPException(502, str(e))
 
     try:
         scores = score_resume(
@@ -208,11 +219,20 @@ async def analyze_suggestions(
     if cached:
         return cached
 
-    # ── Step 1: Match (no LLM) ────────────────────────────────────────────
-    match = compute_match(
-        cv_skills=resume_data["skills"]["skills"],
-        jd_skills=jd_data["skills"]["skills"],
-    )
+    # ── Step 1: Semantic match (LLM hiểu ngữ nghĩa, không chỉ từ khóa) ──
+    try:
+        match = semantic_match(
+            cv_text=resume_data["text"],
+            jd_text=jd_data["text"],
+            model=model,
+        )
+    except (ConnectionError, TimeoutError):
+        match = compute_match(
+            cv_skills=resume_data["skills"]["skills"],
+            jd_skills=jd_data["skills"]["skills"],
+        )
+    except RuntimeError as e:
+        raise HTTPException(502, str(e))
 
     # ── Step 2: Score — Day 2 ─────────────────────────────────────────────
     try:

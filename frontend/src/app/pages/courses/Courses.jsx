@@ -309,9 +309,9 @@ function CourseListRow({ course, formatPrice, onOpen }) {
 const getLevelBadge = (level) => {
   const configs = {
     Beginner: {
-      bg: "rgba(180,240,0,0.92)",
-      text: "#1a3300",
-      shadow: "0 2px 8px rgba(0,0,0,0.25)",
+      bg: "rgba(255,140,66,0.92)",
+      text: "#1F1F1F",
+      shadow: "0 2px 8px rgba(255,140,66,0.45)",
       label: "Cơ bản",
     },
     Intermediate: {
@@ -321,9 +321,9 @@ const getLevelBadge = (level) => {
       label: "Trung cấp",
     },
     Advanced: {
-      bg: "rgba(255,140,66,0.92)",
-      text: "#1F1F1F",
-      shadow: "0 2px 8px rgba(255,140,66,0.45)",
+      bg: "rgba(180,240,0,0.92)",
+      text: "#1a3300",
+      shadow: "0 2px 8px rgba(180,240,0,0.45)",
       label: "Nâng cao",
     },
   };

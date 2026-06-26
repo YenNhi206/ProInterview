@@ -18,7 +18,7 @@ import {
   RefreshCw,
   BadgeCheck,
 } from "lucide-react";
-import { getPlans, isLoggedIn, hasAuthCredentials, CV_FREE_LIMIT } from "../../utils/auth/auth.js";
+import { getPlans, isLoggedIn, getUser, hasAuthCredentials, CV_FREE_LIMIT } from "../../utils/auth/auth.js";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
 import { apiUrl as expressApiUrl, isExpressBackendConfigured } from "../../api/http.js";
@@ -256,8 +256,9 @@ export function CVAnalysis() {
     }
     const res = await fetchCvQuota();
     if (!res.success || !res.quota) return;
-    const remaining = computeCvRemainingFromQuota(res.quota);
-    setCvRemaining(remaining);
+    const planKey = getUser()?.plan ?? "free";
+    const remaining = computeCvRemainingFromQuota(res.quota, planKey);
+    setCvRemaining(Number.isFinite(remaining) ? remaining : 999);
     setCvQuotaLimit(Number(res.quota.cvAnalysisLimit) || CV_FREE_LIMIT);
   }, []);
 
@@ -559,10 +560,26 @@ export function CVAnalysis() {
 
           const matchedSkills = m.matching ?? [];
           const missingSkills = m.missing  ?? [];
+          const isSemantic = Boolean(m._semantic);
 
-          // Strengths từ matched skills, weaknesses từ missing
-          const strengths  = matchedSkills.slice(0, 6).map(sk => `Có kỹ năng "${sk}" phù hợp với yêu cầu JD`);
-          const weaknesses = missingSkills.slice(0, 6).map(sk => `Thiếu kỹ năng "${sk}" mà JD yêu cầu`);
+          // Semantic: dùng evidence cụ thể; fallback về tên kỹ năng
+          const strengths = isSemantic && m._matched_details?.length
+            ? m._matched_details.slice(0, 6).map(d =>
+                d.match_type === "implicit"
+                  ? `${d.requirement}: ${d.evidence ?? "có trong CV (suy luận)"}`
+                  : d.match_type === "transferable"
+                    ? `${d.requirement}: kỹ năng tương đương (${d.evidence ?? "chuyển đổi"})`
+                    : d.evidence ? `${d.requirement}: ${d.evidence}` : `Đáp ứng "${d.requirement}"`
+              )
+            : matchedSkills.slice(0, 6).map(sk => `Có kỹ năng "${sk}" phù hợp với yêu cầu JD`);
+
+          const weaknesses = isSemantic && m._missing_details?.length
+            ? m._missing_details.slice(0, 6).map(d =>
+                d.importance === "critical"
+                  ? `[Bắt buộc] Thiếu "${d.requirement}"`
+                  : `Thiếu "${d.requirement}"`
+              )
+            : missingSkills.slice(0, 6).map(sk => `Thiếu kỹ năng "${sk}" mà JD yêu cầu`);
 
           // Map rewritten_bullets → "fix" suggestions (hiển thị trước, high value)
           const bulletSuggestions = (sugg.rewritten_bullets ?? []).map(b => ({
@@ -623,8 +640,22 @@ export function CVAnalysis() {
               },
               strengths,
               weaknesses,
+              missingDetails: isSemantic
+                ? (m._missing_details ?? []).map(d => ({
+                    requirement: d.requirement,
+                    importance:  d.importance  ?? "important",
+                    skillType:   d.skill_type  ?? "market_standard",
+                    gapSize:     d.gap_size    ?? "medium",
+                  }))
+                : [],
               suggestions,
-              summary:  sugg.executive_summary ?? s?.summary ?? "",
+              summary: m._overall_assessment || sugg.executive_summary || s?.summary || "",
+              transferableSkills: (m._transferable ?? []).map(t => ({
+                requirement: t.requirement ?? "",
+                existingSkill: t.existing_skill ?? "",
+                estimatedTime: t.estimated_time ?? "",
+              })),
+              isSemantic,
               cvText:   raw.resume_text ?? "",
               jdText:   raw.jd_text     ?? "",
           };

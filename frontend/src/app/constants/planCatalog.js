@@ -12,10 +12,12 @@ export const SUBSCRIPTION_PLANS = {
     badge: "PHỔ BIẾN",
     accentColor: "#8037f4",
     features: [
-      "3 phiên AI Interview / tháng (5 câu hỏi/phiên)",
-      "Nhận diện giọng nói tiếng Việt",
+      "3 phiên AI Interview thực chiến (5 câu hỏi/phiên)",
       "20 lượt phân tích CV/JD / tháng",
-      "Phản hồi & đánh giá chi tiết",
+      "Cá nhân hóa theo ngành nghề",
+      "Điều chỉnh theo mức độ kinh nghiệm",
+      "Phản hồi chi tiết sau mỗi phiên",
+      "Lưu lịch sử phỏng vấn",
     ],
   },
   elitePro: {
@@ -26,10 +28,13 @@ export const SUBSCRIPTION_PLANS = {
     badge: "TỐT NHẤT",
     accentColor: "#93f72b",
     features: [
-      "8 phiên AI Interview / tháng (5 câu hỏi/phiên)",
+      "8 phiên AI Interview nâng cao (5 câu hỏi/phiên)",
       "40 lượt phân tích CV/JD / tháng",
-      "Nhận diện giọng nói tiếng Việt",
-      "Hỗ trợ ưu tiên 24/7",
+      "Điều chỉnh theo mức độ kinh nghiệm",
+      "Gợi ý câu hỏi phỏng vấn dựa trên JD",
+      "Phản hồi chi tiết sau mỗi phiên",
+      "Lưu lịch sử phỏng vấn",
+      "Theo dõi tiến độ qua nhiều phiên",
     ],
   },
 };
