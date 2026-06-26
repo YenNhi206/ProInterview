@@ -24,8 +24,10 @@ export async function getCurrentPlan(userId) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
   if (!mongoose.isValidObjectId(userId)) return { ok: false, status: 401, error: "Phiên không hợp lệ." };
 
-  const u = await User.findById(userId).select("plan planExpiresAt quota name email").lean();
+  let u = await User.findById(userId).select("plan planExpiresAt quota name email");
   if (!u) return { ok: false, status: 404, error: "Không tìm thấy user." };
+
+  u = await enforceExpiry(u);
 
   return {
     ok: true,
