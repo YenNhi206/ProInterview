@@ -205,6 +205,7 @@ function WithdrawalModal({
   const handleWithdraw = async () => {
     const n = amountValue;
     if (!Number.isFinite(n) || n < 100000) return;
+    if (n > balance) return;
     if (!isAccountReady) return;
     if (isAccountChanged) {
       const saved = await persistAccount();
@@ -385,13 +386,17 @@ function WithdrawalModal({
                 <button
                   type="button"
                   onClick={handleWithdraw}
-                  disabled={!hasEnoughAmount || loading || savingAccount || !isAccountReady}
+                  disabled={!hasEnoughAmount || amountValue > balance || loading || savingAccount || !isAccountReady}
                   className="w-full rounded-lg bg-[#93f72b] py-3.5 text-sm font-bold text-slate-900 shadow-[0_6px_20px_rgba(147,247,43,0.35)] transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
                 >
                   {loading ? "Đang xử lý…" : "Xác nhận gửi yêu cầu"}
                 </button>
 
-                {!isAccountReady ? (
+                {amountValue > balance && amountValue > 0 ? (
+                  <p className="text-center text-xs text-red-600">
+                    Số tiền rút vượt quá số dư khả dụng ({balance.toLocaleString("vi-VN")} Đ).
+                  </p>
+                ) : !isAccountReady ? (
                   <p className="text-center text-xs text-amber-700">
                     Chọn hoặc nhập tên ngân hàng và STK hợp lệ (8–19 số) để tiếp tục.
                   </p>
@@ -917,7 +922,9 @@ export function MentorFinance() {
               }
               setFinance((prev) => ({
                 ...(prev || {}),
-                payoutAccount: res.payoutAccount || account,
+                payoutAccount: account,
+                payoutAccountMasked: res.payoutAccountMasked || prev?.payoutAccountMasked,
+                payoutAccountOwnerName: res.payoutAccountOwnerName || prev?.payoutAccountOwnerName,
               }));
               toastApiSuccess("Đã lưu tài khoản nhận tiền.");
               return { success: true };

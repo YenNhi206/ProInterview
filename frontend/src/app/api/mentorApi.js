@@ -223,7 +223,12 @@ export async function updateMentorPayoutAccount(payload) {
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) return { success: false, error: normalizeApiError(body, res.status) };
-    return { success: true, payoutAccount: body.payoutAccount || null };
+    return {
+      success: true,
+      payoutAccountMasked: body.payoutAccountMasked || null,
+      payoutAccountBankName: body.payoutAccountBankName || null,
+      payoutAccountOwnerName: body.payoutAccountOwnerName || null,
+    };
   } catch {
     return { success: false, error: ERROR_MESSAGES.NETWORK };
   }

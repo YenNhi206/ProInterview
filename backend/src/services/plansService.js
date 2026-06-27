@@ -48,19 +48,27 @@ export async function activatePlan(userId, body) {
   const expires = new Date();
   expires.setMonth(expires.getMonth() + months);
 
+  const currentUser = await User.findById(userId).select("plan").lean();
+  const isPlanChange = !currentUser || currentUser.plan !== plan;
+
   const updates = { plan, planExpiresAt: expires };
   if (plan === "starter_pro") {
     updates["quota.cvAnalysisLimit"]           = 20;
-    updates["quota.cvAnalysisUsed"]            = 0;
     updates["quota.interviewLimit"]            = 3;
-    updates["quota.interviewUsed"]             = 0;
     updates["quota.interviewQuestionsAllowed"] = 5;
+    // Chỉ reset used counters khi đổi sang plan mới (genuine upgrade/switch), không reset khi gia hạn cùng plan
+    if (isPlanChange) {
+      updates["quota.cvAnalysisUsed"]  = 0;
+      updates["quota.interviewUsed"]   = 0;
+    }
   } else if (plan === "elite_pro") {
     updates["quota.cvAnalysisLimit"]           = 40;
-    updates["quota.cvAnalysisUsed"]            = 0;
     updates["quota.interviewLimit"]            = 8;
-    updates["quota.interviewUsed"]             = 0;
     updates["quota.interviewQuestionsAllowed"] = 5;
+    if (isPlanChange) {
+      updates["quota.cvAnalysisUsed"]  = 0;
+      updates["quota.interviewUsed"]   = 0;
+    }
   }
 
   const u = await User.findByIdAndUpdate(userId, { $set: updates }, { new: true }).select("plan planExpiresAt quota").lean();
@@ -78,16 +86,22 @@ export async function cancelPlan(userId) {
         plan: "free",
         planExpiresAt: null,
         "quota.cvAnalysisLimit": 5,
-        "quota.cvAnalysisUsed": 0,
         "quota.interviewLimit": 1,
-        "quota.interviewUsed": 0,
         "quota.interviewQuestionsAllowed": 3,
+        // Dùng $min để clamp used về giới hạn free, không zero ra hoàn toàn
+        // (xử lý bằng $min trong update riêng bên dưới)
       },
     },
-    { new: true }
+    { new: false }
   )
     .select("plan planExpiresAt quota")
     .lean();
   if (!u) return { ok: false, status: 404, error: "Không tìm thấy user." };
-  return { ok: true, plan: u.plan, planExpiresAt: u.planExpiresAt, quota: u.quota };
+  // Clamp used counters xuống giới hạn free — không zero ra hoàn toàn
+  const final = await User.findByIdAndUpdate(
+    userId,
+    { $min: { "quota.cvAnalysisUsed": 5, "quota.interviewUsed": 1 } },
+    { new: true },
+  ).select("plan planExpiresAt quota").lean();
+  return { ok: true, plan: final.plan, planExpiresAt: final.planExpiresAt, quota: final.quota };
 }

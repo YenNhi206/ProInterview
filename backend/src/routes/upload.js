@@ -16,7 +16,7 @@ const handleMulterError = (handler) => (req, res, next) => {
     if (err instanceof multer.MulterError) {
       console.error(`[Upload] Multer Error:`, err);
       if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ success: false, error: "File quá lớn (tối đa 2GB)" });
+        return res.status(400).json({ success: false, error: `File quá lớn (tối đa ${process.env.UPLOAD_MAX_MB || 50}MB). Video lớn hơn hãy dùng upload trực tiếp.` });
       }
       return res.status(400).json({ success: false, error: err.message });
     } else if (err) {
@@ -28,6 +28,9 @@ const handleMulterError = (handler) => (req, res, next) => {
   });
 };
 
+
+// Tạo signature cho mentor direct-upload video lớn (không qua multer — không có file)
+uploadRouter.post("/sign-video", authJwt, requireMentor, asyncHandler(UploadController.signCourseVideoUpload));
 
 uploadRouter.post("/avatar", authJwt, handleMulterError(upload.single("file")), asyncHandler(UploadController.uploadAvatar));
 uploadRouter.post("/cv", authJwt, handleMulterError(upload.single("file")), asyncHandler(UploadController.uploadCV));

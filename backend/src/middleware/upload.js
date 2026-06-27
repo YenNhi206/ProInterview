@@ -38,14 +38,14 @@ const ALLOWED_MIMES = new Set([
   "video/quicktime",
   "video/webm",
 ]);
-/** Mặc định 2GB; có thể giảm qua UPLOAD_MAX_MB (vd. 200) trên server. */
-const MAX_UPLOAD_MB = Number(process.env.UPLOAD_MAX_MB) || 2000;
+/** Mặc định 50MB; tăng qua UPLOAD_MAX_MB nếu cần upload video mentor (vd. 500). */
+const MAX_UPLOAD_MB = Number(process.env.UPLOAD_MAX_MB) || 50;
 export const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 export const upload = multer({
   storage: storage,
   limits: {
-    fileSize: MAX_UPLOAD_BYTES, // 2GB mặc định
+    fileSize: MAX_UPLOAD_BYTES,
   },
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname || "").toLowerCase();

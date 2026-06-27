@@ -56,3 +56,13 @@ export const cvAnalyzeLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, error: "Quá nhiều yêu cầu phân tích. Vui lòng thử lại sau 1 phút." },
 });
+
+/** Analytics events — tối đa 60 request/phút/user. Chống flood UserEvent collection. */
+export const analyticsEventsLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isProd ? 60 : 600,
+  keyGenerator: (req) => req.userId ?? req.ip,
+  standardHeaders: false,
+  legacyHeaders: false,
+  message: { success: false, error: "Quá nhiều sự kiện analytics. Thử lại sau." },
+});

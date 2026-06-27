@@ -377,4 +377,40 @@ export const AIProvidersController = {
 
     res.json({ success: true, ...status });
   },
+
+  // ── D-ID WebRTC Streaming Proxy ───────────────────────────────────────────────
+  // Giữ D_ID_API_KEY server-side — FE không cần (và không được) biết key này.
+
+  didProxy: async (req, res) => {
+    if (!isDIDEnabled()) {
+      return res.status(503).json({ success: false, error: "D-ID chưa được cấu hình." });
+    }
+    const apiKey = process.env.D_ID_API_KEY ?? "";
+    const auth = "Basic " + Buffer.from(`${apiKey}:`).toString("base64");
+
+    // req.path is relative to the router mount (/api/ai), e.g. /did/streams/abc123/sdp
+    const subpath = req.path.replace(/^\/did\/streams/, "");
+    const target = `https://api.d-id.com/talks/streams${subpath}`;
+
+    const headers = { Authorization: auth, "Content-Type": "application/json" };
+    const body = req.method !== "GET" && req.body && Object.keys(req.body).length > 0
+      ? JSON.stringify(req.body)
+      : undefined;
+    const fetchOpts = { method: req.method, headers, ...(body !== undefined ? { body } : {}) };
+
+    try {
+      const upstream = await fetch(target, fetchOpts);
+      const ct = upstream.headers.get("content-type") ?? "";
+      const text = await upstream.text();
+      res.status(upstream.status);
+      if (ct.includes("json")) {
+        res.json(JSON.parse(text));
+      } else {
+        res.set("Content-Type", ct || "application/json").send(text);
+      }
+    } catch (err) {
+      logger.error("did_proxy_error", { err: err.message });
+      res.status(502).json({ success: false, error: "Không thể kết nối tới D-ID." });
+    }
+  },
 };

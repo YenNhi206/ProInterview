@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import mongoose from "mongoose";
 import { Booking } from "../models/Booking.js";
 import { Course } from "../models/Course.js";
@@ -44,7 +45,10 @@ export function verifySepayAuthorization(headerValue) {
   if (!raw) return false;
   const match = raw.match(/^Apikey\s+(.+)$/i);
   const token = match ? match[1].trim() : raw;
-  return token === expected;
+  const ta = Buffer.from(token, "utf8");
+  const tb = Buffer.from(expected, "utf8");
+  if (ta.length !== tb.length) return false;
+  return crypto.timingSafeEqual(ta, tb);
 }
 
 function amountsMatch(expected, received) {
@@ -103,8 +107,8 @@ async function findPendingTargets(orderRef) {
     if (isTransferPaymentExpired(e)) continue;
     if (orderRefsMatch(e.paymentRef, norm)) {
       const fromCourse = priceByCourseId.get(String(e.courseId)) ?? 0;
-      const expectedAmount =
-        fromCourse > 0 ? fromCourse : Math.round(Number(e.pricePaid ?? 0));
+      const pricePaid = Math.round(Number(e.pricePaid ?? 0));
+      const expectedAmount = pricePaid > 0 ? pricePaid : fromCourse;
       targets.push({
         entityType: "course",
         entityId: String(e._id),
@@ -181,7 +185,7 @@ export async function handleSepayWebhook(body, authHeader) {
   }
 
   const existing = await SepayWebhookEvent.findOne({ sepayId }).lean();
-  if (existing?.status === "processed") {
+  if (existing?.status === "processed" || existing?.status === "received") {
     return { ok: true, idempotent: true, sepayId };
   }
 

@@ -331,9 +331,11 @@ export const AdminController = {
   // Lấy danh sách toàn bộ User
   getAllUsers: async (req, res, next) => {
     try {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 500, 1), 1000);
       const users = await User.find()
         .select("name email avatar role plan isActive lastSeenAt lastLoginAt createdAt")
         .sort({ createdAt: -1 })
+        .limit(limit)
         .lean();
       const rows = users.map((u) => ({
         ...u,
@@ -351,7 +353,9 @@ export const AdminController = {
       if (!mongoose.isValidObjectId(id)) {
         return res.status(400).json({ success: false, error: "userId không hợp lệ." });
       }
-      const user = await User.findById(id).select("-passwordHash -authSessions").lean();
+      const user = await User.findById(id)
+        .select("-passwordHash -authSessions -integrations.googleCalendar.accessToken -integrations.googleCalendar.refreshToken")
+        .lean();
       if (!user) return res.status(404).json({ success: false, error: "Không tìm thấy người dùng." });
 
       const [bookingsCount, enrollmentsCount] = await Promise.all([
@@ -377,15 +381,16 @@ export const AdminController = {
     try {
       const { id } = req.params;
       const { isActive } = req.body;
+      const shouldBeActive = isActive === true || isActive === "true";
       let user;
-      if (isActive === false) {
+      if (!shouldBeActive) {
         user = await User.findByIdAndUpdate(
           id,
           { $set: { isActive: false, authSessions: [] }, $inc: { tokenVersion: 1 } },
           { new: true },
         );
       } else {
-        user = await User.findByIdAndUpdate(id, { $set: { isActive: true } }, { new: true });
+        user = await User.findByIdAndUpdate(id, { $set: { isActive: shouldBeActive } }, { new: true });
       }
       if (!user) return res.status(404).json({ success: false, error: "Không tìm thấy người dùng" });
       res.json({ success: true, user });
@@ -397,10 +402,12 @@ export const AdminController = {
   // Lấy danh sách toàn bộ Booking
   getAllBookings: async (req, res, next) => {
     try {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 500, 1), 1000);
       const bookings = await Booking.find()
         .populate("mentorId", "name email")
         .populate("userId", "name email")
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .limit(limit);
       res.json({ success: true, bookings });
     } catch (error) {
       next(error);
@@ -516,7 +523,7 @@ export const AdminController = {
     }
   },
 
-  getPendingEnrollmentTransfers: async (_req, res) => {
+  getPendingEnrollmentTransfers: async (_req, res, next) => {
     try {
       const enrollments = await Enrollment.find({
         paymentMethod: "transfer",
@@ -534,7 +541,7 @@ export const AdminController = {
   },
 
   /** Danh sách ghi danh có học phí (CK) — chờ + đã xác nhận, cho màn admin Học phí khóa học */
-  getCoursePaymentEnrollments: async (_req, res) => {
+  getCoursePaymentEnrollments: async (_req, res, next) => {
     try {
       const enrollments = await Enrollment.find({
         pricePaid: { $gt: 0 },
@@ -556,7 +563,7 @@ export const AdminController = {
   },
 
   /** Tổng quan học phí khóa học (CK) cho admin Tài chính / Giao dịch */
-  getCourseFinanceSummary: async (_req, res) => {
+  getCourseFinanceSummary: async (_req, res, next) => {
     try {
       const pendAgg = await Enrollment.aggregate([
         { $match: { paymentMethod: "transfer", paymentStatus: "pending", pricePaid: { $gt: 0 } } },
@@ -1301,7 +1308,7 @@ export const AdminController = {
     }
   },
 
-  getPayoutRequests: async (_req, res) => {
+  getPayoutRequests: async (_req, res, next) => {
     try {
       const payouts = await PayoutRequest.find()
         .populate({

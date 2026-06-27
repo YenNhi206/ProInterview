@@ -47,11 +47,11 @@ export async function getDashboardStats(userId) {
     if (scores.length) avgInterviewScore = Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
   }
 
-  const bestCv = await CVAnalysis.findOne({ userId: uid, "result.matchScore": { $exists: true } })
-    .sort({ "result.matchScore": -1 })
-    .select("result.matchScore")
+  const bestCv = await CVAnalysis.findOne({ userId: uid, "result.match.score": { $exists: true } })
+    .sort({ "result.match.score": -1 })
+    .select("result.match.score")
     .lean();
-  const bestMatchScore = bestCv?.result?.matchScore != null ? Number(bestCv.result.matchScore) : 0;
+  const bestMatchScore = bestCv?.result?.match?.score != null ? Number(bestCv.result.match.score) : 0;
 
   const activeDayKeys = await collectLearningActiveDays(uid);
   const streak = computeLearningStreak(activeDayKeys);

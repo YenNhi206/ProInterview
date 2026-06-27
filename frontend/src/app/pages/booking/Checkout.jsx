@@ -1088,7 +1088,9 @@ export function Checkout() {
   /* Coupon */
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
-  const discount = isCourse ? 0 : couponApplied ? Math.round(total * 0.1) : 0;
+  // Coupon chưa được backend hỗ trợ cho plan checkout (server kiểm tra clientAmount === catalogAmount)
+  // → disable discount cho tất cả flow cho đến khi backend implement coupon validation
+  const discount = 0;
   const payAmount = total - discount;
   const bookingTotalEstimate = Math.round(isBooking ? payAmount : bookingPrice);
 
@@ -1461,9 +1463,6 @@ export function Checkout() {
     setAwaitingAutoConfirm(false);
     setAppStep("checkout");
     setTransferOrderNum(nextOrderNum);
-    setBankBookingId(null);
-    setBankEnrollmentId(null);
-    setBankSubscriptionPaymentId(null);
     setCardError("");
     if (isPlanCheckout) {
       clearPlanCheckoutSession(planKey, billing);
@@ -1473,7 +1472,12 @@ export function Checkout() {
       orderNumOverride: nextOrderNum,
       forceNew: isPlanCheckout,
     });
-    if (!created?.ok) {
+    if (created?.ok) {
+      // Chỉ xóa ID cũ sau khi đơn mới tạo thành công
+      setBankBookingId(null);
+      setBankEnrollmentId(null);
+      setBankSubscriptionPaymentId(null);
+    } else {
       autoOrderStartedRef.current = false;
     }
   };
@@ -1713,35 +1717,11 @@ export function Checkout() {
 
                   {isPlanCheckout && !isCourse && !isBooking && (
                     <div className="mt-5 border-t border-slate-200 pt-5">
-                      <p className={`mb-2 ${labelMuted}`}>Mã khuyến mãi</p>
-                      {couponApplied ? (
-                        <div className="flex items-center justify-between rounded-lg border border-violet-200 bg-violet-50 px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <Tag className="h-4 w-4 text-[#8037f4]" />
-                            <span className="text-sm font-semibold text-slate-900">{coupon.toUpperCase()}</span>
-                          </div>
-                          <span className="rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-violet-700">
-                            Đã áp dụng
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <input
-                            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#8037f4] focus:outline-none focus:ring-1 focus:ring-violet-200"
-                            placeholder="Nhập mã khuyến mãi"
-                            value={coupon}
-                            onChange={(e) => setCoupon(e.target.value)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (coupon.trim()) setCouponApplied(true);
-                            }}
-                            className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-violet-300 hover:bg-violet-50"
-                          >
-                            Áp dụng
-                          </button>
-                        </div>
+                      {/* Coupon tạm thời ẩn — chờ backend implement coupon validation */}
+                      {false && (
+                        <>
+                          <p className={`mb-2 ${labelMuted}`}>Mã khuyến mãi</p>
+                        </>
                       )}
                       <ul className="mt-4 space-y-2">
                         {plan.features.slice(0, 3).map((f, i) => (

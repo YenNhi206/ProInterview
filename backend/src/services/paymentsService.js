@@ -13,6 +13,7 @@ import {
   expireSubscriptionTransferIfNeeded,
 } from "./transferPaymentExpiryService.js";
 import { incrementCourseEnrollmentCount } from "./courseStatsService.js";
+import { tryCreditMentorForPaidEnrollment } from "./mentorEarningsService.js";
 import { Mentor } from "../models/Mentor.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 
@@ -24,6 +25,13 @@ function isMongoReady() {
 
 function webhookSecret() {
   return typeof process.env.PAYMENT_WEBHOOK_SECRET === "string" ? process.env.PAYMENT_WEBHOOK_SECRET.trim() : "";
+}
+
+function timingSafeStringEqual(a, b) {
+  const ba = Buffer.from(String(a ?? ""), "utf8");
+  const bb = Buffer.from(String(b ?? ""), "utf8");
+  if (ba.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ba, bb);
 }
 
 /**
@@ -55,7 +63,8 @@ export async function initiatePayment(userId, body) {
     }
     const b = await Booking.findOne({ _id: bid, userId }).lean();
     if (!b) return { ok: false, status: 404, error: "Không tìm thấy booking." };
-    amount = Number.isFinite(amount) && amount > 0 ? Math.round(amount) : Math.round(b.totalAmount ?? b.price ?? 0);
+    // Luôn dùng amount từ booking record — không tin body.amount (tránh user tự điền giá thấp)
+    amount = Math.round(b.totalAmount ?? b.price ?? 0);
     referenceId = b._id;
   } else if (type === "subscription") {
     const rawPlan = body?.planKey ?? body?.plan ?? "starter_pro";
@@ -711,6 +720,13 @@ export async function confirmEnrollmentTransferByAdmin(enrollmentId, options = {
     await incrementCourseEnrollmentCount(courseIdForStats);
   }
 
+  // Credit mentor earnings — idempotent (guarded by mentorEarningsCreditedAt).
+  // Needed here so SePay auto-confirm path (sepayWebhookService → confirmEnrollmentTransferByAdmin)
+  // also credits the mentor; adminController calls this again but it becomes a no-op.
+  await tryCreditMentorForPaidEnrollment(enrollmentId).catch((e) =>
+    console.error("[confirmEnrollmentTransferByAdmin] mentor credit:", e?.message || e),
+  );
+
   const enrollment = await Enrollment.findById(enrollmentId).lean();
   return { ok: true, enrollment };
 }
@@ -844,9 +860,15 @@ async function finalizePaymentSuccess(paymentId) {
     }
   }
   if (pay.type === "course" && pay.referenceModel === "Enrollment") {
-    await Enrollment.findByIdAndUpdate(pay.referenceId, {
-      $set: { paymentStatus: "paid", paidAt: new Date() },
-    });
+    const enrollment = await Enrollment.findByIdAndUpdate(
+      pay.referenceId,
+      { $set: { paymentStatus: "paid", paidAt: new Date() } },
+      { new: true },
+    );
+    if (enrollment) {
+      await tryCreditMentorForPaidEnrollment(String(pay.referenceId));
+      await incrementCourseEnrollmentCount(enrollment.courseId);
+    }
   }
   if (pay.type === "subscription") {
     await applySubscriptionPlanFromPayment(pay);
@@ -874,7 +896,7 @@ async function finalizePaymentFailure(paymentId, reason = "Thanh toán thất b�
 export async function handleWebhookMomo(reqBody, headerSecret) {
   const secret = webhookSecret();
   if (!secret) return { ok: false, status: 503, error: "Chưa cấu hình PAYMENT_WEBHOOK_SECRET." };
-  if (headerSecret !== secret) return { ok: false, status: 401, error: "Unauthorized" };
+  if (!timingSafeStringEqual(headerSecret, secret)) return { ok: false, status: 401, error: "Unauthorized" };
 
   const paymentId = reqBody?.paymentId || reqBody?.orderId;
   if (!paymentId || !mongoose.isValidObjectId(paymentId)) {
@@ -940,7 +962,7 @@ export async function handleIpnVnpay(vnp_Params) {
     return { ok: true, data: { RspCode: "02", Message: "Order already confirmed" } };
   }
 
-  if (rspCode === "00" && (txnStatus == null || txnStatus === "00")) {
+  if (rspCode === "00" && txnStatus === "00") {
     await finalizePaymentSuccess(pay._id);
     return { ok: true, data: { RspCode: "00", Message: "Success" } };
   }

@@ -266,7 +266,9 @@ export const CoursesController = {
         });
       }
 
-      const updated = await Course.findByIdAndUpdate(id, payload, { new: true });
+      // Dùng doc.save() thay vì findByIdAndUpdate để pre("save") hook tính lại totalLessons
+      Object.assign(course, payload);
+      const updated = await course.save();
       res.json({ success: true, course: serializeCourseForApi(updated) });
     } catch (error) {
       next(error);
@@ -339,6 +341,17 @@ export const CoursesController = {
       const mentor = await Mentor.findOne({ userId: req.userId });
       if (!mentor || course.mentorId.toString() !== mentor._id.toString()) {
         return res.status(403).json({ success: false, error: "Bạn không có quyền thực hiện thao tác này" });
+      }
+
+      const activeEnrollments = await Enrollment.countDocuments({
+        courseId: id,
+        paymentStatus: "paid",
+      });
+      if (activeEnrollments > 0) {
+        return res.status(400).json({
+          success: false,
+          error: `Không thể lưu trữ: khóa học đang có ${activeEnrollments} học viên đã thanh toán.`,
+        });
       }
 
       course.status = "archived";

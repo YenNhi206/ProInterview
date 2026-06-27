@@ -308,6 +308,151 @@ export async function sendMentorFeedbackEmail(to, studentName, mentorName, sessi
   }
 }
 
+const SESSION_TYPE_LABELS = {
+  mock_interview: "Phỏng vấn giả định",
+  cv_review: "Review CV",
+  career_consulting: "Tư vấn nghề nghiệp",
+  custom: "Buổi coaching",
+};
+
+function frontendUrl() {
+  return (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+}
+
+/**
+ * Gửi email xác nhận đặt lịch thành công cho mentee (khi thanh toán được xác nhận)
+ */
+export async function sendBookingConfirmedEmailToMentee(
+  to,
+  { menteeName, mentorName, sessionType, date, timeSlot, bookingId },
+) {
+  if (!to) return { ok: false, error: "Thiếu email người nhận." };
+  const safeMentee = escapeHtml(menteeName || "Bạn");
+  const safeMentor = escapeHtml(mentorName || "Mentor");
+  const sessionLabel = escapeHtml(SESSION_TYPE_LABELS[sessionType] || sessionType || "Buổi học");
+  const safeDate = escapeHtml(date || "");
+  const safeTime = escapeHtml(timeSlot || "");
+  const sessionUrl = `${frontendUrl()}/#/session/${encodeURIComponent(bookingId || "")}`;
+
+  const mailOptions = createBrandedMailOptions({
+    to,
+    subject: `[ProInterview] Đặt lịch thành công với Mentor ${mentorName}`,
+    preheader: `Buổi ${sessionLabel} ngày ${date} lúc ${timeSlot} đã được xác nhận.`,
+    eyebrow: "Xác nhận đặt lịch",
+    title: "Đặt lịch thành công!",
+    bodyHtml: `
+        <p style="margin: 0 0 16px;">Chào <strong>${safeMentee}</strong>,</p>
+        <p style="margin: 0 0 20px; color: ${BRAND.textMuted};">
+          Thanh toán của bạn đã được xác nhận. Buổi học với Mentor <strong>${safeMentor}</strong> đã chính thức được đặt lịch.
+        </p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+          style="border-radius: 14px; background: #faf8ff; border: 1px solid rgba(128,55,244,0.12); margin-bottom: 8px;">
+          <tr>
+            <td style="padding: 20px 24px;">
+              <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted}; width: 130px;">Loại buổi</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${sessionLabel}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted};">Mentor</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${safeMentor}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted};">Ngày</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${safeDate}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted};">Giờ bắt đầu</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${safeTime}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>`,
+    ctaLabel: "Xem buổi hẹn",
+    ctaUrl: sessionUrl,
+    fallbackUrl: sessionUrl,
+    footerNote: "Bạn có thể xem và quản lý lịch hẹn trong mục Dashboard trên ProInterview.",
+  });
+
+  try {
+    const transporter = await getTransporter();
+    const info = await transporter.sendMail(mailOptions);
+    return { ok: true, info };
+  } catch (error) {
+    console.error("[emailService] sendBookingConfirmedEmailToMentee:", error?.message || error);
+    return { ok: false, error: error.message };
+  }
+}
+
+/**
+ * Gửi email thông báo buổi hẹn mới cho mentor (khi thanh toán được xác nhận)
+ */
+export async function sendBookingConfirmedEmailToMentor(
+  to,
+  { mentorName, menteeName, sessionType, date, timeSlot, bookingId },
+) {
+  if (!to) return { ok: false, error: "Thiếu email người nhận." };
+  const safeMentor = escapeHtml(mentorName || "Mentor");
+  const safeMentee = escapeHtml(menteeName || "Học viên");
+  const sessionLabel = escapeHtml(SESSION_TYPE_LABELS[sessionType] || sessionType || "Buổi học");
+  const safeDate = escapeHtml(date || "");
+  const safeTime = escapeHtml(timeSlot || "");
+  const detailUrl = `${frontendUrl()}/#/mentor/meeting-detail/${encodeURIComponent(bookingId || "")}`;
+
+  const mailOptions = createBrandedMailOptions({
+    to,
+    subject: `[ProInterview] Bạn có buổi hẹn mới từ ${menteeName}`,
+    preheader: `${menteeName} đặt buổi ${sessionLabel} ngày ${date} lúc ${timeSlot}.`,
+    eyebrow: "Lịch hẹn mới",
+    title: "Bạn có buổi hẹn mới!",
+    bodyHtml: `
+        <p style="margin: 0 0 16px;">Chào <strong>${safeMentor}</strong>,</p>
+        <p style="margin: 0 0 20px; color: ${BRAND.textMuted};">
+          <strong>${safeMentee}</strong> đã đặt lịch và thanh toán thành công cho buổi học với bạn. Vui lòng chuẩn bị cho buổi hẹn.
+        </p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+          style="border-radius: 14px; background: #faf8ff; border: 1px solid rgba(128,55,244,0.12); margin-bottom: 8px;">
+          <tr>
+            <td style="padding: 20px 24px;">
+              <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted}; width: 130px;">Loại buổi</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${sessionLabel}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted};">Học viên</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${safeMentee}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted};">Ngày</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${safeDate}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted};">Giờ bắt đầu</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${safeTime}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>`,
+    ctaLabel: "Xem chi tiết buổi hẹn",
+    ctaUrl: detailUrl,
+    fallbackUrl: detailUrl,
+    footerNote: "Vào trang Lịch Mentor để xem đầy đủ danh sách buổi hẹn sắp tới.",
+  });
+
+  try {
+    const transporter = await getTransporter();
+    const info = await transporter.sendMail(mailOptions);
+    return { ok: true, info };
+  } catch (error) {
+    console.error("[emailService] sendBookingConfirmedEmailToMentor:", error?.message || error);
+    return { ok: false, error: error.message };
+  }
+}
+
 // Kiểm tra SMTP khi khởi động — bỏ qua nếu chưa cấu hình (dev vẫn chạy API/DB)
 (async function verifyMailConfig() {
   if (!isMailConfigured()) {

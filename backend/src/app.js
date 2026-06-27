@@ -101,6 +101,8 @@ export function createApp() {
     cors({ origin: staticCorsOrigin }),
     (_req, res, next) => {
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Disposition", "attachment");
       next();
     },
     express.static("public/uploads"),
@@ -165,22 +167,26 @@ export function createApp() {
       ok: true,
       service: "backend",
       database: connected ? "connected" : "disconnected",
-      /** Giúp đối chiếu với Atlas: tên DB + host (không lộ password). */
+      // Trong production: chỉ trả tên DB (không host) để tránh lộ cluster info
       mongo: connected
         ? {
             databaseName: db?.databaseName ?? null,
-            host: mongoose.connection.host || null,
+            ...(isProd ? {} : { host: mongoose.connection.host || null }),
           }
         : null,
-      /** Phase 0 (2B.1.c): redis bắt buộc ở production — cache_mode="memory" ở prod là dấu hiệu bất thường. */
       cache: {
         redisConfigured: isRedisEnabled(),
         mode: getCacheMode(),
       },
-      sepayWebhookConfigured: Boolean(
-        String(process.env.SEPAY_WEBHOOK_API_KEY || process.env.SEPAY_API_KEY || "").trim(),
-      ),
-      jaas: getJaasPublicStatus(),
+      // Trong production: che giấu trạng thái cấu hình dịch vụ bên ngoài
+      ...(isProd
+        ? {}
+        : {
+            sepayWebhookConfigured: Boolean(
+              String(process.env.SEPAY_WEBHOOK_API_KEY || process.env.SEPAY_API_KEY || "").trim(),
+            ),
+            jaas: getJaasPublicStatus(),
+          }),
       timestamp: new Date().toISOString(),
     });
   });

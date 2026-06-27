@@ -10,11 +10,11 @@ export class AuthController {
       if (!result.ok) {
         return res.status(result.status).json({ success: false, error: result.error });
       }
-      res.status(201).json({ 
-        success: true, 
+      const isProd = process.env.NODE_ENV === "production";
+      res.status(201).json({
+        success: true,
         message: "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.",
-        verifyUrl: result.verifyUrl, // Cho dev
-        verifyToken: result.verifyToken 
+        ...(!isProd && { verifyUrl: result.verifyUrl, verifyToken: result.verifyToken }),
       });
     } catch (err) {
       next(err);
@@ -41,10 +41,11 @@ export class AuthController {
       if (!result.ok) {
         return res.status(result.status).json({ success: false, error: result.error });
       }
-      res.json({ 
-        success: true, 
+      const isProdResend = process.env.NODE_ENV === "production";
+      res.json({
+        success: true,
         message: "Đã gửi lại email xác thực. Vui lòng kiểm tra hộp thư của bạn.",
-        verifyToken: result.verifyToken // Cho dev
+        ...(!isProdResend && { verifyToken: result.verifyToken }),
       });
     } catch (err) {
       next(err);
@@ -234,11 +235,11 @@ export class AuthController {
     try {
       const result = await authService.requestPasswordReset(req.body?.email, req);
       // Trả về success: true kèm message để người dùng biết mail đã được gửi.
-      res.json({ 
-        success: true, 
+      const isProd = process.env.NODE_ENV === "production";
+      res.json({
+        success: true,
         message: "Nếu email tồn tại trong hệ thống, một liên kết đặt lại mật khẩu đã được gửi đi.",
-        resetUrl: result?.resetUrl, // Cho dev
-        resetToken: result?.resetToken // Cho dev
+        ...(!isProd && { resetUrl: result?.resetUrl, resetToken: result?.resetToken }),
       });
     } catch (err) {
       next(err);

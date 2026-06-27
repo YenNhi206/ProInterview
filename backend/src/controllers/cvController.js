@@ -152,6 +152,8 @@ export const CVController = {
 
       return res.status(201).json({ success: true, analysis });
     } catch (err) {
+      // Rollback quota vì CVAnalysis.create thất bại nhưng quota đã bị tăng
+      await User.findByIdAndUpdate(userId, { $inc: { "quota.cvAnalysisUsed": -1 } }).catch(() => {});
       logger.error("cv_analysis_create_failed", { userId, error: err.message });
       return res.status(500).json({ success: false, error: err.message });
     }

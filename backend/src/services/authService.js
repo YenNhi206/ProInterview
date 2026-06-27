@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import { isAllowedMediaUrl } from "../utils/resolveStoredUploadUrl.js";
 import { User, toPublicUser } from "../models/User.js";
 import { sanitizeNotificationPrefsPatch } from "../constants/notificationPrefs.js";
 import * as emailService from "./emailService.js";
@@ -550,9 +551,8 @@ export async function requestEmailVerification(emailRaw) {
   if (!email) return { ok: false, status: 400, error: "Thiếu email." };
 
   const user = await User.findOne({ email }).select("+emailVerificationTokenHash +emailVerificationExpiresAt");
-  if (!user) {
-    return { ok: false, status: 404, error: "Không tìm thấy tài khoản với email này." };
-  }
+  // Silent success khi không tìm thấy — tránh lộ email có tồn tại hay không (enumeration).
+  if (!user) return { ok: true };
 
   if (user.isEmailVerified) {
     return { ok: false, status: 400, error: "Email này đã được xác thực trước đó." };
@@ -601,6 +601,10 @@ export async function loginUser(body, req) {
     };
   }
 
+  if (user.isActive === false) {
+    return { ok: false, status: 403, error: "Tài khoản đã bị khóa. Liên hệ quản trị viên." };
+  }
+
   if (!user.passwordHash) {
     return {
       ok: false,
@@ -618,10 +622,6 @@ export async function loginUser(body, req) {
     }
     await user.save();
     return { ok: false, status: 401, error: "Email hoặc mật khẩu không đúng." };
-  }
-
-  if (user.isActive === false) {
-    return { ok: false, status: 403, error: "Tài khoản đã bị khóa. Liên hệ quản trị viên." };
   }
 
   user.failedLoginAttempts = 0;
@@ -834,7 +834,12 @@ export async function patchMeUser(userId, body, req, options = {}) {
   }
   if (typeof body.avatar === "string") {
     const av = body.avatar.trim();
-    if (av) user.avatar = av;
+    if (av) {
+      if (!isAllowedMediaUrl(av)) {
+        return { ok: false, status: 400, error: "URL avatar không hợp lệ — chỉ chấp nhận file đã upload qua hệ thống." };
+      }
+      user.avatar = av;
+    }
   }
   if (Array.isArray(body.expertise)) {
     user.expertise = body.expertise;

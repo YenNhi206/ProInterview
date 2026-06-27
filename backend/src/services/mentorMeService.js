@@ -263,7 +263,13 @@ export async function applyForMentor(userId, body) {
       sessionTypes: [{ type: "mock_interview", durationMinutes: 60, price: baseProfile.pricePerHour }],
     });
   } else {
-    Object.assign(mentor, baseProfile);
+    if (mentor.adminReview?.status === "approved") {
+      // Preserve approval/verification status when an approved mentor updates their profile
+      const { isVerified, adminReview, isActive, available, ...profileUpdate } = baseProfile;
+      Object.assign(mentor, profileUpdate);
+    } else {
+      Object.assign(mentor, baseProfile);
+    }
     if (!Array.isArray(mentor.sessionTypes) || mentor.sessionTypes.length === 0) {
       mentor.sessionTypes = [{ type: "mock_interview", durationMinutes: 60, price: baseProfile.pricePerHour }];
     }
@@ -355,11 +361,15 @@ export async function patchMyMentorProfile(userId, body) {
   }
   if (Array.isArray(body.sessionTypes)) {
     m.sessionTypes = body.sessionTypes
-      .map((s) => ({
-        type: typeof s?.type === "string" ? s.type : undefined,
-        durationMinutes: Number.isFinite(Number(s?.durationMinutes)) ? Math.round(Number(s.durationMinutes)) : undefined,
-        price: Number.isFinite(Number(s?.price)) ? Math.round(Number(s.price)) : undefined,
-      }))
+      .map((s) => {
+        const dur = Math.round(Number(s?.durationMinutes));
+        const pr = Math.round(Number(s?.price));
+        return {
+          type: typeof s?.type === "string" ? s.type : undefined,
+          durationMinutes: Number.isFinite(dur) && dur >= 15 && dur <= 480 ? dur : undefined,
+          price: Number.isFinite(pr) && pr > 0 ? pr : undefined,
+        };
+      })
       .filter((s) => s.type);
   }
   if (typeof body.available === "boolean") m.available = body.available;
