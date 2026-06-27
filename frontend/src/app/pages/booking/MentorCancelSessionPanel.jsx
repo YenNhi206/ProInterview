@@ -1,6 +1,8 @@
 import { motion } from "motion/react";
 import { AlertCircle as WarningCircle } from "lucide-react";
 import { AppSelect } from "../../components/ui/AppSelect";
+import { RefundBankFields } from "../../components/booking/RefundBankFields.jsx";
+import { BANK_OTHER } from "../../constants/vietnamBanks.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 
 /**
@@ -20,8 +22,10 @@ export function MentorCancelSessionPanel({
   setRescheduleSlot,
   rescheduleSlotOptions,
   loadingRescheduleSlots,
-  refundBankName,
-  setRefundBankName,
+  refundBankSelect,
+  setRefundBankSelect,
+  refundCustomBankName,
+  setRefundCustomBankName,
   refundAccountNumber,
   setRefundAccountNumber,
   refundAccountHolder,
@@ -164,8 +168,10 @@ export function MentorCancelSessionPanel({
 
             {mentorResolutionStep === "refund" ? (
               <RefundForm
-                refundBankName={refundBankName}
-                setRefundBankName={setRefundBankName}
+                refundBankSelect={refundBankSelect}
+                setRefundBankSelect={setRefundBankSelect}
+                refundCustomBankName={refundCustomBankName}
+                setRefundCustomBankName={setRefundCustomBankName}
                 refundAccountNumber={refundAccountNumber}
                 setRefundAccountNumber={setRefundAccountNumber}
                 refundAccountHolder={refundAccountHolder}
@@ -194,8 +200,10 @@ export function MentorCancelSessionPanel({
           <RefundForm
             title={refundBankFormTitle}
             refundAmount={refundAmt}
-            refundBankName={refundBankName}
-            setRefundBankName={setRefundBankName}
+            refundBankSelect={refundBankSelect}
+            setRefundBankSelect={setRefundBankSelect}
+            refundCustomBankName={refundCustomBankName}
+            setRefundCustomBankName={setRefundCustomBankName}
             refundAccountNumber={refundAccountNumber}
             setRefundAccountNumber={setRefundAccountNumber}
             refundAccountHolder={refundAccountHolder}
@@ -226,10 +234,12 @@ export function MentorCancelSessionPanel({
 }
 
 function RefundForm({
-  title = "Tài khoản nhận hoàn",
+  title = "STK nhận hoàn",
   refundAmount = 0,
-  refundBankName,
-  setRefundBankName,
+  refundBankSelect,
+  setRefundBankSelect,
+  refundCustomBankName,
+  setRefundCustomBankName,
   refundAccountNumber,
   setRefundAccountNumber,
   refundAccountHolder,
@@ -244,33 +254,24 @@ function RefundForm({
 
   return (
     <div className={`mt-4 space-y-3 rounded-2xl border p-4 ${border}`}>
-      <p className="text-xs font-black uppercase tracking-wider text-slate-900">{title}</p>
+      {title ? <p className="text-sm font-bold text-slate-900">{title}</p> : null}
       {refundAmount > 0 ? (
-        <p className="text-sm text-slate-700">
-          Số hoàn dự kiến: <strong>{formatVnd(Math.round(refundAmount))}</strong>
+        <p className="text-sm text-slate-600">
+          Hoàn dự kiến: <strong className="text-slate-900">{formatVnd(Math.round(refundAmount))}</strong>
         </p>
       ) : null}
-      <input
-        type="text"
-        value={refundBankName}
-        onChange={(e) => setRefundBankName(e.target.value)}
-        placeholder="Tên ngân hàng"
-        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-      />
-      <input
-        type="text"
-        inputMode="numeric"
-        value={refundAccountNumber}
-        onChange={(e) => setRefundAccountNumber(e.target.value)}
-        placeholder="Số tài khoản"
-        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:border-violet-400"
-      />
-      <input
-        type="text"
-        value={refundAccountHolder}
-        onChange={(e) => setRefundAccountHolder(e.target.value)}
-        placeholder="Tên chủ tài khoản (in hoa, không dấu)"
-        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-400"
+      <RefundBankFields
+        bankSelect={refundBankSelect}
+        onBankSelectChange={(value) => {
+          setRefundBankSelect(value);
+          if (value !== BANK_OTHER) setRefundCustomBankName("");
+        }}
+        customBankName={refundCustomBankName}
+        onCustomBankNameChange={setRefundCustomBankName}
+        accountNumber={refundAccountNumber}
+        onAccountNumberChange={setRefundAccountNumber}
+        accountHolder={refundAccountHolder}
+        onAccountHolderChange={setRefundAccountHolder}
       />
       <div className="flex flex-wrap gap-2 pt-1">
         <button

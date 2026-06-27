@@ -135,7 +135,7 @@ export function AdminCoursePayments() {
       </motion.div>
 
       <AdminListFilterBar
-        countText={`Hiển thị ${filtered.length} / ${rows.length} ghi danh`}
+        countText={`Hiển thị ${filtered.length} / ${rows.length} đơn mua`}
         showReset={filter !== "all"}
         onReset={() => setFilter("all")}
       >
@@ -188,7 +188,7 @@ export function AdminCoursePayments() {
                     className={`${adminTdCell} py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500`}
                   >
                     {rows.length === 0
-                      ? "Chưa có ghi danh có học phí chuyển khoản."
+                      ? "Chưa có đơn mua khóa học có học phí chuyển khoản."
                       : "Không có dòng phù hợp bộ lọc / từ khóa."}
                   </td>
                 </tr>

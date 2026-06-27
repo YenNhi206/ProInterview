@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -37,6 +38,8 @@ import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/Men
 import { fetchMentorAnalytics } from "../../api/mentorApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
 import { avatarSrc } from "../../utils/shared/mediaUrl.js";
+import { MentorListExpandButton } from "../../components/mentor/MentorListExpandButton.jsx";
+import { useMentorListExpand } from "../../hooks/useMentorListExpand.js";
 
 const MENTEE_TREND_STYLES = {
   improving: {
@@ -90,47 +93,144 @@ function RadarSubjectTick({ payload, x, y, cx, cy }) {
   );
 }
 
-function MenteeScoreCell({ mentee }) {
+function MenteeScoreCell({ mentee, compact = false }) {
+  const valueCls = compact ? "text-xs font-bold" : "text-sm font-bold";
+  const emptyCls = compact ? "text-[11px] font-semibold" : "text-xs font-semibold";
   if (mentee.scoreSource === "review" && mentee.avgStarScore != null) {
     return (
-      <div className="flex items-center gap-1.5" title="Đánh giá sao trung bình sau buổi mentor">
-        <Star size={14} className="shrink-0 fill-[#FFD600] text-[#FFD600]" aria-hidden />
-        <span className="text-sm font-bold text-slate-900">{mentee.avgStarScore.toFixed(1)}</span>
+      <div className="flex items-center justify-center gap-1" title="Đánh giá sao trung bình sau buổi mentor">
+        <Star size={compact ? 12 : 14} className="shrink-0 fill-[#FFD600] text-[#FFD600]" aria-hidden />
+        <span className={`${valueCls} tabular-nums text-slate-900`}>{mentee.avgStarScore.toFixed(1)}</span>
       </div>
     );
   }
   if (mentee.scoreSource === "interview" && mentee.avgInterviewScore != null) {
     return (
-      <div className="flex items-center gap-1.5" title="Điểm STAR trung bình từ phỏng vấn AI">
-        <span className="text-sm font-bold text-violet-700">{mentee.avgInterviewScore.toFixed(1)}</span>
-        <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-600">
-          AI
-        </span>
+      <div className="flex items-center justify-center gap-1" title="Điểm STAR trung bình từ phỏng vấn AI">
+        <span className={`${valueCls} tabular-nums text-violet-700`}>{mentee.avgInterviewScore.toFixed(1)}</span>
+        {compact ? (
+          <span className="rounded bg-violet-50 px-1 py-0.5 text-[9px] font-bold text-violet-600">AI</span>
+        ) : (
+          <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-600">AI</span>
+        )}
       </div>
     );
   }
   return (
-    <span className="text-xs font-semibold text-slate-600" title="Chưa có đánh giá sao hoặc điểm phỏng vấn AI">
+    <span className={`${emptyCls} text-slate-600`} title="Chưa có đánh giá sao hoặc điểm phỏng vấn AI">
       Chưa có
     </span>
   );
 }
 
-function MenteeTrendBadge({ trend }) {
+function MenteeTrendBadge({ trend, compact = false }) {
   const key = MENTEE_TREND_STYLES[trend] ? trend : "unknown";
   const { icon: Icon, label, className } = MENTEE_TREND_STYLES[key];
+  const displayLabel = compact && key === "unknown" ? "Chưa có" : label;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${className}`}
+      className={`inline-flex max-w-full items-center justify-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold leading-none sm:gap-1.5 sm:rounded-full sm:px-2.5 sm:py-1 sm:text-xs ${className}`}
       title={
         key === "unknown"
           ? "Cần thêm đánh giá hoặc buổi phỏng vấn AI để so sánh tiến bộ"
           : undefined
       }
     >
-      {Icon ? <Icon size={14} strokeWidth={2.5} aria-hidden /> : null}
-      {label}
+      {Icon ? <Icon size={compact ? 12 : 14} strokeWidth={2.5} aria-hidden /> : null}
+      <span className="truncate">{displayLabel}</span>
     </span>
+  );
+}
+
+function MenteeQuickStats({ mentee, variant = "inline" }) {
+  if (variant === "panel") {
+    return (
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+        <div className="flex flex-col divide-y divide-slate-100 sm:grid sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:flex-col sm:justify-center sm:gap-0 sm:px-3 sm:py-4 sm:text-center">
+            <p className="text-xs font-semibold text-slate-500 sm:text-[10px] sm:font-bold sm:uppercase sm:tracking-wide sm:text-slate-400">
+              Số buổi
+            </p>
+            <p className="text-base font-black tabular-nums text-slate-900 sm:mt-1.5 sm:text-xl">
+              {mentee.totalSessions}
+            </p>
+          </div>
+          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:flex-col sm:justify-center sm:gap-0 sm:px-3 sm:py-4 sm:text-center">
+            <p className="text-xs font-semibold text-slate-500 sm:text-[10px] sm:font-bold sm:uppercase sm:tracking-wide sm:text-slate-400">
+              Đánh giá
+            </p>
+            <div className="sm:mt-1.5 sm:flex sm:justify-center">
+              <MenteeScoreCell mentee={mentee} />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:flex-col sm:justify-center sm:gap-0 sm:px-3 sm:py-4 sm:text-center">
+            <p className="shrink-0 text-xs font-semibold text-slate-500 sm:text-[10px] sm:font-bold sm:uppercase sm:tracking-wide sm:text-slate-400">
+              Xu hướng
+            </p>
+            <div className="sm:mt-1.5 sm:flex sm:justify-center">
+              <MenteeTrendBadge trend={mentee.progressTrend} compact />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <div className="flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-slate-50 px-1.5 py-2 text-center">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Buổi</span>
+        <span className="text-sm font-black tabular-nums leading-none text-slate-900">{mentee.totalSessions}</span>
+      </div>
+      <div className="flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-slate-50 px-1.5 py-2 text-center">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Đánh giá</span>
+        <div className="flex min-h-[18px] w-full items-center justify-center">
+          <MenteeScoreCell mentee={mentee} compact />
+        </div>
+      </div>
+      <div className="flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-1 rounded-xl bg-slate-50 px-1.5 py-2 text-center">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Xu hướng</span>
+        <div className="flex min-h-[22px] w-full items-center justify-center">
+          <MenteeTrendBadge trend={mentee.progressTrend} compact />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MenteeMobileCard({ mentee, onSelect }) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="w-full rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-[0_2px_12px_rgba(15,23,42,0.05)] transition active:scale-[0.99] hover:border-[#8037f4]/25"
+    >
+      <div className="flex items-center gap-3">
+        <img
+          src={avatarSrc(mentee.menteeAvatar)}
+          alt=""
+          className="h-12 w-12 shrink-0 rounded-2xl object-cover ring-1 ring-slate-100"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = avatarSrc("");
+          }}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-bold leading-snug text-slate-900">{mentee.menteeName}</p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Cập nhật {new Date(mentee.lastSessionDate).toLocaleDateString("vi-VN")}
+              </p>
+            </div>
+            <CaretRight size={18} className="mt-0.5 shrink-0 text-slate-300" aria-hidden />
+          </div>
+        </div>
+      </div>
+      <div className="mt-3.5">
+        <MenteeQuickStats mentee={mentee} />
+      </div>
+    </button>
   );
 }
 
@@ -151,6 +251,18 @@ export function MentorAnalytics() {
       else if (!res.success) toastApiError(res.error, "Không tải được dữ liệu phân tích.");
     }).catch(() => toastApiError("Lỗi kết nối khi tải phân tích."));
   }, [navigate, user?.role, user?.id]);
+
+  const mentees = analytics?.mentees ?? [];
+  const filteredMentees = useMemo(
+    () => mentees.filter((m) => m.menteeName.toLowerCase().includes(search.toLowerCase())),
+    [mentees, search],
+  );
+  const {
+    visibleItems: visibleMentees,
+    showExpandButton: showMenteeExpandButton,
+    expanded: menteesExpanded,
+    toggleExpanded: toggleMenteesExpanded,
+  } = useMentorListExpand(filteredMentees, search);
 
   if (!user || user.role !== "mentor") return null;
 
@@ -182,11 +294,6 @@ export function MentorAnalytics() {
     "Điểm TB": parseFloat(w.avgStarScore.toFixed(2)),
     "Số buổi": w.totalMeetings,
   }));
-
-  const mentees = analytics?.mentees || [];
-  const filteredMentees = mentees.filter(m => 
-    m.menteeName.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <MentorPageShell bottomPad="pb-20" showAmbient={false} className="!bg-[#f8f9fc]">
@@ -253,8 +360,8 @@ export function MentorAnalytics() {
             transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] lg:col-span-7"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
-              <h2 className="font-headline text-sm font-black text-slate-900">
+            <div className="flex flex-col items-start gap-1 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6">
+              <h2 className="font-headline text-left text-sm font-black text-slate-900">
                 <span className="mr-2 text-[#8037f4]">01</span>
                 Hiệu suất đào tạo tuần
               </h2>
@@ -293,8 +400,8 @@ export function MentorAnalytics() {
             transition={{ duration: 0.5, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col overflow-hidden rounded-2xl border border-[#8037f4]/15 bg-[#8037f4]/[0.05] shadow-[0_1px_3px_rgba(15,23,42,0.04)] lg:col-span-5"
           >
-            <div className="flex items-center justify-between border-b border-[#8037f4]/10 px-5 py-4 sm:px-6">
-              <h2 className="font-headline text-sm font-black text-slate-900">
+            <div className="flex flex-col items-start gap-1 border-b border-[#8037f4]/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6">
+              <h2 className="font-headline text-left text-sm font-black text-slate-900">
                 <span className="mr-2 text-[#8037f4]">02</span>
                 Kỹ năng tập trung
               </h2>
@@ -343,8 +450,8 @@ export function MentorAnalytics() {
           transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
         >
-          <div className="flex flex-col gap-4 border-b border-slate-100 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
-            <h2 className="font-headline text-lg font-black tracking-tight text-slate-900">
+          <div className="flex flex-col items-start gap-4 border-b border-slate-100 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+            <h2 className="font-headline text-left text-lg font-black tracking-tight text-slate-900">
               <span className="mr-2 text-[#8037f4]">03</span>
               Chi tiết mentee
             </h2>
@@ -355,13 +462,28 @@ export function MentorAnalytics() {
                 placeholder="Tìm học viên…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 outline-none placeholder:font-medium placeholder:text-slate-400 focus:border-[#8037f4]/40 focus:bg-white focus:ring-2 focus:ring-[#8037f4]/15"
+                className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-10 pr-4 text-base font-medium text-slate-900 outline-none placeholder:font-medium placeholder:text-slate-400 focus:border-[#8037f4]/40 focus:bg-white focus:ring-2 focus:ring-[#8037f4]/15 sm:text-sm"
                 aria-label="Tìm học viên"
               />
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="space-y-3 p-4 lg:hidden">
+            {visibleMentees.map((mentee) => (
+              <MenteeMobileCard
+                key={mentee.menteeId}
+                mentee={mentee}
+                onSelect={() => setSelectedMentee(mentee)}
+              />
+            ))}
+            {!filteredMentees.length && (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-12 text-center text-sm text-slate-500">
+                Không tìm thấy mentee phù hợp.
+              </div>
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto lg:block">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/70 text-[10px] font-bold uppercase tracking-wider text-slate-500">
@@ -373,7 +495,7 @@ export function MentorAnalytics() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredMentees.map((mentee) => (
+                {visibleMentees.map((mentee) => (
                   <tr key={mentee.menteeId} className="transition-colors hover:bg-slate-50/60">
                     <td className="px-4 py-4 sm:px-6">
                       <div className="flex items-center gap-3">
@@ -418,42 +540,52 @@ export function MentorAnalytics() {
                   </tr>
                 )}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+
+            {showMenteeExpandButton ? (
+              <MentorListExpandButton
+                expanded={menteesExpanded}
+                onToggle={toggleMenteesExpanded}
+              />
+            ) : null}
         </motion.section>
       </div>
 
-      {/* ── Mentee detail modal ── */}
-      <AnimatePresence>
-        {selectedMentee && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6"
-            onClick={() => setSelectedMentee(null)}
-          >
+      {/* ── Mentee detail modal (portal — tránh kẹt dưới navbar fixed z-[100]) ── */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedMentee && (
             <motion.div
-              initial={{ scale: 0.96, y: 16, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.96, y: 16, opacity: 0 }}
-              className="my-6 flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-[#8037f4]/15 bg-white shadow-[0_24px_64px_rgba(128,55,244,0.12)]"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 py-6 backdrop-blur-sm sm:items-center sm:p-6"
+              onClick={() => setSelectedMentee(null)}
             >
+              <motion.div
+                initial={{ scale: 0.96, y: 16, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.96, y: 16, opacity: 0 }}
+                className="my-auto flex w-full max-w-4xl max-h-[min(92svh,720px)] shrink-0 flex-col overflow-hidden rounded-2xl border border-[#8037f4]/15 bg-white shadow-[0_24px_64px_rgba(128,55,244,0.12)] sm:my-6"
+                onClick={(e) => e.stopPropagation()}
+              >
               {/* Modal header — gradient */}
-              <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#630ed4] to-[#8037f4] px-5 py-5 text-white sm:px-6">
+              <div className="relative shrink-0 overflow-hidden bg-gradient-to-r from-[#630ed4] to-[#8037f4] px-4 py-4 text-white sm:px-6 sm:py-5">
                 <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" aria-hidden />
-                <div className="relative flex items-center justify-between gap-4">
-                  <div className="flex min-w-0 items-center gap-4">
+                <div className="relative flex items-start justify-between gap-3 sm:items-center sm:gap-4">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <img
                       src={avatarSrc(selectedMentee.menteeAvatar)}
                       alt=""
-                      className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-2 ring-white/30"
+                      className="h-12 w-12 shrink-0 rounded-2xl object-cover ring-2 ring-white/30 sm:h-14 sm:w-14"
                       onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = avatarSrc(""); }}
                     />
                     <div className="min-w-0">
-                      <p className="truncate text-lg font-black tracking-tight text-white sm:text-xl">
+                      <p className="truncate text-base font-black tracking-tight text-white sm:text-xl">
                         {selectedMentee.menteeName}
                       </p>
-                      <p className="mt-0.5 text-sm font-semibold text-violet-100">
+                      <p className="mt-0.5 text-xs font-semibold text-violet-100 sm:text-sm">
                         Chi tiết tiến độ học viên
                       </p>
                     </div>
@@ -470,49 +602,34 @@ export function MentorAnalytics() {
               </div>
 
               {/* Quick stats */}
-              <div className="grid shrink-0 grid-cols-3 gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 sm:px-6">
-                <div className="rounded-xl border border-slate-100 bg-white px-3 py-3 text-center shadow-sm">
-                  <p className="mentor-label mb-1">Số buổi</p>
-                  <p className="mentor-stat-num mentor-stat-num--card">{selectedMentee.totalSessions}</p>
-                </div>
-                <div className="rounded-xl border border-slate-100 bg-white px-3 py-3 text-center shadow-sm">
-                  <p className="mentor-label mb-1">Đánh giá</p>
-                  <div className="flex justify-center">
-                    <MenteeScoreCell mentee={selectedMentee} />
-                  </div>
-                </div>
-                <div className="rounded-xl border border-slate-100 bg-white px-3 py-3 text-center shadow-sm">
-                  <p className="mentor-label mb-1">Xu hướng</p>
-                  <div className="flex justify-center">
-                    <MenteeTrendBadge trend={selectedMentee.progressTrend} />
-                  </div>
-                </div>
+              <div className="shrink-0 border-b border-slate-100 bg-white px-4 py-3 sm:px-6 sm:py-4">
+                <MenteeQuickStats mentee={selectedMentee} variant="panel" />
               </div>
 
               {/* Modal body */}
-              <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
-                <div className="grid gap-5 md:grid-cols-2">
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+                <div className="grid gap-4 md:grid-cols-2 md:gap-5">
                   {/* STAR chart */}
                   <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
                     <div className="border-b border-slate-100 px-4 py-3">
-                      <p className="mentor-label flex items-center gap-2">
+                      <p className="mentor-label flex items-center gap-2 text-left">
                         <ChartLineIcon size={12} className="text-violet-600" />
                         Tiến trình STAR · 4 tuần
                       </p>
                     </div>
-                    <div className="flex h-56 flex-col justify-center p-4">
+                    <div className="flex min-h-[200px] flex-col justify-center p-4 sm:h-56">
                       {(() => {
                         const starChartRows = (selectedMentee.starHistory || []).filter((row) =>
                           [row.situation, row.task, row.action, row.result].some((v) => v != null && Number.isFinite(Number(v))),
                         );
                         if (!selectedMentee.hasBehaviorData || starChartRows.length === 0) {
                           return (
-                            <div className="flex h-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-violet-200/80 bg-violet-50/40 px-4 text-center">
+                            <div className="flex h-full flex-col items-start justify-center rounded-xl border-2 border-dashed border-violet-200/80 bg-violet-50/40 px-4 py-5 text-left sm:items-center sm:text-center">
                               <ChartLineIcon size={28} className="mb-3 text-violet-400" />
                               <p className="text-sm font-bold text-slate-700">
                                 {selectedMentee.hasInterviewSessions ? "Chưa đủ điểm STAR để vẽ biểu đồ" : "Chưa có dữ liệu"}
                               </p>
-                              <p className="mt-1 text-xs font-semibold text-slate-500">
+                              <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
                                 Cần thêm buổi phỏng vấn AI hoặc đánh giá sau mentor
                               </p>
                             </div>
@@ -540,7 +657,7 @@ export function MentorAnalytics() {
                   {/* Strengths & weaknesses */}
                   <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
                     <div className="border-b border-slate-100 px-4 py-3">
-                      <p className="mentor-label flex items-center gap-2">
+                      <p className="mentor-label flex items-center gap-2 text-left">
                         <Star size={12} className="text-violet-600" />
                         Ưu điểm &amp; hạn chế
                       </p>
@@ -582,11 +699,11 @@ export function MentorAnalytics() {
               </div>
 
               {/* Modal footer */}
-              <div className="flex shrink-0 justify-end border-t border-slate-100 bg-slate-50/50 px-5 py-4 sm:px-6">
+              <div className="flex shrink-0 border-t border-slate-100 bg-slate-50/50 px-4 py-4 sm:justify-end sm:px-6">
                 <button
                   type="button"
                   onClick={() => setSelectedMentee(null)}
-                  className="rounded-xl bg-[#93f72b] px-8 py-2.5 text-sm font-bold text-slate-900 shadow-[0_8px_24px_rgba(147,247,43,0.35)] transition hover:brightness-105 active:scale-[0.98]"
+                  className="min-h-[44px] w-full rounded-xl bg-[#93f72b] px-8 py-2.5 text-sm font-bold text-slate-900 shadow-[0_8px_24px_rgba(147,247,43,0.35)] transition hover:brightness-105 active:scale-[0.98] sm:w-auto"
                 >
                   Đóng
                 </button>
@@ -594,7 +711,9 @@ export function MentorAnalytics() {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+        document.body,
+      )}
     </MentorPageShell>
   );
 }

@@ -180,7 +180,7 @@ export const CoursesController = {
       if (!hasAccess) {
         return res.status(403).json({
           success: false,
-          error: "Bạn chưa ghi danh khóa học này để xem nội dung",
+          error: "Bạn chưa mua khóa học này để xem nội dung",
         });
       }
 

@@ -1154,7 +1154,7 @@ export function CourseLearning() {
           <BookOpen className="w-16 h-16 text-amber-500/80 mx-auto mb-4" />
           <h2 className="mb-2 text-xl font-bold text-slate-900">Chờ xác nhận thanh toán</h2>
           <p className="mb-6 text-sm leading-relaxed text-slate-600">
-            Ghi danh khóa học đã được tạo. Sau khi bạn chuyển khoản đúng mã PI và số tiền, SePay sẽ tự xác nhận và mở học đầy đủ (thường trong vài phút).
+            Đơn mua khóa học đã được tạo. Sau khi bạn chuyển khoản đúng mã PI và số tiền, SePay sẽ tự xác nhận và mở học đầy đủ (thường trong vài phút).
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -1193,9 +1193,9 @@ export function CourseLearning() {
       <div className="flex min-h-screen items-center justify-center bg-[#faf9fc] px-6 dark:bg-slate-950">
         <div className="text-center max-w-md">
           <BookOpen className="mx-auto mb-4 h-16 w-16 text-violet-300" />
-          <h2 className="mb-2 text-xl font-bold text-slate-900">Chưa ghi danh</h2>
+          <h2 className="mb-2 text-xl font-bold text-slate-900">Chưa mua khóa học</h2>
           <p className="mb-6 text-sm text-slate-600">
-            Vui lòng đăng ký (và thanh toán nếu khóa có phí) từ trang chi tiết khóa học.
+            Vui lòng mua khóa học (hoặc đăng ký miễn phí nếu khóa không thu phí) từ trang chi tiết.
           </p>
           <button
             type="button"

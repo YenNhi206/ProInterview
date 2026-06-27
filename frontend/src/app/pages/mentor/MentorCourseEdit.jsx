@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { MentorListExpandButton } from "../../components/mentor/MentorListExpandButton.jsx";
+import { useMentorListExpand } from "../../hooks/useMentorListExpand.js";
+import { MentorScrollFadeRow } from "../../components/mentor/MentorScrollFadeRow.jsx";
 import { useParams, useNavigate } from "react-router";
 import {
    BookOpen,
@@ -290,7 +293,7 @@ function LessonsTab({ lessons, onLessonsChange }) {
 
    return (
       <div className="glass-card overflow-hidden">
-         <div className="flex flex-col gap-4 border-b border-slate-200/80 bg-slate-50/80 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+         <div className="flex flex-col gap-4 border-b border-slate-200/80 bg-slate-50/80 px-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
             <div>
                <h3 className="app-page-title">Nội dung bài giảng</h3>
                <p className="app-page-subtitle mt-1">{editList.length} bài học</p>
@@ -305,21 +308,21 @@ function LessonsTab({ lessons, onLessonsChange }) {
          </div>
          <ul className="divide-y divide-slate-100">
             {editList.map((lesson, idx) => (
-               <li key={lesson.id} className="px-4 py-5 transition-colors hover:bg-violet-50/30 sm:px-6">
-                  <div className="flex items-start justify-between gap-4">
-                     <div className="flex items-start gap-6 flex-1">
+               <li key={lesson.id} className="overflow-hidden px-3 py-4 transition-colors hover:bg-violet-50/30 sm:px-6 sm:py-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                     <div className="flex min-w-0 items-start gap-3 sm:gap-6">
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-sm font-black text-violet-700">
                         {idx + 1}
                         </span>
-                        <div className="flex-1">
+                        <div className="min-w-0 flex-1">
                            {editingId === lesson.id ? (
                               <input
                                  value={draftTitle}
                                  onChange={(e) => setDraftTitle(e.target.value)}
-                                 className="w-[380px] max-w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-primary-fixed"
+                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-primary-fixed"
                               />
                            ) : (
-                              <h4 className="text-sm font-black text-slate-900 group-hover:text-violet-700 transition-colors">{lesson.title}</h4>
+                              <h4 className="break-words text-sm font-black text-slate-900 transition-colors group-hover:text-violet-700">{lesson.title}</h4>
                            )}
                            <div className="mt-2 flex flex-wrap items-center gap-2">
                               <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
@@ -351,19 +354,19 @@ function LessonsTab({ lessons, onLessonsChange }) {
                                     }}
                                  />
                               </label>
-                              <span className="text-[10px] font-semibold text-zinc-600 uppercase tracking-wide truncate max-w-[280px]">
+                              <span className="min-w-0 max-w-full truncate text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
                                  {lesson.videoFileName || "Chưa chọn video"}
                               </span>
                            </div>
                         </div>
                      </div>
-                     <div className="flex items-center gap-3 shrink-0">
+                     <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0 sm:gap-3">
                         {editingId === lesson.id ? (
                            <>
                               <button
                                  type="button"
                                  onClick={() => saveEdit(lesson.id)}
-                                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-zinc-500 hover:text-emerald-300 transition-all"
+                                 className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-emerald-300 sm:p-3"
                               >
                                  <Check size={16} />
                               </button>
@@ -373,7 +376,7 @@ function LessonsTab({ lessons, onLessonsChange }) {
                                     setEditingId(null);
                                     setDraftTitle("");
                                  }}
-                                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-zinc-500 hover:text-orange-300 transition-all"
+                                 className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-orange-300 sm:p-3"
                               >
                                  <X size={16} />
                               </button>
@@ -382,7 +385,7 @@ function LessonsTab({ lessons, onLessonsChange }) {
                         <button
                            type="button"
                            onClick={() => startEdit(lesson)}
-                           className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-zinc-500 hover:text-slate-900 transition-all"
+                           className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-slate-900 sm:p-3"
                         >
                            <PencilSimple size={16} />
                         </button>
@@ -390,7 +393,7 @@ function LessonsTab({ lessons, onLessonsChange }) {
                         <button
                            type="button"
                            onClick={() => removeLessonItem(lesson.id)}
-                           className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-zinc-500 hover:text-red-500 transition-all"
+                           className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-red-500 sm:p-3"
                         >
                            <Trash size={16} />
                         </button>
@@ -404,6 +407,8 @@ function LessonsTab({ lessons, onLessonsChange }) {
 }
 
 function StudentsTab({ students, summary }) {
+   const { visibleItems: visibleStudents, showExpandButton, expanded, toggleExpanded } =
+      useMentorListExpand(students, String(students.length));
    const statCards = [
       { label: "Đang hoạt động", value: summary?.active ?? students.filter((s) => s.status === "active").length },
       { label: "Hoàn thành", value: summary?.completed ?? students.filter((s) => s.status === "completed").length },
@@ -421,6 +426,34 @@ function StudentsTab({ students, summary }) {
             ))}
          </div>
          <div className="glass-card overflow-hidden">
+            <div className="space-y-3 p-4 lg:hidden">
+               {visibleStudents.map((s) => (
+                  <div
+                     key={s.id}
+                     className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_2px_12px_rgba(15,23,42,0.05)]"
+                  >
+                     <div className="flex items-center gap-3">
+                        <img src={avatarSrc(s.avatar)} alt="" className="h-11 w-11 rounded-xl object-cover" />
+                        <div className="min-w-0 flex-1">
+                           <p className="truncate text-base font-bold text-slate-900">{s.name}</p>
+                           {!s.hasAccess ? (
+                              <p className="text-xs text-amber-600">Chờ thanh toán</p>
+                           ) : (
+                              <p className="text-xs text-slate-500">Lần cuối: {s.lastActive}</p>
+                           )}
+                        </div>
+                     </div>
+                     <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3">
+                        <MiniBar value={s.progress} color={s.progress === 100 ? "#10b981" : "#8037f4"} />
+                        <span className="text-sm font-bold text-slate-900">{s.progress}%</span>
+                     </div>
+                  </div>
+               ))}
+               {!students.length && (
+                  <p className="py-8 text-center text-sm text-slate-500">Chưa có học viên.</p>
+               )}
+            </div>
+            <div className="hidden lg:block">
             <table className="w-full text-left">
                <thead>
                   <tr className="border-b border-slate-200 text-[10px] font-bold text-zinc-600 uppercase tracking-wide">
@@ -430,7 +463,7 @@ function StudentsTab({ students, summary }) {
                   </tr>
                </thead>
                <tbody className="divide-y divide-slate-100">
-                  {students.map((s) => (
+                  {visibleStudents.map((s) => (
                      <tr key={s.id} className="hover:bg-violet-50/30 transition-colors">
                         <td className="px-6 py-4">
                            <div className="flex items-center gap-3">
@@ -454,6 +487,10 @@ function StudentsTab({ students, summary }) {
                   ))}
                </tbody>
             </table>
+            </div>
+            {showExpandButton ? (
+               <MentorListExpandButton expanded={expanded} onToggle={toggleExpanded} />
+            ) : null}
          </div>
       </div>
    );
@@ -568,7 +605,7 @@ function AnalyticsTab({ lessonStats }) {
             </table>
          </div>
          <p className="text-xs text-slate-500">
-            Phân tích dựa trên tiến độ ghi danh đã thanh toán và câu hỏi Q&amp;A thực tế trên hệ thống.
+            Phân tích dựa trên tiến độ mua khóa đã thanh toán và câu hỏi Q&amp;A thực tế trên hệ thống.
          </p>
       </div>
    );
@@ -647,14 +684,6 @@ function CreateCourseForm({ navigate }) {
    const [chapters, setChapters] = useState([]);
    const [thumbnailUrl, setThumbnailUrl] = useState("");
    const [thumbnailFileName, setThumbnailFileName] = useState("");
-   const updateField = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
-   const updateOutcome = (index, value) =>
-      setForm(prev => {
-         const next = [...prev.outcomes];
-         next[index] = value;
-         return { ...prev, outcomes: next };
-      });
-   const addOutcome = () => setForm(prev => ({ ...prev, outcomes: [...prev.outcomes, ""] }));
    const addChapter = () =>
       setChapters(prev => [
          ...prev,
@@ -767,14 +796,6 @@ function CreateCourseForm({ navigate }) {
       );
    const removeChapter = (id) => setChapters(prev => prev.filter(ch => ch.id !== id));
 
-
-   const filledOutcomes = form.outcomes.filter(o => o.trim().length > 0).length;
-   const validationMessages = [];
-   if (form.title.trim().length <= 2) validationMessages.push("Nhập tiêu đề khóa học (ít nhất 3 ký tự).");
-   if (form.description.trim().length <= 20) validationMessages.push("Nhập mô tả khóa học (ít nhất 21 ký tự).");
-   if (!form.category.trim()) validationMessages.push("Chọn danh mục khóa học.");
-   if (filledOutcomes < 3) validationMessages.push("Điền ít nhất 3 mục 'Học viên sẽ học được gì'.");
-   const canContinueStep1 = validationMessages.length === 0;
    const totalLessons = chapters.reduce((acc, ch) => acc + ch.lessons.length, 0);
    const lessonsWithVideo = chapters.reduce(
       (acc, ch) => acc + ch.lessons.filter((lesson) => lesson.videoFileName && lesson.videoFileName.trim()).length,
@@ -788,7 +809,7 @@ function CreateCourseForm({ navigate }) {
          <div className="relative z-10 mx-auto max-w-4xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
             <header className="mb-8">
                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Tạo khóa học mới</h1>
-               <p className="mt-2 max-w-xl text-sm text-slate-500">
+               <p className="mt-2 max-w-xl text-base text-slate-500 sm:text-sm">
                   Điền thông tin, thêm nội dung video, sau đó gửi admin duyệt trước khi hiển thị công khai.
                </p>
             </header>
@@ -798,14 +819,12 @@ function CreateCourseForm({ navigate }) {
 
                {step === 1 && (
                   <CourseCreateStep1
-                     form={form}
-                     updateField={updateField}
-                     updateOutcome={updateOutcome}
-                     addOutcome={addOutcome}
-                     validationMessages={validationMessages}
-                     canContinue={canContinueStep1}
+                     initialForm={form}
                      onCancel={() => navigate("/mentor/courses")}
-                     onNext={() => setStep(2)}
+                     onNext={(step1Data) => {
+                        setForm((prev) => ({ ...prev, ...step1Data }));
+                        setStep(2);
+                     }}
                   />
                )}
 
@@ -834,7 +853,7 @@ function CreateCourseForm({ navigate }) {
                {step === 3 && (
                   <div className="space-y-6">
                      <div className={mentorSectionCardClass}>
-                        <h3 className="mb-4 text-lg font-bold text-slate-900">Xem trước trước khi gửi</h3>
+                        <h3 className="mb-4 text-xl font-bold text-slate-900 sm:text-lg">Xem trước trước khi gửi</h3>
                         <dl className="grid gap-3 sm:grid-cols-2">
                            {[
                               ["Tiêu đề", form.title || "(chưa nhập)"],
@@ -846,8 +865,8 @@ function CreateCourseForm({ navigate }) {
                               ["Video đã upload", String(lessonsWithVideo)],
                            ].map(([label, value]) => (
                               <div key={label} className="rounded-xl bg-slate-50 px-4 py-3">
-                                 <dt className="text-xs font-bold uppercase tracking-wide text-slate-600">{label}</dt>
-                                 <dd className="mt-1 text-sm font-semibold text-slate-900">{value}</dd>
+                                 <dt className="text-sm font-bold uppercase tracking-wide text-slate-600 sm:text-xs">{label}</dt>
+                                 <dd className="mt-1 text-base font-semibold text-slate-900 sm:text-sm">{value}</dd>
                               </div>
                            ))}
                         </dl>
@@ -1094,8 +1113,8 @@ export function MentorCourseEdit() {
    ];
 
    return (
-      <MentorPageShell bottomPad="pb-36" extraStyles={MENTOR_COURSE_EDIT_EXTRA_CSS}>
-         <div className="relative z-10 mx-auto max-w-6xl px-6 pb-8 sm:px-8 mentor-course-edit">
+      <MentorPageShell bottomPad="pb-36" className="overflow-x-clip" extraStyles={MENTOR_COURSE_EDIT_EXTRA_CSS}>
+         <div className="relative z-10 mx-auto max-w-6xl overflow-x-hidden px-4 pb-8 sm:px-6 lg:px-8 mentor-course-edit">
             <CourseAdminModerationBanner note={courseAdminNote} />
             {isArchived && !courseAdminNote ? (
                <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
@@ -1110,14 +1129,14 @@ export function MentorCourseEdit() {
                         alt=""
                         className="h-36 w-full max-w-[220px] rounded-2xl object-cover shadow-md ring-1 ring-slate-200/80 sm:h-40"
                      />
-                     <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-2xl bg-black/50 opacity-0 transition-opacity group-hover/thumb:opacity-100">
+                     <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-2xl bg-black/40 opacity-100 transition-opacity lg:bg-black/50 lg:opacity-0 lg:group-hover/thumb:opacity-100">
                         <div className="text-center">
                            {isUploadingThumbnail ? (
                               <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mx-auto" />
                            ) : (
                               <>
                                  <Upload size={20} className="text-white mx-auto mb-1" />
-                                 <span className="text-[8px] font-bold text-white uppercase tracking-wide">Đổi ảnh</span>
+                                 <span className="text-xs font-bold text-white uppercase tracking-wide sm:text-[8px]">Đổi ảnh</span>
                               </>
                            )}
                         </div>
@@ -1191,13 +1210,17 @@ export function MentorCourseEdit() {
                </div>
             </div>
 
-            <div className="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50/90 p-1.5">
+            <MentorScrollFadeRow
+               className="mb-6 rounded-2xl border border-slate-200 bg-slate-50/90 p-1.5"
+               innerClassName="flex gap-2"
+               fadeFrom="from-slate-50"
+            >
                {TABS.map((tab) => (
                   <button
                      key={tab.key}
                      type="button"
                      onClick={() => setActiveTab(tab.key)}
-                     className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wide transition ${
+                     className={`flex shrink-0 snap-start items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-bold uppercase tracking-wide transition sm:px-4 sm:text-xs ${
                         activeTab === tab.key
                            ? "bg-violet-600 text-white shadow-md shadow-violet-600/25"
                            : "font-semibold text-slate-700 hover:bg-white hover:text-slate-900"
@@ -1207,7 +1230,7 @@ export function MentorCourseEdit() {
                      {tab.label}
                   </button>
                ))}
-            </div>
+            </MentorScrollFadeRow>
 
             {/* Dynamic Tab Body */}
             <AnimatePresence mode="wait">
@@ -1224,7 +1247,7 @@ export function MentorCourseEdit() {
                         loading={tabLoading}
                         error={tabError}
                         empty={!students.length}
-                        emptyMessage="Chưa có học viên ghi danh."
+                        emptyMessage="Chưa có học viên mua khóa."
                      >
                         <StudentsTab students={students} summary={studentsSummary} />
                      </TabPanelState>
@@ -1263,7 +1286,8 @@ export function MentorCourseEdit() {
             </AnimatePresence>
          </div>
 
-         <div className="fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2">
+         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-4 sm:pb-6">
+            <div className="pointer-events-auto w-full max-w-2xl">
             <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-4 shadow-xl shadow-violet-900/10 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-6">
                <p className="text-center text-xs font-semibold text-slate-600 sm:text-left">
                   Lưu thay đổi trước khi gửi admin duyệt
@@ -1272,7 +1296,7 @@ export function MentorCourseEdit() {
                   <button
                      type="button"
                      onClick={() => window.location.reload()}
-                     className="rounded-xl border border-slate-200 px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-700 hover:bg-slate-50"
+                     className="min-h-[44px] rounded-xl border border-slate-200 px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-700 hover:bg-slate-50"
                   >
                      Hủy thay đổi
                   </button>
@@ -1339,11 +1363,12 @@ export function MentorCourseEdit() {
                            toastApiError("Lỗi kết nối khi gửi bản cập nhật.");
                         }
                      }}
-                     className="rounded-xl bg-violet-600 px-6 py-3 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-violet-600/25 hover:bg-violet-700"
+                     className="min-h-[44px] rounded-xl bg-violet-600 px-6 py-3 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-violet-600/25 hover:bg-violet-700"
                   >
                      Lưu & gửi duyệt
                   </button>
                </div>
+            </div>
             </div>
          </div>
 

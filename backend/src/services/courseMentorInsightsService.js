@@ -207,7 +207,7 @@ async function assertStudentLessonAccess(userId, courseId, lessonId) {
   if (!lesson.isFree) {
     const enrolled = await Enrollment.findOne({ userId, courseId: course._id }).lean();
     if (!enrolled) {
-      return { ok: false, status: 403, error: "Bạn chưa ghi danh khóa học này." };
+      return { ok: false, status: 403, error: "Bạn chưa mua khóa học này." };
     }
     if (!enrollmentAccessGranted(enrolled)) {
       return {
@@ -315,7 +315,7 @@ export async function saveLessonNotesForStudent(userId, courseId, lessonId, cont
 
   const enrollment = await Enrollment.findOne({ userId, courseId: gate.course._id });
   if (!enrollment) {
-    return { ok: false, status: 403, error: "Ghi danh khóa học để lưu ghi chú." };
+    return { ok: false, status: 403, error: "Mua khóa học để lưu ghi chú." };
   }
   if (!enrollmentAccessGranted(enrollment)) {
     return {

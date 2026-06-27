@@ -203,7 +203,7 @@ export const COURSES_SHOWCASE_COPY = {
   ],
   cta: "Xem tất cả khóa học",
   panelVideoTitle: "Video từng bài",
-  panelVideoBody: "Ghi danh xong, mở hết bài trong khóa.",
+  panelVideoBody: "Mua khóa học xong, mở hết bài trong khóa.",
   panelVideoNote: "Ghi chú theo bài, học tiếp đúng chỗ.",
 };
 
@@ -344,11 +344,11 @@ export const PRICING_FAQ = [
   {
     q: "Đặt lịch Mentor hoặc mua khóa học có nằm trong gói không?",
     paragraphs: [
-      "Gói Basic/Pro/Elite bao gồm các tính năng phỏng vấn AI và phân tích CV/JD. Đặt lịch Mentor 1:1 và ghi danh khóa học là dịch vụ riêng, thanh toán theo từng buổi hoặc từng khóa.",
+      "Gói Basic/Pro/Elite bao gồm các tính năng phỏng vấn AI và phân tích CV/JD. Đặt lịch Mentor 1:1 và mua khóa học là dịch vụ riêng, thanh toán theo từng buổi hoặc từng khóa.",
     ],
     bullets: [
       "Mentor: chọn mentor trên trang Tìm Mentor, đặt khung giờ và thanh toán qua chuyển khoản tương tự gói đăng ký.",
-      "Khóa học: xem chi tiết khóa, bấm ghi danh và thanh toán học phí riêng — không trừ vào quota phỏng vấn AI.",
+      "Khóa học: xem chi tiết khóa, bấm mua khóa học và thanh toán học phí riêng — không trừ vào quota phỏng vấn AI.",
       "Gói Elite có hỗ trợ ưu tiên khi bạn cần trợ giúp về tài khoản hoặc kỹ thuật, không miễn phí buổi Mentor.",
     ],
   },

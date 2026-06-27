@@ -360,7 +360,7 @@ export function AdminAnalytics() {
             <KpiCard label="Khách hàng" value={stats?.users ?? 0} icon={Users} color="#8037f4" tint="violet" />
             <KpiCard label="Cố vấn" value={stats?.mentors ?? 0} icon={GraduationCap} color="#65a30d" tint="lime" />
             <KpiCard label="Lịch hẹn" value={stats?.bookings ?? 0} icon={Calendar} color="#0284c7" tint="sky" />
-            <KpiCard label="Ghi danh" value={stats?.enrollmentsPaid ?? 0} icon={BookOpen} color="#d97706" tint="amber" />
+            <KpiCard label="Mua khóa" value={stats?.enrollmentsPaid ?? 0} icon={BookOpen} color="#d97706" tint="amber" />
           </motion.div>
 
           <motion.div

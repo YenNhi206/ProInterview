@@ -34,7 +34,7 @@ const TILES = [
     to: "/admin/course-payments",
     label: "Học phí khóa",
     icon: BookOpen,
-    desc: "Ghi danh CK — SePay mở khóa",
+    desc: "Mua khóa CK — SePay mở khóa",
   },
   { to: "/admin/payouts", label: "Rút tiền cố vấn", icon: Banknote, desc: "Duyệt và chi trả mentor" },
   { to: "/admin/users", label: "Người dùng", icon: Users, desc: "Danh sách và chi tiết user" },

@@ -360,7 +360,7 @@ export async function createReview(userId, body) {
       return {
         ok: false,
         status: 403,
-        error: "Bạn cần ghi danh và thanh toán khóa học trước khi đánh giá.",
+        error: "Bạn cần mua khóa học và thanh toán trước khi đánh giá.",
       };
     }
   }

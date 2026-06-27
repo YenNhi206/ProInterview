@@ -26,7 +26,7 @@ export function ArchiveCourseDialog({ open, courseTitle, archiving, onOpenChange
         </h2>
         <p id="archive-course-desc" className="mt-4 text-sm leading-relaxed text-slate-600">
           Bạn có chắc muốn xóa <span className="font-semibold text-slate-900">{title}</span>? Khóa học
-          sẽ ẩn khỏi trang Khám phá; dữ liệu học viên đã ghi danh vẫn được giữ trên hệ thống.
+          sẽ ẩn khỏi trang Khám phá; dữ liệu học viên đã mua khóa vẫn được giữ trên hệ thống.
         </p>
         <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button

@@ -178,7 +178,7 @@ export function CoursePurchaseCard({
             {canTakeStudentActions
               ? price === 0
                 ? "Đăng ký miễn phí"
-                : "Ghi danh khóa học"
+                : "Mua khóa học"
               : "Mentor chỉ xem"}
           </button>
         )}
@@ -205,7 +205,7 @@ export function CoursePurchaseCard({
 
         {!hasPaidEnrollment ? (
           <p className="border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500 lg:block">
-            Bạn đang xem preview. Đăng ký để truy cập đầy đủ nội dung khóa học.
+            Bạn đang xem preview. Mua khóa học (hoặc đăng ký miễn phí) để truy cập đầy đủ nội dung.
           </p>
         ) : null}
       </div>

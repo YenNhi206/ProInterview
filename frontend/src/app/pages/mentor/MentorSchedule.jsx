@@ -458,15 +458,16 @@ export function MentorSchedule() {
       className="!min-h-0 !pb-4"
       extraStyles={MENTOR_SCHEDULE_EXTRA_CSS}
     >
-      <div className="relative z-10 mx-auto flex h-[calc(100svh-7.5rem)] max-h-[calc(100svh-7.5rem)] min-h-0 max-w-7xl flex-col overflow-visible px-6 pt-2 lg:px-8">
+      <div className="relative z-10 mx-auto flex max-lg:min-h-0 max-lg:h-auto max-lg:max-h-none min-h-0 max-w-7xl flex-col overflow-visible px-4 pt-2 sm:px-6 lg:h-[calc(100svh-7.5rem)] lg:max-h-[calc(100svh-7.5rem)] lg:px-8">
         {/* Header — compact */}
-        <div className="mb-4 flex shrink-0 flex-col gap-3 overflow-visible pt-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex shrink-0 flex-col gap-3 overflow-visible pt-1 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 overflow-visible">
-            <h1 className="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-extrabold leading-[1.12] tracking-tight text-slate-900">
-               <span>LỊCH TRÌNH</span>{" "}
-               <span className="text-violet-700">HỆ THỐNG</span>
+            <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-slate-900">
+              Lịch trình <span className="text-[#8037f4]">hệ thống</span>
             </h1>
-            <p className="text-xs font-normal text-zinc-500 sm:text-sm">Bố trí thời gian rảnh và quản lý các buổi hẹn mentor</p>
+            <p className="mt-2 max-w-xl text-sm text-slate-500">
+              Lịch rảnh và quản lý các buổi hẹn mentor.
+            </p>
           </div>
           <button
             type="button"
@@ -489,7 +490,7 @@ export function MentorSchedule() {
                        <h3 className="text-lg font-bold text-slate-900 sm:text-xl">
                           {formatMonthYear(currentDate)}
                        </h3>
-                       <p className="text-sm font-normal text-zinc-500">Lịch trình khả dụng</p>
+                       <p className="text-sm text-slate-500">Lịch rảnh trong tháng</p>
                     </div>
                  </div>
                  <div className="flex items-center gap-1.5">

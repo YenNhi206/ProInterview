@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
@@ -15,6 +15,9 @@ import {
   BadgeCheck,
   X,
 } from "lucide-react";
+import { MentorListExpandButton } from "../../components/mentor/MentorListExpandButton.jsx";
+import { useMentorListExpand } from "../../hooks/useMentorListExpand.js";
+import { MentorScrollFadeRow } from "../../components/mentor/MentorScrollFadeRow.jsx";
 import { getUser, getDisplayName } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames";
@@ -23,6 +26,11 @@ import { fetchMentorFinance, requestMentorPayout, updateMentorPayoutAccount } fr
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { AppSelect } from "../../components/ui/AppSelect";
+import {
+  SUPPORTED_BANKS,
+  BANK_OTHER,
+  resolveBankFields,
+} from "../../constants/vietnamBanks.js";
 
 const MENTOR_FINANCE_EXTRA_CSS = `
         .glass-tag {
@@ -91,51 +99,10 @@ function formatMoney(amount) {
   return `${Number(amount || 0).toLocaleString("vi-VN")} Đ`;
 }
 
-function commissionPolicyNote(policy) {
-  if (!policy) return "Mức phí tiêu chuẩn";
-  if (policy.isEarlyMentorActive && policy.earlyMentorExpiresAt) {
-    return `Ưu đãi Early Mentor đến ${new Date(policy.earlyMentorExpiresAt).toLocaleDateString("vi-VN")}`;
-  }
-  if (policy.isEarlyMentor && policy.earlyMentorExpiresAt) {
-    return `Early Mentor kết thúc ${new Date(policy.earlyMentorExpiresAt).toLocaleDateString("vi-VN")}`;
-  }
-  return "Mức phí tiêu chuẩn";
-}
-
 const withdrawFieldLabel =
   "mb-1.5 block text-xs font-semibold text-slate-700";
 const withdrawFieldInput =
   "w-full rounded-lg border border-slate-200/90 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-[#8037f4] focus:bg-[#faf8ff] focus:ring-2 focus:ring-[#8037f4]/12";
-
-const SUPPORTED_BANKS = [
-  "Vietcombank",
-  "BIDV",
-  "VietinBank",
-  "Agribank",
-  "Techcombank",
-  "MB Bank",
-  "ACB",
-  "VPBank",
-  "TPBank",
-  "Sacombank",
-  "HDBank",
-  "VIB",
-  "SHB",
-  "OCB",
-  "Eximbank",
-  "SeABank",
-  "PVcomBank",
-  "Nam A Bank",
-];
-
-const BANK_OTHER = "__other__";
-
-function resolveBankFields(savedName) {
-  const name = String(savedName || "").trim();
-  if (!name) return { select: "", custom: "" };
-  if (SUPPORTED_BANKS.includes(name)) return { select: name, custom: "" };
-  return { select: BANK_OTHER, custom: name };
-}
 
 function isValidBankName(name) {
   const n = String(name || "").trim();
@@ -436,6 +403,23 @@ export function MentorFinance() {
     })();
   }, [navigate, user?.role]);
 
+  const transactions = Array.isArray(finance?.history) ? finance.history : [];
+  const filteredTransactions = useMemo(
+    () =>
+      transactions.filter((tx) => {
+        if (activeTab === "all") return true;
+        if (activeTab === "income") return tx.type === "income";
+        return tx.type === "withdraw";
+      }),
+    [transactions, activeTab],
+  );
+  const {
+    visibleItems: visibleTransactions,
+    showExpandButton: showTxExpandButton,
+    expanded: txExpanded,
+    toggleExpanded: toggleTxExpanded,
+  } = useMentorListExpand(filteredTransactions, activeTab);
+
   if (!user || user.role !== "mentor") return null;
 
   const availableBalance = Number(finance?.availableBalance || 0);
@@ -446,13 +430,7 @@ export function MentorFinance() {
   const payoutAccount = finance?.payoutAccount || {};
   const payoutAccountMasked = finance?.payoutAccountMasked || "";
   const payoutAccountOwnerName = finance?.payoutAccountOwnerName || getDisplayName(user, "Mentor");
-  const transactions = Array.isArray(finance?.history) ? finance.history : [];
   const commissionPolicy = finance?.commissionPolicy || null;
-  const filteredTransactions = transactions.filter((tx) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "income") return tx.type === "income";
-    return tx.type === "withdraw";
-  });
   const pendingWithdrawCount = transactions.filter(
     (tx) =>
       tx.type === "withdraw" &&
@@ -704,7 +682,7 @@ export function MentorFinance() {
                 <span className="mr-2 text-[#8037f4]">01</span>
                 Lịch sử giao dịch
               </h2>
-              <div className="flex gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <MentorScrollFadeRow innerClassName="flex gap-1" fadeFrom="from-white">
                 {TX_FILTER_TABS.map((tab) => {
                   const active = activeTab === tab.id;
                   const isWithdrawTab = tab.id === "withdraw";
@@ -713,7 +691,7 @@ export function MentorFinance() {
                       key={tab.id}
                       type="button"
                       onClick={() => setActiveTab(tab.id)}
-                      className={`relative shrink-0 whitespace-nowrap px-3 py-2 text-xs sm:text-sm ${
+                      className={`relative shrink-0 snap-start whitespace-nowrap px-3 py-2 text-xs sm:text-sm ${
                         active
                           ? isWithdrawTab
                             ? "font-bold text-slate-900"
@@ -743,10 +721,77 @@ export function MentorFinance() {
                     </button>
                   );
                 })}
-              </div>
+              </MentorScrollFadeRow>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="space-y-3 p-4 lg:hidden">
+              {visibleTransactions.map((tx) => {
+                const statusMeta = payoutStatusMeta(tx.status, { compact: true });
+                const isWithdraw = tx.type === "withdraw";
+                const isPendingWithdraw =
+                  isWithdraw &&
+                  tx.status !== "paid" &&
+                  tx.status !== "completed" &&
+                  tx.status !== "failed";
+                return (
+                  <button
+                    key={tx.id}
+                    type="button"
+                    onClick={() => setSelectedTx(tx)}
+                    className={`mentor-finance-tx-row w-full rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-[0_2px_12px_rgba(15,23,42,0.05)] ${
+                      isWithdraw ? "ring-1 ring-[#8037f4]/10" : ""
+                    } ${isPendingWithdraw ? "ring-2 ring-[#93f72b]/30" : ""}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                          tx.type === "income"
+                            ? "bg-[#93f72b]/25 text-slate-800 ring-1 ring-[#93f72b]/40"
+                            : isPendingWithdraw
+                              ? "bg-[#8037f4] text-white ring-2 ring-[#93f72b]/50"
+                              : "bg-[#8037f4]/12 text-[#8037f4] ring-1 ring-[#8037f4]/20"
+                        }`}
+                      >
+                        {tx.type === "income" ? (
+                          <ArrowUpRight size={18} strokeWidth={2.5} />
+                        ) : (
+                          <ArrowDownRight size={18} strokeWidth={2.5} />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-bold text-slate-900">{txDisplayTitle(tx)}</p>
+                        <p className="mt-0.5 truncate text-xs text-slate-500">{tx.id}</p>
+                        <p className="mt-2 text-sm font-medium text-slate-600">
+                          {new Date(tx.date).toLocaleDateString("vi-VN")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                      <span className={`glass-tag ${statusMeta.className}`}>{statusMeta.text}</span>
+                      <p
+                        className={`mentor-money-num font-headline text-base font-bold tabular-nums ${
+                          tx.type === "income"
+                            ? "text-emerald-600"
+                            : isPendingWithdraw
+                              ? "text-[#8037f4]"
+                              : "text-slate-900"
+                        }`}
+                      >
+                        {tx.type === "income" ? "+" : "−"}
+                        {formatVnd(tx.amount || 0)}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+              {!filteredTransactions.length && (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-12 text-center text-sm text-slate-500">
+                  Không có giao dịch phù hợp bộ lọc hiện tại.
+                </div>
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto lg:block">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/70 text-[10px] font-bold uppercase tracking-wider text-slate-500">
@@ -757,7 +802,7 @@ export function MentorFinance() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredTransactions.map((tx) => {
+                  {visibleTransactions.map((tx) => {
                     const statusMeta = payoutStatusMeta(tx.status, { compact: true });
                     const isWithdraw = tx.type === "withdraw";
                     const isPendingWithdraw =
@@ -833,6 +878,10 @@ export function MentorFinance() {
                 </tbody>
               </table>
             </div>
+
+            {showTxExpandButton ? (
+              <MentorListExpandButton expanded={txExpanded} onToggle={toggleTxExpanded} />
+            ) : null}
           </motion.div>
 
           <motion.aside
@@ -896,10 +945,6 @@ export function MentorFinance() {
                     </span>
                   </div>
                 </div>
-                <p className="mt-4 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-[#8037f4]">
-                  {commissionPolicyNote(commissionPolicy)}
-                  <ArrowRight size={12} />
-                </p>
               </div>
             ) : null}
           </motion.aside>

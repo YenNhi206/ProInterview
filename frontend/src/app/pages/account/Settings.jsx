@@ -163,7 +163,7 @@ const DEFAULT_CUSTOMER_NOTIFS = [
   {
     id: "interview_reminder",
     label: "Nhắc lịch phỏng vấn",
-    description: "Thông báo trước buổi hẹn khoảng 1 giờ.",
+    description: "Email và thông báo app trước buổi hẹn khoảng 1 giờ.",
     value: true,
     icon: Clock,
     iconBg: "#ede9fe",
@@ -202,7 +202,7 @@ const DEFAULT_MENTOR_NOTIFS = [
   {
     id: "session_reminder",
     label: "Nhắc buổi mentor sắp tới",
-    description: "Nhắc trước buổi khoảng 1 giờ.",
+    description: "Email và thông báo app trước buổi khoảng 1 giờ.",
     value: true,
     icon: Clock,
     iconBg: "#c4ff47",

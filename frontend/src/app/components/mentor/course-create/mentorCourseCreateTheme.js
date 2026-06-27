@@ -9,16 +9,16 @@ export const mentorSectionCardClass =
   "relative border border-slate-200 border-l-[3px] border-l-[#8037f4] bg-slate-50/40 p-4 sm:p-5 rounded-[10px]";
 
 export const mentorInputClass =
-  "w-full rounded-[10px] border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#8037f4] focus:ring-2 focus:ring-[#8037f4]/12";
+  "w-full rounded-[10px] border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#8037f4] focus:ring-2 focus:ring-[#8037f4]/12 sm:text-sm";
 
 export const mentorLabelClass =
-  "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600";
+  "mb-1.5 block text-sm font-semibold uppercase tracking-wide text-slate-600 sm:text-xs";
 
 export const mentorPrimaryBtnClass =
-  "inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#8037f4] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#630ed4] active:scale-[0.98]";
+  "inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#8037f4] px-6 py-2.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#630ed4] active:scale-[0.98] sm:text-sm";
 
 export const mentorGhostBtnClass =
-  "inline-flex items-center justify-center rounded-[10px] border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:bg-slate-50";
+  "inline-flex items-center justify-center rounded-[10px] border border-slate-300 bg-white px-5 py-2.5 text-base font-semibold text-slate-600 transition hover:border-slate-400 hover:bg-slate-50 sm:text-sm";
 
 /** Checkbox — dấu tích lime (brand ProInterview) */
 export const mentorCheckboxClass =
@@ -46,6 +46,15 @@ export const mentorValidationKeyframes = `
   border-radius: 10px !important;
 }
 .mentor-course-create textarea {
-  resize: none !important;
+  resize: vertical !important;
+}
+@media (max-width: 639px) {
+  .mentor-course-create [data-slot="select-trigger"] {
+    font-size: 1rem !important;
+    line-height: 1.5rem;
+  }
+  .mentor-course-create [data-slot="select-item"] {
+    font-size: 1rem !important;
+  }
 }
 `;

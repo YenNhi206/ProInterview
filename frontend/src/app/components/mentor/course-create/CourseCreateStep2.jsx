@@ -27,7 +27,7 @@ function SectionHeader({ icon: Icon, title }) {
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-violet-100 text-violet-700">
         <Icon className="h-4 w-4" />
       </span>
-      <h2 className="text-base font-bold text-slate-900">{title}</h2>
+      <h2 className="text-lg font-bold text-slate-900 sm:text-base">{title}</h2>
     </div>
   );
 }
@@ -46,7 +46,7 @@ function LessonRow({
   return (
     <li className="py-3.5 first:pt-0 last:pb-0">
       <div className="flex gap-3">
-        <span className="mt-2.5 w-5 shrink-0 text-center text-xs font-bold text-violet-600">
+        <span className="mt-2.5 w-5 shrink-0 text-center text-sm font-bold text-violet-600 sm:text-xs">
           {lessonIdx + 1}
         </span>
         <div className="min-w-0 flex-1 space-y-2">
@@ -59,7 +59,7 @@ function LessonRow({
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             <label
-              className={`inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-[8px] border px-3 py-1.5 text-xs font-semibold transition ${
+              className={`inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-[8px] border px-3 py-1.5 text-sm font-semibold transition sm:text-xs ${
                 hasVideo
                   ? "border-slate-200 bg-white text-slate-700 hover:border-violet-300"
                   : "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100"
@@ -79,7 +79,7 @@ function LessonRow({
               />
             </label>
 
-            <p className="min-w-0 flex-1 truncate text-xs text-slate-500">
+            <p className="min-w-0 flex-1 truncate text-sm text-slate-500 sm:text-xs">
               {hasVideo ? (
                 <>
                   <span className="font-medium text-slate-700">{lesson.videoFileName}</span>
@@ -93,7 +93,7 @@ function LessonRow({
               )}
             </p>
 
-            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-slate-600 sm:ml-auto">
+            <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-600 sm:ml-auto sm:text-xs">
               <input
                 type="checkbox"
                 checked={Boolean(lesson.isPreview)}
@@ -174,7 +174,7 @@ export function CourseCreateStep2({
         {chapters.length === 0 ? (
           <div className="rounded-[10px] border border-dashed border-slate-300 bg-white px-4 py-8 text-center">
             <BookOpen className="mx-auto mb-3 h-10 w-10 text-violet-300" />
-            <p className="text-sm text-slate-600">Thêm chương đầu tiên, rồi upload video cho từng bài.</p>
+            <p className="text-base text-slate-600 sm:text-sm">Thêm chương đầu tiên, rồi upload video cho từng bài.</p>
             <button type="button" onClick={addChapter} className={`${mentorPrimaryBtnClass} mt-4`}>
               <Plus className="h-4 w-4" />
               Thêm chương
@@ -188,7 +188,7 @@ export function CourseCreateStep2({
                 className="overflow-hidden rounded-[10px] border border-slate-200 bg-white"
               >
                 <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2.5 sm:px-4">
-                  <span className="text-xs font-bold uppercase tracking-wide text-violet-700">
+                  <span className="text-sm font-bold uppercase tracking-wide text-violet-700 sm:text-xs">
                     Chương {chapterIdx + 1}
                   </span>
                   <input
@@ -200,7 +200,7 @@ export function CourseCreateStep2({
                   <button
                     type="button"
                     onClick={() => removeChapter(chapter.id)}
-                    className="shrink-0 px-2 py-1 text-xs font-medium text-slate-500 hover:text-red-600"
+                    className="shrink-0 px-2 py-1 text-sm font-medium text-slate-500 hover:text-red-600 sm:text-xs"
                   >
                     Xóa
                   </button>
@@ -225,7 +225,7 @@ export function CourseCreateStep2({
                   <button
                     type="button"
                     onClick={() => addLessonToChapter(chapter.id)}
-                    className="flex w-full items-center justify-center gap-1.5 py-2 text-sm font-medium text-violet-700 hover:text-violet-900"
+                    className="flex w-full items-center justify-center gap-1.5 py-2 text-base font-medium text-violet-700 hover:text-violet-900 sm:text-sm"
                   >
                     <Plus className="h-4 w-4" />
                     Thêm bài học
@@ -270,7 +270,7 @@ export function CourseCreateStep2({
                 }}
               />
             </label>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-sm text-slate-500 sm:text-xs">
               {thumbnailFileName || "PNG, JPG, WEBP, tối đa 5MB"}
             </p>
           </div>
@@ -279,7 +279,7 @@ export function CourseCreateStep2({
 
       {warn && !canContinue ? (
         <p
-          className={`rounded-[10px] border px-4 py-2 text-sm ${
+          className={`rounded-[10px] border px-4 py-2 text-base sm:text-sm ${
             shake ? mentorValidationShakeClass : "border-amber-200 bg-amber-50 text-amber-900"
           }`}
           role="alert"
