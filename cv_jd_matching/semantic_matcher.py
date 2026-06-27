@@ -90,7 +90,7 @@ def semantic_match(cv_text: str, jd_text: str, model: str = None) -> dict:
         "_semantic_error": True,
     }
 
-    raw = call_llm(_SYSTEM, prompt, max_tokens=16384, temperature=0.15, ollama_model=model)
+    raw = call_llm(_SYSTEM, prompt, max_tokens=4096, temperature=0.15, ollama_model=model)
     result = extract_json(raw, _FALLBACK)
 
     if result.get("_semantic_error") or result.get("_parse_error"):

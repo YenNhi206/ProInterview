@@ -109,7 +109,7 @@ def score_resume(
     Raises ConnectionError nếu Ollama chưa chạy.
     """
     prompt   = build_scoring_prompt(cv_text, jd_text, matching, missing)
-    raw      = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=16384, temperature=0.1,
+    raw      = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=1500, temperature=0.1,
                         ollama_model=model)
     scores   = extract_json(raw, _SCORE_FALLBACK)
 
