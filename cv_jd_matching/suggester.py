@@ -45,7 +45,12 @@ def _build_bullet_prompt(
 
     missing_str  = ", ".join(missing_skills[:15]) or "none"
     jd_snippet   = jd_text[:1200]
-    bullets_json = json.dumps(bullets, ensure_ascii=False)
+    # Cap bullets to avoid 413 Payload Too Large on Groq; trim fields to essentials
+    slim_bullets = [
+        {"id": b.get("id", ""), "original": b.get("original", "")[:300], "section": b.get("section", "")}
+        for b in bullets[:20]
+    ]
+    bullets_json = json.dumps(slim_bullets, ensure_ascii=False)
 
     return f"""Bạn đang viết lại các bullet point trong CV để mạnh hơn và phù hợp với JD.
 
@@ -97,7 +102,7 @@ def rewrite_bullets(
         return {"rewritten_bullets": []}
 
     prompt = _build_bullet_prompt(bullets, missing_skills, scores, jd_text)
-    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=16384, temperature=0.3,
+    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=4096, temperature=0.3,
                       ollama_model=model)
     result = extract_json(raw, fallback={"rewritten_bullets": []})
 
@@ -210,7 +215,7 @@ def suggest_missing_skills(
         taxonomy_context = build_taxonomy_context_for_prompt(enriched)
 
     prompt = _build_missing_prompt(missing_skills, cv_text, jd_text, taxonomy_context, inferred_role)
-    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=16384, temperature=0.25,
+    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=4096, temperature=0.25,
                       ollama_model=model)
     return extract_json(raw, fallback={"missing_skill_suggestions": []})
 
@@ -267,7 +272,7 @@ def generate_summary(
 ) -> str:
     """Returns plain string summary."""
     prompt = _build_summary_prompt(matching, missing, scores, rewritten_count)
-    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=8192, temperature=0.3,
+    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=1024, temperature=0.3,
                       ollama_model=model)
     parsed = extract_json(raw, fallback={"summary": raw[:400]})
     return parsed.get("summary", raw[:400])
