@@ -73,6 +73,8 @@ const HR_NAMES  = { male: "David",                female: "Sarah" };
 const HR_TITLES = { male: "HR AI Nam · ProInterview", female: "HR AI Nữ · ProInterview" };
 
 /* ── D-ID config ─────────────────────────────────────────── */
+const DID_API_KEY = import.meta.env.VITE_DID_API_KEY;
+
 const DID_VOICES = {
   male:   "vi-VN-NamMinhNeural",
   female: "vi-VN-HoaiMyNeural",

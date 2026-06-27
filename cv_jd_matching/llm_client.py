@@ -111,6 +111,13 @@ def _call_cloud(
                 payload_plain = {k: v for k, v in payload.items() if k != "response_format"}
                 r = httpx.post(url, json=payload_plain, headers=headers, timeout=timeout)
 
+            if r.status_code == 413:
+                raise RuntimeError(
+                    "Payload quá lớn cho Groq API (413). "
+                    "CV hoặc JD có quá nhiều nội dung — hệ thống đã tự giới hạn nhưng "
+                    "file này vẫn vượt ngưỡng. Thử upload file CV/JD ngắn hơn (< 3 trang)."
+                )
+
             if r.status_code in (429, 503):
                 if attempt < len(_RETRY_DELAYS):
                     continue
