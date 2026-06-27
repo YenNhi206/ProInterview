@@ -48,27 +48,19 @@ export async function activatePlan(userId, body) {
   const expires = new Date();
   expires.setMonth(expires.getMonth() + months);
 
-  const currentUser = await User.findById(userId).select("plan").lean();
-  const isPlanChange = !currentUser || currentUser.plan !== plan;
-
   const updates = { plan, planExpiresAt: expires };
   if (plan === "starter_pro") {
     updates["quota.cvAnalysisLimit"]           = 20;
+    updates["quota.cvAnalysisUsed"]            = 0;
     updates["quota.interviewLimit"]            = 3;
+    updates["quota.interviewUsed"]             = 0;
     updates["quota.interviewQuestionsAllowed"] = 5;
-    // Chỉ reset used counters khi đổi sang plan mới (genuine upgrade/switch), không reset khi gia hạn cùng plan
-    if (isPlanChange) {
-      updates["quota.cvAnalysisUsed"]  = 0;
-      updates["quota.interviewUsed"]   = 0;
-    }
   } else if (plan === "elite_pro") {
     updates["quota.cvAnalysisLimit"]           = 40;
+    updates["quota.cvAnalysisUsed"]            = 0;
     updates["quota.interviewLimit"]            = 8;
+    updates["quota.interviewUsed"]             = 0;
     updates["quota.interviewQuestionsAllowed"] = 5;
-    if (isPlanChange) {
-      updates["quota.cvAnalysisUsed"]  = 0;
-      updates["quota.interviewUsed"]   = 0;
-    }
   }
 
   const u = await User.findByIdAndUpdate(userId, { $set: updates }, { new: true }).select("plan planExpiresAt quota").lean();
