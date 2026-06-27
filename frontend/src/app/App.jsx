@@ -20,6 +20,12 @@ export default function App() {
   const [sessionChecked, setSessionChecked] = useState(false);
 
   useEffect(() => {
+    const { hash } = window.location;
+    if (hash.startsWith("#/")) {
+      window.location.replace(hash.slice(1) || "/");
+      return;
+    }
+
     if (window.location.search.includes("vnp_ResponseCode")) {
       const search = window.location.search;
       window.location.href = `${window.location.origin}/payment-return${search}`;

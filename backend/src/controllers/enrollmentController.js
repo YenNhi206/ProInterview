@@ -40,7 +40,7 @@ export const EnrollmentController = {
         ? await Mentor.findById(course.mentorId).select("pricing userId").lean()
         : null;
       if (courseMentor?.userId && String(courseMentor.userId) === String(userId)) {
-        return res.status(400).json({ success: false, error: "Không thể tự ghi danh khóa học của chính mình." });
+        return res.status(400).json({ success: false, error: "Không thể tự mua khóa học của chính mình." });
       }
       const { rate: coursePlatformFeeRate } = resolveCoursePlatformFeeRate(courseMentor);
       const coursePlatformFee = Math.round(Math.max(0, price) * coursePlatformFeeRate);
@@ -48,7 +48,7 @@ export const EnrollmentController = {
 
       if (existing) {
         if (enrollmentAccessGranted(existing)) {
-          return res.json({ success: true, message: "Bạn đã ghi danh khóa học này rồi", enrollment: existing });
+          return res.json({ success: true, message: "Bạn đã mua khóa học này rồi", enrollment: existing });
         }
         const bodyPm = String(req.body?.paymentMethod || "").trim();
         if (price > 0 && bodyPm === "transfer") {
@@ -88,7 +88,7 @@ export const EnrollmentController = {
         } else {
           return res.status(400).json({
             success: false,
-            error: "Ghi danh đang chờ thanh toán. Mở lại trang thanh toán để hoàn tất chuyển khoản.",
+            error: "Đơn mua khóa học đang chờ thanh toán. Mở lại trang thanh toán để hoàn tất chuyển khoản.",
           });
         }
       }
@@ -167,16 +167,16 @@ export const EnrollmentController = {
       const { id: enrollmentId } = req.params;
       const userId = req.userId;
       if (!mongoose.isValidObjectId(enrollmentId)) {
-        return res.status(400).json({ success: false, error: "id ghi danh không hợp lệ." });
+        return res.status(400).json({ success: false, error: "id đơn mua khóa không hợp lệ." });
       }
 
       const enrollment = await Enrollment.findOne({ _id: enrollmentId, userId });
-      if (!enrollment) return res.status(404).json({ success: false, error: "Không tìm thấy ghi danh." });
+      if (!enrollment) return res.status(404).json({ success: false, error: "Không tìm thấy đơn mua khóa." });
       if (enrollment.paymentStatus === "paid" || enrollmentAccessGranted(enrollment)) {
         return res.status(400).json({ success: false, error: "Thanh toán đã được xử lý." });
       }
       if (enrollment.paymentMethod !== "transfer") {
-        return res.status(400).json({ success: false, error: "Ghi danh này không dùng chuyển khoản." });
+        return res.status(400).json({ success: false, error: "Đơn mua khóa này không dùng chuyển khoản." });
       }
 
       const refRaw = String(req.body?.reference ?? req.body?.transferReference ?? "").trim();
@@ -253,7 +253,7 @@ export const EnrollmentController = {
       }
 
       const enrollment = await Enrollment.findOne({ _id: enrollmentId, userId });
-      if (!enrollment) return res.status(404).json({ success: false, error: "Hồ sơ ghi danh không tồn tại" });
+      if (!enrollment) return res.status(404).json({ success: false, error: "Hồ sơ mua khóa không tồn tại" });
       if (!enrollmentAccessGranted(enrollment)) {
         return res.status(403).json({ success: false, error: "Hoàn tất thanh toán khóa học để cập nhật tiến độ." });
       }
@@ -319,7 +319,7 @@ export const EnrollmentController = {
         .populate("courseId")
         .populate("userId", "name");
 
-      if (!enrollment) return res.status(404).json({ success: false, error: "Hồ sơ ghi danh không tồn tại" });
+      if (!enrollment) return res.status(404).json({ success: false, error: "Hồ sơ mua khóa không tồn tại" });
       if (!enrollmentAccessGranted(enrollment)) {
         return res.status(403).json({ success: false, error: "Hoàn tất thanh toán khóa học để nhận chứng chỉ." });
       }

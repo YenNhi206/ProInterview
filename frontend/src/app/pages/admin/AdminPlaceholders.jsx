@@ -356,7 +356,7 @@ export function AdminFinance() {
                   <p className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Đã thu qua SePay</p>
                   <p className="mt-1 text-2xl font-black text-emerald-950">{cf.paidCollectedCount ?? 0}</p>
                   <p className="mt-1 text-sm font-semibold text-emerald-900">{vnd(cf.paidCollectedAmount)}</p>
-                  <p className="mt-2 text-xs text-emerald-800/80">Ghi danh có học phí &gt; 0</p>
+                  <p className="mt-2 text-xs text-emerald-800/80">Mua khóa có học phí &gt; 0</p>
                 </div>
                 <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
                   <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Chờ đối soát</p>
@@ -653,7 +653,7 @@ export function AdminTransactions() {
           <p className="mt-1 text-sm font-semibold text-violet-950">
             {summary.bookingCount} buổi
             <span className="mx-2 text-violet-300">·</span>
-            {summary.courseCount} ghi danh
+            {summary.courseCount} mua khóa
           </p>
         </div>
         <div className="rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4">

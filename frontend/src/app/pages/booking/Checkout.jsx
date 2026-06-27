@@ -1237,15 +1237,15 @@ export function Checkout() {
             apiRes.paymentExpiresAt || apiRes.enrollment?.paymentExpiresAt,
           );
           setAppStep("awaiting_transfer");
-          if (!silent) toastApiSuccess("Đã tạo ghi danh. Quét QR và chuyển khoản, hệ thống tự xác nhận qua SePay.");
+          if (!silent) toastApiSuccess("Đã tạo đơn mua khóa học. Quét QR và chuyển khoản, hệ thống tự xác nhận qua SePay.");
           return { ok: true, enrollmentId: String(eid) };
         }
-        const msg = apiRes.error || "Không thể tạo ghi danh chờ chuyển khoản.";
+        const msg = apiRes.error || "Không thể tạo đơn mua khóa học chờ chuyển khoản.";
         setCardError(msg);
         toastApiError(msg);
         return { ok: false };
       } catch {
-        const msg = "Lỗi hệ thống khi ghi danh.";
+        const msg = "Lỗi hệ thống khi mua khóa học.";
         setCardError(msg);
         toastApiError(msg);
         return { ok: false };

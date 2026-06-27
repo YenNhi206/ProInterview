@@ -29,7 +29,7 @@ const ACTION_LABELS = {
   interview_complete: "Hoàn thành phỏng vấn AI",
   checkout_open: "Mở trang thanh toán",
   booking_submit: "Gửi đặt lịch",
-  course_enroll: "Ghi danh khóa học",
+  course_enroll: "Mua khóa học",
   plan_upgrade: "Nâng cấp gói thành công",
   plan_checkout_start: "Bắt đầu thanh toán gói",
   course_complete: "Hoàn thành khóa học",

@@ -161,16 +161,16 @@ export function CourseDetail() {
     if (res.success) {
       trackAction("course_enroll", `/courses/${id}`, { courseId: id, paid: false });
       setEnrollmentRow(res.enrollment || enrollmentRow);
-        toastApiSuccess("Đăng ký khóa học thành công!");
+        toastApiSuccess("Đăng ký miễn phí thành công!");
     } else {
       if (res.error === "Chưa đăng nhập.") {
         requireLoginNavigate(navigate, `/courses/${id}`);
         return;
       }
-        toastApiError(res.error, "Không thể đăng ký khóa học.");
+        toastApiError(res.error, "Không thể đăng ký miễn phí.");
       }
     } catch {
-      toastApiError("Lỗi kết nối khi đăng ký khóa học.");
+      toastApiError("Lỗi kết nối khi đăng ký miễn phí.");
     }
   };
 
@@ -224,7 +224,7 @@ export function CourseDetail() {
           <div className="mb-4 flex flex-col gap-3 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-violet-950">
               <span className="font-bold">Preview admin</span>, Đây là trang marketplace học viên thấy
-              (chưa ghi danh nên chỉ xem mô tả / danh sách bài, không vào phòng học đầy đủ).
+              (chưa mua khóa học nên chỉ xem mô tả / danh sách bài, không vào phòng học đầy đủ).
             </p>
           </div>
         ) : null}

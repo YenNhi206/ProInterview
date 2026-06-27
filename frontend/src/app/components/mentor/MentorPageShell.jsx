@@ -18,10 +18,12 @@ const MENTOR_LIGHT_STYLES = `
         .glass-card::before {
            content: none;
         }
+        @media (hover: hover) {
         .glass-card:hover {
            border-color: rgba(128, 55, 244, 0.35);
            transform: translateY(-2px);
            box-shadow: 0 12px 28px rgba(128, 55, 244, 0.12);
+        }
         }
         .glow-halo {
            position: relative;

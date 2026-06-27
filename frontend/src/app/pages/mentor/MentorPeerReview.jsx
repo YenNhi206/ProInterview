@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { forwardRef, useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import {
   Users,
@@ -22,6 +22,9 @@ import { tryApi } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { toast } from "sonner";
 import { mediaSrc, DEFAULT_COURSE_THUMB } from "../../utils/shared/mediaUrl.js";
+import { MentorListExpandButton } from "../../components/mentor/MentorListExpandButton.jsx";
+import { useMentorListExpand } from "../../hooks/useMentorListExpand.js";
+import { MentorScrollFadeRow } from "../../components/mentor/MentorScrollFadeRow.jsx";
 
 const CATEGORY_LABELS = {
   all: "Tất cả lĩnh vực",
@@ -39,6 +42,14 @@ const FILTER_TABS = [
 
 const CATEGORIES = ["all", "other", "behavioral", "technical", "negotiation"];
 
+const PEER_CATEGORY_KEYS = new Set(["technical", "behavioral", "negotiation", "other"]);
+
+function normalizePeerCategory(raw) {
+  const key = String(raw || "other").trim().toLowerCase();
+  if (key === "resume") return "other";
+  return PEER_CATEGORY_KEYS.has(key) ? key : "other";
+}
+
 const THUMB_GRADIENTS = [
   "from-[#8037f4] to-[#6d28d9]",
   "from-violet-500 to-[#8037f4]",
@@ -55,16 +66,24 @@ const PEER_ROW_STYLES = `
   }
   .mentor-peer-row {
     transform-origin: center center;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
   }
-  .mentor-peer-row:hover {
+  @media (hover: hover) and (pointer: fine) {
+    .mentor-peer-row:hover {
+      background-color: rgba(248, 250, 252, 0.95);
+      box-shadow: 0 4px 18px rgba(128, 55, 244, 0.08);
+      animation: mentor-peer-row-pulse 0.9s ease-in-out;
+    }
+  }
+  .mentor-peer-row:active {
     background-color: rgba(248, 250, 252, 0.95);
-    box-shadow: 0 4px 18px rgba(128, 55, 244, 0.08);
-    animation: mentor-peer-row-pulse 0.9s ease-in-out;
+    transform: scale(0.992);
   }
   @media (prefers-reduced-motion: reduce) {
-    .mentor-peer-row:hover {
+    .mentor-peer-row:hover,
+    .mentor-peer-row:active {
       animation: none;
+      transform: none;
     }
   }
 `;
@@ -108,7 +127,7 @@ function formatCategoryShort(cat) {
 function pickPriorityCourse(courses, categoryFilter = "all") {
   let pending = (courses || []).filter((c) => c.status === "pending");
   if (categoryFilter !== "all") {
-    pending = pending.filter((c) => c.category === categoryFilter);
+    pending = pending.filter((c) => normalizePeerCategory(c.category) === categoryFilter);
   }
   if (!pending.length) return null;
   return [...pending].sort(
@@ -203,48 +222,125 @@ function PeerReviewStarRating({ value, onChange, label }) {
   );
 }
 
-function PeerReviewListRow({ course, index, onReview }) {
+const PeerReviewListRow = forwardRef(function PeerReviewListRow({ course, index, onReview }, ref) {
   const reviewed = course.status === "reviewed";
   const gradient = THUMB_GRADIENTS[index % THUMB_GRADIENTS.length];
   const hasCustomThumb = Boolean(String(course.cover || "").trim());
 
+  const thumbInner = hasCustomThumb ? (
+    <img src={mediaSrc(course.cover, DEFAULT_COURSE_THUMB)} alt="" className="h-full w-full object-cover" />
+  ) : (
+    <>
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.2) 8px, rgba(255,255,255,0.2) 16px)",
+        }}
+        aria-hidden
+      />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <ImageIcon size={32} className="text-white/90" strokeWidth={1.5} />
+      </div>
+    </>
+  );
+
+  const statusBadge = (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold sm:text-[11px] ${
+        reviewed
+          ? "bg-[#93f72b]/30 text-slate-800 ring-1 ring-[#93f72b]/45"
+          : "bg-[#8037f4]/12 text-[#8037f4] ring-1 ring-[#8037f4]/20"
+      }`}
+    >
+      <span
+        className={`h-1.5 w-1.5 shrink-0 rounded-full ${reviewed ? "bg-slate-800" : "bg-[#8037f4]"}`}
+      />
+      {reviewed ? "Đã đánh giá" : "Chưa đánh giá"}
+    </span>
+  );
+
+  const ctaButton = reviewed ? (
+    <button
+      type="button"
+      onClick={() => onReview(course)}
+      className="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-[#8037f4]/25 bg-white px-4 py-2.5 text-sm font-bold text-[#8037f4] transition hover:bg-[#8037f4]/5 lg:w-auto lg:min-h-0 lg:py-2.5 lg:text-xs"
+    >
+      <CheckCircle2 size={16} />
+      Đã đánh giá
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={() => onReview(course)}
+      className="peer-review-cta inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#8037f4] lg:w-auto lg:min-h-0 lg:py-2.5 lg:text-xs"
+    >
+      <ClipboardList size={16} />
+      Đánh giá ngay
+    </button>
+  );
+
   return (
     <motion.div
+      ref={ref}
       layout
+      initial="hidden"
+      animate="visible"
       variants={listRowMotion}
       exit="exit"
       transition={{ layout: { duration: 0.26, ease: [0.22, 1, 0.36, 1] } }}
-      className="border-b border-slate-100 last:border-b-0"
+      className="max-lg:px-1 lg:border-b lg:border-slate-100 lg:last:border-b-0"
     >
-      <div className="mentor-peer-row group relative mx-1 flex flex-col gap-4 px-3 py-4 sm:mx-2 sm:px-4 sm:py-4 lg:flex-row lg:items-center">
+      {/* Mobile card */}
+      <div className="mentor-peer-row overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_2px_12px_rgba(15,23,42,0.05)] lg:hidden">
+        <div
+          className={`relative h-36 w-full overflow-hidden ${
+            hasCustomThumb ? "bg-slate-100" : `bg-gradient-to-br ${gradient}`
+          }`}
+        >
+          {thumbInner}
+        </div>
+        <div className="p-4">
+          <div className="flex flex-wrap items-center gap-2">{statusBadge}</div>
+          <h3 className="mt-2.5 line-clamp-2 text-base font-bold leading-snug text-slate-900">
+            {course.title}
+          </h3>
+          <p className="mt-1.5 text-sm text-slate-500">
+            Tác giả {course.mentor}
+            <span className="mx-1.5 text-slate-300">·</span>
+            {formatCategoryShort(course.category)}
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
+            <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <Users size={15} className="text-[#8037f4]" strokeWidth={2} />
+                <span className="text-xs font-semibold">Học viên</span>
+              </div>
+              <p className="mentor-stat-num mt-1 text-xl text-slate-900">{course.participants}</p>
+            </div>
+            <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <BookOpen size={15} className="text-[#8037f4]/70" strokeWidth={2} />
+                <span className="text-xs font-semibold">Lĩnh vực</span>
+              </div>
+              <p className="mt-1 text-sm font-bold leading-snug text-slate-800">
+                {formatCategoryShort(course.category)}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4">{ctaButton}</div>
+        </div>
+      </div>
+
+      {/* Desktop row */}
+      <div className="mentor-peer-row group relative mx-1 hidden flex-col gap-4 px-3 py-4 sm:mx-2 sm:px-4 sm:py-4 lg:flex lg:flex-row lg:items-center">
         <div
           className={`relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl ${
             hasCustomThumb ? "bg-slate-100" : `bg-gradient-to-br ${gradient}`
           }`}
         >
-          {hasCustomThumb ? (
-            <img
-              src={mediaSrc(course.cover, DEFAULT_COURSE_THUMB)}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <>
-              <div
-                className="absolute inset-0 opacity-20"
-                style={{
-                  backgroundImage:
-                    "repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.2) 8px, rgba(255,255,255,0.2) 16px)",
-                }}
-                aria-hidden
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <ImageIcon size={26} className="text-white/90" strokeWidth={1.5} />
-              </div>
-            </>
-          )}
+          {thumbInner}
         </div>
-
         <div className="min-w-0 flex-1 lg:pr-4">
           <h3 className="line-clamp-2 text-sm font-bold leading-snug text-slate-900 transition-colors duration-200 group-hover:text-[#8037f4] sm:text-[15px]">
             {course.title}
@@ -255,55 +351,17 @@ function PeerReviewListRow({ course, index, onReview }) {
             {formatCategoryShort(course.category)}
           </p>
         </div>
-
         <div className="flex shrink-0 items-center gap-1.5 text-slate-600 lg:w-28 lg:justify-center">
           <Users size={15} className="shrink-0 text-[#8037f4]/70" strokeWidth={2} />
           <span className="text-sm font-bold text-slate-800">{course.participants}</span>
           <span className="text-xs text-slate-400">Học viên</span>
         </div>
-
-        <div className="lg:w-36 lg:text-center">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${
-              reviewed
-                ? "bg-[#93f72b]/30 text-slate-800 ring-1 ring-[#93f72b]/45"
-                : "bg-[#8037f4]/12 text-[#8037f4] ring-1 ring-[#8037f4]/20"
-            }`}
-          >
-            <span
-              className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                reviewed ? "bg-slate-800" : "bg-[#8037f4]"
-              }`}
-            />
-            {reviewed ? "Đã đánh giá" : "Chưa đánh giá"}
-          </span>
-        </div>
-
-        <div className="lg:w-40 lg:text-right">
-          {reviewed ? (
-            <button
-              type="button"
-              onClick={() => onReview(course)}
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#8037f4]/25 bg-white px-4 py-2.5 text-xs font-bold text-[#8037f4] transition hover:bg-[#8037f4]/5 lg:w-auto"
-            >
-              <CheckCircle2 size={14} />
-              Đã đánh giá
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onReview(course)}
-              className="peer-review-cta inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#8037f4] lg:w-auto"
-            >
-              <ClipboardList size={14} />
-              Đánh giá ngay
-            </button>
-          )}
-        </div>
+        <div className="lg:w-36 lg:text-center">{statusBadge}</div>
+        <div className="lg:w-40 lg:text-right">{ctaButton}</div>
       </div>
     </motion.div>
   );
-}
+});
 
 export function MentorPeerReview() {
   const navigate = useNavigate();
@@ -338,30 +396,43 @@ export function MentorPeerReview() {
         res.items.map((item) => ({
           ...item,
           cover: item.cover || "",
+          category: normalizePeerCategory(item.category),
         })),
       );
     })();
   }, [navigate, user]);
 
+  const priorityCourse = useMemo(
+    () => pickPriorityCourse(coursesForReview, category),
+    [coursesForReview, category],
+  );
+  const showPriority = useMemo(
+    () => priorityCourse && !search.trim() && (filter === "all" || filter === "pending"),
+    [priorityCourse, search, filter],
+  );
+  const filtered = useMemo(
+    () =>
+      coursesForReview.filter((c) => {
+        const matchesFilter = filter === "all" || c.status === filter;
+        const q = search.toLowerCase();
+        const matchesSearch =
+          !q ||
+          c.title.toLowerCase().includes(q) ||
+          c.mentor.toLowerCase().includes(q);
+        const matchesCategory = category === "all" || c.category === category;
+        const hidePriority = showPriority && c.id === priorityCourse?.id;
+        return matchesFilter && matchesSearch && matchesCategory && !hidePriority;
+      }),
+    [coursesForReview, filter, search, category, showPriority, priorityCourse],
+  );
+  const {
+    visibleItems: visibleCourses,
+    showExpandButton: showPeerExpandButton,
+    expanded: peerListExpanded,
+    toggleExpanded: togglePeerListExpanded,
+  } = useMentorListExpand(filtered, `${filter}|${search}|${category}`);
+
   if (!user || user.role !== "mentor") return null;
-
-  const priorityCourse = pickPriorityCourse(coursesForReview, category);
-  const showPriority =
-    priorityCourse &&
-    !search.trim() &&
-    (filter === "all" || filter === "pending");
-
-  const filtered = coursesForReview.filter((c) => {
-    const matchesFilter = filter === "all" || c.status === filter;
-    const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      c.title.toLowerCase().includes(q) ||
-      c.mentor.toLowerCase().includes(q);
-    const matchesCategory = category === "all" || c.category === category;
-    const hidePriority = showPriority && c.id === priorityCourse.id;
-    return matchesFilter && matchesSearch && matchesCategory && !hidePriority;
-  });
 
   const pendingCount = coursesForReview.filter((c) => c.status === "pending").length;
   const reviewedCount = coursesForReview.filter((c) => c.status === "reviewed").length;
@@ -485,11 +556,11 @@ export function MentorPeerReview() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
+          className="max-lg:space-y-3 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-slate-200/90 lg:bg-white lg:shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
         >
-          <div className="flex flex-col gap-4 border-b border-slate-100 px-4 py-4 sm:px-6">
+          <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/90 bg-white px-4 py-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)] sm:px-6 lg:rounded-none lg:border-0 lg:border-b lg:border-slate-100 lg:shadow-none">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <MentorScrollFadeRow innerClassName="flex gap-1" fadeFrom="from-white">
                 {FILTER_TABS.map((tab) => {
                   const active = filter === tab.id;
                   return (
@@ -497,7 +568,7 @@ export function MentorPeerReview() {
                       key={tab.id}
                       type="button"
                       onClick={() => setFilter(tab.id)}
-                      className={`relative shrink-0 whitespace-nowrap px-3 py-2 text-xs sm:px-4 sm:text-sm ${
+                      className={`relative shrink-0 snap-start whitespace-nowrap px-3.5 py-2.5 text-sm sm:px-4 ${
                         active
                           ? "font-bold text-slate-900"
                           : "font-medium text-slate-500 hover:text-slate-700"
@@ -514,7 +585,7 @@ export function MentorPeerReview() {
                     </button>
                   );
                 })}
-              </div>
+              </MentorScrollFadeRow>
 
               <div className="flex flex-wrap gap-1.5 lg:justify-end">
                 {CATEGORIES.map((cat) => {
@@ -524,7 +595,7 @@ export function MentorPeerReview() {
                       key={cat}
                       type="button"
                       onClick={() => setCategory(cat)}
-                      className={`rounded-full px-3 py-1.5 text-[11px] font-bold transition sm:px-4 sm:text-xs ${
+                      className={`rounded-full px-3.5 py-2.5 text-sm font-bold transition sm:px-4 ${
                         active
                           ? "bg-slate-900 text-white shadow-sm"
                           : "border border-slate-200 bg-white text-slate-600 hover:border-[#8037f4]/30 hover:text-[#8037f4]"
@@ -547,7 +618,7 @@ export function MentorPeerReview() {
                 placeholder="Tìm khóa học hoặc mentor..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#8037f4]/40 focus:bg-white focus:ring-2 focus:ring-[#8037f4]/15"
+                className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-9 pr-4 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#8037f4]/40 focus:bg-white focus:ring-2 focus:ring-[#8037f4]/15 sm:text-sm"
               />
             </div>
           </div>
@@ -567,10 +638,10 @@ export function MentorPeerReview() {
               variants={listContainerMotion}
               initial="hidden"
               animate="visible"
-              className="divide-y divide-slate-100"
+              className="max-lg:space-y-3 lg:overflow-hidden lg:divide-y lg:divide-slate-100"
             >
               <AnimatePresence mode="popLayout">
-                {filtered.map((course, idx) => (
+                {visibleCourses.map((course, idx) => (
                   <PeerReviewListRow
                     key={course.id}
                     course={course}
@@ -579,6 +650,12 @@ export function MentorPeerReview() {
                   />
                 ))}
               </AnimatePresence>
+              {showPeerExpandButton ? (
+                <MentorListExpandButton
+                  expanded={peerListExpanded}
+                  onToggle={togglePeerListExpanded}
+                />
+              ) : null}
             </motion.div>
           ) : !showPriority ? (
             <div className="px-6 py-14 text-center">
@@ -599,7 +676,7 @@ export function MentorPeerReview() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 p-6 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6"
             onClick={() => setSelectedCourse(null)}
           >
             <motion.div
@@ -607,15 +684,15 @@ export function MentorPeerReview() {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.96, y: 20, opacity: 0 }}
               transition={{ type: "spring", stiffness: 380, damping: 28 }}
-              className="w-full max-w-xl overflow-hidden rounded-2xl border border-[#8037f4]/15 bg-white shadow-xl"
+              className="flex max-h-[min(92svh,640px)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-[#8037f4]/15 bg-white shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="border-b border-slate-100 bg-gradient-to-r from-[#8037f4]/5 to-transparent px-6 py-5">
-                <h3 className="text-base font-bold text-slate-900">Đánh giá chéo khóa học</h3>
-                <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{selectedCourse.title}</p>
+              <div className="shrink-0 border-b border-slate-100 bg-gradient-to-r from-[#8037f4]/5 to-transparent px-5 py-4 sm:px-6 sm:py-5">
+                <h3 className="text-lg font-bold text-slate-900 sm:text-base">Đánh giá chéo khóa học</h3>
+                <p className="mt-0.5 line-clamp-2 text-sm text-slate-500 sm:line-clamp-1 sm:text-xs">{selectedCourse.title}</p>
               </div>
 
-              <div className="p-6">
+              <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
                 <div className="mb-5 space-y-2 rounded-xl border border-slate-100 bg-slate-50 p-4">
                   <p className="line-clamp-3 text-xs text-slate-600">
                     {selectedCourse.description || "Chưa có mô tả chi tiết cho khóa học này."}
@@ -671,15 +748,15 @@ export function MentorPeerReview() {
                   value={reviewForm.feedback}
                   onChange={(e) => setReviewForm((prev) => ({ ...prev, feedback: e.target.value }))}
                   placeholder="Nhận xét chi tiết (không bắt buộc)"
-                  className="min-h-24 w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#8037f4]/40 focus:ring-2 focus:ring-[#8037f4]/15"
+                  className="min-h-28 w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#8037f4]/40 focus:ring-2 focus:ring-[#8037f4]/15 sm:text-sm"
                 />
               </div>
 
-              <div className="flex gap-3 border-t border-slate-100 px-6 py-4">
+              <div className="flex shrink-0 gap-3 border-t border-slate-100 px-5 py-4 sm:px-6">
                 <button
                   type="button"
                   onClick={() => setSelectedCourse(null)}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  className="flex min-h-[44px] flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                   Hủy
                 </button>
@@ -687,7 +764,7 @@ export function MentorPeerReview() {
                   type="button"
                   onClick={submitReview}
                   disabled={submitting}
-                  className="flex-1 rounded-xl bg-[#93f72b] py-2.5 text-sm font-bold text-slate-900 shadow-[0_6px_16px_rgba(147,247,43,0.35)] transition hover:brightness-105 disabled:opacity-50"
+                  className="flex min-h-[44px] flex-1 items-center justify-center rounded-xl bg-[#93f72b] text-sm font-bold text-slate-900 shadow-[0_6px_16px_rgba(147,247,43,0.35)] transition hover:brightness-105 disabled:opacity-50"
                 >
                   {submitting ? "Đang gửi..." : "Gửi đánh giá"}
                 </button>

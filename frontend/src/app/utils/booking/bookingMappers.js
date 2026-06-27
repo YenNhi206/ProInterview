@@ -3,6 +3,8 @@
  */
 
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { resolveProInterviewMeetLink } from "../../utils/shared/meetingLinks.js";
+import { resolveMediaUrl } from "../shared/mediaUrl.js";
 
 export function parseBookingNotes(notes = "") {
   const n = String(notes || "");
@@ -43,7 +45,9 @@ export function mapBookingStatus(status) {
  */
 export function apiBookingToLocal(b) {
   if (!b || !b.id) return null;
-  const { position, cvFile, jdFile } = parseBookingNotes(b.notes);
+  const parsed = parseBookingNotes(b.notes);
+  const cvFileName = String(b.cvFileName || parsed.cvFile || "").trim();
+  const jdFileName = String(b.jdFileName || parsed.jdFile || "").trim();
   const time = b.timeSlot || "09:00";
   const endTime = endTimeFromSlot(time, b.durationMinutes);
   const ref = typeof b.paymentRef === "string" ? b.paymentRef.trim() : "";
@@ -67,12 +71,12 @@ export function apiBookingToLocal(b) {
     endTime,
     price,
     meetLink: resolveProInterviewMeetLink(b.id, b.meetingLink),
-    position: position || "—",
+    position: parsed.position || "—",
     note: "",
-    cvFile,
-    jdFile,
-    cvFileUrl: b.cvFileUrl || "",
-    jdFileUrl: b.jdFileUrl || "",
+    cvFile: cvFileName || null,
+    jdFile: jdFileName || null,
+    cvFileUrl: resolveMediaUrl(b.cvFileUrl || ""),
+    jdFileUrl: resolveMediaUrl(b.jdFileUrl || ""),
     status: mapBookingStatus(b.status),
     paymentStatus: b.paymentStatus || "pending",
     paymentRef: ref,

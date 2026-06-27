@@ -24,6 +24,7 @@ import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 import {
   MentorStatPanel,
+  MentorStatMiniGrid,
   MentorStatFrame,
   MentorSessionActivityBlocks,
 } from "../../components/mentor/MentorStatFrames";
@@ -532,17 +533,19 @@ export function MentorDashboard() {
           initial={{ opacity: 0, y: -14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 flex flex-col gap-8 pt-2 lg:flex-row lg:items-start lg:justify-between"
+          className="mb-8 flex flex-col gap-6 pt-2 lg:flex-row lg:items-start lg:justify-between lg:gap-8"
         >
-          <div className="max-w-2xl flex-1">
-            <h1 className="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-extrabold leading-[1.12] tracking-tight text-slate-900">
-              Xin chào,{" "}
-              <span className="text-[#8037f4]">{displayName}</span>
-            </h1>
-            <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-[15px]">
-              Theo dõi lịch tư vấn, dòng thu nhập và đánh giá chéo khóa học.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+          <div className="contents lg:block lg:max-w-2xl lg:flex-1">
+            <div className="order-1">
+              <h1 className="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-extrabold leading-[1.12] tracking-tight text-slate-900">
+                Xin chào,{" "}
+                <span className="text-[#8037f4]">{displayName}</span>
+              </h1>
+              <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-[15px]">
+                Theo dõi lịch tư vấn, dòng thu nhập và đánh giá chéo khóa học.
+              </p>
+            </div>
+            <div className="order-3 mt-6 flex flex-wrap gap-3 lg:order-none">
               <motion.button
                 type="button"
                 onClick={() => navigate("/mentor/schedule")}
@@ -568,7 +571,7 @@ export function MentorDashboard() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.1 }}
-            className="flex shrink-0 flex-col items-center text-center lg:items-end lg:text-right"
+            className="order-2 mx-auto flex shrink-0 flex-col items-center text-center lg:order-none lg:mx-0 lg:items-end lg:text-right"
           >
             <div className="relative flex h-[188px] w-[188px] items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-white shadow-sm sm:h-[200px] sm:w-[200px]">
               {mentorAvatar ? (
@@ -585,11 +588,55 @@ export function MentorDashboard() {
           </motion.div>
         </motion.header>
 
-        {/* Stats */}
+        {/* Stats — mobile compact grid */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          className="lg:hidden"
+        >
+          <MentorStatMiniGrid>
+            <MentorStatFrame
+              index={1}
+              compact
+              accent="purple"
+              value={String(stats.totalSessions)}
+              title="Tổng buổi mentor"
+              cornerIcon={Users}
+            />
+            <MentorStatFrame
+              index={2}
+              compact
+              accent="lime"
+              value={String(stats.upcomingMeetings)}
+              title="Lịch hẹn sắp tới"
+              cornerIcon={CalendarClock}
+            />
+            <MentorStatFrame
+              index={3}
+              compact
+              accent="purple"
+              value={formatVndCompact(stats.totalEarned)}
+              title="Tổng thu nhập"
+              cornerIcon={Landmark}
+            />
+            <MentorStatFrame
+              index={4}
+              compact
+              accent="lime"
+              value={formatVnd(stats.availableBalance)}
+              title="Khả dụng rút"
+              cornerIcon={Wallet}
+            />
+          </MentorStatMiniGrid>
+        </motion.div>
+
+        {/* Stats — desktop panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          className="hidden lg:block"
         >
           <MentorStatPanel>
             <MentorStatFrame

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { BookOpen, GraduationCap, ListChecks, Plus, Sparkles } from "lucide-react";
 import {
   mentorGhostBtnClass,
@@ -23,49 +23,39 @@ const LEVEL_OPTIONS = [
   { value: "advanced", label: "Nâng cao" },
 ];
 
-const DESC_MIN_HEIGHT_PX = 88;
-const DESC_MAX_AUTO_HEIGHT_PX = 480;
+export const EMPTY_STEP1_FORM = {
+  title: "",
+  description: "",
+  category: "",
+  level: "basic",
+  price: 0,
+  outcomes: ["", "", ""],
+  tags: "",
+};
 
-function AutoResizeTextarea({ id, value, onChange, placeholder, className = "" }) {
-  const ref = useRef(null);
+/** Tắt Grammarly — extension hay gây giật trên textarea controlled (React). */
+const GRAMMARLY_OFF = {
+  "data-gramm": "false",
+  "data-gramm_editor": "false",
+  "data-enable-grammarly": "false",
+};
 
-  const syncHeight = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.height = "0px";
-    const content = el.scrollHeight;
-    const next = Math.min(
-      DESC_MAX_AUTO_HEIGHT_PX,
-      Math.max(DESC_MIN_HEIGHT_PX, content),
-    );
-    if (next >= DESC_MAX_AUTO_HEIGHT_PX) {
-      el.style.height = `${DESC_MAX_AUTO_HEIGHT_PX}px`;
-      el.style.overflowY = "auto";
-    } else {
-      el.style.height = `${next}px`;
-      el.style.overflowY = "hidden";
-    }
-  };
-
-  useLayoutEffect(() => {
-    syncHeight();
-  }, [value]);
-
-  return (
-    <textarea
-      ref={ref}
-      id={id}
-      rows={1}
-      value={value}
-      onChange={(e) => {
-        onChange(e);
-        requestAnimationFrame(syncHeight);
-      }}
-      placeholder={placeholder}
-      className={`${className} resize-none`}
-      style={{ minHeight: DESC_MIN_HEIGHT_PX }}
-    />
-  );
+function buildStep1Validation(form) {
+  const messages = [];
+  if (form.title.trim().length <= 2) {
+    messages.push("Nhập tiêu đề khóa học (ít nhất 3 ký tự).");
+  }
+  if (form.description.trim().length <= 20) {
+    messages.push("Nhập mô tả khóa học (ít nhất 21 ký tự).");
+  }
+  if (!form.category.trim()) {
+    messages.push("Chọn danh mục khóa học.");
+  }
+  const filledOutcomes = form.outcomes.filter((o) => o.trim().length > 0).length;
+  if (filledOutcomes < 3) {
+    messages.push("Điền ít nhất 3 mục 'Học viên sẽ học được gì'.");
+  }
+  return messages;
 }
 
 function SectionHeader({ icon: Icon, title }) {
@@ -74,24 +64,47 @@ function SectionHeader({ icon: Icon, title }) {
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-violet-100 text-violet-700">
         <Icon className="h-4 w-4" />
       </span>
-      <h2 className="text-base font-bold text-slate-900">{title}</h2>
+      <h2 className="text-lg font-bold text-slate-900 sm:text-base">{title}</h2>
     </div>
   );
 }
 
-export function CourseCreateStep1({
-  form,
-  updateField,
-  updateOutcome,
-  addOutcome,
-  validationMessages,
-  canContinue,
+/**
+ * State form bước 1 giữ trong component này — tránh re-render CreateCourseForm (nặng) mỗi keystroke.
+ */
+export const CourseCreateStep1 = memo(function CourseCreateStep1({
+  initialForm,
   onCancel,
   onNext,
 }) {
+  const [form, setForm] = useState(() => ({
+    ...EMPTY_STEP1_FORM,
+    ...initialForm,
+    outcomes: initialForm?.outcomes?.length
+      ? [...initialForm.outcomes]
+      : [...EMPTY_STEP1_FORM.outcomes],
+  }));
   const [validationTouched, setValidationTouched] = useState(false);
   const [shakeValidation, setShakeValidation] = useState(false);
 
+  const updateField = useCallback((key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const updateOutcome = useCallback((index, value) => {
+    setForm((prev) => {
+      const next = [...prev.outcomes];
+      next[index] = value;
+      return { ...prev, outcomes: next };
+    });
+  }, []);
+
+  const addOutcome = useCallback(() => {
+    setForm((prev) => ({ ...prev, outcomes: [...prev.outcomes, ""] }));
+  }, []);
+
+  const validationMessages = useMemo(() => buildStep1Validation(form), [form]);
+  const canContinue = validationMessages.length === 0;
   const isPaid = Number(form.price) > 0;
   const showValidationPanel = validationTouched && !canContinue && validationMessages.length > 0;
 
@@ -102,7 +115,7 @@ export function CourseCreateStep1({
       window.setTimeout(() => setShakeValidation(false), 520);
       return;
     }
-    onNext();
+    onNext(form);
   };
 
   return (
@@ -120,18 +133,24 @@ export function CourseCreateStep1({
               onChange={(e) => updateField("title", e.target.value)}
               placeholder="VD: Làm chủ STAR Method trong phỏng vấn hành vi"
               className={mentorInputClass}
+              autoComplete="off"
+              {...GRAMMARLY_OFF}
             />
           </div>
           <div>
             <label htmlFor="course-desc" className={mentorLabelClass}>
               Mô tả khóa học <span className="text-red-500">*</span>
             </label>
-            <AutoResizeTextarea
+            <textarea
               id="course-desc"
+              rows={4}
               value={form.description}
               onChange={(e) => updateField("description", e.target.value)}
               placeholder="Mô tả chi tiết nội dung, giá trị và những gì học viên sẽ đạt được..."
-              className={mentorInputClass}
+              className={`${mentorInputClass} min-h-[88px] max-h-[480px] resize-y overflow-y-auto [transition:none!important]`}
+              autoComplete="off"
+              spellCheck={false}
+              {...GRAMMARLY_OFF}
             />
           </div>
         </div>
@@ -188,14 +207,14 @@ export function CourseCreateStep1({
                   const digits = e.target.value.replace(/\D/g, "");
                   updateField("price", digits === "" ? 0 : Number(digits));
                 }}
-                className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 sm:text-sm"
               />
-              <span className="flex items-center border-l border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-500">
+              <span className="flex items-center border-l border-slate-200 bg-slate-50 px-3 text-base font-semibold text-slate-500 sm:text-sm">
                 VND
               </span>
             </div>
             <span
-              className={`inline-flex items-center rounded-[8px] px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+              className={`inline-flex items-center rounded-[8px] px-3 py-1 text-sm font-bold uppercase tracking-wide sm:text-xs ${
                 isPaid
                   ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                   : "bg-violet-50 text-violet-700 ring-1 ring-violet-200"
@@ -212,7 +231,7 @@ export function CourseCreateStep1({
         <div className="space-y-2.5">
           {form.outcomes.map((outcome, idx) => (
             <div key={idx} className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-violet-50 text-xs font-bold text-violet-700">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-violet-50 text-sm font-bold text-violet-700 sm:text-xs">
                 {idx + 1}
               </span>
               <input
@@ -220,6 +239,7 @@ export function CourseCreateStep1({
                 onChange={(e) => updateOutcome(idx, e.target.value)}
                 placeholder={`Kết quả học tập ${idx + 1}...`}
                 className={mentorInputClass}
+                autoComplete="off"
               />
               {idx === form.outcomes.length - 1 ? (
                 <button
@@ -238,7 +258,7 @@ export function CourseCreateStep1({
 
       {showValidationPanel ? (
         <div
-          className={`rounded-[10px] border px-4 py-3 text-sm transition-colors ${
+          className={`rounded-[10px] border px-4 py-3 text-base transition-colors sm:text-sm ${
             shakeValidation
               ? mentorValidationShakeClass
               : "border-amber-200 bg-amber-50/80 text-amber-900"
@@ -261,7 +281,7 @@ export function CourseCreateStep1({
       <CourseCreateFooter onCancel={onCancel} onPrimary={handleNextClick} primaryLabel="Tiếp theo" />
     </div>
   );
-}
+});
 
 export function CourseCreateFooter({
   onCancel,

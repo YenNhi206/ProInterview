@@ -319,6 +319,38 @@ function frontendUrl() {
   return (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 }
 
+function bookingDetailsTableHtml({ sessionLabel, mentorName, menteeName, date, timeSlot }) {
+  const rows = [
+    ["Loại buổi", sessionLabel],
+    mentorName ? ["Mentor", mentorName] : null,
+    menteeName ? ["Học viên", menteeName] : null,
+    ["Ngày", date],
+    ["Giờ bắt đầu", timeSlot],
+  ].filter(Boolean);
+
+  const cells = rows
+    .map(
+      ([label, value]) => `
+                <tr>
+                  <td style="padding: 6px 0; font-size: 13px; color: ${BRAND.textMuted}; width: 130px;">${escapeHtml(label)}</td>
+                  <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: ${BRAND.text};">${escapeHtml(value)}</td>
+                </tr>`,
+    )
+    .join("");
+
+  return `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+          style="border-radius: 14px; background: #faf8ff; border: 1px solid rgba(128,55,244,0.12); margin-bottom: 8px;">
+          <tr>
+            <td style="padding: 20px 24px;">
+              <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                ${cells}
+              </table>
+            </td>
+          </tr>
+        </table>`;
+}
+
 /**
  * Gửi email xác nhận đặt lịch thành công cho mentee (khi thanh toán được xác nhận)
  */
@@ -332,7 +364,7 @@ export async function sendBookingConfirmedEmailToMentee(
   const sessionLabel = escapeHtml(SESSION_TYPE_LABELS[sessionType] || sessionType || "Buổi học");
   const safeDate = escapeHtml(date || "");
   const safeTime = escapeHtml(timeSlot || "");
-  const sessionUrl = `${frontendUrl()}/#/session/${encodeURIComponent(bookingId || "")}`;
+  const sessionUrl = `${frontendUrl()}/session/${encodeURIComponent(bookingId || "")}`;
 
   const mailOptions = createBrandedMailOptions({
     to,
@@ -399,7 +431,7 @@ export async function sendBookingConfirmedEmailToMentor(
   const sessionLabel = escapeHtml(SESSION_TYPE_LABELS[sessionType] || sessionType || "Buổi học");
   const safeDate = escapeHtml(date || "");
   const safeTime = escapeHtml(timeSlot || "");
-  const detailUrl = `${frontendUrl()}/#/mentor/meeting-detail/${encodeURIComponent(bookingId || "")}`;
+  const detailUrl = `${frontendUrl()}/mentor/meeting-detail/${encodeURIComponent(bookingId || "")}`;
 
   const mailOptions = createBrandedMailOptions({
     to,
@@ -449,6 +481,102 @@ export async function sendBookingConfirmedEmailToMentor(
     return { ok: true, info };
   } catch (error) {
     console.error("[emailService] sendBookingConfirmedEmailToMentor:", error?.message || error);
+    return { ok: false, error: error.message };
+  }
+}
+
+/**
+ * Email nhắc lịch ~1 giờ trước buổi hẹn — gửi cho mentee
+ */
+export async function sendBookingReminderEmailToMentee(
+  to,
+  { menteeName, mentorName, sessionType, date, timeSlot, bookingId },
+) {
+  if (!to) return { ok: false, error: "Thiếu email người nhận." };
+  const safeMentee = escapeHtml(menteeName || "Bạn");
+  const safeMentor = escapeHtml(mentorName || "Mentor");
+  const sessionLabel = SESSION_TYPE_LABELS[sessionType] || sessionType || "Buổi học";
+  const safeDate = date || "";
+  const safeTime = timeSlot || "";
+  const sessionUrl = `${frontendUrl()}/session/${encodeURIComponent(bookingId || "")}`;
+
+  const mailOptions = createBrandedMailOptions({
+    to,
+    subject: `[ProInterview] Nhắc lịch: buổi học sau khoảng 1 giờ`,
+    preheader: `Buổi ${sessionLabel} với ${mentorName} lúc ${timeSlot} ngày ${date} sắp bắt đầu.`,
+    eyebrow: "Nhắc lịch",
+    title: "Buổi hẹn sắp bắt đầu",
+    bodyHtml: `
+        <p style="margin: 0 0 16px;">Chào <strong>${safeMentee}</strong>,</p>
+        <p style="margin: 0 0 20px; color: ${BRAND.textMuted};">
+          Buổi học với Mentor <strong>${safeMentor}</strong> sẽ bắt đầu trong khoảng <strong>1 giờ</strong>. Hãy chuẩn bị CV, JD và thiết bị trước khi vào phòng.
+        </p>
+        ${bookingDetailsTableHtml({
+          sessionLabel,
+          mentorName: mentorName || "Mentor",
+          date: safeDate,
+          timeSlot: safeTime,
+        })}`,
+    ctaLabel: "Xem buổi hẹn",
+    ctaUrl: sessionUrl,
+    fallbackUrl: sessionUrl,
+    footerNote: "Bạn có thể tắt email nhắc lịch trong Cài đặt → Thông báo trên ProInterview.",
+  });
+
+  try {
+    const transporter = await getTransporter();
+    const info = await transporter.sendMail(mailOptions);
+    return { ok: true, info };
+  } catch (error) {
+    console.error("[emailService] sendBookingReminderEmailToMentee:", error?.message || error);
+    return { ok: false, error: error.message };
+  }
+}
+
+/**
+ * Email nhắc lịch ~1 giờ trước buổi hẹn — gửi cho mentor
+ */
+export async function sendBookingReminderEmailToMentor(
+  to,
+  { mentorName, menteeName, sessionType, date, timeSlot, bookingId },
+) {
+  if (!to) return { ok: false, error: "Thiếu email người nhận." };
+  const safeMentor = escapeHtml(mentorName || "Mentor");
+  const safeMentee = escapeHtml(menteeName || "Học viên");
+  const sessionLabel = SESSION_TYPE_LABELS[sessionType] || sessionType || "Buổi học";
+  const safeDate = date || "";
+  const safeTime = timeSlot || "";
+  const detailUrl = `${frontendUrl()}/mentor/meeting-detail/${encodeURIComponent(bookingId || "")}`;
+
+  const mailOptions = createBrandedMailOptions({
+    to,
+    subject: `[ProInterview] Nhắc lịch: buổi mentor sau khoảng 1 giờ`,
+    preheader: `Buổi ${sessionLabel} với ${menteeName} lúc ${timeSlot} ngày ${date} sắp bắt đầu.`,
+    eyebrow: "Nhắc lịch",
+    title: "Buổi mentor sắp bắt đầu",
+    bodyHtml: `
+        <p style="margin: 0 0 16px;">Chào <strong>${safeMentor}</strong>,</p>
+        <p style="margin: 0 0 20px; color: ${BRAND.textMuted};">
+          Buổi hẹn với <strong>${safeMentee}</strong> sẽ bắt đầu trong khoảng <strong>1 giờ</strong>. Vui lòng kiểm tra lịch và chuẩn bị tài liệu mentee đã gửi.
+        </p>
+        ${bookingDetailsTableHtml({
+          sessionLabel,
+          menteeName: menteeName || "Học viên",
+          date: safeDate,
+          timeSlot: safeTime,
+        })}`,
+    ctaLabel: "Xem chi tiết buổi hẹn",
+    ctaUrl: detailUrl,
+    fallbackUrl: detailUrl,
+    footerNote: "Bạn có thể tắt email nhắc lịch trong Cài đặt → Thông báo trên ProInterview.",
+  });
+
+  try {
+    const transporter = await getTransporter();
+    const info = await transporter.sendMail(mailOptions);
+    return { ok: true, info };
+  } catch (error) {
+    console.error("[emailService] sendBookingReminderEmailToMentor:", error?.message || error);
     return { ok: false, error: error.message };
   }
 }

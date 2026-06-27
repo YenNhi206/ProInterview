@@ -71,21 +71,24 @@ export function MentorStatFrame({
           ease: [0.22, 1, 0.36, 1],
         },
         whileHover: { y: -2 },
+        whileTap: { scale: 0.98, y: 0 },
       }
     : {};
 
   const valueCls = compact
     ? "text-[clamp(1.75rem,3.5vw,2.5rem)]"
-    : "text-[clamp(2.5rem,5vw,4rem)]";
+    : moneyAmount != null
+      ? "text-[clamp(2rem,4vw,3.25rem)]"
+      : "text-[clamp(2.5rem,5vw,4rem)]";
 
   const shellCls = compact
-    ? `rounded-2xl border border-[#8037f4]/12 shadow-[0_2px_12px_rgba(128,55,244,0.06)] ${theme.frame} ${theme.hover}`
+    ? `rounded-2xl border border-[#8037f4]/12 shadow-[0_2px_12px_rgba(128,55,244,0.06)] ${theme.frame} ${theme.hover} flex min-h-[6.75rem] flex-col justify-center`
     : `${theme.frame} ${theme.hover}`;
 
   return (
     <Wrapper
       {...motionProps}
-      className={`relative px-5 py-5 transition-shadow duration-200 sm:px-6 sm:py-6 ${shellCls}`}
+      className={`relative px-4 py-4 transition-shadow duration-200 sm:px-5 sm:py-5 ${shellCls}`}
     >
       <div
         className={`absolute bottom-4 left-0 top-4 w-1 rounded-full ${theme.bar}`}
@@ -106,16 +109,18 @@ export function MentorStatFrame({
           {cornerLabel}
         </span>
       ) : null}
+      <div className={compact || CornerIcon ? "pr-8" : undefined}>
       <p
-        className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05]" : "leading-[0.9] tracking-tight"} ${valueCls} ${theme.value}`}
+        className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
       >
         {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
       </p>
-      <p className={`mt-2 text-sm font-bold ${theme.title}`}>{title}</p>
+      <p className={`${compact ? "mt-1.5" : "mt-2"} text-sm font-bold ${theme.title}`}>{title}</p>
       {subtitle ? (
         <p className={`mt-1 text-xs leading-relaxed ${theme.subtitle}`}>{subtitle}</p>
       ) : null}
       {footer}
+      </div>
     </Wrapper>
   );
 }

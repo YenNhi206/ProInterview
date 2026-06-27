@@ -62,7 +62,7 @@ export function proInterviewRoomName(bookingId) {
 }
 
 /**
- * Link vào phòng họp qua app ProInterview (hash router).
+ * Link vào phòng họp qua app ProInterview (Browser Router).
  * Prod JaaS: user phải vào qua app để nhận JWT từ backend — không dùng meet.jit.si trực tiếp.
  */
 export function resolveProInterviewMeetLink(bookingId, _storedLink = "") {
@@ -71,11 +71,11 @@ export function resolveProInterviewMeetLink(bookingId, _storedLink = "") {
 
   const configuredOrigin = String(import.meta.env.VITE_FRONTEND_URL || "").trim().replace(/\/$/, "");
   if (configuredOrigin) {
-    return `${configuredOrigin}/#/meeting/${encodeURIComponent(id)}`;
+    return `${configuredOrigin}/meeting/${encodeURIComponent(id)}`;
   }
 
   if (typeof window !== "undefined" && window.location?.origin) {
-    return `${window.location.origin}/#/meeting/${encodeURIComponent(id)}`;
+    return `${window.location.origin}/meeting/${encodeURIComponent(id)}`;
   }
 
   return `/meeting/${encodeURIComponent(id)}`;

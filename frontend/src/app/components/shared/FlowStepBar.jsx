@@ -32,7 +32,7 @@ export function FlowStepBar({
     items.push(
       <li key={s.n} className="flex shrink-0 flex-col items-center gap-2">
         <span
-          className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+          className={`flex h-9 w-9 items-center justify-center rounded-full text-base font-bold transition-colors sm:text-sm ${
             active || done
               ? "bg-[#630ed4] text-white shadow-[0_4px_14px_rgba(128,55,244,0.28)]"
               : "border-2 border-violet-200 bg-white text-violet-400"
@@ -41,7 +41,7 @@ export function FlowStepBar({
           {done ? <Check className="h-4 w-4" strokeWidth={2.5} /> : s.n}
         </span>
         <span
-          className={`max-w-[7.5rem] text-center text-[11px] font-bold uppercase leading-tight tracking-wide sm:max-w-none sm:text-xs ${
+          className={`max-w-[7.5rem] text-center text-sm font-bold uppercase leading-tight tracking-wide sm:max-w-none sm:text-xs ${
             active ? "text-[#630ed4]" : done ? "text-violet-800" : "text-violet-400"
           }`}
         >

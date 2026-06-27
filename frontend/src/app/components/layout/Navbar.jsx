@@ -36,6 +36,7 @@ import {
   MENTOR_SECONDARY_NAV,
   isMentorNavActive,
 } from "./mentorNav.js";
+import { NavUserAvatar } from "./NavUserAvatar.jsx";
 
 const PAGE_TITLES = {
   "/my-bookings": {
@@ -228,7 +229,7 @@ function CustomerNavbar() {
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
-            className="inline-flex p-2 rounded-lg text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
             aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((o) => !o)}
@@ -321,12 +322,7 @@ function CustomerNavbar() {
                     type="button"
                     className="flex shrink-0 items-center justify-center rounded-full border border-violet-200/80 bg-white p-0 shadow-sm transition-colors hover:border-violet-300 size-7 md:gap-2 md:py-1 md:pl-1 md:pr-2.5 md:size-auto"
                   >
-                    <span
-                      className="flex size-full items-center justify-center rounded-full text-[10px] font-bold leading-none text-white md:size-8 md:text-xs"
-                      style={{ background: "#8037f4" }}
-                    >
-                      {initials}
-                    </span>
+                    <NavUserAvatar avatar={user?.avatar} initials={initials} />
                     <span className="hidden max-w-[7rem] truncate text-sm font-semibold text-slate-700 md:inline">
                       {displayName}
                     </span>
@@ -393,6 +389,13 @@ function CustomerNavbar() {
       </TopNavShell>
 
       {mobileOpen ? (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-[98] bg-slate-900/25 md:hidden"
+            aria-label="Đóng menu"
+            onClick={() => setMobileOpen(false)}
+          />
         <div
           className="top-nav-shell-outer fixed right-3 top-[3.8rem] z-[99] w-[14rem] sm:right-6 sm:top-[4.2rem] sm:w-[16rem] md:hidden"
         >
@@ -434,6 +437,7 @@ function CustomerNavbar() {
           ) : null}
           </div>
         </div>
+        </>
       ) : null}
     </>
   );
@@ -516,7 +520,7 @@ function MentorNavbar() {
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
-            className="inline-flex rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
             aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((o) => !o)}
@@ -604,12 +608,7 @@ function MentorNavbar() {
                 className="flex shrink-0 items-center justify-center rounded-full border border-violet-200/80 bg-white p-0 shadow-sm transition-colors hover:border-violet-300 size-7 md:gap-2 md:py-1 md:pl-1 md:pr-2.5 md:size-auto"
                 aria-label="Tài khoản mentor"
               >
-                <span
-                  className="flex size-full items-center justify-center rounded-full text-[10px] font-bold leading-none text-white md:size-8 md:text-xs"
-                  style={{ background: "#8037f4" }}
-                >
-                  {initials}
-                </span>
+                <NavUserAvatar avatar={user?.avatar} initials={initials} />
                 <span className="hidden max-w-[7rem] truncate text-sm font-semibold text-slate-700 md:inline">
                   {displayName}
                 </span>
@@ -646,6 +645,13 @@ function MentorNavbar() {
       </TopNavShell>
 
       {mobileOpen ? (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-[98] bg-slate-900/25 md:hidden"
+            aria-label="Đóng menu"
+            onClick={() => setMobileOpen(false)}
+          />
         <div className="top-nav-shell-outer fixed right-3 top-[3.8rem] z-[99] w-[min(100vw-1.5rem,18rem)] sm:right-6 sm:top-[4.2rem] md:hidden">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
             <MentorMobileNavPanel
@@ -654,6 +660,7 @@ function MentorNavbar() {
             />
           </div>
         </div>
+        </>
       ) : null}
     </>
   );

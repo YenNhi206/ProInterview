@@ -520,7 +520,7 @@ function CourseDetailModal({
             {formatDuration(r.durationMinutes)}
           </p>
           <p className="mt-1">
-            <span className="font-semibold text-slate-700">Ghi danh:</span>{" "}
+            <span className="font-semibold text-slate-700">Mua khóa:</span>{" "}
             {formatEnrollmentStats(course.stats)}
             <span className="mx-2 text-slate-300">·</span>
             <span className="font-semibold text-slate-700">Đánh giá:</span> {formatRatingStats(course.stats)}
@@ -628,7 +628,7 @@ function PublishedCoursesTable({ courses, loading, busyId, onPreview, onArchive,
               <th className={adminThCell}>Khóa học</th>
               <th className={adminThCell}>Cố vấn</th>
               <th className={adminThCell}>Giá</th>
-              <th className={`${adminThCell} text-center`}>Ghi danh</th>
+              <th className={`${adminThCell} text-center`}>Mua khóa</th>
               <th className={`${adminThCell} text-center`}>Đánh giá</th>
               <th className={`${adminThCell} text-center`}>Video</th>
               <th className={adminThCell}>Xuất bản</th>

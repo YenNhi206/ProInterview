@@ -31,6 +31,7 @@ import {
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { isLoggedIn } from "../../utils/auth/auth.js";
+import { buildLoginPath } from "../../utils/auth/authGate.js";
 import {
   cancelBooking,
   fetchBookingById,
@@ -62,8 +63,10 @@ import {
 } from "../../constants/brandColors";
 import { getUserCancelPolicyFromHours, userCancelWarningMessage } from "../../constants/bookingPolicy";
 import { UserCancelPolicyBrief } from "../../components/booking/UserCancelPolicyBrief";
+import { RefundBankFields } from "../../components/booking/RefundBankFields.jsx";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { BANK_OTHER, effectiveBankName, refundBankValidationMessage, resolveBankFields } from "../../constants/vietnamBanks.js";
 
 function toBookingDateFormat(input) {
   const s = String(input || "").trim();
@@ -279,36 +282,38 @@ function SessionMeetingLinkCard({ sessionData }) {
         <Video className="h-4 w-4" style={{ color: BRAND_PURPLE }} />
         <span className="text-sm font-semibold text-gray-800">Phòng họp & lịch hẹn</span>
       </div>
-      <div className="p-5">
+      <div className="min-w-0 p-5">
         <div
-          className="mb-4 flex items-center gap-4 rounded-2xl p-4"
+          className="mb-4 flex min-w-0 flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center"
           style={{
             background: isJitsi ? BRAND_PURPLE_SOFT_LIGHT : "rgba(66,133,244,0.05)",
             border: `1.5px solid ${isJitsi ? BRAND_PURPLE_BORDER : "rgba(66,133,244,0.2)"}`,
           }}
         >
-          <div
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
-            style={{ background: accent }}
-          >
-            {isJitsi ? (
-              <Video className="h-6 w-6 text-white" />
-            ) : (
-              <GoogleLogo className="h-6 w-6 text-white" />
-            )}
+          <div className="flex min-w-0 items-start gap-4 sm:flex-1">
+            <div
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
+              style={{ background: accent }}
+            >
+              {isJitsi ? (
+                <Video className="h-6 w-6 text-white" />
+              ) : (
+                <GoogleLogo className="h-6 w-6 text-white" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-gray-900">{platform}</p>
+              <p className="mt-0.5 break-all text-xs sm:truncate sm:font-mono" style={{ color: accent }}>
+                {sessionData.meetLink}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-gray-900">{platform}</p>
-            <p className="mt-0.5 truncate font-mono text-xs" style={{ color: accent }}>
-              {sessionData.meetLink}
-            </p>
-          </div>
-          <div className="flex flex-shrink-0 flex-col gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-shrink-0">
             <a
               href={sessionData.meetLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+              className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold text-white transition-all hover:opacity-90 sm:py-2"
               style={{ background: accent }}
             >
               {openLabel} <ExternalLink className="h-3.5 w-3.5" />
@@ -354,8 +359,7 @@ export function SessionDetail() {
       return;
     }
     if (!isLoggedIn()) {
-      setApiBooking(null);
-      setLoadError("Vui lòng đăng nhập để xem buổi phỏng vấn.");
+      navigate(buildLoginPath(`/session/${id}`), { replace: true });
       return;
     }
     if (!isMongoObjectId(id)) {
@@ -390,7 +394,7 @@ export function SessionDetail() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, navigate]);
 
   const sessionData = useMemo(() => {
     if (apiBooking && typeof apiBooking === "object") return apiBookingToLocal(apiBooking);
@@ -461,7 +465,11 @@ export function SessionDetail() {
 
   useEffect(() => {
     if (!sessionData) return;
-    if (sessionData.refundReceiveBankName) setRefundBankName(sessionData.refundReceiveBankName);
+    if (sessionData.refundReceiveBankName) {
+      const resolved = resolveBankFields(sessionData.refundReceiveBankName);
+      setRefundBankSelect(resolved.select);
+      setRefundCustomBankName(resolved.custom);
+    }
     if (sessionData.refundReceiveAccountNumber) setRefundAccountNumber(sessionData.refundReceiveAccountNumber);
     if (sessionData.refundReceiveAccountHolder) setRefundAccountHolder(sessionData.refundReceiveAccountHolder);
   }, [sessionData?.sessionId]);
@@ -471,10 +479,35 @@ export function SessionDetail() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [cancelBusy, setCancelBusy] = useState(false);
-  const [refundBankName, setRefundBankName] = useState("");
+  const [refundBankSelect, setRefundBankSelect] = useState("");
+  const [refundCustomBankName, setRefundCustomBankName] = useState("");
   const [refundAccountNumber, setRefundAccountNumber] = useState("");
   const [refundAccountHolder, setRefundAccountHolder] = useState("");
   const [refundDestBusy, setRefundDestBusy] = useState(false);
+  const getRefundBankName = () => effectiveBankName(refundBankSelect, refundCustomBankName);
+  const assertRefundBankFilled = () => {
+    const bankMsg = refundBankValidationMessage(refundBankSelect, refundCustomBankName);
+    if (bankMsg) {
+      toastApiError(bankMsg);
+      return false;
+    }
+    const acct = String(refundAccountNumber || "").replace(/\D/g, "");
+    if (acct.length < 6 || !String(refundAccountHolder || "").trim()) {
+      toastApiError("Vui lòng điền số tài khoản và tên chủ tài khoản.");
+      return false;
+    }
+    return true;
+  };
+  const resetRefundBankFields = () => {
+    setRefundBankSelect("");
+    setRefundCustomBankName("");
+    setRefundAccountNumber("");
+    setRefundAccountHolder("");
+  };
+  const handleRefundBankSelectChange = (value) => {
+    setRefundBankSelect(value);
+    if (value !== BANK_OTHER) setRefundCustomBankName("");
+  };
   const [mentorResolutionStep, setMentorResolutionStep] = useState("");
   const [resolutionBusy, setResolutionBusy] = useState(false);
   const [reportNoShowBusy, setReportNoShowBusy] = useState(false);
@@ -547,16 +580,13 @@ export function SessionDetail() {
     }
     if (choice === "refund") {
       const acct = String(refundAccountNumber || "").replace(/\D/g, "");
-      if (!String(refundBankName || "").trim() || acct.length < 6 || !String(refundAccountHolder || "").trim()) {
-        toastApiError("Vui lòng điền đầy đủ ngân hàng, STK và tên chủ tài khoản.");
-        return;
-      }
+      if (!assertRefundBankFilled()) return;
       setResolutionBusy(true);
       let res;
       try {
         res = await resolveMentorCancelBooking(mongoBookingId, {
           choice: "refund",
-          refundReceiveBankName: String(refundBankName || "").trim(),
+          refundReceiveBankName: getRefundBankName(),
           refundReceiveAccountNumber: acct,
           refundReceiveAccountHolder: String(refundAccountHolder || "").trim(),
         });
@@ -658,14 +688,11 @@ export function SessionDetail() {
   const handleSubmitRefundDestination = async () => {
     if (!mongoBookingId) return;
     const acct = String(refundAccountNumber || "").replace(/\D/g, "");
-    if (!String(refundBankName || "").trim() || acct.length < 6 || !String(refundAccountHolder || "").trim()) {
-      toastApiError("Vui lòng điền đầy đủ ngân hàng, STK và tên chủ tài khoản.");
-      return;
-    }
+    if (!assertRefundBankFilled()) return;
     setRefundDestBusy(true);
     try {
       const res = await updateBookingRefundDestination(mongoBookingId, {
-        refundReceiveBankName: String(refundBankName || "").trim(),
+        refundReceiveBankName: getRefundBankName(),
         refundReceiveAccountNumber: acct,
         refundReceiveAccountHolder: String(refundAccountHolder || "").trim(),
       });
@@ -708,18 +735,14 @@ export function SessionDetail() {
   const handleConfirmCancelBooking = async () => {
     if (!mongoBookingId) return;
     if (needsRefundBankDetails) {
-      const acct = String(refundAccountNumber || "").replace(/\D/g, "");
-      if (!String(refundBankName || "").trim() || acct.length < 6 || !String(refundAccountHolder || "").trim()) {
-        toastApiError("Vui lòng điền đầy đủ ngân hàng, STK nhận hoàn và tên chủ tài khoản.");
-        return;
-      }
+      if (!assertRefundBankFilled()) return;
     }
     setCancelBusy(true);
     let res;
     try {
       res = await cancelBooking(mongoBookingId, {
         reason: String(cancelReason || "").trim(),
-        refundReceiveBankName: needsRefundBankDetails ? String(refundBankName || "").trim() : "",
+        refundReceiveBankName: needsRefundBankDetails ? getRefundBankName() : "",
         refundReceiveAccountNumber: needsRefundBankDetails
           ? String(refundAccountNumber || "").replace(/\D/g, "")
           : "",
@@ -752,9 +775,7 @@ export function SessionDetail() {
     toastApiSuccess(`Đã hủy lịch.${extra}`);
     setCancelModalOpen(false);
     setCancelReason("");
-    setRefundBankName("");
-    setRefundAccountNumber("");
-    setRefundAccountHolder("");
+    resetRefundBankFields();
     navigate("/my-bookings");
   };
 
@@ -784,10 +805,10 @@ export function SessionDetail() {
             {!isLoggedIn() ? (
               <button
                 type="button"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate(buildLoginPath(id ? `/session/${id}` : "/"))}
                 className="mt-4 rounded-xl bg-[#8037f4] px-4 py-2 text-sm font-medium text-white hover:bg-[#630ed4]"
               >
-                Đăng nhập
+                Đăng nhập để xem buổi hẹn
               </button>
             ) : (
               <button
@@ -808,7 +829,7 @@ export function SessionDetail() {
     <MentorPageShell bottomPad="pb-20">
       <div className={`relative z-10 pb-10 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
         <div
-          className={`${CUSTOMER_SHELL_MAX} w-full antialiased selection:bg-[rgba(122,35,229,0.18)] selection:text-slate-900`}
+          className={`${CUSTOMER_SHELL_MAX} w-full min-w-0 max-w-full antialiased selection:bg-[rgba(122,35,229,0.18)] selection:text-slate-900`}
         >
       {canReportNoShow && !mentorActionMode ? (
         <div className="mb-6 rounded-2xl border border-red-200 bg-red-50/90 p-4">
@@ -842,8 +863,10 @@ export function SessionDetail() {
           setRescheduleSlot={setRescheduleSlot}
           rescheduleSlotOptions={rescheduleSlotOptions}
           loadingRescheduleSlots={loadingRescheduleSlots}
-          refundBankName={refundBankName}
-          setRefundBankName={setRefundBankName}
+          refundBankSelect={refundBankSelect}
+          setRefundBankSelect={setRefundBankSelect}
+          refundCustomBankName={refundCustomBankName}
+          setRefundCustomBankName={setRefundCustomBankName}
           refundAccountNumber={refundAccountNumber}
           setRefundAccountNumber={setRefundAccountNumber}
           refundAccountHolder={refundAccountHolder}
@@ -867,13 +890,11 @@ export function SessionDetail() {
       {/*              STATE: UPCOMING                  */}
       {/* ══════════════════════════════════════════════ */}
       {state === "upcoming" && (
-        <div className="grid lg:grid-cols-3 gap-5">
-          {/* LEFT COL */}
-          <div className="lg:col-span-2 space-y-5">
-
-            {/* ── Status header, chỉ trạng thái + mã; ngày/giờ xem cột Chi tiết buổi hẹn ── */}
+        <div className="flex min-w-0 flex-col gap-5 lg:grid lg:grid-cols-3 lg:items-start lg:gap-5">
+            {/* 1 — Trạng thái xác nhận */}
+            <div className="order-1 lg:col-span-3">
             <div
-              className="flex items-center justify-between gap-4 rounded-2xl border px-5 py-4"
+              className="flex flex-col gap-3 rounded-2xl border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
               style={{
                 background: BRAND_LIME_SOFT,
                 borderColor: BRAND_LIME_BORDER,
@@ -890,17 +911,22 @@ export function SessionDetail() {
                   Buổi phỏng vấn đã được xác nhận
                 </p>
               </div>
-              <div className="shrink-0 text-right">
+              <div className="shrink-0 sm:text-right">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Mã đặt lịch
                 </p>
                 <p className="text-sm font-bold text-slate-900">#{sessionData.orderNum}</p>
               </div>
             </div>
+            </div>
 
+            {/* Cột trái desktop — mobile: children tách ra flex parent (contents) */}
+            <div className="max-lg:contents lg:col-span-2 lg:row-start-2 lg:space-y-5">
+            <div className="order-3 lg:order-none">
             <SessionMeetingLinkCard sessionData={sessionData} />
+            </div>
 
-            {/* ── Tips ── */}
+            <div className="order-6 lg:order-none">
             <div className="card-premium p-5">
               <div className="mb-4 flex items-center gap-2">
                 <div
@@ -923,16 +949,17 @@ export function SessionDetail() {
                     >
                       <Icon className="h-3.5 w-3.5" style={{ color: BRAND_PURPLE }} />
                     </div>
-                    <p className="text-sm leading-relaxed text-slate-600">{tip}</p>
+                    <p className="min-w-0 text-sm leading-relaxed text-slate-600">{tip}</p>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+            </div>
+            </div>
 
-          {/* RIGHT COL */}
-          <div className="space-y-4">
-            {/* ── Mentor card ── */}
+            {/* Cột phải desktop — xếp dọc độc lập, không bị kéo theo chiều cao cột trái */}
+            <div className="max-lg:contents lg:col-start-3 lg:row-start-2 lg:space-y-4">
+            <div className="order-4 lg:order-none">
             <div className="card-premium p-5">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Mentor của bạn</p>
               <div className="flex items-center gap-3 mb-4">
@@ -954,8 +981,9 @@ export function SessionDetail() {
                 Xem hồ sơ mentor
               </button>
             </div>
+            </div>
 
-            {/* ── Session info ── */}
+            <div className="order-2 lg:order-none">
             <div className="card-premium p-5">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Chi tiết buổi hẹn</p>
               <div className="space-y-3">
@@ -976,8 +1004,9 @@ export function SessionDetail() {
                 ))}
               </div>
             </div>
+            </div>
 
-            {/* ── Uploaded files ── */}
+            <div className="order-5 lg:order-none">
             <div className="card-premium p-5">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Tài liệu đã gửi mentor</p>
               <div className="space-y-2">
@@ -1030,8 +1059,9 @@ export function SessionDetail() {
                 )}
               </div>
             </div>
+            </div>
 
-            {/* ── Price & refund ── */}
+            <div className="order-7 lg:order-none">
             <div className="card-premium p-5">
               <div className="flex justify-between items-center mb-3">
                 <span className={`text-sm font-semibold ${paymentMeta.titleClass}`}>{paymentMeta.title}</span>
@@ -1046,14 +1076,12 @@ export function SessionDetail() {
               </div>
 
               {needsRefundBankForm ? (
-                <div className="mb-4 space-y-2 rounded-2xl border border-amber-200 bg-amber-50/90 p-4">
-                  <p className="text-xs font-bold text-amber-900">{refundBankFormTitle}</p>
+                <div className="mb-4 rounded-2xl border border-amber-200/90 bg-amber-50/60 p-4">
+                  <p className="mb-3 text-sm font-bold text-slate-900">{refundBankFormTitle}</p>
                   {Number(sessionData?.cancelRefundAmountVnd) > 0 ? (
-                    <p className="text-[11px] text-amber-950/80">
-                      {Number(sessionData?.rebookCreditRemainderVnd) > 0
-                        ? "Phần tiền thừa sau đổi mentor, hoàn: "
-                        : "Số hoàn dự kiến: "}
-                      <strong>
+                    <p className="mb-3 text-sm text-slate-600">
+                      Hoàn dự kiến:{" "}
+                      <strong className="text-slate-900">
                         {formatVnd(
                           Math.round(
                             sessionData.rebookCreditRemainderVnd ?? sessionData.cancelRefundAmountVnd,
@@ -1062,33 +1090,21 @@ export function SessionDetail() {
                       </strong>
                     </p>
                   ) : null}
-                  <input
-                    type="text"
-                    value={refundBankName}
-                    onChange={(e) => setRefundBankName(e.target.value)}
-                    placeholder="Tên ngân hàng"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-400"
-                  />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={refundAccountNumber}
-                    onChange={(e) => setRefundAccountNumber(e.target.value)}
-                    placeholder="Số tài khoản"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-violet-400"
-                  />
-                  <input
-                    type="text"
-                    value={refundAccountHolder}
-                    onChange={(e) => setRefundAccountHolder(e.target.value)}
-                    placeholder="Tên chủ tài khoản"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-400"
+                  <RefundBankFields
+                    bankSelect={refundBankSelect}
+                    onBankSelectChange={handleRefundBankSelectChange}
+                    customBankName={refundCustomBankName}
+                    onCustomBankNameChange={setRefundCustomBankName}
+                    accountNumber={refundAccountNumber}
+                    onAccountNumberChange={setRefundAccountNumber}
+                    accountHolder={refundAccountHolder}
+                    onAccountHolderChange={setRefundAccountHolder}
                   />
                   <button
                     type="button"
                     disabled={refundDestBusy}
                     onClick={() => void handleSubmitRefundDestination()}
-                    className="w-full rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                    className="mt-4 w-full rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                     style={{ background: "#8037f4" }}
                   >
                     {refundDestBusy ? "Đang lưu…" : "Lưu STK nhận hoàn"}
@@ -1096,7 +1112,6 @@ export function SessionDetail() {
                 </div>
               ) : null}
 
-              {/* Cancel booking (API) + refund policy, khớp backend bookingsService.cancelMyBooking */}
               <div className="space-y-3">
                 {canCancelOnServer ? (
                   <button
@@ -1118,7 +1133,8 @@ export function SessionDetail() {
                 <UserCancelPolicyBrief variant="icons" hoursLeft={hoursLeft} />
               </div>
             </div>
-          </div>
+            </div>
+            </div>
         </div>
       )}
 
@@ -1126,8 +1142,8 @@ export function SessionDetail() {
       {/*                STATE: LIVE                    */}
       {/* ══════════════════════════════════════════════ */}
       {state === "live" && (
-        <div className="grid lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2 space-y-5">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-3">
+          <div className="min-w-0 space-y-5 lg:col-span-2">
             {/* Live banner */}
             <div
               className="rounded-2xl p-5 flex items-center gap-4"
@@ -1190,10 +1206,10 @@ export function SessionDetail() {
 
             {/* Link copy */}
             <div
-              className="flex items-center gap-3 p-4 rounded-2xl border"
+              className="flex min-w-0 items-center gap-3 rounded-2xl border p-4"
               style={{ borderColor: "rgba(66,133,244,0.25)", background: "rgba(66,133,244,0.04)" }}
             >
-              <p className="flex-1 font-mono text-sm text-gray-700 truncate">{sessionData.meetLink}</p>
+              <p className="min-w-0 flex-1 break-all text-sm text-gray-700 sm:truncate sm:font-mono">{sessionData.meetLink}</p>
               <CopyBtn text={sessionData.meetLink} label="Copy" />
             </div>
 
@@ -1237,7 +1253,7 @@ export function SessionDetail() {
           </div>
 
           {/* Right col, mentor + session info */}
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <div className="card-premium p-5">
               <img
                 src={sessionData.mentorAvatar}
@@ -1284,8 +1300,8 @@ export function SessionDetail() {
       {/*               STATE: DONE                     */}
       {/* ══════════════════════════════════════════════ */}
       {state === "done" && (
-        <div className="grid gap-5 lg:grid-cols-3">
-          <div className="space-y-5 lg:col-span-2">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-3">
+          <div className="min-w-0 space-y-5 lg:col-span-2">
 
             {/* Done header */}
             <div className="flex items-center gap-4 rounded-md border border-violet-200/80 bg-white p-5 shadow-sm">
@@ -1496,7 +1512,7 @@ export function SessionDetail() {
           </div>
 
           {/* Right col */}
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <div className="rounded-md border border-violet-200/80 bg-white p-5 shadow-sm">
               <p className="mb-4 text-xs font-bold uppercase tracking-wider text-violet-500">
                 Tóm tắt buổi phỏng vấn
@@ -1582,47 +1598,30 @@ export function SessionDetail() {
               >
                 <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-2 pt-5 sm:px-6 sm:pt-6">
                   <h4 className="text-xl font-black text-slate-900">Hủy lịch phỏng vấn?</h4>
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
                     {userCancelWarningMessage(getUserCancelPolicyFromHours(hoursLeft))}
-                    {String(sessionData?.paymentStatus || "").toLowerCase() === "paid"
-                      ? " Tiền hoàn theo STK bạn khai báo (nếu có)."
-                      : " Buổi chưa thanh toán sẽ được hủy, không thu phí."}
+                    {String(sessionData?.paymentStatus || "").toLowerCase() !== "paid"
+                      ? " Buổi chưa thanh toán sẽ được hủy, không thu phí."
+                      : null}
                   </p>
                   <textarea
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
-                    className="mt-4 min-h-[5rem] w-full rounded-2xl border border-violet-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none focus:border-[#8037f4] focus:ring-2 focus:ring-violet-100"
+                    className="mt-4 min-h-[4.5rem] w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none focus:border-[#8037f4] focus:bg-white focus:ring-2 focus:ring-[#8037f4]/10"
                     placeholder="Lý do hủy (tuỳ chọn)"
                   />
                   {needsRefundBankDetails ? (
-                    <div className="mt-4 space-y-2 rounded-2xl border border-sky-200 bg-sky-50/90 p-3 sm:p-4">
-                      <p className="text-xs font-bold text-sky-900">Tài khoản nhận hoàn tiền</p>
-                      <p className="text-[11px] leading-snug text-sky-950/80">
-                        Tiền vào TK công ty, hệ thống không lưu STK nguồn. Điền STK nhận hoàn (số tiền do hệ thống tính).
-                      </p>
-                      <input
-                        type="text"
-                        value={refundBankName}
-                        onChange={(e) => setRefundBankName(e.target.value)}
-                        placeholder="Ngân hàng"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-400"
-                      />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        value={refundAccountNumber}
-                        onChange={(e) => setRefundAccountNumber(e.target.value)}
-                        placeholder="Số tài khoản"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-violet-400"
-                      />
-                      <input
-                        type="text"
-                        autoComplete="name"
-                        value={refundAccountHolder}
-                        onChange={(e) => setRefundAccountHolder(e.target.value)}
-                        placeholder="Tên chủ tài khoản"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-400"
+                    <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/40 p-4">
+                      <p className="mb-3 text-sm font-semibold text-slate-900">STK nhận hoàn</p>
+                      <RefundBankFields
+                        bankSelect={refundBankSelect}
+                        onBankSelectChange={handleRefundBankSelectChange}
+                        customBankName={refundCustomBankName}
+                        onCustomBankNameChange={setRefundCustomBankName}
+                        accountNumber={refundAccountNumber}
+                        onAccountNumberChange={setRefundAccountNumber}
+                        accountHolder={refundAccountHolder}
+                        onAccountHolderChange={setRefundAccountHolder}
                       />
                     </div>
                   ) : null}
@@ -1635,9 +1634,7 @@ export function SessionDetail() {
                       onClick={() => {
                         setCancelModalOpen(false);
                         setCancelReason("");
-                        setRefundBankName("");
-                        setRefundAccountNumber("");
-                        setRefundAccountHolder("");
+                        resetRefundBankFields();
                       }}
                       className="rounded-xl border border-violet-200 bg-white py-3 text-xs font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50"
                     >

@@ -381,7 +381,7 @@ describe("Course enrollment bank transfer (CK)", () => {
     });
     assert.equal(enrollRes.status, 400);
     const body = await enrollRes.json();
-    assert.match(body.error, /tự ghi danh/);
+    assert.match(body.error, /tự mua khóa học/);
   });
 
   it("mentor không thể tự đánh giá khóa học của chính mình → 400", async () => {

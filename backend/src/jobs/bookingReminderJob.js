@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 import { Booking } from "../models/Booking.js";
-import { Mentor } from "../models/Mentor.js";
 import { Notification } from "../models/Notification.js";
 import { deliverNotification } from "../services/notificationDeliveryService.js";
+import {
+  isMailConfigured,
+  sendBookingReminderEmailToMentee,
+  sendBookingReminderEmailToMentor,
+} from "../services/emailService.js";
 import { parseBookingStartMs } from "../utils/bookingSchedule.js";
 
 const WINDOW_MS_MIN = 50 * 60 * 1000;
@@ -24,6 +28,77 @@ async function alreadyReminded(userId, bookingId) {
   return Boolean(hit);
 }
 
+async function remindMentor(booking) {
+  const mentorDoc = booking.mentorId;
+  const mentorUser = mentorDoc?.userId;
+  const mentorUserId = mentorUser?._id || mentorDoc?.userId;
+  if (!mentorUserId) return;
+
+  const mid = String(mentorUserId);
+  if (await alreadyReminded(mid, booking._id)) return;
+
+  const slotLabel = `${booking.date} ${booking.timeSlot}`;
+  const bookingIdStr = String(booking._id);
+  const menteeName = booking.userId?.name || booking.userId?.email || "Học viên";
+  const mentorName = mentorDoc?.name || mentorUser?.name || mentorUser?.email || "Mentor";
+
+  const result = await deliverNotification(mid, {
+    mentorPrefKey: "session_reminder",
+    type: "booking_reminder",
+    title: "Buổi mentor sắp bắt đầu",
+    body: `Nhắc: buổi hẹn lúc ${slotLabel} (khoảng 1 giờ nữa).`,
+    metadata: { bookingId: booking._id, actionUrl: `/mentor/meeting-detail/${bookingIdStr}` },
+  });
+
+  if (!result.delivered) return;
+
+  const mentorEmail = mentorUser?.email || "";
+  if (mentorEmail && isMailConfigured()) {
+    sendBookingReminderEmailToMentor(mentorEmail, {
+      mentorName,
+      menteeName,
+      sessionType: booking.sessionType,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      bookingId: bookingIdStr,
+    }).catch((e) => console.error("[bookingReminderJob] mentor email:", e?.message || e));
+  }
+}
+
+async function remindMentee(booking) {
+  const mentee = booking.userId;
+  const cid = String(mentee?._id || mentee || "");
+  if (!cid || !mongoose.isValidObjectId(cid)) return;
+  if (await alreadyReminded(cid, booking._id)) return;
+
+  const slotLabel = `${booking.date} ${booking.timeSlot}`;
+  const bookingIdStr = String(booking._id);
+  const menteeName = mentee?.name || mentee?.email || "Bạn";
+  const mentorName = booking.mentorId?.name || "Mentor";
+
+  const result = await deliverNotification(cid, {
+    customerPrefKey: "interview_reminder",
+    type: "booking_reminder",
+    title: "Nhắc buổi mentor",
+    body: `Buổi hẹn của bạn lúc ${slotLabel} sẽ bắt đầu trong khoảng 1 giờ.`,
+    metadata: { bookingId: booking._id, actionUrl: `/session/${bookingIdStr}` },
+  });
+
+  if (!result.delivered) return;
+
+  const menteeEmail = mentee?.email || "";
+  if (menteeEmail && isMailConfigured()) {
+    sendBookingReminderEmailToMentee(menteeEmail, {
+      menteeName,
+      mentorName,
+      sessionType: booking.sessionType,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      bookingId: bookingIdStr,
+    }).catch((e) => console.error("[bookingReminderJob] mentee email:", e?.message || e));
+  }
+}
+
 async function runBookingReminders() {
   if (mongoose.connection.readyState !== 1) return;
 
@@ -31,7 +106,13 @@ async function runBookingReminders() {
     status: { $in: ["confirmed", "in_progress", "pending"] },
     paymentStatus: { $in: ["paid", "pending"] },
   })
-    .select("_id userId mentorId date timeSlot status paymentStatus")
+    .select("_id userId mentorId date timeSlot status paymentStatus sessionType")
+    .populate({ path: "userId", select: "name email" })
+    .populate({
+      path: "mentorId",
+      select: "name userId",
+      populate: { path: "userId", select: "name email" },
+    })
     .lean();
 
   const now = Date.now();
@@ -42,38 +123,8 @@ async function runBookingReminders() {
     if (diff < WINDOW_MS_MIN || diff > WINDOW_MS_MAX) continue;
     if (b.status === "pending" && b.paymentStatus !== "paid") continue;
 
-    const mentor = await Mentor.findById(b.mentorId).select("userId").lean();
-    const slotLabel = `${b.date} ${b.timeSlot}`;
-    const meta = {
-      bookingId: b._id,
-      actionUrl: `/mentor/meeting-detail/${b._id}`,
-    };
-
-    if (mentor?.userId) {
-      const mid = String(mentor.userId);
-      if (!(await alreadyReminded(mid, b._id))) {
-        await deliverNotification(mid, {
-          mentorPrefKey: "session_reminder",
-          type: "booking_reminder",
-          title: "Buổi mentor sắp bắt đầu",
-          body: `Nhắc: buổi hẹn lúc ${slotLabel} (khoảng 1 giờ nữa).`,
-          metadata: { ...meta, actionUrl: `/mentor/meeting-detail/${b._id}` },
-        });
-      }
-    }
-
-    const cid = String(b.userId || "");
-    if (cid && mongoose.isValidObjectId(cid)) {
-      if (!(await alreadyReminded(cid, b._id))) {
-        await deliverNotification(cid, {
-          customerPrefKey: "interview_reminder",
-          type: "booking_reminder",
-          title: "Nhắc buổi mentor",
-          body: `Buổi hẹn của bạn lúc ${slotLabel} sẽ bắt đầu trong khoảng 1 giờ.`,
-          metadata: { bookingId: b._id, actionUrl: `/session/${b._id}` },
-        });
-      }
-    }
+    await remindMentor(b);
+    await remindMentee(b);
   }
 }
 
