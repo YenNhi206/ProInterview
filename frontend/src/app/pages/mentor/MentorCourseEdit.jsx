@@ -59,7 +59,7 @@ import {
 } from "../../api/courseApi.js";
 import { ArchiveCourseDialog } from "../../components/courses/ArchiveCourseDialog";
 import { mapCourseAdminModerationNote } from "../../utils/admin/courseAdminReview.js";
-import { uploadFile } from "../../api/uploadApi.js";
+import { uploadFile, uploadVideoDirectly, shouldUseDirectUpload } from "../../api/uploadApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { CourseCreateStepper } from "../../components/mentor/course-create/CourseCreateStepper";
 import { CourseCreateStep1, CourseCreateFooter } from "../../components/mentor/course-create/CourseCreateStep1";
@@ -255,7 +255,11 @@ function LessonsTab({ lessons, onLessonsChange }) {
       const loadingToast = toast.loading(`Đang upload video: ${file.name}...`);
       try {
          const durationMinutes = await getVideoDurationMinutes(file);
-         const res = await uploadFile(file, "course-video");
+         const res = shouldUseDirectUpload(file)
+            ? await uploadVideoDirectly(file, (pct) =>
+                 toast.loading(`Đang upload video: ${pct}%`, { id: loadingToast }),
+              )
+            : await uploadFile(file, "course-video");
          if (res.success) {
             toastApiSuccess(
                durationMinutes > 0
@@ -711,7 +715,11 @@ function CreateCourseForm({ navigate }) {
       const loadingToast = toast.loading(`Đang upload video: ${file.name}...`);
       try {
          const durationMinutes = await getVideoDurationMinutes(file);
-         const res = await uploadFile(file, "course-video");
+         const res = shouldUseDirectUpload(file)
+            ? await uploadVideoDirectly(file, (pct) =>
+                 toast.loading(`Đang upload video: ${pct}%`, { id: loadingToast }),
+              )
+            : await uploadFile(file, "course-video");
          if (res.success) {
             toastApiSuccess(
                durationMinutes > 0
@@ -1272,17 +1280,34 @@ export function MentorCourseEdit() {
                      type="button"
                      onClick={async () => {
                         try {
-                           const chapters = [
-                              {
-                                 title: "Chương 1",
-                                 lessons: lessons.map((l) => ({
-                                    title: l.title,
-                                    duration: Number(l.duration || 0),
-                                    isPreview: Boolean(l.isPreview),
-                                    videoUrl: l.videoUrl || l.videoFileName || "",
-                                 })),
-                              },
-                           ];
+                           // Giữ nguyên cấu trúc chapter gốc, chỉ cập nhật nội dung từng bài
+                           const rawModules = course.raw?.modules || course.raw?.chapters || [];
+                           const chapters = rawModules.length
+                              ? rawModules.map((m) => ({
+                                   title: m.title || "Chương",
+                                   lessons: (m.lessons || []).map((orig) => {
+                                      const edited = lessons.find(
+                                         (el) => el.id === (orig._id?.toString?.() || orig.id),
+                                      ) || orig;
+                                      return {
+                                         title: edited.title,
+                                         duration: Number(edited.duration || 0),
+                                         isPreview: Boolean(edited.isPreview),
+                                         videoUrl: edited.videoUrl || edited.videoFileName || "",
+                                      };
+                                   }),
+                                }))
+                              : [
+                                   {
+                                      title: "Chương 1",
+                                      lessons: lessons.map((l) => ({
+                                         title: l.title,
+                                         duration: Number(l.duration || 0),
+                                         isPreview: Boolean(l.isPreview),
+                                         videoUrl: l.videoUrl || l.videoFileName || "",
+                                      })),
+                                   },
+                                ];
                            const payload = {
                               title: course.raw?.title || course.title,
                               description: course.raw?.description || "",

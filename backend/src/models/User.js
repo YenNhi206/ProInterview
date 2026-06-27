@@ -151,8 +151,16 @@ userSchema.post("save", async function userPostSaveMentorSync(doc) {
     const { createMentorProfileForUser, syncMentorProfileFromUser } = await import(
       "../services/mentorProfileService.js"
     );
-    await createMentorProfileForUser(d);
-    await syncMentorProfileFromUser(d);
+    const result = await createMentorProfileForUser(d);
+    // createMentorProfileForUser trả về:
+    //   - existing doc (chỉ có _id, vì .select("_id")) nếu Mentor đã tồn tại
+    //   - full doc mới tạo (có userId) nếu vừa được tạo
+    // Chỉ sync khi doc đã tồn tại (existing) để cập nhật thay đổi từ User.
+    // Khi vừa tạo mới, createMentorProfileForUser đã ghi đầy đủ → không ghi 2 lần.
+    const isExisting = result?._id && !result.userId; // existing chỉ select("_id"), không có userId
+    if (isExisting) {
+      await syncMentorProfileFromUser(d);
+    }
   } catch (e) {
     console.error("[User.post save] đồng bộ mentors:", e?.message || e);
   }

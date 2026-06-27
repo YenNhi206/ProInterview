@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import { sendMentorFeedbackEmail } from "./emailService.js";
+import {
+  sendMentorFeedbackEmail,
+  sendBookingConfirmedEmailToMentee,
+  sendBookingConfirmedEmailToMentor,
+} from "./emailService.js";
 import fs from "fs";
 import { Booking } from "../models/Booking.js";
 import { Mentor } from "../models/Mentor.js";
@@ -30,7 +34,9 @@ import { buildJaasMeetingLaunch } from "./jaasService.js";
  * ≥24h → hoàn 100%; 12–<24h → hoàn 50%; <12h / không tham gia → không hoàn.
  */
 function userCancellationFeePercent(hoursUntilStart) {
-  if (!Number.isFinite(hoursUntilStart)) return 100;
+  if (!Number.isFinite(hoursUntilStart)) {
+    throw new Error("Không thể xác định phí hủy: ngày giờ booking không hợp lệ.");
+  }
   if (hoursUntilStart < 0) return 100;
   if (hoursUntilStart < 12) return 100;
   if (hoursUntilStart < 24) return 50;
@@ -604,9 +610,11 @@ export async function createBooking(userId, body) {
     return { ok: false, status: 400, error: "Thiếu mentorId." };
   }
 
-  await ensureMentorProfilesForAllMentorUsers().catch((e) =>
-    console.error("[createBooking] ensureMentorProfilesForAllMentorUsers:", e?.message || e),
-  );
+  if (process.env.NODE_ENV !== "production") {
+    await ensureMentorProfilesForAllMentorUsers().catch((e) =>
+      console.error("[createBooking] ensureMentorProfilesForAllMentorUsers:", e?.message || e),
+    );
+  }
 
   const or = [{ publicId: mentorKey }];
   if (mongoose.isValidObjectId(mentorKey)) or.push({ _id: mentorKey });
@@ -621,7 +629,7 @@ export async function createBooking(userId, body) {
   if (String(mentor.userId) === uid) {
     return { ok: false, status: 400, error: "Không thể tự đặt lịch với chính mình." };
   }
-  const mentorAccount = await User.findById(mentor.userId).select("role isActive").lean();
+  const mentorAccount = await User.findById(mentor.userId).select("role isActive email name").lean();
   if (!mentorAccount || mentorAccount.role !== "mentor" || mentorAccount.isActive === false) {
     return { ok: false, status: 404, error: "Mentor không khả dụng để đặt lịch." };
   }
@@ -741,12 +749,9 @@ export async function createBooking(userId, body) {
     rebookCreditVndApplied = creditCheck.creditVnd;
   }
 
-  const paymentStatusRaw = String(body.paymentStatus ?? "pending").toLowerCase();
-  let paymentStatus = rebookCreditSource
-    ? "paid"
-    : paymentStatusRaw === "paid"
-      ? "paid"
-      : "pending";
+  // paymentStatus KHÔNG bao giờ lấy từ body — chỉ rebookCreditSource mới được auto-paid
+  // (credit đã được validate đầy đủ ở validateRebookCreditApply).
+  let paymentStatus = rebookCreditSource ? "paid" : "pending";
 
   let status = "pending";
   if (paymentStatus === "paid") {
@@ -770,33 +775,41 @@ export async function createBooking(userId, body) {
     paymentStatus === "pending" && mapPaymentMethod(body.paymentMethod ?? body.method) === "transfer";
   const paymentExpiresAt = transferPending ? newPaymentExpiresAt() : undefined;
 
-  const doc = await Booking.create({
-    userId: uid,
-    mentorId: mentor._id,
-    date: dateNormalized,
-    timeSlot: timeNormalized,
-    durationMinutes,
-    timezone,
-    sessionType,
-    notes: buildNotes(body),
-    cvFileName: typeof body.cvFile === "string" ? body.cvFile.trim().slice(0, 500) : "",
-    jdFileName: typeof body.jdFile === "string" ? body.jdFile.trim().slice(0, 500) : "",
-    cvFileUrl: typeof body.cvFileUrl === "string" ? body.cvFileUrl.trim().slice(0, 2000) : "",
-    jdFileUrl: typeof body.jdFileUrl === "string" ? body.jdFileUrl.trim().slice(0, 2000) : "",
-    meetingLink,
-    status,
-    price,
-    platformFeeRate: platformRate,
-    platformFee,
-    vat,
-    totalAmount,
-    paymentStatus,
-    paymentMethod: rebookCreditSource ? "transfer" : mapPaymentMethod(body.paymentMethod ?? body.method),
-    paymentRef,
-    paymentExpiresAt,
-    paidAt: paymentStatus === "paid" ? new Date() : undefined,
-    creditSourceBookingId: rebookCreditSource?._id ?? undefined,
-  });
+  let doc;
+  try {
+    doc = await Booking.create({
+      userId: uid,
+      mentorId: mentor._id,
+      date: dateNormalized,
+      timeSlot: timeNormalized,
+      durationMinutes,
+      timezone,
+      sessionType,
+      notes: buildNotes(body),
+      cvFileName: typeof body.cvFile === "string" ? body.cvFile.trim().slice(0, 500) : "",
+      jdFileName: typeof body.jdFile === "string" ? body.jdFile.trim().slice(0, 500) : "",
+      cvFileUrl: typeof body.cvFileUrl === "string" ? body.cvFileUrl.trim().slice(0, 2000) : "",
+      jdFileUrl: typeof body.jdFileUrl === "string" ? body.jdFileUrl.trim().slice(0, 2000) : "",
+      meetingLink,
+      status,
+      price,
+      platformFeeRate: platformRate,
+      platformFee,
+      vat,
+      totalAmount,
+      paymentStatus,
+      paymentMethod: rebookCreditSource ? "transfer" : mapPaymentMethod(body.paymentMethod ?? body.method),
+      paymentRef,
+      paymentExpiresAt,
+      paidAt: paymentStatus === "paid" ? new Date() : undefined,
+      creditSourceBookingId: rebookCreditSource?._id ?? undefined,
+    });
+  } catch (createErr) {
+    if (createErr?.code === 11000) {
+      return { ok: false, status: 409, error: "Khung giờ này vừa được đặt bởi người khác. Chọn giờ khác." };
+    }
+    throw createErr;
+  }
 
   if (rebookCreditSource) {
     const appliedVnd = Math.round(Number(doc.totalAmount ?? doc.price ?? 0));
@@ -857,6 +870,32 @@ export async function createBooking(userId, body) {
       timeSlot: timeNormalized,
       bookingId: doc._id,
     });
+
+    // Gửi email xác nhận cho mentee và mentor (rebook credit = thanh toán ngay)
+    const menteeNameRebook = user?.name || user?.email || "Bạn";
+    const menteeEmailRebook = user?.email || "";
+    const mentorNameRebook = mentor?.name || "Mentor";
+    const mentorEmailRebook = mentorAccount?.email || "";
+    if (menteeEmailRebook) {
+      sendBookingConfirmedEmailToMentee(menteeEmailRebook, {
+        menteeName: menteeNameRebook,
+        mentorName: mentorNameRebook,
+        sessionType: doc.sessionType,
+        date: doc.date,
+        timeSlot: doc.timeSlot,
+        bookingId: String(doc._id),
+      }).catch((e) => console.error("[booking email mentee rebook]", e?.message || e));
+    }
+    if (mentorEmailRebook) {
+      sendBookingConfirmedEmailToMentor(mentorEmailRebook, {
+        mentorName: mentorNameRebook,
+        menteeName: menteeNameRebook,
+        sessionType: doc.sessionType,
+        date: doc.date,
+        timeSlot: doc.timeSlot,
+        bookingId: String(doc._id),
+      }).catch((e) => console.error("[booking email mentor rebook]", e?.message || e));
+    }
 
     return {
       ok: true,
@@ -1411,6 +1450,34 @@ export async function confirmBankTransferPaymentByAdmin(bookingId, options = {})
       timeSlot: booking.timeSlot,
       bookingId: booking._id,
     });
+  }
+
+  // Gửi email xác nhận thanh toán cho mentee và mentor
+  const menteeEmail = booking.userId?.email || "";
+  const menteeName = booking.userId?.name || booking.userId?.email || "Bạn";
+  const mentorName = booking.mentorId?.name || "Mentor";
+  const mentorEmail = booking.mentorId?.userId?.email || "";
+  const bookingIdStr = String(booking._id);
+
+  if (menteeEmail) {
+    sendBookingConfirmedEmailToMentee(menteeEmail, {
+      menteeName,
+      mentorName,
+      sessionType: booking.sessionType,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      bookingId: bookingIdStr,
+    }).catch((e) => console.error("[booking email mentee transfer]", e?.message || e));
+  }
+  if (mentorEmail) {
+    sendBookingConfirmedEmailToMentor(mentorEmail, {
+      mentorName,
+      menteeName,
+      sessionType: booking.sessionType,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      bookingId: bookingIdStr,
+    }).catch((e) => console.error("[booking email mentor transfer]", e?.message || e));
   }
 
   return { ok: true, booking: toPublicBooking(booking) };

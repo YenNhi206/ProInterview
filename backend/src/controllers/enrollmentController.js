@@ -248,14 +248,34 @@ export const EnrollmentController = {
       const { lessonId, isCompleted } = req.body;
       const userId = req.userId;
 
+      if (!lessonId || !mongoose.isValidObjectId(String(lessonId))) {
+        return res.status(400).json({ success: false, error: "lessonId không hợp lệ." });
+      }
+
       const enrollment = await Enrollment.findOne({ _id: enrollmentId, userId });
       if (!enrollment) return res.status(404).json({ success: false, error: "Hồ sơ ghi danh không tồn tại" });
       if (!enrollmentAccessGranted(enrollment)) {
         return res.status(403).json({ success: false, error: "Hoàn tất thanh toán khóa học để cập nhật tiến độ." });
       }
 
+      // Fetch course trước để validate lesson tồn tại trong khóa học
+      const course = await Course.findById(enrollment.courseId);
+
+      if (course) {
+        const allLessons = [];
+        if (Array.isArray(course.modules) && course.modules.length > 0) {
+          course.modules.forEach((m) => allLessons.push(...(m.lessons ?? [])));
+        } else if (Array.isArray(course.sections) && course.sections.length > 0) {
+          course.sections.forEach((s) => allLessons.push(...(s.lessons ?? [])));
+        }
+        const lessonExists = allLessons.some((l) => l._id?.toString() === String(lessonId));
+        if (!lessonExists) {
+          return res.status(400).json({ success: false, error: "Bài học không tồn tại trong khóa học này." });
+        }
+      }
+
       if (isCompleted) {
-        if (!enrollment.completedLessons.includes(lessonId)) {
+        if (!enrollment.completedLessons.some((id) => id.toString() === lessonId)) {
           enrollment.completedLessons.push(lessonId);
         }
       } else {
@@ -267,7 +287,6 @@ export const EnrollmentController = {
       enrollment.lastLessonId = lessonId;
       enrollment.lastAccessedAt = new Date();
 
-      const course = await Course.findById(enrollment.courseId);
       if (course) {
         let totalLessons = 0;
         if (Array.isArray(course.modules) && course.modules.length > 0) {

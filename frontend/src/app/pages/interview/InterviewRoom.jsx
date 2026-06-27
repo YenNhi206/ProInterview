@@ -73,8 +73,6 @@ const HR_NAMES  = { male: "David",                female: "Sarah" };
 const HR_TITLES = { male: "HR AI Nam · ProInterview", female: "HR AI Nữ · ProInterview" };
 
 /* ── D-ID config ─────────────────────────────────────────── */
-const DID_API_KEY = import.meta.env.VITE_DID_API_KEY ?? "";
-
 const DID_VOICES = {
   male:   "vi-VN-NamMinhNeural",
   female: "vi-VN-HoaiMyNeural",
@@ -496,7 +494,6 @@ export default function InterviewRoom() {
   /* ── D-ID lipsync ─────────────────────────────────────── */
   const { status: didStatus, error: didError, connect: didConnect, disconnect: didDisconnect,
           speakWithText, attachVideo } = useDIDStream({
-    apiKey: DID_API_KEY,
     sourceImageUrl: DID_AVATAR_URLS[hrGender],
   });
 
@@ -1607,7 +1604,7 @@ export default function InterviewRoom() {
             {/* ── Nhánh 3: Thuần video fallback (browser không hỗ trợ TTS) ── */}
             {!currentVideoUrl && !isDIDActive && !ttsAvailable && (
               <HRVideoPanel
-                questionVideoUrl={HR_QUESTION_URLS[hrGender][currentQ]}
+                questionVideoUrl={HR_QUESTION_URLS[hrGender][Math.min(currentQ, HR_QUESTION_URLS[hrGender].length - 1)]}
                 hrPhase={hrPhase}
                 onAskingDone={startListening}
                 muted={false}

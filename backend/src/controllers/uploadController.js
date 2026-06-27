@@ -1,4 +1,4 @@
-import { uploadToCloudinary, deleteLocalFile } from "../utils/cloudinaryUpload.js";
+import { uploadToCloudinary, deleteLocalFile, generateUploadSignature, isCloudinaryConfigured } from "../utils/cloudinaryUpload.js";
 import { getPublicBaseUrl } from "../utils/publicBaseUrl.js";
 import { logger } from "../config/logger.js";
 
@@ -116,6 +116,26 @@ export const UploadController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  /** Tạo chữ ký Cloudinary cho mentor direct-upload video lớn từ browser */
+  signCourseVideoUpload: async (req, res, next) => {
+    try {
+      if (!isCloudinaryConfigured()) {
+        return res.status(503).json({ success: false, error: "Cloudinary chưa cấu hình trên server." });
+      }
+      const timestamp = Math.round(Date.now() / 1000);
+      const folder = "prointerview/course-videos";
+      const signature = generateUploadSignature({ folder, timestamp });
+      res.json({
+        success: true,
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        folder,
+      });
+    } catch (err) { next(err); }
   },
 
   /** Upload ảnh thành tựu (Achievement) */

@@ -565,7 +565,7 @@ export function Dashboard() {
     });
     const upcoming = merged.filter((b) => {
       const st = String(b.status || "").toLowerCase();
-      return st === "confirmed" || st === "in_progress";
+      return st === "confirmed" || st === "in_progress" || (st === "done" && !b.reviewId);
     });
     setUpcomingSessions(upcoming);
     setMentorIssueAlerts(mentorAlerts);

@@ -59,7 +59,7 @@ export async function tryCreditMentorForCompletedBooking(bookingId) {
   const mark = await Booking.updateOne(
     {
       _id: bookingId,
-      mentorEarningsCreditedAt: { $exists: false },
+      mentorEarningsCreditedAt: { $in: [null, undefined] },
       status: "completed",
       paymentStatus: "paid",
     },
@@ -106,7 +106,7 @@ export async function tryCreditMentorForPaidEnrollment(enrollmentId) {
   );
 
   const mark = await Enrollment.updateOne(
-    { _id: enrollmentId, mentorEarningsCreditedAt: { $exists: false }, paymentStatus: "paid" },
+    { _id: enrollmentId, mentorEarningsCreditedAt: { $in: [null, undefined] }, paymentStatus: "paid" },
     {
       $set: {
         mentorEarningsCreditedAt: new Date(),

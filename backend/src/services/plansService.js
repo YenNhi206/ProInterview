@@ -78,16 +78,22 @@ export async function cancelPlan(userId) {
         plan: "free",
         planExpiresAt: null,
         "quota.cvAnalysisLimit": 5,
-        "quota.cvAnalysisUsed": 0,
         "quota.interviewLimit": 1,
-        "quota.interviewUsed": 0,
         "quota.interviewQuestionsAllowed": 3,
+        // Dùng $min để clamp used về giới hạn free, không zero ra hoàn toàn
+        // (xử lý bằng $min trong update riêng bên dưới)
       },
     },
-    { new: true }
+    { new: false }
   )
     .select("plan planExpiresAt quota")
     .lean();
   if (!u) return { ok: false, status: 404, error: "Không tìm thấy user." };
-  return { ok: true, plan: u.plan, planExpiresAt: u.planExpiresAt, quota: u.quota };
+  // Clamp used counters xuống giới hạn free — không zero ra hoàn toàn
+  const final = await User.findByIdAndUpdate(
+    userId,
+    { $min: { "quota.cvAnalysisUsed": 5, "quota.interviewUsed": 1 } },
+    { new: true },
+  ).select("plan planExpiresAt quota").lean();
+  return { ok: true, plan: final.plan, planExpiresAt: final.planExpiresAt, quota: final.quota };
 }

@@ -201,6 +201,11 @@ export class BookingsController {
 
   static async reportNoShow(req, res, next) {
     try {
+      const booking = await Booking.findById(req.params.id).select("userId").lean();
+      if (!booking) return res.status(404).json({ success: false, error: "Không tìm thấy booking." });
+      if (booking.userId.toString() !== req.userId) {
+        return res.status(403).json({ success: false, error: "Bạn không có quyền thực hiện thao tác này." });
+      }
       const result = await bookingsService.processBookingNoShow(req.params.id, req.body ?? {}, {
         markedBy: "user",
         actorUserId: req.userId,

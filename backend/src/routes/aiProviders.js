@@ -65,3 +65,13 @@ aiProvidersRouter.get(
   authJwt,
   asyncHandler(AIProvidersController.getPregenStatus),
 );
+
+// ── D-ID WebRTC Streaming Proxy ───────────────────────────────────────────────
+// FE calls /api/ai/did/streams[/...] → BE proxies to api.d-id.com with server-side key.
+// VITE_DID_API_KEY no longer needed in the frontend.
+const didProxyHandler = asyncHandler(AIProvidersController.didProxy);
+aiProvidersRouter.post(   "/did/streams",          authJwt, didProxyHandler);
+aiProvidersRouter.post(   "/did/streams/:id/sdp",  authJwt, didProxyHandler);
+aiProvidersRouter.post(   "/did/streams/:id/ice",  authJwt, didProxyHandler);
+aiProvidersRouter.post(   "/did/streams/:id",      authJwt, didProxyHandler);
+aiProvidersRouter.delete( "/did/streams/:id",      authJwt, didProxyHandler);

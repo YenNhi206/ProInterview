@@ -61,7 +61,31 @@ export async function setRoleByAdmin(adminId, targetUserId, newRole) {
         },
       },
     ).catch(() => {});
-    const mentorDoc = await Mentor.findOne({ userId: target._id }).select("_id").lean();
+    let mentorDoc = await Mentor.findOne({ userId: target._id }).select("_id").lean();
+    if (!mentorDoc?._id) {
+      // post-save hook may have failed; create mentor profile directly as fallback
+      try {
+        const { createMentorProfileForUser } = await import("./mentorProfileService.js");
+        const created = await createMentorProfileForUser(target);
+        if (created?._id) {
+          await Mentor.updateOne(
+            { _id: created._id },
+            {
+              $set: {
+                isActive: true,
+                available: true,
+                isVerified: true,
+                verifiedAt: new Date(),
+                "adminReview.status": "approved",
+                "adminReview.reason": "",
+                "adminReview.reviewedAt": new Date(),
+              },
+            },
+          ).catch(() => {});
+          mentorDoc = { _id: created._id };
+        }
+      } catch {}
+    }
     if (mentorDoc?._id) {
       await activateMentorCommissionPolicy(mentorDoc._id).catch(() => {});
     }

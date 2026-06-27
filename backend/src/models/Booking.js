@@ -138,5 +138,10 @@ const bookingSchema = new Schema(
 bookingSchema.index({ userId: 1, status: 1 });
 bookingSchema.index({ mentorId: 1, date: 1 });
 bookingSchema.index({ status: 1 });
+// Ngăn double-booking cùng mentor/ngày/giờ khi có race condition
+bookingSchema.index(
+  { mentorId: 1, date: 1, timeSlot: 1 },
+  { unique: true, partialFilterExpression: { status: { $in: ["pending", "confirmed", "in_progress"] } } },
+);
 
 export const Booking = mongoose.models.Booking ?? mongoose.model("Booking", bookingSchema);

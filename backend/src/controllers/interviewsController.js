@@ -117,10 +117,21 @@ export const InterviewsController = {
       const userId = req.userId;
 
       await syncPlanExpiry(userId);
-      const user = await User.findById(userId);
-      if (user.quota.interviewUsed >= user.quota.interviewLimit) {
+
+      // Atomic quota check+increment: ngăn race condition khi 2 request đồng thời
+      // $expr cho phép so sánh 2 field trong cùng document trong một atomic op
+      const userForQuota = await User.findOneAndUpdate(
+        { _id: userId, $expr: { $lt: ["$quota.interviewUsed", "$quota.interviewLimit"] } },
+        { $inc: { "quota.interviewUsed": 1 } },
+        { new: false },
+      );
+      // findOneAndUpdate trả null → không match: user không tồn tại hoặc hết quota
+      if (!userForQuota) {
+        const userCheck = await User.findById(userId).lean();
+        if (!userCheck) return res.status(404).json({ success: false, error: "Không tìm thấy người dùng." });
         return res.status(403).json({ success: false, error: "Bạn đã hết lượt phỏng vấn thử miễn phí." });
       }
+      const user = userForQuota;
 
       // Baseline-question flow không gọi LLM trước khi tạo session → competencyProfile sẽ trống
       // cho user free (không bao giờ trigger follow-up generation). Tính trước bằng keyword
@@ -151,9 +162,6 @@ export const InterviewsController = {
         ...(inferredSeniority  && { inferredSeniority }),
         ...(coverageScore      && { coverageScore }),
       });
-
-      user.quota.interviewUsed += 1;
-      await user.save();
 
       res.status(201).json({ success: true, session });
     } catch (error) {
@@ -404,6 +412,23 @@ export const InterviewsController = {
   generateFollowUpQuestions: async (req, res) => {
     try {
       const { id } = req.params;
+
+      // Backend guard: chỉ Pro user được sinh câu hỏi cá nhân hóa (FE chặn bằng UpgradeModal
+      // nhưng không đủ — user có thể gọi API trực tiếp để tốn LLM/D-ID credit của hệ thống).
+      await syncPlanExpiry(req.userId);
+      const userForPlan = await User.findById(req.userId).select("plan planExpiresAt").lean();
+      if (!userForPlan) {
+        return res.status(404).json({ success: false, error: "Người dùng không tồn tại." });
+      }
+      const isPro = ["starter_pro", "elite_pro"].includes(userForPlan.plan) &&
+        (!userForPlan.planExpiresAt || new Date(userForPlan.planExpiresAt) > new Date());
+      if (!isPro) {
+        return res.status(403).json({
+          success: false,
+          error: "Tính năng câu hỏi cá nhân hóa chỉ dành cho gói Pro. Vui lòng nâng cấp tài khoản.",
+        });
+      }
+
       const session = await InterviewSession.findOne({ _id: id, userId: req.userId, status: "in_progress" });
       if (!session) {
         return res.status(404).json({ success: false, error: "Phiên phỏng vấn không tồn tại hoặc đã kết thúc" });
@@ -411,7 +436,7 @@ export const InterviewsController = {
 
       // Idempotency: double-click / retry / back-forward-cache replay → trả lại kết quả đã có,
       // không gọi LLM lại lần thứ 2.
-      if (session.questions.length > 3) {
+      if (session.questions.length >= 5) {
         return res.json({ success: true, questions: session.questions.slice(3), alreadyGenerated: true });
       }
 

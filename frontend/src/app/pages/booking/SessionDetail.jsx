@@ -187,7 +187,7 @@ function useCountdown(targetDate, targetTime) {
       } else if (parts.length === 2) {
         // Format: DD/MM (no year) - assume 2026
         const [d, m] = parts;
-        return new Date(2026, m - 1, d, h, min, 0).getTime();
+        return new Date(new Date().getFullYear(), m - 1, d, h, min, 0).getTime();
       }
       
       // Fallback: parse as is

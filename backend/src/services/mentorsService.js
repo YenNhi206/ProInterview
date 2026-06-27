@@ -23,12 +23,14 @@ export async function listMentors() {
   if (!isMongoReady()) {
     return { ok: false, status: 503, error: MONGO_ERR };
   }
-  const repair = await ensureMentorProfilesForAllMentorUsers().catch((e) => {
-    console.error("[listMentors] ensureMentorProfilesForAllMentorUsers:", e?.message || e);
-    return { ok: false };
-  });
-  if (repair?.created > 0 && process.env.NODE_ENV !== "production") {
-    console.log(`[listMentors] Đã tạo ${repair.created} hồ sơ mentor thiếu (user role mentor).`);
+  if (process.env.NODE_ENV !== "production") {
+    const repair = await ensureMentorProfilesForAllMentorUsers().catch((e) => {
+      console.error("[listMentors] ensureMentorProfilesForAllMentorUsers:", e?.message || e);
+      return { ok: false };
+    });
+    if (repair?.created > 0) {
+      console.log(`[listMentors] Đã tạo ${repair.created} hồ sơ mentor thiếu (user role mentor).`);
+    }
   }
   const mentors = await Mentor.find({ userId: { $exists: true, $ne: null } })
     .populate({ path: "userId", select: "role isActive email" })
@@ -44,12 +46,14 @@ export async function getMentorById(rawId) {
   if (!isMongoReady()) {
     return { ok: false, status: 503, error: MONGO_ERR };
   }
-  const repair = await ensureMentorProfilesForAllMentorUsers().catch((e) => {
-    console.error("[getMentorById] ensureMentorProfilesForAllMentorUsers:", e?.message || e);
-    return { ok: false };
-  });
-  if (repair?.created > 0 && process.env.NODE_ENV !== "production") {
-    console.log(`[getMentorById] Đã tạo ${repair.created} hồ sơ mentor thiếu.`);
+  if (process.env.NODE_ENV !== "production") {
+    const repair = await ensureMentorProfilesForAllMentorUsers().catch((e) => {
+      console.error("[getMentorById] ensureMentorProfilesForAllMentorUsers:", e?.message || e);
+      return { ok: false };
+    });
+    if (repair?.created > 0) {
+      console.log(`[getMentorById] Đã tạo ${repair.created} hồ sơ mentor thiếu.`);
+    }
   }
   const or = [{ publicId: rawId }];
   if (mongoose.isValidObjectId(rawId)) {

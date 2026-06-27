@@ -45,7 +45,7 @@ import { enrollmentApi } from "../../api/enrollmentApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { avatarSrc, mediaSrc, DEFAULT_COURSE_THUMB } from "../../utils/shared/mediaUrl.js";
 import { enrollmentAccessGranted } from "../../utils/course/enrollmentAccess.js";
-import { getUser } from "../../utils/auth/auth.js";
+import { getUser, authFetch } from "../../utils/auth/auth.js";
 import { landingPrimaryButtonClass } from "../../constants/landingTheme";
 import { readLearningDarkMode, writeLearningDarkMode } from "../../utils/shared/learningDarkMode.js";
 
@@ -883,8 +883,7 @@ export function CourseLearning() {
   const navigate = useNavigate();
   usePageAnalytics();
   const [searchParams] = useSearchParams();
-  const peerPreviewMode =
-    searchParams.get("peerReview") === "1" && getUser()?.role === "mentor";
+  const [peerPreviewMode, setPeerPreviewMode] = useState(false);
 
   const [course, setCourse] = useState(null);
   const [enrollment, setEnrollment] = useState(null);
@@ -985,6 +984,14 @@ export function CourseLearning() {
           setCompletedLessons([]);
           setPaymentPendingInfo(null);
         }
+      }
+      // Verify peerPreview against server — do not trust localStorage role alone
+      if (searchParams.get("peerReview") === "1") {
+        try {
+          const meRes = await authFetch("/api/auth/me");
+          const meData = await meRes.json();
+          if (meData?.user?.role === "mentor") setPeerPreviewMode(true);
+        } catch {}
       }
       } catch {
         toastApiError("Lỗi kết nối khi tải khóa học.");

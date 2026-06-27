@@ -1,31 +1,29 @@
 /**
- * useDIDStream — D-ID Streaming API (WebRTC)
+ * useDIDStream — D-ID Streaming API (WebRTC) via backend proxy
  * ─────────────────────────────────────────────────────────
  * Luồng:
- *  1. POST /talks/streams       → tạo stream, nhận WebRTC offer + ICE servers
+ *  1. POST /api/ai/did/streams       → tạo stream (BE proxy → D-ID, key server-side)
  *  2. RTCPeerConnection setup   → addTransceiver video/audio recvonly
- *  3. POST /talks/streams/{id}/sdp → gửi SDP answer
- *  4. POST /talks/streams/{id}/ice → forward ICE candidates
+ *  3. POST /api/ai/did/streams/{id}/sdp → gửi SDP answer
+ *  4. POST /api/ai/did/streams/{id}/ice → forward ICE candidates
  *  5. ontrack → attach video stream lên <video> element
- *  6. POST /talks/streams/{id} → gửi script (audio_url hoặc text) để avatar nói
- *  7. DELETE /talks/streams/{id} → dọn stream khi xong
+ *  6. POST /api/ai/did/streams/{id} → gửi script (audio_url hoặc text) để avatar nói
+ *  7. DELETE /api/ai/did/streams/{id} → dọn stream khi xong
  *
- * Avatar video từ D-ID đã sync miệng với audio — KHÔNG cần play audio riêng.
- * ─────────────────────────────────────────────────────────
- * Đăng ký API key miễn phí tại: https://studio.d-id.com
- * Basic auth: base64(YOUR_KEY + ":")
+ * D-ID API key được giữ hoàn toàn server-side — FE không cần và không được biết key này.
  */
 
 import { useRef, useState, useCallback } from "react";
 import { synthesizeSpeech, createAudioBlobUrl } from "../api/interviewsApi.js";
-
-export const DID_API = "https://api.d-id.com";
+import { apiUrl } from "../api/http.js";
+import { getAccessToken } from "../utils/auth/auth.js";
 
 /** Fallback nếu caller không truyền sourceImageUrl */
 const FALLBACK_AVATAR =
   "https://res.cloudinary.com/dee4bvivu/image/upload/v1778910708/AI-female_gxbcf1.png";
 
-export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
+// Kept for backward compatibility — no longer used for auth
+export function useDIDStream({ sourceImageUrl } = {}) {
   const [status, setStatus] = useState("idle");
   const [error, setError]   = useState("");
 
@@ -37,13 +35,17 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
   const connectTimerRef    = useRef();
   const sourceImageUrlRef  = useRef(sourceImageUrl || FALLBACK_AVATAR);
 
-  const isConfigured = Boolean(apiKey && apiKey !== "YOUR_DID_API_KEY");
+  // D-ID proxy is always reachable — backend returns 503 if D_ID_API_KEY is missing server-side
+  const isConfigured = true;
 
-  // ── Build auth headers ────────────────────────────────────
-  const getHeaders = useCallback(() => ({
-    Authorization: `Basic ${btoa(apiKey + ":")}`,
-    "Content-Type": "application/json",
-  }), [apiKey]);
+  // ── Build auth headers (Bearer JWT — calls our proxy, not D-ID directly) ─────
+  const getHeaders = useCallback(() => {
+    const token = getAccessToken();
+    return {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      "Content-Type": "application/json",
+    };
+  }, []);
 
   // ── Attach video element ──────────────────────────────────
   const attachVideo = useCallback((el) => {
@@ -72,15 +74,15 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
         // Xóa storage trước — dù DELETE có timeout hay fail vẫn không retry lần sau
         sessionStorage.removeItem("did_stream_id");
         sessionStorage.removeItem("did_session_id");
-        await fetch(`${DID_API}/talks/streams/${prevId}`, {
+        await fetch(apiUrl(`/api/ai/did/streams/${prevId}`), {
           method:  "DELETE",
           headers: getHeaders(),
           body:    JSON.stringify({ session_id: prevSid }),
         }).catch(() => {}); // ignore: stream có thể đã hết hạn
       }
 
-      // 1. Tạo D-ID stream
-      const res = await fetch(`${DID_API}/talks/streams`, {
+      // 1. Tạo D-ID stream (qua BE proxy — key ở server)
+      const res = await fetch(apiUrl("/api/ai/did/streams"), {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ source_url: sourceUrl }),
@@ -114,11 +116,11 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
         }
       };
 
-      // 4. ICE candidates → forward tới D-ID
+      // 4. ICE candidates → forward tới D-ID (qua BE proxy)
       pc.onicecandidate = async ({ candidate }) => {
         if (!candidate || !streamIdRef.current) return;
         try {
-          await fetch(`${DID_API}/talks/streams/${streamIdRef.current}/ice`, {
+          await fetch(apiUrl(`/api/ai/did/streams/${streamIdRef.current}/ice`), {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify({
@@ -156,7 +158,7 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      const sdpRes = await fetch(`${DID_API}/talks/streams/${id}/sdp`, {
+      const sdpRes = await fetch(apiUrl(`/api/ai/did/streams/${id}/sdp`), {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ answer, session_id }),
@@ -200,7 +202,7 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
     const estimatedMs = Math.max(4000, text.length * 80 + 2000);
 
     try {
-      await fetch(`${DID_API}/talks/streams/${streamIdRef.current}`, {
+      await fetch(apiUrl(`/api/ai/did/streams/${streamIdRef.current}`), {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
@@ -248,7 +250,7 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
     const estimatedMs = Math.max(4000, text.length * 80 + 2000);
 
     try {
-      const res = await fetch(`${DID_API}/talks/streams/${streamIdRef.current}`, {
+      const res = await fetch(apiUrl(`/api/ai/did/streams/${streamIdRef.current}`), {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
@@ -277,7 +279,7 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
           // 400 on a fresh stream = stream not fully ready yet.
           // Retry once after 1.5s before giving up.
           await new Promise(r => setTimeout(r, 1500));
-          const retry = await fetch(`${DID_API}/talks/streams/${streamIdRef.current}`, {
+          const retry = await fetch(apiUrl(`/api/ai/did/streams/${streamIdRef.current}`), {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify({
@@ -341,19 +343,11 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
     }
 
     if (blobUrl) {
-      // Feed blob URL vào D-ID speakWithAudio — D-ID sẽ lipsync với audio này
-      // Lưu ý: D-ID cần URL public accessible. Blob URLs chỉ work same-origin.
-      // Nếu D-ID reject blob URL → fallback về speakWithText tự động.
-      try {
-        await speakWithAudio(blobUrl, text, () => {
-          URL.revokeObjectURL(blobUrl);
-          onEnd?.();
-        });
-      } catch {
-        URL.revokeObjectURL(blobUrl);
-        // Fallback: D-ID Azure TTS
-        await speakWithText(text, onEnd);
-      }
+      // Blob URL chỉ accessible trong browser, D-ID server không fetch được.
+      // → Luôn fallback về speakWithText (D-ID Azure TTS) khi dùng live WebRTC.
+      // ElevenLabs audio chỉ được dùng trong pipeline pregen (upload Cloudinary trước).
+      URL.revokeObjectURL(blobUrl);
+      await speakWithText(text, onEnd);
     } else {
       // ElevenLabs unavailable → fallback về D-ID Azure TTS
       await speakWithText(text, onEnd);
@@ -376,7 +370,7 @@ export function useDIDStream({ apiKey, sourceImageUrl } = {}) {
     if (streamId && sessionId) {
       try {
         // keepalive: true → request survive ngay cả khi trang đang unload
-        await fetch(`${DID_API}/talks/streams/${streamId}`, {
+        await fetch(apiUrl(`/api/ai/did/streams/${streamId}`), {
           method:    "DELETE",
           headers:   getHeaders(),
           body:      JSON.stringify({ session_id: sessionId }),

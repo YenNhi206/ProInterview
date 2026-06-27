@@ -106,17 +106,24 @@ export async function activateMentorCommissionPolicy(mentorId, now = new Date())
   const shouldEarly = rank <= cfg.earlySlots;
 
   if (shouldEarly) {
-    await Mentor.updateOne(
-      { _id: mentorId, "pricing.isEarlyMentor": { $ne: true } },
-      {
-        $set: {
-          "pricing.isEarlyMentor": true,
-          "pricing.earlyMentorRank": rank,
-          "pricing.earlyMentorExpiresAt": addYears(activatedAt, cfg.earlyYears),
+    // Guard "isEarlyMentor: {$ne: true}" đảm bảo idempotency — tránh double-grant cho cùng mentor
+    // Kiểm tra tổng slot trước (soft check) để giảm window TOCTOU
+    const takenSlots = await Mentor.countDocuments({ "pricing.isEarlyMentor": true });
+    if (takenSlots < cfg.earlySlots) {
+      const markResult = await Mentor.updateOne(
+        { _id: mentorId, "pricing.isEarlyMentor": { $ne: true } },
+        {
+          $set: {
+            "pricing.isEarlyMentor": true,
+            "pricing.earlyMentorRank": rank,
+            "pricing.earlyMentorExpiresAt": addYears(activatedAt, cfg.earlyYears),
+          },
         },
-      },
-    );
-    mentor = await Mentor.findById(mentorId).lean();
+      );
+      if (markResult.modifiedCount === 1) {
+        mentor = await Mentor.findById(mentorId).lean();
+      }
+    }
   }
 
   return { ok: true, mentor };
