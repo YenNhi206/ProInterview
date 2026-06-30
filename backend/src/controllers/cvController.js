@@ -153,7 +153,8 @@ export const CVController = {
       return res.status(201).json({ success: true, analysis });
     } catch (err) {
       // Rollback quota vì CVAnalysis.create thất bại nhưng quota đã bị tăng
-      await User.findByIdAndUpdate(userId, { $inc: { "quota.cvAnalysisUsed": -1 } }).catch(() => {});
+      await User.findByIdAndUpdate(userId, { $inc: { "quota.cvAnalysisUsed": -1 } })
+        .catch((e) => logger.error("cv_quota_rollback_failed", { userId, error: e.message }));
       logger.error("cv_analysis_create_failed", { userId, error: err.message });
       return res.status(500).json({ success: false, error: err.message });
     }
@@ -187,6 +188,11 @@ export const CVController = {
     try {
       const deleted = await CVAnalysis.findOneAndDelete({ _id: req.params.id, userId: req.userId });
       if (!deleted) return res.status(404).json({ success: false, error: "Không tìm thấy để xóa" });
+      // Hoàn lại 1 lượt quota (chỉ khi used > 0 để tránh âm).
+      await User.findOneAndUpdate(
+        { _id: req.userId, "quota.cvAnalysisUsed": { $gt: 0 } },
+        { $inc: { "quota.cvAnalysisUsed": -1 } },
+      ).catch((e) => logger.error("cv_quota_refund_failed", { userId: req.userId, error: e.message }));
       res.json({ success: true, message: "Đã xóa bản phân tích CV" });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
+import { motion, AnimatePresence, useInView, animate, useMotionValue, useTransform } from "motion/react";
 import {
   BookOpen,
   PlayCircle,
@@ -9,6 +10,8 @@ import {
   GraduationCap,
   Sparkles,
   TrendingUp,
+  Trophy,
+  Flame,
 } from "lucide-react";
 import { enrollmentApi } from "../../api/enrollmentApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
@@ -17,68 +20,101 @@ import { enrollmentAccessGranted } from "../../utils/course/enrollmentAccess.js"
 import { mediaSrc, DEFAULT_COURSE_THUMB, avatarSrc } from "../../utils/shared/mediaUrl.js";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-import {
-  CustomerPageHeader,
-  CustomerPageSplitTitle,
-} from "../../components/layout/CustomerPageHeader";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 
+/* ── Animated counter ────────────────────────────────── */
+function CountUp({ to, suffix = "", duration = 1.1 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (v) => Math.round(v));
+  const display = useTransform(rounded, (v) => `${v}${suffix}`);
+
+  useEffect(() => {
+    if (!inView) return;
+    const ctrl = animate(count, to, { duration, ease: "easeOut" });
+    return ctrl.stop;
+  }, [inView, to, duration, count]);
+
+  return <motion.span ref={ref}>{display}</motion.span>;
+}
+
+/* ── Animated progress bar ───────────────────────────── */
 function ProgressBar({ pct, completed }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
   const value = Math.min(100, Math.max(0, Number(pct) || 0));
+
   return (
-    <div className="space-y-1.5">
+    <div ref={ref} className="space-y-1.5">
       <div className="flex items-center justify-between text-[11px] font-semibold">
-        <span className={completed ? "text-emerald-700" : "text-slate-500"}>
+        <span className={completed ? "text-emerald-600" : "text-slate-500"}>
           {completed ? "Đã hoàn thành" : "Tiến độ học"}
         </span>
-        <span className={`tabular-nums ${completed ? "text-emerald-800" : "text-[#8037f4]"}`}>{value}%</span>
+        <span className={`tabular-nums ${completed ? "text-emerald-700" : "text-[#8037f4]"}`}>{value}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-violet-100/80">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${
+        <motion.div
+          className={`h-full rounded-full ${
             completed
               ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
               : "bg-gradient-to-r from-violet-400 to-[#8037f4]"
           }`}
-          style={{ width: `${Math.max(value, value > 0 ? 4 : 0)}%` }}
+          initial={{ width: 0 }}
+          animate={inView ? { width: `${Math.max(value, value > 0 ? 4 : 0)}%` } : { width: 0 }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
         />
       </div>
     </div>
   );
 }
 
-function CourseCard({ item, onContinue, onDetails }) {
+/* ── Course card ─────────────────────────────────────── */
+function CourseCard({ item, onContinue, onDetails, index }) {
   const { course, progressPct, isCompleted, hasPaidAccess } = item;
   const description =
     course.description?.trim() ||
     `Khóa học từ ${course.mentorName || "mentor"} — học theo lộ trình video ngắn, dễ áp dụng.`;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-violet-200/60 bg-white shadow-[0_4px_24px_rgba(128,55,244,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/80 hover:shadow-[0_12px_40px_rgba(128,55,244,0.12)]">
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-violet-50">
+    <motion.article
+      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-violet-100/80 bg-white shadow-[0_4px_24px_rgba(128,55,244,0.06)]"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: 0.45, delay: (index % 3) * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -8, boxShadow: "0 20px 48px rgba(128,55,244,0.14)", borderColor: "rgba(128,55,244,0.25)" }}
+    >
+      {/* Thumbnail */}
+      <div className="relative aspect-video w-full overflow-hidden bg-violet-50">
         <ImageWithFallback
           src={course.thumbnail}
           alt=""
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
+
+        {/* Status badge */}
         {isCompleted ? (
-          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/95 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
+          <motion.span
+            className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white shadow-md"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.2 }}
+          >
             <CheckCircle2 className="size-3" />
             Hoàn thành
-          </span>
+          </motion.span>
         ) : progressPct > 0 ? (
           <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-[#8037f4] shadow-sm">
             {progressPct}%
           </span>
         ) : null}
+
+        {/* Mentor info overlay */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
           {course.mentorAvatar ? (
-            <img
-              src={course.mentorAvatar}
-              alt=""
-              className="size-8 rounded-full border-2 border-white object-cover shadow-sm"
-            />
+            <img src={course.mentorAvatar} alt="" className="size-8 rounded-full border-2 border-white object-cover shadow-sm" />
           ) : (
             <div className="flex size-8 items-center justify-center rounded-full border-2 border-white bg-violet-600 text-xs font-bold text-white shadow-sm">
               {(course.mentorName || "M").charAt(0).toUpperCase()}
@@ -94,11 +130,12 @@ function CourseCard({ item, onContinue, onDetails }) {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <h3 className="line-clamp-2 font-headline text-base font-black leading-snug text-slate-900 transition-colors group-hover:text-[#8037f4]">
+      {/* Body */}
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="line-clamp-2 text-base font-black leading-snug text-slate-900 transition-colors duration-200 group-hover:text-[#8037f4]">
           {course.title}
         </h3>
-        <p className="mt-2 line-clamp-2 flex-1 text-xs leading-relaxed text-slate-500 sm:text-sm">{description}</p>
+        <p className="mt-2 line-clamp-2 flex-1 text-xs leading-relaxed text-slate-500">{description}</p>
 
         <div className="mt-4">
           <ProgressBar pct={progressPct} completed={isCompleted} />
@@ -106,114 +143,137 @@ function CourseCard({ item, onContinue, onDetails }) {
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {hasPaidAccess ? (
-            <button
+            <motion.button
               type="button"
               onClick={onContinue}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#8037f4] px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_14px_rgba(128,55,244,0.35)] transition-all hover:bg-[#6d2fd6] sm:text-sm"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#8037f4] px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_14px_rgba(128,55,244,0.3)]"
+              whileHover={{ scale: 1.03, backgroundColor: "#6d2fd6" }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: "spring", stiffness: 380, damping: 22 }}
             >
               <PlayCircle className="size-4 shrink-0" />
               {isCompleted ? "Xem lại" : progressPct > 0 ? "Tiếp tục học" : "Bắt đầu học"}
-            </button>
+            </motion.button>
           ) : null}
-          <button
+          <motion.button
             type="button"
             onClick={onDetails}
-            className={`inline-flex items-center justify-center gap-1 rounded-xl border border-violet-200 bg-violet-50/50 px-4 py-2.5 text-xs font-bold text-[#8037f4] transition-colors hover:bg-violet-100 sm:text-sm ${
-              hasPaidAccess ? "" : "flex-1"
-            }`}
+            className={`inline-flex items-center justify-center gap-1 rounded-2xl border border-violet-200 bg-violet-50/50 px-4 py-2.5 text-xs font-bold text-[#8037f4] ${hasPaidAccess ? "" : "flex-1"}`}
+            whileHover={{ scale: 1.02, borderColor: "#a78bfa", backgroundColor: "#f5f3ff" }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 380, damping: 22 }}
           >
             Chi tiết
             <ArrowRight className="size-3.5" />
-          </button>
+          </motion.button>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }
 
-function SummaryStat({ icon: Icon, label, value, tintClass, iconClass }) {
+/* ── Stat card ───────────────────────────────────────── */
+const STATS_META = [
+  { key: "total",     label: "Khóa đã mua",       icon: BookOpen,    suffix: "",  from: "from-violet-50",  border: "border-violet-100", icon_color: "text-[#8037f4]",  bg: "bg-violet-100/70" },
+  { key: "completed", label: "Đã hoàn thành",      icon: Trophy,      suffix: "",  from: "from-emerald-50", border: "border-emerald-100", icon_color: "text-emerald-600",bg: "bg-emerald-100/70" },
+  { key: "remaining", label: "Đang học",            icon: Flame,       suffix: "",  from: "from-amber-50",   border: "border-amber-100",  icon_color: "text-amber-500",  bg: "bg-amber-100/70" },
+  { key: "avgPct",    label: "Tiến độ trung bình", icon: TrendingUp,  suffix: "%", from: "from-sky-50",     border: "border-sky-100",    icon_color: "text-sky-600",    bg: "bg-sky-100/70" },
+];
+
+function StatCard({ meta, value, index }) {
+  const Icon = meta.icon;
   return (
-    <div
-      className={`rounded-2xl border bg-gradient-to-br p-4 shadow-sm transition-shadow hover:shadow-md ${tintClass}`}
+    <motion.div
+      className={`relative overflow-hidden rounded-3xl border ${meta.border} bg-gradient-to-br ${meta.from} to-white p-5 shadow-sm`}
+      initial={{ opacity: 0, y: 28, scale: 0.95 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(128,55,244,0.1)" }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-2xl font-black tabular-nums leading-none text-slate-900 sm:text-[1.75rem]">{value}</p>
-          <p className="mt-2 text-xs font-medium leading-snug text-slate-500">{label}</p>
+          <p className="text-3xl font-black tabular-nums leading-none text-slate-900 sm:text-4xl">
+            <CountUp to={value} suffix={meta.suffix} />
+          </p>
+          <p className="mt-2.5 text-xs font-semibold text-slate-500">{meta.label}</p>
         </div>
-        <span
-          className={`flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/90 shadow-sm ${iconClass}`}
+        <motion.span
+          className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${meta.bg} ${meta.icon_color}`}
+          initial={{ scale: 0, rotate: -20 }}
+          whileInView={{ scale: 1, rotate: 0 }}
+          viewport={{ once: true }}
+          transition={{ type: "spring", stiffness: 350, damping: 18, delay: index * 0.08 + 0.15 }}
         >
-          <Icon className="size-[18px]" strokeWidth={2.25} />
-        </span>
+          <Icon className="size-5" strokeWidth={2} />
+        </motion.span>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Skeleton loader ─────────────────────────────────── */
+function SkeletonCard() {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-sm">
+      <div className="aspect-video w-full animate-pulse bg-violet-100/60" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 w-3/4 animate-pulse rounded-full bg-violet-100/60" />
+        <div className="h-3 w-full animate-pulse rounded-full bg-slate-100" />
+        <div className="h-3 w-2/3 animate-pulse rounded-full bg-slate-100" />
+        <div className="mt-4 h-2 w-full animate-pulse rounded-full bg-violet-100/50" />
+        <div className="mt-3 h-9 w-full animate-pulse rounded-2xl bg-violet-100/60" />
       </div>
     </div>
   );
 }
 
-function SummaryStrip({ total, completed, remaining, avgPct }) {
-  return (
-    <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-      <SummaryStat
-        icon={BookOpen}
-        label="Khóa đã mua"
-        value={total}
-        tintClass="border-violet-100/90 from-violet-50/70 to-white"
-        iconClass="text-[#8037f4]"
-      />
-      <SummaryStat
-        icon={CheckCircle2}
-        label="Đã hoàn thành"
-        value={completed}
-        tintClass="border-emerald-100/90 from-emerald-50/60 to-white"
-        iconClass="text-emerald-600"
-      />
-      <SummaryStat
-        icon={PlayCircle}
-        label="Còn lại"
-        value={remaining}
-        tintClass="border-amber-100/80 from-amber-50/50 to-white"
-        iconClass="text-amber-600"
-      />
-      <SummaryStat
-        icon={TrendingUp}
-        label="Tiến độ trung bình"
-        value={`${avgPct}%`}
-        tintClass="border-slate-200/80 from-slate-50/80 to-white"
-        iconClass="text-slate-600"
-      />
-    </div>
-  );
-}
-
+/* ── Empty state ─────────────────────────────────────── */
 function EmptyCourses({ onBrowse }) {
   return (
-    <div className="flex flex-col items-center justify-center px-4 py-16 text-center sm:py-24">
-      <div className="relative mb-8 flex h-44 w-44 items-center justify-center">
+    <motion.div
+      className="flex flex-col items-center justify-center px-4 py-20 text-center"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <motion.div
+        className="relative mb-8 flex h-44 w-44 items-center justify-center"
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      >
         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-100 to-violet-50" />
-        <div className="absolute -right-2 top-4 flex size-11 items-center justify-center rounded-2xl bg-[#8037f4] text-white shadow-lg">
+        <motion.div
+          className="absolute -right-2 top-4 flex size-11 items-center justify-center rounded-2xl bg-[#8037f4] text-white shadow-lg"
+          animate={{ rotate: [0, 12, -8, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+        >
           <Sparkles className="size-5" />
-        </div>
+        </motion.div>
         <div className="relative flex size-28 items-center justify-center rounded-3xl border-2 border-dashed border-violet-200 bg-white shadow-md">
           <GraduationCap className="size-14 text-violet-300" strokeWidth={1.25} />
         </div>
-      </div>
+      </motion.div>
       <h2 className="font-headline text-xl font-black text-slate-900 sm:text-2xl">Bạn chưa mua khóa học nào</h2>
       <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-500">
         Khám phá khóa học từ mentor — luyện kỹ năng phỏng vấn, CV và soft skills theo lộ trình video ngắn.
       </p>
-      <button
+      <motion.button
         type="button"
         onClick={onBrowse}
-        className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#8037f4] px-8 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(128,55,244,0.35)] transition-all hover:bg-[#6d2fd6] hover:shadow-[0_12px_32px_rgba(128,55,244,0.4)]"
+        className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#8037f4] px-8 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(128,55,244,0.35)]"
+        whileHover={{ scale: 1.05, backgroundColor: "#6d2fd6" }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 360, damping: 24 }}
       >
         <BookOpen className="size-4" />
         Khám phá khóa học
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
 
+/* ── Main page ───────────────────────────────────────── */
 export function MyCourses() {
   const navigate = useNavigate();
   const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -239,7 +299,6 @@ export function MyCourses() {
             const totalCount = lessons.length || c.totalLessons || 1;
             const pct = Math.round((completedLessonIds.length / totalCount) * 100);
             const { rating } = normalizeCourseStats(c.stats);
-
             return {
               course: {
                 id: c._id,
@@ -269,9 +328,7 @@ export function MyCourses() {
     }
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const summary = useMemo(() => {
     const total = enrolledCourses.length;
@@ -286,37 +343,103 @@ export function MyCourses() {
 
   return (
     <MentorPageShell bottomPad="pb-20">
-      <div className={`relative z-10 flex flex-col pb-10 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
+      {/* ── Hero header strip ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#1a0d35] via-[#2d1460] to-[#1a0d35] px-6 py-14 sm:px-10 sm:py-16">
+        {/* bg decoration */}
+        <div className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-[#8037f4]/20 blur-[80px]" />
+        <div className="pointer-events-none absolute -bottom-10 right-10 h-52 w-52 rounded-full bg-lime-400/10 blur-[70px]" />
+
+        <div className={`relative z-10 ${CUSTOMER_SHELL_MAX} mx-auto`}>
+          <motion.p
+            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-violet-300/80"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            Học tập của tôi
+          </motion.p>
+          <motion.h1
+            className="font-headline text-3xl font-black text-white sm:text-4xl md:text-5xl"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+          >
+            Khóa học{" "}
+            <span className="bg-gradient-to-r from-lime-300 to-lime-400 bg-clip-text text-transparent">
+              của bạn
+            </span>
+          </motion.h1>
+          <motion.p
+            className="mt-3 max-w-xl text-sm leading-relaxed text-violet-200/80"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.2 }}
+          >
+            Tiếp tục xem lại bài cũ và theo dõi tiến độ trong các khóa đã mua.
+          </motion.p>
+        </div>
+      </div>
+
+      <div className={`relative z-10 flex flex-col pb-12 ${CUSTOMER_SHELL_GUTTER}`}>
         <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
-          <CustomerPageHeader
-            title={<CustomerPageSplitTitle accent="Khóa học" rest="của bạn" />}
-            subtitle="Tiếp tục xem lại bài cũ và theo dõi tiến độ trong các khóa đã mua."
-            className="mb-5"
-          />
 
-          {!loading && enrolledCourses.length > 0 ? <SummaryStrip {...summary} /> : null}
+          {/* ── Stat cards — pull up over hero ── */}
+          {!loading && enrolledCourses.length > 0 && (
+            <div className="-mt-8 mb-10 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+              {STATS_META.map((meta, i) => (
+                <StatCard
+                  key={meta.key}
+                  meta={meta}
+                  value={summary[meta.key]}
+                  index={i}
+                />
+              ))}
+            </div>
+          )}
 
-          <div className="overflow-hidden rounded-3xl border border-violet-200/70 bg-gradient-to-b from-violet-50/40 via-white to-white p-4 shadow-[0_8px_32px_rgba(128,55,244,0.06)] sm:p-6 lg:p-8">
+          {/* ── Course grid ── */}
+          <AnimatePresence mode="wait">
             {loading ? (
-              <div className="flex min-h-[320px] flex-col items-center justify-center gap-4">
-                <div className="size-11 animate-spin rounded-full border-4 border-[#8037f4] border-t-transparent" />
-                <p className="text-sm font-semibold text-slate-500">Đang tải khóa học của bạn…</p>
-              </div>
+              <motion.div
+                key="loading"
+                className="grid grid-cols-1 gap-5 min-[720px]:grid-cols-2 min-[1100px]:grid-cols-3 min-[1100px]:gap-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.07 }}
+                  >
+                    <SkeletonCard />
+                  </motion.div>
+                ))}
+              </motion.div>
             ) : enrolledCourses.length === 0 ? (
-              <EmptyCourses onBrowse={() => navigate("/courses")} />
+              <EmptyCourses key="empty" onBrowse={() => navigate("/courses")} />
             ) : (
-              <div className="grid grid-cols-1 gap-5 min-[720px]:grid-cols-2 min-[1100px]:grid-cols-3 min-[1100px]:gap-6">
-                {enrolledCourses.map((item) => (
+              <motion.div
+                key="grid"
+                className="grid grid-cols-1 gap-5 min-[720px]:grid-cols-2 min-[1100px]:grid-cols-3 min-[1100px]:gap-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {enrolledCourses.map((item, index) => (
                   <CourseCard
                     key={item.course.id}
                     item={item}
+                    index={index}
                     onContinue={() => navigate(`/courses/${item.course.id}/learn`)}
                     onDetails={() => navigate(`/courses/${item.course.id}`)}
                   />
                 ))}
-              </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
       </div>
     </MentorPageShell>

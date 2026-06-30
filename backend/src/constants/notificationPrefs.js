@@ -10,9 +10,12 @@ export const MENTOR_NOTIFICATION_PREF_KEYS = [
 ];
 
 export const CUSTOMER_NOTIFICATION_PREF_KEYS = [
+  "booking_confirmed",
   "interview_reminder",
+  "booking_cancelled",
   "mentor_feedback",
   "streak_reminder",
+  "plan_expiring",
 ];
 
 export const DEFAULT_MENTOR_NOTIFICATION_PREFS = Object.fromEntries(

@@ -458,6 +458,17 @@ export function InterviewFeedback() {
         .map(a => `${a.label}, ${a.avg.toFixed(1)}/5`)
     : [];
 
+  const weakScores = realFeedback?.length
+    ? STAR_LABELS
+        .map(key => ({
+          key,
+          label: STAR_NAMES[key],
+          avg: allQuestions.reduce((s, q) => s + (q.scores?.[key] || 0), 0) / allQuestions.length,
+        }))
+        .sort((a, b) => a.avg - b.avg)
+        .slice(0, 3)
+    : [];
+
   const renderStars = (score, max = 5, onDark = false) => (
     <div className="flex items-center gap-0.5">
       {[...Array(max)].map((_, i) => (
@@ -550,7 +561,7 @@ export function InterviewFeedback() {
       )}
 
       <div className={`relative z-10 pb-8 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto w-full max-w-6xl">
           <header className="mb-6">
             <h1 className="font-headline text-2xl font-extrabold tracking-tight text-violet-950 sm:text-3xl">
               Kết quả phỏng vấn của bạn
@@ -1169,14 +1180,21 @@ export function InterviewFeedback() {
         </div>
       </div>
 
-      <div className="mb-8 rounded-md border border-violet-200/80 bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-8">
         <CourseRecommendations
           tags={["star-method", "behavioral-interview", "interview-skills"]}
           title="Khóa học giúp bạn cải thiện điểm yếu"
-          subtitle="Dựa trên kết quả phỏng vấn, chúng tôi gợi ý các khóa học phù hợp nhất"
+          subtitle="Được chọn lọc dựa trên điểm yếu AI phát hiện trong buổi phỏng vấn của bạn"
           variant="banner"
           maxCourses={3}
           weakAreas={weakAreas}
+          weakScores={weakScores}
+          overallScore={overallAvg > 0 ? overallAvg : undefined}
+          totalFillers={totalFillers}
+          avgWpm={avgWpm}
+          avgWordCount={avgWordCount}
+          behavioralSummary={behavioralSummary}
+          position={sessionMeta.position || "Phỏng vấn AI"}
         />
       </div>
         </div>

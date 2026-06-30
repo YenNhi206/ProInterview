@@ -1,48 +1,22 @@
-import { Star, Video, BadgeCheck } from "lucide-react";
+import { motion } from "motion/react";
+import { Video, BadgeCheck, Star } from "lucide-react";
 import { MENTOR_BOOKING_COPY } from "../../constants/brandVoice";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
-
-const TZ_LOCATION = {
-  "Asia/Ho_Chi_Minh": "TP. Hồ Chí Minh",
-  "Asia/Hanoi": "Hà Nội",
-  "Asia/Bangkok": "Bangkok",
-};
-
-/** Mobile: giá gọn, tránh tràn sang cột giữa */
-function formatVndMobile(amount) {
-  const n = Number(amount) || 0;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}tr`;
-  if (n >= 1000) return `${Math.round(n / 1000)}k`;
-  return String(n);
-}
-
-function locationLabel(timezone) {
-  const tz = String(timezone || "").trim();
-  return TZ_LOCATION[tz] || "Việt Nam";
-}
-
-function experienceLabel(years) {
-  const n = Number(years) || 0;
-  if (n <= 0) return "Kinh nghiệm đang cập nhật";
-  return `${n} năm kinh nghiệm`;
-}
 
 function displayTitle(mentor) {
   const title = (mentor.title || "").trim();
   const company = (mentor.company || "").trim();
   if (title && title.toLowerCase() !== "mentor") {
-    return company && company !== "—" ? `${title} · ${company}` : title;
+    return company && company !== "—" ? `${title} tại ${company}` : title;
   }
   if (mentor.field) return mentor.field;
   return "Mentor ProInterview";
 }
 
-/** Giá buổi mentor 1:1 (chưa có dịch vụ Review CV). */
 function resolveMentorSessionOffer(mentor) {
   const hourly = Number(mentor.price) || 0;
   const fromApi = Array.isArray(mentor.sessionTypes) ? mentor.sessionTypes : [];
   const mock = fromApi.find((s) => s?.type === "mock_interview");
-
   return {
     label: MENTOR_BOOKING_COPY.sessionTitle,
     price: mock?.price ?? hourly,
@@ -55,126 +29,148 @@ function StarRating({ rating, reviewCount }) {
   const value = Number(rating) || 0;
   const filled = Math.round(value);
   return (
-    <>
-      <div className="flex min-w-0 items-center gap-1 overflow-hidden text-[10px] text-slate-500 md:hidden">
-        <span className="shrink-0 font-bold text-slate-900">{value > 0 ? value.toFixed(1) : "—"}</span>
-        <span className="truncate">({reviewCount} đánh giá)</span>
-      </div>
-      <div className="hidden min-w-0 items-center gap-2 overflow-hidden text-sm md:flex">
-        <span className="shrink-0 font-bold text-slate-900">{value > 0 ? value.toFixed(1) : "—"}</span>
-        <span className="inline-flex shrink-0 gap-0.5" aria-hidden>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Star
-              key={i}
-              className={`size-4 ${
-                i <= filled ? "fill-lime-400 text-lime-400" : "fill-slate-200 text-slate-200"
-              }`}
-            />
-          ))}
-        </span>
-        <span className="truncate text-slate-500">
-          ({reviewCount} {reviewCount === 1 ? "đánh giá" : "đánh giá"})
-        </span>
-      </div>
-    </>
+    <div className="flex items-center justify-center gap-1.5 text-sm">
+      <span className="font-bold text-slate-900">{value > 0 ? value.toFixed(1) : "—"}</span>
+      <span className="inline-flex gap-0.5" aria-hidden>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star
+            key={i}
+            className={`size-3.5 ${i <= filled ? "fill-lime-400 text-lime-400" : "fill-slate-200 text-slate-200"}`}
+          />
+        ))}
+      </span>
+      <span className="text-xs text-slate-500">({reviewCount} đánh giá)</span>
+    </div>
   );
 }
 
 export function MentorListCard({ mentor, onOpenProfile, onBook }) {
-  const bio = (mentor.bio || "").trim();
   const offer = resolveMentorSessionOffer(mentor);
-  const OfferIcon = offer.icon;
   const avatarSrc =
     mentor.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(mentor.name || "M")}&background=ede9fe&color=6d28d9`;
+  const isVerified = Boolean(mentor.name && mentor.title && mentor.company && mentor.avatar);
 
   return (
-    <article className="grid grid-cols-[2.75rem_minmax(0,1fr)_5rem] items-start gap-2 overflow-hidden border-b border-slate-200/90 py-3.5 last:border-b-0 sm:grid-cols-[3.25rem_minmax(0,1fr)_5.75rem] sm:gap-2.5 sm:py-4 md:grid-cols-[88px_minmax(0,1fr)_200px] md:gap-5 md:overflow-visible md:py-7 lg:grid-cols-[88px_minmax(0,1fr)_220px]">
-      <button
-        type="button"
-        onClick={onOpenProfile}
-        className="relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8037f4]"
-      >
-        <img
-          src={avatarSrc}
-          alt=""
-          className="size-12 rounded-full border-2 border-violet-100 object-cover sm:size-14 md:size-[88px]"
-        />
-        {mentor.isOnline ? (
-          <span
-            className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white bg-emerald-500 md:bottom-0.5 md:right-0.5 md:size-3.5"
-            title="Đang hoạt động"
+    <motion.div
+      onClick={onOpenProfile}
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-violet-100/80 bg-white p-5 shadow-sm cursor-pointer"
+      whileHover={{
+        y: -8,
+        boxShadow: "0 20px 48px rgba(128,55,244,0.14)",
+        borderColor: "rgba(128,55,244,0.3)",
+      }}
+      whileTap={{ scale: 0.985 }}
+      transition={{ type: "spring", stiffness: 340, damping: 28 }}
+    >
+      <div className="flex flex-col items-center text-center">
+        {/* Avatar */}
+        <div className="relative mb-4 h-24 w-24 shrink-0 sm:h-28 sm:w-28 md:h-32 md:w-32">
+          <motion.img
+            src={avatarSrc}
+            alt={mentor.name}
+            className="h-full w-full rounded-full border-4 border-violet-50 object-cover shadow-sm"
+            whileHover={{ scale: 1.07 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
           />
-        ) : null}
-      </button>
+          {/* Online indicator — pulsing ring */}
+          {mentor.isOnline && (
+            <span className="absolute bottom-1 right-1" title="Đang hoạt động">
+              <span className="absolute inline-flex h-3.5 w-3.5 animate-ping rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
+            </span>
+          )}
+        </div>
 
-      <div className="min-w-0 overflow-hidden pr-0.5 md:pr-0">
-        <button
-          type="button"
-          onClick={onOpenProfile}
-          className="group block w-full min-w-0 max-w-full rounded-sm text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8037f4]"
-        >
-          <h3 className="flex min-w-0 items-center gap-0.5 text-sm font-bold leading-tight text-slate-900 group-hover:text-[#8037f4] md:flex-wrap md:gap-1.5 md:text-lg">
-            <span className="min-w-0 flex-1 truncate">{mentor.name}</span>
-            {Boolean(mentor.name && mentor.title && mentor.company && mentor.avatar) ? (
+        {/* Name + verified badge */}
+        <h3 className="flex items-center justify-center gap-1 text-base font-bold tracking-tight text-slate-900 group-hover:text-[#8037f4] sm:text-lg transition-colors duration-200">
+          <span className="max-w-[180px] truncate">{mentor.name}</span>
+          {isVerified && (
+            <motion.span
+              initial={{ scale: 0, rotate: -30 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15, delay: 0.2 }}
+              whileHover={{ scale: 1.25, rotate: 10 }}
+            >
               <BadgeCheck
-                className="size-3.5 shrink-0 fill-amber-400 text-white md:size-5"
+                className="size-4 shrink-0 fill-amber-400 text-white"
                 aria-label="Mentor đầy đủ thông tin"
               />
-            ) : null}
-          </h3>
-          <p className="mt-0.5 truncate text-[10px] font-medium text-slate-600 sm:text-[11px] md:text-sm">
-            {displayTitle(mentor)}
-          </p>
-        </button>
+            </motion.span>
+          )}
+        </h3>
 
-        <div className="mt-1 md:mt-2">
+        <p className="mt-1 line-clamp-2 min-h-[2.5rem] px-2 text-xs font-semibold text-slate-500">
+          {displayTitle(mentor)}
+        </p>
+
+        <div className="mt-3">
           <StarRating rating={mentor.rating} reviewCount={mentor.reviews ?? 0} />
         </div>
 
+        {/* Skill tags — hover micro-animation */}
         {mentor.tags?.length ? (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {mentor.tags.slice(0, 3).map((tag) => (
-              <span
+          <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+            {mentor.tags.slice(0, 3).map((tag, i) => (
+              <motion.span
                 key={tag}
-                className="max-w-full truncate rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700 sm:text-xs"
+                className="max-w-full truncate rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700 cursor-default"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.05 * i, duration: 0.25 }}
+                whileHover={{ scale: 1.1, backgroundColor: "#ede9fe", color: "#5b21b6" }}
               >
                 {tag}
-              </span>
+              </motion.span>
             ))}
           </div>
         ) : null}
       </div>
 
-      <div className="flex w-[5rem] shrink-0 flex-col items-stretch gap-1 sm:w-[5.75rem] md:w-auto md:min-w-0 md:shrink md:gap-3 md:justify-self-end">
-        <div className="text-[9px] leading-tight text-slate-700 sm:text-[10px] md:text-sm">
-          <p className="flex items-start justify-end gap-0.5 font-semibold text-slate-800 md:justify-start md:gap-2">
-            <OfferIcon className="mt-px size-2.5 shrink-0 text-violet-500 sm:size-3 md:mt-0.5 md:size-4" aria-hidden />
-            <span className="line-clamp-2 text-right break-words md:line-clamp-none md:text-left">
-              <span className="md:hidden">1:1</span>
-              <span className="hidden md:inline">{offer.label}</span>
-            </span>
-          </p>
-          <p className="mt-0.5 text-right text-slate-600 md:text-left">
-            <span className="block font-bold leading-tight text-slate-900 md:hidden">
-              {formatVndMobile(offer.price)}
-              <span className="font-medium text-slate-500">/{offer.minutes}p</span>
-            </span>
-            <span className="hidden md:block">
-              <span className="font-bold text-slate-900">{formatVnd(offer.price)}</span>
-              <span className="text-slate-500"> / {offer.minutes} phút</span>
-            </span>
+      {/* Price + Buttons */}
+      <div className="mt-5 w-full flex flex-col items-center">
+        <div className="w-full border-t border-slate-100 mb-4" />
+
+        <div className="mb-4 text-center">
+          <span className="text-xs text-slate-500">Buổi mentor 1:1</span>
+          <p className="mt-0.5 text-sm font-bold text-slate-900">
+            {formatVnd(offer.price)}
+            <span className="text-xs font-medium text-slate-500"> / {offer.minutes} phút</span>
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onBook}
-          className="w-full rounded-md bg-lime-400 px-2 py-1.5 text-[11px] font-bold leading-none text-violet-950 shadow-sm transition-colors hover:bg-lime-300 sm:py-2 sm:text-xs md:mt-1 md:rounded-lg md:px-4 md:py-2.5 md:text-sm"
-        >
-          Đặt lịch
-        </button>
+        <div className="flex w-full flex-col gap-2">
+          {/* Đặt lịch — tap ripple */}
+          <motion.button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onBook();
+            }}
+            className="w-full rounded-2xl bg-lime-400 py-2.5 text-xs font-extrabold text-violet-950 shadow-sm"
+            whileHover={{ scale: 1.04, backgroundColor: "#a3e635" }}
+            whileTap={{ scale: 0.93, backgroundColor: "#84cc16" }}
+            transition={{ type: "spring", stiffness: 380, damping: 22 }}
+          >
+            Đặt lịch
+          </motion.button>
+
+          {/* Xem chi tiết */}
+          <motion.button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenProfile();
+            }}
+            className="w-full rounded-2xl border border-violet-200 bg-white py-2.5 text-xs font-bold text-violet-700"
+            whileHover={{ scale: 1.02, borderColor: "#a78bfa", backgroundColor: "#f5f3ff" }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 380, damping: 22 }}
+          >
+            Xem chi tiết
+          </motion.button>
+        </div>
       </div>
-    </article>
+    </motion.div>
   );
 }

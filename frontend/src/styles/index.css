@@ -113,31 +113,14 @@ body {
   color: #0f172a;
 }
 
-/* ── Custom scrollbar ──────────────────────────────── */
+/* ── Custom scrollbar (hidden globally) ────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(128, 55, 244, 0.25);
-  border-radius: 999px;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
 
-::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--pi-lime) 55%, rgba(128, 55, 244, 0.5));
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
 }
 
 /* ── Smooth transitions for interactive elements ───── */

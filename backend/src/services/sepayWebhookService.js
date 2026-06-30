@@ -21,6 +21,7 @@ import {
   isTransferPaymentExpired,
   transferPaymentExpiryMeta,
   TRANSFER_PAYMENT_TIMEOUT_MINUTES,
+  TRANSFER_PAYMENT_TIMEOUT_MS,
 } from "../utils/transferPaymentExpiry.js";
 import {
   expireBookingTransferIfNeeded,
@@ -68,21 +69,48 @@ async function findPendingTargets(orderRef) {
 
   const targets = [];
 
+  // Only fetch bookings within 2× the payment timeout window — anything older is certainly expired.
+  const activeSince = new Date(Date.now() - 2 * TRANSFER_PAYMENT_TIMEOUT_MS);
   const bookings = await Booking.find({
     paymentMethod: "transfer",
     paymentStatus: "pending",
+    createdAt: { $gt: activeSince },
   })
     .select("_id userId paymentRef totalAmount price paymentExpiresAt createdAt")
     .lean();
+
+  // Group bookings by (paymentRef, userId) to prevent cross-user ref collision inflating
+  // the expected amount and blocking the legitimate user's auto-confirm.
+  const bookingGroupMap = new Map(); // `${norm}::${userId}` -> [booking]
   for (const b of bookings) {
     if (isTransferPaymentExpired(b)) continue;
     if (orderRefsMatch(b.paymentRef, norm)) {
+      const groupKey = `${norm}::${String(b.userId)}`;
+      if (!bookingGroupMap.has(groupKey)) bookingGroupMap.set(groupKey, []);
+      bookingGroupMap.get(groupKey).push(b);
+    }
+  }
+  for (const group of bookingGroupMap.values()) {
+    const totalExpected = group.reduce((sum, b) => sum + expectedBookingAmount(b), 0);
+    if (group.length === 1) {
+      const b = group[0];
       targets.push({
         entityType: "booking",
         entityId: String(b._id),
+        entityIds: [String(b._id)],
         userId: String(b.userId),
-        expectedAmount: expectedBookingAmount(b),
+        expectedAmount: totalExpected,
         transferSubmittedAt: b.transferSubmittedAt ?? null,
+      });
+    } else {
+      // Multi-slot: one transfer covers all bookings in the group.
+      targets.push({
+        entityType: "booking_group",
+        entityId: String(group[0]._id),
+        entityIds: group.map((b) => String(b._id)),
+        userId: String(group[0].userId),
+        expectedAmount: totalExpected,
+        transferSubmittedAt: group[0].transferSubmittedAt ?? null,
       });
     }
   }
@@ -158,6 +186,23 @@ async function autoConfirmTarget(target, { sepayId, amount }) {
 
   if (target.entityType === "booking") {
     return confirmBankTransferPaymentByAdmin(target.entityId, opts);
+  }
+  if (target.entityType === "booking_group") {
+    // _skipSiblingConfirm: outer loop already covers all entityIds — no need for each booking
+    // to re-scan and confirm its siblings (D3).
+    // Don't fail-fast: treat ERR_ALREADY_PAID as idempotent success; collect other errors (D2).
+    const groupOpts = { ...opts, _skipSiblingConfirm: true };
+    const errors = [];
+    for (const id of target.entityIds) {
+      const res = await confirmBankTransferPaymentByAdmin(id, groupOpts);
+      if (!res.ok && !String(res.error || "").includes("đã thanh toán")) {
+        errors.push(res.error || "lỗi không xác định");
+      }
+    }
+    if (errors.length > 0) {
+      return { ok: false, error: `Một số slot không xác nhận được: ${errors.join("; ")}` };
+    }
+    return { ok: true };
   }
   if (target.entityType === "course") {
     return confirmEnrollmentTransferByAdmin(target.entityId, opts);
@@ -266,7 +311,9 @@ export async function handleSepayWebhook(body, authHeader) {
     orderRef,
     entityType: target.entityType,
     entityId: target.entityId,
-    resultMessage: "auto confirmed",
+    resultMessage: target.entityType === "booking_group"
+      ? `auto confirmed group (${target.entityIds.length} bookings)`
+      : "auto confirmed",
   });
 
   return {
@@ -346,28 +393,48 @@ export async function getTransferStatusForUser(userId, orderRefRaw) {
     userId: uid,
     paymentMethod: "transfer",
   })
-    .select("_id paymentRef paymentStatus transferSubmittedAt courseId totalAmount price paymentExpiresAt createdAt status")
-    .sort({ createdAt: -1 })
-    .limit(20)
+    .select("_id paymentRef paymentStatus transferSubmittedAt transferForceConfirm totalAmount price paymentExpiresAt createdAt status")
+    .sort({ createdAt: 1 })
+    .limit(50)
     .lean();
 
+  // Collect all live bookings matching this orderRef (multi-slot orders share one paymentRef).
+  const matchingLive = [];
   for (const b of bookings) {
     if (orderRefsMatch(b.paymentRef, orderRef)) {
       const live = await Booking.findById(b._id);
       if (live) {
-        const expired = await expireBookingTransferIfNeeded(live);
-        if (expired.expired) {
-          return statusPayload(live, "booking", String(live._id), orderRef, {
-            redirectTo: null,
-            sepayAuto: false,
-          });
-        }
-        const status = mapEntityStatus("booking", live);
-        return statusPayload(live, "booking", String(live._id), orderRef, {
-          sepayAuto: Boolean(live.transferForceConfirm && status === "paid"),
-        });
+        await expireBookingTransferIfNeeded(live);
+        matchingLive.push(live);
       }
     }
+  }
+
+  if (matchingLive.length > 0) {
+    const bookingIds = matchingLive.map((b) => String(b._id));
+    if (matchingLive.length === 1) {
+      const live = matchingLive[0];
+      const status = mapEntityStatus("booking", live);
+      return statusPayload(live, "booking", String(live._id), orderRef, {
+        sepayAuto: Boolean(live.transferForceConfirm && status === "paid"),
+        bookingIds,
+      });
+    }
+    // Multi-slot: ALL bookings must be paid before redirecting.
+    const allPaid = matchingLive.every((b) => b.paymentStatus === "paid");
+    if (allPaid) {
+      const first = matchingLive[0];
+      return statusPayload(first, "booking", String(first._id), orderRef, {
+        sepayAuto: Boolean(first.transferForceConfirm),
+        bookingIds,
+      });
+    }
+    // Return status from one still-pending booking so FE knows to keep waiting.
+    const pending = matchingLive.find((b) => b.paymentStatus === "pending") ?? matchingLive[0];
+    return statusPayload(pending, "booking", String(pending._id), orderRef, {
+      sepayAuto: false,
+      bookingIds,
+    });
   }
 
   const enrollments = await Enrollment.find({ userId: uid, paymentMethod: "transfer" })

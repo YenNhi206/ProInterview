@@ -95,17 +95,35 @@ export function AdminBookings() {
     const bookingId = booking?._id;
     if (!bookingId) return;
     setBusyId(bookingId);
-    const res = await tryApi(
-      () => adminApi.confirmBookingTransferPayment(String(bookingId), confirmBody || { force: true }),
-      {
-      fallback: "Không xác nhận được chuyển khoản.",
-      successMessage: "Đã xác nhận thanh toán và duyệt buổi hẹn.",
-      },
-    );
+    let res;
+    try {
+      res = await adminApi.confirmBookingTransferPayment(String(bookingId), confirmBody || { force: true });
+    } catch {
+      toastApiError("Không xác nhận được chuyển khoản.");
+      setBusyId("");
+      return;
+    }
     setBusyId("");
-    if (!res.success) return;
+    if (!res?.success) {
+      toastApiError(res?.error, "Không xác nhận được chuyển khoản.");
+      return;
+    }
+    const count = Number(res.confirmedCount || 1);
+    toastApiSuccess(
+      count > 1
+        ? `Đã xác nhận ${count} buổi hẹn trong đơn.`
+        : "Đã xác nhận thanh toán và duyệt buổi hẹn.",
+    );
+    const confirmedRef = String(booking.paymentRef || "").trim();
+    // Optimistically mark all bookings in the same order (same paymentRef) as paid (G1).
     setBookings((prev) =>
-      prev.map((b) => (String(b._id) === String(bookingId) ? { ...b, ...(res.booking || {}), paymentStatus: "paid" } : b)),
+      prev.map((b) => {
+        const isTarget = String(b._id) === String(bookingId);
+        const isSibling = confirmedRef && String(b.paymentRef || "").trim() === confirmedRef;
+        if (isTarget) return { ...b, ...(res.booking || {}), paymentStatus: "paid" };
+        if (isSibling) return { ...b, paymentStatus: "paid", status: "confirmed" };
+        return b;
+      }),
     );
     await loadBookings();
   };
@@ -181,6 +199,21 @@ export function AdminBookings() {
       return student.includes(q) || mentor.includes(q) || ref.includes(q);
     });
   }, [bookings, searchTerm, filter]);
+
+  // Map paymentRef → { count, totalVnd } — badge nhóm + cảnh báo tổng tiền khi confirm.
+  const paymentRefGroups = useMemo(() => {
+    const map = new Map();
+    for (const b of filtered) {
+      const ref = String(b.paymentRef || "").trim();
+      if (!ref) continue;
+      const g = map.get(ref) ?? { count: 0, totalVnd: 0 };
+      map.set(ref, {
+        count: g.count + 1,
+        totalVnd: g.totalVnd + Number(b.totalAmount ?? b.price ?? 0),
+      });
+    }
+    return map;
+  }, [filtered]);
 
   const handleNormalizeTransferRefs = async () => {
     setNormalizeModalOpen(false);
@@ -428,6 +461,11 @@ export function AdminBookings() {
                           >
                             {b.paymentRef || "—"}
                           </p>
+                          {b.paymentRef && (paymentRefGroups.get(b.paymentRef)?.count ?? 0) > 1 ? (
+                            <span className="mt-1 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                              {paymentRefGroups.get(b.paymentRef)?.count} buổi · xác nhận 1 lần
+                            </span>
+                          ) : null}
                         </div>
                       ) : (
                         <span className="text-sm text-slate-500">Khác</span>
@@ -447,6 +485,8 @@ export function AdminBookings() {
                               iconOnly
                               busy={busyId === b._id}
                               onConfirm={(body) => confirmBookingTransferOverride(b, body)}
+                              groupCount={paymentRefGroups.get(b.paymentRef)?.count ?? 1}
+                              groupTotalVnd={paymentRefGroups.get(b.paymentRef)?.totalVnd ?? 0}
                             />
                           </div>
                         ) : showRefund ? (
