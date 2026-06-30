@@ -167,11 +167,11 @@ export function MentorPageShell({
       {showAmbient && (
         <>
           <div
-            className="pointer-events-none fixed -top-[12%] -right-[6%] h-[min(560px,70vw)] w-[min(560px,70vw)] rounded-full bg-[#a66ff8]/28 blur-[120px] -z-[1]"
+            className="pointer-events-none fixed top-0 right-0 h-[min(560px,70vw)] w-[min(560px,70vw)] -translate-y-[12%] translate-x-[6%] rounded-full bg-[#a66ff8]/28 blur-[120px] -z-[1]"
             aria-hidden
           />
           <div
-            className="pointer-events-none fixed -bottom-[14%] -left-[8%] h-[min(520px,65vw)] w-[min(520px,65vw)] rounded-full bg-[#8037f4]/16 blur-[110px] -z-[1]"
+            className="pointer-events-none fixed bottom-0 left-0 h-[min(520px,65vw)] w-[min(520px,65vw)] translate-y-[14%] -translate-x-[8%] rounded-full bg-[#8037f4]/16 blur-[110px] -z-[1]"
             aria-hidden
           />
           <div

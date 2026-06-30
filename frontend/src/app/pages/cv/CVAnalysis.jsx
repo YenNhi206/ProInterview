@@ -135,13 +135,11 @@ function preventDragDefaults(e) {
 
 /** Chiều cao cố định, CV và JD luôn bằng nhau (chưa chọn / đã chọn) */
 const UPLOAD_ZONE_HEIGHT =
-  "flex h-[10.75rem] w-full flex-col items-center justify-between rounded-2xl border-2 border-dashed border-violet-200/90 bg-violet-50/25 px-5 py-4 text-center transition sm:h-[11rem] sm:px-6 sm:py-5";
+  "flex h-[10.75rem] w-full min-w-0 overflow-hidden flex-col items-center justify-between rounded-2xl border-2 border-dashed border-violet-200/90 bg-violet-50/25 px-5 py-4 text-center transition sm:h-[11rem] sm:px-6 sm:py-5";
 
 function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear, onFile }) {
   const isCv = kind === "cv";
-  const headline = isCv
-    ? "Tải lên CV từ máy tính, chọn hoặc kéo thả"
-    : "Tải lên Job Description, chọn hoặc kéo thả";
+  const headline = isCv ? "Tải lên CV từ máy tính" : "Tải lên Job Description";
   const pickLabel = isCv ? "Chọn CV" : "Chọn JD";
   const zoneLabel = isCv ? "CV của bạn" : "Job Description";
 
@@ -160,7 +158,7 @@ function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear
     : `${UPLOAD_ZONE_HEIGHT} cursor-pointer hover:border-violet-300 hover:bg-violet-50/55`;
 
   return (
-    <div className="flex h-full flex-col px-6 pt-6 sm:px-8 sm:pt-7">
+    <div className="flex h-full min-w-0 flex-col px-6 pt-6 sm:px-8 sm:pt-7">
       <p className="mb-1.5 shrink-0 text-xs font-bold uppercase tracking-wide text-violet-600">
         {zoneLabel}
       </p>
@@ -181,17 +179,17 @@ function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear
         }
         className={shellClass}
       >
-        <div className="flex w-full max-w-sm items-center justify-center gap-2">
+        <div className="flex w-full min-w-0 max-w-sm items-center justify-center gap-2">
           <CloudUpload className="h-6 w-6 shrink-0 text-violet-400" strokeWidth={1.5} />
-          <p className="text-left text-xs font-bold leading-snug text-violet-950 sm:text-sm">{headline}</p>
+          <p className="min-w-0 text-left text-xs font-bold leading-snug text-violet-950 sm:text-sm">{headline}</p>
         </div>
 
         {/* Khối giữa cố định 2 dòng, tránh lệch chiều cao CV vs JD */}
-        <div className="flex min-h-[2.75rem] w-full max-w-sm flex-col items-center justify-center gap-0.5 px-1">
+        <div className="flex min-h-[2.75rem] w-full min-w-0 max-w-sm flex-col items-center justify-center gap-0.5 px-1">
           {hasFile ? (
             <>
               <p
-                className="max-w-full truncate text-sm font-semibold leading-tight text-emerald-700"
+                className="w-full break-all text-sm font-semibold leading-snug text-emerald-700"
                 title={fileName}
               >
                 {fileName || "—"}
