@@ -227,16 +227,6 @@ function CustomerNavbar() {
         />
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
-            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((o) => !o)}
-          >
-            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
-
           {loggedIn ? (
             <>
               <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
@@ -385,6 +375,16 @@ function CustomerNavbar() {
               </Link>
             </>
           )}
+
+          <button
+            type="button"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((o) => !o)}
+          >
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
         </div>
       </TopNavShell>
 
@@ -518,16 +518,6 @@ function MentorNavbar() {
         />
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
-            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((o) => !o)}
-          >
-            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
-
           <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
             <DropdownMenuTrigger asChild>
               <button
@@ -641,6 +631,16 @@ function MentorNavbar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <button
+            type="button"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+            aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((o) => !o)}
+          >
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
         </div>
       </TopNavShell>
 
