@@ -95,6 +95,10 @@ courseSchema.pre("save", function () {
     this.totalLessons = count;
     this.totalDurationMinutes = duration;
   }
+  // Keep isFree in sync with price so access-control logic is always consistent.
+  if (this.isModified("price") || this.isNew) {
+    this.isFree = Number(this.price ?? 0) <= 0;
+  }
 });
 
 export const Course = mongoose.models.Course ?? mongoose.model("Course", courseSchema);

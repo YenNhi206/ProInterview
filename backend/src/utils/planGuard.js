@@ -16,10 +16,12 @@ export async function enforceExpiry(user) {
   if (user.plan === "free" || !user.planExpiresAt) return user;
   if (user.planExpiresAt >= new Date()) return user;
 
-  const updated = await User.findByIdAndUpdate(
-    user._id,
+  // Conditional update: only downgrade if plan is still expired at write time.
+  // Prevents overwriting a plan that was just upgraded by a concurrent payment confirm.
+  const updated = await User.findOneAndUpdate(
+    { _id: user._id, plan: { $ne: "free" }, planExpiresAt: { $lt: new Date() } },
     { $set: FREE_QUOTA },
-    { new: true }
+    { new: true },
   ).lean();
   return updated ?? user;
 }

@@ -27,6 +27,11 @@ function cnPageNav(disabled) {
   }`;
 }
 
+function changePage(onPageChange, page) {
+  onPageChange(page);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 export function ListPagination({ currentPage, totalPages, onPageChange, className = "mt-8 border-t border-slate-100 pt-6" }) {
   if (totalPages <= 1) return null;
 
@@ -43,7 +48,7 @@ export function ListPagination({ currentPage, totalPages, onPageChange, classNam
             aria-disabled={currentPage <= 1}
             onClick={(e) => {
               e.preventDefault();
-              if (currentPage > 1) onPageChange(currentPage - 1);
+              if (currentPage > 1) changePage(onPageChange, currentPage - 1);
             }}
           >
             <ChevronLeft className="size-4" />
@@ -69,7 +74,7 @@ export function ListPagination({ currentPage, totalPages, onPageChange, classNam
                 }
                 onClick={(e) => {
                   e.preventDefault();
-                  onPageChange(item);
+                  changePage(onPageChange, item);
                 }}
               >
                 {item}
@@ -86,7 +91,7 @@ export function ListPagination({ currentPage, totalPages, onPageChange, classNam
             aria-disabled={currentPage >= totalPages}
             onClick={(e) => {
               e.preventDefault();
-              if (currentPage < totalPages) onPageChange(currentPage + 1);
+              if (currentPage < totalPages) changePage(onPageChange, currentPage + 1);
             }}
           >
             <span>Sau</span>

@@ -56,21 +56,11 @@ export function MentorProfileAside({
         <button
           type="button"
           onClick={onBook}
-          className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl bg-lime-400 py-3.5 text-sm font-bold text-violet-950 shadow-md transition hover:bg-lime-500 active:scale-[0.99]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-lime-400 py-3.5 text-sm font-bold text-violet-950 shadow-md transition hover:bg-lime-500 active:scale-[0.99]"
         >
           Đặt lịch ngay
           <ArrowRight size={18} aria-hidden />
         </button>
-        <a
-          href={bookingHref}
-          onClick={(e) => {
-            e.preventDefault();
-            onBook();
-          }}
-          className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-700 transition hover:border-violet-200 hover:bg-violet-50/50"
-        >
-          Xem lịch trống
-        </a>
 
         <button
           type="button"
@@ -83,7 +73,7 @@ export function MentorProfileAside({
       </div>
 
       {scheduleRows.length > 0 ? (
-        <div className="glass-card p-4 sm:p-5">
+        <div id="mentor-weekly-schedule" className="glass-card p-4 sm:p-5">
           <h3 className="mb-3 text-sm font-bold text-slate-900">Lịch tư vấn (theo tuần)</h3>
           <ul className="space-y-2 text-sm">
             {scheduleRows.map((row) => (

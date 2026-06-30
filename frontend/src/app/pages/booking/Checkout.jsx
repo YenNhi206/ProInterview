@@ -19,7 +19,7 @@ import { fetchCurrentPlan } from "../../api/plansApi.js";
 import { BRAND_LIME, BRAND_PURPLE } from "../../constants/brandColors";
 import { landingPrimaryButtonClass } from "../../constants/landingTheme";
 import { fetchMentor } from "../../api/mentorApi.js";
-import { createBooking, fetchRebookCredit } from "../../api/bookingsApi.js";
+import { createBooking, fetchRebookCredit, cancelBooking } from "../../api/bookingsApi.js";
 import { isBookingSlotInFuture } from "../../utils/booking/bookingSchedule.js";
 import { fetchCourseById } from "../../api/courseApi.js";
 import { enrollmentApi } from "../../api/enrollmentApi.js";
@@ -32,6 +32,7 @@ import {
   resolveCheckoutPlan,
 } from "../../constants/planCatalog.js";
 import { formatVnd, formatVndParts } from "../../utils/shared/formatVnd.js";
+import { sessionTypeLabel } from "../../utils/booking/sessionTypeLabels.js";
 
 /* ─── Plan meta (UI) — giá lấy từ planCatalog ───────────── */
 
@@ -606,6 +607,7 @@ function OrderLineItem({
   bookingDate,
   bookingTime,
   bookingSessionType,
+  bookingSlots,
   baseTotal,
   fmt,
 }) {
@@ -630,6 +632,7 @@ function OrderLineItem({
     );
   }
   if (isBooking) {
+    const slots = bookingSlots ?? (bookingDate ? [{ dateKey: bookingDate, dayFull: bookingDate, time: bookingTime }] : []);
     return (
       <div className={`${checkoutCard} p-4 sm:p-5`}>
         <div className="flex gap-4">
@@ -651,26 +654,47 @@ function OrderLineItem({
                 ? sessionTypeLabel(bookingSessionType)
                 : bookingMentor?.title || "Buổi phỏng vấn 1:1"}
             </p>
-            <div className={`mt-2 flex flex-wrap gap-3 ${textMuted} text-xs`}>
-              {bookingDate && (
+            {slots.length > 1 ? (
+              <div className="mt-2 space-y-1">
+                {slots.map((s, i) => (
+                  <div key={`${s.dateKey}_${s.time}`} className="flex items-center gap-2 text-xs text-slate-600">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#8037f4] text-[0.6rem] font-black text-white">
+                      {i + 1}
+                    </span>
+                    <Calendar className="h-3 w-3 text-[#8037f4]" />
+                    <span className="font-medium">{s.dayFull || s.dateKey}</span>
+                    <Clock className="h-3 w-3 text-[#8037f4]" />
+                    <span className="font-bold">{s.time}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={`mt-2 flex flex-wrap gap-3 ${textMuted} text-xs`}>
+                {bookingDate && (
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5 text-[#8037f4]" />
+                    {bookingDate}
+                  </span>
+                )}
+                {bookingTime && (
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5 text-[#8037f4]" />
+                    {bookingTime}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 text-[#8037f4]" />
-                  {bookingDate}
+                  <Video className="h-3.5 w-3.5 text-[#8037f4]" />
+                  Jitsi trên ProInterview · 60 phút
                 </span>
-              )}
-              {bookingTime && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 text-[#8037f4]" />
-                  {bookingTime}
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1">
-                <Video className="h-3.5 w-3.5 text-[#8037f4]" />
-                Jitsi trên ProInterview · 60 phút
-              </span>
-            </div>
+              </div>
+            )}
           </div>
-          <p className="shrink-0 text-lg font-bold text-[#8037f4]">{fmt(baseTotal)}</p>
+          <div className="shrink-0 text-right">
+            <p className="text-lg font-bold text-[#8037f4]">{fmt(baseTotal)}</p>
+            {slots.length > 1 && (
+              <p className="text-xs text-slate-500">{slots.length} buổi</p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -998,11 +1022,28 @@ export function Checkout() {
     })();
   }, [isCourse, courseId]);
 
-  const bookingPrice = Number(
+  const bookingPricePerSlot = Number(
     isBooking ? searchParams.get("price") ?? bookingMentor?.price ?? 0 : bookingMentor?.price ?? searchParams.get("price") ?? 0,
   );
-  const bookingDate = searchParams.get("date") ?? "";
-  const bookingTime = searchParams.get("time") ?? "";
+
+  const bookingSlots = useMemo(() => {
+    if (!isBooking) return null;
+    const raw = searchParams.get("slots") ?? "";
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+    } catch {
+      return null;
+    }
+  }, [isBooking, searchParams]);
+
+  const bookingSlotCount = bookingSlots ? bookingSlots.length : 1;
+  const bookingPrice = bookingPricePerSlot * bookingSlotCount;
+
+  // Compat: single slot uses first slot or fallback to old date/time params
+  const bookingDate = bookingSlots?.[0]?.dateKey ?? searchParams.get("date") ?? "";
+  const bookingTime = bookingSlots?.[0]?.time ?? searchParams.get("time") ?? "";
   const bookingSessionType = searchParams.get("sessionType") || "mock_interview";
 
   /* ── Plan mode ────────────────────────────────────────── */
@@ -1252,16 +1293,29 @@ export function Checkout() {
       }
     }
 
-    if (!bookingMentor || !bookingDate || !bookingTime) {
+    if (!bookingMentor) {
       setCardError("Thiếu thông tin đặt lịch. Hãy quay lại bước đặt lịch với mentor.");
       return { ok: false };
     }
 
-    if (!isBookingSlotInFuture(bookingDate, bookingTime)) {
-      const msg = "Không thể đặt lịch trong quá khứ. Vui lòng chọn ngày và giờ trong tương lai.";
-      setCardError(msg);
-      toastApiError(msg);
+    const MAX_SLOTS = 5;
+    const slotsToBook = bookingSlots ?? [{ dateKey: bookingDate, time: bookingTime }];
+    if (!slotsToBook.length || slotsToBook.some((s) => !s.dateKey || !s.time)) {
+      setCardError("Thiếu thông tin ngày/giờ. Hãy quay lại chọn lịch.");
       return { ok: false };
+    }
+    if (slotsToBook.length > MAX_SLOTS) {
+      setCardError(`Tối đa ${MAX_SLOTS} buổi trên một đơn đặt lịch.`);
+      return { ok: false };
+    }
+
+    for (const slot of slotsToBook) {
+      if (!isBookingSlotInFuture(slot.dateKey, slot.time)) {
+        const msg = `Slot ${slot.time} ngày ${slot.dateKey} đã qua. Vui lòng chọn lại.`;
+        setCardError(msg);
+        toastApiError(msg);
+        return { ok: false };
+      }
     }
 
     if (rebookCreditTooLow) {
@@ -1280,10 +1334,11 @@ export function Checkout() {
     setCardError("");
     try {
       if (canUseRebookCredit && rebookFrom) {
+        const slot = slotsToBook[0];
         const apiRes = await createBooking({
           mentorId: bookingMentor.id,
-          date: bookingDate,
-          timeSlot: bookingTime,
+          date: slot.dateKey,
+          timeSlot: slot.time,
           sessionType: bookingSessionType,
           position: bookingPosition,
           note: bookingNote,
@@ -1291,7 +1346,7 @@ export function Checkout() {
           cvFileUrl: bookingCvFileUrl || "",
           jdFile: bookingJdFile || "",
           jdFileUrl: bookingJdFileUrl || "",
-          price: bookingPrice,
+          price: bookingPricePerSlot,
           durationMinutes: 60,
           applyRebookCreditFromBookingId: rebookFrom,
         });
@@ -1315,47 +1370,66 @@ export function Checkout() {
         return { ok: false };
       }
 
-      const apiRes = await createBooking({
-        mentorId: bookingMentor.id,
-        date: bookingDate,
-        time: bookingTime,
-        timeSlot: bookingTime,
-        sessionType: bookingSessionType,
-        position: bookingPosition,
-        note: bookingNote,
-        cvFile: bookingCvFile || "",
-        cvFileUrl: bookingCvFileUrl || "",
-        jdFile: bookingJdFile || "",
-        jdFileUrl: bookingJdFileUrl || "",
-        price: bookingPrice,
-        durationMinutes: 60,
-        orderNum,
-        paymentStatus: "pending",
-        paymentMethod: "transfer",
-      });
-      if (apiRes.success && apiRes.booking?.id) {
-        trackAction("booking_submit", "/checkout", {
+      // Create each slot as a separate booking, all sharing the same orderNum.
+      // After slot 1, use the server-confirmed paymentRef for subsequent slots (A2).
+      let confirmedOrderNum = orderNum;
+      const createdIds = [];
+      for (const slot of slotsToBook) {
+        const apiRes = await createBooking({
           mentorId: bookingMentor.id,
-          bookingId: apiRes.booking.id,
+          date: slot.dateKey,
+          time: slot.time,
+          timeSlot: slot.time,
+          sessionType: bookingSessionType,
+          position: bookingPosition,
+          note: bookingNote,
+          cvFile: bookingCvFile || "",
+          cvFileUrl: bookingCvFileUrl || "",
+          jdFile: bookingJdFile || "",
+          jdFileUrl: bookingJdFileUrl || "",
+          price: bookingPricePerSlot,
+          durationMinutes: 60,
+          orderNum: confirmedOrderNum,
+          paymentStatus: "pending",
           paymentMethod: "transfer",
         });
-        const serverOrder = extractOrderPart(apiRes.booking?.paymentRef);
-        if (serverOrder) setTransferOrderNum(serverOrder);
-        setBankBookingId(apiRes.booking.id);
-        applyPaymentExpiryFromApi(setPaymentExpiresAtMs, setPaymentExpired, apiRes.booking?.paymentExpiresAt);
-        setAppStep("awaiting_transfer");
-        if (!silent) {
-          toastApiSuccess(
-            "Đã tạo lịch. Quét QR, chuyển khoản, khi tiền vào sẽ tự xác nhận và chuyển sang buổi hẹn.",
-          );
+        if (!apiRes.success || !apiRes.booking?.id) {
+          // Rollback: cancel all bookings already created in this order (A1).
+          for (const id of createdIds) {
+            cancelBooking(id).catch(() => {});
+          }
+          const msg = apiRes.error || `Không thể tạo lịch buổi ${slot.time} ngày ${slot.dateKey}.`;
+          setCardError(msg);
+          toastApiError(msg);
+          return { ok: false };
         }
-        return { ok: true, bookingId: apiRes.booking.id };
+        createdIds.push(apiRes.booking.id);
+        if (createdIds.length === 1) {
+          const serverOrder = extractOrderPart(apiRes.booking?.paymentRef);
+          if (serverOrder) {
+            setTransferOrderNum(serverOrder);
+            confirmedOrderNum = serverOrder; // use server-confirmed ref for remaining slots (A2)
+          }
+          setBankBookingId(apiRes.booking.id);
+          applyPaymentExpiryFromApi(setPaymentExpiresAtMs, setPaymentExpired, apiRes.booking?.paymentExpiresAt);
+        }
       }
-      const msg = apiRes.error || "Không thể tạo lịch chờ chuyển khoản.";
-      console.warn("[POST /api/bookings]", msg);
-      setCardError(msg);
-      toastApiError(msg);
-      return { ok: false };
+
+      trackAction("booking_submit", "/checkout", {
+        mentorId: bookingMentor.id,
+        bookingIds: createdIds,
+        slotCount: createdIds.length,
+        paymentMethod: "transfer",
+      });
+      setAppStep("awaiting_transfer");
+      if (!silent) {
+        toastApiSuccess(
+          createdIds.length > 1
+            ? `Đã tạo ${createdIds.length} buổi hẹn. Chuyển khoản 1 lần, hệ thống tự xác nhận tất cả.`
+            : "Đã tạo lịch. Quét QR, chuyển khoản, khi tiền vào sẽ tự xác nhận.",
+        );
+      }
+      return { ok: true, bookingId: createdIds[0], bookingIds: createdIds };
     } catch {
       const msg = "Lỗi hệ thống khi tạo lịch hẹn.";
       setCardError(msg);
@@ -1505,8 +1579,9 @@ export function Checkout() {
     if (isBooking && (!bookingMentor || !bookingDate || !bookingTime)) return;
     autoOrderStartedRef.current = true;
     (async () => {
-      const created = await handlePay({ silent: true });
-      if (!created?.ok) autoOrderStartedRef.current = false;
+      await handlePay({ silent: true });
+      // Do NOT reset autoOrderStartedRef on failure — prevents auto-retry loop after partial
+      // creation + rollback. User must explicitly click "Thử lại" (handleRetryTransferOrder).
     })();
   }, [
     showBankQr,
@@ -1679,6 +1754,7 @@ export function Checkout() {
                     bookingDate={bookingDate}
                     bookingTime={bookingTime}
                     bookingSessionType={bookingSessionType}
+                    bookingSlots={bookingSlots}
                     baseTotal={baseTotal}
                     fmt={fmt}
                   />

@@ -560,6 +560,20 @@ export const InterviewsController = {
         }
       }
 
+      // Atomic claim: prevents duplicate LLM calls when two requests arrive concurrently
+      // before either has written feedbackGeneratedAt. The claim is released (unset) in the
+      // catch block if the LLM call fails, so the user can retry.
+      const _claim = await InterviewSession.updateOne(
+        { _id: id, userId: req.userId, feedbackGeneratedAt: null },
+        { $set: { feedbackGeneratedAt: new Date() } },
+      );
+      if (_claim.modifiedCount === 0) {
+        return res.status(429).json({
+          success: false,
+          error: "Đánh giá đang được xử lý. Vui lòng thử lại sau vài giây.",
+        });
+      }
+
       logger.info("evaluate_session_start", {
         userId: req.userId, sessionId: id,
         questionCount: questionsToUse.length,
@@ -619,6 +633,11 @@ export const InterviewsController = {
         behavioralPerQuestion,
       });
     } catch (error) {
+      // Release the evaluation claim so the user can retry after a transient LLM/network failure.
+      await InterviewSession.updateOne(
+        { _id: req.params.id, userId: req.userId },
+        { $unset: { feedbackGeneratedAt: 1 } },
+      ).catch(() => {});
       logger.error("evaluate_session_failed", { userId: req.userId, sessionId: req.params.id, error: error.message });
       res.status(500).json({ success: false, error: error.message });
     }

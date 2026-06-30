@@ -24,7 +24,7 @@ import {
   isBookingPastAutoCompleteGrace,
   isBookingSlotInFuture,
 } from "../utils/bookingSchedule.js";
-import { newPaymentExpiresAt } from "../utils/transferPaymentExpiry.js";
+import { newPaymentExpiresAt, isTransferPaymentExpired, TRANSFER_PAYMENT_TIMEOUT_MS } from "../utils/transferPaymentExpiry.js";
 import { expireBookingTransferIfNeeded } from "./transferPaymentExpiryService.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { buildJaasMeetingLaunch } from "./jaasService.js";
@@ -716,15 +716,39 @@ export async function createBooking(userId, body) {
   });
 
   if (dup) {
-    // Nếu là chính user này đang đặt lại khung giờ cũ (ví dụ: quay lại trang Checkout hoặc tải lại)
-    // và booking cũ vẫn đang ở trạng thái chờ thanh toán
-    if (String(dup.userId) === uid && dup.status === "pending" && dup.paymentStatus === "pending") {
+    const isDupExpiredTransfer =
+      dup.status === "pending" &&
+      dup.paymentStatus === "pending" &&
+      String(dup.paymentMethod || "").toLowerCase() === "transfer" &&
+      isTransferPaymentExpired(dup);
+
+    if (isDupExpiredTransfer) {
+      // Booking cũ (của bất kỳ user nào) đã hết hạn thanh toán → expire và giải phóng slot.
+      await expireBookingTransferIfNeeded(dup);
+      // Tiếp tục tạo booking mới bên dưới.
+    } else if (String(dup.userId) === uid && dup.status === "pending" && dup.paymentStatus === "pending") {
+      // Chính user này đang đặt lại khung giờ của mình (reload trang Checkout).
       const expired = await expireBookingTransferIfNeeded(dup);
       if (!expired.expired) {
         const clientOrder = extractOrderPart(body.orderNum);
-        if (clientOrder && extractOrderPart(dup.paymentRef) !== clientOrder) {
+        const oldRef = extractOrderPart(dup.paymentRef);
+        if (clientOrder && oldRef !== clientOrder) {
           dup.paymentRef = clientOrder;
           await dup.save();
+          // Sync all sibling bookings sharing the old ref so the whole multi-slot group
+          // moves to the new orderNum together (C1: prevents paymentRef desync on retry).
+          if (oldRef) {
+            await Booking.updateMany(
+              {
+                _id: { $ne: dup._id },
+                userId: uid,
+                paymentRef: oldRef,
+                paymentStatus: "pending",
+                status: "pending",
+              },
+              { $set: { paymentRef: clientOrder } },
+            );
+          }
         }
         return { ok: true, booking: toPublicBooking(dup, mentor) };
       }
@@ -774,6 +798,39 @@ export async function createBooking(userId, body) {
   const transferPending =
     paymentStatus === "pending" && mapPaymentMethod(body.paymentMethod ?? body.method) === "transfer";
   const paymentExpiresAt = transferPending ? newPaymentExpiresAt() : undefined;
+
+  // Prevent cross-user paymentRef squatting: reject if another active user already owns this ref.
+  // Attacker knowing another user's orderNum could disrupt their SePay auto-confirm flow.
+  if (paymentRef && transferPending) {
+    const crossUserConflict = await Booking.findOne({
+      paymentRef,
+      userId: { $ne: uid },
+      paymentStatus: "pending",
+    })
+      .select("_id")
+      .lean();
+    if (crossUserConflict) {
+      return { ok: false, status: 409, error: "Mã đơn hàng không hợp lệ. Vui lòng thử lại với mã khác." };
+    }
+  }
+
+  // Server-side enforcement of the per-order slot cap.
+  const MAX_SLOTS_PER_ORDER = 5;
+  if (paymentRef && transferPending) {
+    const existingSlotCount = await Booking.countDocuments({
+      userId: uid,
+      paymentRef,
+      paymentStatus: "pending",
+      status: "pending",
+    });
+    if (existingSlotCount >= MAX_SLOTS_PER_ORDER) {
+      return {
+        ok: false,
+        status: 400,
+        error: `Tối đa ${MAX_SLOTS_PER_ORDER} buổi trên một đơn đặt lịch.`,
+      };
+    }
+  }
 
   let doc;
   try {
@@ -1429,6 +1486,40 @@ export async function confirmBankTransferPaymentByAdmin(bookingId, options = {})
     return { ok: false, status: 500, error: "Không thể xác nhận thanh toán lúc này." };
   }
 
+  // Auto-confirm sibling bookings sharing the same paymentRef (multi-slot order).
+  // _skipSiblingConfirm prevents infinite recursion when called for siblings.
+  let confirmedSiblingCount = 0;
+  if (!options?._skipSiblingConfirm) {
+    const primary = await Booking.findById(bookingId).select("paymentRef userId mentorId").lean();
+    const ref = String(primary?.paymentRef || "").trim();
+    if (ref) {
+      const siblings = await Booking.find({
+        _id: { $ne: bookingId },
+        userId: primary.userId,
+        mentorId: primary.mentorId,
+        paymentRef: ref,
+        paymentStatus: "pending",
+        paymentMethod: "transfer",
+      }).select("_id").lean();
+
+      for (const sib of siblings) {
+        const sibResult = await confirmBankTransferPaymentByAdmin(String(sib._id), {
+          ...options,
+          force: true,
+          forceNote: options?.forceNote || "Auto-confirmed: cùng đơn đặt nhiều slot",
+          _skipSiblingConfirm: true,
+        });
+        if (sibResult.ok) {
+          confirmedSiblingCount++;
+        } else if (String(sibResult.error || "").includes("đã thanh toán")) {
+          // Idempotent — already paid (concurrent confirm), count as success.
+          confirmedSiblingCount++;
+        } else {
+          console.warn(`[confirmBankTransferPaymentByAdmin] sibling ${sib._id} failed:`, sibResult.error);
+        }
+      }
+    }
+  }
 
   const booking = await Booking.findById(bookingId)
     .populate({ 
@@ -1452,35 +1543,38 @@ export async function confirmBankTransferPaymentByAdmin(bookingId, options = {})
     });
   }
 
-  // Gửi email xác nhận thanh toán cho mentee và mentor
-  const menteeEmail = booking.userId?.email || "";
-  const menteeName = booking.userId?.name || booking.userId?.email || "Bạn";
-  const mentorName = booking.mentorId?.name || "Mentor";
-  const mentorEmail = booking.mentorId?.userId?.email || "";
-  const bookingIdStr = String(booking._id);
+  // Sibling auto-confirms (called with _skipSiblingConfirm=true) skip individual emails —
+  // the primary booking already sends a consolidated notification (E3).
+  if (!options?._skipSiblingConfirm) {
+    const menteeEmail = booking.userId?.email || "";
+    const menteeName = booking.userId?.name || booking.userId?.email || "Bạn";
+    const mentorName = booking.mentorId?.name || "Mentor";
+    const mentorEmail = booking.mentorId?.userId?.email || "";
+    const bookingIdStr = String(booking._id);
 
-  if (menteeEmail) {
-    sendBookingConfirmedEmailToMentee(menteeEmail, {
-      menteeName,
-      mentorName,
-      sessionType: booking.sessionType,
-      date: booking.date,
-      timeSlot: booking.timeSlot,
-      bookingId: bookingIdStr,
-    }).catch((e) => console.error("[booking email mentee transfer]", e?.message || e));
-  }
-  if (mentorEmail) {
-    sendBookingConfirmedEmailToMentor(mentorEmail, {
-      mentorName,
-      menteeName,
-      sessionType: booking.sessionType,
-      date: booking.date,
-      timeSlot: booking.timeSlot,
-      bookingId: bookingIdStr,
-    }).catch((e) => console.error("[booking email mentor transfer]", e?.message || e));
+    if (menteeEmail) {
+      sendBookingConfirmedEmailToMentee(menteeEmail, {
+        menteeName,
+        mentorName,
+        sessionType: booking.sessionType,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
+        bookingId: bookingIdStr,
+      }).catch((e) => console.error("[booking email mentee transfer]", e?.message || e));
+    }
+    if (mentorEmail) {
+      sendBookingConfirmedEmailToMentor(mentorEmail, {
+        mentorName,
+        menteeName,
+        sessionType: booking.sessionType,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
+        bookingId: bookingIdStr,
+      }).catch((e) => console.error("[booking email mentor transfer]", e?.message || e));
+    }
   }
 
-  return { ok: true, booking: toPublicBooking(booking) };
+  return { ok: true, booking: toPublicBooking(booking), confirmedCount: 1 + confirmedSiblingCount };
 }
 
 export async function confirmMentorBooking(mentorUserId, rawId) {
@@ -2563,16 +2657,36 @@ export async function rescheduleMentorBooking(mentorUserId, rawId, body) {
 
 export async function getMentorBookedSlots(mentorKey) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
-  
+
   const or = [{ publicId: mentorKey }];
   if (mongoose.isValidObjectId(mentorKey)) or.push({ _id: mentorKey });
 
   const mentor = await Mentor.findOne({ $or: or }).select("_id").lean();
   if (!mentor) return { ok: false, status: 404, error: "Không tìm thấy mentor." };
 
+  const now = new Date();
+
+  // Không đếm slot là "đã đặt" khi booking đang chờ CK nhưng đã quá hạn thanh toán.
+  // Trường hợp này xảy ra khi mentee đóng trình duyệt trước khi polling FE kịp expire booking.
   const rows = await Booking.find({
     mentorId: mentor._id,
     status: { $in: ["pending", "confirmed", "in_progress"] },
+    $nor: [
+      {
+        status: "pending",
+        paymentStatus: "pending",
+        paymentMethod: "transfer",
+        paymentExpiresAt: { $lte: now },
+      },
+      // Old-format bookings that lack paymentExpiresAt: expired when createdAt + timeout has passed.
+      {
+        status: "pending",
+        paymentStatus: "pending",
+        paymentMethod: "transfer",
+        paymentExpiresAt: { $exists: false },
+        createdAt: { $lte: new Date(now.getTime() - TRANSFER_PAYMENT_TIMEOUT_MS) },
+      },
+    ],
   })
     .select("date timeSlot")
     .lean();

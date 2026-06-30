@@ -21,6 +21,8 @@ export function mapApiCourseToCard(c) {
     studentsCount: Math.max(0, Number(c.stats?.enrollmentCount) || reviewsCount || 0),
     duration: c.totalDurationMinutes || 120,
     price: c.price || 0,
+    discountPrice: c.discountPrice || 0,
+    discountEndsAt: c.discountEndsAt || null,
     tags: c.tags || [],
   };
 }

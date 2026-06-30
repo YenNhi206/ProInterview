@@ -7,12 +7,15 @@ import { buildAdminTransferConfirmBody } from "../../utils/admin/adminTransferCo
 /**
  * Admin xác nhận CK thủ công, không cần học viên bấm «đã chuyển khoản» trong app.
  * onConfirm nhận { force, forceNote }.
+ * groupCount / groupTotalVnd: dùng khi đây là đơn nhiều buổi để hiển thị cảnh báo tổng tiền.
  */
 export function AdminSepayOverrideAction({
   onConfirm,
   busy = false,
   iconOnly = true,
   className = "",
+  groupCount = 1,
+  groupTotalVnd = 0,
 }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -66,6 +69,15 @@ export function AdminSepayOverrideAction({
                   <strong>Không cần</strong> học viên bấm «đã chuyển khoản» trong app, có thể nhắn Zalo/email
                   báo admin.
                 </p>
+                {groupCount > 1 && (
+                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800">
+                    <strong>Lưu ý:</strong> Đơn này gồm{" "}
+                    <strong>{groupCount} buổi</strong> — tổng cộng{" "}
+                    <strong>{groupTotalVnd.toLocaleString("vi-VN")}₫</strong>.{" "}
+                    Xác nhận 1 buổi sẽ <em>tự động duyệt toàn bộ đơn</em>.{" "}
+                    Hãy kiểm tra sao kê đúng tổng số tiền này trước khi xác nhận.
+                  </div>
+                )}
               </div>
             </div>
             <label className="mt-4 block text-xs font-semibold text-slate-600">

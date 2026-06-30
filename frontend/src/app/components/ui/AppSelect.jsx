@@ -37,12 +37,20 @@ export function AppSelect({
   "aria-label": ariaLabel,
 }) {
   const stringValue =
-    value === undefined || value === null || value === "" ? undefined : String(value);
+    value === undefined || value === null || value === "" ? "__all__" : String(value);
+
+  const handleValueChange = (val) => {
+    if (val === "__all__") {
+      onValueChange?.("");
+    } else {
+      onValueChange?.(val);
+    }
+  };
 
   return (
     <Select
       value={stringValue}
-      onValueChange={onValueChange}
+      onValueChange={handleValueChange}
       disabled={disabled}
     >
       <SelectTrigger
@@ -53,15 +61,21 @@ export function AppSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className={contentClassName} position="popper">
-        {options.map((opt) => (
-          <SelectItem
-            key={String(opt.value)}
-            value={String(opt.value)}
-            disabled={opt.disabled}
-          >
-            {opt.label}
-          </SelectItem>
-        ))}
+        {options.map((opt) => {
+          const optValue =
+            opt.value === undefined || opt.value === null || opt.value === ""
+              ? "__all__"
+              : String(opt.value);
+          return (
+            <SelectItem
+              key={optValue}
+              value={optValue}
+              disabled={opt.disabled}
+            >
+              {opt.label}
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );
