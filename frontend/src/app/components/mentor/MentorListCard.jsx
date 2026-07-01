@@ -54,7 +54,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
   return (
     <motion.div
       onClick={onOpenProfile}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-violet-100/80 bg-white p-5 shadow-sm cursor-pointer"
+      className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-violet-100/80 bg-white p-5 shadow-sm cursor-pointer"
       whileHover={{
         y: -8,
         boxShadow: "0 20px 48px rgba(128,55,244,0.14)",

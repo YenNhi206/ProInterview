@@ -12,7 +12,6 @@ import {
   Users,
   TrendingUp as TrendUp,
   Camera,
-  ChevronRight as CaretRight,
   Zap as Lightning,
   Medal,
   X,
@@ -20,9 +19,6 @@ import {
   Sprout as Plant,
   CheckCircle,
   AlertTriangle,
-  FileText,
-  Eye,
-  Briefcase,
 } from "lucide-react";
 import {
   getPlans,
@@ -52,12 +48,6 @@ import { ProfileWorkHistoryEditor } from "../../components/profile/ProfileWorkHi
 import { ProfileEducationHistoryEditor } from "../../components/profile/ProfileEducationHistoryEditor";
 import { uploadFile } from "../../api/uploadApi.js";
 import { normalizeStoredUploadUrl, resolveMediaUrl } from "../../utils/shared/mediaUrl.js";
-import { fetchCvAnalyses } from "../../api/cvApi.js";
-import {
-  cvAnalysisResultPath,
-  CV_JD_HISTORY_PATH,
-  CV_JD_ANALYSIS_PATH,
-} from "../../components/cv/CvJdAnalysisTabs";
 import {
   emptyWorkEntry,
   estimateExperienceYears,
@@ -75,32 +65,6 @@ import {
   serializeEducationHistory,
 } from "../../utils/profile/profileEducationHistory.js";
 
-function mapCvHistoryRow(item) {
-  const createdAt = item.createdAt || item.date || "";
-  const mode =
-    item.mode === "field" || item.mode === "jd"
-      ? item.mode
-      : !item.jdFileName && !item.jdFile && item.field
-        ? "field"
-        : "jd";
-  return {
-    id: item.analysisId || item.id,
-    mode,
-    field: item.field || null,
-    cvFile: item.cvFileName || item.cvFile || "cv.pdf",
-    jdFile: item.jdFileName || item.jdFile || null,
-    matchScore: item.matchScore ?? 0,
-    createdAt,
-    company: item.company || null,
-    position: item.position || null,
-  };
-}
-
-function cvScoreTone(score) {
-  if (score >= 75) return { text: "text-lime-900", bg: "bg-lime-100 ring-lime-200/80" };
-  if (score >= 55) return { text: "text-[#630ed4]", bg: "bg-violet-100 ring-violet-200/80" };
-  return { text: "text-amber-800", bg: "bg-amber-100 ring-amber-200/80" };
-}
 
 function buildCvProfileFromSources(u, mentor) {
   const skillsFromUser =
@@ -281,9 +245,6 @@ export function Profile() {
     mentorExtra: false,
   });
   const [resubmitConfirmOpen, setResubmitConfirmOpen] = useState(false);
-  const [cvHistoryRows, setCvHistoryRows] = useState([]);
-  const [cvHistoryLoading, setCvHistoryLoading] = useState(false);
-
   React.useEffect(() => {
     if (!resubmitConfirmOpen) return;
     const onKeyDown = (e) => {
@@ -564,16 +525,6 @@ export function Profile() {
     void reloadProfileFromServer();
   }, [user?.email, reloadProfileFromServer]);
 
-  React.useEffect(() => {
-    if (!user?.email) return;
-    setCvHistoryLoading(true);
-    fetchCvAnalyses().then((res) => {
-      setCvHistoryLoading(false);
-      if (res.success) {
-        setCvHistoryRows((res.analyses || []).slice(0, 5).map(mapCvHistoryRow));
-      }
-    });
-  }, [user?.email]);
 
   return (
     <MentorPageShell
@@ -819,7 +770,7 @@ export function Profile() {
 
         {/* Status messages */}
         {saveMsg === "avatar" && (
-          <div className="profile-toast-purple fixed bottom-10 right-10 z-50 flex items-center gap-4 px-8 py-5 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5">
+          <div className="profile-toast-purple fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5 sm:bottom-10 sm:left-auto sm:right-10 sm:gap-4 sm:px-8 sm:py-5">
             <div className="rounded-full bg-[#93f72b] p-1 text-[#2D1B69]">
               <Check size={14} />
             </div>
@@ -827,12 +778,12 @@ export function Profile() {
           </div>
         )}
         {saveMsg === "saved" && (
-          <div className="profile-toast-lime fixed bottom-10 right-10 z-50 flex items-center gap-3 px-8 py-4 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5">
+          <div className="profile-toast-lime fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5 sm:bottom-10 sm:left-auto sm:right-10 sm:px-8">
             <Check size={18} /> Đã cập nhật thành công
           </div>
         )}
         {saveMsg === "mentor_applied" && (
-          <div className="profile-toast-purple fixed bottom-10 right-10 z-50 flex max-w-md items-center gap-4 px-8 py-5 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5">
+          <div className="profile-toast-purple fixed bottom-4 left-4 right-4 z-50 flex max-w-md items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5 sm:bottom-10 sm:left-auto sm:right-10 sm:gap-4 sm:px-8 sm:py-5">
             <div className="rounded-full bg-[#93f72b] p-1 text-[#2D1B69]"><Check size={14} /></div>
             <div>
               <p>Hồ sơ đã được gửi!</p>
@@ -841,7 +792,7 @@ export function Profile() {
           </div>
         )}
         {saveMsg === "mentor_resubmitted" && (
-          <div className="profile-toast-lime fixed bottom-10 right-10 z-50 flex max-w-md items-center gap-4 px-8 py-5 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5">
+          <div className="profile-toast-lime fixed bottom-4 left-4 right-4 z-50 flex max-w-md items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border font-black text-xs uppercase tracking-widest animate-in fade-in slide-in-from-bottom-5 sm:bottom-10 sm:left-auto sm:right-10 sm:gap-4 sm:px-8 sm:py-5">
             <div className="rounded-full bg-[#8037f4] p-1 text-white"><Check size={14} /></div>
             <div>
               <p>Đã gửi duyệt lại hồ sơ mentor!</p>
@@ -1156,150 +1107,6 @@ export function Profile() {
           </div>
         </div>
 
-        {/* ── CV Analysis History (mentee only) ──────────────────── */}
-        {!isMentor && (
-        <motion.div
-          className="mt-10"
-          initial={{ opacity: 0, y: 32 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="glass-card p-8 sm:p-10">
-            <motion.div
-              className="profile-divider mb-6 border-b pb-5"
-              initial={{ opacity: 0, x: -16 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
-            >
-              <h2 className="font-headline flex items-center gap-3 text-xl font-black tracking-tight sm:text-2xl">
-                <FileText size={20} className="profile-accent-purple" strokeWidth={2} />
-                Lịch sử <span className="profile-accent-purple">phân tích CV</span>
-              </h2>
-            </motion.div>
-
-            {cvHistoryLoading ? (
-              <div className="flex items-center justify-center py-10 text-sm text-violet-500">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-violet-200 border-t-[#8037f4] mr-2" />
-                Đang tải…
-              </div>
-            ) : cvHistoryRows.length === 0 ? (
-              <motion.div
-                className="rounded-2xl border border-dashed border-violet-200 bg-violet-50/40 px-4 py-10 text-center"
-                initial={{ opacity: 0, scale: 0.97 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: 0.15 }}
-              >
-                <FileText className="mx-auto mb-3 h-8 w-8 text-violet-300" strokeWidth={1.5} />
-                <p className="text-sm font-bold text-violet-950">Chưa có lịch sử phân tích</p>
-                <p className="profile-muted mt-1 text-xs">
-                  Tải CV lên và đối chiếu với JD để nhận điểm phù hợp
-                </p>
-                <button
-                  type="button"
-                  onClick={() => navigate(CV_JD_ANALYSIS_PATH)}
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#8037f4] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#6a28d8]"
-                >
-                  <FileText size={13} />
-                  Phân tích CV + JD ngay
-                </button>
-              </motion.div>
-            ) : (
-              <ul className="divide-y divide-violet-100">
-                {cvHistoryRows.map((item, index) => {
-                  const tone = cvScoreTone(item.matchScore);
-                  const title = item.position || item.cvFile;
-                  const when = item.createdAt
-                    ? new Date(item.createdAt).toLocaleString("vi-VN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : "";
-                  return (
-                    <motion.li
-                      key={item.id}
-                      className="flex items-center gap-4 py-3.5"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true, amount: 0.5 }}
-                      transition={{ duration: 0.35, delay: index * 0.07, ease: "easeOut" }}
-                    >
-                      <motion.span
-                        className={`inline-flex min-w-[3rem] shrink-0 items-center justify-center rounded-xl px-2 py-1.5 text-base font-extrabold ring-1 ${tone.bg} ${tone.text}`}
-                        initial={{ scale: 0.6, opacity: 0 }}
-                        whileInView={{ scale: 1, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.3, delay: index * 0.07 + 0.15, type: "spring", stiffness: 300, damping: 20 }}
-                      >
-                        {item.matchScore}
-                      </motion.span>
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                              item.mode === "field"
-                                ? "bg-amber-100 text-amber-900"
-                                : "bg-violet-100 text-[#630ed4]"
-                            }`}
-                          >
-                            {item.mode === "field" ? item.field || "Theo ngành" : "CV + JD"}
-                          </span>
-                          <span className="text-[11px] font-medium text-violet-400">{when}</span>
-                        </div>
-                        <p className="truncate text-sm font-semibold text-violet-950">{title}</p>
-                        {item.company && (
-                          <p className="truncate text-xs text-violet-500">{item.company}</p>
-                        )}
-                        {item.jdFile && !item.position && (
-                          <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-violet-400">
-                            <Briefcase size={10} className="shrink-0" />
-                            {item.jdFile}
-                          </p>
-                        )}
-                      </div>
-                      <motion.button
-                        type="button"
-                        onClick={() => navigate(cvAnalysisResultPath(item.mode, item.id))}
-                        className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-white px-3 py-1.5 text-xs font-bold text-[#630ed4] transition hover:bg-violet-50 hover:border-violet-300"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.96 }}
-                      >
-                        <Eye size={13} />
-                        Xem
-                      </motion.button>
-                    </motion.li>
-                  );
-                })}
-              </ul>
-            )}
-
-            {cvHistoryRows.length > 0 && (
-              <motion.div
-                className="mt-6 flex justify-center border-t border-violet-100 pt-5"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: cvHistoryRows.length * 0.07 + 0.1 }}
-              >
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Link
-                    to={CV_JD_HISTORY_PATH}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-[#8037f4] px-6 py-2.5 text-sm font-bold text-[#8037f4] transition hover:bg-violet-50"
-                  >
-                    Xem toàn bộ lịch sử
-                    <CaretRight size={15} />
-                  </Link>
-                </motion.div>
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
-        )}
       </div>
     </MentorPageShell>
   );

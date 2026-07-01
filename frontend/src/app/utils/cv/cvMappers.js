@@ -312,12 +312,25 @@ export function mapPythonCvPipelineToAnalysis(raw, { usedFallback = false, field
 
   const jdTotal = m.summary?.jd_total ?? matchedSkills.length + missingSkills.length;
 
+  // Build time-estimate lookup from missing_skill_suggestions keyed by lowercase skill name
+  const missTimeMap = {};
+  for (const item of sugg.missing_skill_suggestions ?? []) {
+    if (item.skill && item.estimated_effort) {
+      missTimeMap[item.skill.toLowerCase()] = item.estimated_effort;
+    }
+  }
+  const missingKwsWithTime = missingSkills.map((kw) => ({
+    kw,
+    time: missTimeMap[kw.toLowerCase()] ?? null,
+  }));
+
   return {
     matchScore: Math.round(m.match_score ?? 0),
     overallScore: Math.round((s?.overall ?? 0) * 10),
     totalKeywords: m.summary?.jd_total ?? jdTotal,
     matchedKeywords: matchedSkills,
     missingKeywords: missingSkills,
+    missingKwsWithTime,
     scores: {
       clarity: s?.clarity?.score ?? 0,
       structure: s?.structure?.score ?? 0,

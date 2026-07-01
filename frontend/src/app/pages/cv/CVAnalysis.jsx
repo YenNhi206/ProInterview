@@ -653,6 +653,15 @@ export function CVAnalysis() {
                 existingSkill: t.existing_skill ?? "",
                 estimatedTime: t.estimated_time ?? "",
               })),
+              missingKwsWithTime: (() => {
+                const timeMap = {};
+                for (const item of sugg.missing_skill_suggestions ?? []) {
+                  if (item.skill && item.estimated_effort) {
+                    timeMap[item.skill.toLowerCase()] = item.estimated_effort;
+                  }
+                }
+                return missingSkills.map(kw => ({ kw, time: timeMap[kw.toLowerCase()] ?? null }));
+              })(),
               isSemantic,
               cvText:   raw.resume_text ?? "",
               jdText:   raw.jd_text     ?? "",

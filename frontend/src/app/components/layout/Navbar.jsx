@@ -4,6 +4,7 @@ import {
   Bell,
   BookOpen,
   Calendar,
+  FileText,
   LogIn,
   LogOut,
   Menu,
@@ -257,7 +258,7 @@ function CustomerNavbar() {
                   </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-80 overflow-hidden border border-slate-200/90 bg-white p-0 text-slate-900 shadow-xl"
+                  className="w-[min(calc(100vw-1.5rem),20rem)] overflow-hidden border border-slate-200/90 bg-white p-0 text-slate-900 shadow-xl"
                 >
                   <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                     <span className="text-sm font-semibold text-slate-900">Thông báo</span>
@@ -322,6 +323,10 @@ function CustomerNavbar() {
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
                     <User className="mr-2 size-4" />
                     Hồ sơ
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/cv-analysis/history")}>
+                    <FileText className="mr-2 size-4" />
+                    Lịch sử phân tích CV
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/my-courses")}>
                     <BookOpen className="mr-2 size-4" />
@@ -397,7 +402,7 @@ function CustomerNavbar() {
             onClick={() => setMobileOpen(false)}
           />
         <div
-          className="top-nav-shell-outer fixed right-3 top-[3.8rem] z-[99] w-[14rem] sm:right-6 sm:top-[4.2rem] sm:w-[16rem] md:hidden"
+          className="top-nav-shell-outer fixed right-3 top-[3.8rem] z-[99] w-[min(100vw-1.5rem,16rem)] sm:right-6 sm:top-[4.2rem] md:hidden"
         >
           <div
             className="rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl"
@@ -546,7 +551,7 @@ function MentorNavbar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-80 overflow-hidden border border-slate-200/90 bg-white p-0 text-slate-900 shadow-xl"
+              className="w-[min(calc(100vw-1.5rem),20rem)] overflow-hidden border border-slate-200/90 bg-white p-0 text-slate-900 shadow-xl"
             >
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                 <span className="text-sm font-semibold text-slate-900">Thông báo</span>

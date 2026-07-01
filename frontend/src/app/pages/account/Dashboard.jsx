@@ -647,7 +647,7 @@ export function Dashboard() {
               <span className="text-lg font-black tracking-tight text-[#8037f4] sm:text-xl">{initials}</span>
             </div>
             <div className="min-w-0">
-              <h1 className="break-words text-xl font-black leading-tight text-slate-900 sm:text-2xl">
+              <h1 className="break-words text-xl font-black leading-tight text-slate-900 sm:text-2xl lg:text-3xl">
                 Chào, <span className="text-[#8037f4]">{fullName}!</span>
               </h1>
               <p className="mt-1 text-sm font-medium text-slate-600/90">
@@ -711,7 +711,7 @@ export function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4"
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3"
         >
           <FeatureCard
             title="Phân tích CV/JD"

@@ -48,11 +48,11 @@ const IS = { strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" 
 
 /** Chiều cao cố định ô chi tiết bước 1 */
 const SOURCE_DETAIL_PANEL_CLASS =
-  "flex h-[15rem] flex-col rounded-md border border-violet-200/80 bg-violet-50/50 px-4 py-4 sm:h-[16rem] sm:px-5 sm:py-5";
+  "flex h-[15rem] flex-col rounded-md border border-violet-200/80 bg-violet-50/50 px-4 py-4 sm:h-[16rem] sm:px-5 sm:py-5 md:h-[18rem] lg:h-[20rem]";
 
 /** Ô xem trước HR, cao hơn để video lớn hơn */
 const HR_PREVIEW_PANEL_CLASS =
-  "flex h-[16rem] flex-col rounded-md border border-violet-200/80 bg-violet-50/50 px-4 py-3 sm:h-[18rem] sm:px-5";
+  "flex h-[16rem] flex-col rounded-md border border-violet-200/80 bg-violet-50/50 px-4 py-3 sm:h-[18rem] sm:px-5 md:h-[20rem] lg:h-[22rem]";
 
 function formatCvAnalysisDate(value) {
   if (!value) return "";

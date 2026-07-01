@@ -113,8 +113,10 @@ function SaveBar({ dirty, saving, saved, onSave, onReset }) {
     <motion.div
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`fixed bottom-8 right-8 z-50 flex items-center gap-5 rounded-2xl border px-6 py-4 shadow-[0_12px_40px_rgba(15,23,42,0.12)] backdrop-blur-md transition-all ${
-        saved ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white/95"
+      className={`fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-[0_12px_40px_rgba(15,23,42,0.12)] backdrop-blur-md transition-all sm:bottom-8 sm:left-auto sm:right-8 sm:gap-5 sm:px-6 sm:py-4 ${
+        saved
+          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+          : "border-slate-200 bg-white/95"
       }`}
     >
       {saved ? (

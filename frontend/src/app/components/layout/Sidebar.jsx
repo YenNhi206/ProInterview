@@ -437,6 +437,12 @@ export function AppSidebar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/cv-analysis/history" className="flex items-center gap-2.5 cursor-pointer">
+                        <FileText className="size-4" />
+                        Lịch sử phân tích CV
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/my-courses" className="flex items-center gap-2.5 cursor-pointer">
                         <BookOpen className="size-4" />
                         Khóa học của tôi
