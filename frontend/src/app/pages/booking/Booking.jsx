@@ -20,6 +20,7 @@ import {
   X,
   Briefcase,
   Target,
+  ArrowLeft,
 } from "lucide-react";
 import { fetchMentor, fetchMentorAvailability } from "../../api/mentorApi.js";
 import { isBookingSlotInFuture } from "../../utils/booking/bookingSchedule.js";
@@ -689,6 +690,16 @@ export function Booking() {
 
         {step === 2 && (
           <div className="space-y-5">
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="group -ml-2 flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              >
+                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                Quay lại chọn lịch
+              </button>
+            </div>
             {showSmartBanner && suggestedData && (
               <div className="flex items-start gap-3 rounded-2xl border border-lime-200 bg-gradient-to-br from-lime-50 to-violet-50 p-4">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-lime-100">
@@ -946,7 +957,7 @@ export function Booking() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
               <div className="flex items-center gap-1.5 text-xs text-slate-600">
                 <ShieldCheck className="h-4 w-4 flex-shrink-0 text-[#8037f4]" />
                 Thanh toán bảo mật và mã hóa
