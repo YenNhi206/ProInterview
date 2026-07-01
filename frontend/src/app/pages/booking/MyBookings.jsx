@@ -109,39 +109,39 @@ function mentorSubtitle(s) {
 
 /* ─── Stat card ─────────────────────────────────────────────── */
 const STATS_META = [
-  { id: "total",     label: "Tổng lịch hẹn",   icon: CalendarClock,  border: "border-violet-100", from: "from-violet-50",  iconCls: "text-[#8037f4]",  bg: "bg-violet-100/70"  },
-  { id: "upcoming",  label: "Sắp tới",          icon: CalendarCheck,  border: "border-sky-100",    from: "from-sky-50",     iconCls: "text-sky-600",    bg: "bg-sky-100/70"     },
-  { id: "past",      label: "Đã hoàn thành",    icon: CheckCircle2,   border: "border-emerald-100",from: "from-emerald-50", iconCls: "text-emerald-600",bg: "bg-emerald-100/70" },
-  { id: "cancelled", label: "Đã hủy",           icon: CalendarX,      border: "border-rose-100",   from: "from-rose-50",    iconCls: "text-rose-500",   bg: "bg-rose-100/70"    },
+  { id: "total",     label: "Tổng lịch hẹn",   icon: CalendarClock,  ring: "ring-violet-50", from: "from-violet-50",  iconCls: "text-[#8037f4]",  bg: "bg-violet-100/70"  },
+  { id: "upcoming",  label: "Sắp tới",          icon: CalendarCheck,  ring: "ring-sky-50",    from: "from-sky-50",     iconCls: "text-sky-600",    bg: "bg-sky-100/70"     },
+  { id: "past",      label: "Đã hoàn thành",    icon: CheckCircle2,   ring: "ring-emerald-50",from: "from-emerald-50", iconCls: "text-emerald-600",bg: "bg-emerald-100/70" },
+  { id: "cancelled", label: "Đã hủy",           icon: CalendarX,      ring: "ring-rose-50",   from: "from-rose-50",    iconCls: "text-rose-500",   bg: "bg-rose-100/70"    },
 ];
 
 function StatCard({ meta, value, index }) {
   const Icon = meta.icon;
   return (
     <motion.div
-      className={`relative overflow-hidden rounded-3xl border ${meta.border} bg-gradient-to-br ${meta.from} to-white p-4 shadow-sm sm:p-5`}
-      initial={{ opacity: 0, y: 24, scale: 0.95 }}
+      className="group relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/60 p-6 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+      initial={{ opacity: 0, y: 28, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(128,55,244,0.1)", transition: { type: "spring", stiffness: 320, damping: 26 } }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-3xl font-black tabular-nums leading-none text-slate-900 sm:text-4xl">
-            <CountUp to={value} />
-          </p>
-          <p className="mt-2 text-xs font-semibold text-slate-500">{meta.label}</p>
-        </div>
-        <motion.span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${meta.bg}`}
+      <div className={`absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-20 blur-3xl transition-transform duration-500 group-hover:scale-150 ${meta.bg}`} />
+      <div className="relative z-10 flex items-center gap-5">
+        <motion.div
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${meta.bg} ring-4 ${meta.ring} shadow-sm`}
           initial={{ scale: 0, rotate: -20 }}
           whileInView={{ scale: 1, rotate: 0 }}
           viewport={{ once: true }}
-          transition={{ type: "spring", stiffness: 380, damping: 20, delay: index * 0.08 + 0.15 }}
+          transition={{ type: "spring", stiffness: 350, damping: 18, delay: index * 0.08 + 0.15 }}
         >
-          <Icon className={`size-5 ${meta.iconCls}`} />
-        </motion.span>
+          <Icon className={`h-7 w-7 ${meta.iconCls}`} strokeWidth={2} />
+        </motion.div>
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">{meta.label}</p>
+          <p className={`mt-1 text-3xl font-black tabular-nums leading-none tracking-tight ${meta.iconCls}`}>
+            <CountUp to={value} />
+          </p>
+        </div>
       </div>
     </motion.div>
   );
@@ -191,17 +191,19 @@ function BookingCard({ s, tab, index }) {
 
   return (
     <motion.article
+      onClick={() => navigate(`/session/${id}`)}
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.45, delay: (index % 4) * 0.08, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{
-        y: -6,
-        boxShadow: "0 16px 40px rgba(128,55,244,0.12)",
-        borderColor: "rgba(128,55,244,0.22)",
+        y: -8,
+        boxShadow: "0 24px 48px rgba(128,55,244,0.12)",
+        borderColor: "rgba(237,233,254,1)",
+        backgroundColor: "rgba(255,255,255,0.95)",
         transition: { type: "spring", stiffness: 340, damping: 28 },
       }}
-      className="group flex flex-col overflow-hidden rounded-[28px] border border-violet-100/80 bg-white shadow-[0_4px_20px_rgba(128,55,244,0.05)]"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-[2rem] border border-white/80 bg-white/60 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
     >
       {/* Top accent bar — color by status */}
       <div
@@ -304,7 +306,7 @@ function BookingCard({ s, tab, index }) {
           <div className="flex flex-wrap gap-2">
             <motion.button
               type="button"
-              onClick={() => navigate(`/session/${id}`)}
+              onClick={(e) => { e.stopPropagation(); navigate(`/session/${id}`); }}
               whileHover={{ scale: 1.04, backgroundColor: "#f5f3ff" }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: "spring", stiffness: 380, damping: 24 }}
@@ -317,7 +319,7 @@ function BookingCard({ s, tab, index }) {
             {canMeet && isUpcoming && (
               <motion.button
                 type="button"
-                onClick={() => navigate(`/meeting/${id}`)}
+                onClick={(e) => { e.stopPropagation(); navigate(`/meeting/${id}`); }}
                 whileHover={{ scale: 1.05, opacity: 0.9 }}
                 whileTap={{ scale: 0.93 }}
                 transition={{ type: "spring", stiffness: 380, damping: 24 }}
@@ -331,7 +333,7 @@ function BookingCard({ s, tab, index }) {
             {needsReview && (
               <motion.button
                 type="button"
-                onClick={() => navigate(`/review/${id}`)}
+                onClick={(e) => { e.stopPropagation(); navigate(`/review/${id}`); }}
                 initial={{ scale: 0.85, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: (index % 4) * 0.08 + 0.3, type: "spring", stiffness: 360, damping: 20 }}
@@ -422,69 +424,47 @@ export function MyBookings() {
   }, [rows, tab]);
 
   return (
-    <MentorPageShell bottomPad="pb-20">
-      {/* ── Dark hero banner ─────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#1a0d35] via-[#2d1460] to-[#1a0d35]">
-        {/* Glow orbs */}
-        <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[#8037f4]/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 right-10 h-56 w-56 rounded-full bg-violet-300/10 blur-3xl" />
-
-        <div className={`relative z-10 py-10 sm:py-14 ${CUSTOMER_SHELL_GUTTER}`}>
+    <div className="flex h-full min-h-screen flex-col">
+      <MentorPageShell>
+        <div className={`${CUSTOMER_SHELL_GUTTER} pb-24 pt-12 relative`}>
+          {/* Premium Top Glow */}
+          <div className="absolute left-1/2 top-0 -z-10 h-[300px] w-full max-w-4xl -translate-x-1/2 rounded-full bg-violet-300/20 blur-[100px] pointer-events-none" />
+          
           <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="flex items-center gap-2.5 mb-3"
-            >
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#8037f4]/30 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-violet-300 border border-violet-500/30">
-                <Sparkles className="h-3 w-3" />
-                Lịch hẹn của bạn
-              </span>
-            </motion.div>
-
+          {/* ── Header ── */}
+          <div className="mb-10 flex flex-col gap-4">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="text-3xl font-black leading-tight text-white sm:text-4xl"
+              className="py-2 leading-relaxed text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-indigo-600 sm:text-5xl"
             >
-              Buổi Mentor{" "}
-              <span className="bg-gradient-to-r from-[#93f72b] to-lime-300 bg-clip-text text-transparent">
-                1:1 của tôi
-              </span>
+              Buổi Mentor 1:1 của bạn
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.18 }}
-              className="mt-2 text-sm text-violet-200/80"
+              className="mt-1 max-w-xl text-sm font-medium text-slate-500"
             >
               Theo dõi lịch hẹn, trạng thái thanh toán và phiên học sắp tới.
             </motion.p>
           </div>
-        </div>
-      </div>
 
-      {/* ── Stats cards (overlap hero) ─────────────────────── */}
-      <div className={`relative z-10 -mt-6 ${CUSTOMER_SHELL_GUTTER}`}>
-        <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {/* ── Stats cards ── */}
+          <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {STATS_META.map((meta, i) => (
               <StatCard key={meta.id} meta={meta} value={counts[meta.id] ?? (meta.id === "total" ? rows.length : 0)} index={i} />
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* ── Content ──────────────────────────────────────────── */}
-      <div className={`relative z-10 mt-8 pb-12 ${CUSTOMER_SHELL_GUTTER}`}>
-        <div className={`${CUSTOMER_SHELL_MAX} w-full space-y-5`}>
+          {/* ── Content ──────────────────────────────────────────── */}
+          <div className="space-y-5">
 
           {/* Tab bar */}
           <div
-            className="flex gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm"
+            className="flex gap-1.5 rounded-2xl bg-white/60 p-2 shadow-sm ring-1 ring-slate-200/50 backdrop-blur-xl sm:w-fit"
             role="tablist"
           >
             {TABS.map((t) => {
@@ -586,8 +566,10 @@ export function MyBookings() {
             )}
           </AnimatePresence>
 
+          </div>
         </div>
       </div>
-    </MentorPageShell>
+      </MentorPageShell>
+    </div>
   );
 }

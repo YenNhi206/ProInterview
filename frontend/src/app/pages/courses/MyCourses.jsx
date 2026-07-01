@@ -78,12 +78,13 @@ function CourseCard({ item, onContinue, onDetails, index }) {
 
   return (
     <motion.article
-      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-violet-100/80 bg-white shadow-[0_4px_24px_rgba(128,55,244,0.06)]"
+      onClick={onDetails}
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-[2rem] border border-white/80 bg-white/60 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.12 }}
       transition={{ duration: 0.45, delay: (index % 3) * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -8, boxShadow: "0 20px 48px rgba(128,55,244,0.14)", borderColor: "rgba(128,55,244,0.25)" }}
+      whileHover={{ y: -8, boxShadow: "0 24px 48px rgba(128,55,244,0.12)", borderColor: "rgba(237,233,254,1)", backgroundColor: "rgba(255,255,255,0.95)" }}
     >
       {/* Thumbnail */}
       <div className="relative aspect-video w-full overflow-hidden bg-violet-50">
@@ -145,8 +146,8 @@ function CourseCard({ item, onContinue, onDetails, index }) {
           {hasPaidAccess ? (
             <motion.button
               type="button"
-              onClick={onContinue}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#8037f4] px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_14px_rgba(128,55,244,0.3)]"
+              onClick={(e) => { e.stopPropagation(); onContinue(); }}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-2xl bg-[#8037f4] px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_14px_rgba(128,55,244,0.3)]"
               whileHover={{ scale: 1.03, backgroundColor: "#6d2fd6" }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: "spring", stiffness: 380, damping: 22 }}
@@ -157,8 +158,8 @@ function CourseCard({ item, onContinue, onDetails, index }) {
           ) : null}
           <motion.button
             type="button"
-            onClick={onDetails}
-            className={`inline-flex items-center justify-center gap-1 rounded-2xl border border-violet-200 bg-violet-50/50 px-4 py-2.5 text-xs font-bold text-[#8037f4] ${hasPaidAccess ? "" : "flex-1"}`}
+            onClick={(e) => { e.stopPropagation(); onDetails(); }}
+            className={`inline-flex items-center justify-center gap-1 rounded-2xl border border-violet-200 bg-violet-50/50 px-4 py-2.5 text-xs font-bold text-[#8037f4] hover:bg-violet-100/50 ${hasPaidAccess ? "" : "flex-1"}`}
             whileHover={{ scale: 1.02, borderColor: "#a78bfa", backgroundColor: "#f5f3ff" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 380, damping: 22 }}
@@ -174,39 +175,39 @@ function CourseCard({ item, onContinue, onDetails, index }) {
 
 /* ── Stat card ───────────────────────────────────────── */
 const STATS_META = [
-  { key: "total",     label: "Khóa đã mua",       icon: BookOpen,    suffix: "",  from: "from-violet-50",  border: "border-violet-100", icon_color: "text-[#8037f4]",  bg: "bg-violet-100/70" },
-  { key: "completed", label: "Đã hoàn thành",      icon: Trophy,      suffix: "",  from: "from-emerald-50", border: "border-emerald-100", icon_color: "text-emerald-600",bg: "bg-emerald-100/70" },
-  { key: "remaining", label: "Đang học",            icon: Flame,       suffix: "",  from: "from-amber-50",   border: "border-amber-100",  icon_color: "text-amber-500",  bg: "bg-amber-100/70" },
-  { key: "avgPct",    label: "Tiến độ trung bình", icon: TrendingUp,  suffix: "%", from: "from-sky-50",     border: "border-sky-100",    icon_color: "text-sky-600",    bg: "bg-sky-100/70" },
+  { key: "total",     label: "Khóa đã mua",       icon: BookOpen,    suffix: "",  from: "from-violet-50",  ring: "ring-violet-50", icon_color: "text-[#8037f4]",  bg: "bg-violet-100/70" },
+  { key: "completed", label: "Đã hoàn thành",      icon: Trophy,      suffix: "",  from: "from-emerald-50", ring: "ring-emerald-50", icon_color: "text-emerald-600",bg: "bg-emerald-100/70" },
+  { key: "remaining", label: "Đang học",            icon: Flame,       suffix: "",  from: "from-amber-50",   ring: "ring-amber-50",  icon_color: "text-amber-500",  bg: "bg-amber-100/70" },
+  { key: "avgPct",    label: "Tiến độ trung bình", icon: TrendingUp,  suffix: "%", from: "from-sky-50",     ring: "ring-sky-50",    icon_color: "text-sky-600",    bg: "bg-sky-100/70" },
 ];
 
 function StatCard({ meta, value, index }) {
   const Icon = meta.icon;
   return (
     <motion.div
-      className={`relative overflow-hidden rounded-3xl border ${meta.border} bg-gradient-to-br ${meta.from} to-white p-5 shadow-sm`}
+      className="group relative overflow-hidden rounded-[2rem] border border-white/80 bg-white/70 p-6 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
       initial={{ opacity: 0, y: 28, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(128,55,244,0.1)" }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-3xl font-black tabular-nums leading-none text-slate-900 sm:text-4xl">
-            <CountUp to={value} suffix={meta.suffix} />
-          </p>
-          <p className="mt-2.5 text-xs font-semibold text-slate-500">{meta.label}</p>
-        </div>
-        <motion.span
-          className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${meta.bg} ${meta.icon_color}`}
+      <div className={`absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-20 blur-3xl transition-transform duration-500 group-hover:scale-150 ${meta.bg}`} />
+      <div className="relative z-10 flex items-center gap-5">
+        <motion.div
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${meta.bg} ring-4 ${meta.ring} shadow-sm`}
           initial={{ scale: 0, rotate: -20 }}
           whileInView={{ scale: 1, rotate: 0 }}
           viewport={{ once: true }}
           transition={{ type: "spring", stiffness: 350, damping: 18, delay: index * 0.08 + 0.15 }}
         >
-          <Icon className="size-5" strokeWidth={2} />
-        </motion.span>
+          <Icon className={`h-7 w-7 ${meta.icon_color}`} strokeWidth={2} />
+        </motion.div>
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">{meta.label}</p>
+          <p className={`mt-1 text-3xl font-black tabular-nums leading-none tracking-tight ${meta.icon_color}`}>
+            <CountUp to={value} suffix={meta.suffix} />
+          </p>
+        </div>
       </div>
     </motion.div>
   );
@@ -342,50 +343,37 @@ export function MyCourses() {
   }, [enrolledCourses]);
 
   return (
-    <MentorPageShell bottomPad="pb-20">
-      {/* ── Hero header strip ── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#1a0d35] via-[#2d1460] to-[#1a0d35] px-6 py-14 sm:px-10 sm:py-16">
-        {/* bg decoration */}
-        <div className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-[#8037f4]/20 blur-[80px]" />
-        <div className="pointer-events-none absolute -bottom-10 right-10 h-52 w-52 rounded-full bg-lime-400/10 blur-[70px]" />
+    <div className="flex h-full min-h-screen flex-col">
+      <MentorPageShell>
+        <div className={`${CUSTOMER_SHELL_GUTTER} pb-24 pt-12 relative`}>
+        {/* Premium Top Glow */}
+        <div className="absolute left-1/2 top-0 -z-10 h-[300px] w-full max-w-4xl -translate-x-1/2 rounded-full bg-violet-300/20 blur-[100px] pointer-events-none" />
 
-        <div className={`relative z-10 ${CUSTOMER_SHELL_MAX} mx-auto`}>
-          <motion.p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-violet-300/80"
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            Học tập của tôi
-          </motion.p>
-          <motion.h1
-            className="font-headline text-3xl font-black text-white sm:text-4xl md:text-5xl"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-          >
-            Khóa học{" "}
-            <span className="bg-gradient-to-r from-lime-300 to-lime-400 bg-clip-text text-transparent">
-              của bạn
-            </span>
-          </motion.h1>
-          <motion.p
-            className="mt-3 max-w-xl text-sm leading-relaxed text-violet-200/80"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.2 }}
-          >
-            Tiếp tục xem lại bài cũ và theo dõi tiến độ trong các khóa đã mua.
-          </motion.p>
-        </div>
-      </div>
-
-      <div className={`relative z-10 flex flex-col pb-12 ${CUSTOMER_SHELL_GUTTER}`}>
         <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
 
-          {/* ── Stat cards — pull up over hero ── */}
+          {/* ── Header ── */}
+          <div className="mb-10 flex flex-col gap-4">
+            <motion.h1
+              className="py-2 leading-relaxed text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-indigo-600 sm:text-5xl"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Khóa học của bạn
+            </motion.h1>
+            <motion.p
+              className="mt-1 max-w-xl text-sm font-medium text-slate-500"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.2 }}
+            >
+              Tiếp tục xem lại bài cũ và theo dõi tiến độ trong các khóa đã mua.
+            </motion.p>
+          </div>
+
+          {/* ── Stat cards ── */}
           {!loading && enrolledCourses.length > 0 && (
-            <div className="-mt-8 mb-10 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+            <div className="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
               {STATS_META.map((meta, i) => (
                 <StatCard
                   key={meta.key}
@@ -442,6 +430,7 @@ export function MyCourses() {
           </AnimatePresence>
         </div>
       </div>
-    </MentorPageShell>
+      </MentorPageShell>
+    </div>
   );
 }

@@ -95,7 +95,6 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
         boxShadow: "0 20px 48px rgba(128,55,244,0.14)",
         borderColor: "rgba(128,55,244,0.25)",
       }}
-      transition={{ type: "spring", stiffness: 340, damping: 28 }}
       className="group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border border-violet-100/80 bg-white shadow-[0_4px_24px_rgba(128,55,244,0.06)]"
     >
       {/* Thumbnail */}

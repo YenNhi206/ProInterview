@@ -16,6 +16,8 @@ export const CUSTOMER_NAV_ITEMS = [
 
 export function isCustomerNavActive(pathname, url) {
   if (url === "/cv-analysis") {
+    // Chỉ ẩn gạch chân khi truy cập trang Lịch sử tổng từ menu avatar
+    if (pathname === "/cv-analysis/history") return false;
     return pathname === "/cv-analysis" || pathname.startsWith("/cv-analysis/");
   }
   return pathname === url || pathname.startsWith(`${url}/`);
