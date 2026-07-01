@@ -12,6 +12,7 @@ import { CVAnalysisHub } from "./pages/cv/CVAnalysisHub";
 import { CVAnalysis } from "./pages/cv/CVAnalysis";
 import { CVAnalysisResult } from "./pages/cv/CVAnalysisResult";
 import { AnalysisHistory } from "./pages/cv/AnalysisHistory";
+import { CVAnalysisHistoryHub } from "./pages/cv/CVAnalysisHistoryHub";
 import { Interview } from "./pages/interview/Interview";
 import { AIGenderSelection } from "./pages/interview/__archived__/AIGenderSelection";
 import InterviewRoom from "./pages/interview/InterviewRoom";
@@ -116,16 +117,7 @@ export const router = createBrowserRouter([
       { path: "cv-analysis/field/result/:analysisId", Component: CVAnalysisResult },
       { path: "cv-analysis/field/result", Component: CVAnalysisResult },
       { path: "cv-analysis/field", Component: CVAnalysis },
-      {
-        path: "cv-analysis/history",
-        loader: ({ request }) => {
-          const url = new URL(request.url);
-          const mode = url.searchParams.get("mode");
-          return redirect(
-            mode === "field" ? "/cv-analysis/field/history" : "/cv-analysis/jd/history"
-          );
-        },
-      },
+      { path: "cv-analysis/history", Component: CVAnalysisHistoryHub },
       { path: "interview", Component: Interview },
       { path: "interview/gender", loader: requireCustomerAuthLoader, Component: AIGenderSelection },
       { path: "interview/room", loader: requireCustomerAuthLoader, Component: InterviewRoom },

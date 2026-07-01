@@ -624,6 +624,7 @@ export function Mentors() {
                   {paginatedMentors.map((mentor, index) => (
                     <motion.div
                       key={mentor.id}
+                      className="h-full"
                       initial={{ opacity: 0, y: 44 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.12 }}
