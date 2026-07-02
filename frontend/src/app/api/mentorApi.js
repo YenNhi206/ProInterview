@@ -136,6 +136,22 @@ export async function fetchMyMentorProfile() {
   }
 }
 
+export async function requestMentorPriceChange(newPrice) {
+  if (!hasAuthCredentials()) return { success: false, error: ERROR_MESSAGES.UNAUTHENTICATED };
+  try {
+    const res = await authFetch("/api/mentor/request-price-change", {
+      method: "POST",
+      headers: { ...jsonHeaders },
+      body: JSON.stringify({ newPrice }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: normalizeApiError(data, res.status) };
+    return { success: true, pendingPricePerHour: data.pendingPricePerHour };
+  } catch {
+    return { success: false, error: ERROR_MESSAGES.NETWORK };
+  }
+}
+
 export async function updateMyMentorProfile(payload) {
   if (!hasAuthCredentials()) return { success: false, error: ERROR_MESSAGES.UNAUTHENTICATED, mentor: null };
   try {

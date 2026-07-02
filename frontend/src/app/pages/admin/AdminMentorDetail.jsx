@@ -12,6 +12,9 @@ import {
   User,
   Lock,
   Unlock,
+  TrendingUp,
+  Check,
+  X,
 } from "lucide-react";
 import {
   adminGlassTable,
@@ -79,6 +82,7 @@ export function AdminMentorDetail() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [commissionBusy, setCommissionBusy] = useState(false);
+  const [priceBusy, setPriceBusy] = useState(false);
   const [bookingFeePct, setBookingFeePct] = useState("");
   const [courseFeePct, setCourseFeePct] = useState("");
 
@@ -177,6 +181,28 @@ export function AdminMentorDetail() {
       setBookingFeePct("");
       setCourseFeePct("");
     }
+  };
+
+  const approvePrice = async () => {
+    if (!mentor) return;
+    setPriceBusy(true);
+    const res = await tryApi(() => adminApi.approveMentorPrice(mentor._id), {
+      fallback: "Không duyệt được yêu cầu đổi giá.",
+      successMessage: "Đã duyệt mức giá mới.",
+    });
+    setPriceBusy(false);
+    if (res.success && res.mentor) setMentor(res.mentor);
+  };
+
+  const rejectPrice = async () => {
+    if (!mentor) return;
+    setPriceBusy(true);
+    const res = await tryApi(() => adminApi.rejectMentorPrice(mentor._id), {
+      fallback: "Không từ chối được yêu cầu đổi giá.",
+      successMessage: "Đã từ chối yêu cầu đổi giá.",
+    });
+    setPriceBusy(false);
+    if (res.success && res.mentor) setMentor(res.mentor);
   };
 
   return (
@@ -378,6 +404,44 @@ export function AdminMentorDetail() {
               </button>
             </div>
           </motion.div>
+
+          {mentor.pendingPricePerHour ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-amber-200 bg-amber-50/80 p-5"
+            >
+              <h4 className="mb-1 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-900">
+                <TrendingUp className="h-4 w-4" />
+                Yêu cầu đổi giá
+              </h4>
+              <p className="mb-4 text-sm text-amber-900/90">
+                Mentor đề xuất mức giá mới:{" "}
+                <span className="font-black">{vnd(mentor.pendingPricePerHour)}</span>
+                {" "}(hiện tại: {vnd(mentor.pricePerHour || mentor.hourlyRate)})
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={priceBusy}
+                  onClick={() => void approvePrice()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-lime-400/25 bg-lime-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider text-lime-900 hover:bg-lime-500/20 disabled:opacity-50"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  Duyệt
+                </button>
+                <button
+                  type="button"
+                  disabled={priceBusy}
+                  onClick={() => void rejectPrice()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-[11px] font-black uppercase tracking-wider text-red-800 hover:bg-red-100 disabled:opacity-50"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Từ chối
+                </button>
+              </div>
+            </motion.div>
+          ) : null}
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

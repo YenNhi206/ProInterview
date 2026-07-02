@@ -14,6 +14,7 @@ import {
   TrendingUp,
   BadgeCheck,
   X,
+  PenLine,
 } from "lucide-react";
 import { MentorListExpandButton } from "../../components/mentor/MentorListExpandButton.jsx";
 import { useMentorListExpand } from "../../hooks/useMentorListExpand.js";
@@ -22,7 +23,12 @@ import { getUser, getDisplayName } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames";
 import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
-import { fetchMentorFinance, requestMentorPayout, updateMentorPayoutAccount } from "../../api/mentorApi.js";
+import {
+  fetchMentorFinance,
+  requestMentorPayout,
+  updateMentorPayoutAccount,
+  requestMentorPriceChange,
+} from "../../api/mentorApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { AppSelect } from "../../components/ui/AppSelect";
@@ -386,6 +392,8 @@ export function MentorFinance() {
   const [finance, setFinance] = useState(null);
   const [selectedTx, setSelectedTx] = useState(null);
   const transactionSectionRef = useRef(null);
+  const [newPriceInput, setNewPriceInput] = useState("");
+  const [submittingPrice, setSubmittingPrice] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== "mentor") {
@@ -431,6 +439,30 @@ export function MentorFinance() {
   const payoutAccountMasked = finance?.payoutAccountMasked || "";
   const payoutAccountOwnerName = finance?.payoutAccountOwnerName || getDisplayName(user, "Mentor");
   const commissionPolicy = finance?.commissionPolicy || null;
+  const currentPricePerHour = Number(finance?.pricePerHour || 0);
+  const pendingPricePerHour = finance?.pendingPricePerHour ?? null;
+  const newPriceDigits = newPriceInput.replace(/\D/g, "");
+  const newPriceValue = Number(newPriceDigits || 0);
+  const isPriceChangeValid = newPriceValue > 0 && newPriceValue !== currentPricePerHour;
+
+  const handleRequestPriceChange = async () => {
+    if (!isPriceChangeValid) return;
+    setSubmittingPrice(true);
+    try {
+      const res = await requestMentorPriceChange(newPriceValue);
+      if (!res.success) {
+        toastApiError(res.error, "Không gửi được yêu cầu đổi giá.");
+        return;
+      }
+      toastApiSuccess("Đã gửi yêu cầu đổi giá, chờ Admin duyệt.");
+      setNewPriceInput("");
+      setFinance((prev) => ({ ...(prev || {}), pendingPricePerHour: newPriceValue }));
+    } catch {
+      toastApiError("Lỗi kết nối khi gửi yêu cầu đổi giá.");
+    } finally {
+      setSubmittingPrice(false);
+    }
+  };
   const pendingWithdrawCount = transactions.filter(
     (tx) =>
       tx.type === "withdraw" &&
@@ -914,6 +946,49 @@ export function MentorFinance() {
                   </span>
                 </li>
               </ul>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+              <h3 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <PenLine size={13} className="text-[#8037f4]" />
+                Cập nhật mức phí Mentor
+              </h3>
+              <p className="mt-3 text-sm text-slate-600">
+                Mức giá hiện tại:{" "}
+                <span className="font-bold text-slate-900">{formatMoney(currentPricePerHour)}/giờ</span>
+              </p>
+
+              {pendingPricePerHour ? (
+                <div className="mt-3 rounded-lg border border-[#93f72b]/40 bg-[#93f72b]/10 px-3 py-2.5">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-[#630ed4]">
+                    <Clock size={13} className="shrink-0" />
+                    Đang chờ Admin duyệt mức giá mới
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {formatMoney(pendingPricePerHour)}/giờ
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <label className={withdrawFieldLabel}>Mức giá mới (VND/giờ)</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="VD: 350.000"
+                    value={newPriceDigits ? newPriceValue.toLocaleString("vi-VN") : ""}
+                    onChange={(e) => setNewPriceInput(e.target.value.replace(/\D/g, ""))}
+                    className={withdrawFieldInput}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRequestPriceChange}
+                    disabled={!isPriceChangeValid || submittingPrice}
+                    className="mt-3 w-full rounded-lg bg-[#8037f4] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#6d2fd6] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {submittingPrice ? "Đang gửi…" : "Gửi yêu cầu"}
+                  </button>
+                </div>
+              )}
             </div>
 
             {commissionPolicy ? (

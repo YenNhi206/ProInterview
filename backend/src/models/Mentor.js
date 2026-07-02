@@ -48,6 +48,7 @@ const mentorSchema = new Schema(
     experienceYears: { type: Number, default: 0 },
 
     pricePerHour: { type: Number, required: true },
+    pendingPricePerHour: { type: Number, default: null },
     sessionTypes: [sessionTypeSchema],
 
     available: { type: Boolean, default: true },

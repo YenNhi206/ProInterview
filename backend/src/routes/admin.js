@@ -21,6 +21,9 @@ adminRouter.get("/mentors/:id", asyncHandler(AdminController.getMentorById));
 adminRouter.patch("/mentors/:id/status", asyncHandler(AdminController.toggleMentorStatus));
 adminRouter.patch("/mentors/:id/reject", asyncHandler(AdminController.rejectMentorApplication));
 adminRouter.patch("/mentors/:id/commission", asyncHandler(AdminController.updateMentorCommission));
+adminRouter.post("/mentors/:id/approve-price", asyncHandler(AdminController.approveMentorPrice));
+adminRouter.post("/mentors/:id/reject-price", asyncHandler(AdminController.rejectMentorPrice));
+
 
 adminRouter.get("/users", asyncHandler(AdminController.getAllUsers));
 adminRouter.get("/users/:id", asyncHandler(AdminController.getUserById));

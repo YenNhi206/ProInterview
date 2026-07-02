@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { Users, Search, Filter, CheckCircle, XCircle, Eye, ShieldCheck, Star } from "lucide-react";
+import { Users, Search, Filter, CheckCircle, XCircle, Eye, ShieldCheck, Star, TrendingUp } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
@@ -141,6 +141,15 @@ export function AdminMentors() {
                         <div>
                           <p className="font-black text-slate-900">{mentor.userId?.name}</p>
                           <p className="text-[10px] text-slate-500">{mentor.userId?.email}</p>
+                          {mentor.pendingPricePerHour ? (
+                            <Link
+                              to={`/admin/mentors/${mentor._id}`}
+                              className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-800 hover:bg-amber-100"
+                              title={`Đề xuất giá mới: ${Number(mentor.pendingPricePerHour).toLocaleString("vi-VN")} Đ/giờ`}
+                            >
+                              <TrendingUp size={10} /> Yêu cầu đổi giá
+                            </Link>
+                          ) : null}
                         </div>
                       </div>
                     </td>

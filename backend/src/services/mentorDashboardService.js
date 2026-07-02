@@ -325,6 +325,8 @@ export async function getMentorFinance(userId) {
         earlyMentorRank: earlyRank,
         earlyMentorExpiresAt: earlyExpiresAt,
       },
+      pricePerHour: mentor.pricePerHour,
+      pendingPricePerHour: mentor.pendingPricePerHour || null,
     },
   };
 }
