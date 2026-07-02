@@ -89,6 +89,9 @@ function clearAuthStorage() {
   localStorage.removeItem(AUTH_KEY);
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  // Xóa luôn cache plan (starterPro/elitePro) — nếu không, badge ưu đãi Pro/Elite ở
+  // mentor/course list vẫn hiện cho khách chưa đăng nhập do localStorage cũ còn sót lại.
+  localStorage.removeItem(PLAN_STORAGE_KEY);
   notifyAuthChanged();
 }
 
@@ -771,6 +774,9 @@ export function syncPlansFromUser(user) {
 }
 
 export function getPlans() {
+  // Chưa đăng nhập → không bao giờ tin cache cũ (vd. sau logout ở phiên bản trước khi
+  // clearAuthStorage() chưa dọn plan cache) — tránh hiện ưu đãi Pro/Elite cho khách vãng lai.
+  if (!getUser()) return { starterPro: false, elitePro: false };
   const raw = localStorage.getItem(PLAN_KEY);
   let stored = { starterPro: false, elitePro: false };
   if (raw) {
