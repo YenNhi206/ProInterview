@@ -240,12 +240,15 @@ export function Home() {
             {/* Left Column: Recent Reviews */}
             <div className="flex flex-col rounded-[2rem] border border-slate-200 bg-white p-6 md:p-8 shadow-sm overflow-hidden h-[36rem] lg:h-[40rem]">
               <div className="flex justify-between items-center mb-6 shrink-0">
-                <h3 className="text-2xl font-black text-[#8037f4] tracking-tight">Phản hồi từ người dùng ProInterview</h3>
+                <h3 className="font-black text-slate-900 tracking-tight flex items-center flex-wrap gap-x-2 gap-y-1" style={{ fontSize: HOME_SECTION_TITLE_SIZE }}>
+                  Phản hồi từ người dùng
+                  <img src="/Logo.png" alt="ProInterview" className="h-[1.1em] w-auto object-contain inline-block -translate-y-[2px]" />
+                </h3>
               </div>
               
               <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4" style={{ scrollbarWidth: "thin" }}>
                 {(homeData.reviews?.length > 0 ? homeData.reviews : [...TESTIMONIALS, ...TESTIMONIALS]).map((t, i) => (
-                  <div key={t.id || i} className="flex flex-col p-5 rounded-2xl border border-slate-100 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow">
+                  <div key={t.id || i} className="flex flex-col p-4 rounded-2xl border border-slate-100 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex gap-3 items-center">
                         <div className="h-11 w-11 rounded-full overflow-hidden border border-slate-200 bg-violet-50 shrink-0 flex items-center justify-center">
@@ -265,7 +268,7 @@ export function Home() {
                         <span className="text-xs font-bold ml-1 text-slate-700">{t.stars}/5</span>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-600 leading-relaxed mb-5">
+                    <p className="text-sm text-slate-600 leading-relaxed">
                       {t.text}
                     </p>
                     
@@ -286,7 +289,7 @@ export function Home() {
                     <path d="M4 19h16v2H4zM6 9h3v8H6zM11 4h3v13h-3zM16 12h3v5h-3z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-[#a3e635] tracking-tight">Thống kê nền tảng</h3>
+                <h3 className="font-black text-[#a3e635] tracking-tight" style={{ fontSize: HOME_SECTION_TITLE_SIZE }}>Thống kê nền tảng</h3>
               </div>
               <p className="text-base text-white/80 mb-10 leading-relaxed relative z-10 font-medium">
                 Dữ liệu thực tế về số lượt luyện phỏng vấn, số lượng người dùng và đánh giá chất lượng.
