@@ -259,8 +259,8 @@ export const PRICING_FAQ = [
     ],
     bullets: [
       "Basic (miễn phí): 1 phiên phỏng vấn AI trải nghiệm (3 câu hỏi), 5 lượt phân tích CV/JD, truy cập bộ câu hỏi theo ngành nghề — phù hợp làm quen với ProInterview.",
-      "Pro (99.000đ/tháng): 3 phiên phỏng vấn AI/tháng (5 câu hỏi/phiên), 20 lượt phân tích CV/JD, nhận diện giọng nói và phản hồi chi tiết từng câu — dành cho ứng viên luyện đều xuyên suốt.",
-      "Elite (199.000đ/tháng): 8 phiên phỏng vấn AI/tháng (5 câu hỏi/phiên), 40 lượt phân tích CV/JD, nhận diện giọng nói nhanh hơn, hỗ trợ ưu tiên 24/7 — phù hợp khi bạn cần luyện dày trước vòng phỏng vấn quan trọng.",
+      "Pro (99.000đ/tháng): 3 phiên phỏng vấn AI/tháng (5 câu hỏi/phiên), 10 lượt phân tích CV/JD, ưu đãi 5% khi booking Mentor và khóa học — dành cho ứng viên luyện đều xuyên suốt.",
+      "Elite (199.000đ/tháng): 8 phiên phỏng vấn AI/tháng (5 câu hỏi/phiên), 30 lượt phân tích CV/JD, ưu đãi 10% khi booking Mentor và khóa học, hỗ trợ ưu tiên 24/7 — phù hợp khi bạn cần luyện dày trước vòng phỏng vấn quan trọng.",
     ],
     note: "Bạn có thể bắt đầu với Basic, nâng cấp Pro hoặc Elite bất cứ lúc nào khi cần thêm quota.",
   },

@@ -262,7 +262,7 @@ export function CourseDetail() {
                 <p className="text-sm font-semibold text-white sm:text-base">{course.mentorName}</p>
                 <div className="flex flex-wrap gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm sm:text-sm">
-                    <span className="font-black text-amber-300">
+                    <span className="font-black text-white">
                       {course.rating != null && course.rating > 0 ? course.rating.toFixed(1) : "—"}
                     </span>
                     <StarRating rating={course.rating} size="sm" variant="onDark" />
@@ -278,7 +278,7 @@ export function CourseDetail() {
               <div className="hidden flex-wrap items-center gap-x-6 gap-y-2.5 text-base text-white/90 lg:flex lg:text-lg">
                 <span className="font-semibold">{course.mentorName}</span>
                 <span className="flex items-center gap-2.5">
-                  <span className="text-xl font-bold text-amber-300 lg:text-2xl">
+                  <span className="text-xl font-bold text-white lg:text-2xl">
                     {course.rating != null ? course.rating.toFixed(1) : "—"}
                   </span>
                   <StarRating rating={course.rating} size="lg" />

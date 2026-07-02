@@ -360,7 +360,7 @@ export function Mentors() {
             {/* Button TÌM KIẾM */}
             <button
               type="button"
-              className="w-full md:w-auto bg-[#8037f4] hover:bg-[#6d28d9] active:scale-98 transition-all px-6 py-3 rounded-full text-white font-black flex items-center justify-center gap-2 text-xs cursor-pointer shadow-md shadow-violet-950/50"
+              className="w-full md:w-auto bg-[#a3e635] hover:bg-[#84cc16] active:scale-98 transition-all px-6 py-3 rounded-full text-slate-900 font-black flex items-center justify-center gap-2 text-xs cursor-pointer shadow-md shadow-[#a3e635]/20"
             >
               <MagnifyingGlass className="size-3.5" />
               <span>TÌM KIẾM</span>

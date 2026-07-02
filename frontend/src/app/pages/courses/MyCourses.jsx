@@ -147,8 +147,8 @@ function CourseCard({ item, onContinue, onDetails, index }) {
             <motion.button
               type="button"
               onClick={(e) => { e.stopPropagation(); onContinue(); }}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-2xl bg-[#8037f4] px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_14px_rgba(128,55,244,0.3)]"
-              whileHover={{ scale: 1.03, backgroundColor: "#6d2fd6" }}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-2xl bg-[#a3e635] px-4 py-2.5 text-xs font-bold text-slate-900 shadow-[0_4px_14px_rgba(163,230,53,0.3)]"
+              whileHover={{ scale: 1.03, backgroundColor: "#84cc16" }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: "spring", stiffness: 380, damping: 22 }}
             >
