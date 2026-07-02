@@ -62,5 +62,20 @@ export const PublicController = {
       console.error("[PublicController.getHomeData] Error:", error);
       res.status(500).json({ success: false, error: "Internal server error" });
     }
+  },
+
+  seedDemo: async (req, res) => {
+    try {
+      const { seedDemoData } = await import("../scripts/seedDemoData.js");
+      const success = await seedDemoData();
+      if (success) {
+        res.status(200).json({ success: true, message: "Demo data seeded successfully!" });
+      } else {
+        res.status(500).json({ success: false, error: "Failed to seed demo data" });
+      }
+    } catch (error) {
+      console.error("[PublicController.seedDemo] Error:", error);
+      res.status(500).json({ success: false, error: "Internal server error" });
+    }
   }
 };
