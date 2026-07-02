@@ -267,17 +267,7 @@ export function Home() {
                       {t.text}
                     </p>
                     
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-xs font-bold text-slate-700">Đánh giá này có hữu ích?</span>
-                      <div className="flex gap-2">
-                        <button className="px-4 py-1.5 text-xs font-bold rounded-lg border border-[#34a853] text-[#34a853] bg-[#e6f4ea] hover:bg-[#d5ecd9] transition-colors">
-                          Có ({t.helpfulCount ?? (12 + (i * 7) % 30)})
-                        </button>
-                        <button className="px-4 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors">
-                          Không ({i % 3})
-                        </button>
-                      </div>
-                    </div>
+
                   </div>
                 ))}
               </div>
