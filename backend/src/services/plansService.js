@@ -47,8 +47,12 @@ export async function activatePlan(userId, body) {
   const months = Math.min(36, Math.max(1, Number(body?.months) || 1));
   const expires = new Date();
   expires.setMonth(expires.getMonth() + months);
+  // Lượt dùng refresh mỗi tháng trong suốt kỳ hạn — quan trọng với gói năm (planExpiresAt xa
+  // nhưng vẫn phải cấp lại quota hàng tháng theo đúng quảng cáo "/tháng" ở trang giá).
+  const nextQuotaReset = new Date();
+  nextQuotaReset.setMonth(nextQuotaReset.getMonth() + 1);
 
-  const updates = { plan, planExpiresAt: expires };
+  const updates = { plan, planExpiresAt: expires, "quota.resetAt": nextQuotaReset };
   if (plan === "starter_pro") {
     updates["quota.cvAnalysisLimit"]           = 10;
     updates["quota.cvAnalysisUsed"]            = 0;
@@ -80,6 +84,7 @@ export async function cancelPlan(userId) {
         "quota.cvAnalysisLimit": 3,
         "quota.interviewLimit": 1,
         "quota.interviewQuestionsAllowed": 3,
+        "quota.resetAt": null,
         // Dùng $min để clamp used về giới hạn free, không zero ra hoàn toàn
         // (xử lý bằng $min trong update riêng bên dưới)
       },

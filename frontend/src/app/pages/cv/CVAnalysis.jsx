@@ -88,8 +88,12 @@ function buildFd(
 /** FastAPI trả `detail` (string hoặc mảng validation); Express dùng `error`. */
 function formatCvAnalyzerHttpError(status, body) {
   if (status === 429) return "Hệ thống đang bận, vui lòng thử lại sau 1–2 phút.";
-  
+
   const e = body ?? {};
+  // Hết quota gói (server chặn trước khi gọi Python) — không phải lỗi billing LLM, hiện message riêng.
+  if (status === 403 && e.error === "quota_exceeded") {
+    return e.message || "Bạn đã hết lượt phân tích CV. Vui lòng nâng cấp gói.";
+  }
   const raw =
     (typeof e.detail === "string" && e.detail.trim()) ||
     (Array.isArray(e.detail) && e.detail.map((d) => d?.msg ?? d).filter(Boolean).join(" · ")) ||
@@ -245,11 +249,13 @@ export function CVAnalysis() {
   const [plans]            = useState(getPlans());
   const [cvRemaining, setCvRemaining] = useState(0);
   const [cvQuotaLimit, setCvQuotaLimit] = useState(CV_FREE_LIMIT);
+  const [cvQuotaResetAt, setCvQuotaResetAt] = useState(null);
 
   const loadCvQuota = useCallback(async () => {
     if (!hasAuthCredentials()) {
       setCvRemaining(0);
       setCvQuotaLimit(CV_FREE_LIMIT);
+      setCvQuotaResetAt(null);
       return;
     }
     const res = await fetchCvQuota();
@@ -258,6 +264,7 @@ export function CVAnalysis() {
     const remaining = computeCvRemainingFromQuota(res.quota, planKey);
     setCvRemaining(Number.isFinite(remaining) ? remaining : 999);
     setCvQuotaLimit(Number(res.quota.cvAnalysisLimit) || CV_FREE_LIMIT);
+    setCvQuotaResetAt(res.quota.resetAt ?? null);
   }, []);
 
   useEffect(() => {
@@ -723,6 +730,7 @@ export function CVAnalysis() {
             const formField = new FormData();
             formField.append("resume", cvFile);
             formField.append("field", fieldName);
+            let quotaBlockedError = null;
             try {
               const pyRes = await fetch(expressApiUrl("/api/cv/analyze/field"), {
                 method: "POST",
@@ -732,10 +740,15 @@ export function CVAnalysis() {
               if (pyRes.ok) {
                 raw = await pyRes.json();
                 usedFieldFallback = Boolean(raw._fallback ?? raw._mock);
+              } else if (pyRes.status === 403) {
+                // Hết quota — KHÔNG fallback mock (mock sẽ che mất việc bị chặn thật sự).
+                const errBody = await pyRes.json().catch(() => ({}));
+                quotaBlockedError = new Error(formatCvAnalyzerHttpError(pyRes.status, errBody));
               }
             } catch (err) {
               console.warn("[CV field] API unavailable, using mock", err);
             }
+            if (quotaBlockedError) throw quotaBlockedError;
           }
 
           if (!raw) {
@@ -812,6 +825,9 @@ export function CVAnalysis() {
         console.error("CV analysis error:", err);
         setAnalyzeError(err.message ?? "Lỗi phân tích");
         setStep("upload");
+        // Đồng bộ lại quota hiển thị — phòng trường hợp server chặn 403 quota_exceeded
+        // (đa tab / cache client lệch) để banner "hết lượt, nâng cấp" hiện đúng ngay.
+        loadCvQuota();
       }
     } else {
       setStep("upload");
@@ -1062,10 +1078,22 @@ export function CVAnalysis() {
 
               {cvRemaining === 0 && (
                 <div className="mx-4 mb-0 mt-3 flex items-center justify-between gap-2 rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900 sm:mx-5">
-                  <span>{!plans.starterPro && !plans.elitePro ? "Đã hết lượt miễn phí, nâng cấp để tiếp tục" : "Đã hết lượt phân tích trong gói, nâng cấp để tiếp tục"}</span>
-                  <button type="button" onClick={() => navigate("/pricing")} className="font-bold text-[#630ed4] hover:underline">
-                    Xem gói
-                  </button>
+                  {plans.elitePro ? (
+                    // Elite là gói cao nhất — "nâng cấp" không giúp được gì, chỉ có thể chờ reset hàng tháng.
+                    <span>
+                      Đã dùng hết lượt tháng này.
+                      {cvQuotaResetAt
+                        ? ` Quota sẽ làm mới vào ${new Date(cvQuotaResetAt).toLocaleDateString("vi-VN")}.`
+                        : " Quota sẽ tự làm mới vào đầu chu kỳ sau."}
+                    </span>
+                  ) : (
+                    <>
+                      <span>{!plans.starterPro ? "Đã hết lượt miễn phí, nâng cấp để tiếp tục" : "Đã hết lượt phân tích trong gói, nâng cấp để tiếp tục"}</span>
+                      <button type="button" onClick={() => navigate("/pricing")} className="font-bold text-[#630ed4] hover:underline">
+                        Xem gói
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
 

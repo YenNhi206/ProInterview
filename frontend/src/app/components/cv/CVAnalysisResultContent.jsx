@@ -2,12 +2,10 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Check,
-  Zap,
   AlertTriangle as Warning,
   Mic,
   Users,
   Briefcase,
-  Lock,
   PlusCircle,
   Wrench,
   Trash2 as Trash,
@@ -51,7 +49,6 @@ export function CVAnalysisResultContent({
   jdFileUrl = null,
   cvFileName,
   jdFileName,
-  lockResultForFreePlan = false,
   analysisPath,
   historyPath,
   analysisId = null,
@@ -133,20 +130,6 @@ export function CVAnalysisResultContent({
 
               {activePage === 1 && (<>
 
-              {/* Free-tier notice */}
-              {lockResultForFreePlan && (
-                <div className="flex items-center gap-4 rounded-2xl px-5 py-4 mb-6" style={{ background: "linear-gradient(135deg,rgba(128, 55, 244,0.08),rgba(139, 77, 255,0.05))", border: "1.5px solid rgba(128, 55, 244,0.2)" }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(128, 55, 244,0.15)" }}><Lock className="w-5 h-5 text-[#8037f4]" /></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900">Đang xem bản xem trước, Gói Free</p>
-                    <p className="mt-0.5 text-xs text-slate-600">Phần đánh giá chi tiết & gợi ý bị ẩn. Nâng cấp để xem đầy đủ.</p>
-                  </div>
-                  <button onClick={() => navigate("/pricing")} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white flex-shrink-0" style={{ background: "#8037f4" }}>
-                    <Zap className="w-3.5 h-3.5" /> Mở khoá
-                  </button>
-                </div>
-              )}
-
               {R?.summary && String(R.summary).trim() && (
                 <div className="mb-5 rounded-md border border-violet-600 bg-violet-50/70 px-4 py-3.5">
                   <p className="text-sm leading-relaxed text-violet-950">
@@ -207,17 +190,6 @@ export function CVAnalysisResultContent({
                     matchedKws={R?.matchedKeywords ?? []}
                     missingKws={R?.missingKeywords  ?? []}
                   />
-                  {lockResultForFreePlan && (
-                    <div className="absolute bottom-0 left-0 right-0 flex h-2/3 flex-col items-center justify-end rounded-b-2xl pb-8" style={{ background: "linear-gradient(to bottom,transparent 0%,rgba(10,6,24,0.55) 45%,rgba(7,6,14,0.92) 100%)" }}>
-                      <div className="px-6 text-center">
-                        <Lock className="mx-auto mb-2 h-8 w-8 text-violet-300" />
-                        <p className="mb-3 text-sm font-semibold text-white">Chi tiết bị ẩn</p>
-                        <button onClick={() => navigate("/pricing")} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white" style={{ background: "#8037f4" }}>
-                          <Zap className="w-3.5 h-3.5" /> Xem đầy đủ
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -323,17 +295,6 @@ export function CVAnalysisResultContent({
                         </div>
                       </div>
                     </div>
-
-                    {/* Lock overlay */}
-                    {lockResultForFreePlan && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-2xl" style={{ background: "rgba(7,6,14,0.78)", backdropFilter: "blur(8px)" }}>
-                        <div className="px-4 text-center">
-                          <Lock className="mx-auto mb-2 h-7 w-7 text-violet-300" />
-                          <p className="mb-2 text-xs font-semibold text-white">Từ khóa JD bị ẩn</p>
-                          <button type="button" onClick={() => navigate("/pricing")} className="rounded-lg px-4 py-1.5 text-xs font-bold text-white" style={{ background: "#8037f4" }}>Mở khoá</button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               })()}
@@ -374,14 +335,8 @@ export function CVAnalysisResultContent({
                     <h3 className="text-sm font-semibold text-slate-900">Đánh giá chi tiết</h3>
                     <p className="text-xs text-slate-600">4 tiêu chí theo chuẩn tuyển dụng</p>
                   </div>
-                  {lockResultForFreePlan && (
-                    <div className="ml-auto flex items-center gap-1.5 rounded-md bg-violet-100 px-3 py-1.5">
-                      <Lock className="h-3.5 w-3.5 text-[#8037f4]" />
-                      <span className="text-xs font-semibold text-[#8037f4]">Khoá</span>
-                    </div>
-                  )}
                 </div>
-                <div className="p-6" style={lockResultForFreePlan ? { filter: "blur(5px)", userSelect: "none", pointerEvents: "none" } : {}}>
+                <div className="p-6">
                   <div className="mb-6 flex flex-wrap items-start gap-6">
                     <div className="flex flex-shrink-0 flex-col items-center">
                       <div className="relative h-28 w-28">
@@ -481,26 +436,6 @@ export function CVAnalysisResultContent({
                     </div>
                   </div>
                 </div>
-                {lockResultForFreePlan && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-                    <div className="rounded-2xl border border-violet-200 bg-white px-8 py-6 text-center shadow-xl">
-                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100">
-                        <Lock className="h-6 w-6 text-[#8037f4]" />
-                      </div>
-                      <p className="mb-1 font-bold text-slate-900">Đánh giá chi tiết bị khoá</p>
-                      <p className="mb-4 max-w-[240px] text-xs text-slate-600">
-                        Nâng cấp <strong className="text-[#8037f4]">Elite Pro</strong> để xem điểm số và nhận xét chi tiết.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => navigate("/pricing")}
-                        className="mx-auto flex items-center gap-2 rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16]"
-                      >
-                        <Zap className="h-4 w-4" /> Nâng cấp
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Transferable Skills */}
@@ -575,17 +510,14 @@ export function CVAnalysisResultContent({
                 </div>
                 <div className="divide-y divide-slate-100">
                   {suggestionsData.map((item, i) => {
-                    if (lockResultForFreePlan && i > 1) return null;
                     const COLLAPSE_LIMIT = 3;
                     if (!showAllSuggestions && i >= COLLAPSE_LIMIT) return null;
                     const isAdd = item.type === "add";
-                    const isDimmed = lockResultForFreePlan && i === 1;
                     const borderColor = item.priority === "high" ? "border-l-orange-400" : item.priority === "medium" ? "border-l-violet-400" : "border-l-slate-300";
                     return (
                       <div
                         key={i}
                         className={`border-l-4 px-5 py-4 transition-colors hover:bg-slate-50/60 ${borderColor}`}
-                        style={isDimmed ? { filter: "blur(4px)", userSelect: "none", pointerEvents: "none", opacity: 0.5 } : {}}
                       >
                         {isAdd ? (
                           /* ── Bổ sung kỹ năng ── */
@@ -647,7 +579,7 @@ export function CVAnalysisResultContent({
                     );
                   })}
                 </div>
-                {!lockResultForFreePlan && suggestionsData.length > 3 && (
+                {suggestionsData.length > 3 && (
                   <button
                     onClick={() => setShowAllSuggestions(v => !v)}
                     className="flex w-full items-center justify-center gap-2 border-t border-slate-100 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
@@ -656,21 +588,6 @@ export function CVAnalysisResultContent({
                       ? "Thu gọn"
                       : `Xem thêm ${suggestionsData.length - 3} gợi ý`}
                   </button>
-                )}
-                {lockResultForFreePlan && (
-                  <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 bg-violet-50/50 px-6 py-5">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-slate-900">🔒 Còn {suggestionsData.length - 1} gợi ý đang bị ẩn</p>
-                      <p className="mt-0.5 text-xs text-slate-600">Bao gồm gợi ý về từ khóa thiếu, số liệu KPI, format STAR</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => navigate("/pricing")}
-                      className="flex shrink-0 items-center gap-2 rounded-xl bg-[#a3e635] px-5 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16]"
-                    >
-                      <Zap className="h-4 w-4" /> Mở khoá toàn bộ
-                    </button>
-                  </div>
                 )}
               </div>
 

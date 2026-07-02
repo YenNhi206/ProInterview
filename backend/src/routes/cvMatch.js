@@ -3,6 +3,7 @@ import multer from "multer";
 import { authJwt } from "../middleware/authJwt.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { cvAnalyzeLimiter } from "../middleware/rateLimiters.js";
+import { requireCvAnalysisQuota } from "../utils/planGuard.js";
 
 export const cvMatchRouter = Router();
 
@@ -62,6 +63,7 @@ cvMatchRouter.post(
   "/analyze",
   authJwt,
   cvAnalyzeLimiter,
+  requireCvAnalysisQuota,
   upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
@@ -76,6 +78,7 @@ cvMatchRouter.post(
   "/analyze/full",
   authJwt,
   cvAnalyzeLimiter,
+  requireCvAnalysisQuota,
   upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
@@ -90,6 +93,7 @@ cvMatchRouter.post(
   "/analyze/suggestions",
   authJwt,
   cvAnalyzeLimiter,
+  requireCvAnalysisQuota,
   upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
@@ -104,6 +108,7 @@ cvMatchRouter.post(
   "/analyze/field",
   authJwt,
   cvAnalyzeLimiter,
+  requireCvAnalysisQuota,
   upload.fields([{ name: "resume", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];

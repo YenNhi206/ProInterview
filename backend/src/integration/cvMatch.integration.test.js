@@ -126,4 +126,39 @@ describe("CV analyze/field proxy", () => {
     const res = await fetch(`${http.baseUrl}/api/cv/analyze/field`, { method: "POST" });
     assert.equal(res.status, 401);
   });
+
+  it("403 quota_exceeded khi user free đã hết lượt — chặn TRƯỚC khi gọi Python (không phải chỉ lúc lưu)", async () => {
+    const user = await User.create({
+      name: "Quota Exhausted",
+      email: `cv-quota-analyze-${Date.now()}@test.local`,
+      plan: "free",
+      quota: { cvAnalysisUsed: 3, cvAnalysisLimit: 3 },
+    });
+    const token = mintAccessToken(user._id);
+
+    const pdfBytes = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "utf8");
+    const form = new FormData();
+    form.append("resume", new Blob([pdfBytes], { type: "application/pdf" }), "cv.pdf");
+    form.append("field", "IT / Công nghệ");
+
+    // Chỉ đếm call NỘI BỘ sang Python analyzer (khác host với request HTTP của chính test này
+    // tới Express server, vốn cũng chứa substring "/analyze/field" trong URL).
+    const analyzerOrigin = new URL(process.env.CV_ANALYZER_URL || "http://127.0.0.1:8000").origin;
+    const countAnalyzerCalls = () =>
+      fetchMock.mock.calls.filter(
+        (c) => String(c.arguments[0]).startsWith(analyzerOrigin) && String(c.arguments[0]).includes("/analyze/field"),
+      ).length;
+    const analyzeCallsBefore = countAnalyzerCalls();
+
+    const res = await fetch(`${http.baseUrl}/api/cv/analyze/field`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    assert.equal(res.status, 403);
+    const body = await res.json();
+    assert.equal(body.error, "quota_exceeded");
+    // Không được gọi sang Python analyzer khi đã chặn ở quota gate.
+    assert.equal(countAnalyzerCalls(), analyzeCallsBefore);
+  });
 });
