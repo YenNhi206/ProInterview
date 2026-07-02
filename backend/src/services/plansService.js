@@ -50,13 +50,13 @@ export async function activatePlan(userId, body) {
 
   const updates = { plan, planExpiresAt: expires };
   if (plan === "starter_pro") {
-    updates["quota.cvAnalysisLimit"]           = 20;
+    updates["quota.cvAnalysisLimit"]           = 10;
     updates["quota.cvAnalysisUsed"]            = 0;
     updates["quota.interviewLimit"]            = 3;
     updates["quota.interviewUsed"]             = 0;
     updates["quota.interviewQuestionsAllowed"] = 5;
   } else if (plan === "elite_pro") {
-    updates["quota.cvAnalysisLimit"]           = 40;
+    updates["quota.cvAnalysisLimit"]           = 30;
     updates["quota.cvAnalysisUsed"]            = 0;
     updates["quota.interviewLimit"]            = 8;
     updates["quota.interviewUsed"]             = 0;
@@ -77,7 +77,7 @@ export async function cancelPlan(userId) {
       $set: {
         plan: "free",
         planExpiresAt: null,
-        "quota.cvAnalysisLimit": 5,
+        "quota.cvAnalysisLimit": 3,
         "quota.interviewLimit": 1,
         "quota.interviewQuestionsAllowed": 3,
         // Dùng $min để clamp used về giới hạn free, không zero ra hoàn toàn
@@ -92,7 +92,7 @@ export async function cancelPlan(userId) {
   // Clamp used counters xuống giới hạn free — không zero ra hoàn toàn
   const final = await User.findByIdAndUpdate(
     userId,
-    { $min: { "quota.cvAnalysisUsed": 5, "quota.interviewUsed": 1 } },
+    { $min: { "quota.cvAnalysisUsed": 3, "quota.interviewUsed": 1 } },
     { new: true },
   ).select("plan planExpiresAt quota").lean();
   return { ok: true, plan: final.plan, planExpiresAt: final.planExpiresAt, quota: final.quota };

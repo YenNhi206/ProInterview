@@ -297,7 +297,7 @@ export function AppSidebar() {
               <button
                 type="button"
                 onClick={() => navigate("/login")}
-                className="mt-3 w-full rounded-xl bg-violet-600 py-2 text-xs font-bold text-white hover:bg-violet-700"
+                className="mt-3 w-full rounded-xl bg-[#a3e635] py-2 text-xs font-bold text-slate-900 hover:bg-[#84cc16]"
               >
                 Đăng nhập
               </button>
@@ -362,7 +362,7 @@ export function AppSidebar() {
                 <button
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-violet-600 text-xs font-bold text-white hover:bg-violet-700 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0"
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#a3e635] text-xs font-bold text-slate-900 hover:bg-[#84cc16] group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0"
                 >
                   <LogIn className="size-4 shrink-0" />
                   <span className="group-data-[collapsible=icon]:hidden">Đăng nhập</span>

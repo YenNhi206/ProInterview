@@ -504,7 +504,7 @@ export function CVAnalysisHistoryHub() {
                                       <button
                                         type="button"
                                         onClick={() => navigate(cvAnalysisResultPath(item.mode, item.id))}
-                                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(124,58,237,0.2)] transition-all hover:bg-violet-700 sm:flex-none"
+                                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#a3e635] px-4 py-2.5 text-xs font-bold text-slate-900 shadow-[0_4px_12px_rgba(163,230,53,0.3)] transition-all hover:bg-[#84cc16] sm:flex-none"
                                       >
                                         <Eye className="h-3.5 w-3.5" />
                                         Xem kết quả

@@ -310,7 +310,7 @@ function BankTransferPaymentDetails({
             <button
               type="button"
               onClick={onRetryOrder}
-              className="mt-3 rounded bg-[#8037f4] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#6b2fd4]"
+              className="mt-3 rounded bg-[#a3e635] px-4 py-2 text-xs font-bold text-slate-900 transition-colors hover:bg-[#84cc16]"
             >
               Tạo đơn mới
             </button>
@@ -553,7 +553,7 @@ function CheckoutPayPanel({ mode, fmt, rebookCreditVnd, bookingTotalEstimate, bo
           <button
             type="button"
             onClick={() => navigate(`/mentors?rebookFrom=${encodeURIComponent(rebookFrom)}`)}
-            className="rounded-lg bg-[#8037f4] px-3 py-2 text-[10px] font-bold uppercase text-white hover:bg-[#630ed4]"
+            className="rounded-lg bg-[#a3e635] px-3 py-2 text-[10px] font-bold uppercase text-slate-900 hover:bg-[#84cc16]"
           >
             Mentor khác
           </button>
@@ -579,7 +579,7 @@ function CheckoutPayPanel({ mode, fmt, rebookCreditVnd, bookingTotalEstimate, bo
           <button
             type="button"
             onClick={() => navigate(`/mentors?rebookFrom=${encodeURIComponent(rebookFrom)}`)}
-            className="rounded-lg bg-[#8037f4] px-3 py-2 text-[10px] font-black uppercase text-white"
+            className="rounded-lg bg-[#a3e635] px-3 py-2 text-[10px] font-black uppercase text-slate-900"
           >
             Mentor khác
           </button>
@@ -907,7 +907,7 @@ function BankTransferBlock({
             <button
               type="button"
               onClick={onRetryOrder}
-              className="mt-2 rounded-lg bg-[#8037f4] px-3 py-1.5 text-xs font-bold text-white"
+              className="mt-2 rounded-lg bg-[#a3e635] px-3 py-1.5 text-xs font-bold text-slate-900"
             >
               Tạo đơn mới
             </button>

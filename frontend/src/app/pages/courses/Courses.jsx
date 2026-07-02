@@ -551,7 +551,7 @@ export function Courses() {
               <button
                 type="button"
                 onClick={loadCourses}
-                className="mt-4 rounded-xl bg-[#8037f4] px-6 py-2.5 text-sm font-bold text-white hover:bg-violet-700"
+                className="mt-4 rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16]"
               >
                 Thử lại
               </button>
@@ -580,7 +580,7 @@ export function Courses() {
                 onClick={clearFilters}
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.95 }}
-                className="rounded-xl bg-[#8037f4] px-6 py-2.5 text-sm font-bold text-white"
+                className="rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900"
               >
                 Xóa bộ lọc
               </motion.button>

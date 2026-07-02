@@ -3,7 +3,7 @@ import { User } from "../models/User.js";
 const FREE_QUOTA = {
   plan: "free",
   planExpiresAt: null,
-  "quota.cvAnalysisLimit": 5,
+  "quota.cvAnalysisLimit": 3,
   "quota.interviewLimit": 1,
   "quota.interviewQuestionsAllowed": 3,
 };

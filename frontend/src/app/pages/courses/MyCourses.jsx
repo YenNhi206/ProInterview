@@ -262,8 +262,8 @@ function EmptyCourses({ onBrowse }) {
       <motion.button
         type="button"
         onClick={onBrowse}
-        className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#8037f4] px-8 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(128,55,244,0.35)]"
-        whileHover={{ scale: 1.05, backgroundColor: "#6d2fd6" }}
+        className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-[#a3e635] px-8 py-3.5 text-sm font-bold text-slate-900 shadow-[0_8px_24px_rgba(163,230,53,0.35)]"
+        whileHover={{ scale: 1.05, backgroundColor: "#84cc16" }}
         whileTap={{ scale: 0.95 }}
         transition={{ type: "spring", stiffness: 360, damping: 24 }}
       >

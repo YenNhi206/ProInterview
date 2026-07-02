@@ -301,7 +301,7 @@ function LessonsTab({ lessons, onLessonsChange }) {
             <button
                type="button"
                onClick={handleAddLesson}
-               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-violet-600/20 hover:bg-violet-700"
+               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#a3e635] px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-900 shadow-md shadow-[#a3e635]/30 hover:bg-[#84cc16]"
             >
                <Plus size={16} /> Thêm bài học
             </button>
@@ -563,7 +563,7 @@ function QATab({ courseId, items, onAnswered }) {
                         type="button"
                         onClick={() => handleSend(item.id)}
                         disabled={sending === item.id || !String(drafts[item.id] || "").trim()}
-                        className="shrink-0 rounded-xl bg-violet-600 px-5 py-3 text-xs font-bold uppercase tracking-wide text-white disabled:opacity-50"
+                        className="shrink-0 rounded-xl bg-[#a3e635] px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-900 hover:bg-[#84cc16] disabled:opacity-50"
                      >
                         {sending === item.id ? "Đang gửi..." : "Gửi trả lời"}
                      </button>
@@ -1363,7 +1363,7 @@ export function MentorCourseEdit() {
                            toastApiError("Lỗi kết nối khi gửi bản cập nhật.");
                         }
                      }}
-                     className="min-h-[44px] rounded-xl bg-violet-600 px-6 py-3 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-violet-600/25 hover:bg-violet-700"
+                     className="min-h-[44px] rounded-xl bg-[#a3e635] px-6 py-3 text-xs font-bold uppercase tracking-wide text-slate-900 shadow-md shadow-[#a3e635]/30 hover:bg-[#84cc16]"
                   >
                      Lưu & gửi duyệt
                   </button>

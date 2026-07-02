@@ -33,14 +33,14 @@ describe("plansService — quota reset + expiry", () => {
       name: "Renew User",
       email: `renew-${Date.now()}@test.local`,
       plan: "starter_pro",
-      quota: { cvAnalysisUsed: 20, cvAnalysisLimit: 20, interviewUsed: 3, interviewLimit: 3 },
+      quota: { cvAnalysisUsed: 10, cvAnalysisLimit: 10, interviewUsed: 3, interviewLimit: 3 },
     });
 
     const res = await activatePlan(String(user._id), { plan: "starter_pro" });
     assert.equal(res.ok, true);
     assert.equal(res.quota.cvAnalysisUsed, 0);
     assert.equal(res.quota.interviewUsed, 0);
-    assert.equal(res.quota.cvAnalysisLimit, 20);
+    assert.equal(res.quota.cvAnalysisLimit, 10);
     assert.equal(res.quota.interviewLimit, 3);
   });
 
@@ -51,7 +51,7 @@ describe("plansService — quota reset + expiry", () => {
       email: `expired-${Date.now()}@test.local`,
       plan: "elite_pro",
       planExpiresAt: past,
-      quota: { cvAnalysisUsed: 30, cvAnalysisLimit: 40, interviewUsed: 5, interviewLimit: 8, interviewQuestionsAllowed: 5 },
+      quota: { cvAnalysisUsed: 30, cvAnalysisLimit: 30, interviewUsed: 5, interviewLimit: 8, interviewQuestionsAllowed: 5 },
     });
 
     await syncPlanExpiry(String(user._id));
@@ -59,7 +59,7 @@ describe("plansService — quota reset + expiry", () => {
     const refreshed = await User.findById(user._id).lean();
     assert.equal(refreshed.plan, "free");
     assert.equal(refreshed.planExpiresAt, null);
-    assert.equal(refreshed.quota.cvAnalysisLimit, 5);
+    assert.equal(refreshed.quota.cvAnalysisLimit, 3);
     assert.equal(refreshed.quota.interviewLimit, 1);
     assert.equal(refreshed.quota.interviewQuestionsAllowed, 3);
     // used không reset khi hạ gói — tránh lách luật bằng cách để hết hạn rồi nâng cấp lại
@@ -73,14 +73,14 @@ describe("plansService — quota reset + expiry", () => {
       email: `active-${Date.now()}@test.local`,
       plan: "starter_pro",
       planExpiresAt: future,
-      quota: { cvAnalysisLimit: 20, interviewLimit: 3 },
+      quota: { cvAnalysisLimit: 10, interviewLimit: 3 },
     });
 
     await syncPlanExpiry(String(user._id));
 
     const refreshed = await User.findById(user._id).lean();
     assert.equal(refreshed.plan, "starter_pro");
-    assert.equal(refreshed.quota.cvAnalysisLimit, 20);
+    assert.equal(refreshed.quota.cvAnalysisLimit, 10);
   });
 
   it("getCurrentPlan tự đồng bộ hết hạn trước khi trả kết quả", async () => {
@@ -90,12 +90,12 @@ describe("plansService — quota reset + expiry", () => {
       email: `expired-read-${Date.now()}@test.local`,
       plan: "starter_pro",
       planExpiresAt: past,
-      quota: { cvAnalysisLimit: 20, interviewLimit: 3 },
+      quota: { cvAnalysisLimit: 10, interviewLimit: 3 },
     });
 
     const res = await getCurrentPlan(String(user._id));
     assert.equal(res.ok, true);
     assert.equal(res.plan, "free");
-    assert.equal(res.quota.cvAnalysisLimit, 5);
+    assert.equal(res.quota.cvAnalysisLimit, 3);
   });
 });

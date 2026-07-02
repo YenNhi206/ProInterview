@@ -3,6 +3,16 @@ import { User } from "../models/User.js";
 import { validateSaveAnalysis, formatValidationError } from "../dto/cvAnalysis.dto.js";
 import { logger } from "../config/logger.js";
 import { enforceExpiry } from "../utils/planGuard.js";
+import { resolveStoredUploadUrl } from "../utils/resolveStoredUploadUrl.js";
+
+/** cvFileUrl/jdFileUrl lưu DB có thể là path tương đối (/uploads/...) — chuẩn hóa thành URL đầy đủ trước khi trả FE. */
+function withResolvedFileUrls(analysis) {
+  if (!analysis) return analysis;
+  const doc = analysis.toObject ? analysis.toObject() : { ...analysis };
+  if (doc.cvFileUrl) doc.cvFileUrl = resolveStoredUploadUrl(doc.cvFileUrl);
+  if (doc.jdFileUrl) doc.jdFileUrl = resolveStoredUploadUrl(doc.jdFileUrl);
+  return doc;
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -150,7 +160,7 @@ export const CVController = {
         matchScore:  analysis.result?.match?.score,
       });
 
-      return res.status(201).json({ success: true, analysis });
+      return res.status(201).json({ success: true, analysis: withResolvedFileUrls(analysis) });
     } catch (err) {
       // Rollback quota vì CVAnalysis.create thất bại nhưng quota đã bị tăng
       await User.findByIdAndUpdate(userId, { $inc: { "quota.cvAnalysisUsed": -1 } })

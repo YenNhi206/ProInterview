@@ -103,7 +103,7 @@ export function AdminSepayOverrideAction({
                 type="button"
                 disabled={busy}
                 onClick={() => void handleConfirm()}
-                className="rounded-xl bg-violet-600 py-3 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+                className="rounded-xl bg-[#a3e635] py-3 text-sm font-semibold text-slate-900 hover:bg-[#84cc16] disabled:opacity-50"
               >
                 {busy ? "Đang xử lý…" : "Xác nhận & duyệt buổi"}
               </button>

@@ -44,7 +44,7 @@ export function AchievementDetail() {
         <p className="text-slate-600 mb-8">Nội dung này có thể đã bị xóa hoặc không tồn tại.</p>
         <button
           onClick={() => navigate("/")}
-          className="inline-flex items-center gap-2 rounded-full bg-[#8037f4] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-violet-200 transition-all hover:bg-[#6b26d6] active:scale-[0.98]"
+          className="inline-flex items-center gap-2 rounded-full bg-[#a3e635] px-6 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-[#a3e635]/30 transition-all hover:bg-[#84cc16] active:scale-[0.98]"
         >
           <ArrowLeft className="h-4 w-4" />
           Quay lại Trang chủ

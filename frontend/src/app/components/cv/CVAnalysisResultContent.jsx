@@ -494,7 +494,7 @@ export function CVAnalysisResultContent({
                       <button
                         type="button"
                         onClick={() => navigate("/pricing")}
-                        className="mx-auto flex items-center gap-2 rounded-xl bg-[#8037f4] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#5C28D9]"
+                        className="mx-auto flex items-center gap-2 rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16]"
                       >
                         <Zap className="h-4 w-4" /> Nâng cấp
                       </button>
@@ -666,7 +666,7 @@ export function CVAnalysisResultContent({
                     <button
                       type="button"
                       onClick={() => navigate("/pricing")}
-                      className="flex shrink-0 items-center gap-2 rounded-xl bg-[#8037f4] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#5C28D9]"
+                      className="flex shrink-0 items-center gap-2 rounded-xl bg-[#a3e635] px-5 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16]"
                     >
                       <Zap className="h-4 w-4" /> Mở khoá toàn bộ
                     </button>
@@ -696,7 +696,7 @@ export function CVAnalysisResultContent({
               {/* CTAs */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <button type="button" onClick={() => navigate("/interview")}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#8037f4] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#5C28D9]">
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#a3e635] px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-[#84cc16]">
                   <Mic className="h-4 w-4 shrink-0" /> Phỏng vấn AI
                 </button>
                 <button type="button" onClick={() => navigate("/mentors")}

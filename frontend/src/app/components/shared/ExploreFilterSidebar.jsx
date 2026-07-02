@@ -101,7 +101,7 @@ export function ExploreFilterSidebar({
           type="button"
           onClick={onClear}
           disabled={!hasFilter}
-          className="mt-4 w-full rounded-lg bg-[#8037f4] py-2.5 text-sm font-bold text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40 max-lg:mt-3"
+          className="mt-4 w-full rounded-lg bg-[#a3e635] py-2.5 text-sm font-bold text-slate-900 transition-colors hover:bg-[#84cc16] disabled:cursor-not-allowed disabled:opacity-40 max-lg:mt-3"
         >
           Xóa bộ lọc
         </button>

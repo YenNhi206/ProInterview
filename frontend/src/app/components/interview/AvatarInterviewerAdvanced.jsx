@@ -171,7 +171,7 @@ export function AvatarInterviewerAdvanced({
       {text && !autoSpeak && !isSpeaking && (
         <button
           onClick={() => speak(text)}
-          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all hover:scale-105"
+          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-[#a3e635] hover:bg-[#84cc16] text-slate-900 text-sm font-semibold transition-all hover:scale-105"
         >
           Phát audio
         </button>
