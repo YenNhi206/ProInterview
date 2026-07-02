@@ -3,10 +3,12 @@ import { User } from "../models/User.js";
 import { Mentor } from "../models/Mentor.js";
 import { Review } from "../models/Review.js";
 
-async function seed() {
+export async function seedDemoData() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/prointerview");
-    console.log("Connected to MongoDB");
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://127.0.0.1:27017/prointerview");
+      console.log("Connected to MongoDB for Demo Seed");
+    }
 
     // 1. Create a Demo Mentor User
     const mentorEmail = "demomentor@prointerview.vn";
@@ -93,11 +95,14 @@ async function seed() {
       console.log("✅ Demo Mentor and Reviews already exist. No action needed.");
     }
 
-    process.exit(0);
+    return true;
   } catch (error) {
     console.error("❌ Seeding failed:", error);
-    process.exit(1);
+    return false;
   }
 }
 
-seed();
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  seedDemoData().then(success => process.exit(success ? 0 : 1));
+}

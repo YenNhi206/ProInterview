@@ -63,7 +63,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
       whileTap={{ scale: 0.985 }}
       transition={{ type: "spring", stiffness: 340, damping: 28 }}
     >
-      <div className="flex flex-col items-center text-center">
+      <div className="flex w-full min-w-0 flex-col items-center text-center">
         {/* Avatar */}
         <div className="relative mb-4 h-24 w-24 shrink-0 sm:h-28 sm:w-28 md:h-32 md:w-32">
           <motion.img
@@ -83,7 +83,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
         </div>
 
         {/* Name + verified badge */}
-        <h3 className="flex items-center justify-center gap-1 text-base font-bold tracking-tight text-slate-900 group-hover:text-[#8037f4] sm:text-lg transition-colors duration-200">
+        <h3 className="flex w-full items-center justify-center gap-1 text-base font-bold tracking-tight text-slate-900 group-hover:text-[#8037f4] sm:text-lg transition-colors duration-200">
           <span className="max-w-[180px] truncate">{mentor.name}</span>
           {isVerified && (
             <motion.span
@@ -100,7 +100,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
           )}
         </h3>
 
-        <p className="mt-1 line-clamp-2 min-h-[2.5rem] px-2 text-xs font-semibold text-slate-500">
+        <p className="mt-1 line-clamp-2 w-full min-h-[2.5rem] px-2 text-xs font-semibold text-slate-500">
           {displayTitle(mentor)}
         </p>
 
@@ -110,18 +110,18 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
 
         {/* Skill tags — hover micro-animation */}
         {mentor.tags?.length ? (
-          <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+          <div className="mt-3 flex w-full min-w-0 flex-wrap justify-center gap-1.5 px-2">
             {mentor.tags.slice(0, 3).map((tag, i) => (
-              <motion.span
+              <motion.div
                 key={tag}
-                className="max-w-full truncate rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700 cursor-default"
+                className="block w-fit max-w-full truncate rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700 cursor-default"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.05 * i, duration: 0.25 }}
                 whileHover={{ scale: 1.1, backgroundColor: "#ede9fe", color: "#5b21b6" }}
               >
                 {tag}
-              </motion.span>
+              </motion.div>
             ))}
           </div>
         ) : null}
