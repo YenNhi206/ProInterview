@@ -48,6 +48,9 @@ const bookingSchema = new Schema(
     platformFee: { type: Number, required: true },
     vat: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
+    /** Ưu đãi plan Pro/Elite (5%/10%) — platform tự gánh, đã trừ vào platformFee & totalAmount. */
+    discountRate: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "refund_pending", "refunded", "partial_refund", "failed"],

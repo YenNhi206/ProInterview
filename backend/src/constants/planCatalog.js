@@ -36,3 +36,11 @@ export function listSubscriptionCatalog() {
     yearlyAmount: p.monthlyAmount * 12,
   }));
 }
+
+/** Ưu đãi % khi booking mentor / mua khóa học từ mentor (quảng cáo ở trang /pricing). Platform tự gánh, mentor không bị ảnh hưởng thu nhập. */
+export const PERK_DISCOUNT_RATE = { starter_pro: 0.05, elite_pro: 0.1 };
+
+export function resolvePlanPerkDiscountRate(planKey) {
+  const key = normalizePlanKey(planKey);
+  return PERK_DISCOUNT_RATE[key] ?? 0;
+}

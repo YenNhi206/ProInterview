@@ -408,6 +408,127 @@ describe("Course enrollment bank transfer (CK)", () => {
   });
 });
 
+describe("Ưu đãi Pro/Elite (booking mentor & mua khóa học)", () => {
+  it("customer Pro (starter_pro) đặt lịch được giảm 5%, mentor net không đổi", async () => {
+    const customer = await createCustomer();
+    await User.updateOne(
+      { _id: customer._id },
+      { $set: { plan: "starter_pro", planExpiresAt: new Date(Date.now() + 30 * 86400000) } },
+    );
+    const { mentor } = await createVerifiedMentor(); // pricePerHour: 250000
+
+    const createRes = await fetch(`${http.baseUrl}/api/bookings`, {
+      method: "POST",
+      headers: bearer(customer._id),
+      body: JSON.stringify({
+        mentorId: String(mentor._id),
+        date: futureBookingDate(30),
+        timeSlot: uniqueTimeSlot(),
+        sessionType: "mock_interview",
+        paymentMethod: "transfer",
+        orderNum: `PI-PRO5-${Date.now()}`,
+      }),
+    });
+    const createText = await createRes.text();
+    assert.equal(createRes.status, 201, createText);
+    const { booking } = JSON.parse(createText);
+
+    // Giá thật của buổi (mentorSessionTypes có thể override pricePerHour) — không giả định cứng.
+    const price = booking.price;
+    const expectedDiscount = Math.round(price * 0.05);
+    const standardFee = Math.round(price * 0.3);
+    assert.equal(booking.discountRate, 0.05);
+    assert.equal(booking.discountAmount, expectedDiscount);
+    assert.equal(booking.totalAmount, price - expectedDiscount);
+    assert.equal(booking.platformFee, standardFee - expectedDiscount);
+    // Mentor net phải giữ nguyên như không có ưu đãi.
+    assert.equal(booking.totalAmount - booking.platformFee, price - standardFee);
+  });
+
+  it("customer Elite (elite_pro) mua khóa học được giảm 10%, mentor net không đổi", async () => {
+    const customer = await createCustomer();
+    await User.updateOne(
+      { _id: customer._id },
+      { $set: { plan: "elite_pro", planExpiresAt: new Date(Date.now() + 30 * 86400000) } },
+    );
+    const { mentor } = await createVerifiedMentor();
+    const course = await createPublishedCourse(mentor._id, 500000);
+
+    const enrollRes = await fetch(`${http.baseUrl}/api/courses/${course._id}/enroll`, {
+      method: "POST",
+      headers: bearer(customer._id),
+      body: JSON.stringify({ paymentMethod: "transfer", orderNum: `PI-ELITE10-${Date.now()}` }),
+    });
+    const enrollText = await enrollRes.text();
+    assert.equal(enrollRes.status, 201, enrollText);
+    const { enrollment } = JSON.parse(enrollText);
+
+    const price = 500000;
+    const expectedDiscount = Math.round(price * 0.1);
+    const standardFee = Math.round(price * 0.35);
+    assert.equal(enrollment.discountRate, 0.1);
+    assert.equal(enrollment.discountAmount, expectedDiscount);
+    assert.equal(enrollment.pricePaid, price - expectedDiscount);
+    assert.equal(enrollment.platformFee, standardFee - expectedDiscount);
+    assert.equal(enrollment.pricePaid - enrollment.platformFee, price - standardFee);
+  });
+
+  it("plan Pro đã hết hạn (planExpiresAt quá khứ) → không có ưu đãi, tự hạ về free", async () => {
+    const customer = await createCustomer();
+    await User.updateOne(
+      { _id: customer._id },
+      { $set: { plan: "starter_pro", planExpiresAt: new Date(Date.now() - 86400000) } },
+    );
+    const { mentor } = await createVerifiedMentor();
+
+    const createRes = await fetch(`${http.baseUrl}/api/bookings`, {
+      method: "POST",
+      headers: bearer(customer._id),
+      body: JSON.stringify({
+        mentorId: String(mentor._id),
+        date: futureBookingDate(31),
+        timeSlot: uniqueTimeSlot(),
+        sessionType: "mock_interview",
+        paymentMethod: "transfer",
+        orderNum: `PI-EXPIRED-${Date.now()}`,
+      }),
+    });
+    const createText = await createRes.text();
+    assert.equal(createRes.status, 201, createText);
+    const { booking } = JSON.parse(createText);
+
+    assert.equal(booking.discountRate, 0);
+    assert.equal(booking.discountAmount, 0);
+    assert.equal(booking.totalAmount, booking.price);
+
+    const refreshed = await User.findById(customer._id).lean();
+    assert.equal(refreshed.plan, "free");
+  });
+
+  it("customer free không có ưu đãi", async () => {
+    const customer = await createCustomer();
+    const { mentor } = await createVerifiedMentor();
+
+    const createRes = await fetch(`${http.baseUrl}/api/bookings`, {
+      method: "POST",
+      headers: bearer(customer._id),
+      body: JSON.stringify({
+        mentorId: String(mentor._id),
+        date: futureBookingDate(32),
+        timeSlot: uniqueTimeSlot(),
+        sessionType: "mock_interview",
+        paymentMethod: "transfer",
+        orderNum: `PI-FREE-${Date.now()}`,
+      }),
+    });
+    const createText = await createRes.text();
+    assert.equal(createRes.status, 201, createText);
+    const { booking } = JSON.parse(createText);
+    assert.equal(booking.discountAmount, 0);
+    assert.equal(booking.totalAmount, booking.price);
+  });
+});
+
 describe("CK — lỗi nghiệp vụ & phân quyền", () => {
   it("subscription thiếu orderNum → 400", async () => {
     const customer = await createCustomer();

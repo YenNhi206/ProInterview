@@ -40,6 +40,7 @@ import {
   sessionTypeLabel,
 } from "../../utils/booking/sessionTypeLabels.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { getPlans } from "../../utils/auth/auth.js";
 
 const SESSION_TYPE_ICONS = {
   mock_interview: VideoCamera,
@@ -382,6 +383,12 @@ export function Booking() {
 
   const totalSlotCount = selectedSlots.length;
   const totalPrice = sessionPrice * Math.max(0, totalSlotCount);
+  /* Ưu đãi Pro/Elite (-5%/-10%) — chỉ preview, số tiền thật tính lại ở /checkout khi tạo booking. */
+  const perkPlans = getPlans();
+  const perkDiscountRate = perkPlans.elitePro ? 0.1 : perkPlans.starterPro ? 0.05 : 0;
+  const perkDiscountAmount = perkDiscountRate > 0 ? Math.round(totalPrice * perkDiscountRate) : 0;
+  /* Giá 1 buổi (header trên cùng, trước khi chọn slot) — cùng % nhưng tính trên đơn giá, không phải tổng. */
+  const headerPerkDiscountAmount = perkDiscountRate > 0 ? Math.round(sessionPrice * perkDiscountRate) : 0;
 
   const fieldClass =
     "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#8037f4]/45 focus:outline-none focus:ring-2 focus:ring-[#8037f4]/15";
@@ -443,7 +450,19 @@ export function Booking() {
             </p>
           </div>
           <div className="ml-auto flex-shrink-0 text-right">
-            <p className="text-lg font-black text-[#3d5200]">{formatVnd(sessionPrice)}</p>
+            <p className="flex items-center justify-end gap-1.5">
+              {headerPerkDiscountAmount > 0 && (
+                <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                  -{Math.round(perkDiscountRate * 100)}%
+                </span>
+              )}
+              <span className="text-lg font-black text-[#3d5200]">
+                {formatVnd(sessionPrice - headerPerkDiscountAmount)}
+              </span>
+            </p>
+            {headerPerkDiscountAmount > 0 && (
+              <p className="text-xs text-slate-400 line-through">{formatVnd(sessionPrice)}</p>
+            )}
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">/ buổi · 60 phút</p>
           </div>
         </div>
@@ -614,13 +633,25 @@ export function Booking() {
 
                   {selectedSlots.length > 0 && (
                     <div className="mt-2 rounded-xl border border-violet-200 bg-violet-50 p-4">
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-2 flex items-center justify-between gap-2">
                         <p className="text-sm font-bold text-slate-900">
                           Đã chọn {selectedSlots.length}/{MAX_SLOTS} buổi
                         </p>
-                        <span className="rounded-full bg-[#8037f4] px-2.5 py-0.5 text-[11px] font-black text-white">
-                          {formatVnd(totalPrice)}
-                        </span>
+                        <div className="flex flex-col items-end gap-0.5">
+                          {perkDiscountAmount > 0 && (
+                            <span className="text-[10px] font-medium text-slate-400 line-through">
+                              {formatVnd(totalPrice)}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1 rounded-full bg-[#8037f4] px-2.5 py-0.5 text-[11px] font-black text-white">
+                            {perkDiscountAmount > 0 && (
+                              <span className="rounded-full bg-emerald-500 px-1 text-[9px] font-bold">
+                                -{Math.round(perkDiscountRate * 100)}%
+                              </span>
+                            )}
+                            {formatVnd(totalPrice - perkDiscountAmount)}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {selectedSlots.map((s, i) => (
@@ -678,7 +709,7 @@ export function Booking() {
             >
               {selectedSlots.length > 0 ? (
                 <>
-                  Tiếp tục · {selectedSlots.length} buổi · {formatVnd(totalPrice)}
+                  Tiếp tục · {selectedSlots.length} buổi · {formatVnd(totalPrice - perkDiscountAmount)}
                   <CaretRight className="h-4 w-4" />
                 </>
               ) : (
@@ -936,9 +967,17 @@ export function Booking() {
                         <span>{formatVnd(sessionPrice)} × {selectedSlots.length} buổi</span>
                         <span>{formatVnd(totalPrice)}</span>
                       </div>
+                      {perkDiscountAmount > 0 && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-emerald-600">Ưu đãi {perkPlans.elitePro ? "Elite" : "Pro"} (-{Math.round(perkDiscountRate * 100)}%)</span>
+                          <span className="font-medium text-emerald-600">−{formatVnd(perkDiscountAmount)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between">
                         <span className="font-bold text-slate-900">Tổng tiền</span>
-                        <span className="text-lg font-black text-[#3d5200]">{formatVnd(totalPrice)}</span>
+                        <span className="text-lg font-black text-[#3d5200]">
+                          {formatVnd(totalPrice - perkDiscountAmount)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -977,7 +1016,7 @@ export function Booking() {
                     : undefined
                 }
               >
-                Tiếp tục thanh toán · {selectedSlots.length} buổi · {formatVnd(totalPrice)}
+                Tiếp tục thanh toán · {selectedSlots.length} buổi · {formatVnd(totalPrice - perkDiscountAmount)}
                 <CaretRight className="h-4 w-4" />
               </button>
             </div>

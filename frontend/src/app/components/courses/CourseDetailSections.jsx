@@ -30,6 +30,7 @@ import { fetchMyReviewForTarget } from "../../api/reviewsApi.js";
 import { ReviewReplyBlock } from "../reviews/ReviewReplyBlock";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { avatarSrc, mediaSrc } from "../../utils/shared/mediaUrl.js";
+import { getPlans } from "../../utils/auth/auth.js";
 
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 
@@ -104,6 +105,11 @@ export function CoursePurchaseCard({
 }) {
   const price = Number(course.price) || 0;
   const displayPrice = price;
+  /* Ưu đãi Pro/Elite (-5%/-10%) — ước tính hiển thị theo plan hiện tại, số tiền thật chốt ở /checkout. */
+  const perkPlans = getPlans();
+  const perkDiscountRate = perkPlans.elitePro ? 0.1 : perkPlans.starterPro ? 0.05 : 0;
+  const perkDiscountAmount = price > 0 && perkDiscountRate > 0 ? Math.round(price * perkDiscountRate) : 0;
+  const perkFinalPrice = price - perkDiscountAmount;
   const previewUrl = course.previewVideoUrl || "";
   const embed = youtubeEmbedUrl(previewUrl);
   const directPreview = !embed && isDirectVideoUrl(previewUrl) ? mediaSrc(previewUrl) : null;
@@ -141,10 +147,20 @@ export function CoursePurchaseCard({
 
       <div className="space-y-4 p-4 sm:p-5">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 pb-4 lg:border-0 lg:pb-0">
-          <div className="flex flex-wrap items-baseline gap-2">
-            <span className="text-2xl font-black text-[#8037f4] sm:text-3xl lg:font-bold lg:text-slate-900">
-              {formatCoursePrice(displayPrice)}
-            </span>
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-baseline gap-2">
+              {perkDiscountAmount > 0 && (
+                <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                  -{Math.round(perkDiscountRate * 100)}% {perkPlans.elitePro ? "Elite" : "Pro"}
+                </span>
+              )}
+              <span className="text-2xl font-black text-[#8037f4] sm:text-3xl lg:font-bold lg:text-slate-900">
+                {formatCoursePrice(perkFinalPrice)}
+              </span>
+              {perkDiscountAmount > 0 && (
+                <span className="text-sm text-slate-400 line-through">{formatCoursePrice(displayPrice)}</span>
+              )}
+            </div>
           </div>
         </div>
 
