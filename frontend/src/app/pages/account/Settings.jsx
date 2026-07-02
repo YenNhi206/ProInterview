@@ -136,7 +136,7 @@ function SaveBar({ dirty, saving, saved, onSave, onReset }) {
               disabled={saving}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="rounded-full bg-[#8037f4] px-5 py-2.5 text-xs font-bold text-white transition disabled:opacity-50"
+              className="rounded-full bg-[#a3e635] px-5 py-2.5 text-xs font-bold text-slate-900 transition disabled:opacity-50"
             >
               {saving ? "Đang lưu…" : "Lưu thay đổi"}
             </motion.button>
@@ -439,7 +439,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
             onClick={handleUpdatePassword}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className="rounded-xl bg-[#8037f4] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50"
+            className="rounded-xl bg-[#a3e635] px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition disabled:opacity-50"
           >
             {saving ? "Đang lưu…" : "Cập nhật mật khẩu"}
           </motion.button>

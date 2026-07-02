@@ -193,7 +193,7 @@ export function CourseDetail() {
           <button
             type="button"
             onClick={() => navigate("/courses")}
-            className="rounded-sm bg-[#8037f4] px-6 py-3 font-semibold text-white"
+            className="rounded-sm bg-[#a3e635] px-6 py-3 font-semibold text-slate-900 hover:bg-[#84cc16]"
           >
             Khám phá khóa học
           </button>
@@ -236,7 +236,7 @@ export function CourseDetail() {
             <button
               type="button"
               onClick={() => navigate(`/courses/${id}/learn?peerReview=1`)}
-              className="shrink-0 rounded-lg bg-[#8037f4] px-4 py-2 text-sm font-bold text-white hover:bg-[#630ed4]"
+              className="shrink-0 rounded-lg bg-[#a3e635] px-4 py-2 text-sm font-bold text-slate-900 hover:bg-[#84cc16]"
             >
               Xem nội dung khóa học
             </button>

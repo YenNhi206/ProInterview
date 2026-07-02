@@ -592,7 +592,7 @@ export function Mentors() {
                     .catch(() => toastApiError("Lỗi kết nối khi tải danh sách mentor."))
                     .finally(() => setLoading(false));
                 }}
-                className="mt-4 rounded-xl bg-[#8037f4] px-6 py-2.5 text-sm font-bold text-white hover:bg-violet-750 cursor-pointer"
+                className="mt-4 rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16] cursor-pointer"
               >
                 Thử lại
               </button>
@@ -605,7 +605,7 @@ export function Mentors() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded-xl bg-[#8037f4] px-6 py-2.5 text-sm font-bold text-white hover:bg-violet-750 cursor-pointer"
+                className="rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16] cursor-pointer"
               >
                 Xóa bộ lọc
               </button>

@@ -806,7 +806,7 @@ export function SessionDetail() {
               <button
                 type="button"
                 onClick={() => navigate(buildLoginPath(id ? `/session/${id}` : "/"))}
-                className="mt-4 rounded-xl bg-[#8037f4] px-4 py-2 text-sm font-medium text-white hover:bg-[#630ed4]"
+                className="mt-4 rounded-xl bg-[#a3e635] px-4 py-2 text-sm font-medium text-slate-900 hover:bg-[#84cc16]"
               >
                 Đăng nhập để xem buổi hẹn
               </button>
@@ -814,7 +814,7 @@ export function SessionDetail() {
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="mt-4 rounded-xl bg-[#8037f4] px-4 py-2 text-sm font-medium text-white hover:bg-[#630ed4]"
+                className="mt-4 rounded-xl bg-[#a3e635] px-4 py-2 text-sm font-medium text-slate-900 hover:bg-[#84cc16]"
               >
                 Về trang chủ
               </button>

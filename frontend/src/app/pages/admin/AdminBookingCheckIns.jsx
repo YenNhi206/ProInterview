@@ -206,7 +206,7 @@ export function AdminBookingCheckIns() {
                   <div className="flex flex-wrap gap-2 pt-1">
                     <Link
                       to={`/admin/bookings/${id}`}
-                      className="rounded-lg bg-violet-700 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-violet-800"
+                      className="rounded-lg bg-[#a3e635] px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-900 hover:bg-[#84cc16]"
                     >
                       Chi tiết buổi
                     </Link>

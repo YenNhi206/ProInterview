@@ -1318,7 +1318,7 @@ export default function InterviewRoom() {
           <button
             type="button"
             onClick={() => navigate("/interview")}
-            className="rounded-md bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+            className="rounded-md bg-[#a3e635] px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-[#84cc16]"
           >
             Quay lại thiết lập
           </button>

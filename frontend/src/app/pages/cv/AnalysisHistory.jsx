@@ -441,7 +441,7 @@ export function AnalysisHistory() {
                               </span>
                               <div className="flex gap-2">
                                 <button type="button" onClick={() => navigate(cvAnalysisResultPath(item.mode, item.id))}
-                                  className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-violet-700">
+                                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#a3e635] px-3 py-1.5 text-xs font-bold text-slate-900 transition hover:bg-[#84cc16]">
                                   <Eye className="h-3 w-3" /> Xem đầy đủ
                                 </button>
                                 <button type="button"

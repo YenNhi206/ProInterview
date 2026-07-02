@@ -323,7 +323,7 @@ function BookingCard({ s, tab, index }) {
                 whileHover={{ scale: 1.05, opacity: 0.9 }}
                 whileTap={{ scale: 0.93 }}
                 transition={{ type: "spring", stiffness: 380, damping: 24 }}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#8037f4] px-3.5 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-[0_4px_14px_rgba(128,55,244,0.35)]"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#a3e635] px-3.5 py-2 text-[10px] font-black uppercase tracking-widest text-slate-900 shadow-[0_4px_14px_rgba(163,230,53,0.35)]"
               >
                 <Video className="h-3.5 w-3.5" />
                 Vào phòng
@@ -541,7 +541,7 @@ export function MyBookings() {
                     onClick={() => navigate("/mentors")}
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.95 }}
-                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#8037f4] px-6 py-3 text-xs font-black uppercase tracking-widest text-white shadow-[0_4px_14px_rgba(128,55,244,0.3)]"
+                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#a3e635] px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-900 shadow-[0_4px_14px_rgba(163,230,53,0.3)]"
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     Tìm mentor ngay

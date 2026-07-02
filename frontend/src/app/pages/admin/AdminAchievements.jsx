@@ -161,7 +161,7 @@ export function AdminAchievements() {
       <div className="mb-6 flex justify-end">
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-violet-700"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#a3e635] px-4 py-2.5 text-sm font-bold text-slate-900 transition hover:bg-[#84cc16]"
         >
           <Plus className="h-4 w-4" />
           Thêm tin tức
@@ -406,7 +406,7 @@ export function AdminAchievements() {
               <button 
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-violet-700 shadow-lg shadow-violet-600/20 disabled:opacity-70 flex items-center gap-2"
+                className="rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 transition hover:bg-[#84cc16] shadow-lg shadow-[#a3e635]/30 disabled:opacity-70 flex items-center gap-2"
               >
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 Lưu lại

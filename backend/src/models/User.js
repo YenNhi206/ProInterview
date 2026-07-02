@@ -22,7 +22,7 @@ const userSchema = new Schema(
 
     quota: {
       cvAnalysisUsed: { type: Number, default: 0 },
-      cvAnalysisLimit: { type: Number, default: 5 },
+      cvAnalysisLimit: { type: Number, default: 3 },
       interviewUsed: { type: Number, default: 0 },
       interviewLimit: { type: Number, default: 1 },
       interviewQuestionsAllowed: { type: Number, default: 3 },

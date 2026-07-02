@@ -488,7 +488,7 @@ export function CourseReviewsBlock({ course, enrolled, reviews, onReviewSubmitte
               type="button"
               onClick={handleSubmit}
               disabled={!reviewRating || reviewComment.trim().length < 30 || submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-sm bg-[#8037f4] py-2.5 text-sm font-bold text-white disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-sm bg-[#a3e635] py-2.5 text-sm font-bold text-slate-900 disabled:opacity-50"
             >
               <MessageCircle className="size-4" />
               Gửi đánh giá

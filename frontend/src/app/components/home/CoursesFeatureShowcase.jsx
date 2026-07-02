@@ -94,7 +94,7 @@ function CoursesLearningMockup() {
   const moreLessons = Math.max(0, (DEMO_COURSE.lessonsCount ?? 0) - displayLessons.length);
 
   return (
-    <div className="courses-mock-panel relative mx-auto w-full max-w-[42rem] overflow-visible rounded-[1.75rem] px-4 pb-5 pt-[5rem] sm:rounded-[2rem] sm:px-5 sm:pb-6 sm:pt-[5.5rem] lg:max-w-none">
+    <div className="courses-mock-panel relative mx-auto w-full max-w-[42rem] overflow-visible rounded-[2rem] px-4 pb-5 pt-[5rem] sm:px-5 sm:pb-6 sm:pt-[5.5rem] lg:max-w-none">
       <div
         className="pointer-events-none absolute left-1/2 top-0 z-[2] w-[11rem] -translate-x-1/2 translate-y-[calc(-38%+0.5rem)] sm:w-[12rem] lg:w-[12.2rem]"
         aria-hidden
