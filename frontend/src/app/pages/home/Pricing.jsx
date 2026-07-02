@@ -315,7 +315,7 @@ export function Pricing() {
                       transition={{ type: "spring", stiffness: 380, damping: 22 }}
                       className={`flex w-full items-center justify-center rounded-full py-3 text-center text-sm font-bold transition-all ${
                         isCurrent || isLowerTier
-                          ? "cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-400"
+                          ? "cursor-not-allowed border border-violet-200 bg-violet-50/50 text-violet-400"
                           : variant === "outline"
                           ? "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
                           : "font-black"
