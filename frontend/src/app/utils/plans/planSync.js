@@ -26,7 +26,10 @@ export function migrateLegacyPlanFlags(parsed) {
 /** Nếu profile API có plan trả về flags mới hơn localStorage. */
 export function resolvePlansFromStorageAndUser(stored, userPlan) {
   const base = stored ?? { starterPro: false, elitePro: false };
-  if (!userPlan || userPlan === "free") return base;
+  // "free" là thông tin xác thực từ API (vd. gói vừa hết hạn) — phải ghi đè cache cũ,
+  // không được giữ flags Pro/Elite cũ sót lại.
+  if (userPlan === "free") return { starterPro: false, elitePro: false };
+  if (!userPlan) return base;
   const fromApi = apiPlanToLocalFlags(userPlan);
   if (fromApi.starterPro !== base.starterPro || fromApi.elitePro !== base.elitePro) {
     return fromApi;

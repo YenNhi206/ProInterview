@@ -46,9 +46,16 @@ describe("migrateLegacyPlanFlags", () => {
 });
 
 describe("resolvePlansFromStorageAndUser", () => {
-  it("keeps storage when user is free", () => {
+  it("resets to false when API confirms user is free (không giữ cache Pro/Elite cũ)", () => {
+    const stored = { starterPro: true, elitePro: true };
+    assert.deepEqual(resolvePlansFromStorageAndUser(stored, "free"), {
+      starterPro: false,
+      elitePro: false,
+    });
+  });
+
+  it("keeps storage when no plan info available yet (chưa biết, không phải free xác thực)", () => {
     const stored = { starterPro: true, elitePro: false };
-    assert.deepEqual(resolvePlansFromStorageAndUser(stored, "free"), stored);
     assert.deepEqual(resolvePlansFromStorageAndUser(stored, null), stored);
   });
 

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "../../components/layout/Navbar";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
-import { getUser, isLoggedIn, setLoggedIn } from "../../utils/auth/auth.js";
+import { getUser, getPlans, isLoggedIn, setLoggedIn } from "../../utils/auth/auth.js";
 import { fetchCurrentPlan } from "../../api/plansApi.js";
 import { BRAND_LIME, BRAND_PURPLE } from "../../constants/brandColors";
 import { landingPrimaryButtonClass } from "../../constants/landingTheme";
@@ -597,6 +597,18 @@ function CheckoutPayPanel({ mode, fmt, rebookCreditVnd, bookingTotalEstimate, bo
   return null;
 }
 
+function DiscountedPrice({ baseTotal, discountedTotal, fmt, size = "text-lg" }) {
+  const hasDiscount = Number.isFinite(discountedTotal) && discountedTotal < baseTotal;
+  return (
+    <div className="shrink-0 text-right">
+      {hasDiscount && (
+        <p className="text-xs font-medium text-slate-400 line-through">{fmt(baseTotal)}</p>
+      )}
+      <p className={`${size} font-bold text-[#8037f4]`}>{fmt(hasDiscount ? discountedTotal : baseTotal)}</p>
+    </div>
+  );
+}
+
 function OrderLineItem({
   isBooking,
   isCourse,
@@ -609,6 +621,7 @@ function OrderLineItem({
   bookingSessionType,
   bookingSlots,
   baseTotal,
+  discountedTotal,
   fmt,
 }) {
   if (isCourse) {
@@ -627,7 +640,7 @@ function OrderLineItem({
             <p className={`mt-1 ${labelMuted}`}>Giảng viên: {courseInfo.mentorId.userId.name}</p>
           )}
         </div>
-        <p className="shrink-0 text-right text-lg font-bold text-[#8037f4]">{fmt(baseTotal)}</p>
+        <DiscountedPrice baseTotal={baseTotal} discountedTotal={discountedTotal} fmt={fmt} />
       </div>
     );
   }
@@ -690,7 +703,7 @@ function OrderLineItem({
             )}
           </div>
           <div className="shrink-0 text-right">
-            <p className="text-lg font-bold text-[#8037f4]">{fmt(baseTotal)}</p>
+            <DiscountedPrice baseTotal={baseTotal} discountedTotal={discountedTotal} fmt={fmt} />
             {slots.length > 1 && (
               <p className="text-xs text-slate-500">{slots.length} buổi</p>
             )}
@@ -1056,6 +1069,13 @@ export function Checkout() {
   const baseTotal = isBooking ? bookingPrice : isCourse ? coursePriceNum : price;
   const total = isBooking ? bookingPrice : isCourse ? coursePriceNum : price;
 
+  /* Ưu đãi Pro/Elite (-5%/-10%) khi booking mentor / mua khóa học — chỉ là ước tính hiển thị
+     trước khi xác nhận; số tiền thật (QR/ledger) luôn lấy từ server sau khi tạo đơn (xem serverTotalAmount). */
+  const clientPlans = getPlans();
+  const clientDiscountRate = clientPlans.elitePro ? 0.1 : clientPlans.starterPro ? 0.05 : 0;
+  const clientEstimatedDiscount =
+    (isBooking || isCourse) && clientDiscountRate > 0 ? Math.round(baseTotal * clientDiscountRate) : 0;
+
   const [transferOrderNum, setTransferOrderNum] = useState(() => {
     const saved = readSavedPlanCheckoutFromParams(searchParams);
     if (saved?.orderNum) return saved.orderNum;
@@ -1102,6 +1122,9 @@ export function Checkout() {
   });
   const [bankBookingId, setBankBookingId] = useState(null);
   const [bankEnrollmentId, setBankEnrollmentId] = useState(null);
+  /* Tổng tiền thật đã được server xác nhận (đã trừ ưu đãi) sau khi tạo booking/enrollment —
+     dùng để render QR/số tiền chính xác, không dựa vào ước tính client trước đó. */
+  const [serverTotalAmount, setServerTotalAmount] = useState(null);
   const [bankSubscriptionPaymentId, setBankSubscriptionPaymentId] = useState(() => {
     const saved = readSavedPlanCheckoutFromParams(searchParams);
     return saved?.paymentId ?? null;
@@ -1132,7 +1155,7 @@ export function Checkout() {
   // Coupon chưa được backend hỗ trợ cho plan checkout (server kiểm tra clientAmount === catalogAmount)
   // → disable discount cho tất cả flow cho đến khi backend implement coupon validation
   const discount = 0;
-  const payAmount = total - discount;
+  const payAmount = serverTotalAmount != null ? serverTotalAmount : total - clientEstimatedDiscount - discount;
   const bookingTotalEstimate = Math.round(isBooking ? payAmount : bookingPrice);
 
   const rebookCreditVnd = Number(rebookCredit?.creditVnd || 0);
@@ -1171,7 +1194,14 @@ export function Checkout() {
   const showStepBar = payMode === PAY_MODE.BANK || payMode === PAY_MODE.REBOOK_READY;
   const stepLabels = payMode === PAY_MODE.REBOOK_READY ? STEPS_REBOOK : STEPS_BOOKING;
   const compactRebook = rebookFrom && payMode !== PAY_MODE.BANK;
-  const grandTotal = total - discount;
+  const grandTotal = payAmount;
+  /* Số tiền ưu đãi hiển thị: dùng số server đã xác nhận khi có, fallback ước tính client trước khi bấm xác nhận. */
+  const displayedDiscountAmount = !(isBooking || isCourse)
+    ? 0
+    : serverTotalAmount != null
+      ? Math.max(0, total - serverTotalAmount)
+      : clientEstimatedDiscount;
+  const displayedDiscountLabel = clientDiscountRate >= 0.1 ? "Elite" : "Pro";
 
   const vietQrBankId = useMemo(() => inferVietQrBankId(), []);
   const vietQrUrl = useMemo(
@@ -1272,6 +1302,8 @@ export function Checkout() {
           const serverOrder = extractOrderPart(apiRes.orderNum || apiRes.enrollment?.paymentRef);
           if (serverOrder) setTransferOrderNum(serverOrder);
           setBankEnrollmentId(String(eid));
+          const serverPricePaid = Number(apiRes.enrollment?.pricePaid);
+          if (Number.isFinite(serverPricePaid) && serverPricePaid > 0) setServerTotalAmount(serverPricePaid);
           applyPaymentExpiryFromApi(
             setPaymentExpiresAtMs,
             setPaymentExpired,
@@ -1374,6 +1406,7 @@ export function Checkout() {
       // After slot 1, use the server-confirmed paymentRef for subsequent slots (A2).
       let confirmedOrderNum = orderNum;
       const createdIds = [];
+      let runningTotal = 0;
       for (const slot of slotsToBook) {
         const apiRes = await createBooking({
           mentorId: bookingMentor.id,
@@ -1404,6 +1437,7 @@ export function Checkout() {
           return { ok: false };
         }
         createdIds.push(apiRes.booking.id);
+        runningTotal += Number(apiRes.booking?.totalAmount ?? 0);
         if (createdIds.length === 1) {
           const serverOrder = extractOrderPart(apiRes.booking?.paymentRef);
           if (serverOrder) {
@@ -1414,6 +1448,8 @@ export function Checkout() {
           applyPaymentExpiryFromApi(setPaymentExpiresAtMs, setPaymentExpired, apiRes.booking?.paymentExpiresAt);
         }
       }
+
+      if (runningTotal > 0) setServerTotalAmount(runningTotal);
 
       trackAction("booking_submit", "/checkout", {
         mentorId: bookingMentor.id,
@@ -1570,7 +1606,17 @@ export function Checkout() {
     };
     tick();
     const iv = window.setInterval(tick, 1000);
-    return () => window.clearInterval(iv);
+    // Trình duyệt throttle setInterval khi tab ở nền (có thể vài chục giây/phút mới chạy lại 1 lần) —
+    // khiến đồng hồ đứng ở gần 00:00 và không tự chuyển sang "Đơn đã hết hạn" cho tới khi tick tiếp theo
+    // được throttle-cho-chạy. Ép tính lại ngay khi tab active trở lại để không bị kẹt.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [paymentExpiresAtMs, paymentConfirmed, paymentExpired]);
 
   useEffect(() => {
@@ -1641,10 +1687,17 @@ export function Checkout() {
     };
     const t0 = window.setTimeout(poll, 2000);
     const iv = window.setInterval(poll, 3000);
+    // Poll ngay khi tab active trở lại — interval bị throttle khi tab ở nền nên có thể chậm phát hiện
+    // trạng thái "expired"/"paid" thật từ server nếu chỉ chờ interval tự chạy lại.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       window.clearTimeout(t0);
       window.clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [
     orderCreated,
@@ -1756,6 +1809,7 @@ export function Checkout() {
                     bookingSessionType={bookingSessionType}
                     bookingSlots={bookingSlots}
                     baseTotal={baseTotal}
+                    discountedTotal={payAmount}
                     fmt={fmt}
                   />
                 )}
@@ -1823,6 +1877,18 @@ export function Checkout() {
               <aside className="min-w-0">
                 <div className={`${checkoutCard} sticky top-20 overflow-hidden`}>
                   <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+                    {displayedDiscountAmount > 0 && (
+                      <div className="mb-2 space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className={labelMuted}>Giá gốc</span>
+                          <span className="text-slate-400 line-through">{fmt(total)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className={labelMuted}>Ưu đãi {displayedDiscountLabel} (-{Math.round((displayedDiscountAmount / total) * 100)}%)</span>
+                          <span className="font-medium text-emerald-600">−{fmt(displayedDiscountAmount)}</span>
+                        </div>
+                      </div>
+                    )}
                     <p className={labelMuted}>Tổng cộng</p>
                     <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">{fmt(grandTotal)}</p>
                   </div>
