@@ -4,10 +4,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import { FileText, Briefcase, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 // ─── Single document panel ───────────────────────────────────────────────────
 export function DocPanel({ title, fileName, icon, accentColor, file, matchedKws, missingKws, showHeader = true, maxHeight = 460 }) {
