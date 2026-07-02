@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router";
 import { Loader2 } from "lucide-react";
-import { getPlans, isLoggedIn } from "../../utils/auth/auth.js";
+import { isLoggedIn } from "../../utils/auth/auth.js";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { CVAnalysisResultContent } from "../../components/cv/CVAnalysisResultContent";
@@ -24,19 +24,14 @@ export function CVAnalysisResult() {
   const historyPath = routeMode === "field" ? CV_FIELD_HISTORY_PATH : CV_JD_HISTORY_PATH;
   const loginReturnPath = cvAnalysisResultPath(routeMode, paramId);
 
-  const [plans] = useState(getPlans());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [resultReady, setResultReady] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [savedFileInfo, setSavedFileInfo] = useState(null);
   const [historySaveWarning, setHistorySaveWarning] = useState(null);
-  const [isReplayFromHistory, setIsReplayFromHistory] = useState(false);
   const [cvFile, setCvFile] = useState(null);
   const [jdFile, setJdFile] = useState(null);
-
-  const isFreeTier = !plans.starterPro && !plans.elitePro;
-  const lockResultForFreePlan = isFreeTier && !isReplayFromHistory;
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -55,7 +50,6 @@ export function CVAnalysisResult() {
         setAnalysisResult(state.analysis);
         setSavedFileInfo(state.savedFileInfo ?? null);
         setHistorySaveWarning(state.historySaveWarning ?? null);
-        setIsReplayFromHistory(Boolean(state.isReplayFromHistory));
         setCvFile(state.cvFile ?? null);
         setJdFile(state.jdFile ?? null);
         setResultReady(true);
@@ -86,7 +80,6 @@ export function CVAnalysisResult() {
         cvFileUrl: res.analysis?.cvFileUrl ?? null,
         jdFileUrl: res.analysis?.jdFileUrl ?? null,
       });
-      setIsReplayFromHistory(true);
       setResultReady(true);
       setLoading(false);
     })();
@@ -128,7 +121,6 @@ export function CVAnalysisResult() {
           jdFileName={savedFileInfo?.jdFileName ?? jdFile?.name}
           cvFileUrl={savedFileInfo?.cvFileUrl ?? analysisResult?.cvFileUrl}
           jdFileUrl={savedFileInfo?.jdFileUrl ?? analysisResult?.jdFileUrl}
-          lockResultForFreePlan={lockResultForFreePlan}
           analysisPath={analysisPath}
           historyPath={historyPath}
           analysisId={savedFileInfo?.analysisId ?? paramId ?? null}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { resolveSubscriptionAmount } from "./planCatalog.js";
+import { resolveSubscriptionAmount, resolvePlanPerkDiscountRate } from "./planCatalog.js";
 
 describe("planCatalog", () => {
   it("resolveSubscriptionAmount starter monthly", () => {
@@ -23,5 +23,19 @@ describe("planCatalog", () => {
   it("resolveSubscriptionAmount invalid plan", () => {
     assert.equal(resolveSubscriptionAmount("free", "monthly"), null);
     assert.equal(resolveSubscriptionAmount("bogus", "monthly"), null);
+  });
+
+  it("resolvePlanPerkDiscountRate maps plan keys to the advertised /pricing perk %", () => {
+    assert.equal(resolvePlanPerkDiscountRate("starter_pro"), 0.05);
+    assert.equal(resolvePlanPerkDiscountRate("starterPro"), 0.05);
+    assert.equal(resolvePlanPerkDiscountRate("elite_pro"), 0.1);
+    assert.equal(resolvePlanPerkDiscountRate("elitePro"), 0.1);
+  });
+
+  it("resolvePlanPerkDiscountRate returns 0 for free/unknown/empty plan", () => {
+    assert.equal(resolvePlanPerkDiscountRate("free"), 0);
+    assert.equal(resolvePlanPerkDiscountRate("bogus"), 0);
+    assert.equal(resolvePlanPerkDiscountRate(null), 0);
+    assert.equal(resolvePlanPerkDiscountRate(undefined), 0);
   });
 });

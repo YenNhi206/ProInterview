@@ -81,7 +81,7 @@ export const CVController = {
     try {
       let user = await User.findById(req.userId).select("quota plan planExpiresAt");
       if (!user) return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
-      
+
       user = await enforceExpiry(user);
       res.json({ success: true, quota: user.quota });
     } catch (error) {

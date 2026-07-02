@@ -29,6 +29,7 @@ import {
 } from "../../constants/courseCategories";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { ListPagination } from "../../components/shared/ListPagination";
+import { getPlans } from "../../utils/auth/auth.js";
 
 /* ─── Constants ─────────────────────────────────────────────── */
 const LEVEL_OPTIONS = [
@@ -82,6 +83,12 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
   const ratingDisplay  = course.rating != null ? course.rating.toFixed(1) : "—";
   const durationHours  = Math.floor((course.duration || 0) / 60);
   const avatarFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(course.mentorName || "M")}&background=ede9fe&color=6d28d9`;
+  /* Ưu đãi Pro/Elite (-5%/-10%) — ước tính hiển thị theo plan hiện tại, số tiền thật chốt ở /checkout. */
+  const perkPlans = getPlans();
+  const perkDiscountRate = perkPlans.elitePro ? 0.1 : perkPlans.starterPro ? 0.05 : 0;
+  const coursePrice = Number(course.price) || 0;
+  const perkDiscountAmount = coursePrice > 0 && perkDiscountRate > 0 ? Math.round(coursePrice * perkDiscountRate) : 0;
+  const perkFinalPrice = coursePrice - perkDiscountAmount;
 
   return (
     <motion.article
@@ -108,9 +115,23 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
 
         {/* Price badge */}
         <div className="absolute right-3 top-3">
-          <span className="rounded-xl bg-[#93f72b] px-3 py-1.5 text-sm font-black text-violet-950 shadow-lg">
-            {formatPrice(course.price)}
-          </span>
+          <div className="relative">
+            {perkDiscountAmount > 0 && (
+              <span className="absolute -left-2 -top-2 z-10 whitespace-nowrap rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md ring-2 ring-white">
+                -{Math.round(perkDiscountRate * 100)}%
+              </span>
+            )}
+            <div className="flex flex-col items-end rounded-xl bg-[#93f72b] px-3 py-1.5 shadow-lg">
+              {perkDiscountAmount > 0 && (
+                <span className="text-[10px] font-semibold leading-none text-violet-950/55 line-through">
+                  {formatPrice(coursePrice)}
+                </span>
+              )}
+              <span className="text-sm font-black leading-tight text-violet-950">
+                {formatPrice(perkFinalPrice)}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Level badge */}

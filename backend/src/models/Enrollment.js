@@ -29,6 +29,9 @@ const enrollmentSchema = new Schema(
     pricePaid: { type: Number, default: 0 },
     platformFeeRate: { type: Number, default: null },
     platformFee: { type: Number, default: 0 },
+    /** Ưu đãi plan Pro/Elite (5%/10%) — platform tự gánh, đã trừ vào platformFee & pricePaid. */
+    discountRate: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
     paymentRef: { type: String, default: "" },
     /** Hết hạn cửa sổ CK SePay (mặc định 15 phút từ lúc tạo ghi danh). */
     paymentExpiresAt: { type: Date },

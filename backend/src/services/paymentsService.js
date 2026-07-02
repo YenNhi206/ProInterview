@@ -806,6 +806,10 @@ async function applySubscriptionPlanFromPayment(pay) {
   } else {
     planExpiresAt.setMonth(planExpiresAt.getMonth() + 1);
   }
+  // Lượt dùng refresh mỗi tháng trong suốt kỳ hạn — quan trọng với gói năm (planExpiresAt xa
+  // nhưng vẫn phải cấp lại quota hàng tháng theo đúng quảng cáo "/tháng" ở trang giá).
+  const nextQuotaReset = new Date();
+  nextQuotaReset.setMonth(nextQuotaReset.getMonth() + 1);
   const quota =
     plan === "elite_pro"
       ? { cvAnalysisLimit: 30, interviewLimit: 8, interviewQuestionsAllowed: 5 }
@@ -819,6 +823,7 @@ async function applySubscriptionPlanFromPayment(pay) {
       "quota.interviewLimit":            quota.interviewLimit,
       "quota.interviewUsed":             0,
       "quota.interviewQuestionsAllowed": quota.interviewQuestionsAllowed,
+      "quota.resetAt":                   nextQuotaReset,
     },
   });
 }

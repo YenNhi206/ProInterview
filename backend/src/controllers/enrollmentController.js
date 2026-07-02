@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Enrollment } from "../models/Enrollment.js";
 import { Course } from "../models/Course.js";
 import { Mentor } from "../models/Mentor.js";
+import { User } from "../models/User.js";
 import { enrollmentAccessGranted } from "../helpers/enrollmentAccess.js";
 import { recordTransferPending, recordTransferSubmitted } from "../services/paymentsService.js";
 import { incrementCourseEnrollmentCount } from "../services/courseStatsService.js";
@@ -9,6 +10,8 @@ import { resolveCoursePlatformFeeRate } from "../services/mentorCommissionServic
 import { serializeCourseForApi } from "../utils/resolveStoredUploadUrl.js";
 import { newPaymentExpiresAt } from "../utils/transferPaymentExpiry.js";
 import { expireEnrollmentTransferIfNeeded } from "../services/transferPaymentExpiryService.js";
+import { enforceExpiry } from "../utils/planGuard.js";
+import { resolvePlanPerkDiscountRate } from "../constants/planCatalog.js";
 
 function genOrderRef() {
   return `PI${Math.floor(Math.random() * 900000 + 100000)}`;
@@ -44,6 +47,14 @@ export const EnrollmentController = {
       }
       const { rate: coursePlatformFeeRate } = resolveCoursePlatformFeeRate(courseMentor);
       const coursePlatformFee = Math.round(Math.max(0, price) * coursePlatformFeeRate);
+
+      let buyer = await User.findById(userId).select("plan planExpiresAt").lean();
+      if (buyer) buyer = await enforceExpiry(buyer);
+      const discountRate = resolvePlanPerkDiscountRate(buyer?.plan);
+      const discountAmount = discountRate > 0 ? Math.round(Math.max(0, price) * discountRate) : 0;
+      const coursePriceAfterDiscount = Math.max(0, price - discountAmount);
+      const coursePlatformFeeAfterDiscount = Math.max(0, coursePlatformFee - discountAmount);
+
       const existing = await Enrollment.findOne({ userId, courseId });
 
       if (existing) {
@@ -56,7 +67,7 @@ export const EnrollmentController = {
           if (expired.expired) {
             // Ghi danh cũ đã hết hạn — tạo mới bên dưới.
           } else {
-            const coursePrice = Math.round(price);
+            const coursePrice = Math.round(coursePriceAfterDiscount);
             const clientOrder = extractOrderPart(req.body?.orderNum);
             let dirty = false;
             if (Math.round(Number(existing.pricePaid ?? 0)) !== coursePrice) {
@@ -67,8 +78,16 @@ export const EnrollmentController = {
               existing.platformFeeRate = coursePlatformFeeRate;
               dirty = true;
             }
-            if (Math.round(Number(existing.platformFee ?? 0)) !== Math.round(coursePlatformFee)) {
-              existing.platformFee = coursePlatformFee;
+            if (Math.round(Number(existing.platformFee ?? 0)) !== Math.round(coursePlatformFeeAfterDiscount)) {
+              existing.platformFee = coursePlatformFeeAfterDiscount;
+              dirty = true;
+            }
+            if (Number(existing.discountRate ?? 0) !== discountRate) {
+              existing.discountRate = discountRate;
+              dirty = true;
+            }
+            if (Math.round(Number(existing.discountAmount ?? 0)) !== Math.round(discountAmount)) {
+              existing.discountAmount = discountAmount;
               dirty = true;
             }
             if (clientOrder && extractOrderPart(existing.paymentRef) !== clientOrder) {
@@ -125,9 +144,11 @@ export const EnrollmentController = {
       const enrollment = await Enrollment.create({
         userId,
         courseId,
-        pricePaid: price,
+        pricePaid: coursePriceAfterDiscount,
         platformFeeRate: coursePlatformFeeRate,
-        platformFee: coursePlatformFee,
+        platformFee: coursePlatformFeeAfterDiscount,
+        discountRate,
+        discountAmount,
         paymentStatus: "pending",
         paymentMethod: "transfer",
         paymentRef: orderRef,

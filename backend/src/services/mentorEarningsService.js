@@ -13,9 +13,9 @@ function parseFeeRate(envVal, fallback) {
 
 /** Tiền mentor nhận sau phí nền tảng (VAT là phần thu của KH, không trừ thêm ở đây). */
 export function mentorNetFromBooking(booking) {
-  const price = Math.round(Number(booking?.price || 0));
+  const gross = Math.round(Number(booking?.totalAmount ?? booking?.price ?? 0));
   const platformFee = Math.round(Number(booking?.platformFee || 0));
-  return Math.max(0, price - platformFee);
+  return Math.max(0, gross - platformFee);
 }
 
 export function mentorNetFromCourseSale(input, mentorForFallback = null) {
@@ -43,7 +43,7 @@ export function mentorNetFromCourseSale(input, mentorForFallback = null) {
 export async function tryCreditMentorForCompletedBooking(bookingId) {
   if (!mongoose.isValidObjectId(bookingId)) return { ok: false, error: "bookingId không hợp lệ." };
   const booking = await Booking.findById(bookingId)
-    .select("mentorId status paymentStatus price platformFee mentorEarningsCreditedAt")
+    .select("mentorId status paymentStatus price totalAmount platformFee mentorEarningsCreditedAt")
     .lean();
   if (!booking || booking.status !== "completed" || booking.paymentStatus !== "paid") {
     return { ok: true, skipped: true };

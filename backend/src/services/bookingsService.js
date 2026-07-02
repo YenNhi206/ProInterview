@@ -28,6 +28,8 @@ import { newPaymentExpiresAt, isTransferPaymentExpired, TRANSFER_PAYMENT_TIMEOUT
 import { expireBookingTransferIfNeeded } from "./transferPaymentExpiryService.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { buildJaasMeetingLaunch } from "./jaasService.js";
+import { enforceExpiry } from "../utils/planGuard.js";
+import { resolvePlanPerkDiscountRate } from "../constants/planCatalog.js";
 
 /**
  * Chính sách hủy (User) — đồng bộ `frontend/src/app/constants/bookingPolicy.js`:
@@ -600,10 +602,12 @@ export async function createBooking(userId, body) {
     return { ok: false, status: 401, error: "Phiên đăng nhập không hợp lệ." };
   }
 
-  const user = await User.findById(uid).lean();
+  let user = await User.findById(uid).lean();
   if (!user) {
     return { ok: false, status: 401, error: "Không tìm thấy người dùng." };
   }
+  user = await enforceExpiry(user);
+  const discountRate = resolvePlanPerkDiscountRate(user.plan);
 
   const mentorKey = typeof body.mentorId === "string" ? body.mentorId.trim() : "";
   if (!mentorKey) {
@@ -704,8 +708,10 @@ export async function createBooking(userId, body) {
   const vatRate = parseFeeRate(process.env.BOOKING_VAT_RATE, 0);
 
   const price = Math.round(basePrice);
-  const platformFee = Math.round(price * platformRate);
-  const totalAmount = price;
+  const standardPlatformFee = Math.round(price * platformRate);
+  const discountAmount = discountRate > 0 ? Math.round(price * discountRate) : 0;
+  const platformFee = Math.max(0, standardPlatformFee - discountAmount);
+  const totalAmount = price - discountAmount;
   const vat = vatRate > 0 ? Math.round((price * vatRate) / (1 + vatRate)) : 0;
 
   const dup = await Booking.findOne({
@@ -854,6 +860,8 @@ export async function createBooking(userId, body) {
       platformFee,
       vat,
       totalAmount,
+      discountRate,
+      discountAmount,
       paymentStatus,
       paymentMethod: rebookCreditSource ? "transfer" : mapPaymentMethod(body.paymentMethod ?? body.method),
       paymentRef,
@@ -1056,6 +1064,8 @@ export function toPublicBooking(doc, mentorLean) {
     platformFee: b.platformFee,
     vat: b.vat,
     totalAmount: b.totalAmount,
+    discountRate: b.discountRate ?? 0,
+    discountAmount: b.discountAmount ?? 0,
     paymentStatus: b.paymentStatus,
     paymentMethod: b.paymentMethod,
     paymentRef: b.paymentRef ?? "",

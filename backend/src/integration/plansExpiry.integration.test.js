@@ -42,6 +42,9 @@ describe("plansService — quota reset + expiry", () => {
     assert.equal(res.quota.interviewUsed, 0);
     assert.equal(res.quota.cvAnalysisLimit, 10);
     assert.equal(res.quota.interviewLimit, 3);
+    // Mốc reset hàng tháng kế tiếp phải được set (~1 tháng tới) — nền tảng cho gói năm.
+    assert.ok(res.quota.resetAt);
+    assert.ok(new Date(res.quota.resetAt) > new Date());
   });
 
   it("syncPlanExpiry hạ về free khi planExpiresAt đã qua", async () => {
@@ -97,5 +100,49 @@ describe("plansService — quota reset + expiry", () => {
     assert.equal(res.ok, true);
     assert.equal(res.plan, "free");
     assert.equal(res.quota.cvAnalysisLimit, 3);
+  });
+
+  it("gói năm còn hiệu lực nhưng tới hạn reset hàng tháng → lượt dùng về 0, KHÔNG hạ gói", async () => {
+    const cycleOverdue = new Date(Date.now() - 24 * 60 * 60 * 1000); // hạn reset tháng đã qua
+    const planStillActive = new Date(Date.now() + 300 * 24 * 60 * 60 * 1000); // gói năm còn ~10 tháng
+    const user = await User.create({
+      name: "Yearly Mid-cycle",
+      email: `yearly-cycle-${Date.now()}@test.local`,
+      plan: "elite_pro",
+      planExpiresAt: planStillActive,
+      quota: {
+        cvAnalysisUsed: 40,
+        cvAnalysisLimit: 40,
+        interviewUsed: 8,
+        interviewLimit: 8,
+        interviewQuestionsAllowed: 5,
+        resetAt: cycleOverdue,
+      },
+    });
+
+    const res = await getCurrentPlan(String(user._id));
+    assert.equal(res.ok, true);
+    assert.equal(res.plan, "elite_pro"); // gói vẫn còn hiệu lực, không bị hạ về free
+    assert.equal(res.planExpiresAt.getTime(), planStillActive.getTime()); // hạn gói không đổi
+    assert.equal(res.quota.cvAnalysisUsed, 0); // lượt dùng đã reset
+    assert.equal(res.quota.interviewUsed, 0);
+    assert.equal(res.quota.cvAnalysisLimit, 40); // hạn mức gói giữ nguyên
+    assert.ok(new Date(res.quota.resetAt) > new Date()); // mốc reset kế tiếp đã dời sang tương lai
+  });
+
+  it("gói còn hiệu lực và chưa tới hạn reset → không đụng tới lượt dùng", async () => {
+    const cycleFuture = new Date(Date.now() + 20 * 24 * 60 * 60 * 1000);
+    const planStillActive = new Date(Date.now() + 300 * 24 * 60 * 60 * 1000);
+    const user = await User.create({
+      name: "Yearly Not Due",
+      email: `yearly-notdue-${Date.now()}@test.local`,
+      plan: "starter_pro",
+      planExpiresAt: planStillActive,
+      quota: { cvAnalysisUsed: 7, cvAnalysisLimit: 10, resetAt: cycleFuture },
+    });
+
+    const res = await getCurrentPlan(String(user._id));
+    assert.equal(res.quota.cvAnalysisUsed, 7); // chưa tới hạn, giữ nguyên
+    assert.equal(new Date(res.quota.resetAt).getTime(), cycleFuture.getTime());
   });
 });

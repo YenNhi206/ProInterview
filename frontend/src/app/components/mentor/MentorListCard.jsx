@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { Video, BadgeCheck, Star } from "lucide-react";
 import { MENTOR_BOOKING_COPY } from "../../constants/brandVoice";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { getPlans } from "../../utils/auth/auth.js";
 
 function displayTitle(mentor) {
   const title = (mentor.title || "").trim();
@@ -46,6 +47,11 @@ function StarRating({ rating, reviewCount }) {
 
 export function MentorListCard({ mentor, onOpenProfile, onBook }) {
   const offer = resolveMentorSessionOffer(mentor);
+  /* Ưu đãi Pro/Elite (-5%/-10%) — ước tính hiển thị theo plan hiện tại, số tiền thật chốt ở /checkout. */
+  const perkPlans = getPlans();
+  const perkDiscountRate = perkPlans.elitePro ? 0.1 : perkPlans.starterPro ? 0.05 : 0;
+  const perkDiscountAmount = offer.price > 0 && perkDiscountRate > 0 ? Math.round(offer.price * perkDiscountRate) : 0;
+  const perkFinalPrice = offer.price - perkDiscountAmount;
   const avatarSrc =
     mentor.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(mentor.name || "M")}&background=ede9fe&color=6d28d9`;
@@ -133,10 +139,20 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
 
         <div className="mb-4 text-center">
           <span className="text-xs text-slate-500">Buổi mentor 1:1</span>
-          <p className="mt-0.5 text-sm font-bold text-slate-900">
-            {formatVnd(offer.price)}
-            <span className="text-xs font-medium text-slate-500"> / {offer.minutes} phút</span>
+          <p className="mt-0.5 flex items-center justify-center gap-1.5">
+            {perkDiscountAmount > 0 && (
+              <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                -{Math.round(perkDiscountRate * 100)}%
+              </span>
+            )}
+            <span className="text-sm font-bold text-slate-900">
+              {formatVnd(perkFinalPrice)}
+              <span className="text-xs font-medium text-slate-500"> / {offer.minutes} phút</span>
+            </span>
           </p>
+          {perkDiscountAmount > 0 && (
+            <span className="text-[11px] text-slate-400 line-through">{formatVnd(offer.price)}</span>
+          )}
         </div>
 
         <div className="flex w-full flex-col gap-2">

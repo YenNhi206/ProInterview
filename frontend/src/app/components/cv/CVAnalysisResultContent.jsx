@@ -9,7 +9,6 @@ import {
   Mic,
   Users,
   Briefcase,
-  Lock,
   PlusCircle,
   Wrench,
   Trash2 as Trash,
@@ -20,9 +19,6 @@ import {
   ThumbsDown,
   ArrowRightLeft,
   Clock,
-  Trophy,
-  Compass,
-  LifeBuoy,
 } from "lucide-react";
 import { submitCvFeedback } from "../../api/cvApi.js";
 import { CVDocumentPreview } from "./CVDocumentPreview";
@@ -56,7 +52,6 @@ export function CVAnalysisResultContent({
   jdFileUrl = null,
   cvFileName,
   jdFileName,
-  lockResultForFreePlan = false,
   analysisPath,
   historyPath,
   analysisId = null,
@@ -64,9 +59,11 @@ export function CVAnalysisResultContent({
   const navigate = useNavigate();
   const [feedbackState, setFeedbackState] = useState(null); // null | "helpful" | "not_helpful"
   const [feedbackSent, setFeedbackSent] = useState(false);
-  const [showAllStrengths, setShowAllStrengths] = useState(false);
-  const [showAllWeaknesses, setShowAllWeaknesses] = useState(false);
+  const [activePage, setActivePage] = useState(1);
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
+  const [showTransitionModal, setShowTransitionModal] = useState(false);
+  const [expandedSuggestion, setExpandedSuggestion] = useState(null);
+
   const handleFeedback = async (rating) => {
     setFeedbackState(rating);
     setFeedbackSent(true);
@@ -91,389 +88,583 @@ export function CVAnalysisResultContent({
     : DEMO_SCORES;
   const suggestionDisplayMode = derivedMode === "field" ? "field" : "jd";
   const suggestionsData = R?.suggestions ?? DEMO_SUGGESTIONS;
-  const strengthsData = R?.strengths ?? [];
-  const weaknessesData = R?.weaknesses ?? [];
+  const strengthsData = R?.strengths ?? ["React & TypeScript, khớp JD", "Node.js + REST API phù hợp"];
+  const weaknessesData = R?.weaknesses ?? ["Thiếu Docker, AWS"];
+  const highCount = suggestionsData.filter((s) => s.priority === "high").length;
+  const mediumCount = suggestionsData.filter((s) => s.priority === "medium").length;
+  const lowCount = suggestionsData.filter((s) => s.priority === "low").length;
   const resolvedHistoryPath = historyPath ?? (routeMode === "field" ? CV_FIELD_HISTORY_PATH : CV_JD_HISTORY_PATH);
   const resolvedAnalysisPath = analysisPath ?? (routeMode === "field" ? CV_FIELD_ANALYSIS_PATH : CV_JD_ANALYSIS_PATH);
-  
-  const missingKws = jdDisplayKWs.filter(k => !matchedSet.has(k));
 
   return (
-    <div className="px-4 py-6 sm:px-8 sm:py-8 flex flex-col gap-6">
-      {historySaveWarning && (
-        <div
-          className="flex items-start gap-3 rounded-sm border border-amber-200/90 bg-amber-50 px-5 py-4"
-          role="status"
-        >
-          <Warning className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-amber-950">Chưa lưu vào lịch sử</p>
-            <p className="mt-1 text-xs leading-relaxed text-amber-900/90">{historySaveWarning}</p>
-          </div>
-        </div>
-      )}
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
 
-      {lockResultForFreePlan && (
-        <div className="flex items-center gap-4 rounded-sm px-5 py-4" style={{ background: "linear-gradient(135deg,rgba(128, 55, 244,0.08),rgba(139, 77, 255,0.05))", border: "1.5px solid rgba(128, 55, 244,0.2)" }}>
-          <div className="w-10 h-10 rounded-sm flex items-center justify-center flex-shrink-0" style={{ background: "rgba(128, 55, 244,0.15)" }}><Lock className="w-5 h-5 text-[#8037f4]" /></div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-slate-900">Đang xem bản xem trước, Gói Free</p>
-            <p className="mt-0.5 text-xs text-slate-600">Phần đánh giá chi tiết & gợi ý bị ẩn. Nâng cấp để xem đầy đủ.</p>
-          </div>
-          <button onClick={() => navigate("/pricing")} className="flex items-center gap-1.5 px-4 py-2 rounded-sm text-xs font-bold text-white flex-shrink-0 shadow-sm transition hover:opacity-90" style={{ background: "#8037f4" }}>
-            <Zap className="w-3.5 h-3.5" /> Mở khoá
-          </button>
-        </div>
-      )}
-
-      {/* 2. Status Block (Moved to Top) */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 rounded-full border border-slate-200/60 bg-[#faf9ff] p-2 pr-6">
-         <div className="flex shrink-0 items-center justify-center rounded-full bg-white px-6 py-3 border border-slate-100 shadow-sm">
-            <span className="text-[11px] font-black tracking-widest text-[#3e2b66] uppercase">{matchScore >= 80 ? "ĐẠT YÊU CẦU TỐT" : matchScore >= 50 ? "CẦN CẢI THIỆN THÊM" : "KHÔNG PHÙ HỢP"}</span>
-         </div>
-         <p className="text-sm font-medium text-[#4a3b70] text-center sm:text-left">
-            {matchScore >= 80 ? "CV của bạn rất ấn tượng và bám sát yêu cầu. Chỉ cần vài chỉnh sửa nhỏ để hồ sơ trở nên hoàn hảo." : matchScore >= 50 ? "CV ở mức khá. Hãy xem kỹ các gợi ý bên dưới để bổ sung từ khóa và cấu trúc lại cách viết kinh nghiệm." : "CV hiện tại có vẻ chưa thực sự phù hợp với yêu cầu của JD này. Bạn có thể cân nhắc bổ sung thêm nhiều kinh nghiệm, hoặc thử sức ở một vị trí khác phù hợp hơn với năng lực."}
-         </p>
-      </div>
-
-      {/* 1. Header Block */}
-      <div className="flex flex-col sm:flex-row items-center gap-8 rounded-sm border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-         {/* Circular Gauge */}
-         <div className="flex flex-col items-center flex-shrink-0">
-            <div className="relative w-36 h-36">
-               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  {/* Background Circle */}
-                  <path d="M 50,50 m -45,0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0" fill="none" stroke="#f1f5f9" strokeWidth="8" />
-                  {/* Progress Circle */}
-                  <path d="M 50,50 m -45,0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0" fill="none" stroke="#8037f4" strokeWidth="8" strokeDasharray={`${matchScore * 2.827} 282.7`} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
-               </svg>
-               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-4xl font-black text-slate-900 leading-none tracking-tight">{matchScore}</span>
-                  <span className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">/100</span>
-               </div>
-            </div>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-5">
-               ĐỘ KHỚP TỔNG THỂ
-            </p>
-         </div>
-
-         {/* Summary text */}
-         <div className="flex-1 text-center sm:text-left border-t sm:border-t-0 sm:border-l border-slate-100 pt-6 sm:pt-0 sm:pl-8">
-            <p className="text-sm leading-relaxed text-slate-600">
-               {R?.summary ? String(R.summary).replace(/^[✨⭐]\s*/u, "").trim() : (
-                 derivedMode === "jd" 
-                   ? `CV của bạn đã khớp ${cvDisplayKWs.length}/${jdDisplayKWs.length} từ khóa quan trọng trong mô tả công việc. Cần tập trung cải thiện cách mô tả kinh nghiệm và bổ sung các từ khóa cốt lõi để gia tăng mức độ phù hợp với vị trí ứng tuyển.`
-                   : "CV của bạn đã có cấu trúc cơ bản, tuy nhiên cần cải thiện thêm về cách viết bullet point theo chuẩn STAR và bổ sung số liệu cụ thể để tạo sự thuyết phục."
-               )}
-            </p>
-         </div>
-      </div>
-
-      {/* CV Doc Preview for JD mode */}
-      {derivedMode === "jd" && (
-        <div className="relative rounded-sm overflow-hidden border border-slate-200">
-          <CVDocumentPreview
-            cvFile={cvFile}
-            jdFile={jdFile}
-            cvFileUrl={cvFileUrl}
-            jdFileUrl={jdFileUrl}
-            cvFileName={cvFile?.name ?? cvFileName}
-            jdFileName={jdFile?.name ?? jdFileName}
-            matchedKws={R?.matchedKeywords ?? []}
-            missingKws={R?.missingKeywords  ?? []}
-          />
-          {lockResultForFreePlan && (
-            <div className="absolute bottom-0 left-0 right-0 flex h-full flex-col items-center justify-center bg-slate-900/60 backdrop-blur-sm z-10">
-              <div className="px-6 text-center animate-in zoom-in duration-300">
-                <div className="mx-auto w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-3">
-                  <Lock className="h-5 w-5 text-white" />
-                </div>
-                <p className="mb-4 text-sm font-bold text-white tracking-wide">CHI TIẾT BỊ ẨN DO GIỚI HẠN GÓI FREE</p>
-                <button onClick={() => navigate("/pricing")} className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-xs font-bold text-white shadow-lg transition hover:scale-105" style={{ background: "#8037f4" }}>
-                  <Zap className="w-4 h-4" /> Nâng cấp ngay
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-
-
-      {/* 3. Missing Keywords */}
-      {derivedMode === "jd" && (
-        <div className="rounded-sm border border-slate-200 bg-white overflow-hidden shadow-sm">
-           <div className="border-b border-slate-100 bg-slate-50/50 px-5 py-3.5 flex items-center gap-2">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">TỪ KHÓA THIẾU TRONG CV</h3>
-           </div>
-           <div className="p-5">
-              {missingKws.length === 0 ? (
-                <p className="text-sm text-slate-500 font-medium">Không có</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {missingKws.map((kw, i) => (
-                    <span key={i} className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                      {kw}
-                    </span>
-                  ))}
+              {historySaveWarning && (
+                <div
+                  className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200/90 bg-amber-50 px-5 py-4"
+                  role="status"
+                >
+                  <Warning className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-amber-950">Chưa lưu vào lịch sử</p>
+                    <p className="mt-1 text-xs leading-relaxed text-amber-900/90">{historySaveWarning}</p>
+                  </div>
                 </div>
               )}
-           </div>
-        </div>
-      )}
 
-      {/* 4. Strengths (Matched Keywords) */}
-      <div className="rounded-sm border border-emerald-100 bg-white overflow-hidden shadow-sm">
-         <div className="border-b border-emerald-50 bg-emerald-50/30 px-5 py-3.5 flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-emerald-800">ĐIỂM MẠNH ĐÃ THỂ HIỆN</h3>
-         </div>
-         <div className="p-5">
-            {cvDisplayKWs.length === 0 && strengthsData.length === 0 ? (
-              <p className="text-sm text-slate-500 font-medium">Không có</p>
-            ) : strengthsData.length > 0 ? (
-              <div className="flex flex-col gap-2.5">
-                {strengthsData.slice(0, showAllStrengths ? undefined : 5).map((s, i) => (
-                  <div key={`s-${i}`} className="flex items-start gap-2.5 text-sm text-slate-700 bg-emerald-50/50 p-3 rounded-md border border-emerald-100/50">
-                    <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                    <span className="leading-relaxed">{s}</span>
-                  </div>
-                ))}
-                {strengthsData.length > 5 && (
-                  <button 
-                    onClick={() => setShowAllStrengths(!showAllStrengths)}
-                    className="self-start mt-1 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition flex items-center gap-1"
-                  >
-                    {showAllStrengths ? (
-                      <>Thu gọn <ChevronUp className="w-4 h-4" /></>
-                    ) : (
-                      <>Xem thêm {strengthsData.length - 5} mục <ChevronDown className="w-4 h-4" /></>
-                    )}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap gap-2">
-                  {cvDisplayKWs.slice(0, showAllStrengths ? undefined : 5).map((kw, i) => (
-                    <span key={`kw-${i}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm border border-emerald-200">
-                      <Check className="w-3.5 h-3.5" />
-                      {kw}
+              {/* Page indicator */}
+              <div className="mb-5 flex items-center gap-2">
+                <button
+                  onClick={() => setActivePage(1)}
+                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${activePage === 1 ? "bg-violet-600 text-white shadow" : "border border-slate-200 bg-white text-slate-500 hover:text-slate-700"}`}
+                >
+                  1 · Tổng quan
+                </button>
+                <button
+                  onClick={() => setShowTransitionModal(true)}
+                  className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition ${activePage === 2 ? "bg-violet-600 text-white shadow" : "border border-slate-200 bg-white text-slate-500 hover:text-slate-700"}`}
+                >
+                  2 · Gợi ý cải thiện
+                  {suggestionsData.length > 0 && (
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activePage === 2 ? "bg-white/20 text-white" : "bg-violet-100 text-violet-700"}`}>
+                      {suggestionsData.length}
                     </span>
-                  ))}
-                </div>
-                {cvDisplayKWs.length > 5 && (
-                  <button 
-                    onClick={() => setShowAllStrengths(!showAllStrengths)}
-                    className="self-start mt-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition flex items-center gap-1"
-                  >
-                    {showAllStrengths ? (
-                      <>Thu gọn <ChevronUp className="w-4 h-4" /></>
-                    ) : (
-                      <>Xem thêm {cvDisplayKWs.length - 5} mục <ChevronDown className="w-4 h-4" /></>
-                    )}
-                  </button>
-                )}
+                  )}
+                </button>
               </div>
-            )}
-         </div>
-      </div>
 
-      {/* 5. Gaps (Weaknesses) */}
-      <div className="rounded-sm border border-orange-100 bg-white overflow-hidden shadow-sm">
-         <div className="border-b border-orange-50 bg-orange-50/30 px-5 py-3.5 flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-800">KHOẢNG TRỐNG CẦN KHẮC PHỤC</h3>
-         </div>
-         <div className="p-5">
-            {weaknessesData.length === 0 && missingKws.length === 0 ? (
-              <p className="text-sm text-slate-500 font-medium">Không có</p>
-            ) : weaknessesData.length > 0 ? (
-              <div className="flex flex-col gap-2.5">
-                {weaknessesData.slice(0, showAllWeaknesses ? undefined : 5).map((w, i) => (
-                  <div key={`w-${i}`} className="flex items-start gap-2.5 text-sm text-slate-700 bg-orange-50/50 p-3 rounded-md border border-orange-100/50">
-                    <Warning className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                    <span className="leading-relaxed">{w}</span>
-                  </div>
-                ))}
-                {weaknessesData.length > 5 && (
-                  <button 
-                    onClick={() => setShowAllWeaknesses(!showAllWeaknesses)}
-                    className="self-start mt-1 text-sm font-semibold text-orange-600 hover:text-orange-700 transition flex items-center gap-1"
-                  >
-                    {showAllWeaknesses ? (
-                      <>Thu gọn <ChevronUp className="w-4 h-4" /></>
-                    ) : (
-                      <>Xem thêm {weaknessesData.length - 5} mục <ChevronDown className="w-4 h-4" /></>
-                    )}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap gap-2">
-                  {missingKws.slice(0, showAllWeaknesses ? undefined : 5).map((kw, i) => (
-                    <span key={`mw-${i}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 text-orange-700 text-sm border border-orange-200">
-                      <Warning className="w-3.5 h-3.5" />
-                      {kw}
-                    </span>
-                  ))}
-                </div>
-                {missingKws.length > 5 && (
-                  <button 
-                    onClick={() => setShowAllWeaknesses(!showAllWeaknesses)}
-                    className="self-start mt-2 text-sm font-semibold text-orange-600 hover:text-orange-700 transition flex items-center gap-1"
-                  >
-                    {showAllWeaknesses ? (
-                      <>Thu gọn <ChevronUp className="w-4 h-4" /></>
-                    ) : (
-                      <>Xem thêm {missingKws.length - 5} mục <ChevronDown className="w-4 h-4" /></>
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
-         </div>
-      </div>
+              {activePage === 1 && (<>
 
-      {/* 6. Suggestions */}
-      <div className="rounded-sm border border-violet-200 bg-white overflow-hidden shadow-sm relative">
-         {lockResultForFreePlan && (
-            <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center p-6">
-              <div className="bg-white rounded-sm border border-violet-100 shadow-xl p-5 text-center max-w-sm">
-                 <Lock className="w-6 h-6 text-violet-500 mx-auto mb-2" />
-                 <p className="text-sm font-bold text-slate-900 mb-1">Gợi ý chỉnh sửa đang bị khóa</p>
-                 <p className="text-xs text-slate-500 mb-4">Mở khóa Gói Pro để xem chi tiết cách viết lại từng dòng CV theo cấu trúc chuẩn.</p>
-                 <button onClick={() => navigate("/pricing")} className="w-full bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold py-2.5 rounded-sm transition">
-                   Nâng cấp ngay
-                 </button>
-              </div>
-            </div>
-         )}
-         
-         <div className="border-b border-violet-100 bg-violet-50/50 px-5 py-3.5 flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-violet-600 shadow-[0_0_8px_rgba(124,58,237,0.5)]" />
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-violet-900">ĐỀ XUẤT CHỈNH SỬA</h3>
-         </div>
-         <div className="p-5">
-            {suggestionsData.length === 0 ? (
-              <p className="text-sm text-slate-500 font-medium">Không có</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {suggestionsData.slice(0, showAllSuggestions ? undefined : 5).map((item, i) => {
-                  const isAdd = item.type === "add";
-                  const title = isAdd ? item.title.replace(/^Bổ sung kỹ năng\s*"?/, "").replace(/"$/, "") : formatSuggestionDisplayReason(item, { mode: suggestionDisplayMode });
-                  return (
-                    <div key={i} className="flex flex-col gap-1 p-3.5 rounded-md border border-violet-100 bg-violet-50/30">
-                      <div className="flex items-start gap-2.5">
-                         <Zap className="w-4 h-4 mt-0.5 text-violet-600 flex-shrink-0" />
-                         <span className="font-semibold text-slate-900 text-sm">
-                           {isAdd ? "Cần bổ sung: " : "Cần tinh chỉnh: "}
-                           <span className="text-violet-800">{title}</span>
-                         </span>
+              {/* Match Score Banner */}
+              <div id="section-score" className="rounded-2xl p-6 mb-6 text-white" style={{ background: "#8037f4" }}>
+                <div className="flex items-start justify-between flex-wrap gap-4">
+                  <div>
+                    <p className="text-indigo-200 text-sm mb-2">
+                      {derivedMode === "jd" ? `Mức độ phù hợp CV${R?.company ? `, ${R.company}` : ""}${R?.position ? ` · ${R.position}` : ""}` : "Điểm chất lượng CV"}
+                    </p>
+                    <div className="flex items-end gap-3 mb-2">
+                      <span style={{ fontSize: "3.5rem", fontWeight: 800, lineHeight: 1 }}>{derivedMode === "jd" ? `${matchScore}%` : matchScore}</span>
+                      <div className="mb-1">
+                        <span className="text-indigo-200 text-sm">{derivedMode === "jd" ? "keyword match" : "/ 100 điểm"}</span>
+                        <div className="flex items-center gap-0.5 mt-1 flex-wrap">
+                          {Array.from({ length: 10 }).map((_, i) => (
+                            <div key={i} className="h-1.5 w-5 rounded-full" style={{ background: i < Math.round(matchScore / 10) ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.22)" }} />
+                          ))}
+                        </div>
                       </div>
-                      {item.reason && (
-                         <div className="text-xs text-slate-600 pl-6 ml-2 border-l-2 border-violet-100 mt-1.5 py-0.5">
-                           <span className="font-bold text-slate-700 mr-1">Gợi ý hướng dẫn:</span>
-                           {item.reason}
-                         </div>
+                    </div>
+
+                  </div>
+                  <div className="flex flex-col gap-2 text-sm min-w-[160px]">
+                    {(derivedMode === "jd" ? [
+                      { label: "Điểm chất lượng CV", val: `${overallScore}/100`, color: "bg-white/20" },
+                      { label: "Điểm cấu trúc",      val: `${R?.scores?.structure ?? 6}/10`, color: "bg-emerald-400/30" },
+                      { label: "Gợi ý cải thiện",    val: `${suggestionsData.length} mục`, color: "bg-amber-400/20" },
+                    ] : [
+                      { label: "Điểm cấu trúc",      val: `${R?.scores?.structure ?? 6}/10`, color: "bg-white/20" },
+                      { label: "Độ hoàn thiện",      val: `${matchScore}%`, color: "bg-emerald-400/30" },
+                      { label: "Gợi ý cải thiện",    val: `${suggestionsData.length} mục`, color: "bg-amber-400/20" },
+                    ]).map(s => (
+                      <div key={s.label} className={`flex items-center justify-between gap-4 px-4 py-2 rounded-xl ${s.color}`}>
+                        <span className="text-white/70">{s.label}</span>
+                        <span className="text-white font-semibold">{s.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* CV Doc preview */}
+              {derivedMode === "jd" && (
+                <div className="relative mb-6">
+                  <CVDocumentPreview
+                    cvFile={cvFile}
+                    jdFile={jdFile}
+                    cvFileUrl={cvFileUrl}
+                    jdFileUrl={jdFileUrl}
+                    cvFileName={cvFile?.name ?? cvFileName}
+                    jdFileName={jdFile?.name ?? jdFileName}
+                    matchedKws={R?.matchedKeywords ?? []}
+                    missingKws={R?.missingKeywords  ?? []}
+                  />
+                </div>
+              )}
+
+              {/* Keywords gap analysis */}
+              <div id="section-keywords" />
+              {derivedMode === "jd" && (() => {
+                const missingKws = jdDisplayKWs.filter(k => !matchedSet.has(k));
+                const matchPct = jdDisplayKWs.length > 0 ? Math.round((cvDisplayKWs.length / jdDisplayKWs.length) * 100) : 0;
+                const missTimeMap = {};
+                for (const entry of R?.missingKwsWithTime ?? []) {
+                  if (entry.time) missTimeMap[entry.kw.toLowerCase()] = entry.time;
+                }
+                return (
+                  <div className="relative mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    {/* Header */}
+                    <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100">
+                          <Briefcase className="h-4 w-4 text-[#8037f4]" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900">Phân tích từ khóa JD</h3>
+                          <p className="text-xs text-slate-500">{cvDisplayKWs.length}/{jdDisplayKWs.length} từ khóa đã có trong CV</p>
+                        </div>
+                      </div>
+                      {/* Match meter */}
+                      <div className="flex items-center gap-3 sm:min-w-[200px]">
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+                          <div
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${matchPct}%`,
+                              background: matchPct >= 70 ? "#22c55e" : matchPct >= 45 ? "#f97316" : "#ef4444",
+                            }}
+                          />
+                        </div>
+                        <span className={`shrink-0 text-sm font-black tabular-nums ${matchPct >= 70 ? "text-emerald-700" : matchPct >= 45 ? "text-orange-600" : "text-red-600"}`}>
+                          {matchPct}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="divide-y divide-slate-100">
+                      {/* Missing keywords — actionable, shown first */}
+                      {missingKws.length > 0 && (
+                        <div className="p-5">
+                          <div className="mb-3 flex items-center gap-2">
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-orange-100">
+                              <Warning className="h-3.5 w-3.5 text-orange-600" />
+                            </div>
+                            <p className="text-xs font-bold uppercase tracking-wide text-orange-800">
+                              Còn thiếu — bổ sung để tăng điểm
+                            </p>
+                            <span className="ml-auto rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-black text-orange-800">
+                              {missingKws.length} từ khóa
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {missingKws.map(kw => {
+                              const time = missTimeMap[kw.toLowerCase()];
+                              return (
+                                <span
+                                  key={kw}
+                                  className="inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-900"
+                                >
+                                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                                  {kw}
+                                  {time && (
+                                    <span className="ml-0.5 rounded-full bg-orange-200 px-1.5 py-0.5 text-[10px] font-bold text-orange-800">
+                                      ⏱ {time}
+                                    </span>
+                                  )}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
                       )}
-                      {item.before && item.after && !isAdd && (
-                         <div className="pl-6 ml-2 mt-2 text-xs flex flex-col gap-1.5">
-                           <div className="flex items-start gap-2 text-rose-700 bg-rose-50/50 p-2 rounded border border-rose-100/50">
-                              <span className="font-bold flex-shrink-0">Trước:</span>
-                              <span className="leading-relaxed">{item.before}</span>
-                           </div>
-                           <div className="flex items-start gap-2 text-emerald-700 bg-emerald-50/50 p-2 rounded border border-emerald-100/50">
-                              <span className="font-bold flex-shrink-0">Sau:</span>
-                              <span className="leading-relaxed">{item.after}</span>
-                           </div>
-                         </div>
+
+                      {/* Matched keywords */}
+                      <div className="p-5">
+                        <div className="mb-3 flex items-center gap-2">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-100">
+                            <Check className="h-3.5 w-3.5 text-emerald-700" />
+                          </div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-emerald-800">
+                            Đã có trong CV
+                          </p>
+                          <span className="ml-auto rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800">
+                            {cvDisplayKWs.length} từ khóa
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {cvDisplayKWs.map(kw => (
+                            <span
+                              key={kw}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900"
+                            >
+                              <Check className="h-3 w-3 shrink-0 text-emerald-600" />
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* CTA nổi bật sang trang 2 */}
+              <p className="mb-3 text-sm text-slate-500">
+                Muốn biết cần chỉnh CV ở đâu để tăng cơ hội trúng tuyển?
+              </p>
+              <button
+                onClick={() => { setActivePage(2); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                className="mb-2 flex w-full items-center justify-between rounded-2xl px-6 py-5 text-left transition hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#8037f4,#a66ff8)" }}
+              >
+                <div>
+                  <p className="text-base font-bold text-white">Xem gợi ý cải thiện CV</p>
+                  <p className="mt-0.5 text-sm text-violet-200">
+                    {suggestionsData.length > 0
+                      ? `${suggestionsData.length} gợi ý cụ thể — điểm chi tiết, điểm mạnh/yếu, hướng dẫn sửa bullet`
+                      : "Đánh giá chi tiết, điểm mạnh và điểm cần cải thiện"}
+                  </p>
+                </div>
+                <span className="ml-4 shrink-0 rounded-xl bg-white/20 px-4 py-2 text-sm font-bold text-white">
+                  Xem →
+                </span>
+              </button>
+
+              </>)}
+
+              {activePage === 2 && (<>
+
+              {/* Detailed scoring, nền card-premium sáng: chữ slate, không dùng text-white */}
+              <div id="section-scoring" className="relative mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center gap-2.5 border-b border-slate-200 bg-violet-50/80 px-6 py-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-100">
+                    <BarChart3 className="h-4 w-4 text-[#8037f4]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">Đánh giá chi tiết</h3>
+                    <p className="text-xs text-slate-600">4 tiêu chí theo chuẩn tuyển dụng</p>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="mb-6 flex flex-wrap items-start gap-6">
+                    <div className="flex flex-shrink-0 flex-col items-center">
+                      <div className="relative h-28 w-28">
+                        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="url(#sg)" strokeWidth="10" strokeDasharray={`${overallScore * 2.51} 251`} strokeLinecap="round" />
+                          <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#8037f4" /><stop offset="100%" stopColor="#a66ff8" /></linearGradient></defs>
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-[1.6rem] font-bold text-slate-900">{overallScore}</span>
+                          <span className="text-xs text-slate-500">/ 100</span>
+                        </div>
+                      </div>
+                      <p className="mt-1 text-xs font-medium text-slate-700">Điểm AI</p>
+                      <p className="mt-0.5 text-center text-[0.65rem] leading-tight text-slate-500">
+                        Clarity · Structure<br />Relevance · Credibility
+                      </p>
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-3">
+                      {scoreTableData.map(row => (
+                        <div key={row.criteria}>
+                          <div className="mb-1 flex items-center justify-between gap-2">
+                            <span className="text-sm font-medium text-slate-800">{row.criteria}</span>
+                            <span
+                              className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-bold ${
+                                row.status === "good"
+                                  ? "bg-lime-100 text-lime-900"
+                                  : row.status === "ok"
+                                    ? "bg-violet-100 text-violet-900"
+                                    : "bg-orange-100 text-orange-900"
+                              }`}
+                            >
+                              {row.score}/{row.max}
+                            </span>
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{
+                                width: `${(row.score / row.max) * 100}%`,
+                                background: row.status === "good" ? "#84cc16" : row.status === "ok" ? "#a66ff8" : "#f97316",
+                              }}
+                            />
+                          </div>
+                          {row.note && <p className="mt-0.5 text-[0.72rem] leading-snug text-slate-600">{row.note}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-md border border-lime-200 bg-lime-50 p-4">
+                      <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-lime-900">
+                        <Check className="h-4 w-4" /> Điểm mạnh
+                      </h4>
+                      <ul className="space-y-2">
+                        {strengthsData.map((s, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-slate-800">
+                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-lime-600" />
+                            {s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="rounded-md border border-orange-200 bg-orange-50 p-4">
+                      <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-orange-900">
+                        <Warning className="h-4 w-4" /> Cơ hội phát triển
+                      </h4>
+                      {R?.missingDetails?.length > 0 ? (
+                        <ul className="space-y-2">
+                          {R.missingDetails.map((d, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-slate-800">
+                              {d.importance === "critical"
+                                ? <span className="mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold bg-orange-100 text-orange-700">Ưu tiên</span>
+                                : <span className="mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-500">Nên có</span>
+                              }
+                              <span>{d.requirement}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <ul className="space-y-2">
+                          {weaknessesData.map((s, i) => {
+                            const isCritical = s.startsWith("[Bắt buộc]");
+                            const text = s.replace(/^\[Bắt buộc\]\s*/, "").replace(/^Thiếu\s*"?/, "").replace(/"$/, "");
+                            return (
+                              <li key={i} className="flex items-start gap-2 text-sm text-slate-800">
+                                {isCritical
+                                  ? <span className="mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold bg-orange-100 text-orange-700">Ưu tiên</span>
+                                  : <span className="mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-500">Nên có</span>
+                                }
+                                <span>{text}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
                       )}
                     </div>
-                  );
-                })}
-                {suggestionsData.length > 5 && (
-                  <button 
-                    onClick={() => setShowAllSuggestions(!showAllSuggestions)}
-                    className="self-start mt-1 text-sm font-semibold text-violet-600 hover:text-violet-700 transition flex items-center gap-1"
-                  >
-                    {showAllSuggestions ? (
-                      <>Thu gọn <ChevronUp className="w-4 h-4" /></>
-                    ) : (
-                      <>Xem thêm {suggestionsData.length - 5} mục <ChevronDown className="w-4 h-4" /></>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transferable Skills */}
+              {R?.transferableSkills?.length > 0 && (
+                <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50/60 shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-2.5 border-b border-blue-200 bg-blue-100/60 px-6 py-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-200">
+                      <ArrowRightLeft className="h-4 w-4 text-blue-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Kỹ năng có thể chuyển đổi nhanh</h3>
+                      <p className="text-xs text-slate-600">Bạn chưa có nhưng đã có nền tảng — không cần học từ đầu</p>
+                    </div>
+                    <span className="ml-auto rounded-full bg-blue-200 px-2.5 py-1 text-xs font-bold text-blue-800">
+                      {R.transferableSkills.length} kỹ năng
+                    </span>
+                  </div>
+                  <div className="divide-y divide-blue-100">
+                    {R.transferableSkills.map((t, i) => (
+                      <div key={i} className="flex flex-col gap-1.5 px-6 py-4 sm:flex-row sm:items-start sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-900">{t.requirement}</p>
+                          <p className="mt-0.5 text-xs text-slate-600">
+                            Nền tảng có sẵn: <span className="font-medium text-blue-700">{t.existingSkill}</span>
+                          </p>
+                        </div>
+                        {t.estimatedTime && (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-blue-300 bg-white px-3 py-1 text-xs font-semibold text-blue-700">
+                            <Clock className="h-3 w-3" />
+                            {t.estimatedTime}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Suggestions, theme sáng, tương phản rõ */}
+              <div id="section-suggestions" className="relative mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-violet-50/80 px-6 py-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-100">
+                      <Lightbulb className="h-4 w-4 text-[#8037f4]" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Gợi ý chỉnh sửa cụ thể</h3>
+                      <p className="text-xs text-slate-600">
+                        {derivedMode === "field"
+                          ? "Bullet STAR · Kỹ năng ngành cần bổ sung"
+                          : "Bullet STAR + từ khóa JD · Kỹ năng cần bổ sung"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {highCount > 0 && (
+                      <span className="rounded-md border border-violet-600 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-950">
+                        {highCount} Cao
+                      </span>
                     )}
+                    {mediumCount > 0 && (
+                      <span className="rounded-md border border-violet-500 bg-violet-50/80 px-2.5 py-1 text-xs font-semibold text-violet-900">
+                        {mediumCount} TB
+                      </span>
+                    )}
+                    {lowCount > 0 && (
+                      <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                        {lowCount} Thấp
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {suggestionsData.map((item, i) => {
+                    const COLLAPSE_LIMIT = 3;
+                    if (!showAllSuggestions && i >= COLLAPSE_LIMIT) return null;
+                    const isAdd = item.type === "add";
+                    const borderColor = item.priority === "high" ? "border-l-orange-400" : item.priority === "medium" ? "border-l-violet-400" : "border-l-slate-300";
+                    return (
+                      <div
+                        key={i}
+                        className={`border-l-4 transition-colors hover:bg-slate-50/60 ${borderColor}`}
+                      >
+                        <div
+                          className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer select-none"
+                          onClick={() => setExpandedSuggestion(expandedSuggestion === i ? null : i)}
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            {isAdd ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-lime-100 px-2 py-0.5 text-[11px] font-bold text-lime-800">
+                                <PlusCircle className="h-3 w-3" /> Bổ sung
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-800">
+                                <Wrench className="h-3 w-3" /> Sửa bullet
+                              </span>
+                            )}
+                            <p className="text-sm font-semibold text-slate-900">
+                              {isAdd ? item.title.replace(/^Bổ sung kỹ năng\s*"?/, "").replace(/"$/, "") : formatSuggestionDisplayReason(item, { mode: suggestionDisplayMode })}
+                            </p>
+                          </div>
+                          <button className="flex shrink-0 items-center justify-center h-7 w-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition">
+                            {expandedSuggestion === i ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </button>
+                        </div>
+
+                        {expandedSuggestion === i && (
+                          <div className="px-5 pb-5 pt-1 animate-in slide-in-from-top-2 fade-in duration-200">
+                            {isAdd ? (
+                              /* ── Bổ sung kỹ năng ── */
+                              <div className="flex flex-col gap-2">
+                                <p className="text-[0.82rem] leading-relaxed text-slate-600">
+                                  {formatSuggestionDisplayReason(item, { mode: suggestionDisplayMode })}
+                                </p>
+                                {item.after && (
+                                  <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 mt-1">
+                                    <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Cách bổ sung</p>
+                                    <p className="text-[0.82rem] leading-relaxed text-slate-700">{item.after}</p>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              /* ── Chỉnh sửa bullet ── */
+                              <div className="flex flex-col gap-3">
+                                {item.before && (
+                                  <div className="rounded-md border-l-2 border-slate-300 bg-slate-50 px-3 py-2">
+                                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Hiện tại</p>
+                                    <p className="text-[0.82rem] leading-relaxed text-slate-700">{item.before}</p>
+                                  </div>
+                                )}
+                                {item.after && (
+                                  <div className="rounded-md border-l-2 border-lime-400 bg-lime-50 px-3 py-2">
+                                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-lime-700">Gợi ý sửa thành</p>
+                                    <p className="text-[0.82rem] leading-relaxed text-slate-800">{item.after}</p>
+                                  </div>
+                                )}
+                                {item.keywordsAdded?.length > 0 && (
+                                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                    <span className="text-[10px] font-semibold text-slate-400">Từ khóa thêm vào:</span>
+                                    {item.keywordsAdded.map((kw, ki) => (
+                                      <span key={ki} className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-800">
+                                        {kw}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {suggestionsData.length > 3 && (
+                  <button
+                    onClick={() => setShowAllSuggestions(v => !v)}
+                    className="flex w-full items-center justify-center gap-2 border-t border-slate-100 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                  >
+                    {showAllSuggestions
+                      ? "Thu gọn"
+                      : `Xem thêm ${suggestionsData.length - 3} gợi ý`}
                   </button>
                 )}
               </div>
-            )}
-         </div>
-      </div>
 
-      {/* Next Steps / CTAs */}
-      <div className="mt-8 pt-8 border-t border-slate-200">
-         <div className="flex flex-col items-center text-center mb-6">
-           <h3 className="text-base font-bold text-slate-900 mb-2">
-             {matchScore >= 80 ? 'Hồ sơ đã sẵn sàng!' :
-              matchScore >= 50 ? 'Cần hoàn thiện thêm!' :
-              'Đừng vội nản lòng!'}
-           </h3>
-           <p className="text-sm text-slate-500 max-w-md">
-             {matchScore >= 80
-               ? "CV của bạn đã rất ấn tượng. Bước tiếp theo là rèn luyện phản xạ thực tế trong phòng phỏng vấn AI, hoặc kết nối với Mentor để được góp ý chuyên sâu trước khi ứng tuyển."
-               : matchScore >= 50 
-               ? "Hãy chỉnh sửa lại CV theo các góp ý trên. Nếu gặp khó khăn, các Mentor luôn sẵn sàng hỗ trợ bạn."
-               : "Bạn có thể kết nối với Mentor để định hướng lại lộ trình, hoặc thử phân tích với một JD khác phù hợp hơn."}
-           </p>
-         </div>
+              {/* Feedback */}
+              <div className="mb-4 flex items-center justify-center gap-3 rounded-xl border border-slate-100 bg-slate-50 py-3">
+                {feedbackSent ? (
+                  <p className="text-sm font-semibold text-violet-700">
+                    {feedbackState === "helpful" ? "Cảm ơn bạn!" : "Cảm ơn, chúng tôi sẽ cải thiện."}
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-xs text-slate-500">Phân tích này có hữu ích không?</p>
+                    <button type="button" onClick={() => handleFeedback("helpful")} className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-emerald-300 hover:text-emerald-700">
+                      <ThumbsUp className="h-3.5 w-3.5" /> Hữu ích
+                    </button>
+                    <button type="button" onClick={() => handleFeedback("not_helpful")} className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-700">
+                      <ThumbsDown className="h-3.5 w-3.5" /> Chưa tốt
+                    </button>
+                  </>
+                )}
+              </div>
 
-         <div className="flex flex-wrap justify-center gap-4">
-           {matchScore >= 80 ? (
-              <>
+              {/* CTAs */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <button type="button" onClick={() => navigate("/interview")}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#a3e635] px-8 py-3.5 text-base font-bold text-slate-900 transition hover:bg-[#84cc16] shadow-sm">
-                  <Mic className="h-5 w-5 shrink-0" /> Phỏng vấn AI
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#a3e635] px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-[#84cc16]">
+                  <Mic className="h-4 w-4 shrink-0" /> Phỏng vấn AI
                 </button>
                 <button type="button" onClick={() => navigate("/mentors")}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-violet-200 bg-white px-8 py-3.5 text-base font-bold text-violet-700 transition hover:bg-violet-50 shadow-sm">
-                  <Users className="h-5 w-5 shrink-0" /> Gặp Mentor
+                  className="flex items-center justify-center gap-2 rounded-xl border border-emerald-400 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100">
+                  <Users className="h-4 w-4 shrink-0" /> Đặt lịch Mentor
                 </button>
-              </>
-           ) : (
-              <button type="button" onClick={() => navigate("/mentors")}
-                className="flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-8 py-3.5 text-base font-bold text-white transition hover:bg-violet-700 shadow-sm">
-                <Users className="h-5 w-5 shrink-0" /> Gặp Mentor
-              </button>
-           )}
-           <button type="button" onClick={() => navigate(resolvedAnalysisPath)}
-             className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 text-base font-bold text-slate-700 transition hover:bg-slate-50 shadow-sm">
-             <PlusCircle className="h-5 w-5 shrink-0" /> Phân tích mới
-           </button>
-           <button type="button" onClick={() => navigate(resolvedHistoryPath)}
-             className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-8 py-3.5 text-base font-bold text-slate-700 transition hover:bg-slate-50 shadow-sm">
-             <History className="h-5 w-5 shrink-0" /> Lịch sử
-           </button>
-         </div>
-      </div>
+                <button type="button" onClick={() => navigate(resolvedAnalysisPath)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                  Phân tích mới
+                </button>
+                <button type="button" onClick={() => navigate(resolvedHistoryPath)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                  <History className="h-4 w-4 shrink-0" /> Lịch sử
+                </button>
+              </div>
 
-      {/* Feedback */}
-      <div className="mt-2 flex items-center justify-center gap-3 rounded-sm border border-slate-200 bg-white py-3 shadow-sm">
-        {feedbackSent ? (
-          <p className="text-sm font-semibold text-violet-700">
-            {feedbackState === "helpful" ? "Cảm ơn bạn!" : "Cảm ơn, chúng tôi sẽ cải thiện."}
-          </p>
-        ) : (
-          <>
-            <p className="text-xs text-slate-500 font-medium">Kết quả phân tích này có hữu ích không?</p>
-            <button type="button" onClick={() => handleFeedback("helpful")} className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-emerald-300 hover:text-emerald-700 transition">
-              <ThumbsUp className="h-3.5 w-3.5" /> Hữu ích
-            </button>
-            <button type="button" onClick={() => handleFeedback("not_helpful")} className="flex items-center gap-1.5 rounded-sm border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-700 transition">
-              <ThumbsDown className="h-3.5 w-3.5" /> Chưa tốt
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+
+              </>)}
+
+
+              {/* Pre-transition Modal */}
+              {showTransitionModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowTransitionModal(false)} />
+                  <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <h3 className="mb-2 text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-violet-600" /> Sẵn sàng tối ưu?
+                    </h3>
+                    <p className="mb-6 text-sm leading-relaxed text-slate-600">
+                      Hệ thống đã phân tích xong <strong className="text-violet-600">{suggestionsData.length} mục</strong>. Bạn có muốn chuyển sang trang hướng dẫn sửa chi tiết theo bộ khung STAR không?
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <button onClick={() => { setShowTransitionModal(false); setActivePage(2); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="w-full rounded-xl bg-violet-600 py-3 text-sm font-bold text-white hover:bg-violet-700 transition shadow-sm">
+                        Đồng ý chuyển
+                      </button>
+                      <button onClick={() => setShowTransitionModal(false)} className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+                        Để sau
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
   );
 }

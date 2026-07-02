@@ -215,12 +215,12 @@ export async function getMentorFinance(userId) {
     status: "completed",
     paymentStatus: "paid",
   })
-    .select("price platformFee createdAt")
+    .select("price totalAmount platformFee createdAt")
     .lean();
   const bookingIncomeTotal = completed.reduce((sum, b) => {
-    const price = Math.round(Number(b.price || 0));
+    const gross = Math.round(Number(b.totalAmount ?? b.price ?? 0));
     const platformFee = Math.round(Number(b.platformFee || 0));
-    return sum + Math.max(0, price - platformFee);
+    return sum + Math.max(0, gross - platformFee);
   }, 0);
   const totalSessions = completed.length;
 
@@ -256,7 +256,7 @@ export async function getMentorFinance(userId) {
   const incomeRows = completed.slice(0, 50).map((b) => ({
     id: String(b._id),
     type: "income",
-    amount: Math.max(0, Math.round(Number(b.price || 0)) - Math.round(Number(b.platformFee || 0))),
+    amount: Math.max(0, Math.round(Number(b.totalAmount ?? b.price ?? 0)) - Math.round(Number(b.platformFee || 0))),
     status: "completed",
     date: b.createdAt,
     description: "Thu từ booking",
