@@ -110,18 +110,18 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
 
         {/* Skill tags — hover micro-animation */}
         {mentor.tags?.length ? (
-          <div className="mt-3 flex w-full flex-wrap justify-center gap-1.5 px-2">
+          <div className="mt-3 flex w-full min-w-0 flex-wrap justify-center gap-1.5 px-2">
             {mentor.tags.slice(0, 3).map((tag, i) => (
-              <motion.span
+              <motion.div
                 key={tag}
-                className="max-w-full min-w-0 truncate rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700 cursor-default"
+                className="block w-fit max-w-full truncate rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700 cursor-default"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.05 * i, duration: 0.25 }}
                 whileHover={{ scale: 1.1, backgroundColor: "#ede9fe", color: "#5b21b6" }}
               >
                 {tag}
-              </motion.span>
+              </motion.div>
             ))}
           </div>
         ) : null}
