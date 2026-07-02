@@ -177,11 +177,11 @@ export function CVAnalysisResultContent({
                   </div>
                   <div className="flex flex-col gap-2 text-sm min-w-[160px]">
                     {(derivedMode === "jd" ? [
-                      { label: "Từ khóa khớp",      val: `${(R?.matchedKeywords ?? DEMO_MATCHED).length}/${R?.totalKeywords ?? DEMO_JD_KWS.length}`, color: "bg-white/20" },
-                      { label: "Từ khóa thiếu",     val: `${(R?.missingKeywords ?? DEMO_JD_KWS.filter(k => !DEMO_MATCHED.includes(k))).length} kỹ năng`, color: "bg-red-400/30" },
-                      { label: "Điểm AI tổng hợp",  val: `${overallScore}/100`, color: "bg-violet-400/20" },
+                      { label: "Điểm chất lượng CV", val: `${overallScore}/100`, color: "bg-white/20" },
+                      { label: "Điểm cấu trúc",      val: `${R?.scores?.structure ?? 6}/10`, color: "bg-emerald-400/30" },
+                      { label: "Gợi ý cải thiện",    val: `${suggestionsData.length} mục`, color: "bg-amber-400/20" },
                     ] : [
-                      { label: "Điểm cấu trúc",     val: `${R?.scores.structure ?? 6}/10`, color: "bg-white/20" },
+                      { label: "Điểm cấu trúc",      val: `${R?.scores?.structure ?? 6}/10`, color: "bg-white/20" },
                       { label: "Độ hoàn thiện",      val: `${matchScore}%`, color: "bg-emerald-400/30" },
                       { label: "Gợi ý cải thiện",    val: `${suggestionsData.length} mục`, color: "bg-amber-400/20" },
                     ]).map(s => (
