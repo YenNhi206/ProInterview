@@ -123,7 +123,7 @@ export function AdminUserDetail() {
           <div className="grid gap-3 sm:grid-cols-2 text-sm">
             <p><span className="font-semibold">Vai trò:</span> {user.role}</p>
             <p><span className="font-semibold">Gói:</span> {user.plan || "free"}</p>
-            <p><span className="font-semibold">CV đã dùng:</span> {user.quota?.cvAnalysisUsed ?? 0} / {user.quota?.cvAnalysisLimit ?? 5}</p>
+            <p><span className="font-semibold">CV đã dùng:</span> {user.quota?.cvAnalysisUsed ?? 0} / {user.quota?.cvAnalysisLimit ?? 3}</p>
             <p><span className="font-semibold">Phỏng vấn AI:</span> {user.quota?.interviewUsed ?? 0} / {user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1}</p>
             <p><span className="font-semibold">Lịch hẹn:</span> {user.stats?.bookingsCount ?? 0}</p>
             <p><span className="font-semibold">Khóa học:</span> {user.stats?.enrollmentsCount ?? 0}</p>

@@ -111,8 +111,8 @@ describe("plansService — quota reset + expiry", () => {
       plan: "elite_pro",
       planExpiresAt: planStillActive,
       quota: {
-        cvAnalysisUsed: 40,
-        cvAnalysisLimit: 40,
+        cvAnalysisUsed: 30,
+        cvAnalysisLimit: 30,
         interviewUsed: 8,
         interviewLimit: 8,
         interviewQuestionsAllowed: 5,
@@ -126,7 +126,7 @@ describe("plansService — quota reset + expiry", () => {
     assert.equal(res.planExpiresAt.getTime(), planStillActive.getTime()); // hạn gói không đổi
     assert.equal(res.quota.cvAnalysisUsed, 0); // lượt dùng đã reset
     assert.equal(res.quota.interviewUsed, 0);
-    assert.equal(res.quota.cvAnalysisLimit, 40); // hạn mức gói giữ nguyên
+    assert.equal(res.quota.cvAnalysisLimit, 30); // hạn mức gói giữ nguyên
     assert.ok(new Date(res.quota.resetAt) > new Date()); // mốc reset kế tiếp đã dời sang tương lai
   });
 

@@ -7,7 +7,7 @@ import { FileText, Briefcase, Eye, ChevronLeft, ChevronRight } from "lucide-reac
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 // ─── Single document panel ───────────────────────────────────────────────────
-export function DocPanel({ title, fileName, icon, accentColor, file, matchedKws, missingKws, showHeader = true, maxHeight = 460 }) {
+export function DocPanel({ title, fileName, icon, accentColor, file, matchedKws, missingKws, showHeader = true, maxHeight = 800 }) {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [width, setWidth] = useState(null);
@@ -116,27 +116,6 @@ export function CVDocumentPreview({
 
   return (
     <div className="mb-6">
-      <div className="mb-3 flex items-center gap-2.5">
-        <div
-          className="flex h-8 w-8 items-center justify-center rounded-md"
-          style={{ background: "rgba(128,55,244,0.1)" }}
-        >
-          <Eye className="h-4 w-4" style={{ color: "#8037f4" }} />
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900" style={{ fontSize: "0.9rem" }}>
-            Xem CV & JD
-          </h3>
-          <p className="text-gray-400" style={{ fontSize: "0.75rem" }}>
-            <span className="font-medium text-green-600">{matchedKws.length} khớp</span>
-            {" · "}
-            <span className="font-medium text-orange-500">{missingKws.length} thiếu trong CV</span>
-            {" · "}
-            {total} từ khóa JD
-          </p>
-        </div>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2">
         <DocPanel
           title="CV của bạn"

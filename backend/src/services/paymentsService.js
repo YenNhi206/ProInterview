@@ -812,8 +812,8 @@ async function applySubscriptionPlanFromPayment(pay) {
   nextQuotaReset.setMonth(nextQuotaReset.getMonth() + 1);
   const quota =
     plan === "elite_pro"
-      ? { cvAnalysisLimit: 40, interviewLimit: 8, interviewQuestionsAllowed: 5 }
-      : { cvAnalysisLimit: 20, interviewLimit: 3, interviewQuestionsAllowed: 5 };
+      ? { cvAnalysisLimit: 30, interviewLimit: 8, interviewQuestionsAllowed: 5 }
+      : { cvAnalysisLimit: 10, interviewLimit: 3, interviewQuestionsAllowed: 5 };
   await User.findByIdAndUpdate(pay.userId, {
     $set: {
       plan,

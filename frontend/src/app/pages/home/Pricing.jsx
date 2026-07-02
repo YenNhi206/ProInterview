@@ -16,7 +16,33 @@ import { formatVnd } from "../../utils/shared/formatVnd.js";
 /* ─── Helpers ────────────────────────────────────────────────── */
 const UNLIMITED_HIGHLIGHT = "KHÔNG GIỚI HẠN";
 
+// Chỉ tô màu riêng con số đầu dòng ("03", "10 phiên...", "Ưu đãi 5%") — không bold cả cụm chữ.
+const LEADING_NUMBER = /^(\d+)(.*)$/;
+const PERCENT_PREFIX = /^(Ưu đãi )(\d+%)(.*)$/;
+const NUMBER_ACCENT_CLASS = "font-bold text-[#6d2fd6]";
+
 function FeatureLabel({ text }) {
+  const percentMatch = text.match(PERCENT_PREFIX);
+  if (percentMatch) {
+    const [, prefix, pct, rest] = percentMatch;
+    return (
+      <span className="leading-snug">
+        {prefix}
+        <span className={NUMBER_ACCENT_CLASS}>{pct}</span>
+        {rest}
+      </span>
+    );
+  }
+  const leadingNumMatch = text.match(LEADING_NUMBER);
+  if (leadingNumMatch) {
+    const [, num, rest] = leadingNumMatch;
+    return (
+      <span className="leading-snug">
+        <span className={NUMBER_ACCENT_CLASS}>{num}</span>
+        {rest}
+      </span>
+    );
+  }
   if (!text.includes(UNLIMITED_HIGHLIGHT)) return <span className="leading-snug">{text}</span>;
   const parts = text.split(UNLIMITED_HIGHLIGHT);
   return (
@@ -326,7 +352,7 @@ export function Pricing() {
                           : { background: "#93f72b", color: "#0f172a", boxShadow: "0 8px 20px rgba(15,23,42,0.1)" }
                       }
                     >
-                      {isCurrent ? "Đang dùng" : isLowerTier ? "Gói thấp hơn" : plan.cta}
+                      {isCurrent ? "Đang dùng" : plan.cta}
                     </motion.button>
                   </div>
                 </motion.article>
