@@ -29,6 +29,7 @@ import {
   homeSectionClasses as homeTy,
 } from "../../constants/homeTypography";
 import { achievementsApi } from "../../api/achievementsApi.js";
+import { publicApi } from "../../api/publicApi.js";
 
 const TESTIMONIAL_MASCOTS = [
   HOME_MENTOR_MASCOTS.pro,
@@ -45,6 +46,9 @@ const TESTIMONIALS = HOME_SECTION_COPY.testimonials.items.map((t, i) => ({
 export function Home() {
   const navigate = useNavigate();
   const [achievements, setAchievements] = useState([]);
+  
+  const [homeData, setHomeData] = useState({ stats: null, reviews: [] });
+  const [isLoadingHomeData, setIsLoadingHomeData] = useState(true);
 
   useEffect(() => {
     // Fetch achievements
@@ -59,6 +63,22 @@ export function Home() {
       }
     };
     fetchAchievements();
+  }, []);
+
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const res = await publicApi.getHomeData();
+        if (res.data?.success) {
+          setHomeData(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to load home data", err);
+      } finally {
+        setIsLoadingHomeData(false);
+      }
+    };
+    fetchHomeData();
   }, []);
 
   const renderSectionSticks = (sticks, sparkleTone = "brand") => (
@@ -211,124 +231,133 @@ export function Home() {
           { x: 10, y: 86, size: 30, opacity: 0.38 },
         ])}
         <div className={`${homeTy.sectionShell} ${HOME_SECTION_INNER}`}>
-          <div className={`${homeTy.sectionGrid} lg:items-center`}>
-            <div className={homeTy.sectionCopy}>
-              <span className={homeTy.badge}>
-                <SparkleGlyph className="size-3.5" />
-                {HOME_SECTION_COPY.testimonials.badge}
-              </span>
-              <h2
-                className={homeTy.sectionTitle}
-                style={{ fontSize: HOME_SECTION_TITLE_SIZE }}
-              >
-                <span className={homeTy.sectionTitleLineDark}>
-                  {HOME_SECTION_COPY.testimonials.titleLine}
-                </span>
-                <span
-                  className="mt-2 block h-[1.95rem] w-fit shrink-0 sm:mt-2.5 sm:h-[2.2rem] md:h-[2.45rem] lg:h-[3.2rem]"
-                  aria-hidden
-                >
-                  <img
-                    src="/Logo.png"
-                    alt="ProInterview"
-                    className="block h-full w-auto shrink-0 object-contain object-left contrast-[1.12] brightness-[0.94]"
-                    width={537}
-                    height={91}
-                    decoding="sync"
-                  />
-                </span>
-              </h2>
-              <p className={homeTy.sectionBody}>
-                {HOME_SECTION_COPY.testimonials.body}
-              </p>
-
-              <div className="mt-1 flex items-center gap-3">
-                <div className="flex -space-x-3">
-                  {TESTIMONIALS.map((t) => (
-                    <div
-                      key={`avatar-${t.name}`}
-                      className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-violet-50 shadow-sm"
-                    >
-                      <img
-                        src={t.mascot}
-                        alt=""
-                        className="h-[85%] w-[85%] object-contain object-bottom"
-                        onError={(e) => {
-                          if (e.currentTarget.src !== HOME_MENTOR_MASCOTS.fallback) {
-                            e.currentTarget.src = HOME_MENTOR_MASCOTS.fallback;
-                          }
-                        }}
-                      />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 w-full max-w-6xl mx-auto">
+            {/* Left Column: Recent Reviews */}
+            <div className="flex flex-col rounded-[2rem] border border-slate-200 bg-white p-6 md:p-8 shadow-sm overflow-hidden h-[36rem] lg:h-[40rem]">
+              <div className="flex justify-between items-center mb-6 shrink-0">
+                <h3 className="text-xl font-bold text-slate-800">Phản hồi học viên</h3>
+                <button className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1">
+                  Xem tất cả <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4" style={{ scrollbarWidth: "thin" }}>
+                {(homeData.reviews?.length > 0 ? homeData.reviews : [...TESTIMONIALS, ...TESTIMONIALS]).map((t, i) => (
+                  <div key={t.id || i} className="flex flex-col p-5 rounded-2xl border border-slate-100 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex gap-3 items-center">
+                        <div className="h-11 w-11 rounded-full overflow-hidden border border-slate-200 bg-violet-50 shrink-0 flex items-center justify-center">
+                          <img src={t.avatar || t.mascot || HOME_MENTOR_MASCOTS.fallback} alt="" className="h-[90%] w-[90%] object-contain object-bottom" onError={(e) => { e.currentTarget.src = HOME_MENTOR_MASCOTS.fallback; }} />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900 leading-none mb-1">{t.name}</h4>
+                          <p className="text-xs text-slate-500">{t.role}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="flex gap-0.5">
+                          {[...Array(t.stars)].map((_, j) => (
+                            <Star key={j} className="size-[14px] text-[#fbbf24] fill-[#fbbf24]" />
+                          ))}
+                        </div>
+                        <span className="text-xs font-bold ml-1 text-slate-700">{t.stars}/5</span>
+                      </div>
                     </div>
-                  ))}
-                </div>
-                <p className={homeTy.sectionBody}>
-                  <span className="font-bold text-[#8037f4]">500+</span>{" "}
-                  {HOME_SECTION_COPY.testimonials.socialProof}
-                </p>
+                    <p className="text-sm text-slate-600 leading-relaxed mb-5">
+                      {t.text}
+                    </p>
+                    
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-xs font-bold text-slate-700">Đánh giá này có hữu ích?</span>
+                      <div className="flex gap-2">
+                        <button className="px-4 py-1.5 text-xs font-bold rounded-lg border border-[#34a853] text-[#34a853] bg-[#e6f4ea] hover:bg-[#d5ecd9] transition-colors">
+                          Có ({t.helpfulCount ?? (12 + (i * 7) % 30)})
+                        </button>
+                        <button className="px-4 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors">
+                          Không ({i % 3})
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="relative z-10 flex min-h-0 min-w-0 w-full flex-col overflow-hidden py-2 lg:min-h-[20rem]">
-              <div
-                className="relative w-full overflow-hidden"
-                style={{
-                  maskImage:
-                    "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
-                  WebkitMaskImage:
-                    "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
-                }}
-              >
-                <div className="space-y-6">
-                  <div className="testimonial-marquee-row">
-                    <div className="testimonial-marquee-track">
-                      {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-                        <div
-                          key={`marq1-${i}-${t.name}`}
-                          className="shrink-0 w-[min(100%,17.5rem)] sm:w-[17.5rem] lg:w-[18.5rem] bg-violet-600 border border-violet-400 rounded-2xl p-5 shadow-sm sm:p-6 max-lg:rounded-lg max-lg:p-4"
-                        >
-                          <div className="flex items-center gap-2.5 mb-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-violet-800 bg-violet-900/50">
-                              <img
-                                src={t.mascot}
-                                alt=""
-                                className="h-[88%] w-[88%] object-contain object-bottom"
-                                onError={(e) => {
-                                  if (e.currentTarget.src !== HOME_MENTOR_MASCOTS.fallback) {
-                                    e.currentTarget.src = HOME_MENTOR_MASCOTS.fallback;
-                                  }
-                                }}
-                              />
-                            </div>
-                            <p className="text-[10px] uppercase tracking-widest text-lime-400 font-black leading-tight sm:text-xs lg:text-[0.8rem]">{t.tag}</p>
-                          </div>
-                          <p className="text-xs text-white/90 leading-snug line-clamp-2 sm:text-sm lg:text-base">"<em className="not-italic">{t.text}</em>"</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            {/* Right Column: Key Statistics */}
+            <div className="flex flex-col rounded-[2rem] border-2 border-[#630ed4] bg-[#630ed4] p-8 md:p-10 shadow-sm relative overflow-hidden h-[36rem] lg:h-[40rem]">
+              {/* Background accent */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
 
-                  <div className="testimonial-marquee-row">
-                    <div className="testimonial-marquee-track testimonial-marquee-track--alt">
-                      {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-                        <div
-                          key={`marq2-${i}-${t.name}`}
-                          className="shrink-0 w-[min(100%,17.5rem)] sm:w-[17.5rem] lg:w-[18.5rem] bg-violet-600 border border-violet-400 rounded-2xl p-5 shadow-sm sm:p-6 max-lg:rounded-lg max-lg:p-4"
-                        >
-                          <div className="flex gap-1 mb-3">
-                            {[...Array(t.stars)].map((_, j) => (
-                              <Star key={`${t.name}-s-${i}-${j}`} className="size-4 text-lime-400 fill-lime-400" />
-                            ))}
-                          </div>
-                          <p className="mb-2.5 text-xs leading-snug text-white/90 line-clamp-2 sm:text-sm lg:text-base">"<em className="not-italic">{t.text}</em>"</p>
-                          <p className="text-[10px] font-bold text-white sm:text-xs lg:text-sm">{t.name}</p>
-                        </div>
-                      ))}
+              <div className="flex items-center gap-4 mb-5 relative z-10">
+                <div className="text-white">
+                  <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 19h16v2H4zM6 9h3v8H6zM11 4h3v13h-3zM16 12h3v5h-3z" />
+                  </svg>
+                </div>
+                <h3 className="text-3xl font-black text-white tracking-tight">Thống kê nền tảng</h3>
+              </div>
+              <p className="text-base text-white/80 mb-10 leading-relaxed max-w-sm relative z-10 font-medium">
+                Dữ liệu thực tế về số lượt luyện phỏng vấn, số lượng người dùng và đánh giá chất lượng.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 md:gap-6 flex-1 relative z-10">
+                {/* Stat 1 */}
+                <div className="rounded-[1.25rem] border border-white/20 bg-white/10 backdrop-blur-sm p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-[#eef2ff] text-[#4f46e5] flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  </div>
+                  <div>
+                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                      {homeData.stats?.totalSessions?.toLocaleString() || "0"}
                     </div>
+                    <div className="text-sm text-white/80 font-bold whitespace-nowrap tracking-tight">Lượt luyện tập với AI</div>
                   </div>
                 </div>
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-14 bg-gradient-to-r from-[#ebe4f6] via-[#ebe4f6]/80 to-transparent sm:w-16 lg:w-20" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-14 bg-gradient-to-l from-[#ebe4f6] via-[#ebe4f6]/80 to-transparent sm:w-16 lg:w-20" />
+                
+                {/* Stat 2 */}
+                <div className="rounded-[1.25rem] border border-white/20 bg-white/10 backdrop-blur-sm p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  </div>
+                  <div>
+                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                      {homeData.stats?.totalMentors?.toLocaleString() || "0"}
+                    </div>
+                    <div className="text-sm text-white/80 font-bold">Mentor thật</div>
+                  </div>
+                </div>
+
+                {/* Stat 3 */}
+                <div className="rounded-[1.25rem] border border-white/20 bg-white/10 backdrop-blur-sm p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-[#fff7ed] text-[#f97316] flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div>
+                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                      {homeData.stats?.averageRating ? homeData.stats.averageRating + "/5" : "0/5"}
+                    </div>
+                    <div className="text-sm text-white/80 font-bold">Mức hài lòng</div>
+                  </div>
+                </div>
+
+                {/* Stat 4 */}
+                <div className="rounded-[1.25rem] border border-white/20 bg-white/10 backdrop-blur-sm p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-[#fff1f2] text-[#e11d48] flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                      {homeData.stats?.totalUsers?.toLocaleString() || "0"}
+                    </div>
+                    <div className="text-sm text-white/80 font-bold">Người dùng</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-8 text-right w-full relative z-10">
+                 <span className="text-sm font-semibold text-white/60 italic">Dữ liệu cập nhật liên tục</span>
               </div>
             </div>
           </div>

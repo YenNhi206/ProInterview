@@ -16,6 +16,7 @@
     "seed:users": "node src/scripts/seedUsers.js",
     "seed:invite-users": "node src/scripts/seedInviteUsers.js",
     "seed:ui-mock": "node src/scripts/seedUiMockData.js",
+    "seed:demo": "node src/scripts/seedDemoData.js",
     "seed:bookings": "node src/scripts/seedBookings.js",
     "seed:mentor-courses-ui": "node src/scripts/seedMentorCoursesUIDemo.js",
     "db:prune-fake-mentors": "node src/scripts/pruneFakeMentors.js",
