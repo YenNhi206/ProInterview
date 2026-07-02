@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   Zap,
   AlertTriangle as Warning,
   Mic,
@@ -61,6 +63,8 @@ export function CVAnalysisResultContent({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [activePage, setActivePage] = useState(1);
   const [showAllSuggestions, setShowAllSuggestions] = useState(false);
+  const [showTransitionModal, setShowTransitionModal] = useState(false);
+  const [expandedSuggestion, setExpandedSuggestion] = useState(null);
 
   const handleFeedback = async (rating) => {
     setFeedbackState(rating);
@@ -119,7 +123,7 @@ export function CVAnalysisResultContent({
                   1 · Tổng quan
                 </button>
                 <button
-                  onClick={() => { setActivePage(2); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  onClick={() => setShowTransitionModal(true)}
                   className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition ${activePage === 2 ? "bg-violet-600 text-white shadow" : "border border-slate-200 bg-white text-slate-500 hover:text-slate-700"}`}
                 >
                   2 · Gợi ý cải thiện
@@ -147,13 +151,7 @@ export function CVAnalysisResultContent({
                 </div>
               )}
 
-              {R?.summary && String(R.summary).trim() && (
-                <div className="mb-5 rounded-md border border-violet-600 bg-violet-50/70 px-4 py-3.5">
-                  <p className="text-sm leading-relaxed text-violet-950">
-                    {String(R.summary).replace(/^[✨⭐]\s*/u, "").trim()}
-                  </p>
-                </div>
-              )}
+
 
               {/* Match Score Banner */}
               <div id="section-score" className="rounded-2xl p-6 mb-6 text-white" style={{ background: "#8037f4" }}>
@@ -173,7 +171,7 @@ export function CVAnalysisResultContent({
                         </div>
                       </div>
                     </div>
-                    <p className="text-indigo-100 text-sm">{R?.summary ?? (derivedMode === "jd" ? "Khá tốt Bổ sung từ khóa còn thiếu có thể nâng điểm đáng kể." : "Cải thiện cấu trúc STAR và số liệu để đạt điểm cao hơn.")}</p>
+                    
                   </div>
                   <div className="flex flex-col gap-2 text-sm min-w-[160px]">
                     {(derivedMode === "jd" ? [
@@ -584,61 +582,72 @@ export function CVAnalysisResultContent({
                     return (
                       <div
                         key={i}
-                        className={`border-l-4 px-5 py-4 transition-colors hover:bg-slate-50/60 ${borderColor}`}
+                        className={`border-l-4 transition-colors hover:bg-slate-50/60 ${borderColor}`}
                         style={isDimmed ? { filter: "blur(4px)", userSelect: "none", pointerEvents: "none", opacity: 0.5 } : {}}
                       >
-                        {isAdd ? (
-                          /* ── Bổ sung kỹ năng ── */
-                          <div className="flex flex-col gap-2">
-                            <div className="flex flex-wrap items-center gap-2">
+                        <div 
+                          className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer select-none"
+                          onClick={() => setExpandedSuggestion(expandedSuggestion === i ? null : i)}
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            {isAdd ? (
                               <span className="inline-flex items-center gap-1 rounded-md bg-lime-100 px-2 py-0.5 text-[11px] font-bold text-lime-800">
                                 <PlusCircle className="h-3 w-3" /> Bổ sung
                               </span>
-                              <p className="text-sm font-semibold text-slate-900">
-                                {item.title.replace(/^Bổ sung kỹ năng\s*"?/, "").replace(/"$/, "")}
-                              </p>
-                            </div>
-                            <p className="text-[0.82rem] leading-relaxed text-slate-600">
-                              {formatSuggestionDisplayReason(item, { mode: suggestionDisplayMode })}
-                            </p>
-                            {item.after && (
-                              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-                                <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Cách bổ sung</p>
-                                <p className="text-[0.82rem] leading-relaxed text-slate-700">{item.after}</p>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          /* ── Chỉnh sửa bullet ── */
-                          <div className="flex flex-col gap-3">
-                            <div className="flex flex-wrap items-center gap-2">
+                            ) : (
                               <span className="inline-flex items-center gap-1 rounded-md bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-800">
                                 <Wrench className="h-3 w-3" /> Sửa bullet
                               </span>
-                              <p className="text-[0.82rem] text-slate-500">
-                                {formatSuggestionDisplayReason(item, { mode: suggestionDisplayMode })}
-                              </p>
-                            </div>
-                            {item.before && (
-                              <div className="rounded-md border-l-2 border-slate-300 bg-slate-50 px-3 py-2">
-                                <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Hiện tại</p>
-                                <p className="text-[0.82rem] leading-relaxed text-slate-700">{item.before}</p>
-                              </div>
                             )}
-                            {item.after && (
-                              <div className="rounded-md border-l-2 border-lime-400 bg-lime-50 px-3 py-2">
-                                <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-lime-700">Gợi ý sửa thành</p>
-                                <p className="text-[0.82rem] leading-relaxed text-slate-800">{item.after}</p>
+                            <p className="text-sm font-semibold text-slate-900">
+                              {isAdd ? item.title.replace(/^Bổ sung kỹ năng\s*"?/, "").replace(/"$/, "") : formatSuggestionDisplayReason(item, { mode: suggestionDisplayMode })}
+                            </p>
+                          </div>
+                          <button className="flex shrink-0 items-center justify-center h-7 w-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition">
+                            {expandedSuggestion === i ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        
+                        {expandedSuggestion === i && (
+                          <div className="px-5 pb-5 pt-1 animate-in slide-in-from-top-2 fade-in duration-200">
+                            {isAdd ? (
+                              /* ── Bổ sung kỹ năng ── */
+                              <div className="flex flex-col gap-2">
+                                <p className="text-[0.82rem] leading-relaxed text-slate-600">
+                                  {formatSuggestionDisplayReason(item, { mode: suggestionDisplayMode })}
+                                </p>
+                                {item.after && (
+                                  <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 mt-1">
+                                    <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Cách bổ sung</p>
+                                    <p className="text-[0.82rem] leading-relaxed text-slate-700">{item.after}</p>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {item.keywordsAdded?.length > 0 && (
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="text-[10px] font-semibold text-slate-400">Từ khóa thêm vào:</span>
-                                {item.keywordsAdded.map((kw, ki) => (
-                                  <span key={ki} className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-800">
-                                    {kw}
-                                  </span>
-                                ))}
+                            ) : (
+                              /* ── Chỉnh sửa bullet ── */
+                              <div className="flex flex-col gap-3">
+                                {item.before && (
+                                  <div className="rounded-md border-l-2 border-slate-300 bg-slate-50 px-3 py-2">
+                                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Hiện tại</p>
+                                    <p className="text-[0.82rem] leading-relaxed text-slate-700">{item.before}</p>
+                                  </div>
+                                )}
+                                {item.after && (
+                                  <div className="rounded-md border-l-2 border-lime-400 bg-lime-50 px-3 py-2">
+                                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-lime-700">Gợi ý sửa thành</p>
+                                    <p className="text-[0.82rem] leading-relaxed text-slate-800">{item.after}</p>
+                                  </div>
+                                )}
+                                {item.keywordsAdded?.length > 0 && (
+                                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                    <span className="text-[10px] font-semibold text-slate-400">Từ khóa thêm vào:</span>
+                                    {item.keywordsAdded.map((kw, ki) => (
+                                      <span key={ki} className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-800">
+                                        {kw}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -715,6 +724,30 @@ export function CVAnalysisResultContent({
 
 
               </>)}
+
+            
+              {/* Pre-transition Modal */}
+              {showTransitionModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowTransitionModal(false)} />
+                  <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+                    <h3 className="mb-2 text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-violet-600" /> Sẵn sàng tối ưu?
+                    </h3>
+                    <p className="mb-6 text-sm leading-relaxed text-slate-600">
+                      Hệ thống đã phân tích xong <strong className="text-violet-600">{suggestionsData.length} mục</strong>. Bạn có muốn chuyển sang trang hướng dẫn sửa chi tiết theo bộ khung STAR không?
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <button onClick={() => { setShowTransitionModal(false); setActivePage(2); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="w-full rounded-xl bg-violet-600 py-3 text-sm font-bold text-white hover:bg-violet-700 transition shadow-sm">
+                        Đồng ý chuyển
+                      </button>
+                      <button onClick={() => setShowTransitionModal(false)} className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+                        Để sau
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
   );
