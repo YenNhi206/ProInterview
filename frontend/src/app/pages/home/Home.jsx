@@ -274,7 +274,7 @@ export function Home() {
             </div>
 
             {/* Right Column: Key Statistics */}
-            <div className="flex flex-col rounded-[2rem] border-2 border-[#630ed4] bg-[#630ed4] p-8 md:p-10 shadow-sm relative overflow-hidden h-[36rem] lg:h-[40rem]">
+            <div className="flex flex-col rounded-[2rem] border-2 border-[#8037f4] bg-[#8037f4] p-8 md:p-10 shadow-sm relative overflow-hidden h-[36rem] lg:h-[40rem]">
               {/* Background accent */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
 
