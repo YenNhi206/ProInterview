@@ -236,9 +236,6 @@ export function Home() {
             <div className="flex flex-col rounded-[2rem] border border-slate-200 bg-white p-6 md:p-8 shadow-sm overflow-hidden h-[36rem] lg:h-[40rem]">
               <div className="flex justify-between items-center mb-6 shrink-0">
                 <h3 className="text-xl font-bold text-slate-800">Phản hồi học viên</h3>
-                <button className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1">
-                  Xem tất cả <ArrowRight className="w-4 h-4" />
-                </button>
               </div>
               
               <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4" style={{ scrollbarWidth: "thin" }}>
