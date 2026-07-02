@@ -26,6 +26,35 @@ export async function enforceExpiry(user) {
     return updated ?? user;
   }
 
+  // 1.5. Xử lý tài khoản Pro/Elite có limit lệch với gói đang hiển thị trên trang giá
+  // (vd: từng bị cấp nhầm 20/40 trước khi commit 3cb3d41 chốt lại 10/30) — ép về đúng giá trị.
+  if (!isFree && !isExpired) {
+    const isElite = user.plan === "elite_pro";
+    const expectedCvLimit = isElite ? 30 : 10;
+    const expectedInterviewLimit = isElite ? 8 : 3;
+    const expectedQuestions = 5;
+
+    if (
+      !user.quota ||
+      user.quota.cvAnalysisLimit !== expectedCvLimit ||
+      user.quota.interviewLimit !== expectedInterviewLimit ||
+      user.quota.interviewQuestionsAllowed !== expectedQuestions
+    ) {
+      const updated = await User.findOneAndUpdate(
+        { _id: user._id },
+        {
+          $set: {
+            "quota.cvAnalysisLimit": expectedCvLimit,
+            "quota.interviewLimit": expectedInterviewLimit,
+            "quota.interviewQuestionsAllowed": expectedQuestions,
+          }
+        },
+        { new: true }
+      ).lean();
+      return updated ?? user;
+    }
+  }
+
   // 2. Không phải tài khoản hết hạn → không làm gì thêm
   if (!isExpired) return user;
 

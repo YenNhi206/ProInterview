@@ -1034,9 +1034,9 @@ export const AdminController = {
             sessionFingerprintEnforced: process.env.AUTH_STRICT_SESSION_FINGERPRINT === "true",
           },
           plans: [
-            { key: "free", label: "Miễn phí", cvAnalysisLimit: 5, interviewLimit: 1 },
-            { key: "starter_pro", label: "Pro", cvAnalysisLimit: 20, interviewLimit: 3 },
-            { key: "elite_pro", label: "Elite", cvAnalysisLimit: 40, interviewLimit: 8 },
+            { key: "free", label: "Miễn phí", cvAnalysisLimit: 3, interviewLimit: 1 },
+            { key: "starter_pro", label: "Pro", cvAnalysisLimit: 10, interviewLimit: 3 },
+            { key: "elite_pro", label: "Elite", cvAnalysisLimit: 30, interviewLimit: 8 },
           ],
           payments: {
             primaryChannel: "bank_transfer",

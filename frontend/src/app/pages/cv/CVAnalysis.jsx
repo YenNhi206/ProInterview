@@ -25,6 +25,7 @@ import { apiUrl as expressApiUrl, isExpressBackendConfigured } from "../../api/h
 import { CvJdAnalysisPage, cvAnalysisPageHeader } from "../../components/cv/CvJdAnalysisFrame";
 import { AppSelect } from "../../components/ui/AppSelect";
 import {
+  CV_JD_ANALYSIS_PATH,
   CV_FIELD_ANALYSIS_PATH,
   CV_FIELD_HISTORY_PATH,
   CV_JD_HISTORY_PATH,
@@ -135,7 +136,7 @@ function preventDragDefaults(e) {
 
 /** Chiều cao cố định, CV và JD luôn bằng nhau (chưa chọn / đã chọn) */
 const UPLOAD_ZONE_HEIGHT =
-  "flex h-[10.75rem] w-full min-w-0 overflow-hidden flex-col items-center justify-between rounded-2xl border-2 border-dashed border-violet-200/90 bg-violet-50/25 px-5 py-4 text-center transition sm:h-[11rem] sm:px-6 sm:py-5";
+  "flex h-[14rem] w-full min-w-0 overflow-hidden flex-col items-center justify-between rounded-2xl border-2 border-dashed border-violet-200/90 bg-violet-50/25 px-5 py-6 text-center transition sm:h-[15.5rem] sm:px-6 sm:py-7";
 
 function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear, onFile }) {
   const isCv = kind === "cv";
@@ -891,8 +892,8 @@ export function CVAnalysis() {
     <CvJdAnalysisPage
       activeTab="analysis"
       cardVariant={routeMode === "field" ? "field" : "default"}
-      showTabs={routeMode === "jd" || routeMode === "field"}
-      tabAnalysisPath={routeMode === "field" ? CV_FIELD_ANALYSIS_PATH : undefined}
+      showTabs={true}
+      tabAnalysisPath={routeMode === "field" ? CV_FIELD_ANALYSIS_PATH : CV_JD_ANALYSIS_PATH}
       tabHistoryPath={
         routeMode === "field" ? CV_FIELD_HISTORY_PATH : CV_JD_HISTORY_PATH
       }

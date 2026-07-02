@@ -258,7 +258,7 @@ export const PRICING_FAQ = [
       "Ba gói được thiết kế cho ba mức nhu cầu khác nhau — từ trải nghiệm thử đến luyện tập chuyên sâu trước phỏng vấn thật.",
     ],
     bullets: [
-      "Basic (miễn phí): 1 phiên phỏng vấn AI trải nghiệm (3 câu hỏi), 5 lượt phân tích CV/JD, truy cập bộ câu hỏi theo ngành nghề — phù hợp làm quen với ProInterview.",
+      "Basic (miễn phí): 1 phiên phỏng vấn AI trải nghiệm (3 câu hỏi), 3 lượt phân tích CV/JD, truy cập bộ câu hỏi theo ngành nghề — phù hợp làm quen với ProInterview.",
       "Pro (99.000đ/tháng): 3 phiên phỏng vấn AI/tháng (5 câu hỏi/phiên), 10 lượt phân tích CV/JD, ưu đãi 5% khi booking Mentor và khóa học — dành cho ứng viên luyện đều xuyên suốt.",
       "Elite (199.000đ/tháng): 8 phiên phỏng vấn AI/tháng (5 câu hỏi/phiên), 30 lượt phân tích CV/JD, ưu đãi 10% khi booking Mentor và khóa học, hỗ trợ ưu tiên 24/7 — phù hợp khi bạn cần luyện dày trước vòng phỏng vấn quan trọng.",
     ],
@@ -324,9 +324,9 @@ export const PRICING_FAQ = [
       "Mỗi gói có giới hạn lượt sử dụng riêng. Hệ thống trừ quota khi bạn hoàn tất một lần phân tích CV/JD hoặc một buổi phỏng vấn AI.",
     ],
     bullets: [
-      "Basic: 5 lượt phân tích CV/JD và 1 phiên phỏng vấn AI (3 câu hỏi).",
-      "Pro: 20 lượt phân tích CV/JD và 3 phiên phỏng vấn AI (5 câu hỏi/phiên) trong mỗi chu kỳ gói đang hoạt động.",
-      "Elite: 40 lượt phân tích CV/JD và 8 phiên phỏng vấn AI (5 câu hỏi/phiên) trong thời hạn gói.",
+      "Basic: 3 lượt phân tích CV/JD và 1 phiên phỏng vấn AI (3 câu hỏi).",
+      "Pro: 10 lượt phân tích CV/JD và 3 phiên phỏng vấn AI (5 câu hỏi/phiên) trong mỗi chu kỳ gói đang hoạt động.",
+      "Elite: 30 lượt phân tích CV/JD và 8 phiên phỏng vấn AI (5 câu hỏi/phiên) trong thời hạn gói.",
     ],
     note: "Bạn xem quota còn lại trên Dashboard. Khi hết quota, nâng cấp gói hoặc chờ chu kỳ gói mới để tiếp tục.",
   },

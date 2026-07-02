@@ -79,7 +79,7 @@ export const CVController = {
   /** Lấy quota còn lại */
   getQuota: async (req, res) => {
     try {
-      let user = await User.findById(req.userId).select("+quota plan planExpiresAt");
+      let user = await User.findById(req.userId).select("quota plan planExpiresAt");
       if (!user) return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
       
       user = await enforceExpiry(user);
@@ -116,7 +116,7 @@ export const CVController = {
     }
 
     // ── Step 2: Kiểm tra quota (với auto-downgrade nếu plan hết hạn) ─────
-    let user = await User.findById(userId).select("+quota plan planExpiresAt").catch(() => null);
+    let user = await User.findById(userId).select("quota plan planExpiresAt").catch(() => null);
     if (!user) {
       return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
     }
@@ -125,7 +125,7 @@ export const CVController = {
 
     // Atomic: chỉ increment nếu used < limit — tránh race condition
     const updatedUser = await User.findOneAndUpdate(
-      { _id: userId, "quota.cvAnalysisUsed": { $lt: user.quota?.cvAnalysisLimit ?? 5 } },
+      { _id: userId, "quota.cvAnalysisUsed": { $lt: user.quota?.cvAnalysisLimit ?? 3 } },
       { $inc: { "quota.cvAnalysisUsed": 1 } },
       { new: true }
     );

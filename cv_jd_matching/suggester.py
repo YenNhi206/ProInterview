@@ -206,6 +206,11 @@ def suggest_missing_skills(
     if not missing_skills:
         return {"missing_skill_suggestions": []}
 
+    # Cap ở nguồn: backend Joi validate missingSkillSuggestions max(20) khi lưu lịch sử.
+    # CV lệch JD nhiều có thể có 25+ missing skill — sinh gợi ý cho hết vừa tốn token vừa
+    # khiến save lịch sử fail validation. Giữ 15 mục quan trọng nhất, chừa biên an toàn.
+    missing_skills = missing_skills[:15]
+
     # ── ESCO + O*NET enrichment ────────────────────────────────────────────
     taxonomy_context = ""
     inferred_role    = ""
@@ -249,13 +254,12 @@ Số bullet đã viết lại: {rewritten_count}
 Kỹ năng phù hợp nhất: {', '.join(matching[:8])}
 Kỹ năng thiếu quan trọng nhất: {', '.join(missing[:6])}
 
-Quy tắc:
-- Giọng văn: chuyên nghiệp, trung thực, khích lệ
-- Đề cập tỷ lệ phù hợp tổng thể
-- Nêu 2-3 điểm mạnh cụ thể
-- Nêu 1-2 khoảng cách kỹ năng cần ưu tiên
-- Kết bằng một bước hành động cụ thể
-- PHẢI viết bằng tiếng Việt
+Quy tắc sáng tạo:
+- Giọng văn: chuyên nghiệp, trung thực, khích lệ, sáng tạo và hấp dẫn (không máy móc).
+- Nếu CV RẤT PHÙ HỢP (điểm cao, khớp nhiều): Đưa ra lời khuyên chuẩn bị phỏng vấn, deal lương hoặc cách thể hiện sự tự tin.
+- Nếu CV CHƯA PHÙ HỢP (thiếu nhiều kỹ năng): Đưa ra lộ trình ngắn gọn để bổ sung kỹ năng, khích lệ ứng viên không nản chí.
+- Đề cập tỷ lệ phù hợp tổng thể và phân tích nhanh 1 điểm mạnh, 1 điểm yếu.
+- TUYỆT ĐỐI không dùng Markdown hay text thừa, chỉ xuất ra một JSON duy nhất.
 
 Trả lời CHỈ với JSON này:
 {{
@@ -272,10 +276,14 @@ def generate_summary(
 ) -> str:
     """Returns plain string summary."""
     prompt = _build_summary_prompt(matching, missing, scores, rewritten_count)
-    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=1024, temperature=0.3,
+    # 1024 không đủ cho gemini-2.5-flash — thinking tokens ngốn hết budget trước khi
+    # xuất JSON (cùng nguyên nhân đã sửa ở scorer.py). Khớp mức 4096 dùng ở các call khác
+    # trong file này (dòng ~105, ~218) vốn đang chạy ổn định.
+    raw    = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=4096, temperature=0.3,
                       ollama_model=model)
-    parsed = extract_json(raw, fallback={"summary": raw[:400]})
-    return parsed.get("summary", raw[:400])
+    fallback_text = "Không thể tạo nhận xét chi tiết (hệ thống AI phản hồi không hợp lệ)."
+    parsed = extract_json(raw, fallback={"summary": fallback_text})
+    return parsed.get("summary", fallback_text)
 
 
 # ══════════════════════════════════════════════════════════════════════════════

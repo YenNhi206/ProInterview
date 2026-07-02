@@ -97,6 +97,13 @@ def _call_cloud(
         "response_format": {"type": "json_object"},
     }
 
+    # gemini-2.5-flash mặc định bật "thinking" và tính chung vào max_tokens — với JSON
+    # output dài (nhiều bullet/skill), thinking có thể ngốn hết budget trước khi model
+    # kịp xuất JSON, khiến response bị cắt cụt (finish_reason="length", content rỗng/hỏng).
+    # Tắt hẳn thinking cho Gemini để completion luôn dùng trọn max_tokens.
+    if _detect_provider(cfg["base_url"]) == "Google Gemini":
+        payload["reasoning_effort"] = "none"
+
     _RETRY_DELAYS = [5, 15, 30]  # giây chờ sau lần 429 thứ 1, 2, 3
 
     for attempt, delay in enumerate([0] + _RETRY_DELAYS):
@@ -211,7 +218,7 @@ def extract_json(raw: str, fallback: dict) -> dict:
         except json.JSONDecodeError:
             pass
 
-    return {**fallback, "_parse_error": True, "_raw": raw[:300]}
+    return {**fallback, "_parse_error": True}
 
 
 def check_llm_health() -> dict:

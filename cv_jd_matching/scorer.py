@@ -109,9 +109,20 @@ def score_resume(
     Raises ConnectionError nếu Ollama chưa chạy.
     """
     prompt   = build_scoring_prompt(cv_text, jd_text, matching, missing)
-    raw      = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=1500, temperature=0.1,
+    # 1500 không đủ cho gemini-2.5-flash: "thinking tokens" tính chung vào max_tokens,
+    # thường ngốn hết budget trước khi model kịp xuất JSON → finish_reason="length",
+    # content bị cắt cụt, extract_json luôn fail. 4096 khớp mức đang chạy ổn ở semantic_match.
+    raw      = call_llm(_SYSTEM_PROMPT, prompt, max_tokens=4096, temperature=0.1,
                         ollama_model=model)
     scores   = extract_json(raw, _SCORE_FALLBACK)
+
+    if scores.get("_parse_error"):
+        # Không trả về _SCORE_FALLBACK (toàn bộ 4 dimension = 0) như kết quả hợp lệ —
+        # sẽ trông giống CV bị chấm điểm thực sự thấp thay vì lỗi hệ thống.
+        raise RuntimeError(
+            "Không phân tích được điểm số từ AI (LLM trả về dữ liệu không hợp lệ hoặc rỗng). "
+            "Vui lòng thử lại sau ít phút."
+        )
 
     # Tính overall nếu model không trả về
     if "overall" not in scores or scores["overall"] == 0:

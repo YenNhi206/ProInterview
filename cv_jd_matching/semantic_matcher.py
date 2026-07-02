@@ -94,7 +94,13 @@ def semantic_match(cv_text: str, jd_text: str, model: str = None) -> dict:
     result = extract_json(raw, _FALLBACK)
 
     if result.get("_semantic_error") or result.get("_parse_error"):
-        return _FALLBACK
+        # Không trả về _FALLBACK (match_score=0) như một kết quả hợp lệ — điều này khiến
+        # lỗi LLM/parse trông giống hệt "CV không phù hợp 0%" trên FE. Raise để main.py
+        # trả 502 rõ ràng, không đánh lừa người dùng bằng kết quả giả.
+        raise RuntimeError(
+            "Không phân tích được phản hồi từ AI (LLM trả về dữ liệu không hợp lệ hoặc rỗng). "
+            "Vui lòng thử lại sau ít phút."
+        )
 
     # Chuẩn hóa → format tương thích compute_match()
     matched_requirements = [m.get("requirement", "") for m in result.get("matched", []) if m.get("requirement")]

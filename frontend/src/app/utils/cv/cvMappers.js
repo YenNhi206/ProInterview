@@ -10,7 +10,7 @@ export function filterHighlightKeywords(list) {
 /** Số lượt CV còn lại từ quota API (elite = không giới hạn). */
 export function computeCvRemainingFromQuota(quota, planKey) {
   if (!quota) return 0;
-  const limit = Number(quota.cvAnalysisLimit) || 5;
+  const limit = Number(quota.cvAnalysisLimit) || 3;
   const used = Number(quota.cvAnalysisUsed) || 0;
   return Math.max(0, limit - used);
 }

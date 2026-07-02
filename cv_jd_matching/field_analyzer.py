@@ -249,7 +249,9 @@ Trả về JSON đúng schema:
 """
 
     try:
-        raw = call_llm(_SYSTEM, user_prompt, max_tokens=2000, temperature=0.2, ollama_model=model)
+        # 2000 đôi khi không đủ cho gemini-2.5-flash (thinking tokens tính chung max_tokens) —
+        # khớp mức 4096 đã xác nhận ổn định ở semantic_matcher.py / scorer.py.
+        raw = call_llm(_SYSTEM, user_prompt, max_tokens=4096, temperature=0.2, ollama_model=model)
         parsed = extract_json(raw, {})
         if parsed and not parsed.get("_parse_error"):
             return _llm_to_pipeline(parsed, cv_text, field, cv_skills)
