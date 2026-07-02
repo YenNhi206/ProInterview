@@ -5,3 +5,4 @@ import { PublicController } from "../controllers/publicController.js";
 export const publicRouter = Router();
 
 publicRouter.get("/home-data", asyncHandler(PublicController.getHomeData));
+publicRouter.get("/seed", asyncHandler(PublicController.seedDemo));
