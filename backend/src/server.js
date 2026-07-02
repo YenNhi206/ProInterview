@@ -102,6 +102,19 @@ export async function startServer() {
             `[startup] Đồng bộ hồ sơ mentor: tạo mới ${sync.created}, lỗi ${sync.errors ?? 0}, user role mentor: ${sync.totalMentorUsers ?? "?"}`,
           );
         }
+
+        // Tự động thêm dữ liệu mẫu nếu DB hoàn toàn trống (0 Mentor)
+        const mentorCount = await mongoose.model("Mentor").countDocuments();
+        if (mentorCount === 0) {
+          console.log("[startup] DB trống. Tự động thêm Mentor mẫu và đánh giá thực tế...");
+          try {
+            const { seedDemoData } = await import("./scripts/seedDemoData.js");
+            await seedDemoData();
+            console.log("[startup] ✅ Đã tự động thêm dữ liệu mẫu thành công.");
+          } catch(err) {
+            console.error("[startup] ❌ Lỗi thêm dữ liệu mẫu:", err);
+          }
+        }
         const { startBookingReminderJob } = await import("./jobs/bookingReminderJob.js");
         startBookingReminderJob();
       }
