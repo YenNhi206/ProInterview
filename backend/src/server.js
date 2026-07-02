@@ -103,10 +103,10 @@ export async function startServer() {
           );
         }
 
-        // Tự động thêm dữ liệu mẫu nếu DB hoàn toàn trống (0 Mentor)
-        const mentorCount = await mongoose.model("Mentor").countDocuments();
-        if (mentorCount === 0) {
-          console.log("[startup] DB trống. Tự động thêm Mentor mẫu và đánh giá thực tế...");
+        // Tự động thêm dữ liệu mẫu nếu DB hoàn toàn chưa có lượt đánh giá nào
+        const reviewCount = await mongoose.model("Review").countDocuments();
+        if (reviewCount === 0) {
+          console.log("[startup] DB chưa có đánh giá nào. Tự động thêm Mentor mẫu và đánh giá thực tế...");
           try {
             const { seedDemoData } = await import("./scripts/seedDemoData.js");
             await seedDemoData();
