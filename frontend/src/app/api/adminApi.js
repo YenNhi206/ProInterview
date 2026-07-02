@@ -52,6 +52,14 @@ export const adminApi = {
       method: "PATCH",
       body: JSON.stringify(payload ?? {}),
     }),
+  approveMentorPrice: (id) =>
+    authedFetch(`/api/admin/mentors/${id}/approve-price`, {
+      method: "POST",
+    }),
+  rejectMentorPrice: (id) =>
+    authedFetch(`/api/admin/mentors/${id}/reject-price`, {
+      method: "POST",
+    }),
   getUsers: () => authedFetch("/api/admin/users"),
   getUserById: (id) => authedFetch(`/api/admin/users/${encodeURIComponent(id)}`),
   updateUserStatus: (id, isActive) =>

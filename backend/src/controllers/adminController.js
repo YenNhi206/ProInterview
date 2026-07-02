@@ -321,8 +321,67 @@ export const AdminController = {
       if (hasCourseRate) update["pricing.coursePlatformFeeRate"] = courseRate;
 
       const mentor = await Mentor.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+      if (!mentor) {
+        return res.status(404).json({ success: false, error: "Không tìm thấy mentor." });
+      }
+      res.json({ success: true, mentor });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  approveMentorPrice: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const mentor = await Mentor.findById(id);
       if (!mentor) return res.status(404).json({ success: false, error: "Không tìm thấy mentor." });
-      return res.json({ success: true, mentor });
+      if (!mentor.pendingPricePerHour) {
+        return res.status(400).json({ success: false, error: "Không có yêu cầu đổi giá nào." });
+      }
+
+      mentor.pricePerHour = mentor.pendingPricePerHour;
+      mentor.pendingPricePerHour = null;
+      await mentor.save();
+
+      // Send notification to the mentor
+      if (mentor.userId) {
+        await Notification.create({
+          userId: mentor.userId,
+          type: "system",
+          title: "Yêu cầu đổi giá đã được duyệt",
+          body: `Admin đã chấp thuận mức giá mới của bạn là ${mentor.pricePerHour} VND/giờ.`,
+        });
+      }
+
+      res.json({ success: true, mentor });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  rejectMentorPrice: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const mentor = await Mentor.findById(id);
+      if (!mentor) return res.status(404).json({ success: false, error: "Không tìm thấy mentor." });
+      if (!mentor.pendingPricePerHour) {
+        return res.status(400).json({ success: false, error: "Không có yêu cầu đổi giá nào." });
+      }
+
+      mentor.pendingPricePerHour = null;
+      await mentor.save();
+
+      // Send notification to the mentor
+      if (mentor.userId) {
+        await Notification.create({
+          userId: mentor.userId,
+          type: "system",
+          title: "Yêu cầu đổi giá bị từ chối",
+          body: `Admin đã từ chối mức giá mới bạn đề xuất. Mức giá hiện tại vẫn được giữ nguyên.`,
+        });
+      }
+
+      res.json({ success: true, mentor });
     } catch (error) {
       next(error);
     }

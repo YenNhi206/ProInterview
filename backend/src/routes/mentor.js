@@ -15,3 +15,4 @@ mentorRouter.get("/reviews", authJwt, requireMentor, asyncHandler(MentorControll
 mentorRouter.post("/payout", authJwt, requireMentor, asyncHandler(MentorController.payout));
 mentorRouter.get("/payouts", authJwt, requireMentor, asyncHandler(MentorController.payoutHistory));
 mentorRouter.patch("/payout-account", authJwt, requireMentor, asyncHandler(MentorController.payoutAccount));
+mentorRouter.post("/request-price-change", authJwt, requireMentor, asyncHandler(MentorController.requestPriceChange));
