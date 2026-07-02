@@ -46,9 +46,23 @@ async function resetQuotaCycleIfDue(user) {
  * Nếu gói còn hiệu lực nhưng đã tới hạn reset hàng tháng → reset lượt dùng (xem resetQuotaCycleIfDue).
  */
 export async function enforceExpiry(user) {
-  if (user.plan !== "free" && user.planExpiresAt && new Date(user.planExpiresAt) < new Date()) {
-    // Conditional update: only downgrade if plan is still expired at write time.
-    // Prevents overwriting a plan that was just upgraded by a concurrent payment confirm.
+  const isFree = user.plan === "free" || !user.planExpiresAt;
+  const isExpired = !isFree && new Date(user.planExpiresAt) < new Date();
+
+  // 1. Tài khoản Free cũ nhưng vẫn còn limit > 3 trong DB (dữ liệu cũ trước khi vá) → ép về FREE_QUOTA.
+  if (isFree && user.quota?.cvAnalysisLimit > 3) {
+    const updated = await User.findOneAndUpdate(
+      { _id: user._id },
+      { $set: FREE_QUOTA },
+      { new: true }
+    ).lean();
+    return updated ?? user;
+  }
+
+  // 2. Gói đã hết hạn → downgrade về Free.
+  // Conditional update: only downgrade if plan is still expired at write time.
+  // Prevents overwriting a plan that was just upgraded by a concurrent payment confirm.
+  if (isExpired) {
     const updated = await User.findOneAndUpdate(
       { _id: user._id, plan: { $ne: "free" }, planExpiresAt: { $lt: new Date() } },
       { $set: FREE_QUOTA },
@@ -57,6 +71,7 @@ export async function enforceExpiry(user) {
     return updated ?? user;
   }
 
+  // 3. Gói còn hiệu lực (hoặc Free với limit đã đúng) → kiểm tra reset quota hàng tháng.
   return resetQuotaCycleIfDue(user);
 }
 

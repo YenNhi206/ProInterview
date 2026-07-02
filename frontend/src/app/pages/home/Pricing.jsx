@@ -201,7 +201,12 @@ export function Pricing() {
           {/* ── Plan cards ─────────────────────────────────────── */}
           <div className="mt-10 grid w-full grid-cols-1 items-stretch gap-6 md:grid-cols-3 lg:gap-8">
             {PLANS.map((plan, cardIndex) => {
+              const PLAN_LEVELS = { free: 0, starter_pro: 1, elite_pro: 2 };
+              const currentLevel = PLAN_LEVELS[currentPlan] || 0;
+              const planLevel = PLAN_LEVELS[plan.id] || 0;
+              
               const isCurrent = currentPlan === plan.id;
+              const isLowerTier = !isCurrent && planLevel < currentLevel;
               const isPopular = plan.popular;
               const isFree    = plan.id === "free";
               const displayAmount = isFree ? 0 : getPlanDisplayAmount(plan.id, "monthly");
@@ -303,25 +308,25 @@ export function Pricing() {
                   <div className="mt-auto w-full shrink-0 pt-4">
                     <motion.button
                       type="button"
-                      disabled={isCurrent}
+                      disabled={isCurrent || isLowerTier}
                       onClick={() => handleCta(plan)}
-                      whileHover={!isCurrent ? { scale: 1.04 } : undefined}
-                      whileTap={!isCurrent ? { scale: 0.96 } : undefined}
+                      whileHover={!(isCurrent || isLowerTier) ? { scale: 1.04 } : undefined}
+                      whileTap={!(isCurrent || isLowerTier) ? { scale: 0.96 } : undefined}
                       transition={{ type: "spring", stiffness: 380, damping: 22 }}
                       className={`flex w-full items-center justify-center rounded-full py-3 text-center text-sm font-bold transition-all ${
-                        isCurrent
-                          ? "cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-400"
+                        isCurrent || isLowerTier
+                          ? "cursor-not-allowed border border-violet-200 bg-violet-50/50 text-violet-400"
                           : variant === "outline"
                           ? "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
                           : "font-black"
                       }`}
                       style={
-                        isCurrent || variant === "outline"
+                        isCurrent || isLowerTier || variant === "outline"
                           ? undefined
                           : { background: "#93f72b", color: "#0f172a", boxShadow: "0 8px 20px rgba(15,23,42,0.1)" }
                       }
                     >
-                      {isCurrent ? "Đang dùng" : plan.cta}
+                      {isCurrent ? "Đang dùng" : isLowerTier ? "Gói thấp hơn" : plan.cta}
                     </motion.button>
                   </div>
                 </motion.article>

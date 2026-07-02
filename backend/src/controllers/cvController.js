@@ -79,10 +79,11 @@ export const CVController = {
   /** Lấy quota còn lại */
   getQuota: async (req, res) => {
     try {
-      const user = await User.findById(req.userId).select("quota plan planExpiresAt");
+      let user = await User.findById(req.userId).select("+quota plan planExpiresAt");
       if (!user) return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
-      const effective = await enforceExpiry(user);
-      res.json({ success: true, quota: effective.quota });
+
+      user = await enforceExpiry(user);
+      res.json({ success: true, quota: user.quota });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
