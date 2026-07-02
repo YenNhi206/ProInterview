@@ -43,6 +43,11 @@ const TESTIMONIALS = HOME_SECTION_COPY.testimonials.items.map((t, i) => ({
   stars: 5,
 }));
 
+const formatStatNumber = (num) => {
+  if (!num || num < 5) return num || "0";
+  return Math.floor(num / 5) * 5 + "+";
+};
+
 export function Home() {
   const navigate = useNavigate();
   const [achievements, setAchievements] = useState([]);
@@ -231,11 +236,11 @@ export function Home() {
           { x: 10, y: 86, size: 30, opacity: 0.38 },
         ])}
         <div className={`${homeTy.sectionShell} ${HOME_SECTION_INNER}`}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 w-full max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 w-full max-w-[78.5rem] mx-auto">
             {/* Left Column: Recent Reviews */}
             <div className="flex flex-col rounded-[2rem] border border-slate-200 bg-white p-6 md:p-8 shadow-sm overflow-hidden h-[36rem] lg:h-[40rem]">
               <div className="flex justify-between items-center mb-6 shrink-0">
-                <h3 className="text-xl font-bold text-slate-800">Phản hồi học viên</h3>
+                <h3 className="text-2xl font-black text-[#8037f4] tracking-tight">Phản hồi từ người dùng ProInterview</h3>
               </div>
               
               <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4" style={{ scrollbarWidth: "thin" }}>
@@ -254,7 +259,7 @@ export function Home() {
                       <div className="flex items-center gap-1">
                         <div className="flex gap-0.5">
                           {[...Array(t.stars)].map((_, j) => (
-                            <Star key={j} className="size-[14px] text-[#fbbf24] fill-[#fbbf24]" />
+                            <Star key={j} className="size-[14px] text-[#84cc16] fill-[#84cc16]" />
                           ))}
                         </div>
                         <span className="text-xs font-bold ml-1 text-slate-700">{t.stars}/5</span>
@@ -271,19 +276,19 @@ export function Home() {
             </div>
 
             {/* Right Column: Key Statistics */}
-            <div className="flex flex-col rounded-[2rem] border-2 border-[#8037f4] bg-[#8037f4] p-8 md:p-10 shadow-sm relative overflow-hidden h-[36rem] lg:h-[40rem]">
+            <div className="flex flex-col rounded-[2rem] border-2 border-[#8037f4] bg-[#8037f4] p-6 md:p-8 shadow-sm relative overflow-hidden h-[36rem] lg:h-[40rem]">
               {/* Background accent */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
 
               <div className="flex items-center gap-4 mb-5 relative z-10">
-                <div className="text-white">
+                <div className="text-[#a3e635]">
                   <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M4 19h16v2H4zM6 9h3v8H6zM11 4h3v13h-3zM16 12h3v5h-3z" />
                   </svg>
                 </div>
-                <h3 className="text-3xl font-black text-white tracking-tight">Thống kê nền tảng</h3>
+                <h3 className="text-2xl font-black text-[#a3e635] tracking-tight">Thống kê nền tảng</h3>
               </div>
-              <p className="text-base text-white/80 mb-10 leading-relaxed max-w-sm relative z-10 font-medium">
+              <p className="text-base text-white/80 mb-10 leading-relaxed relative z-10 font-medium">
                 Dữ liệu thực tế về số lượt luyện phỏng vấn, số lượng người dùng và đánh giá chất lượng.
               </p>
 
@@ -295,7 +300,7 @@ export function Home() {
                   </div>
                   <div>
                     <div className="text-2xl md:text-3xl font-black text-white mb-1">
-                      {homeData.stats?.totalSessions?.toLocaleString() || "0"}
+                      {formatStatNumber(homeData.stats?.totalSessions)}
                     </div>
                     <div className="text-sm text-white/80 font-bold whitespace-nowrap tracking-tight">Lượt luyện tập với AI</div>
                   </div>
@@ -308,9 +313,9 @@ export function Home() {
                   </div>
                   <div>
                     <div className="text-2xl md:text-3xl font-black text-white mb-1">
-                      {homeData.stats?.totalMentors?.toLocaleString() || "0"}
+                      {formatStatNumber(homeData.stats?.totalMentors)}
                     </div>
-                    <div className="text-sm text-white/80 font-bold">Mentor thật</div>
+                    <div className="text-sm text-white/80 font-bold">Mentor</div>
                   </div>
                 </div>
 
@@ -336,7 +341,7 @@ export function Home() {
                   </div>
                   <div>
                     <div className="text-2xl md:text-3xl font-black text-white mb-1">
-                      {homeData.stats?.totalUsers?.toLocaleString() || "0"}
+                      {formatStatNumber(homeData.stats?.totalUsers)}
                     </div>
                     <div className="text-sm text-white/80 font-bold">Người dùng</div>
                   </div>

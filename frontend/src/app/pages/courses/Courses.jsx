@@ -164,10 +164,10 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
         <motion.button
           type="button"
           onClick={(e) => { e.stopPropagation(); onOpen(); }}
-          whileHover={{ scale: 1.03, backgroundColor: "#6d28d9" }}
+          whileHover={{ scale: 1.03, backgroundColor: "#84cc16" }}
           whileTap={{ scale: 0.94 }}
           transition={{ type: "spring", stiffness: 380, damping: 22 }}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8037f4] py-2.5 text-xs font-black uppercase tracking-wide text-white shadow-[0_4px_14px_rgba(128,55,244,0.3)]"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#a3e635] py-2.5 text-xs font-black uppercase tracking-wide text-slate-900 shadow-[0_4px_14px_rgba(163,230,53,0.3)]"
         >
           <PlayCircle className="size-3.5" />
           Xem khóa học
@@ -356,10 +356,7 @@ export function Courses() {
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.07 }}
             className="font-headline text-3xl font-black uppercase tracking-tight text-white sm:text-4xl md:text-5xl"
           >
-            KHÓA HỌC{" "}
-            <span className="bg-gradient-to-r from-[#93f72b] to-lime-300 bg-clip-text text-transparent">
-              KỸ NĂNG
-            </span>
+            KHÓA HỌC KỸ NĂNG
           </motion.h1>
 
           <motion.p
@@ -399,7 +396,7 @@ export function Courses() {
             )}
             <button
               type="button"
-              className="shrink-0 rounded-full bg-[#8037f4] px-6 py-3 text-xs font-black text-white shadow-md transition-colors hover:bg-[#6d28d9]"
+              className="shrink-0 rounded-full bg-[#a3e635] px-6 py-3 text-xs font-black text-slate-900 shadow-md transition-colors hover:bg-[#84cc16]"
             >
               <span className="flex items-center gap-1.5">
                 <Search className="size-3.5" />
