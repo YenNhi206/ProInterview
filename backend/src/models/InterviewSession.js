@@ -56,6 +56,17 @@ const interviewSessionSchema = new Schema(
         wordCount: { type: Number, default: 0 },
         durationSeconds: { type: Number, default: 0 },
         recordedAt: { type: Date },
+        // Red flag phát hiện real-time trên client (redFlagDetector.js) — nói xấu công ty cũ,
+        // đổ lỗi/thiếu trách nhiệm, ngôn từ không chuyên nghiệp/phân biệt đối xử. Lưu lại để
+        // hiện cho ứng viên xem lại ở InterviewFeedback.jsx.
+        redFlags: [
+          {
+            categoryId:     { type: String },
+            label:          { type: String },
+            severity:       { type: String, enum: ["medium", "high"] },
+            matchedKeyword: { type: String },
+          },
+        ],
         behavioralData: {
           // Audio (Web Audio API)
           responseLatencyMs:   { type: Number, default: 0 },
