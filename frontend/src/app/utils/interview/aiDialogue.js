@@ -4,7 +4,9 @@
  */
 
 // ─── Banned / offensive words ─────────────────────────────────────────────────
-const BANNED_PATTERNS = [
+// Exported: cũng dùng làm nguồn "unprofessional" cho redFlagDetector.js (Interview Room)
+// — 1 danh sách từ cấm duy nhất cho toàn hệ thống, tránh trùng lặp/lệch nhau.
+export const BANNED_PATTERNS = [
   /\b(đéo|đ[eé]o|đ[mM]|đ\.m|v[cC][lL]|v[lL]|cút|mẹ mày|mày chết|súc vật|đồ chó|chó má|lồn|cặc|buồi|địt|đít|fuck|shit|bitch|asshole)\b/i,
   /\b(óc chó|thằng điên|con điên|đồ ngu|mày ngu|đầu bò|đồ ngốc)\b/i,
 ];

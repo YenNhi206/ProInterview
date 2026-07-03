@@ -166,15 +166,15 @@ export async function evaluateInterviewSession(sessionId, answers = [], question
  * Lưu câu trả lời + behavioral data cho 1 câu hỏi. Fire-and-forget từ client.
  * Route: PATCH /api/interviews/sessions/:id
  * @param {string} sessionId
- * @param {{ questionIndex, questionText, transcript, durationSeconds, behavioralData? }} params
+ * @param {{ questionIndex, questionText, transcript, durationSeconds, behavioralData?, redFlags? }} params
  */
-export async function saveAnswer(sessionId, { questionIndex, questionText, transcript, durationSeconds, behavioralData }) {
+export async function saveAnswer(sessionId, { questionIndex, questionText, transcript, durationSeconds, behavioralData, redFlags }) {
   if (!hasAuthCredentials() || !sessionId) return { success: false };
   try {
     const res = await authFetch(`/api/interviews/sessions/${encodeURIComponent(sessionId)}`, {
       method: "PATCH",
       headers: { ...jsonHeaders },
-      body: JSON.stringify({ questionIndex, questionText, transcript, durationSeconds, behavioralData }),
+      body: JSON.stringify({ questionIndex, questionText, transcript, durationSeconds, behavioralData, redFlags }),
     });
     const body = await res.json().catch(() => ({}));
     return res.ok && body.success ? { success: true } : { success: false };

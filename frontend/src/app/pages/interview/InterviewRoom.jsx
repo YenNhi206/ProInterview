@@ -31,6 +31,7 @@ import {
   pregenerateInterviewVideos,
 } from "../../api/interviewsApi.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
+import { detectRedFlags, redFlagKey } from "../../utils/interview/redFlagDetector.js";
 import { useDIDStream } from "../../hooks/useDIDStream";
 import { useFaceAnalysis } from "../../hooks/useFaceAnalysis";
 // AILipSyncAvatar removed — portrait now renders as full-panel img in Nhánh 1/2
@@ -45,6 +46,15 @@ const TRANSCRIPT_KEY = "prointerview_transcripts";
 
 /* ── Free limit ──────────────────────────────────────────── */
 const FREE_LIMIT = 3;
+
+/* ── Time pressure (soft limit, chỉ cảnh báo UI, không ép buộc) ──────────
+   Đồng hồ chạy NGAY khi tới lượt trả lời — không tách riêng "thời gian suy nghĩ" như
+   trước, vì phỏng vấn thật không cho khoảng nghỉ đó, ứng viên cần trả lời ngay.
+   "quick" = câu baseline không phải STAR (giới thiệu bản thân, động lực).
+   "star"  = câu hành vi STAR (baseline layer="behavior") + mọi câu follow-up
+             cá nhân hóa (Pro), vì các câu này đòi hỏi trả lời dài/sâu hơn. ── */
+const PRESSURE_LIMITS = { quick: 90, star: 150 };
+const MAX_RETRIES_PER_QUESTION = 1;
 
 /* ── HR assets ───────────────────────────────────────────── */
 const HR_IDLE_URLS = {
@@ -599,6 +609,13 @@ export default function InterviewRoom() {
   const [hrPhase,           setHrPhase]           = useState("asking");
   const [showUpgradeModal,  setShowUpgradeModal]  = useState(false);
   const [showStarHints,     setShowStarHints]     = useState(false);
+  // Time-pressure clock (soft limit, xem PRESSURE_LIMITS) — 1 mốc duy nhất, chạy ngay khi
+  // hrPhase chuyển sang "listening" (tới lượt trả lời), không có giai đoạn suy nghĩ riêng.
+  const [answerElapsed,     setAnswerElapsed]     = useState(0);
+  // Số lần đã dùng "Ghi lại" cho từng câu hỏi (index khớp QUESTIONS) — cap ở MAX_RETRIES_PER_QUESTION.
+  const [retryCounts,       setRetryCounts]       = useState(Array(QUESTIONS.length).fill(0));
+  // Toast cảnh báo red flag đang hiển thị (góc màn hình, không chặn thao tác, tự biến mất)
+  const [redFlagToasts,     setRedFlagToasts]     = useState([]);
 
   /* ── Core refs ────────────────────────────────────────── */
   const recognitionRef     = useRef(null);
@@ -609,6 +626,10 @@ export default function InterviewRoom() {
   const questionStartTimeRef = useRef(Date.now());
   const lastSpokenQRef     = useRef(-1);
   const lastTTSSpokenQRef  = useRef(-1); // guard riêng cho TTS, tách khỏi D-ID
+  // Red flag đã tích lũy cho từng câu hỏi (index khớp QUESTIONS) — persist kèm answer để hiện
+  // lại ở InterviewFeedback.jsx. seenRedFlagKeysRef khử trùng lặp cảnh báo trong cùng 1 câu.
+  const redFlagsPerQRef    = useRef(Array(QUESTIONS.length).fill(null).map(() => []));
+  const seenRedFlagKeysRef = useRef(new Set());
   const ttsUtteranceRef    = useRef(null);
   const noopAttachVideo    = useCallback(() => {}, []); // stable no-op cho Nhánh 3 (pure video fallback)
 
@@ -775,6 +796,15 @@ export default function InterviewRoom() {
     return () => clearInterval(timerRef.current);
   }, [phase]);
 
+  /* ── Pressure clock: đếm ngay khi tới lượt trả lời (hrPhase === "listening"), không có
+     giai đoạn "suy nghĩ" riêng — giống áp lực phỏng vấn thật. Soft limit — chỉ dùng để tô
+     màu cảnh báo, không tự động dừng ghi âm hay chuyển câu. ── */
+  useEffect(() => {
+    if (phase !== "question" || hrPhase !== "listening") return;
+    const id = setInterval(() => setAnswerElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [phase, currentQ, hrPhase]);
+
   /* ── Reset per-question state ─────────────────────────── */
   useEffect(() => {
     setHrPhase("asking");
@@ -783,6 +813,8 @@ export default function InterviewRoom() {
     transcriptRef.current = "";
     setShowStarHints(false);
     questionStartTimeRef.current = Date.now();
+    setAnswerElapsed(0);
+    seenRedFlagKeysRef.current = new Set();
     // Reset behavioral accumulators
     audioSampleRef.current   = [];
     silenceEventsRef.current = 0;
@@ -795,6 +827,42 @@ export default function InterviewRoom() {
   }, [currentQ, resetFace]);
 
   useEffect(() => { transcriptRef.current = transcript; }, [transcript]);
+
+  /* ── Red flag detection: real-time coaching (xem redFlagDetector.js) ──
+     Quét CẢ transcript đã final LẪN interimTranscript (đang nói dở) — Chrome STT ở chế độ
+     continuous có thể mất rất lâu để "final hóa" một đoạn nói liên tục (chỉ final hóa sau
+     khoảng lặng dài), nên nếu chỉ quét `transcript` thôi, cảnh báo sẽ trễ rất nhiều so với
+     lúc ứng viên thực sự nói ra (đã xác nhận qua test thực tế: transcript hiển thị đúng ngay
+     nhưng toast xuất hiện "cực kỳ chậm"). Quét thêm interim giúp toast bật lên gần như ngay
+     lúc nói, đúng tinh thần "real-time coaching".
+     Cảnh báo "nhẹ nhàng" (toast góc màn hình, không chặn thao tác). Tích lũy vào redFlagsPerQRef
+     để lưu kèm câu trả lời và hiện lại ở InterviewFeedback.jsx.
+     Deps CHỈ có transcript/interimTranscript (không có currentQ): effect "Reset per-question
+     state" ở trên cũng chạy khi currentQ đổi và mới thực sự xoá 2 state này về "" — nếu effect
+     này cũng nghe currentQ, nó chạy ngay trong cùng lượt với giá trị CŨ (của câu vừa xong, chưa
+     kịp bị reset) trong khi seenRedFlagKeysRef đã bị effect kia xoá trắng, khiến red flag của
+     câu cũ bị detect lại như "mới" và ghi nhầm vào redFlagsPerQRef của câu tiếp theo (đã xác
+     nhận bằng test thực tế). Bỏ currentQ khỏi deps: effect chỉ re-run khi 2 state này thực sự
+     đổi (kể cả khi effect kia set về "" — vẫn no-op nhờ guard rỗng ở trên), currentQ đọc được
+     vẫn luôn là giá trị mới nhất tại thời điểm đó. */
+  useEffect(() => {
+    const combined = interimTranscript ? `${transcript} ${interimTranscript}` : transcript;
+    if (!combined.trim()) return;
+    const matches = detectRedFlags(combined);
+    const newMatches = matches.filter((m) => !seenRedFlagKeysRef.current.has(redFlagKey(m)));
+    if (newMatches.length === 0) return;
+
+    newMatches.forEach((m) => seenRedFlagKeysRef.current.add(redFlagKey(m)));
+    redFlagsPerQRef.current[currentQ] = [...(redFlagsPerQRef.current[currentQ] ?? []), ...newMatches];
+
+    const toastEntries = newMatches.map((m) => ({ id: `${Date.now()}-${Math.random()}`, ...m }));
+    setRedFlagToasts((prev) => [...prev, ...toastEntries]);
+    toastEntries.forEach((t) => {
+      setTimeout(() => {
+        setRedFlagToasts((prev) => prev.filter((x) => x.id !== t.id));
+      }, 5000);
+    });
+  }, [transcript, interimTranscript]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Cleanup on unmount ───────────────────────────────── */
   useEffect(() => {
@@ -1042,6 +1110,7 @@ export default function InterviewRoom() {
       transcript:    updatedTranscripts[qIndex] ?? "",
       durationSeconds,
       behavioralData,
+      redFlags: redFlagsPerQRef.current[qIndex] ?? [],
     }).catch(() => {});
   };
 
@@ -1072,6 +1141,7 @@ export default function InterviewRoom() {
         transcript:      t ?? "",
         durationSeconds: durationPerQRef.current[i] ?? 0,
         behavioralData:  finalBehavioral[i] ?? undefined,
+        redFlags:        redFlagsPerQRef.current[i] ?? [],
       }))
       .filter((a) => a.transcript.trim().length > 0);
 
@@ -1147,9 +1217,11 @@ export default function InterviewRoom() {
       setFollowUpQuestionObjects(qRes.questions);
       setFollowUpVideoUrls(newVideoUrls);
       setAllTranscripts((prev) => [...prev, ...Array(addCount).fill("")]);
+      setRetryCounts((prev) => [...prev, ...Array(addCount).fill(0)]);
       behavioralPerQRef.current.push(...Array(addCount).fill(null));
       durationPerQRef.current.push(...Array(addCount).fill(0));
       emotionsRef.current.push(...Array(addCount).fill(null));
+      redFlagsPerQRef.current.push(...Array(addCount).fill(null).map(() => []));
       setPersonalizedPending(false);
       setCurrentQ((prev) => prev + 1);
     } catch {
@@ -1199,6 +1271,15 @@ export default function InterviewRoom() {
 
   const hasTranscript = transcript.trim().length > 0;
   const wordCount     = transcript.trim().split(/\s+/).filter(Boolean).length;
+
+  // Pressure clock (soft limit, xem PRESSURE_LIMITS ở đầu file) — 1 mốc duy nhất, không tách
+  // "thời gian suy nghĩ"/"thời gian nói" nữa.
+  const isStarTierQ        = currentQ >= baseQuestionObjects.length || QUESTION_OBJECTS?.[currentQ]?.layer === "behavior";
+  const pressureLimit      = isStarTierQ ? PRESSURE_LIMITS.star : PRESSURE_LIMITS.quick;
+  const pressureRemaining  = pressureLimit - answerElapsed;
+  const isPressureOvertime = pressureRemaining < 0;
+  const pressureUrgent     = !isPressureOvertime && pressureRemaining <= pressureLimit * 0.3;
+  const retryUsedUp = (retryCounts[currentQ] ?? 0) >= MAX_RETRIES_PER_QUESTION;
 
   const hrName     = HR_NAMES[hrGender];
   const hrTitle    = HR_TITLES[hrGender];
@@ -1331,6 +1412,32 @@ export default function InterviewRoom() {
   return (
     <MentorPageShell bottomPad="pb-0" fillHeight className="!min-h-0 !pb-0">
       <div className="relative flex h-svh max-h-svh flex-col overflow-hidden antialiased">
+
+        {/* Red flag toasts: cảnh báo nhẹ nhàng, góc màn hình, không chặn thao tác — xem
+            redFlagDetector.js. Tự biến mất sau 5s (xem effect quét transcript ở trên).
+            left-3 (không phải right-3): tránh đè lên đồng hồ đếm ngược áp lực đặt ở góc phải
+            camera của ứng viên (xem overlay trong "User camera panel" bên dưới). */}
+        {redFlagToasts.length > 0 && (
+          <div className="pointer-events-none fixed left-3 top-14 z-[60] flex w-[min(320px,calc(100vw-1.5rem))] flex-col gap-2">
+            {redFlagToasts.map((t) => (
+              <div key={t.id}
+                className={`pointer-events-auto flex items-start gap-2 rounded-md border px-3 py-2 shadow-lg backdrop-blur-sm ${
+                  t.severity === "high"
+                    ? "border-red-300 bg-red-50/95 text-red-800"
+                    : "border-amber-300 bg-amber-50/95 text-amber-800"
+                }`}
+              >
+                <WarningCircle className={`mt-0.5 h-4 w-4 shrink-0 ${t.severity === "high" ? "text-red-500" : "text-amber-500"}`} />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold">{t.label}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug opacity-80">
+                    Cân nhắc diễn đạt lại — điều này có thể tạo ấn tượng không tốt với nhà tuyển dụng.
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {showUpgradeModal && (
           <UpgradeModal
@@ -1628,6 +1735,27 @@ export default function InterviewRoom() {
             {isListening && (
               <div className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-inset ring-violet-400/50" />
             )}
+            {/* Đồng hồ đếm ngược áp lực — nổi bật ngay trên camera của ứng viên, để họ luôn
+                thấy thời gian đang chạy trong lúc trả lời (xem PRESSURE_LIMITS ở đầu file). */}
+            {hrPhase === "listening" && (
+              <div
+                title="Thời gian trả lời (giới hạn mềm)"
+                className={`pointer-events-none absolute right-3 top-3 flex flex-col items-center rounded-xl px-3 py-1.5 shadow-lg backdrop-blur-sm transition-colors ${
+                  isPressureOvertime
+                    ? "animate-pulse bg-red-600/90"
+                    : pressureUrgent
+                      ? "bg-amber-500/90"
+                      : "bg-violet-950/70"
+                }`}
+              >
+                <span className="text-2xl font-black leading-none tabular-nums text-white">
+                  {isPressureOvertime ? `+${formatTimer(-pressureRemaining)}` : formatTimer(pressureRemaining)}
+                </span>
+                <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/85">
+                  {isPressureOvertime ? "Quá thời gian" : "Thời gian trả lời"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Transcript panel */}
@@ -1706,23 +1834,43 @@ export default function InterviewRoom() {
 
             {hasTranscript && !isListening && sttSupported && (
               <div className="hidden shrink-0 border-t border-violet-100 px-2 py-1 sm:block">
-                <button type="button"
-                  onClick={() => {
-                    isListeningRef.current = false;
-                    recognitionRef.current?.abort();
-                    setTranscript("");
-                    setInterimTranscript("");
-                    transcriptRef.current = "";
-                    setTimeout(() => {
-                      isListeningRef.current = true;
-                      setIsListening(true);
-                      try { recognitionRef.current?.start(); } catch (_) {}
-                    }, 150);
-                  }}
-                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-violet-700 transition-all hover:bg-violet-50">
-                  <Microphone className="w-3.5 h-3.5" />
-                  Ghi lại
-                </button>
+                {retryUsedUp ? (
+                  <span
+                    title="Đã dùng hết lượt ghi lại cho câu này"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-300"
+                  >
+                    <Microphone className="w-3.5 h-3.5" />
+                    Đã hết lượt ghi lại
+                  </span>
+                ) : (
+                  <button type="button"
+                    onClick={() => {
+                      isListeningRef.current = false;
+                      recognitionRef.current?.abort();
+                      setTranscript("");
+                      setInterimTranscript("");
+                      transcriptRef.current = "";
+                      // Reset pressure clock: lượt ghi lại được tính là một lần trả lời mới
+                      setAnswerElapsed(0);
+                      // Câu trả lời cũ bị hủy — bỏ luôn red flag đã phát hiện của lượt đó
+                      redFlagsPerQRef.current[currentQ] = [];
+                      seenRedFlagKeysRef.current = new Set();
+                      setRetryCounts((prev) => {
+                        const next = [...prev];
+                        next[currentQ] = (next[currentQ] ?? 0) + 1;
+                        return next;
+                      });
+                      setTimeout(() => {
+                        isListeningRef.current = true;
+                        setIsListening(true);
+                        try { recognitionRef.current?.start(); } catch (_) {}
+                      }, 150);
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-violet-700 transition-all hover:bg-violet-50">
+                    <Microphone className="w-3.5 h-3.5" />
+                    Ghi lại (còn {Math.max(0, MAX_RETRIES_PER_QUESTION - (retryCounts[currentQ] ?? 0))} lượt)
+                  </button>
+                )}
               </div>
             )}
           </div>
