@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, CalendarDays, MapPin, ArrowRight } from "lucide-react";
+import { Link } from "react-router";
 
 const REGISTER_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLScDqdxgN_Uk48HX_Mh6JcErpT1xtQdWBRedP4KDJx4Y_SGuvg/viewform";
@@ -73,10 +74,8 @@ export function EventPromoModal() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2.5 pt-3">
-            <a
-              href="https://www.facebook.com/AIProInterview/posts/pfbid064oyah4yk8j33y9BQsFhNkpMRrUK79cS8xNLRKDwNQL58wNAksdB2M13sfq7y96Jl"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/achievements/6a51cd9545b1175e0a18be38"
               onClick={handleClose}
               className="inline-flex flex-none items-center justify-center whitespace-nowrap rounded-full py-3 px-5 text-sm font-bold text-[#8037f4] transition-all duration-300 hover:bg-violet-50/50 active:scale-[0.98]"
               style={{
@@ -84,7 +83,7 @@ export function EventPromoModal() {
               }}
             >
               Thông tin sự kiện
-            </a>
+            </Link>
             <a
               href={REGISTER_URL}
               target="_blank"
