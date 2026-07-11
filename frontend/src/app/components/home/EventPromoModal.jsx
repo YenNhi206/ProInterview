@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, CalendarDays, MapPin, ArrowRight } from "lucide-react";
 import { Link } from "react-router";
+import { achievementsApi } from "../../api/achievementsApi.js";
 
 const REGISTER_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLScDqdxgN_Uk48HX_Mh6JcErpT1xtQdWBRedP4KDJx4Y_SGuvg/viewform";
@@ -10,6 +11,29 @@ const EVENT_END = new Date("2026-07-22T12:30:00+07:00");
 
 export function EventPromoModal() {
   const [isOpen, setIsOpen] = useState(true);
+  const [eventLink, setEventLink] = useState("/achievements/6a51cd9545b1175e0a18be38");
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await achievementsApi.getAll();
+        if (res.data?.success) {
+          const list = res.data.achievements || [];
+          const found = list.find(
+            (item) =>
+              item.title &&
+              item.title.toLowerCase().includes("sắp có công ăn việc làm")
+          );
+          if (found) {
+            setEventLink(`/achievements/${found._id}`);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to dynamically find event achievement", err);
+      }
+    };
+    fetchEvent();
+  }, []);
 
   if (Date.now() > EVENT_END.getTime()) return null;
   if (!isOpen) return null;
@@ -75,7 +99,7 @@ export function EventPromoModal() {
 
           <div className="flex flex-col sm:flex-row gap-2.5 pt-3">
             <Link
-              to="/achievements/6a51cd9545b1175e0a18be38"
+              to={eventLink}
               onClick={handleClose}
               className="inline-flex flex-none items-center justify-center whitespace-nowrap rounded-full py-3 px-5 text-sm font-bold text-[#8037f4] transition-all duration-300 hover:bg-violet-50/50 active:scale-[0.98]"
               style={{
