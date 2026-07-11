@@ -307,7 +307,7 @@ export function Home() {
                     <div className="text-2xl md:text-3xl font-black text-white mb-1">
                       {formatStatNumber(homeData.stats?.totalSessions)}
                     </div>
-                    <div className="text-sm text-white/80 font-bold whitespace-nowrap tracking-tight">Lượt luyện tập với AI</div>
+                    <div className="text-sm text-white/80 font-bold sm:whitespace-nowrap tracking-tight">Lượt luyện tập với AI</div>
                   </div>
                 </div>
                 

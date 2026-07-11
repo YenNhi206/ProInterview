@@ -36,7 +36,7 @@ export function EventPromoModal() {
           className="relative min-h-[300px] overflow-hidden pl-6 pt-10 sm:min-h-[340px] sm:pl-8 sm:pt-12"
           style={{ background: "linear-gradient(135deg, #630ed4 0%, #8037f4 100%)" }}
         >
-          <div className="max-w-[260px] pb-6 sm:max-w-[300px]">
+          <div className="w-[60%] sm:w-auto sm:max-w-[300px] pb-6">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white ring-1 ring-white/30">
               Sự kiện ProInterview
             </span>
@@ -51,7 +51,7 @@ export function EventPromoModal() {
           <img
             src="/event/phuong-nam.png"
             alt="Diễn giả Phương Nam"
-            className="pointer-events-none absolute bottom-0 right-4 h-64 w-auto object-contain object-bottom drop-shadow-2xl sm:h-80"
+            className="pointer-events-none absolute bottom-0 right-2 sm:right-4 h-56 sm:h-80 w-auto object-contain object-bottom drop-shadow-2xl"
           />
         </div>
 
@@ -72,13 +72,25 @@ export function EventPromoModal() {
             Chương trình không giới hạn sinh viên Trường Đại học FPT. Sinh viên đến từ các trường đại học, cao đẳng khác đều có thể đăng ký tham gia để luyện tập kỹ năng và chuẩn bị tốt hơn cho hành trình tìm việc.
           </p>
 
-          <div className="pt-3">
+          <div className="flex flex-col sm:flex-row gap-2.5 pt-3">
+            <a
+              href="https://www.facebook.com/AIProInterview/posts/pfbid064oyah4yk8j33y9BQsFhNkpMRrUK79cS8xNLRKDwNQL58wNAksdB2M13sfq7y96Jl"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleClose}
+              className="inline-flex flex-none items-center justify-center whitespace-nowrap rounded-full py-3 px-5 text-sm font-bold text-[#8037f4] transition-all duration-300 hover:bg-violet-50/50 active:scale-[0.98]"
+              style={{
+                border: "1.5px solid rgba(128, 55, 244, 0.45)",
+              }}
+            >
+              Thông tin sự kiện
+            </a>
             <a
               href={REGISTER_URL}
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleClose}
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-full py-3 pl-6 pr-3 text-sm font-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="group inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full py-3 px-4 sm:px-6 text-sm font-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 background: "linear-gradient(135deg, #a3ff3d 0%, #8ae819 100%)",
                 color: "#0f172a",

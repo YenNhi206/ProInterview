@@ -73,12 +73,12 @@ export function ForgotPassword() {
 
   return (
     <div
-      className="relative flex h-screen flex-col overflow-hidden bg-[#dcd2eb]"
+      className="relative flex min-h-[100dvh] flex-col overflow-y-auto bg-[#dcd2eb]"
       style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
     >
       <AuthPurpleBackdrop />
 
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
         <div className="pointer-events-none absolute inset-4 z-0 hidden md:block md:inset-6" aria-hidden>
           {AUTH_STICKS.map((s, idx) => (
             <SparkleGlyph
@@ -107,7 +107,7 @@ export function ForgotPassword() {
           }
         />
 
-        <div className="relative z-10 flex flex-1 items-center justify-center overflow-y-auto px-6 py-8 sm:px-10">
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8 sm:px-10">
           <div className="w-full max-w-md rounded-3xl border border-violet-100/80 bg-white p-8 shadow-[0_12px_40px_rgba(128,55,244,0.08)] sm:p-10">
             {sent ? (
               <div className="text-center">
