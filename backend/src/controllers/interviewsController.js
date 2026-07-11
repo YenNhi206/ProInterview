@@ -173,12 +173,13 @@ export const InterviewsController = {
   updateAnswer: async (req, res) => {
     try {
       const { id } = req.params;
-      const { questionIndex, questionText, transcript, durationSeconds, behavioralData } = req.body;
+      const { questionIndex, questionText, transcript, durationSeconds, behavioralData, redFlags } = req.body;
 
       const entry = {
         questionIndex, questionText, transcript, durationSeconds,
         recordedAt: new Date(),
         ...(behavioralData && { behavioralData }),
+        ...(Array.isArray(redFlags) && redFlags.length > 0 && { redFlags }),
       };
 
       // Upsert: cập nhật answer đã có cho questionIndex, hoặc push mới nếu chưa có.
@@ -249,10 +250,16 @@ export const InterviewsController = {
               durationSeconds: backupAnswer.durationSeconds ?? 0,
               recordedAt:      new Date(),
               ...(backupAnswer.behavioralData && { behavioralData: backupAnswer.behavioralData }),
+              ...(Array.isArray(backupAnswer.redFlags) && backupAnswer.redFlags.length > 0 && { redFlags: backupAnswer.redFlags }),
             });
-          } else if (existing && backupAnswer.behavioralData && !existing.behavioralData?.eyeContactScore) {
-            // Patch behavioral data nếu PATCH fire-and-forget không mang theo
-            existing.behavioralData = backupAnswer.behavioralData;
+          } else if (existing) {
+            // Patch behavioral data / red flags nếu PATCH fire-and-forget không mang theo
+            if (backupAnswer.behavioralData && !existing.behavioralData?.eyeContactScore) {
+              existing.behavioralData = backupAnswer.behavioralData;
+            }
+            if (Array.isArray(backupAnswer.redFlags) && backupAnswer.redFlags.length > 0 && !existing.redFlags?.length) {
+              existing.redFlags = backupAnswer.redFlags;
+            }
           }
         }
       }
@@ -518,6 +525,7 @@ export const InterviewsController = {
         const cachedBehavioralPerQuestion = session.answers.map((a) => ({
           questionIndex: a.questionIndex,
           behavioralData: a.behavioralData ?? null,
+          redFlags: a.redFlags ?? [],
         }));
         return res.json({
           success:        true,
@@ -620,6 +628,7 @@ export const InterviewsController = {
       const behavioralPerQuestion = session.answers.map((a) => ({
         questionIndex: a.questionIndex,
         behavioralData: a.behavioralData ?? null,
+        redFlags: a.redFlags ?? [],
       }));
 
       res.json({

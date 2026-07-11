@@ -982,6 +982,34 @@ export function InterviewFeedback() {
                     );
                   })()}
 
+                  {/* Red flag phát hiện real-time trong lúc phỏng vấn (xem redFlagDetector.js) */}
+                  {(() => {
+                    const bq = behavioralPerQuestion.find((b) => b?.questionIndex === i);
+                    const flags = bq?.redFlags ?? [];
+                    if (flags.length === 0) return null;
+                    // Khử trùng lặp theo categoryId, chỉ hiện mỗi loại 1 lần
+                    const uniqueByCategory = Object.values(
+                      flags.reduce((acc, f) => ({ ...acc, [f.categoryId]: f }), {})
+                    );
+                    return (
+                      <div className="mb-4 mt-3 rounded-lg border border-red-200 bg-red-50/60 p-3.5">
+                        <h4 className="mb-2 flex items-center gap-1.5 text-xs font-bold text-red-800">
+                          <Warning className="h-3.5 w-3.5 text-red-600" /> Cảnh báo red flag trong câu trả lời này
+                        </h4>
+                        <ul className="flex flex-col gap-1">
+                          {uniqueByCategory.map((f) => (
+                            <li key={f.categoryId} className="text-xs leading-relaxed text-red-700">
+                              • {f.label}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-2 text-[11px] leading-relaxed text-red-600/80">
+                          Đây là những cụm từ dễ tạo ấn tượng không tốt với nhà tuyển dụng thật — hãy cân nhắc diễn đạt tích cực/khách quan hơn ở lần luyện tiếp theo.
+                        </p>
+                      </div>
+                    );
+                  })()}
+
                   {/* ── Điểm mạnh & Cần cải thiện ── */}
                   <div className="mb-4 grid gap-4 sm:grid-cols-2">
                     <div className="rounded-lg border border-lime-200/80 bg-lime-50/60 p-3.5">
