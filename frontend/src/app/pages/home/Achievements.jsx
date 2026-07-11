@@ -81,12 +81,12 @@ export function Achievements() {
                 className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_16px_40px_-8px_rgba(99,14,212,0.15)]"
               >
                 {/* Image */}
-                <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+                <div className="relative aspect-[3/2] w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-violet-100 to-violet-50">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.title}
-                      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
+                      className="relative h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
                     />
                   ) : (
                     <div className="h-full w-full bg-gradient-to-br from-violet-100 to-violet-50" />
