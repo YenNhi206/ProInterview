@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { CvAnalysisFeatureShowcase } from "../../components/home/CvAnalysisFeatureShowcase";
 import { MentorFeatureShowcase } from "../../components/home/MentorFeatureShowcase";
+import { EventPromoModal } from "../../components/home/EventPromoModal.jsx";
 
 const HOME_MENTOR_MASCOTS = {
   cv: "/mascot-mentor-avatar-cv.png?v=2",
@@ -127,6 +128,7 @@ export function Home() {
     <div
       className="min-h-screen selection:bg-[rgba(147,247,43,0.42)] selection:text-slate-900 font-sans relative bg-transparent text-slate-900 -mt-[12rem] pt-[12rem]"
     >
+      <EventPromoModal />
 
 
       {/* ═══ HERO (chỉ copy + CTA, clip bling ~1 màn; video section riêng bên dưới) ═══ */}
@@ -360,7 +362,7 @@ export function Home() {
       </section>
 
       {/* ═══ ACHIEVEMENTS / NEWS SECTION ═══ */}
-      <section className={`${homeTy.section} mt-20 sm:mt-28 lg:mt-36 ${HOME_SECTION_INNER}`}>
+      <section className={`${homeTy.section} py-8! mt-20 sm:mt-28 lg:mt-36 ${HOME_SECTION_INNER}`}>
 
         <HomeSectionHeader
           icon={Medal}
@@ -371,7 +373,7 @@ export function Home() {
           ]}
           body="Cập nhật những tin tức, sự kiện và cột mốc phát triển mới nhất của chúng tôi."
           align="center"
-          className="mb-12"
+          className="mb-6"
         />
 
         {achievements.length > 0 && (
@@ -383,12 +385,12 @@ export function Home() {
                 className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_16px_40px_-8px_rgba(99,14,212,0.15)]"
               >
                 {/* Image */}
-                <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+                <div className="relative aspect-[3/2] w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-violet-100 to-violet-50">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.title}
-                      className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
+                      className="relative h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
                     />
                   ) : (
                     <div className="h-full w-full bg-gradient-to-br from-violet-100 to-violet-50" />
@@ -435,7 +437,7 @@ export function Home() {
         )}
 
         {/* CTA button with button-in-button pattern */}
-        <div className="flex justify-center mt-10">
+        <div className="flex justify-center mt-6">
           <button
             onClick={() => navigate("/achievements")}
             className="group inline-flex items-center gap-3 rounded-full py-3 pl-6 pr-3 text-sm sm:text-base font-black transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.03] active:scale-[0.98]"

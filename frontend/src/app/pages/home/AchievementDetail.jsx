@@ -115,8 +115,8 @@ export function AchievementDetail() {
           {item.images && item.images.length > 0 && (
             <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {item.images.map((img, idx) => (
-                <div key={idx} className="overflow-hidden rounded-2xl border border-slate-200/40 shadow-lg shadow-slate-200/30 transition-transform duration-500 hover:-translate-y-1 hover:shadow-violet-200/50 group">
-                  <img src={img} alt={`Hình ảnh ${idx + 1}`} className="w-full h-56 sm:h-72 object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div key={idx} className="overflow-hidden rounded-2xl border border-slate-200/40 bg-slate-50 shadow-lg shadow-slate-200/30 transition-transform duration-500 hover:-translate-y-1 hover:shadow-violet-200/50 group">
+                  <img src={img} alt={`Hình ảnh ${idx + 1}`} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105" />
                 </div>
               ))}
             </div>

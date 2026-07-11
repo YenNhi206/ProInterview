@@ -36,12 +36,12 @@ const TIMELINE = [
 ];
 
 const BOARD_MEMBERS = [
-  { name: "Đào Triệu Minh", role: "Team Leader / Marketing Manager" },
-  { name: "Nguyễn Thị Hồng Cẩm", role: "Team Member / Project Manager" },
-  { name: "Nguyễn Hữu Hoàng Anh", role: "Team Member / Finance Analyst" },
-  { name: "Nguyễn Mai Tường Vy", role: "Team Member / Technical Leadership" },
-  { name: "Trịnh Bích Trầm", role: "Team Member / Full-stack Developer" },
-  { name: "Võ Yến Nhi", role: "Team Member / Frontend Developer" },
+  { name: "Đào Triệu Minh", role: "Team Leader / Marketing Manager", image: "/team/trieu-minh.png" },
+  { name: "Nguyễn Thị Hồng Cẩm", role: "Team Member / Project Manager", image: "/team/hong-cam.png" },
+  { name: "Nguyễn Hữu Hoàng Anh", role: "Team Member / Finance Analyst", image: "/team/hoang-anh.jpg" },
+  { name: "Nguyễn Mai Tường Vy", role: "Team Member / Technical Leadership", image: "/team/tuong-vy.jpg" },
+  { name: "Trịnh Bích Trầm", role: "Team Member / Full-stack Developer", image: "/team/bich-tram.png" },
+  { name: "Võ Yến Nhi", role: "Team Member / Frontend Developer", image: "/team/yen-nhi.png" },
 ];
 
 const STRUCTURE_DATA = [
@@ -237,8 +237,12 @@ export function About() {
         <div className="flex gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 -mx-6 px-6 lg:-mx-20 lg:px-20">
           {BOARD_MEMBERS.map((member, i) => (
             <Reveal key={i} delay={i * 0.1} className="shrink-0 w-[220px] md:w-[280px] snap-start">
-              <div className="aspect-[3/4] bg-slate-200 mb-6 object-cover rounded-xl overflow-hidden flex items-center justify-center">
-                <span className="text-slate-400 font-medium">[Hình ảnh]</span>
+              <div className="aspect-[3/4] bg-slate-200 mb-6 rounded-xl overflow-hidden flex items-center justify-center">
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="h-full w-full object-cover object-top"
+                />
               </div>
               <h4 className="text-lg md:text-xl font-bold text-[#6d2fd6] mb-1">{member.name}</h4>
               <p className="text-sm md:text-base text-slate-600 font-medium">{member.role}</p>
