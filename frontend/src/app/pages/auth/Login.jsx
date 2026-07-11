@@ -102,7 +102,7 @@ export function Login() {
 
   return (
     <div
-      className={`relative flex h-screen flex-col overflow-hidden ${AUTH_PAGE_BG}`}
+      className={`relative flex min-h-[100dvh] flex-col overflow-y-auto ${AUTH_PAGE_BG}`}
       style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
     >
       <style>{`
@@ -112,7 +112,7 @@ export function Login() {
         }
       `}</style>
       <AuthPurpleBackdrop />
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
         {/* Top bar */}
         <div
           className="relative z-10 flex h-20 flex-shrink-0 items-center justify-between px-10"
@@ -123,7 +123,7 @@ export function Login() {
         </div>
 
         {/* Form + mascot phía trên mép trên thẻ */}
-        <div className="relative z-10 flex flex-1 items-start justify-center overflow-x-visible overflow-y-auto px-6 pb-8 pt-[5.55rem] sm:px-10 sm:pt-[6.05rem]">
+        <div className="relative z-10 flex flex-1 items-start justify-center overflow-x-visible px-6 pb-8 pt-[5.55rem] sm:px-10 sm:pt-[6.05rem]">
           <div className="relative mx-auto w-full max-w-md shrink-0 overflow-visible -mt-[4rem] sm:-mt-[11.2rem]">
             <div
               className="pointer-events-none relative z-[5] mb-[-0.25rem] h-[11.85rem] w-full translate-y-[1rem] sm:h-[17.35rem] sm:translate-y-[3rem]"

@@ -115,7 +115,7 @@ export function Register() {
 
   if (registeredEmail) {
     return (
-      <div className={`relative flex h-screen flex-col items-center justify-center overflow-hidden px-6 text-center ${AUTH_PAGE_BG}`}>
+      <div className={`relative flex min-h-[100dvh] flex-col items-center justify-center overflow-y-auto px-6 py-12 text-center ${AUTH_PAGE_BG}`}>
         <style>{`
           html, body {
             background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fdfcff 60%, #f7f3fd 100%) !important;
@@ -154,7 +154,7 @@ export function Register() {
 
   return (
     <div
-      className={`relative flex h-screen flex-col overflow-hidden ${AUTH_PAGE_BG}`}
+      className={`relative flex min-h-[100dvh] flex-col overflow-y-auto ${AUTH_PAGE_BG}`}
       style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
     >
       <style>{`
@@ -164,7 +164,7 @@ export function Register() {
         }
       `}</style>
       <AuthPurpleBackdrop />
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
 
 
         {/* Top bar */}
@@ -177,7 +177,7 @@ export function Register() {
         </div>
 
         {/* Form + mascot, mép trên thẻ căn với /login (items-start + slot giống login) */}
-        <div className="relative z-10 flex flex-1 items-start justify-center overflow-x-visible overflow-y-auto px-6 pb-8 pt-[5.8rem] sm:px-10 sm:pt-[6.3rem]">
+        <div className="relative z-10 flex flex-1 items-start justify-center overflow-x-visible px-6 pb-8 pt-[5.8rem] sm:px-10 sm:pt-[6.3rem]">
           <div className="relative mx-auto w-full max-w-md shrink-0 overflow-visible -mt-[3rem] sm:-mt-[7.5rem]">
             <div
               className="pointer-events-none relative z-[5] mb-[-0.25rem] h-[11.85rem] w-full shrink-0 translate-y-[1rem] sm:h-[17.35rem] sm:translate-y-[2.5rem]"

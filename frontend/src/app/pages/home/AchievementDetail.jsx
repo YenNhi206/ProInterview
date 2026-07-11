@@ -3,6 +3,115 @@ import { useParams, useNavigate } from "react-router";
 import { achievementsApi } from "../../api/achievementsApi.js";
 import { CalendarDays, ArrowLeft, Award } from "lucide-react";
 
+const parseLinks = (text, keyPrefix) => {
+  if (typeof text !== "string") return text;
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  if (parts.length === 1) return text;
+  
+  return parts.map((part, idx) => {
+    const match = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
+    if (match) {
+      const linkText = match[1];
+      const linkUrl = match[2];
+      return (
+        <a
+          key={`${keyPrefix}-link-${idx}`}
+          href={linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#8037f4] hover:text-[#630ed4] underline font-bold transition-colors duration-200"
+        >
+          {linkText}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
+const renderFormattedText = (line, lineIndex = 0) => {
+  if (!line) return "";
+  const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const innerText = part.slice(2, -2);
+      return (
+        <strong key={idx} className="font-black text-slate-900">
+          {parseLinks(innerText, `line-${lineIndex}-bold-${idx}`)}
+        </strong>
+      );
+    }
+    return parseLinks(part, `line-${lineIndex}-text-${idx}`);
+  });
+};
+
+const renderTextWithListsAndHeadings = (text) => {
+  if (!text) return null;
+  const lines = text.split("\n");
+  const renderedElements = [];
+  let currentList = [];
+
+  const flushList = (key) => {
+    if (currentList.length > 0) {
+      renderedElements.push(
+        <ul key={key} className="list-disc pl-5 my-3 space-y-1.5 text-sm text-slate-700 sm:text-base">
+          {currentList}
+        </ul>
+      );
+      currentList = [];
+    }
+  };
+
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+
+    if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
+      const content = trimmedLine.slice(2);
+      currentList.push(
+        <li key={`li-${index}`} className="leading-relaxed">
+          {renderFormattedText(content, index)}
+        </li>
+      );
+    } else {
+      flushList(`list-${index}`);
+
+      if (trimmedLine.startsWith("### ")) {
+        renderedElements.push(
+          <h4 key={`h3-${index}`} className="text-base font-black text-slate-900 mt-6 mb-2">
+            {renderFormattedText(trimmedLine.slice(4), index)}
+          </h4>
+        );
+      } else if (trimmedLine.startsWith("## ")) {
+        renderedElements.push(
+          <h3 key={`h2-${index}`} className="text-lg font-black text-slate-900 mt-6 mb-3">
+            {renderFormattedText(trimmedLine.slice(3), index)}
+          </h3>
+        );
+      } else if (trimmedLine.startsWith("# ")) {
+        renderedElements.push(
+          <h2 key={`h1-${index}`} className="text-xl font-black text-slate-900 mt-7 mb-4">
+            {renderFormattedText(trimmedLine.slice(2), index)}
+          </h2>
+        );
+      } else {
+        if (trimmedLine === "") {
+          renderedElements.push(<div key={`spacer-${index}`} className="h-2" />);
+        } else {
+          renderedElements.push(
+            <p key={`p-${index}`} className="text-sm leading-relaxed text-slate-700 sm:text-base mb-3">
+              {renderFormattedText(line, index)}
+            </p>
+          );
+        }
+      }
+    }
+  });
+
+  flushList("list-final");
+  return <div className="space-y-1">{renderedElements}</div>;
+};
+
 export function AchievementDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -95,7 +204,7 @@ export function AchievementDetail() {
 
           {/* Featured Image */}
           {item.imageUrl && (
-            <div className="mb-10 overflow-hidden rounded-3xl border border-slate-200/40 shadow-xl shadow-slate-200/30">
+            <div className="mx-auto mb-10 max-w-lg overflow-hidden rounded-3xl border border-slate-200/40 shadow-xl shadow-slate-200/30">
               <img
                 src={item.imageUrl}
                 alt={item.title}
@@ -106,21 +215,115 @@ export function AchievementDetail() {
 
           {/* Content Body */}
           <div className="prose prose-slate max-w-none">
-            <p className="text-base leading-relaxed text-slate-700 sm:text-lg whitespace-pre-wrap">
-              {item.content}
-            </p>
+            {(() => {
+              if (!item.content) return null;
+              const images = item.images || [];
+
+              // Split content by [image:N|Caption] placeholders
+              const parts = item.content.split(/(\[image:\d+(?:\|[^\]]*)?\])/g);
+              
+              if (parts.length === 1) {
+                // No image placeholders, check for "---" dividers
+                const sections = item.content.split(/\r?\n---\r?\n/);
+                if (sections.length === 1) {
+                  return renderTextWithListsAndHeadings(item.content);
+                }
+                
+                return (
+                  <div className="space-y-4">
+                    {sections.map((section, idx) => {
+                      const trimmed = section.trim();
+                      if (!trimmed) {
+                        return idx > 0 ? <hr key={idx} className="my-4 border-slate-200/60" /> : null;
+                      }
+                      return (
+                        <React.Fragment key={idx}>
+                          {idx > 0 && <hr className="my-4 border-slate-200/60" />}
+                          {renderTextWithListsAndHeadings(trimmed)}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-4">
+                  {parts.map((part, index) => {
+                    if (part.startsWith("[image:") && part.endsWith("]")) {
+                      const inner = part.slice(7, -1);
+                      const [imgIndexStr, ...captionParts] = inner.split("|");
+                      const imageIndex = parseInt(imgIndexStr, 10);
+                      const caption = captionParts.join("|");
+                      const imageUrl = images[imageIndex];
+                      
+                      if (!imageUrl) return null;
+
+                      return (
+                        <div key={index} className="mt-5 mb-2 flex flex-col items-center justify-center">
+                          <div className="overflow-hidden rounded-2xl border border-slate-200/40 bg-slate-50 shadow-lg shadow-slate-200/30 transition-transform duration-500 hover:-translate-y-0.5 hover:shadow-violet-200/50 max-w-xl w-full">
+                            <img
+                              src={imageUrl}
+                              alt={caption || `Hình ảnh đính kèm ${imageIndex + 1}`}
+                              className="w-full h-auto object-contain"
+                            />
+                          </div>
+                          {caption && (
+                            <p className="mt-3 text-center text-sm font-semibold text-slate-500 italic max-w-lg">
+                              {caption}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // For text segment, check for "---" dividers
+                    const sections = part.split(/\r?\n---\r?\n/);
+                    return (
+                      <React.Fragment key={index}>
+                        {sections.map((section, idx) => {
+                          const trimmed = section.trim();
+                          if (!trimmed) {
+                            return idx > 0 ? <hr key={idx} className="my-4 border-slate-200/60" /> : null;
+                          }
+                          return (
+                            <React.Fragment key={idx}>
+                              {idx > 0 && <hr className="my-4 border-slate-200/60" />}
+                              {renderTextWithListsAndHeadings(trimmed)}
+                            </React.Fragment>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
-          {/* Gallery Images */}
-          {item.images && item.images.length > 0 && (
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {item.images.map((img, idx) => (
-                <div key={idx} className="overflow-hidden rounded-2xl border border-slate-200/40 bg-slate-50 shadow-lg shadow-slate-200/30 transition-transform duration-500 hover:-translate-y-1 hover:shadow-violet-200/50 group">
-                  <img src={img} alt={`Hình ảnh ${idx + 1}`} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105" />
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Gallery Images (Only show images not rendered inline) */}
+          {(() => {
+            const usedIndices = new Set();
+            if (item.content) {
+              const matches = item.content.matchAll(/\[image:(\d+)(?:\|[^\]]*)?\]/g);
+              for (const match of matches) {
+                usedIndices.add(parseInt(match[1], 10));
+              }
+            }
+            const galleryImages = (item.images || []).filter((_, idx) => !usedIndices.has(idx));
+
+            if (galleryImages.length === 0) return null;
+
+            return (
+              <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {galleryImages.map((img, idx) => (
+                  <div key={idx} className="overflow-hidden rounded-2xl border border-slate-200/40 bg-slate-50 shadow-lg shadow-slate-200/30 transition-transform duration-500 hover:-translate-y-1 hover:shadow-violet-200/50 group">
+                    <img src={img} alt={`Hình ảnh ${idx + 1}`} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105" />
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Author/Sign-off Card */}
           <div className="mt-12 flex items-center gap-3 border-t border-slate-100 pt-8">

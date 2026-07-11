@@ -91,8 +91,8 @@ export function About() {
 
         <div className="relative z-10 w-full max-w-7xl mx-auto h-full flex flex-col justify-center text-center items-center">
           <Reveal className="max-w-4xl flex flex-col items-center mt-28">
-            <div className="flex flex-row items-center justify-center gap-3 md:gap-6 mb-4 flex-nowrap w-full">
-              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-white tracking-tight whitespace-nowrap shrink-0">
+            <div className="flex flex-row flex-wrap items-center justify-center gap-3 md:gap-6 mb-4 w-full">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-white tracking-tight sm:whitespace-nowrap shrink-0 sm:shrink">
                 Chúng tôi là
               </h1>
               <div className="relative translate-y-[0.44rem]">
