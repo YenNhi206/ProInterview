@@ -33,18 +33,26 @@ export function EventPromoModal() {
         </button>
 
         <div
-          className="relative px-6 pb-6 pt-10 sm:px-8 sm:pt-12"
+          className="relative min-h-[300px] overflow-hidden pl-6 pt-10 sm:min-h-[340px] sm:pl-8 sm:pt-12"
           style={{ background: "linear-gradient(135deg, #630ed4 0%, #8037f4 100%)" }}
         >
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white ring-1 ring-white/30">
-            Sự kiện ProInterview
-          </span>
-          <h2 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl">
-            Sắp Có Công Ăn Việc Làm
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-white/85 sm:text-base">
-            Cùng ProInterview tự tin chinh phục buổi phỏng vấn đầu tiên — luyện phỏng vấn AI, mock interview với Mentor và talkshow truyền cảm hứng.
-          </p>
+          <div className="max-w-[260px] pb-6 sm:max-w-[300px]">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white ring-1 ring-white/30">
+              Sự kiện ProInterview
+            </span>
+            <h2 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl">
+              Sắp Có Công Ăn Việc Làm
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-white/85 sm:text-base">
+              Cùng ProInterview tự tin chinh phục buổi phỏng vấn đầu tiên — luyện phỏng vấn AI, mock interview với Mentor và talkshow truyền cảm hứng.
+            </p>
+          </div>
+
+          <img
+            src="/event/phuong-nam.png"
+            alt="Diễn giả Phương Nam"
+            className="pointer-events-none absolute bottom-0 right-4 h-64 w-auto object-contain object-bottom drop-shadow-2xl sm:h-80"
+          />
         </div>
 
         <div className="space-y-3 px-6 py-6 sm:px-8">
@@ -61,16 +69,16 @@ export function EventPromoModal() {
             </span>
           </div>
           <p className="pt-1 text-xs text-slate-500">
-            Dành cho sinh viên mọi trường đại học, cao đẳng — không giới hạn sinh viên FPT. Số lượng chỗ ngồi có hạn.
+            Chương trình không giới hạn sinh viên Trường Đại học FPT. Sinh viên đến từ các trường đại học, cao đẳng khác đều có thể đăng ký tham gia để luyện tập kỹ năng và chuẩn bị tốt hơn cho hành trình tìm việc.
           </p>
 
-          <div className="flex flex-col gap-3 pt-3 sm:flex-row">
+          <div className="pt-3">
             <a
               href={REGISTER_URL}
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleClose}
-              className="group inline-flex flex-1 items-center justify-center gap-2 rounded-full py-3 pl-6 pr-3 text-sm font-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full py-3 pl-6 pr-3 text-sm font-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 background: "linear-gradient(135deg, #a3ff3d 0%, #8ae819 100%)",
                 color: "#0f172a",
@@ -82,12 +90,6 @@ export function EventPromoModal() {
                 <ArrowRight className="h-3.5 w-3.5" />
               </span>
             </a>
-            <button
-              onClick={handleClose}
-              className="rounded-full border border-slate-200 px-5 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-50"
-            >
-              Để sau
-            </button>
           </div>
         </div>
       </div>
