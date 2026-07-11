@@ -8,7 +8,7 @@ const jsonHeaders = {
 
 export const achievementsApi = {
   getAll: async (all = false) => {
-    const res = await fetch(apiUrl(`/api/achievements?all=${all}`));
+    const res = await authFetch(`/api/achievements?all=${all}`);
     return { data: await res.json() };
   },
 

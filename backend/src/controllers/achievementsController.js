@@ -1,16 +1,18 @@
 import { Achievement } from "../models/index.js";
+import { User } from "../models/User.js";
 
 export const AchievementsController = {
-  // Public: get all published
+  // Public: get all published; admin (kèm ?all=true) thấy cả bài chưa publish
   getAll: async (req, res, next) => {
     try {
-      // If admin, they might want to see unpublished as well. 
-      // For simplicity, let's allow a query param `all=true` if req.user?.role === 'admin'
       const filter = {};
       if (req.query.all !== "true") {
         filter.isPublished = true;
-      } else if (!req.user || req.user.role !== "admin") {
-        filter.isPublished = true; // fallback security
+      } else {
+        const user = req.userId ? await User.findById(req.userId).select("role").lean() : null;
+        if (!user || user.role !== "admin") {
+          filter.isPublished = true; // fallback security
+        }
       }
 
       const achievements = await Achievement.find(filter).sort({ date: -1 });
