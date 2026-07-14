@@ -38,6 +38,29 @@ def _cloud_cfg() -> dict:
     }
 
 
+def _use_vision_cloud() -> bool:
+    """True nếu có key riêng cho vision (VISION_LLM_API_KEY) hoặc LLM_API_KEY chung."""
+    return bool(os.environ.get("VISION_LLM_API_KEY", "").strip() or os.environ.get("LLM_API_KEY", "").strip())
+
+
+def _vision_cloud_cfg() -> dict:
+    """
+    Config riêng cho model có vision (đọc ảnh) — nhiều nhà cung cấp LLM text (vd. Groq LLaMA)
+    KHÔNG hỗ trợ ảnh. Ưu tiên VISION_LLM_* nếu set riêng, fallback về LLM_* chung nếu không.
+    Set VISION_LLM_API_KEY + VISION_LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+    + VISION_LLM_MODEL=gemini-2.5-flash để dùng Gemini riêng cho OCR, giữ nguyên provider khác cho text.
+    """
+    return {
+        "base_url": os.environ.get(
+            "VISION_LLM_BASE_URL", os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+        ).rstrip("/"),
+        "api_key": os.environ.get("VISION_LLM_API_KEY", os.environ.get("LLM_API_KEY", "")),
+        "model": os.environ.get(
+            "VISION_LLM_MODEL", os.environ.get("LLM_MODEL", "llama-3.3-70b-versatile")
+        ),
+    }
+
+
 def call_llm(
     system_prompt: str,
     user_prompt:   str,
@@ -95,26 +118,29 @@ def call_llm_vision(
 ) -> str:
     """
     Gọi cloud LLM đa phương thức (Gemini/GPT-4o qua endpoint OpenAI-compatible) với ảnh —
-    dùng để OCR/đọc CV dạng scan (không có text layer). CHỈ hoạt động ở cloud mode
-    (LLM_API_KEY set) — Ollama local không đảm bảo hỗ trợ vision, không fallback sang đó.
+    dùng để OCR/đọc CV dạng scan (không có text layer). Dùng config riêng cho vision
+    (VISION_LLM_API_KEY/BASE_URL/MODEL) nếu có set, vì nhiều provider text (vd. Groq LLaMA)
+    KHÔNG hỗ trợ ảnh — set riêng để giữ nguyên provider text hiện tại, chỉ thêm 1 key
+    vision-capable (Gemini/GPT-4o) riêng cho OCR.
 
     Args:
         image_base64_list: danh sách ảnh trang PDF, encode base64 (không kèm prefix data:...)
     """
-    if not _use_cloud():
+    if not _use_vision_cloud():
         raise RuntimeError(
-            "OCR ảnh cần LLM_API_KEY (Gemini/GPT-4o Vision) — chưa cấu hình trong cv_jd_matching/.env."
+            "OCR ảnh cần VISION_LLM_API_KEY (hoặc LLM_API_KEY) trỏ tới model có vision "
+            "(Gemini/GPT-4o) — chưa cấu hình trong cv_jd_matching/.env."
         )
 
     content = [{"type": "text", "text": user_prompt}]
     for b64 in image_base64_list:
-        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}})
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}})
 
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user",   "content": content},
     ]
-    return _call_cloud_messages(messages, max_tokens, temperature, timeout, want_json=False)
+    return _call_cloud_messages(messages, max_tokens, temperature, timeout, want_json=False, cfg=_vision_cloud_cfg())
 
 
 def _call_cloud_messages(
@@ -123,8 +149,9 @@ def _call_cloud_messages(
     temperature:   float,
     timeout:       int,
     want_json:     bool = True,
+    cfg:           dict | None = None,
 ) -> str:
-    cfg = _cloud_cfg()
+    cfg = cfg or _cloud_cfg()
     url = f"{cfg['base_url']}/chat/completions"
 
     headers = {
