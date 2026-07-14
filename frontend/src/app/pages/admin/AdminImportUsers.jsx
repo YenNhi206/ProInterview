@@ -120,7 +120,9 @@ export function AdminImportUsers() {
   const [pdfFiles, setPdfFiles] = useState({}); // filename → File object
   const [running, setRunning] = useState(false);
   const [csvError, setCsvError] = useState("");
-  const [batchSize] = useState(2);
+  // 1 — chạy tuần tự. Python service (Render Starter, 512MB) từng OOM khi OCR
+  // 2 CV cùng lúc; giữ song song ở đây sẽ nhân đôi đỉnh bộ nhớ dù đã giảm DPI/JPEG.
+  const [batchSize] = useState(1);
 
   // ── Drag-and-drop CSV ──────────────────────────────────────────────────────
   const [dragOver, setDragOver] = useState(false);
