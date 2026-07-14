@@ -117,6 +117,40 @@ export function mapAnalysisDocToHistoryItem(doc) {
   };
 }
 
+/** Suy ra mảng suggestions phẳng (UI card shape) từ result.suggestions (dạng lưu DB: rewrittenBullets/missingSkillSuggestions). */
+function deriveSuggestionsFromResult(r, isField) {
+  const sugg = r.suggestions || {};
+
+  const bulletSuggestions = (sugg.rewrittenBullets || []).map((b) => ({
+    type: "fix",
+    priority: "medium",
+    title: `Cải thiện bullet: "${String(b.original ?? "").slice(0, 65)}${String(b.original ?? "").length > 65 ? "…" : ""}"`,
+    reason: b.reasoning || b.changes_made?.join?.(" · ") || "",
+    before: b.original ?? "",
+    after: b.rewritten ?? "",
+    keywordsAdded: b.keywords_added || [],
+    starCheck: b.star_check || b.starElements || {},
+    confidence: b.confidence ?? "medium",
+  }));
+
+  const missSuggestions = (sugg.missingSkillSuggestions || []).map((item) => ({
+    type: "add",
+    priority: item.priority || "medium",
+    title: `Bổ sung kỹ năng "${item.skill}"`,
+    reason: formatSkillSuggestionReason(item, { mode: isField ? "field" : "jd" }),
+    before: `Chưa có trong CV${item.estimatedTimeWeeks ? ` — ước tính ${item.estimatedTimeWeeks} tuần` : ""}`,
+    after:
+      item.resources?.[0] ||
+      item.acquisition_path ||
+      (item.skill ? `Bổ sung «${item.skill}» vào mục Kỹ năng hoặc mô tả dự án.` : ""),
+    keywordsAdded: [],
+    starCheck: {},
+    confidence: null,
+  }));
+
+  return [...bulletSuggestions, ...missSuggestions];
+}
+
 export function mapAnalysisDocToUiResult(doc) {
   if (!doc) return null;
   const r = doc.result || {};
@@ -128,8 +162,15 @@ export function mapAnalysisDocToUiResult(doc) {
       ui.summary ||
       ui.scores;
     if (hasSnapshot) {
+      // _ui.suggestions có thể thiếu (vd. bản ghi tạo qua import hàng loạt, không đi qua
+      // luồng CVAnalysis.jsx build _ui đầy đủ) — suy ra từ result.suggestions thay vì demo.
+      const uiSuggestions =
+        Array.isArray(ui.suggestions) && ui.suggestions.length > 0
+          ? ui.suggestions
+          : deriveSuggestionsFromResult(r, doc.mode === "field");
       return {
         ...ui,
+        suggestions: uiSuggestions,
         cvFileUrl: ui.cvFileUrl ?? doc.cvFileUrl ?? null,
         jdFileUrl: ui.jdFileUrl ?? doc.jdFileUrl ?? null,
         matchScore: ui.matchScore ?? r.matchScore ?? r.match?.score ?? 0,
@@ -179,33 +220,6 @@ export function mapAnalysisDocToUiResult(doc) {
         )
       : r.matchWeaknesses || r.areasToImprove || [];
 
-  const bulletSuggestions = (sugg.rewrittenBullets || []).map((b) => ({
-    type: "fix",
-    priority: "medium",
-    title: `Cải thiện bullet: "${String(b.original ?? "").slice(0, 65)}${String(b.original ?? "").length > 65 ? "…" : ""}"`,
-    reason: b.reasoning || b.changes_made?.join?.(" · ") || "",
-    before: b.original ?? "",
-    after: b.rewritten ?? "",
-    keywordsAdded: b.keywords_added || [],
-    starCheck: b.star_check || b.starElements || {},
-    confidence: b.confidence ?? "medium",
-  }));
-
-  const missSuggestions = (sugg.missingSkillSuggestions || []).map((item) => ({
-    type: "add",
-    priority: item.priority || "medium",
-    title: `Bổ sung kỹ năng "${item.skill}"`,
-    reason: formatSkillSuggestionReason(item, { mode: isField ? "field" : "jd" }),
-    before: `Chưa có trong CV${item.estimatedTimeWeeks ? ` — ước tính ${item.estimatedTimeWeeks} tuần` : ""}`,
-    after:
-      item.resources?.[0] ||
-      item.acquisition_path ||
-      (item.skill ? `Bổ sung «${item.skill}» vào mục Kỹ năng hoặc mô tả dự án.` : ""),
-    keywordsAdded: [],
-    starCheck: {},
-    confidence: null,
-  }));
-
   return {
     matchScore: match.score ?? r.matchScore ?? 0,
     overallScore: scores
@@ -229,7 +243,7 @@ export function mapAnalysisDocToUiResult(doc) {
     scoreNotes: {},
     strengths,
     weaknesses,
-    suggestions: [...bulletSuggestions, ...missSuggestions],
+    suggestions: deriveSuggestionsFromResult(r, isField),
     summary: sugg.executiveSummary || r.overallSummary || "",
     cvText: doc.cvText || "",
     jdText: doc.jdText || "",
