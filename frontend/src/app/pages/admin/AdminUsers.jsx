@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { Users, Search, Mail, Tag } from "lucide-react";
+import { Users, Search, Mail, Tag, Upload } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
@@ -67,8 +67,15 @@ export function AdminUsers() {
               className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-6 text-sm text-slate-900 outline-none transition-all focus:border-violet-400 md:w-64"
             />
           </div>
+          <Link
+            to="/admin/users/import"
+            className="flex items-center gap-2 rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-violet-500/25 hover:bg-violet-700 transition-colors whitespace-nowrap"
+          >
+            <Upload size={16} /> Nhập từ Google Form
+          </Link>
         </div>
       </div>
+
 
       <div className="glass-card overflow-hidden border-slate-200/90">
         <div className="overflow-x-auto">

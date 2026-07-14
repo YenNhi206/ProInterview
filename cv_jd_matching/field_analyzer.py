@@ -43,6 +43,11 @@ INDUSTRY_SKILLS: dict[str, list[str]] = {
         "process improvement", "supply chain", "logistics", "kpi", "lean",
         "six sigma", "inventory", "vendor management", "operations",
     ],
+    "Biên - Phiên dịch / Ngoại ngữ": [
+        "translation", "interpretation", "localization", "proofreading",
+        "transcription", "subtitling", "bilingual", "cross-cultural communication",
+        "toeic", "ielts", "content writing", "copywriting", "esl teaching",
+    ],
 }
 
 _SYSTEM = """Bạn là chuyên gia HR và career coach, thị trường việc làm Việt Nam.

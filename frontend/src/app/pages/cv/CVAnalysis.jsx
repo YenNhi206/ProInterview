@@ -119,13 +119,14 @@ const DEFAULT_FIELD = "IT / Công nghệ";
 /** Ngành chọn được, các mục khác hiển thị badge «Sắp ra mắt». */
 const FIELD_OPTIONS = [
   { label: DEFAULT_FIELD, available: true },
-  { label: "Marketing", available: false },
-  { label: "Tài chính / Kế toán", available: false },
-  { label: "Nhân sự", available: false },
-  { label: "Quản lý sản phẩm", available: false },
-  { label: "Thiết kế / UX", available: false },
-  { label: "Kinh doanh", available: false },
-  { label: "Vận hành", available: false },
+  { label: "Marketing", available: true },
+  { label: "Tài chính / Kế toán", available: true },
+  { label: "Nhân sự", available: true },
+  { label: "Quản lý sản phẩm", available: true },
+  { label: "Thiết kế / UX", available: true },
+  { label: "Kinh doanh", available: true },
+  { label: "Vận hành", available: true },
+  { label: "Biên - Phiên dịch / Ngoại ngữ", available: true },
 ];
 
 const FILE_FORMAT_HINT = "Hỗ trợ .pdf, .doc, .docx, .txt · tối đa 10MB";

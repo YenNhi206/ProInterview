@@ -60,6 +60,7 @@ import { adminLoader } from "./pages/admin/adminLoader.js";
 import { AdminDashboard } from "./pages/admin/AdminDashboard.jsx";
 import { AdminMentors } from "./pages/admin/AdminMentors.jsx";
 import { AdminUsers } from "./pages/admin/AdminUsers.jsx";
+import { AdminImportUsers } from "./pages/admin/AdminImportUsers.jsx";
 import { AdminBookings } from "./pages/admin/AdminBookings.jsx";
 import { AdminCoursePayments } from "./pages/admin/AdminCoursePayments.jsx";
 import { AdminSubscriptionPayments } from "./pages/admin/AdminSubscriptionPayments.jsx";
@@ -187,6 +188,7 @@ export const router = createBrowserRouter([
       { index: true, Component: AdminDashboard },
       { path: "analytics", Component: AdminAnalytics },
       { path: "users", Component: AdminUsers },
+      { path: "users/import", Component: AdminImportUsers },
       { path: "users/:id", Component: AdminUserDetail },
       { path: "mentors/pending", Component: AdminMentorsPending },
       { path: "mentors/:id", Component: AdminMentorDetail },

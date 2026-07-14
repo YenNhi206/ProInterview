@@ -4,6 +4,7 @@ import { requireAdmin } from "../middleware/requireAdmin.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { AdminController } from "../controllers/adminController.js";
 import { AdminCostDashboardController } from "../controllers/adminCostDashboardController.js";
+import { upload } from "../middleware/upload.js";
 
 export const adminRouter = Router();
 
@@ -28,6 +29,8 @@ adminRouter.post("/mentors/:id/reject-price", asyncHandler(AdminController.rejec
 adminRouter.get("/users", asyncHandler(AdminController.getAllUsers));
 adminRouter.get("/users/:id", asyncHandler(AdminController.getUserById));
 adminRouter.patch("/users/:id/status", asyncHandler(AdminController.toggleUserStatus));
+adminRouter.post("/users/import-cv", upload.single("file"), asyncHandler(AdminController.importUserAndCV));
+
 
 adminRouter.get("/bookings", asyncHandler(AdminController.getAllBookings));
 adminRouter.get("/bookings/:id", asyncHandler(AdminController.getBookingById));

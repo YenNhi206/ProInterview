@@ -24,6 +24,7 @@ FE_FIELDS = [
     "Thiết kế / UX",
     "Kinh doanh",
     "Vận hành",
+    "Biên - Phiên dịch / Ngoại ngữ",
 ]
 
 
