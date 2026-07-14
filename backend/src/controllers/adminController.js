@@ -503,6 +503,20 @@ export const AdminController = {
         return n > 5 ? Math.round((n / 10) * 5 * 10) / 10 : n;
       };
 
+      const rewrittenBulletsForDb = (sugg.rewritten_bullets ?? []).slice(0, 10).map((b) => ({
+        original:  String(b.original  || "").slice(0, 2000),
+        rewritten: String(b.rewritten || "").slice(0, 2000),
+        reasoning: String(b.changes_made?.join(" · ") || ""),
+      })).filter((b) => b.original && b.rewritten);
+
+      const missingSkillSuggestionsForDb = (sugg.missing_skill_suggestions ?? []).slice(0, 10).map((item) => ({
+        skill:    String(item.skill || ""),
+        priority: ["high", "medium", "low"].includes(String(item.priority).toLowerCase())
+          ? String(item.priority).toLowerCase()
+          : "medium",
+        reason:   String(item.reframe_tip || item.acquisition_path || "").slice(0, 500),
+      })).filter((i) => i.skill);
+
       const cvAnalysisPayload = {
         userId: user._id,
         cvFileName: originalFilename,
@@ -538,18 +552,8 @@ export const AdminController = {
             credibility: normScore(s.credibility?.score),
           },
           suggestions: {
-            rewrittenBullets: (sugg.rewritten_bullets ?? []).slice(0, 10).map((b) => ({
-              original:  String(b.original  || "").slice(0, 2000),
-              rewritten: String(b.rewritten || "").slice(0, 2000),
-              reasoning: String(b.changes_made?.join(" · ") || ""),
-            })).filter((b) => b.original && b.rewritten),
-            missingSkillSuggestions: (sugg.missing_skill_suggestions ?? []).slice(0, 10).map((item) => ({
-              skill:    String(item.skill || ""),
-              priority: ["high", "medium", "low"].includes(String(item.priority).toLowerCase())
-                ? String(item.priority).toLowerCase()
-                : "medium",
-              reason:   String(item.reframe_tip || item.acquisition_path || "").slice(0, 500),
-            })).filter((i) => i.skill),
+            rewrittenBullets: rewrittenBulletsForDb,
+            missingSkillSuggestions: missingSkillSuggestionsForDb,
             executiveSummary: String(sugg.executive_summary || s?.summary || "").slice(0, 5000),
           },
           _ui: {
@@ -562,6 +566,32 @@ export const AdminController = {
               relevance:   normScore(s.relevance?.score ?? (matchScore / 10)),
               credibility: normScore(s.credibility?.score),
             },
+            // Mảng phẳng cho UI card "Đề xuất chỉnh sửa" — khớp shape CVAnalysis.jsx build khi user tự phân tích.
+            // Thiếu field này thì FE rơi về demo mẫu ("STAR + KPI") thay vì gợi ý thật (xem cvMappers.js).
+            suggestions: [
+              ...rewrittenBulletsForDb.map((b) => ({
+                type: "fix",
+                priority: "medium",
+                title: `Cải thiện bullet: "${b.original.slice(0, 65)}${b.original.length > 65 ? "…" : ""}"`,
+                reason: b.reasoning || "",
+                before: b.original,
+                after: b.rewritten,
+                keywordsAdded: [],
+                starCheck: {},
+                confidence: "medium",
+              })),
+              ...missingSkillSuggestionsForDb.map((item) => ({
+                type: "add",
+                priority: item.priority,
+                title: `Bổ sung kỹ năng "${item.skill}"`,
+                reason: item.reason,
+                before: "Chưa có trong CV",
+                after: `Bổ sung «${item.skill}» vào mục Kỹ năng hoặc mô tả kinh nghiệm.`,
+                keywordsAdded: [],
+                starCheck: {},
+                confidence: null,
+              })),
+            ],
             summary: String(sugg.executive_summary || s?.summary || "").slice(0, 5000),
             field:   String(field).trim(),
             mode:    "field",
