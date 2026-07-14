@@ -107,11 +107,15 @@ def parse_pdf(pdf_path: str) -> dict:
 
     if is_scanned_pdf(pdf_path):
         # PDF dạng ảnh/scan — thử OCR qua Gemini Vision trước khi báo lỗi hẳn.
-        # Không có key hoặc OCR lỗi → fallback về báo lỗi cũ (graceful degradation).
+        # Không có key hoặc OCR lỗi → fallback về báo lỗi cũ (graceful degradation),
+        # nhưng GIỮ LẠI lý do thật (không nuốt lỗi) để chẩn đoán được khi key đã cấu hình
+        # mà vẫn fail (rate limit, model sai, network...) — khác với trường hợp chưa có key.
+        ocr_text = ""
+        ocr_error = None
         try:
             ocr_text = _ocr_via_vision(pdf_path)
         except Exception as e:
-            ocr_text = ""
+            ocr_error = str(e)
             print(f"  [pdf_parser] OCR vision thất bại: {e}")
 
         if len(ocr_text) >= 50:
@@ -127,10 +131,12 @@ def parse_pdf(pdf_path: str) -> dict:
                 "ocr_used": True,
             }
 
+        base_msg = "PDF dạng scan (ảnh). Vui lòng upload PDF có text hoặc dùng OCR."
+        detail = f" [OCR fallback: {ocr_error}]" if ocr_error else ""
         return {
             "text": "",
             "is_scanned": True,
-            "error": "PDF dạng scan (ảnh). Vui lòng upload PDF có text hoặc dùng OCR.",
+            "error": base_msg + detail,
             "page_count": 0,
         }
 
