@@ -78,6 +78,52 @@ def _call_cloud(
     temperature:   float,
     timeout:       int,
 ) -> str:
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user",   "content": user_prompt},
+    ]
+    return _call_cloud_messages(messages, max_tokens, temperature, timeout, want_json=True)
+
+
+def call_llm_vision(
+    system_prompt: str,
+    user_prompt:   str,
+    image_base64_list: list[str],
+    max_tokens:    int   = 4096,
+    temperature:   float = 0.1,
+    timeout:       int   = 120,
+) -> str:
+    """
+    Gọi cloud LLM đa phương thức (Gemini/GPT-4o qua endpoint OpenAI-compatible) với ảnh —
+    dùng để OCR/đọc CV dạng scan (không có text layer). CHỈ hoạt động ở cloud mode
+    (LLM_API_KEY set) — Ollama local không đảm bảo hỗ trợ vision, không fallback sang đó.
+
+    Args:
+        image_base64_list: danh sách ảnh trang PDF, encode base64 (không kèm prefix data:...)
+    """
+    if not _use_cloud():
+        raise RuntimeError(
+            "OCR ảnh cần LLM_API_KEY (Gemini/GPT-4o Vision) — chưa cấu hình trong cv_jd_matching/.env."
+        )
+
+    content = [{"type": "text", "text": user_prompt}]
+    for b64 in image_base64_list:
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}})
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user",   "content": content},
+    ]
+    return _call_cloud_messages(messages, max_tokens, temperature, timeout, want_json=False)
+
+
+def _call_cloud_messages(
+    messages:      list,
+    max_tokens:    int,
+    temperature:   float,
+    timeout:       int,
+    want_json:     bool = True,
+) -> str:
     cfg = _cloud_cfg()
     url = f"{cfg['base_url']}/chat/completions"
 
@@ -88,14 +134,12 @@ def _call_cloud(
 
     payload = {
         "model":       cfg["model"],
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_prompt},
-        ],
-        "temperature":     temperature,
-        "max_tokens":      max_tokens,
-        "response_format": {"type": "json_object"},
+        "messages":    messages,
+        "temperature": temperature,
+        "max_tokens":  max_tokens,
     }
+    if want_json:
+        payload["response_format"] = {"type": "json_object"}
 
     # gemini-2.5-flash mặc định bật "thinking" và tính chung vào max_tokens — với JSON
     # output dài (nhiều bullet/skill), thinking có thể ngốn hết budget trước khi model

@@ -67,6 +67,33 @@ export const adminApi = {
       method: "PATCH",
       body: JSON.stringify({ isActive }),
     }),
+  /**
+   * Import một người dùng + CV từ Google Form.
+   * Cung cấp `file` (PDF trên máy) HOẶC `cvUrl` (link Google Drive public).
+   * @param {{ email: string, name: string, field: string, file?: File, cvUrl?: string }} params
+   */
+  importUserCv: ({ email, name, field, file, cvUrl }) => {
+    if (!hasAuthCredentials()) {
+      return Promise.resolve({ success: false, error: ERROR_MESSAGES.UNAUTHENTICATED });
+    }
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("name", name || "");
+    formData.append("field", field || "IT / Công nghệ");
+    if (file) {
+      formData.append("file", file, file.name);
+    } else if (cvUrl) {
+      formData.append("cvUrl", cvUrl);
+    }
+    return authFetch("/api/admin/users/import-cv", { method: "POST", body: formData })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) return { success: false, error: normalizeApiError(body, res.status) };
+        return { success: true, ...body };
+      })
+      .catch(() => ({ success: false, error: ERROR_MESSAGES.NETWORK }));
+  },
+
   getBookings: () => authedFetch("/api/admin/bookings"),
   getBookingById: (id) => authedFetch(`/api/admin/bookings/${encodeURIComponent(id)}`),
   getTransactionSupport: () => authedFetch("/api/admin/system/transaction-support"),

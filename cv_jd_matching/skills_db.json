@@ -36,6 +36,50 @@
     "postman", "swagger", "vscode", "jupyter", "tableau", "power bi",
     "grafana", "prometheus", "datadog", "sentry"
   ],
+  "marketing_skills": [
+    "seo", "google analytics", "facebook ads", "content marketing", "copywriting",
+    "social media", "crm", "email marketing", "branding", "market research",
+    "digital marketing", "google ads", "tiktok ads", "influencer marketing",
+    "marketing analytics", "brand strategy", "market segmentation", "sem"
+  ],
+  "finance_accounting": [
+    "financial analysis", "accounting", "sap", "budgeting", "audit",
+    "tax", "ifrs", "forecasting", "risk management", "bookkeeping",
+    "financial modeling", "cash flow", "general ledger", "cost accounting",
+    "vat", "reconciliation", "vas"
+  ],
+  "hr_skills": [
+    "recruitment", "onboarding", "hr policies", "payroll", "labor law",
+    "performance management", "training", "employee relations", "hris",
+    "talent acquisition", "compensation and benefits", "employer branding",
+    "workforce planning"
+  ],
+  "product_management": [
+    "product roadmap", "user research", "scrum", "stakeholder management",
+    "okrs", "product strategy", "backlog management", "user stories",
+    "mvp", "product-market fit", "a/b testing"
+  ],
+  "design_ux": [
+    "ui design", "ux research", "wireframing", "prototyping", "adobe xd",
+    "design systems", "usability testing", "sketch", "adobe illustrator",
+    "adobe photoshop", "user persona", "information architecture", "interaction design"
+  ],
+  "business_sales": [
+    "sales", "negotiation", "b2b", "lead generation", "pipeline",
+    "customer success", "presentation", "kpi", "business development",
+    "cold calling", "account management", "sales forecasting", "closing deals"
+  ],
+  "operations": [
+    "process improvement", "supply chain", "logistics", "lean", "six sigma",
+    "inventory", "vendor management", "warehouse management", "procurement",
+    "quality control", "erp"
+  ],
+  "language_translation": [
+    "translation", "interpretation", "localization", "proofreading",
+    "transcription", "subtitling", "bilingual", "cross-cultural communication",
+    "toeic", "ielts", "content writing", "esl teaching", "toefl",
+    "cambridge english", "transcreation"
+  ],
   "aliases": {
     "js": "javascript",
     "ts": "typescript",

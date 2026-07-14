@@ -1,8 +1,17 @@
 from __future__ import annotations
+import base64
 import fitz  # PyMuPDF
 import pdfplumber
 import re
 from pathlib import Path
+
+from llm_client import call_llm_vision
+
+_OCR_SYSTEM = (
+    "Bạn là công cụ OCR. Nhiệm vụ: đọc TOÀN BỘ nội dung chữ nhìn thấy trong (các) ảnh CV được cung cấp, "
+    "giữ nguyên thứ tự đọc tự nhiên (trên xuống dưới, trái sang phải), giữ nguyên xuống dòng giữa các mục. "
+    "CHỈ trả về văn bản đã trích xuất, KHÔNG thêm giải thích, KHÔNG thêm markdown, KHÔNG tóm tắt."
+)
 
 
 def clean_text(text: str) -> str:
@@ -63,6 +72,30 @@ def is_scanned_pdf(pdf_path: str, threshold: int = 50) -> bool:
     return avg_chars < threshold
 
 
+def _ocr_via_vision(pdf_path: str, max_pages: int = 3, dpi: int = 200) -> str:
+    """OCR CV dạng ảnh qua Gemini Vision (chỉ chạy khi LLM_API_KEY được cấu hình)."""
+    doc = fitz.open(pdf_path)
+    images_b64 = []
+    for i, page in enumerate(doc):
+        if i >= max_pages:
+            break
+        pix = page.get_pixmap(dpi=dpi)
+        images_b64.append(base64.b64encode(pix.tobytes("png")).decode("ascii"))
+    doc.close()
+
+    if not images_b64:
+        return ""
+
+    raw = call_llm_vision(
+        system_prompt=_OCR_SYSTEM,
+        user_prompt="Trích xuất toàn bộ nội dung chữ từ CV trong (các) ảnh sau.",
+        image_base64_list=images_b64,
+        max_tokens=4096,
+        temperature=0.0,
+    )
+    return clean_text(raw or "")
+
+
 def parse_pdf(pdf_path: str) -> dict:
     """
     Entry point chính. Tự chọn parser phù hợp.
@@ -73,6 +106,27 @@ def parse_pdf(pdf_path: str) -> dict:
         raise FileNotFoundError(f"Không tìm thấy file: {pdf_path}")
 
     if is_scanned_pdf(pdf_path):
+        # PDF dạng ảnh/scan — thử OCR qua Gemini Vision trước khi báo lỗi hẳn.
+        # Không có key hoặc OCR lỗi → fallback về báo lỗi cũ (graceful degradation).
+        try:
+            ocr_text = _ocr_via_vision(pdf_path)
+        except Exception as e:
+            ocr_text = ""
+            print(f"  [pdf_parser] OCR vision thất bại: {e}")
+
+        if len(ocr_text) >= 50:
+            doc = fitz.open(pdf_path)
+            page_count = len(doc)
+            doc.close()
+            return {
+                "text": ocr_text,
+                "is_scanned": True,
+                "error": None,
+                "page_count": page_count,
+                "char_count": len(ocr_text),
+                "ocr_used": True,
+            }
+
         return {
             "text": "",
             "is_scanned": True,

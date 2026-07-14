@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import fs from "fs";
 import * as bookingsService from "../services/bookingsService.js";
 import * as paymentsService from "../services/paymentsService.js";
 import { tryCreditMentorForPaidEnrollment, tryCreditMentorForCompletedBooking } from "../services/mentorEarningsService.js";
@@ -18,6 +20,9 @@ import {
 } from "../services/courseStatsService.js";
 import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
+import { uploadToCloudinary } from "../utils/cloudinaryUpload.js";
+import { downloadGoogleDriveFile } from "../utils/googleDrive.js";
+import { CVAnalysis } from "../models/CVAnalysis.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
 const Booking = mongoose.model("Booking");
@@ -387,8 +392,217 @@ export const AdminController = {
     }
   },
 
+  // ── Import người dùng + phân tích CV từ Google Form (Admin only) ────────────
+  importUserAndCV: async (req, res, next) => {
+    const filePath = req.file?.path ?? null;
+    try {
+      const { email, name, field = "IT / Công nghệ", cvUrl } = req.body ?? {};
+
+      if (!email || (!req.file && !cvUrl)) {
+        return res.status(400).json({
+          success: false,
+          error: "Cần cung cấp email và file CV (PDF hoặc link Google Drive).",
+        });
+      }
+
+      const normalizedEmail = String(email).toLowerCase().trim();
+
+      // ── 1. Tạo mới hoặc lấy user đã có theo email ──────────────────────────
+      let user = await User.findOne({ email: normalizedEmail });
+      let isNewUser = false;
+      if (!user) {
+        const passwordHash = await bcrypt.hash("Welcome2026!", 10);
+        user = await User.create({
+          email: normalizedEmail,
+          name: String(name || normalizedEmail).trim(),
+          passwordHash,
+          role: "customer",
+          plan: "free",
+          isEmailVerified: true,
+          "journeyProgress.uploadedCV": false,
+          "journeyProgress.analyzedCVJD": false,
+        });
+        isNewUser = true;
+      }
+
+      // ── 2. Lấy nội dung CV: file upload trực tiếp hoặc tải từ Google Drive ──
+      let fileBuffer;
+      let originalFilename;
+      let driveFileId = null;
+      if (req.file) {
+        fileBuffer = fs.readFileSync(req.file.path);
+        originalFilename = req.file.originalname;
+      } else {
+        try {
+          const drive = await downloadGoogleDriveFile(cvUrl);
+          fileBuffer = drive.buffer;
+          driveFileId = drive.fileId;
+          originalFilename = `${String(name || normalizedEmail).trim().replace(/\s+/g, "_")}-cv.pdf`;
+        } catch (driveErr) {
+          return res.status(422).json({ success: false, error: driveErr.message });
+        }
+      }
+
+      // ── 3. Upload CV lên Cloudinary (fallback: bỏ qua, vẫn tiếp tục phân tích) ──
+      let cvFileUrl = null;
+      try {
+        const result = await uploadToCloudinary(fileBuffer, {
+          folder: "prointerview/cv-files",
+          resource_type: "raw",
+        });
+        if (result?.url) {
+          cvFileUrl = result.url;
+        }
+      } catch (_uploadErr) {
+        // Fallback: bỏ qua lỗi upload CDN, vẫn tiếp tục phân tích CV
+      }
+
+      // ── 4. Gọi Python FastAPI /analyze/field ───────────────────────────────
+      const CV_ANALYZER_URL = process.env.CV_ANALYZER_URL || "http://localhost:8000";
+      const blob = new Blob([fileBuffer], { type: "application/pdf" });
+      const formData = new FormData();
+      formData.append("resume", blob, originalFilename);
+      formData.append("field", field);
+
+      let raw = null;
+      let pyStatus = null;
+      try {
+        const pyRes = await fetch(`${CV_ANALYZER_URL}/analyze/field`, { method: "POST", body: formData });
+        pyStatus = pyRes.status;
+        const text = await pyRes.text();
+        raw = text ? JSON.parse(text) : null;
+        if (!pyRes.ok) {
+          const detail = raw?.detail ? (typeof raw.detail === "string" ? raw.detail : JSON.stringify(raw.detail)) : text;
+          return res.status(502).json({
+            success: false,
+            error: `Python service trả lỗi (HTTP ${pyStatus}): ${detail || "không rõ nguyên nhân"}`,
+          });
+        }
+      } catch (pyErr) {
+        return res.status(503).json({
+          success: false,
+          error: `Không kết nối được service phân tích CV (Python). Kiểm tra CV_ANALYZER_URL. Chi tiết: ${pyErr.message}`,
+        });
+      }
+
+      if (!raw) {
+        return res.status(502).json({ success: false, error: "Python service trả về dữ liệu rỗng." });
+      }
+
+      // ── 5. Map kết quả FastAPI → cấu trúc DB ──────────────────────────────
+      const m = raw.match ?? {};
+      const s = raw.scores ?? {};
+      const sugg = raw.suggestions ?? {};
+      const matchedKws = m.matching ?? [];
+      const missingKws = m.missing ?? [];
+      const matchScore = Math.round(m.match_score ?? 0);
+
+      const normScore = (v) => {
+        const n = Number(v ?? 0);
+        // Python trả về thang 0-10; DB lưu 0-5
+        return n > 5 ? Math.round((n / 10) * 5 * 10) / 10 : n;
+      };
+
+      const cvAnalysisPayload = {
+        userId: user._id,
+        cvFileName: originalFilename,
+        cvFileId: req.file?.filename || driveFileId || undefined,
+        cvFileUrl: cvFileUrl || undefined,
+        field: String(field).trim(),
+        position: raw.position || undefined,
+        mode: "field",
+        tier: "suggestions",
+        planAtTime: user.plan === "elite_pro" ? "enterprise" : user.plan === "starter_pro" ? "pro" : "free",
+        status: "completed",
+        meta: {
+          llmProvider: raw.llm_provider ?? "unknown",
+          pythonEndpoint: "/analyze/field",
+          fallbackTriggered: Boolean(raw._fallback),
+        },
+        result: {
+          skills: {
+            cv: matchedKws.map((n) => ({ name: n })),
+            jd: [...matchedKws, ...missingKws].map((n) => ({ name: n })),
+            matched: matchedKws,
+            missing: missingKws,
+          },
+          match: {
+            score: matchScore,
+            matchedKeywords: matchedKws,
+            missingKeywords: missingKws,
+          },
+          scores: {
+            clarity:     normScore(s.clarity?.score),
+            structure:   normScore(s.structure?.score),
+            relevance:   normScore(s.relevance?.score ?? (matchScore / 10)),
+            credibility: normScore(s.credibility?.score),
+          },
+          suggestions: {
+            rewrittenBullets: (sugg.rewritten_bullets ?? []).slice(0, 10).map((b) => ({
+              original:  String(b.original  || "").slice(0, 2000),
+              rewritten: String(b.rewritten || "").slice(0, 2000),
+              reasoning: String(b.changes_made?.join(" · ") || ""),
+            })).filter((b) => b.original && b.rewritten),
+            missingSkillSuggestions: (sugg.missing_skill_suggestions ?? []).slice(0, 10).map((item) => ({
+              skill:    String(item.skill || ""),
+              priority: ["high", "medium", "low"].includes(String(item.priority).toLowerCase())
+                ? String(item.priority).toLowerCase()
+                : "medium",
+              reason:   String(item.reframe_tip || item.acquisition_path || "").slice(0, 500),
+            })).filter((i) => i.skill),
+            executiveSummary: String(sugg.executive_summary || s?.summary || "").slice(0, 5000),
+          },
+          _ui: {
+            matchScore,
+            matchedKeywords: matchedKws,
+            missingKeywords: missingKws,
+            scores: {
+              clarity:     normScore(s.clarity?.score),
+              structure:   normScore(s.structure?.score),
+              relevance:   normScore(s.relevance?.score ?? (matchScore / 10)),
+              credibility: normScore(s.credibility?.score),
+            },
+            summary: String(sugg.executive_summary || s?.summary || "").slice(0, 5000),
+            field:   String(field).trim(),
+            mode:    "field",
+          },
+        },
+      };
+
+      // Re-import cùng email → xóa các bản phân tích "field" cũ của người này, tránh nhân bản lịch sử
+      await CVAnalysis.deleteMany({ userId: user._id, mode: "field" });
+      const analysis = await CVAnalysis.create(cvAnalysisPayload);
+
+      // ── 6. Cập nhật journeyProgress ─────────────────────────────────────────
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { "journeyProgress.uploadedCV": true, "journeyProgress.analyzedCVJD": true } }
+      );
+
+      return res.status(201).json({
+        success: true,
+        isNewUser,
+        userId: String(user._id),
+        analysisId: String(analysis._id),
+        matchScore,
+        cvFileUrl,
+        message: isNewUser
+          ? `Đã tạo tài khoản mới và phân tích CV cho ${normalizedEmail}`
+          : `Đã thêm phân tích CV vào tài khoản có sẵn của ${normalizedEmail}`,
+      });
+    } catch (error) {
+      next(error);
+    } finally {
+      // Dọn file tạm dù thành công hay lỗi
+      if (filePath) {
+        try { fs.unlinkSync(filePath); } catch (_) { /* ignore */ }
+      }
+    }
+  },
+
   // Lấy danh sách toàn bộ User
   getAllUsers: async (req, res, next) => {
+
     try {
       const limit = Math.min(Math.max(Number(req.query.limit) || 500, 1), 1000);
       const users = await User.find()

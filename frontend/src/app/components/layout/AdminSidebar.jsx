@@ -18,6 +18,7 @@ import {
   LifeBuoy,
   LogOut,
   ChevronsUpDown,
+  Upload,
 } from "lucide-react";
 import {
   Sidebar,
@@ -76,6 +77,7 @@ const MAIN_GROUPS = [
     title: "Người dùng",
     items: [
       { to: "/admin/users", label: "Người dùng", icon: Users },
+      { to: "/admin/users/import", label: "Nhập từ Google Form", icon: Upload },
       { to: "/admin/mentors", label: "Cố vấn", icon: GraduationCap },
     ],
   },
@@ -108,6 +110,12 @@ function pathActive(pathname, to, end) {
   // /admin/mentors/pending thuộc menu "Duyệt cố vấn", không tô "Cố vấn"
   if (t === "/admin/mentors") {
     if (p === "/admin/mentors/pending" || p.startsWith("/admin/mentors/pending/")) {
+      return false;
+    }
+  }
+  // /admin/users/import thuộc menu "Nhập từ Google Form", không tô "Người dùng"
+  if (t === "/admin/users") {
+    if (p === "/admin/users/import" || p.startsWith("/admin/users/import/")) {
       return false;
     }
   }
