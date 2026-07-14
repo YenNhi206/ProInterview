@@ -72,15 +72,21 @@ def is_scanned_pdf(pdf_path: str, threshold: int = 50) -> bool:
     return avg_chars < threshold
 
 
-def _ocr_via_vision(pdf_path: str, max_pages: int = 3, dpi: int = 200) -> str:
-    """OCR CV dạng ảnh qua Gemini Vision (chỉ chạy khi LLM_API_KEY được cấu hình)."""
+def _ocr_via_vision(pdf_path: str, max_pages: int = 2, dpi: int = 120) -> str:
+    """
+    OCR CV dạng ảnh qua Gemini Vision (chỉ chạy khi LLM_API_KEY được cấu hình).
+    DPI/max_pages giữ thấp có chủ đích — Render Starter chỉ có 512MB RAM, ảnh PDF
+    200 DPI x 3 trang từng gây OOM crash server thật (xem log "Ran out of memory").
+    Giải phóng pixmap ngay sau khi encode, không giữ cả list Pixmap trong bộ nhớ cùng lúc.
+    """
     doc = fitz.open(pdf_path)
     images_b64 = []
     for i, page in enumerate(doc):
         if i >= max_pages:
             break
         pix = page.get_pixmap(dpi=dpi)
-        images_b64.append(base64.b64encode(pix.tobytes("png")).decode("ascii"))
+        images_b64.append(base64.b64encode(pix.tobytes("jpeg", jpg_quality=70)).decode("ascii"))
+        pix = None  # giải phóng ngay, tránh giữ nhiều Pixmap cùng lúc trong bộ nhớ
     doc.close()
 
     if not images_b64:

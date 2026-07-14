@@ -134,7 +134,7 @@ def call_llm_vision(
 
     content = [{"type": "text", "text": user_prompt}]
     for b64 in image_base64_list:
-        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}})
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}})
 
     messages = [
         {"role": "system", "content": system_prompt},
