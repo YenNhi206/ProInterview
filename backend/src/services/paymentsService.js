@@ -16,6 +16,7 @@ import { incrementCourseEnrollmentCount } from "./courseStatsService.js";
 import { tryCreditMentorForPaidEnrollment } from "./mentorEarningsService.js";
 import { Mentor } from "../models/Mentor.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
+import { validateCoupon, claimCouponUsageByCode } from "./couponService.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 
@@ -315,6 +316,8 @@ export async function recordTransferPending({
   planKey,
   billing,
   paymentExpiresAt,
+  couponCode,
+  couponDiscountAmount,
 }) {
   if (!isMongoReady()) return { ok: false, error: MONGO_ERR };
   if (!mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(referenceId)) {
@@ -363,6 +366,10 @@ export async function recordTransferPending({
       if (billing && t === "subscription") {
         $set["providerResponse.billing"] = billing === "yearly" ? "yearly" : "monthly";
       }
+      if (couponCode) {
+        $set["providerResponse.couponCode"] = couponCode;
+        $set["providerResponse.couponDiscountAmount"] = Math.round(Number(couponDiscountAmount) || 0);
+      }
       if (paymentExpiresAt) {
         $set.paymentExpiresAt = paymentExpiresAt;
       }
@@ -397,6 +404,9 @@ export async function recordTransferPending({
           billing: billing === "yearly" ? "yearly" : "monthly",
         }
       : {};
+  const couponMeta = couponCode
+    ? { couponCode, couponDiscountAmount: Math.round(Number(couponDiscountAmount) || 0) }
+    : {};
   let created;
   try {
     created = new Payment({
@@ -410,7 +420,7 @@ export async function recordTransferPending({
       providerRef: String(providerRef).trim().slice(0, 100),
       status: "pending",
       paymentExpiresAt: expiresAt,
-      providerResponse: { channel: "bank_transfer", ...planMeta },
+      providerResponse: { channel: "bank_transfer", ...planMeta, ...couponMeta },
     });
     await created.save({ session });
   } catch (e) {
@@ -450,7 +460,10 @@ function normalizeSubscriptionPlanKey(raw) {
 }
 
 /** Gói Pro/Elite — chuyển khoản: tạo payment pending + mã PI làm nội dung CK. */
-export async function createSubscriptionTransferPending(userId, { amount, planKey, orderNum, billing, forceNew }) {
+export async function createSubscriptionTransferPending(
+  userId,
+  { amount, planKey, orderNum, billing, forceNew, couponCode: rawCouponCode },
+) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
   if (!mongoose.isValidObjectId(userId)) return { ok: false, status: 401, error: "Phiên không hợp lệ." };
   const ref = String(orderNum || "").trim().slice(0, 100);
@@ -461,11 +474,29 @@ export async function createSubscriptionTransferPending(userId, { amount, planKe
   if (!catalogAmount) {
     return { ok: false, status: 400, error: "planKey hoặc billing không hợp lệ." };
   }
+
+  let couponDoc = null;
+  let couponCode = "";
+  let couponDiscountAmount = 0;
+  const trimmedCouponCode = typeof rawCouponCode === "string" ? rawCouponCode.trim() : "";
+  if (trimmedCouponCode) {
+    const couponCheck = await validateCoupon({
+      code: trimmedCouponCode,
+      userId,
+      type: "subscription",
+      amount: catalogAmount,
+    });
+    if (!couponCheck.ok) return couponCheck;
+    couponDoc = couponCheck.coupon;
+    couponCode = couponDoc.code;
+    couponDiscountAmount = couponCheck.discountAmount;
+  }
+  const resolvedAmount = Math.max(0, catalogAmount - couponDiscountAmount);
+
   const clientAmount = Math.round(Number(amount) || 0);
-  if (clientAmount > 0 && clientAmount !== catalogAmount) {
+  if (clientAmount > 0 && clientAmount !== resolvedAmount) {
     return { ok: false, status: 400, error: "Số tiền không khớp bảng giá. Vui lòng tải lại trang checkout." };
   }
-  const resolvedAmount = catalogAmount;
   const expiresAt = newPaymentExpiresAt();
 
   let pendingRow = await Payment.findOne({
@@ -510,8 +541,12 @@ export async function createSubscriptionTransferPending(userId, { amount, planKe
     planKey: plan,
     billing: billingCycle,
     paymentExpiresAt: expiresAt,
+    couponCode,
+    couponDiscountAmount,
   });
   if (!ledger.ok) return { ok: false, status: 500, error: ledger.error || "Không tạo được giao dịch chờ CK." };
+  // Mã giảm giá chỉ claim khi thanh toán THÀNH CÔNG (xem finalizePaymentSuccess), không claim
+  // ở đây để tránh khóa mã oan nếu đơn CK này cũng hết hạn mà chưa từng trả tiền.
   return {
     ok: true,
     paymentId: ledger.paymentId,
@@ -655,6 +690,7 @@ export async function confirmEnrollmentTransferByAdmin(enrollmentId, options = {
   }
 
   let courseIdForStats = null;
+  let claimInfo = null;
   try {
     await runInTransaction(async (session) => {
       const row = await Enrollment.findById(enrollmentId).session(session);
@@ -693,7 +729,17 @@ export async function confirmEnrollmentTransferByAdmin(enrollmentId, options = {
       row.transferForceConfirm = force;
       row.transferForceNote = force ? forceNote.slice(0, 500) : "";
       await row.save({ session });
+
+      if (row.couponCode) {
+        claimInfo = { code: row.couponCode, userId: row.userId, referenceId: row._id };
+      }
     });
+    if (claimInfo) {
+      await claimCouponUsageByCode(claimInfo.code, claimInfo.userId, {
+        referenceModel: "Enrollment",
+        referenceId: claimInfo.referenceId,
+      });
+    }
   } catch (error) {
     const msg = String(error?.message || "");
     if (msg === "ERR_404") return { ok: false, status: 404, error: "Không tìm thấy ghi danh." };
@@ -873,10 +919,23 @@ async function finalizePaymentSuccess(paymentId) {
     if (enrollment) {
       await tryCreditMentorForPaidEnrollment(String(pay.referenceId));
       await incrementCourseEnrollmentCount(enrollment.courseId);
+      if (enrollment.couponCode) {
+        await claimCouponUsageByCode(enrollment.couponCode, enrollment.userId, {
+          referenceModel: "Enrollment",
+          referenceId: enrollment._id,
+        });
+      }
     }
   }
   if (pay.type === "subscription") {
     await applySubscriptionPlanFromPayment(pay);
+    const couponCode = pay.providerResponse?.couponCode;
+    if (couponCode) {
+      await claimCouponUsageByCode(couponCode, pay.userId, {
+        referenceModel: "Subscription",
+        referenceId: pay.referenceId,
+      });
+    }
   }
   return { ok: true, already: alreadySuccess };
 }

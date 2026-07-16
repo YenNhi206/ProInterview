@@ -75,7 +75,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 ## Phần A — Backend Express (đã có trong repo)
 
 **Entrypoint:** `backend/src/server.js`  
-Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock`.
+Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock`, `/api/coupons`.
 
 ### A.1. `GET /`
 
@@ -430,6 +430,18 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 **`category`:** `Tin tức` \| `Hoạt động` \| `Sự kiện`
 
 **FE:** `/achievements`, `/achievements/:id` (`Achievements.jsx`, `AchievementDetail.jsx`) · Admin CMS: `/admin/achievements` · Upload ảnh: `POST /api/upload/achievement-image`.
+
+---
+
+### A.15. Module Coupons — `/api/coupons`
+
+**File:** `backend/src/routes/coupons.js` · **Model:** `Coupon` · **Service:** `couponService.js`
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| POST | `/api/coupons/validate` | Bearer | Kiểm tra mã giảm giá — body `{ code, type: "booking"\|"enrollment"\|"subscription", amount }`, trả `{ coupon, discountAmount }`. Chỉ để preview UI ở Checkout; số tiền cuối cùng luôn tính lại ở server khi tạo đơn (booking/enrollment/subscription transfer-pending nhận thêm `couponCode` trong body). |
+
+**Quy tắc:** mỗi user chỉ dùng được 1 lần/mã (`Coupon.usedBy`, đánh dấu atomic qua `claimCouponUsage` khi đơn được tạo thành công — không rollback khi đơn bị hủy sau đó). Hết hạn theo `expiresAt`, có thể giới hạn `applicableTo` (booking/enrollment/subscription/all). Tạo mã mới: `npm run seed:coupon` (mặc định `LAUNCH50`, 50%, hết hạn 05/08/2026 — tùy chỉnh qua env `COUPON_CODE`, `COUPON_DISCOUNT_VALUE`, `COUPON_EXPIRES_AT`, `COUPON_APPLICABLE_TO`).
 
 ---
 
@@ -837,6 +849,7 @@ Chi tiết collection và field: [`backend/DATABASE.md`](./backend/DATABASE.md).
 |:-----------|:------|:--------|
 | `user_events` | `UserEvent.js` | Page view / action tracking — analytics |
 | `achievements` | `Achievement.js` | Tin tức & hoạt động công khai + CMS admin |
+| `coupons` | `Coupon.js` | Mã giảm giá Checkout (booking/enrollment/subscription), 1 lần/user |
 
 Field presence trên `User`: `lastSeenAt` (heartbeat `/api/auth/presence` + `authJwt`).
 
@@ -874,4 +887,4 @@ Field presence trên `User`: `lastSeenAt` (heartbeat `/api/auth/presence` + `aut
 
 ---
 
-*Tài liệu gồm: (1) API Express đang chạy (A.1–A.14), (2) Supabase & D-ID mà FE dùng, (3) roadmap endpoint Phần C (C.1–C.17). Cập nhật lần cuối: đồng bộ presence, analytics, achievements, admin analytics, booking check-in.*
+*Tài liệu gồm: (1) API Express đang chạy (A.1–A.15), (2) Supabase & D-ID mà FE dùng, (3) roadmap endpoint Phần C (C.1–C.17). Cập nhật lần cuối: thêm module Coupons (mã giảm giá tại Checkout).*

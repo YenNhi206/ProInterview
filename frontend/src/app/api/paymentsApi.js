@@ -33,13 +33,13 @@ export async function initiatePayment(payload) {
   }
 }
 
-export async function createSubscriptionTransferPending({ amount, planKey, orderNum, billing, forceNew }) {
+export async function createSubscriptionTransferPending({ amount, planKey, orderNum, billing, forceNew, couponCode }) {
   if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {
     const res = await authFetch("/api/payments/subscription/transfer-pending", {
       method: "POST",
       headers: { ...jsonHeaders },
-      body: JSON.stringify({ amount, planKey, orderNum, billing, forceNew: Boolean(forceNew) }),
+      body: JSON.stringify({ amount, planKey, orderNum, billing, forceNew: Boolean(forceNew), couponCode }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) return { success: false, error: body.error || `Lỗi ${res.status}` };

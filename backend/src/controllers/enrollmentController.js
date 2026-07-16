@@ -12,6 +12,7 @@ import { newPaymentExpiresAt } from "../utils/transferPaymentExpiry.js";
 import { expireEnrollmentTransferIfNeeded } from "../services/transferPaymentExpiryService.js";
 import { enforceExpiry } from "../utils/planGuard.js";
 import { resolvePlanPerkDiscountRate } from "../constants/planCatalog.js";
+import { validateCoupon } from "../services/couponService.js";
 
 function genOrderRef() {
   return `PI${Math.floor(Math.random() * 900000 + 100000)}`;
@@ -55,6 +56,27 @@ export const EnrollmentController = {
       const coursePriceAfterDiscount = Math.max(0, price - discountAmount);
       const coursePlatformFeeAfterDiscount = Math.max(0, coursePlatformFee - discountAmount);
 
+      let couponDoc = null;
+      let couponCode = "";
+      let couponDiscountAmount = 0;
+      let coursePriceAfterCoupon = coursePriceAfterDiscount;
+      const rawCouponCode = typeof req.body?.couponCode === "string" ? req.body.couponCode.trim() : "";
+      if (rawCouponCode && price > 0) {
+        const couponCheck = await validateCoupon({
+          code: rawCouponCode,
+          userId,
+          type: "enrollment",
+          amount: coursePriceAfterDiscount,
+        });
+        if (!couponCheck.ok) {
+          return res.status(couponCheck.status).json({ success: false, error: couponCheck.error });
+        }
+        couponDoc = couponCheck.coupon;
+        couponCode = couponDoc.code;
+        couponDiscountAmount = couponCheck.discountAmount;
+        coursePriceAfterCoupon = Math.max(0, coursePriceAfterDiscount - couponDiscountAmount);
+      }
+
       const existing = await Enrollment.findOne({ userId, courseId });
 
       if (existing) {
@@ -67,7 +89,7 @@ export const EnrollmentController = {
           if (expired.expired) {
             // Ghi danh cũ đã hết hạn — tạo mới bên dưới.
           } else {
-            const coursePrice = Math.round(coursePriceAfterDiscount);
+            const coursePrice = Math.round(coursePriceAfterCoupon);
             const clientOrder = extractOrderPart(req.body?.orderNum);
             let dirty = false;
             if (Math.round(Number(existing.pricePaid ?? 0)) !== coursePrice) {
@@ -90,11 +112,18 @@ export const EnrollmentController = {
               existing.discountAmount = discountAmount;
               dirty = true;
             }
+            if (couponCode && existing.couponCode !== couponCode) {
+              existing.couponCode = couponCode;
+              existing.couponDiscountAmount = couponDiscountAmount;
+              dirty = true;
+            }
             if (clientOrder && extractOrderPart(existing.paymentRef) !== clientOrder) {
               existing.paymentRef = clientOrder;
               dirty = true;
             }
             if (dirty) await existing.save();
+            // Mã giảm giá chỉ claim khi thanh toán THÀNH CÔNG (xem confirmEnrollmentTransferByAdmin),
+            // không claim ở đây để tránh khóa mã oan nếu đơn CK này cũng hết hạn.
             const orderPart = extractOrderPart(existing.paymentRef) || String(existing._id).slice(-8);
             return res.json({
               success: true,
@@ -144,17 +173,21 @@ export const EnrollmentController = {
       const enrollment = await Enrollment.create({
         userId,
         courseId,
-        pricePaid: coursePriceAfterDiscount,
+        pricePaid: coursePriceAfterCoupon,
         platformFeeRate: coursePlatformFeeRate,
         platformFee: coursePlatformFeeAfterDiscount,
         discountRate,
         discountAmount,
+        couponCode,
+        couponDiscountAmount,
         paymentStatus: "pending",
         paymentMethod: "transfer",
         paymentRef: orderRef,
         paymentExpiresAt,
         lastAccessedAt: new Date(),
       });
+
+      // Mã giảm giá chỉ claim khi thanh toán THÀNH CÔNG (xem confirmEnrollmentTransferByAdmin).
 
       // Ledger pending cho CK khóa học
       const ledgerAmt = Math.round(Number(enrollment.pricePaid ?? 0));

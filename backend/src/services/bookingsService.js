@@ -30,6 +30,7 @@ import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { buildJaasMeetingLaunch } from "./jaasService.js";
 import { enforceExpiry } from "../utils/planGuard.js";
 import { resolvePlanPerkDiscountRate } from "../constants/planCatalog.js";
+import { validateCoupon, claimCouponUsage, claimCouponUsageByCode } from "./couponService.js";
 
 /**
  * Chính sách hủy (User) — đồng bộ `frontend/src/app/constants/bookingPolicy.js`:
@@ -714,6 +715,25 @@ export async function createBooking(userId, body) {
   const totalAmount = price - discountAmount;
   const vat = vatRate > 0 ? Math.round((price * vatRate) / (1 + vatRate)) : 0;
 
+  let payableAmount = totalAmount;
+  let couponDoc = null;
+  let couponCode = "";
+  let couponDiscountAmount = 0;
+  const rawCouponCode = typeof body.couponCode === "string" ? body.couponCode.trim() : "";
+  if (rawCouponCode) {
+    const couponCheck = await validateCoupon({
+      code: rawCouponCode,
+      userId: uid,
+      type: "booking",
+      amount: totalAmount,
+    });
+    if (!couponCheck.ok) return couponCheck;
+    couponDoc = couponCheck.coupon;
+    couponCode = couponDoc.code;
+    couponDiscountAmount = couponCheck.discountAmount;
+    payableAmount = Math.max(0, totalAmount - couponDiscountAmount);
+  }
+
   const dup = await Booking.findOne({
     mentorId: mentor._id,
     date: dateNormalized,
@@ -738,9 +758,10 @@ export async function createBooking(userId, body) {
       if (!expired.expired) {
         const clientOrder = extractOrderPart(body.orderNum);
         const oldRef = extractOrderPart(dup.paymentRef);
+        let dirty = false;
         if (clientOrder && oldRef !== clientOrder) {
           dup.paymentRef = clientOrder;
-          await dup.save();
+          dirty = true;
           // Sync all sibling bookings sharing the old ref so the whole multi-slot group
           // moves to the new orderNum together (C1: prevents paymentRef desync on retry).
           if (oldRef) {
@@ -756,6 +777,32 @@ export async function createBooking(userId, body) {
             );
           }
         }
+        // Áp/đổi mã giảm giá khi user quay lại checkout với coupon mới (Thử lại / regenerate QR).
+        if (couponCode && dup.couponCode !== couponCode) {
+          dup.couponCode = couponCode;
+          dup.couponDiscountAmount = couponDiscountAmount;
+          dup.totalAmount = payableAmount;
+          dirty = true;
+        }
+        if (dirty) {
+          await dup.save();
+          if (Number(dup.totalAmount) > 0) {
+            const ledgerSync = await recordTransferPending({
+              userId: dup.userId,
+              type: "booking",
+              referenceModel: "Booking",
+              referenceId: dup._id,
+              amount: dup.totalAmount,
+              paymentExpiresAt: dup.paymentExpiresAt,
+            });
+            if (!ledgerSync.ok && !ledgerSync.idempotent) {
+              console.error("[createBooking] ledger resync:", ledgerSync.error);
+            }
+          }
+        }
+        // Mã giảm giá chỉ được đánh dấu "đã dùng" khi thanh toán THÀNH CÔNG (xem
+        // confirmBankTransferPaymentByAdmin) — không claim ở đây để tránh khóa mã oan
+        // nếu đơn này cũng hết hạn sau đó mà chưa từng CK.
         return { ok: true, booking: toPublicBooking(dup, mentor) };
       }
       // Đơn cũ đã hết hạn — tiếp tục tạo booking mới (slot được giải phóng).
@@ -773,7 +820,7 @@ export async function createBooking(userId, body) {
   let rebookCreditSource = null;
   let rebookCreditVndApplied = 0;
   if (creditFromRaw) {
-    const creditCheck = await validateRebookCreditApply(uid, creditFromRaw, mentor._id, totalAmount);
+    const creditCheck = await validateRebookCreditApply(uid, creditFromRaw, mentor._id, payableAmount);
     if (!creditCheck.ok) return creditCheck;
     rebookCreditSource = creditCheck.source;
     rebookCreditVndApplied = creditCheck.creditVnd;
@@ -859,9 +906,11 @@ export async function createBooking(userId, body) {
       platformFeeRate: platformRate,
       platformFee,
       vat,
-      totalAmount,
+      totalAmount: payableAmount,
       discountRate,
       discountAmount,
+      couponCode,
+      couponDiscountAmount,
       paymentStatus,
       paymentMethod: rebookCreditSource ? "transfer" : mapPaymentMethod(body.paymentMethod ?? body.method),
       paymentRef,
@@ -874,6 +923,12 @@ export async function createBooking(userId, body) {
       return { ok: false, status: 409, error: "Khung giờ này vừa được đặt bởi người khác. Chọn giờ khác." };
     }
     throw createErr;
+  }
+
+  // Credit đổi mentor = thanh toán ngay (paymentStatus "paid" ngay khi tạo) → claim mã ngay.
+  // CK thường: đơn còn "pending", chỉ claim khi thanh toán thành công thật (confirmBankTransferPaymentByAdmin).
+  if (couponDoc && doc.paymentStatus === "paid") {
+    await claimCouponUsage(couponDoc._id, uid, { referenceModel: "Booking", referenceId: doc._id });
   }
 
   if (rebookCreditSource) {
@@ -1437,6 +1492,7 @@ export async function confirmBankTransferPaymentByAdmin(bookingId, options = {})
     return { ok: false, status: 400, error: "Xác nhận ngoại lệ cần lý do rõ ràng (ít nhất 3 ký tự)." };
   }
 
+  let claimInfo = null;
   try {
     await runInTransaction(async (session) => {
       const booking = await Booking.findById(bookingId).session(session);
@@ -1473,7 +1529,17 @@ export async function confirmBankTransferPaymentByAdmin(bookingId, options = {})
       booking.transferForceConfirm = force;
       booking.transferForceNote = force ? forceNote.slice(0, 500) : "";
       await booking.save({ session });
+
+      if (booking.couponCode) {
+        claimInfo = { code: booking.couponCode, userId: booking.userId, referenceId: booking._id };
+      }
     });
+    if (claimInfo) {
+      await claimCouponUsageByCode(claimInfo.code, claimInfo.userId, {
+        referenceModel: "Booking",
+        referenceId: claimInfo.referenceId,
+      });
+    }
   } catch (error) {
     const msg = String(error?.message || "");
     if (msg === "ERR_404") return { ok: false, status: 404, error: "Không tìm thấy booking." };

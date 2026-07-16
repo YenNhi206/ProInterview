@@ -50,6 +50,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
   /* Ưu đãi Pro/Elite (-5%/-10%) — ước tính hiển thị theo plan hiện tại, số tiền thật chốt ở /checkout. */
   const perkPlans = getPlans();
   const perkDiscountRate = perkPlans.elitePro ? 0.1 : perkPlans.starterPro ? 0.05 : 0;
+  const perkPlanLabel = perkPlans.elitePro ? "Elite" : perkPlans.starterPro ? "Pro" : "";
   const perkDiscountAmount = offer.price > 0 && perkDiscountRate > 0 ? Math.round(offer.price * perkDiscountRate) : 0;
   const perkFinalPrice = offer.price - perkDiscountAmount;
   const avatarSrc =
@@ -142,7 +143,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
           <p className="mt-0.5 flex items-center justify-center gap-1.5">
             {perkDiscountAmount > 0 && (
               <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                -{Math.round(perkDiscountRate * 100)}%
+                -{Math.round(perkDiscountRate * 100)}% {perkPlanLabel}
               </span>
             )}
             <span className="text-sm font-bold text-slate-900">
