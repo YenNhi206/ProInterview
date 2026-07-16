@@ -17,18 +17,24 @@ import { formatVnd } from "../../utils/shared/formatVnd.js";
 const UNLIMITED_HIGHLIGHT = "KHÔNG GIỚI HẠN";
 
 // Chỉ tô màu riêng con số đầu dòng ("03", "10 phiên...", "Ưu đãi 5%") — không bold cả cụm chữ.
+// Mỗi gói (variant) có 1 màu riêng để phân biệt rõ, và số được phóng to hơn chữ thường cho nổi bật.
 const LEADING_NUMBER = /^(\d+)(.*)$/;
 const PERCENT_PREFIX = /^(Ưu đãi )(\d+%)(.*)$/;
-const NUMBER_ACCENT_CLASS = "font-bold text-[#6d2fd6]";
+const NUMBER_ACCENT_BY_VARIANT = {
+  outline: "text-slate-900",
+  lime: "text-[#6d2fd6]",
+  elite: "text-[#4d7c0f]",
+};
 
-function FeatureLabel({ text }) {
+function FeatureLabel({ text, variant = "lime" }) {
+  const accentClass = `text-[1.05em] font-extrabold ${NUMBER_ACCENT_BY_VARIANT[variant] || NUMBER_ACCENT_BY_VARIANT.lime}`;
   const percentMatch = text.match(PERCENT_PREFIX);
   if (percentMatch) {
     const [, prefix, pct, rest] = percentMatch;
     return (
       <span className="leading-snug">
         {prefix}
-        <span className={NUMBER_ACCENT_CLASS}>{pct}</span>
+        <span className={accentClass}>{pct}</span>
         {rest}
       </span>
     );
@@ -38,7 +44,7 @@ function FeatureLabel({ text }) {
     const [, num, rest] = leadingNumMatch;
     return (
       <span className="leading-snug">
-        <span className={NUMBER_ACCENT_CLASS}>{num}</span>
+        <span className={accentClass}>{num}</span>
         {rest}
       </span>
     );
@@ -50,9 +56,7 @@ function FeatureLabel({ text }) {
       {parts.map((part, i) => (
         <React.Fragment key={i}>
           {part}
-          {i < parts.length - 1 && (
-            <span className="font-bold text-[#6d2fd6]">{UNLIMITED_HIGHLIGHT}</span>
-          )}
+          {i < parts.length - 1 && <span className={accentClass}>{UNLIMITED_HIGHLIGHT}</span>}
         </React.Fragment>
       ))}
     </span>
@@ -325,7 +329,7 @@ export function Pricing() {
                         ) : (
                           <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${variant === "lime" ? "text-[#6d2fd6]" : "text-slate-400"}`} />
                         )}
-                        <span className="min-w-0 flex-1"><FeatureLabel text={f} /></span>
+                        <span className="min-w-0 flex-1"><FeatureLabel text={f} variant={variant} /></span>
                       </motion.li>
                     ))}
                   </ul>

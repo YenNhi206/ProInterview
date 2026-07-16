@@ -86,6 +86,7 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
   /* Ưu đãi Pro/Elite (-5%/-10%) — ước tính hiển thị theo plan hiện tại, số tiền thật chốt ở /checkout. */
   const perkPlans = getPlans();
   const perkDiscountRate = perkPlans.elitePro ? 0.1 : perkPlans.starterPro ? 0.05 : 0;
+  const perkPlanLabel = perkPlans.elitePro ? "Elite" : perkPlans.starterPro ? "Pro" : "";
   const coursePrice = Number(course.price) || 0;
   const perkDiscountAmount = coursePrice > 0 && perkDiscountRate > 0 ? Math.round(coursePrice * perkDiscountRate) : 0;
   const perkFinalPrice = coursePrice - perkDiscountAmount;
@@ -112,27 +113,6 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
-
-        {/* Price badge */}
-        <div className="absolute right-3 top-3">
-          <div className="relative">
-            {perkDiscountAmount > 0 && (
-              <span className="absolute -left-2 -top-2 z-10 whitespace-nowrap rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md ring-2 ring-white">
-                -{Math.round(perkDiscountRate * 100)}%
-              </span>
-            )}
-            <div className="flex flex-col items-end rounded-xl bg-[#93f72b] px-3 py-1.5 shadow-lg">
-              {perkDiscountAmount > 0 && (
-                <span className="text-[10px] font-semibold leading-none text-violet-950/55 line-through">
-                  {formatPrice(coursePrice)}
-                </span>
-              )}
-              <span className="text-sm font-black leading-tight text-violet-950">
-                {formatPrice(perkFinalPrice)}
-              </span>
-            </div>
-          </div>
-        </div>
 
         {/* Level badge */}
         <div className="absolute left-3 top-3">
@@ -178,6 +158,23 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
           )}
           {course.mentorTitle && (
             <span className="truncate text-slate-400">{course.mentorTitle}</span>
+          )}
+        </div>
+
+        {/* Price */}
+        <div className="mt-3 flex items-center justify-center gap-2">
+          {perkDiscountAmount > 0 && (
+            <span className="whitespace-nowrap rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+              -{Math.round(perkDiscountRate * 100)}% {perkPlanLabel}
+            </span>
+          )}
+          <span className="text-base font-black text-violet-950">
+            {formatPrice(perkFinalPrice)}
+          </span>
+          {perkDiscountAmount > 0 && (
+            <span className="text-xs font-semibold text-slate-400 line-through">
+              {formatPrice(coursePrice)}
+            </span>
           )}
         </div>
 

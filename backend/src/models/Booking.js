@@ -51,6 +51,9 @@ const bookingSchema = new Schema(
     /** Ưu đãi plan Pro/Elite (5%/10%) — platform tự gánh, đã trừ vào platformFee & totalAmount. */
     discountRate: { type: Number, default: 0 },
     discountAmount: { type: Number, default: 0 },
+    /** Mã giảm giá (coupon) khách nhập ở checkout — đã trừ vào totalAmount. */
+    couponCode: { type: String, default: "" },
+    couponDiscountAmount: { type: Number, default: 0 },
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "refund_pending", "refunded", "partial_refund", "failed"],

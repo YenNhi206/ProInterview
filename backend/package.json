@@ -23,6 +23,8 @@
     "seed:all": "node src/scripts/seedAll.js",
     "seed:reviews": "node src/scripts/seedReviews.js",
     "seed:reports": "node src/scripts/seedReports.js",
+    "seed:coupon": "node src/scripts/seedCoupon.js",
+    "reset:pre-launch": "node src/scripts/resetPreLaunchData.js",
     "seed:endpoint": "node src/scripts/seedEndpointData.js",
     "sync:mentor-profiles": "node src/scripts/syncMentorProfiles.js",
     "seed:mentor-bios": "node src/scripts/seedMentorBios.js",
