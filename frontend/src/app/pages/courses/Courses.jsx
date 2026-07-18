@@ -59,28 +59,9 @@ function normalizeLevel(raw) {
   return "Beginner";
 }
 
-/* ─── Level badge ────────────────────────────────────────────── */
-const LEVEL_BADGE = {
-  Beginner:     { bg: "rgba(255,140,66,0.92)",  text: "#1F1F1F", label: "Người mới" },
-  Intermediate: { bg: "rgba(128,55,244,0.92)",  text: "#ffffff", label: "Trung cấp" },
-  Advanced:     { bg: "rgba(147,247,43,0.92)",  text: "#1a3300", label: "Nâng cao"  },
-};
-
-function LevelBadge({ level }) {
-  const cfg = LEVEL_BADGE[level] || LEVEL_BADGE.Beginner;
-  return (
-    <span
-      className="inline-block shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-bold"
-      style={{ background: cfg.bg, color: cfg.text, letterSpacing: "0.01em" }}
-    >
-      {cfg.label}
-    </span>
-  );
-}
-
 /* ─── Course grid card ───────────────────────────────────────── */
 function CourseCard({ course, formatPrice, onOpen, index }) {
-  const ratingDisplay  = course.rating != null ? course.rating.toFixed(1) : "—";
+  const ratingDisplay  = course.rating != null ? course.rating.toFixed(1) : null;
   const durationHours  = Math.floor((course.duration || 0) / 60);
   const avatarFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(course.mentorName || "M")}&background=ede9fe&color=6d28d9`;
   /* Ưu đãi Pro/Elite (-5%/-10%) — ước tính hiển thị theo plan hiện tại, số tiền thật chốt ở /checkout. */
@@ -114,11 +95,6 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
 
-        {/* Level badge */}
-        <div className="absolute left-3 top-3">
-          <LevelBadge level={course.level} />
-        </div>
-
         {/* Mentor avatar overlay */}
         <div className="absolute bottom-3 left-3 flex items-center gap-2">
           <img
@@ -146,10 +122,14 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
 
         {/* Stats row */}
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-          <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
-            <Star className="size-3 fill-amber-400 text-amber-400" />
-            {ratingDisplay}
-          </span>
+          {ratingDisplay ? (
+            <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
+              <Star className="size-3 fill-amber-400 text-amber-400" />
+              {ratingDisplay}
+            </span>
+          ) : (
+            <span className="text-slate-400">Chưa có đánh giá</span>
+          )}
           {durationHours > 0 && (
             <span className="inline-flex items-center gap-1">
               <Clock className="size-3" />

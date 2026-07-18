@@ -1179,7 +1179,13 @@ export function MentorCourseEdit() {
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                            <Star size={15} className="text-amber-500" />
-                           <strong className="mentor-stat-num mentor-stat-num--card text-slate-900">{course.rating > 0 ? course.rating : "—"}</strong> đánh giá
+                           {course.rating > 0 ? (
+                              <>
+                                 <strong className="mentor-stat-num mentor-stat-num--card text-slate-900">{course.rating}</strong> đánh giá
+                              </>
+                           ) : (
+                              "Chưa có đánh giá"
+                           )}
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                            <Layout size={15} className="text-violet-600" />

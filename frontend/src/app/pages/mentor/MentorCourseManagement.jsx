@@ -250,10 +250,16 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
               <p className="mt-0.5 text-sm font-medium text-slate-500 sm:text-xs">Học viên</p>
             </div>
             <div>
-              <p className="mentor-stat-num font-headline text-2xl font-black text-slate-900 sm:text-3xl">
-                {course.rating > 0 ? course.rating.toFixed(1) : "—"}
-              </p>
-              <p className="mt-0.5 text-sm font-medium text-slate-500 sm:text-xs">Đánh giá</p>
+              {course.rating > 0 ? (
+                <p className="mentor-stat-num font-headline text-2xl font-black text-slate-900 sm:text-3xl">
+                  {course.rating.toFixed(1)}
+                </p>
+              ) : (
+                <p className="text-sm font-medium text-slate-400">Chưa có đánh giá</p>
+              )}
+              {course.rating > 0 ? (
+                <p className="mt-0.5 text-sm font-medium text-slate-500 sm:text-xs">Đánh giá</p>
+              ) : null}
             </div>
           </div>
           <div className="mt-4">
@@ -365,9 +371,13 @@ const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit,
                 <Star size={15} className="fill-amber-400 text-amber-400" strokeWidth={2} />
                 <span className="text-xs font-semibold">Đánh giá</span>
               </div>
-              <p className="mentor-stat-num mt-1 text-xl text-slate-900">
-                {course.rating > 0 ? course.rating.toFixed(1) : "—"}
-              </p>
+              {course.rating > 0 ? (
+                <p className="mentor-stat-num mt-1 text-xl text-slate-900">
+                  {course.rating.toFixed(1)}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs font-medium text-slate-400">Chưa có đánh giá</p>
+              )}
             </div>
           </div>
           <div className="mt-4 flex gap-2">
@@ -437,10 +447,14 @@ const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit,
             <p className="mt-0.5 text-[10px] font-medium text-slate-400">Học viên</p>
           </div>
           <div className="min-w-[4.5rem] text-center">
-            <p className="mentor-stat-num text-lg text-slate-900">
-              {course.rating > 0 ? course.rating.toFixed(1) : "—"}
-            </p>
-            <p className="mt-0.5 text-[10px] font-medium text-slate-400">Đánh giá</p>
+            {course.rating > 0 ? (
+              <>
+                <p className="mentor-stat-num text-lg text-slate-900">{course.rating.toFixed(1)}</p>
+                <p className="mt-0.5 text-[10px] font-medium text-slate-400">Đánh giá</p>
+              </>
+            ) : (
+              <p className="mt-0.5 text-[10px] font-medium text-slate-400">Chưa có đánh giá</p>
+            )}
           </div>
         </div>
 
@@ -631,6 +645,7 @@ export function MentorCourseManagement() {
               accent="purple"
               value={avgRatingDisplay}
               title="Đánh giá TB"
+              subtitle={hasAvgRating ? undefined : "Chưa có đánh giá"}
               cornerIcon={Star}
             />
             <MentorStatFrame

@@ -405,15 +405,19 @@ export function CourseReviewsBlock({ course, enrolled, reviews, onReviewSubmitte
         </p>
       ) : null}
 
-      <p className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-700">
-        <Star className="size-4 fill-amber-400 text-amber-400" />
-        <span className="font-bold">{ratingLabel}</span>
-        <span>xếp hạng khóa học</span>
-        <span className="text-slate-400">·</span>
-        <span>
-          {course.reviewsCount} Đánh giá
-        </span>
-      </p>
+      {course.rating != null ? (
+        <p className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-700">
+          <Star className="size-4 fill-amber-400 text-amber-400" />
+          <span className="font-bold">{ratingLabel}</span>
+          <span>xếp hạng khóa học</span>
+          <span className="text-slate-400">·</span>
+          <span>
+            {course.reviewsCount} Đánh giá
+          </span>
+        </p>
+      ) : (
+        <p className="mb-3 text-sm text-slate-500">Chưa có đánh giá</p>
+      )}
 
       <div className="space-y-3">
         {visible.map((r) => (

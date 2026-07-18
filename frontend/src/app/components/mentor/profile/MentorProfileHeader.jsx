@@ -94,24 +94,28 @@ export function MentorProfileHeader({ mentor, ratingDisplay, reviewCount, experi
           <p className="mt-2 text-base text-slate-600">{subtitle}</p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="text-lg font-bold text-slate-900">
-              {Number(mentor.rating) > 0 ? ratingDisplay : "—"}
-            </span>
-            <span className="inline-flex gap-0.5" aria-hidden>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star
-                  key={i}
-                  className={`size-4 ${
-                    i <= Math.round(Number(mentor.rating) || 0)
-                      ? "fill-amber-400 text-amber-400"
-                      : "fill-slate-200 text-slate-200"
-                  }`}
-                />
-              ))}
-            </span>
-            <span className="text-sm text-slate-500">
-              ({reviewCount} {reviewCount === 1 ? "đánh giá" : "đánh giá"})
-            </span>
+            {Number(mentor.rating) > 0 ? (
+              <>
+                <span className="text-lg font-bold text-slate-900">{ratingDisplay}</span>
+                <span className="inline-flex gap-0.5" aria-hidden>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star
+                      key={i}
+                      className={`size-4 ${
+                        i <= Math.round(Number(mentor.rating) || 0)
+                          ? "fill-amber-400 text-amber-400"
+                          : "fill-slate-200 text-slate-200"
+                      }`}
+                    />
+                  ))}
+                </span>
+                <span className="text-sm text-slate-500">
+                  ({reviewCount} {reviewCount === 1 ? "đánh giá" : "đánh giá"})
+                </span>
+              </>
+            ) : (
+              <span className="text-sm text-slate-400">Chưa có đánh giá</span>
+            )}
           </div>
 
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
