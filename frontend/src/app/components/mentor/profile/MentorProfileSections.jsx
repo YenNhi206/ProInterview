@@ -71,15 +71,21 @@ export function ReviewSummary({ summary }) {
   return (
     <div className="mb-6 flex flex-col gap-6 border-b border-slate-200/90 pb-6 sm:flex-row sm:items-start">
       <div className="shrink-0 text-center sm:min-w-[130px] sm:text-left">
-        <p className="text-5xl font-bold leading-none text-slate-900">
-          {summary.total > 0 ? summary.average.toFixed(1) : "—"}
-        </p>
-        <div className="mt-2 flex justify-center sm:justify-start">
-          <StarRow value={summary.average} />
-        </div>
-        <p className="mt-2 text-sm font-medium text-slate-600">
-          {summary.total} đánh giá
-        </p>
+        {summary.total > 0 ? (
+          <>
+            <p className="text-5xl font-bold leading-none text-slate-900">
+              {summary.average.toFixed(1)}
+            </p>
+            <div className="mt-2 flex justify-center sm:justify-start">
+              <StarRow value={summary.average} />
+            </div>
+            <p className="mt-2 text-sm font-medium text-slate-600">
+              {summary.total} đánh giá
+            </p>
+          </>
+        ) : (
+          <p className="text-sm font-medium text-slate-400">Chưa có đánh giá</p>
+        )}
       </div>
       <div className="min-w-0 flex-1 space-y-2.5">
         {summary.buckets.map((b) => (

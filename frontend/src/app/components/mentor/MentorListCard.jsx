@@ -29,9 +29,12 @@ function resolveMentorSessionOffer(mentor) {
 function StarRating({ rating, reviewCount }) {
   const value = Number(rating) || 0;
   const filled = Math.round(value);
+  if (value <= 0) {
+    return <div className="text-sm text-slate-400">Chưa có đánh giá</div>;
+  }
   return (
     <div className="flex items-center justify-center gap-1.5 text-sm">
-      <span className="font-bold text-slate-900">{value > 0 ? value.toFixed(1) : "—"}</span>
+      <span className="font-bold text-slate-900">{value.toFixed(1)}</span>
       <span className="inline-flex gap-0.5" aria-hidden>
         {[1, 2, 3, 4, 5].map((i) => (
           <Star
