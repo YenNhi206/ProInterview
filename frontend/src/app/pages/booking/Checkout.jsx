@@ -742,7 +742,7 @@ function OrderLineItem({
       </div>
     );
   }
-  const planTextDark = plan.planKey === "elite_pro";
+  const planTextDark = false;
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-sm">
       <div
@@ -763,7 +763,7 @@ function OrderLineItem({
       </div>
       {Array.isArray(plan.features) && plan.features.length > 0 && (
         <ul className="space-y-2 border-t border-slate-100 px-4 py-4 sm:px-5">
-          {plan.features.slice(0, 3).map((f, i) => (
+          {plan.features.map((f, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
               <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: plan.accentColor }} />
               <FeatureLabel text={f} accentColor={plan.accentColor} />
@@ -2054,7 +2054,7 @@ export function Checkout() {
                   {isPlanCheckout && !isCourse && !isBooking && (
                     <div className="mt-5 border-t border-slate-200 pt-5">
                       <ul className="mt-4 space-y-2">
-                        {plan.features.slice(0, 3).map((f, i) => (
+                        {plan.features.map((f, i) => (
                           <li key={i} className={`flex items-start gap-2 text-xs ${textMuted}`}>
                             <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8037f4]" />
                             <FeatureLabel text={f} accentColor={plan.accentColor} />
