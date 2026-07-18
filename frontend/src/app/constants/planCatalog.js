@@ -24,7 +24,7 @@ export const SUBSCRIPTION_PLANS = {
     tagline: "Bứt phá",
     monthlyAmount: 199000,
     badge: "TỐT NHẤT",
-    accentColor: "#93f72b",
+    accentColor: "#8037f4",
     features: [
       "30 lượt phân tích CV theo từng vị trí ứng tuyển",
       "08 phiên AI Interview cá nhân hóa theo CV và vị trí ứng tuyển (05 câu hỏi/phiên)",
