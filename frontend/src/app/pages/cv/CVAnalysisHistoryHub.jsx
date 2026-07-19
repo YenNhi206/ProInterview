@@ -148,13 +148,13 @@ export function CVAnalysisHistoryHub() {
           
           <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
             {/* ── Header ── */}
-          <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-col gap-4">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-                className="py-2 leading-relaxed text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-indigo-600 sm:text-5xl"
+                className="whitespace-nowrap py-2 leading-relaxed text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-indigo-600 sm:text-4xl lg:text-5xl"
               >
                 Lịch sử phân tích CV
               </motion.h1>
@@ -168,11 +168,11 @@ export function CVAnalysisHistoryHub() {
                 Bạn đã thực hiện <span className="font-bold text-violet-600">{totalAll}</span> lần tối ưu hồ sơ.
               </motion.p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex shrink-0 gap-3">
               <button
                 type="button"
                 onClick={() => navigate(CV_JD_ANALYSIS_PATH)}
-                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.25)] active:scale-95"
+                className="group relative inline-flex shrink-0 items-center gap-2 overflow-hidden whitespace-nowrap rounded-2xl bg-slate-900 px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.25)] active:scale-95"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 opacity-0 transition group-hover:opacity-100" />
                 <Plus className="h-4 w-4 relative z-10" />
@@ -181,7 +181,7 @@ export function CVAnalysisHistoryHub() {
               <button
                 type="button"
                 onClick={() => navigate(CV_FIELD_ANALYSIS_PATH)}
-                className="inline-flex items-center gap-2 rounded-full border-2 border-slate-200/80 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:text-violet-700 hover:shadow-sm active:scale-95"
+                className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-2xl border-2 border-slate-200/80 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:text-violet-700 hover:shadow-sm active:scale-95"
               >
                 <Plus className="h-4 w-4" />
                 <span>Theo ngành</span>
