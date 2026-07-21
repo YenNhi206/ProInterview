@@ -182,26 +182,29 @@ export function AdminImportUsers() {
         batch.map(async ({ _idx, email, name, field, cvRef }) => {
           const isDriveUrl = DRIVE_URL_RE.test(cvRef || "");
           const cvFile = isDriveUrl ? null : pdfFiles[cvRef] ?? null;
+          const hasCvRef = Boolean(cvRef);
 
           // Mark as running
           setRows((prev) => prev.map((r, ri) => ri === _idx ? { ...r, status: "running", message: "Đang xử lý..." } : r));
 
-          if (!isDriveUrl && !cvFile) {
+          // Có cvRef nhưng không khớp file PDF nào đã upload và không phải link Drive → báo lỗi
+          if (hasCvRef && !isDriveUrl && !cvFile) {
             setRows((prev) =>
               prev.map((r, ri) =>
                 ri === _idx
-                  ? { ...r, status: "error", message: `Không tìm thấy file PDF "${cvRef || "(chưa chọn)"}"` }
+                  ? { ...r, status: "error", message: `Không tìm thấy file PDF "${cvRef}"` }
                   : r,
               ),
             );
             return;
           }
 
+          // Không có CV → chỉ tạo tài khoản, backend tự bỏ qua bước phân tích
           const res = await adminApi.importUserCv({
             email,
             name,
             field: field || DEFAULT_FIELD,
-            ...(isDriveUrl ? { cvUrl: cvRef } : { file: cvFile }),
+            ...(isDriveUrl ? { cvUrl: cvRef } : cvFile ? { file: cvFile } : {}),
           });
           setRows((prev) =>
             prev.map((r, ri) =>
@@ -345,7 +348,8 @@ export function AdminImportUsers() {
         </h3>
         <p className="text-xs text-slate-500">
           Chọn nhiều file cùng lúc. Tên file phải khớp với cột CV trong CSV. Các dòng có link Google Drive sẽ tự tải,
-          không cần chọn file ở đây.
+          không cần chọn file ở đây. Dòng nào không có CV (bỏ trống cột CV) vẫn tạo được tài khoản bình thường,
+          chỉ là sẽ không có bước phân tích CV.
         </p>
 
         <button

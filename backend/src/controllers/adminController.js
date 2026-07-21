@@ -398,10 +398,10 @@ export const AdminController = {
     try {
       const { email, name, field = "IT / Công nghệ", cvUrl } = req.body ?? {};
 
-      if (!email || (!req.file && !cvUrl)) {
+      if (!email) {
         return res.status(400).json({
           success: false,
-          error: "Cần cung cấp email và file CV (PDF hoặc link Google Drive).",
+          error: "Cần cung cấp email.",
         });
       }
 
@@ -411,7 +411,7 @@ export const AdminController = {
       let user = await User.findOne({ email: normalizedEmail });
       let isNewUser = false;
       if (!user) {
-        const passwordHash = await bcrypt.hash("Welcome2026!", 10);
+        const passwordHash = await bcrypt.hash("Prointerview", 10);
         user = await User.create({
           email: normalizedEmail,
           name: String(name || normalizedEmail).trim(),
@@ -423,6 +423,21 @@ export const AdminController = {
           "journeyProgress.analyzedCVJD": false,
         });
         isNewUser = true;
+      }
+
+      // ── 1b. Không có CV (file hoặc link) → chỉ tạo tài khoản, bỏ qua phân tích ──
+      if (!req.file && !cvUrl) {
+        return res.status(201).json({
+          success: true,
+          isNewUser,
+          userId: String(user._id),
+          analysisId: null,
+          matchScore: null,
+          cvFileUrl: null,
+          message: isNewUser
+            ? `Đã tạo tài khoản mới cho ${normalizedEmail} (chưa có CV để phân tích).`
+            : `Tài khoản ${normalizedEmail} đã tồn tại, không có CV để phân tích.`,
+        });
       }
 
       // ── 2. Lấy nội dung CV: file upload trực tiếp hoặc tải từ Google Drive ──

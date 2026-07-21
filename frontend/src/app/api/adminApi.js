@@ -68,8 +68,9 @@ export const adminApi = {
       body: JSON.stringify({ isActive }),
     }),
   /**
-   * Import một người dùng + CV từ Google Form.
-   * Cung cấp `file` (PDF trên máy) HOẶC `cvUrl` (link Google Drive public).
+   * Import một người dùng (+ phân tích CV nếu có) từ Google Form.
+   * `file` (PDF trên máy) và `cvUrl` (link Google Drive public) đều tùy chọn —
+   * nếu bỏ trống cả hai, backend chỉ tạo tài khoản và bỏ qua bước phân tích CV.
    * @param {{ email: string, name: string, field: string, file?: File, cvUrl?: string }} params
    */
   importUserCv: ({ email, name, field, file, cvUrl }) => {
