@@ -61,6 +61,8 @@ export function TopNavShell({
 
       }`}
 
+      style={{ transform: "translateY(var(--pi-promo-h, 0px))" }}
+
     >
 
       <div
