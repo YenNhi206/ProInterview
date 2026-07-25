@@ -37,7 +37,7 @@ import { useFaceAnalysis } from "../../hooks/useFaceAnalysis";
 // AILipSyncAvatar removed — portrait now renders as full-panel img in Nhánh 1/2
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { InterviewStepBar } from "../../components/interview/InterviewStepBar";
-import { MascotVideo, TIPS } from "../../components/interview/InterviewLoadingState";
+import { MascotVideo, TIPS } from "../../components/shared/AiLoadingState";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { CustomerPageHeader } from "../../components/layout/CustomerPageHeader";
 

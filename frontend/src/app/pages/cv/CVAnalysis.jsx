@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams, useLocation } from "react-router";
 import {
   FileText,
   ChevronRight,
-  Check,
   X,
   Zap,
   AlertTriangle as Warning,
@@ -47,9 +46,18 @@ import {
   computeCvRemainingFromQuota,
 } from "../../utils/cv/cvMappers.js";
 import { uploadCvJdFiles } from "../../utils/cv/cvFileUpload.js";
+import { MascotVideo, useRotatingTip } from "../../components/shared/AiLoadingState";
 
 // ─── API base ─────────────────────────────────────────────────────────────────
 const USE_EXPRESS_CV = isExpressBackendConfigured();
+
+const CV_LOADING_TIPS = [
+  "Mẹo nhỏ: CV có số liệu cụ thể (%, số lượng, thời gian) luôn thuyết phục hơn mô tả chung chung.",
+  "AI đang so khớp từng kỹ năng trong CV với yêu cầu công việc để đưa ra gợi ý sát nhất.",
+  "Bạn có thể tải lên CV/JD mới bất cứ lúc nào để so sánh nhiều phiên bản khác nhau.",
+  "Đừng lo nếu điểm chưa cao — phần gợi ý chi tiết bên dưới sẽ giúp bạn cải thiện nhanh chóng.",
+  "Cảm ơn bạn đã kiên nhẫn chờ, kết quả phân tích sắp sẵn sàng!",
+];
 
 function getSessionId() {
   const key = "prointerview_session_id";
@@ -294,7 +302,7 @@ export function CVAnalysis() {
     }
   }, [routeMode]);
   const [progress, setProgress] = useState(0);
-  const [loadingStage, setLoadingStage] = useState(0);
+  const loadingTip = useRotatingTip(CV_LOADING_TIPS);
 
   // Real file state
   const [cvFile, setCvFile] = useState(null);
@@ -451,7 +459,7 @@ export function CVAnalysis() {
     if (!canAnalyze) return;
 
     trackAction("cv_analyze_start", location.pathname, { mode: routeMode });
-    setStep("loading"); setAnalyzeError(null); setProgress(0); setLoadingStage(0);
+    setStep("loading"); setAnalyzeError(null); setProgress(0);
 
     const hasJdInput = jdUploaded || !!reuseJD || !!jdFile;
     const analyzeMode =
@@ -465,9 +473,6 @@ export function CVAnalysis() {
       const timer = setInterval(() => {
         pct = Math.min(pct + Math.random() * 5 + 1.5, 88);
         setProgress(pct);
-        if (pct > 15) setLoadingStage(1);
-        if (pct > 40) setLoadingStage(2);
-        if (pct > 65) setLoadingStage(3);
       }, 700);
 
       try {
@@ -535,7 +540,7 @@ export function CVAnalysis() {
             usedFallback = true;
           }
 
-          clearInterval(timer); setProgress(95); setLoadingStage(4);
+          clearInterval(timer); setProgress(95);
 
           if (!pyRes.ok) {
             const errBody = await pyRes.json().catch(() => ({}));
@@ -760,7 +765,6 @@ export function CVAnalysis() {
 
           clearInterval(timer);
           setProgress(95);
-          setLoadingStage(4);
 
           const analysisPayload = mapPythonCvPipelineToAnalysis(raw, {
             usedFallback: usedFieldFallback,
@@ -886,18 +890,6 @@ export function CVAnalysis() {
       setDeletingId(null);
     }
   };
-
-  const loadingSteps =
-    routeMode === "jd"
-      ? ["Đọc và xử lý file CV...", "Đọc và xử lý file JD...", "Gemini AI phân tích...", "Tạo gợi ý chi tiết..."]
-      : routeMode === "field"
-        ? [
-            "Đọc và xử lý file CV...",
-            "Phân tích khớp kỹ năng theo ngành...",
-            "Chấm điểm theo tiêu chí ngành...",
-            "Tạo gợi ý cải thiện...",
-          ]
-        : ["Đọc và xử lý file CV...", "Gemini AI phân tích...", "Chấm điểm tiêu chí...", "Tạo gợi ý chi tiết..."];
 
   const pageHeader =
     routeMode === "field" || routeMode === "jd"
@@ -1182,28 +1174,19 @@ export function CVAnalysis() {
 
           {/* ── LOADING ─────────────────────────────────────────────────── */}
           {step === "loading" && (
-            <div className="flex flex-col items-center justify-center px-4 py-16 sm:px-6 sm:py-20 max-w-md mx-auto text-center">
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-[#8037f4]/30" style={{ background: "#8037f4" }}>
-                <Loader2 className="w-10 h-10 text-white animate-spin" />
-              </div>
+            <div className="flex flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16 max-w-md mx-auto text-center">
+              <MascotVideo className="mb-4 mx-auto h-32 aspect-[766/720] overflow-hidden rounded-md sm:h-40" />
               <h2 className="mb-3 text-xl font-semibold text-slate-900">Đang xử lý...</h2>
               <p className="mb-8 text-sm text-slate-600">Hệ thống đang đọc file PDF và phân tích, vui lòng đợi.</p>
               <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
                 <div className="h-full rounded-full transition-all duration-700" style={{ width: `${progress}%`, background: "#8037f4" }} />
               </div>
               <p className="text-[#8037f4] text-sm font-medium mb-6">{Math.round(progress)}%</p>
-              <div className="space-y-2 text-left w-full">
-                {loadingSteps.map((t, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-center gap-2 text-sm transition-all duration-500 ${
-                      loadingStage > i ? "text-slate-800" : loadingStage === i ? "text-slate-700" : "text-slate-400"
-                    }`}
-                  >
-                    {loadingStage > i ? <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" /> : <Loader2 className={`w-4 h-4 flex-shrink-0 text-[#8037f4] ${loadingStage === i ? "animate-spin" : "opacity-40"}`} />}
-                    <span>{t}</span>
-                  </div>
-                ))}
+              <div
+                className="w-full rounded-md px-3 py-2.5 text-center text-xs"
+                style={{ background: "rgba(128, 55, 244, 0.07)", color: "#8037f4" }}
+              >
+                {loadingTip}
               </div>
             </div>
           )}

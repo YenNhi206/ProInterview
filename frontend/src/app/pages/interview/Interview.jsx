@@ -5,7 +5,7 @@ import {
   BrowserCompatibilityWarning,
   checkSTTSupport,
 } from "../../components/interview/BrowserCompatibilityWarning";
-import { InterviewLoadingState } from "../../components/interview/InterviewLoadingState";
+import { AiLoadingState } from "../../components/shared/AiLoadingState";
 import { InterviewStepBar } from "../../components/interview/InterviewStepBar";
 import {
   Check,
@@ -549,7 +549,7 @@ export function Interview() {
             <p className="mb-5 text-center text-base font-bold text-violet-800">
               Quá trình này có thể diễn ra trong ít phút
             </p>
-            <InterviewLoadingState currentStep={loadingStep} />
+            <AiLoadingState currentStep={loadingStep} />
             <p className="mt-4 text-center text-[11px] text-slate-400">
               Vui lòng không tắt hoặc tải lại trang trong lúc chuẩn bị, để tránh mất lượt sử dụng của bạn.
             </p>
