@@ -9,6 +9,7 @@ import {
 import { CvAnalysisFeatureShowcase } from "../../components/home/CvAnalysisFeatureShowcase";
 import { MentorFeatureShowcase } from "../../components/home/MentorFeatureShowcase";
 import { EventPromoModal } from "../../components/home/EventPromoModal.jsx";
+import { DiscountPromoModal } from "../../components/home/DiscountPromoModal.jsx";
 
 const HOME_MENTOR_MASCOTS = {
   cv: "/mascot-mentor-avatar-cv.png?v=2",
@@ -129,7 +130,7 @@ export function Home() {
       className="min-h-screen selection:bg-[rgba(147,247,43,0.42)] selection:text-slate-900 font-sans relative bg-transparent text-slate-900 -mt-[12rem] pt-[12rem]"
     >
       <EventPromoModal />
-
+      <DiscountPromoModal />
 
       {/* ═══ HERO (chỉ copy + CTA, clip bling ~1 màn; video section riêng bên dưới) ═══ */}
       <section

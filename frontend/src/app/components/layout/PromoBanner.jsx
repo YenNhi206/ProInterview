@@ -1,29 +1,97 @@
-import React from "react";
-import { X, Sparkles } from "lucide-react";
+import React, { useState } from "react";
+import { X, Sparkles, Copy, Check } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+
+// Phải khớp với mã seed ở backend/src/scripts/seedCoupon.js — chưa có API lấy coupon khuyến mãi đang chạy nên hard-code tạm ở đây.
+const PROMO_COUPON_CODE = "LAUNCH50";
 
 export function PromoBanner({ onClose }) {
+  const [showCodeDialog, setShowCodeDialog] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(PROMO_COUPON_CODE);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
+
   return (
-    <div
-      className="fixed left-0 right-0 top-0 z-[110] flex h-10 items-center justify-center gap-2 px-4 text-center"
-      style={{
-        background: "linear-gradient(90deg, #630ed4 0%, #8037f4 55%, #630ed4 100%)",
-      }}
-      role="banner"
-    >
-      <Sparkles className="hidden size-4 shrink-0 text-[#a3e635] sm:block" aria-hidden />
-      <p className="truncate text-[11px] font-semibold text-white sm:text-sm">
-        Đang có mã giảm giá{" "}
-        <span className="font-black text-[#a3e635]">50%</span>{" "}
-        khi nâng cấp gói — nhập mã ngay tại trang thanh toán!
-      </p>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Đóng thông báo khuyến mãi"
-        className="absolute right-2 flex size-6 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/15 hover:text-white sm:right-4"
+    <>
+      <div
+        className="fixed left-0 right-0 top-0 z-[110] flex h-10 items-center gap-2 overflow-hidden pl-4 pr-9 text-center sm:justify-center sm:px-4"
+        style={{
+          background: "linear-gradient(90deg, #630ed4 0%, #8037f4 55%, #630ed4 100%)",
+        }}
+        role="banner"
       >
-        <X className="size-4" />
-      </button>
-    </div>
+        <Sparkles className="hidden size-4 shrink-0 text-[#a3e635] sm:block" aria-hidden />
+        <button
+          type="button"
+          onClick={() => setShowCodeDialog(true)}
+          className="min-w-0 flex-1 truncate text-[11px] font-semibold text-white underline decoration-white/40 decoration-dotted underline-offset-2 sm:flex-initial sm:text-sm"
+        >
+          <span className="sm:hidden">
+            Giảm giá <span className="font-black text-[#a3e635]">50%</span> khi nâng cấp gói!
+          </span>
+          <span className="hidden sm:inline">
+            Đang có mã giảm giá{" "}
+            <span className="font-black text-[#a3e635]">50%</span>{" "}
+            khi nâng cấp gói — bấm để xem mã!
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Đóng thông báo khuyến mãi"
+          className="absolute right-2 flex size-6 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/15 hover:text-white sm:right-4"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+
+      <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Mã giảm giá 50%</DialogTitle>
+            <DialogDescription>
+              Nhập mã dưới đây tại trang thanh toán để được giảm 50% khi nâng cấp gói.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-violet-300 bg-violet-50 px-4 py-3">
+            <span className="text-lg font-bold tracking-wider text-violet-700">
+              {PROMO_COUPON_CODE}
+            </span>
+            <Button type="button" size="sm" variant="outline" onClick={handleCopy}>
+              {copied ? (
+                <>
+                  <Check className="mr-1 size-4" /> Đã chép
+                </>
+              ) : (
+                <>
+                  <Copy className="mr-1 size-4" /> Chép mã
+                </>
+              )}
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={() => setShowCodeDialog(false)}>
+              Đã hiểu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
