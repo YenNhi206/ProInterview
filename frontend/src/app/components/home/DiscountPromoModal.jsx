@@ -4,7 +4,7 @@ import { Link } from "react-router";
 
 // Phải khớp mã seed ở backend/src/scripts/seedCoupon.js — chưa có API lấy coupon đang active nên hard-code tạm ở đây.
 const PROMO_COUPON_CODE = "LAUNCH50";
-const PROMO_END = new Date("2026-08-05T23:59:59+07:00");
+const PROMO_END = new Date("2026-08-22T23:59:59+07:00");
 const DISMISSED_KEY = "pi_discount_modal_dismissed_v1";
 
 export function DiscountPromoModal() {
@@ -86,7 +86,7 @@ export function DiscountPromoModal() {
           </div>
 
           <p className="text-xs text-slate-500">
-            Áp dụng đến hết ngày 05/08/2026. Mỗi tài khoản chỉ dùng được một lần.
+            Áp dụng đến hết ngày 22/08/2026. Mỗi tài khoản chỉ dùng được một lần.
           </p>
 
           <div className="flex flex-col gap-2.5 pt-1 sm:flex-row">
