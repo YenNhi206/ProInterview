@@ -1,6 +1,6 @@
 /**
  * Tạo/cập nhật 1 mã giảm giá.
- * Chạy: npm run seed:coupon (mặc định LAUNCH50, giảm 50%, hết hạn 2026-08-05)
+ * Chạy: npm run seed:coupon (mặc định LAUNCH50, giảm 50%, hết hạn 2026-08-22)
  * Tùy chỉnh qua env: COUPON_CODE, COUPON_DISCOUNT_VALUE, COUPON_DISCOUNT_TYPE, COUPON_EXPIRES_AT, COUPON_APPLICABLE_TO
  */
 import "../config/loadEnv.js";
@@ -19,10 +19,10 @@ async function main() {
   const code = String(process.env.COUPON_CODE || "LAUNCH50").trim().toUpperCase();
   const discountType = process.env.COUPON_DISCOUNT_TYPE === "fixed" ? "fixed" : "percent";
   const discountValue = Number(process.env.COUPON_DISCOUNT_VALUE || 50);
-  // Hết hạn cuối ngày 05/08/2026 (giờ VN, UTC+7 → 16:59:59.999 UTC).
+  // Hết hạn cuối ngày 22/08/2026 (giờ VN, UTC+7).
   const expiresAt = process.env.COUPON_EXPIRES_AT
     ? new Date(process.env.COUPON_EXPIRES_AT)
-    : new Date("2026-08-05T23:59:59+07:00");
+    : new Date("2026-08-22T23:59:59+07:00");
   const applicableTo = process.env.COUPON_APPLICABLE_TO
     ? process.env.COUPON_APPLICABLE_TO.split(",").map((s) => s.trim())
     : ["booking", "enrollment", "subscription"];
