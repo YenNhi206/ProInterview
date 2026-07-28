@@ -515,17 +515,11 @@ export async function createSubscriptionTransferPending(
 
   if (pendingRow) {
     const expired = await expireSubscriptionTransferIfNeeded(pendingRow);
-    if (!expired.expired) {
-      return {
-        ok: true,
-        paymentId: String(pendingRow._id),
-        providerRef: pendingRow.providerRef || ref,
-        idempotent: true,
-        paymentExpiresAt: pendingRow.paymentExpiresAt,
-        amount: Math.round(Number(pendingRow.amount) || resolvedAmount),
-      };
-    }
-    pendingRow = null;
+    if (expired.expired) pendingRow = null;
+    // Không return sớm ở đây dù đơn còn hạn: phải đi tiếp qua recordTransferPending() bên dưới
+    // để đồng bộ lại amount/coupon — nếu không, coupon áp SAU khi đơn pending đầu tiên đã tạo sẽ
+    // bị bỏ qua (đơn cũ vẫn giữ giá gốc), làm lệch số tiền QR thực trả với Payment.amount đã lưu
+    // → SePay không tự đối soát được, admin phải xác nhận tay (đúng lỗi user báo cáo).
   }
 
   const referenceId = pendingRow
