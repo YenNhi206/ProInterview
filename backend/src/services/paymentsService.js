@@ -642,7 +642,7 @@ export async function confirmSubscriptionTransferByAdmin(paymentId, options = {}
     return { ok: false, status: 404, error: "Không tìm thấy giao dịch gói cước CK." };
   }
   if (pay.status === "success") {
-    await finalizePaymentSuccess(paymentId);
+    // Idempotent: đã xử lý xong trước đó (double-click / webhook trùng) — không re-apply plan/quota.
     const updated = await Payment.findById(paymentId).lean();
     return { ok: true, idempotent: true, payment: updated };
   }
@@ -836,11 +836,26 @@ export async function listPaymentHistory(userId, limit = 50) {
   };
 }
 
+const PLAN_TIER_RANK = { free: 0, starter_pro: 1, elite_pro: 2 };
+
 async function applySubscriptionPlanFromPayment(pay) {
   if (!pay || pay.type !== "subscription") return;
-  const plan = pay.providerResponse?.plan === "elite_pro" ? "elite_pro" : "starter_pro";
+  const purchasedPlan = pay.providerResponse?.plan === "elite_pro" ? "elite_pro" : "starter_pro";
   const billing = pay.providerResponse?.billing === "yearly" ? "yearly" : "monthly";
-  const planExpiresAt = new Date();
+
+  const user = await User.findById(pay.userId).select("plan planExpiresAt").lean();
+  const now = new Date();
+  const currentExpiresAt = user?.planExpiresAt ? new Date(user.planExpiresAt) : null;
+  const currentStillActive = Boolean(currentExpiresAt && currentExpiresAt.getTime() > now.getTime());
+  const currentTierRank = currentStillActive ? (PLAN_TIER_RANK[user?.plan] ?? 0) : 0;
+  const purchasedTierRank = PLAN_TIER_RANK[purchasedPlan];
+
+  // Không hạ cấp và không mất thời gian đã trả tiền trước đó: gia hạn tiếp từ hạn hiện tại
+  // (nếu gói cũ còn hiệu lực) thay vì luôn tính lại từ "bây giờ", và giữ tier cao hơn giữa
+  // gói đang có với gói vừa mua (mua gói thấp hơn trong khi gói cao hơn còn hạn → chỉ cộng
+  // thêm thời gian, không đổi xuống gói thấp).
+  const plan = purchasedTierRank >= currentTierRank ? purchasedPlan : user.plan;
+  const planExpiresAt = currentStillActive ? new Date(currentExpiresAt) : new Date(now);
   if (billing === "yearly") {
     planExpiresAt.setFullYear(planExpiresAt.getFullYear() + 1);
   } else {
@@ -910,7 +925,7 @@ async function finalizePaymentSuccess(paymentId) {
       { $set: { paymentStatus: "paid", paidAt: new Date() } },
       { new: true },
     );
-    if (enrollment) {
+    if (enrollment && !alreadySuccess) {
       await tryCreditMentorForPaidEnrollment(String(pay.referenceId));
       await incrementCourseEnrollmentCount(enrollment.courseId);
       if (enrollment.couponCode) {
@@ -922,6 +937,12 @@ async function finalizePaymentSuccess(paymentId) {
     }
   }
   if (pay.type === "subscription") {
+    // KHÔNG gate bằng !alreadySuccess ở đây: confirmSubscriptionTransferByAdmin ghi ledger
+    // (recordAdminTransferSuccess) TRƯỚC khi gọi hàm này trong CÙNG 1 request, nên tới lúc này
+    // pay.status đã là "success" ngay cả ở lần xác nhận ĐẦU TIÊN — alreadySuccess không phản ánh
+    // đúng "đã áp dụng side-effect trước đó chưa". Chống double-confirm được xử lý ở tầng gọi
+    // (confirmSubscriptionTransferByAdmin trả sớm khi pay.status đã success TRƯỚC khi ghi ledger),
+    // giống pattern handleIpnVnpay đã dùng.
     await applySubscriptionPlanFromPayment(pay);
     const couponCode = pay.providerResponse?.couponCode;
     if (couponCode) {

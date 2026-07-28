@@ -37,15 +37,30 @@ export async function getCurrentPlan(userId) {
   };
 }
 
+const PLAN_TIER_RANK = { free: 0, starter_pro: 1, elite_pro: 2 };
+
 export async function activatePlan(userId, body) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
-  const plan = normalizePlanKey(body?.plan ?? body?.planKey);
-  if (!plan || plan === "free") {
+  const purchasedPlan = normalizePlanKey(body?.plan ?? body?.planKey);
+  if (!purchasedPlan || purchasedPlan === "free") {
     return { ok: false, status: 400, error: "plan phải là starter_pro hoặc elite_pro (hoặc starterPro / elitePro)." };
   }
 
+  const current = await User.findById(userId).select("plan planExpiresAt").lean();
+  if (!current) return { ok: false, status: 404, error: "Không tìm thấy user." };
+
+  const now = new Date();
+  const currentExpiresAt = current.planExpiresAt ? new Date(current.planExpiresAt) : null;
+  const currentStillActive = Boolean(currentExpiresAt && currentExpiresAt.getTime() > now.getTime());
+  const currentTierRank = currentStillActive ? (PLAN_TIER_RANK[current.plan] ?? 0) : 0;
+  const purchasedTierRank = PLAN_TIER_RANK[purchasedPlan];
+
+  // Không hạ cấp / không mất thời gian gói cũ còn hạn — gia hạn tiếp từ hạn hiện tại và giữ
+  // tier cao hơn giữa gói đang có với gói vừa kích hoạt (cùng chính sách với applySubscriptionPlanFromPayment
+  // trong paymentsService.js).
+  const plan = purchasedTierRank >= currentTierRank ? purchasedPlan : current.plan;
   const months = Math.min(36, Math.max(1, Number(body?.months) || 1));
-  const expires = new Date();
+  const expires = currentStillActive ? new Date(currentExpiresAt) : new Date(now);
   expires.setMonth(expires.getMonth() + months);
   // Lượt dùng refresh mỗi tháng trong suốt kỳ hạn — quan trọng với gói năm (planExpiresAt xa
   // nhưng vẫn phải cấp lại quota hàng tháng theo đúng quảng cáo "/tháng" ở trang giá).

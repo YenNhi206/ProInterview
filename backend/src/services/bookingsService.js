@@ -711,7 +711,6 @@ export async function createBooking(userId, body) {
   const price = Math.round(basePrice);
   const standardPlatformFee = Math.round(price * platformRate);
   const discountAmount = discountRate > 0 ? Math.round(price * discountRate) : 0;
-  const platformFee = Math.max(0, standardPlatformFee - discountAmount);
   const totalAmount = price - discountAmount;
   const vat = vatRate > 0 ? Math.round((price * vatRate) / (1 + vatRate)) : 0;
 
@@ -733,6 +732,9 @@ export async function createBooking(userId, body) {
     couponDiscountAmount = couponCheck.discountAmount;
     payableAmount = Math.max(0, totalAmount - couponDiscountAmount);
   }
+  // Coupon cũng do nền tảng gánh (giống discountAmount của gói Pro/Elite) — trừ luôn vào
+  // platformFee để mentorNet = totalAmount - platformFee không đổi bất kể có coupon hay không.
+  const platformFee = Math.max(0, standardPlatformFee - discountAmount - couponDiscountAmount);
 
   const dup = await Booking.findOne({
     mentorId: mentor._id,
@@ -782,6 +784,9 @@ export async function createBooking(userId, body) {
           dup.couponCode = couponCode;
           dup.couponDiscountAmount = couponDiscountAmount;
           dup.totalAmount = payableAmount;
+          // Coupon do nền tảng gánh — cập nhật lại platformFee cùng lúc, không để mentorNet
+          // (totalAmount - platformFee) bị trừ oan phần coupon.
+          dup.platformFee = platformFee;
           dirty = true;
         }
         if (dirty) {
@@ -920,6 +925,14 @@ export async function createBooking(userId, body) {
     });
   } catch (createErr) {
     if (createErr?.code === 11000) {
+      const dupField = Object.keys(createErr?.keyPattern || {})[0];
+      if (dupField === "paymentRef") {
+        return {
+          ok: false,
+          status: 409,
+          error: "Mã đơn hàng vừa bị trùng với một đơn khác đang chờ CK. Vui lòng thử lại.",
+        };
+      }
       return { ok: false, status: 409, error: "Khung giờ này vừa được đặt bởi người khác. Chọn giờ khác." };
     }
     throw createErr;

@@ -183,17 +183,20 @@ export function AdminFinance() {
   const [bookings, setBookings] = useState([]);
   const [payouts, setPayouts] = useState([]);
   const [courseFinance, setCourseFinance] = useState(null);
+  const [subscriptionFinance, setSubscriptionFinance] = useState(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
-    const [bookingRes, payoutRes, courseRes] = await Promise.all([
+    const [bookingRes, payoutRes, courseRes, subscriptionRes] = await Promise.all([
       tryApi(() => adminApi.getBookings(), { silent: true }),
       tryApi(() => adminApi.getPayouts(), { silent: true }),
       tryApi(() => adminApi.getCourseFinanceSummary(), { silent: true }),
+      tryApi(() => adminApi.getSubscriptionFinanceSummary(), { silent: true }),
     ]);
     if (bookingRes.success) setBookings(bookingRes.bookings || []);
     if (payoutRes.success) setPayouts(payoutRes.payouts || []);
     if (courseRes.success) setCourseFinance(courseRes.courseFinance || null);
+    if (subscriptionRes.success) setSubscriptionFinance(subscriptionRes.subscriptionFinance || null);
     setLoading(false);
   }, []);
 
@@ -232,6 +235,7 @@ export function AdminFinance() {
   }, [payouts]);
 
   const cf = courseFinance;
+  const sf = subscriptionFinance;
 
   return (
     <div className="min-w-0 max-w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 sm:space-y-8">
@@ -368,6 +372,34 @@ export function AdminFinance() {
               <p className="text-xs text-slate-500">
                 Khóa miễn phí không hiển thị ở đây. Đối soát thủ công (khi cổng lỗi) tại menu Đối soát SePay.
               </p>
+            </section>
+          )}
+
+          {sf && (
+            <section className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Gói Pro/Elite</h3>
+                <Link
+                  to="/admin/subscription-payments"
+                  className="text-xs font-bold text-violet-700 hover:underline"
+                >
+                  Theo dõi gói Pro/Elite →
+                </Link>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Đã thu qua SePay</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-950">{sf.paidCollectedCount ?? 0}</p>
+                  <p className="mt-1 text-sm font-semibold text-emerald-900">{vnd(sf.paidCollectedAmount)}</p>
+                  <p className="mt-2 text-xs text-emerald-800/80">Mua gói Starter Pro / Elite Pro</p>
+                </div>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Chờ đối soát</p>
+                  <p className="mt-1 text-2xl font-black text-amber-950">{sf.pendingTransferCount ?? 0}</p>
+                  <p className="mt-1 text-sm font-semibold text-amber-900">{vnd(sf.pendingTransferAmount)}</p>
+                  <p className="mt-2 text-xs text-amber-800/80">Chưa khớp chuyển khoản trên SePay</p>
+                </div>
+              </div>
             </section>
           )}
 
