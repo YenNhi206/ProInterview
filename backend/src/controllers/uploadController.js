@@ -1,9 +1,28 @@
+import sharp from "sharp";
 import { uploadToCloudinary, deleteLocalFile, generateUploadSignature, isCloudinaryConfigured } from "../utils/cloudinaryUpload.js";
 import { getPublicBaseUrl } from "../utils/publicBaseUrl.js";
 import { logger } from "../config/logger.js";
 import { httpError } from "../utils/apiErrors.js";
 
 const isProd = () => process.env.NODE_ENV === "production";
+
+// Cạnh dài nhất sau resize — đủ nét cho avatar/thumbnail/achievement, tránh vượt giới hạn
+// 10MB/ảnh của Cloudinary free plan (ảnh chụp thẳng từ điện thoại thường 10-20MB).
+const MAX_IMAGE_DIMENSION = 2000;
+
+/** Resize + nén ảnh trước khi upload. Lỗi (ảnh hỏng, định dạng lạ...) thì dùng file gốc, để Cloudinary/limit tự xử lý. */
+async function compressImage(filePath) {
+  try {
+    return await sharp(filePath)
+      .rotate() // giữ đúng chiều theo EXIF trước khi bỏ metadata
+      .resize({ width: MAX_IMAGE_DIMENSION, height: MAX_IMAGE_DIMENSION, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+  } catch (err) {
+    logger.warn("image_compress_failed", { error: err.message, filePath });
+    return filePath;
+  }
+}
 
 /**
  * Thử upload lên Cloudinary. Ở production, Render dùng ổ đĩa tạm (ephemeral disk) —
@@ -13,16 +32,12 @@ const isProd = () => process.env.NODE_ENV === "production";
  * Ở dev vẫn fallback local để không bắt buộc phải cấu hình Cloudinary khi code local.
  */
 async function resolveUrl(req, file, cloudinaryOptions) {
+  const source =
+    cloudinaryOptions.resource_type === "image" ? await compressImage(file.path) : file.path;
+
+  let cdn = null;
   try {
-    const cdn = await uploadToCloudinary(file.path, cloudinaryOptions);
-    if (cdn) {
-      deleteLocalFile(file.path);
-      logger.info("upload_cloudinary_ok", { folder: cloudinaryOptions.folder, url: cdn.url });
-      return { url: cdn.url, absoluteUrl: cdn.url };
-    }
-    if (isProd()) {
-      throw httpError(503, "Cloudinary chưa được cấu hình trên server. Không thể lưu file.");
-    }
+    cdn = await uploadToCloudinary(source, cloudinaryOptions);
   } catch (err) {
     logger.warn("upload_cloudinary_failed", { error: err.message, folder: cloudinaryOptions.folder });
     if (isProd()) {
@@ -30,6 +45,17 @@ async function resolveUrl(req, file, cloudinaryOptions) {
       throw httpError(503, "Lưu file lên Cloudinary thất bại, vui lòng thử lại.");
     }
   }
+
+  if (cdn) {
+    deleteLocalFile(file.path);
+    logger.info("upload_cloudinary_ok", { folder: cloudinaryOptions.folder, url: cdn.url });
+    return { url: cdn.url, absoluteUrl: cdn.url };
+  }
+
+  if (isProd()) {
+    throw httpError(503, "Cloudinary chưa được cấu hình trên server. Không thể lưu file.");
+  }
+
   // Fallback: local static file — chỉ dùng ở dev.
   const rel = `/uploads/${file.filename}`;
   const baseUrl = getPublicBaseUrl(req);
