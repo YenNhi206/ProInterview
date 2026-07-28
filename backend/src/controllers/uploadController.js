@@ -1,10 +1,16 @@
 import { uploadToCloudinary, deleteLocalFile, generateUploadSignature, isCloudinaryConfigured } from "../utils/cloudinaryUpload.js";
 import { getPublicBaseUrl } from "../utils/publicBaseUrl.js";
 import { logger } from "../config/logger.js";
+import { httpError } from "../utils/apiErrors.js";
+
+const isProd = () => process.env.NODE_ENV === "production";
 
 /**
- * Thử upload lên Cloudinary; nếu chưa cấu hình hoặc lỗi → fallback URL local.
- * Trả về string URL cuối cùng để dùng luôn.
+ * Thử upload lên Cloudinary. Ở production, Render dùng ổ đĩa tạm (ephemeral disk) —
+ * file fallback local sẽ mất ngay khi service redeploy/restart, nên nếu Cloudinary
+ * chưa cấu hình hoặc lỗi thì phải báo lỗi rõ cho client, KHÔNG được âm thầm fallback
+ * local (từng gây ảnh vỡ trên production vì DB đã lưu URL local không còn tồn tại).
+ * Ở dev vẫn fallback local để không bắt buộc phải cấu hình Cloudinary khi code local.
  */
 async function resolveUrl(req, file, cloudinaryOptions) {
   try {
@@ -14,10 +20,17 @@ async function resolveUrl(req, file, cloudinaryOptions) {
       logger.info("upload_cloudinary_ok", { folder: cloudinaryOptions.folder, url: cdn.url });
       return { url: cdn.url, absoluteUrl: cdn.url };
     }
+    if (isProd()) {
+      throw httpError(503, "Cloudinary chưa được cấu hình trên server. Không thể lưu file.");
+    }
   } catch (err) {
     logger.warn("upload_cloudinary_failed", { error: err.message, folder: cloudinaryOptions.folder });
+    if (isProd()) {
+      deleteLocalFile(file.path);
+      throw httpError(503, "Lưu file lên Cloudinary thất bại, vui lòng thử lại.");
+    }
   }
-  // Fallback: local static file
+  // Fallback: local static file — chỉ dùng ở dev.
   const rel = `/uploads/${file.filename}`;
   const baseUrl = getPublicBaseUrl(req);
   return { url: rel, absoluteUrl: `${baseUrl}${rel}` };
