@@ -28,7 +28,10 @@ const enrollmentSchema = new Schema(
 
     pricePaid: { type: Number, default: 0 },
     platformFeeRate: { type: Number, default: null },
-    platformFee: { type: Number, default: 0 },
+    // null = chưa tính (dòng cũ/thiếu dữ liệu) → tryCreditMentorForPaidEnrollment sẽ tự recompute
+    // theo rate mentor hiện tại. KHÔNG dùng default 0 — 0 sẽ bị hiểu nhầm là "phí nền tảng = 0đ",
+    // trả nhầm 100% học phí cho mentor thay vì đúng tỷ lệ chia.
+    platformFee: { type: Number, default: null },
     /** Ưu đãi plan Pro/Elite (5%/10%) — platform tự gánh, đã trừ vào platformFee & pricePaid. */
     discountRate: { type: Number, default: 0 },
     discountAmount: { type: Number, default: 0 },
@@ -55,5 +58,11 @@ const enrollmentSchema = new Schema(
 );
 
 enrollmentSchema.index({ userId: 1, courseId: 1 }, { unique: true });
+// Mã CK (paymentRef) sinh ngẫu nhiên 6 số — chặn 2 ghi danh đang "pending" trùng mã cùng lúc,
+// tránh webhook SePay khớp nhầm tiền của người này cho đơn của người khác.
+enrollmentSchema.index(
+  { paymentRef: 1 },
+  { unique: true, partialFilterExpression: { paymentRef: { $gt: "" }, paymentStatus: "pending" } },
+);
 
 export const Enrollment = mongoose.models.Enrollment ?? mongoose.model("Enrollment", enrollmentSchema);

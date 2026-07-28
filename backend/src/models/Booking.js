@@ -149,5 +149,11 @@ bookingSchema.index(
   { mentorId: 1, date: 1, timeSlot: 1 },
   { unique: true, partialFilterExpression: { status: { $in: ["pending", "confirmed", "in_progress"] } } },
 );
+// Mã CK (paymentRef) sinh ngẫu nhiên 6 số — chặn 2 booking đang "pending" trùng mã cùng lúc,
+// tránh webhook SePay khớp nhầm tiền của người này cho đơn của người khác.
+bookingSchema.index(
+  { paymentRef: 1 },
+  { unique: true, partialFilterExpression: { paymentRef: { $gt: "" }, paymentStatus: "pending" } },
+);
 
 export const Booking = mongoose.models.Booking ?? mongoose.model("Booking", bookingSchema);

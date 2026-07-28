@@ -28,12 +28,36 @@ const Mentor = mongoose.model("Mentor");
 const Booking = mongoose.model("Booking");
 const Course = mongoose.model("Course");
 const Report = mongoose.model("Report");
+const Payment = mongoose.model("Payment");
 
 function normalizeRateInput(raw) {
   if (raw == null || raw === "") return null;
   const n = Number(raw);
   if (!Number.isFinite(n) || n <= 0 || n > 1) return NaN;
   return n;
+}
+
+function serializeSubscriptionPayment(p) {
+  const pr = p.providerResponse && typeof p.providerResponse === "object" ? p.providerResponse : {};
+  const u = p.userId && typeof p.userId === "object" ? p.userId : null;
+  return {
+    id: String(p._id),
+    amount: p.amount,
+    providerRef: p.providerRef || "",
+    plan: pr.plan === "elite_pro" ? "elite_pro" : "starter_pro",
+    status: p.status,
+    createdAt: p.createdAt,
+    paidAt: p.paidAt || null,
+    paymentRef: pr.paymentRef || "",
+    user: u
+      ? {
+          id: String(u._id),
+          name: u.name || "",
+          email: u.email || "",
+          plan: u.plan || "free",
+        }
+      : null,
+  };
 }
 
 function safeFeeRate(raw, fallback) {
@@ -774,6 +798,18 @@ export const AdminController = {
       const booking = await Booking.findById(id);
       if (!booking) return res.status(404).json({ success: false, error: "Không tìm thấy lịch hẹn." });
 
+      // Trạng thái cuối (completed/cancelled/no_show) không được chuyển tiếp qua route generic này —
+      // đặc biệt completed → cancelled từng cho phép tạo booking "đã hủy" nhưng vẫn giữ paymentStatus
+      // "paid" và mentor đã được cộng tiền, không có hoàn tiền nào được ghi nhận. Dùng luồng hoàn tiền
+      // riêng (confirm-refund) nếu cần đảo ngược một booking đã hoàn tất/hủy.
+      const TERMINAL_STATUSES = new Set(["completed", "cancelled", "no_show"]);
+      if (TERMINAL_STATUSES.has(booking.status) && booking.status !== nextStatus) {
+        return res.status(400).json({
+          success: false,
+          error: `Booking đã ở trạng thái cuối "${booking.status}", không thể đổi sang "${nextStatus}" qua thao tác này.`,
+        });
+      }
+
       const payGate = bookingsService.assertBookingPaidBeforeActiveStatus(booking, nextStatus);
       if (!payGate.ok) {
         return res.status(payGate.status).json({ success: false, error: payGate.error });
@@ -926,7 +962,51 @@ export const AdminController = {
     }
   },
 
-  /** Tổng quan lợi nhuận nền tảng sau chia mentor (booking + khóa học). */
+  /** Tổng quan doanh thu gói Pro/Elite (CK qua SePay) cho admin Tài chính */
+  getSubscriptionFinanceSummary: async (_req, res, next) => {
+    try {
+      const pendAgg = await Payment.aggregate([
+        { $match: { type: "subscription", provider: "transfer", status: "pending" } },
+        { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } },
+      ]);
+      const paidAgg = await Payment.aggregate([
+        { $match: { type: "subscription", status: "success" } },
+        { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } },
+      ]);
+
+      const pendingList = await Payment.find({
+        type: "subscription",
+        provider: "transfer",
+        status: "pending",
+      })
+        .populate("userId", "name email plan")
+        .sort({ createdAt: -1 })
+        .limit(40)
+        .lean();
+
+      const recentPaidRows = await Payment.find({ type: "subscription", status: "success" })
+        .populate("userId", "name email plan")
+        .sort({ paidAt: -1, createdAt: -1 })
+        .limit(200)
+        .lean();
+
+      res.json({
+        success: true,
+        subscriptionFinance: {
+          pendingTransferCount: pendAgg[0]?.count || 0,
+          pendingTransferAmount: pendAgg[0]?.total || 0,
+          paidCollectedCount: paidAgg[0]?.count || 0,
+          paidCollectedAmount: paidAgg[0]?.total || 0,
+          pendingList: pendingList.map(serializeSubscriptionPayment),
+          recentPaidRows: recentPaidRows.map(serializeSubscriptionPayment),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /** Tổng quan lợi nhuận nền tảng sau chia mentor (booking + khóa học + gói Pro/Elite). */
   getPlatformFinanceSummary: async (req, res, next) => {
     try {
       const monthRange = parseMonthRange(req.query?.month);
@@ -951,7 +1031,7 @@ export const AdminController = {
       const bookingRows = await Booking.find({
         paymentStatus: { $in: ["paid", "partial_refund"] },
       })
-        .select("price platformFee platformFeeRate totalAmount status paidAt createdAt")
+        .select("price platformFee platformFeeRate totalAmount status paidAt createdAt cancelRefundAmountVnd")
         .lean();
       const bookingRowsFiltered = monthRange
         ? bookingRows.filter((row) => {
@@ -962,14 +1042,21 @@ export const AdminController = {
         : bookingRows;
       const booking = bookingRowsFiltered.reduce(
         (acc, row) => {
-          const gross = Math.round(Number(row.totalAmount ?? row.price ?? 0));
+          // partial_refund: trừ phần đã hoàn cho học viên — chỉ tính phần tiền THỰC SỰ còn giữ lại
+          // (nền tảng + mentor), tránh Tổng thu/Lợi nhuận/Chia mentor bị thổi phồng bằng số tiền đã hoàn.
+          const rawGross = Number(row.totalAmount ?? row.price ?? 0);
+          const refunded = Number(row.cancelRefundAmountVnd) || 0;
+          const gross = Math.round(Math.max(0, rawGross - refunded));
           const rate = safeFeeRate(row.platformFeeRate, Number(process.env.BOOKING_PLATFORM_FEE_RATE) || 0.3);
-          const fee = Number.isFinite(Number(row.platformFee))
+          const rawFee = Number.isFinite(Number(row.platformFee))
             ? Math.round(Number(row.platformFee))
             : Math.round(gross * rate);
+          // Kẹp fee trong [0, gross] — sau khi trừ hoàn tiền, gross có thể nhỏ hơn fee gốc; không để
+          // platformRevenue vượt quá số tiền thực sự còn giữ lại (giữ đúng platformRevenue + mentorNet = gross).
+          const fee = Math.max(0, Math.min(gross, rawFee));
           acc.grossCollected += gross;
-          acc.platformRevenue += Math.max(0, fee);
-          acc.mentorNet += Math.max(0, gross - fee);
+          acc.platformRevenue += fee;
+          acc.mentorNet += gross - fee;
           acc.count += 1;
           return acc;
         },
@@ -1002,10 +1089,33 @@ export const AdminController = {
         { grossCollected: 0, platformRevenue: 0, mentorNet: 0, count: 0 },
       );
 
+      const subscriptionRows = await Payment.find({ type: "subscription", status: "success" })
+        .select("amount paidAt createdAt")
+        .lean();
+      const subscriptionRowsFiltered = monthRange
+        ? subscriptionRows.filter((row) => {
+            const t = row.paidAt ? new Date(row.paidAt) : new Date(row.createdAt);
+            const ms = t.getTime();
+            return ms >= monthRange.start.getTime() && ms < monthRange.end.getTime();
+          })
+        : subscriptionRows;
+      // Gói Pro/Elite không chia % mentor → toàn bộ tiền thu về là lợi nhuận nền tảng.
+      const subscription = subscriptionRowsFiltered.reduce(
+        (acc, row) => {
+          const gross = Math.round(Number(row.amount || 0));
+          acc.grossCollected += gross;
+          acc.platformRevenue += gross;
+          acc.mentorNet += 0;
+          acc.count += 1;
+          return acc;
+        },
+        { grossCollected: 0, platformRevenue: 0, mentorNet: 0, count: 0 },
+      );
+
       const totals = {
-        grossCollected: booking.grossCollected + course.grossCollected,
-        platformRevenue: booking.platformRevenue + course.platformRevenue,
-        mentorNet: booking.mentorNet + course.mentorNet,
+        grossCollected: booking.grossCollected + course.grossCollected + subscription.grossCollected,
+        platformRevenue: booking.platformRevenue + course.platformRevenue + subscription.platformRevenue,
+        mentorNet: booking.mentorNet + course.mentorNet + subscription.mentorNet,
       };
 
       res.json({
@@ -1021,6 +1131,7 @@ export const AdminController = {
           totals,
           booking,
           course,
+          subscription,
         },
       });
     } catch (error) {
@@ -1681,22 +1792,26 @@ export const AdminController = {
       const { id } = req.params;
       const transferRef = String(req.body?.transferRef || "").trim().slice(0, 500);
       const noteExtra = String(req.body?.note || "").trim().slice(0, 2000);
-      const payout = await PayoutRequest.findById(id);
-      if (!payout) return res.status(404).json({ success: false, error: "Không tìm thấy yêu cầu rút tiền." });
-      if (payout.status !== "approved") {
+
+      const existing = await PayoutRequest.findById(id).select("note").lean();
+      if (!existing) return res.status(404).json({ success: false, error: "Không tìm thấy yêu cầu rút tiền." });
+      const prevNote = String(existing.note || "").trim();
+      const nextNote = noteExtra ? (prevNote ? `${prevNote}\n${noteExtra}` : noteExtra) : existing.note;
+
+      // Chuyển trạng thái + điều kiện lọc "approved" trong CÙNG một update nguyên tử — nếu 2 request
+      // đến gần như đồng thời (double-click, 2 tab admin), chỉ đúng 1 lệnh khớp filter và được phép
+      // trừ pendingBalance; lệnh còn lại nhận về null và không đụng tới số dư mentor.
+      const payout = await PayoutRequest.findOneAndUpdate(
+        { _id: id, status: "approved" },
+        { $set: { status: "paid", paidAt: new Date(), transferRef, note: nextNote } },
+        { new: true },
+      );
+      if (!payout) {
         return res.status(400).json({
           success: false,
           error: "Chỉ xác nhận đã chuyển khoản khi yêu cầu đã được duyệt (chưa ghi nhận chi).",
         });
       }
-      payout.status = "paid";
-      payout.paidAt = new Date();
-      payout.transferRef = transferRef;
-      if (noteExtra) {
-        const prev = String(payout.note || "").trim();
-        payout.note = prev ? `${prev}\n${noteExtra}` : noteExtra;
-      }
-      await payout.save();
 
       await Mentor.updateOne(
         { _id: payout.mentorId },
@@ -1724,17 +1839,21 @@ export const AdminController = {
     try {
       const { id } = req.params;
       const reason = String(req.body?.reason || "").trim();
-      const payout = await PayoutRequest.findById(id);
-      if (!payout) return res.status(404).json({ success: false, error: "Không tìm thấy yêu cầu rút tiền." });
-      if (payout.status !== "pending") {
-        return res.status(400).json({ success: false, error: "Yêu cầu đã được xử lý trước đó." });
-      }
 
-      payout.status = "rejected";
-      payout.reviewedAt = new Date();
-      payout.reviewedBy = req.userId || null;
-      payout.rejectReason = reason;
-      await payout.save();
+      // Cùng lý do atomic như markPayoutPaid — tránh 2 lệnh reject đồng thời cùng hoàn lại
+      // availableBalance cho mentor (cộng khống số dư có thể rút).
+      const payout = await PayoutRequest.findOneAndUpdate(
+        { _id: id, status: "pending" },
+        { $set: { status: "rejected", reviewedAt: new Date(), reviewedBy: req.userId || null, rejectReason: reason } },
+        { new: true },
+      );
+      if (!payout) {
+        const exists = await PayoutRequest.exists({ _id: id });
+        return res.status(exists ? 400 : 404).json({
+          success: false,
+          error: exists ? "Yêu cầu đã được xử lý trước đó." : "Không tìm thấy yêu cầu rút tiền.",
+        });
+      }
 
       await Mentor.updateOne(
         { _id: payout.mentorId },

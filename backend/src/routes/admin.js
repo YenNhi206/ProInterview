@@ -40,6 +40,7 @@ adminRouter.get("/content/stats", asyncHandler(AdminController.getContentStats))
 adminRouter.get("/content/interview-sessions", asyncHandler(AdminController.getRecentInterviewSessions));
 adminRouter.get("/content/course-media", asyncHandler(AdminController.getCourseMediaOverview));
 adminRouter.get("/finance/courses", asyncHandler(AdminController.getCourseFinanceSummary));
+adminRouter.get("/finance/subscriptions", asyncHandler(AdminController.getSubscriptionFinanceSummary));
 adminRouter.get("/finance/platform-summary", asyncHandler(AdminController.getPlatformFinanceSummary));
 adminRouter.patch(
   "/bookings/:id/confirm-transfer-payment",

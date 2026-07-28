@@ -76,6 +76,9 @@ export const EnrollmentController = {
         couponDiscountAmount = couponCheck.discountAmount;
         coursePriceAfterCoupon = Math.max(0, coursePriceAfterDiscount - couponDiscountAmount);
       }
+      // Coupon cũng do nền tảng gánh (giống discountAmount của gói Pro/Elite) — trừ luôn vào
+      // platformFee để phần mentor nhận (pricePaid - platformFee) không bị trừ oan phần coupon.
+      const coursePlatformFeeAfterCoupon = Math.max(0, coursePlatformFeeAfterDiscount - couponDiscountAmount);
 
       const existing = await Enrollment.findOne({ userId, courseId });
 
@@ -100,8 +103,8 @@ export const EnrollmentController = {
               existing.platformFeeRate = coursePlatformFeeRate;
               dirty = true;
             }
-            if (Math.round(Number(existing.platformFee ?? 0)) !== Math.round(coursePlatformFeeAfterDiscount)) {
-              existing.platformFee = coursePlatformFeeAfterDiscount;
+            if (Math.round(Number(existing.platformFee ?? 0)) !== Math.round(coursePlatformFeeAfterCoupon)) {
+              existing.platformFee = coursePlatformFeeAfterCoupon;
               dirty = true;
             }
             if (Number(existing.discountRate ?? 0) !== discountRate) {
@@ -167,25 +170,39 @@ export const EnrollmentController = {
       }
 
       const clientOrder = extractOrderPart(req.body?.orderNum);
-      const orderRef = clientOrder || genOrderRef();
       const paymentExpiresAt = newPaymentExpiresAt();
 
-      const enrollment = await Enrollment.create({
-        userId,
-        courseId,
-        pricePaid: coursePriceAfterCoupon,
-        platformFeeRate: coursePlatformFeeRate,
-        platformFee: coursePlatformFeeAfterDiscount,
-        discountRate,
-        discountAmount,
-        couponCode,
-        couponDiscountAmount,
-        paymentStatus: "pending",
-        paymentMethod: "transfer",
-        paymentRef: orderRef,
-        paymentExpiresAt,
-        lastAccessedAt: new Date(),
-      });
+      // Mã CK là số ngẫu nhiên 6 chữ số — index unique (partial, scope "pending") ở Enrollment.js
+      // chặn 2 đơn cùng đang chờ CK trùng mã. Nếu server tự sinh mã bị trùng (hiếm), thử sinh lại
+      // vài lần thay vì để lỗi 500 lộ ra người dùng.
+      let enrollment;
+      let attempt = 0;
+      while (true) {
+        const orderRef = clientOrder || genOrderRef();
+        try {
+          enrollment = await Enrollment.create({
+            userId,
+            courseId,
+            pricePaid: coursePriceAfterCoupon,
+            platformFeeRate: coursePlatformFeeRate,
+            platformFee: coursePlatformFeeAfterCoupon,
+            discountRate,
+            discountAmount,
+            couponCode,
+            couponDiscountAmount,
+            paymentStatus: "pending",
+            paymentMethod: "transfer",
+            paymentRef: orderRef,
+            paymentExpiresAt,
+            lastAccessedAt: new Date(),
+          });
+          break;
+        } catch (err) {
+          const isDupRef = err?.code === 11000 && Object.prototype.hasOwnProperty.call(err?.keyPattern || {}, "paymentRef");
+          if (!isDupRef || clientOrder || attempt >= 4) throw err;
+          attempt += 1;
+        }
+      }
 
       // Mã giảm giá chỉ claim khi thanh toán THÀNH CÔNG (xem confirmEnrollmentTransferByAdmin).
 

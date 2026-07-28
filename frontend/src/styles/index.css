@@ -66,6 +66,41 @@
   --font-sans: "Lexend", "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
+/* ── Mobile: tăng cỡ chữ toàn app thêm 1 bậc trong thang Tailwind ──
+   (vd text-sm 14px → text-base 16px, text-base 16px → text-lg 18px)
+   bằng cách ghi đè token font-size của Tailwind — mọi class text-*
+   dùng var(--text-*) nên tự động áp dụng, không cần sửa từng component. */
+@media (max-width: 640px) {
+  :root {
+    --text-xs: 0.875rem;
+    --text-xs--line-height: calc(1.25 / 0.875);
+    --text-sm: 1rem;
+    --text-sm--line-height: calc(1.5 / 1);
+    --text-base: 1.125rem;
+    --text-base--line-height: calc(1.75 / 1.125);
+    --text-lg: 1.25rem;
+    --text-lg--line-height: calc(1.75 / 1.25);
+    --text-xl: 1.5rem;
+    --text-xl--line-height: calc(2 / 1.5);
+    --text-2xl: 1.875rem;
+    --text-2xl--line-height: calc(2.25 / 1.875);
+    --text-3xl: 2.25rem;
+    --text-3xl--line-height: calc(2.5 / 2.25);
+    --text-4xl: 3rem;
+    --text-4xl--line-height: 1;
+    --text-5xl: 3.75rem;
+    --text-5xl--line-height: 1;
+    --text-6xl: 4.5rem;
+    --text-6xl--line-height: 1;
+    --text-7xl: 6rem;
+    --text-7xl--line-height: 1;
+    --text-8xl: 8rem;
+    --text-8xl--line-height: 1;
+    --text-9xl: 10.6667rem;
+    --text-9xl--line-height: 1;
+  }
+}
+
 /* Lime hệ — dùng trong style inline / shadow */
 :root,
 .dark {

@@ -2,19 +2,31 @@ import React, { useState, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
-import { FileText, Briefcase, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Briefcase, Eye, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+const ZOOM_MIN = 0.75;
+const ZOOM_MAX = 2.5;
+const ZOOM_STEP = 0.15;
 
 // ─── Single document panel ───────────────────────────────────────────────────
 export function DocPanel({ title, fileName, icon, accentColor, file, matchedKws, missingKws, showHeader = true, maxHeight = 800 }) {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [width, setWidth] = useState(null);
+  // Mặc định zoom to hơn trên mobile vì khung hẹp làm chữ trong PDF khó đọc —
+  // người dùng có thể tự chỉnh thêm bằng nút +/- (cuộn ngang nếu trang rộng hơn khung).
+  const [zoom, setZoom] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth <= 640 ? 1.75 : 1
+  );
 
   const containerRef = useCallback(node => {
     if (node) setWidth(node.getBoundingClientRect().width);
   }, []);
+
+  const zoomIn = () => setZoom(z => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)));
+  const zoomOut = () => setZoom(z => Math.max(ZOOM_MIN, +(z - ZOOM_STEP).toFixed(2)));
 
   return (
     <div className="flex flex-col overflow-hidden">
@@ -45,7 +57,7 @@ export function DocPanel({ title, fileName, icon, accentColor, file, matchedKws,
         </div>
       )}
 
-      <div ref={containerRef} className="flex-1 overflow-y-auto bg-gray-50" style={{ minHeight: 0, maxHeight }}>
+      <div ref={containerRef} className="flex-1 overflow-auto bg-gray-50" style={{ minHeight: 0, maxHeight }}>
         {file && width ? (
           <Document
             file={file}
@@ -65,7 +77,7 @@ export function DocPanel({ title, fileName, icon, accentColor, file, matchedKws,
               <Page
                 key={i + 1}
                 pageNumber={i + 1}
-                width={width - 8}
+                width={(width - 8) * zoom}
                 renderAnnotationLayer={false}
               />
             ))}
@@ -77,25 +89,51 @@ export function DocPanel({ title, fileName, icon, accentColor, file, matchedKws,
         )}
       </div>
 
-      {showHeader && numPages && numPages > 1 && (
-        <div className="flex items-center justify-center gap-3 py-1.5 border-t border-gray-100 bg-white flex-shrink-0">
-          <button
-            onClick={() => setPageNumber(p => Math.max(1, p - 1))}
-            disabled={pageNumber <= 1}
-            className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
-          </button>
-          <span className="text-xs text-gray-500 font-medium">
-            {pageNumber} / {numPages}
-          </span>
-          <button
-            onClick={() => setPageNumber(p => Math.min(numPages, p + 1))}
-            disabled={pageNumber >= numPages}
-            className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
-          </button>
+      {showHeader && file && width && (
+        <div className="flex items-center justify-between gap-2 px-2 py-1.5 border-t border-gray-100 bg-white flex-shrink-0">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={zoomOut}
+              disabled={zoom <= ZOOM_MIN}
+              aria-label="Thu nhỏ"
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
+            >
+              <ZoomOut className="w-4 h-4 text-gray-600" />
+            </button>
+            <span className="text-xs text-gray-500 font-medium w-10 text-center">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              onClick={zoomIn}
+              disabled={zoom >= ZOOM_MAX}
+              aria-label="Phóng to"
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
+            >
+              <ZoomIn className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
+
+          {numPages && numPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPageNumber(p => Math.max(1, p - 1))}
+                disabled={pageNumber <= 1}
+                className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
+              </button>
+              <span className="text-xs text-gray-500 font-medium">
+                {pageNumber} / {numPages}
+              </span>
+              <button
+                onClick={() => setPageNumber(p => Math.min(numPages, p + 1))}
+                disabled={pageNumber >= numPages}
+                className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

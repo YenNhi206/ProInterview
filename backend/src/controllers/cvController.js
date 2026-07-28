@@ -21,6 +21,27 @@ function normalizeSkillItem(item) {
   return typeof item === "string" ? { name: item } : item;
 }
 
+// Python skill extractor đôi khi trả về cả cụm câu dài thay vì tên skill ngắn
+// gọn (JD định dạng lạ). Cắt bớt trước khi validate để không mất cả bản phân
+// tích chỉ vì một skill lỗi — giới hạn phải khớp skillItemSchema (dto/cvAnalysis.dto.js).
+const MAX_SKILL_NAME_LEN = 100;
+
+function truncateSkillItem(item) {
+  if (typeof item === "string") return item.slice(0, MAX_SKILL_NAME_LEN);
+  if (item && typeof item === "object" && typeof item.name === "string") {
+    return { ...item, name: item.name.slice(0, MAX_SKILL_NAME_LEN) };
+  }
+  return item;
+}
+
+function sanitizeSkillsPayload(body) {
+  const skills = body?.result?.skills;
+  if (!skills) return body;
+  if (Array.isArray(skills.cv)) skills.cv = skills.cv.map(truncateSkillItem);
+  if (Array.isArray(skills.jd)) skills.jd = skills.jd.map(truncateSkillItem);
+  return body;
+}
+
 /**
  * Transform flat frontend payload → nested DB schema.
  *
@@ -94,6 +115,7 @@ export const CVController = {
     const userId = req.userId;
 
     // ── Step 1: Validate schema + business rules qua DTO ──────────────────
+    sanitizeSkillsPayload(req.body);
     const { error, value, businessErrors } = validateSaveAnalysis(req.body);
 
     if (error) {

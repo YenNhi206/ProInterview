@@ -123,6 +123,7 @@ export const adminApi = {
   getPendingEnrollmentTransfers: () => authedFetch("/api/admin/enrollments/pending-transfer"),
   getCoursePaymentEnrollments: () => authedFetch("/api/admin/enrollments/course-payments"),
   getCourseFinanceSummary: () => authedFetch("/api/admin/finance/courses"),
+  getSubscriptionFinanceSummary: () => authedFetch("/api/admin/finance/subscriptions"),
   getPlatformFinanceSummary: (params = {}) => {
     const q = new URLSearchParams();
     if (params.month) q.set("month", params.month);

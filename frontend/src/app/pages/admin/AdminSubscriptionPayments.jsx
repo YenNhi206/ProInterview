@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Crown, RefreshCw, Search, User } from "lucide-react";
+import { CheckCircle2, Crown, RefreshCw, Search, User } from "lucide-react";
 import { motion } from "motion/react";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { adminApi } from "../../api/adminApi.js";
@@ -19,6 +19,13 @@ function planLabel(plan) {
   return plan || "—";
 }
 
+function formatDateTime(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 function ActionSlot({ children, className = "" }) {
   return (
     <div className={`flex size-9 shrink-0 items-center justify-center ${className}`}>
@@ -33,10 +40,13 @@ const tdCell = "px-4 py-4 sm:px-5 sm:py-5 lg:px-6";
 
 export function AdminSubscriptionPayments() {
   const [rows, setRows] = useState([]);
+  const [historyRows, setHistoryRows] = useState([]);
   const [paidStats, setPaidStats] = useState({ paidCount: 0, paidTotalAmount: 0 });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [busyId, setBusyId] = useState("");
+  const [activeTab, setActiveTab] = useState("pending");
+  const [planFilter, setPlanFilter] = useState("all");
 
   const confirmSubscriptionOverride = async (row, confirmBody) => {
     const paymentId = row?.id;
@@ -55,12 +65,20 @@ export function AdminSubscriptionPayments() {
 
   const loadAll = useCallback(async () => {
     setLoading(true);
-    const res = await tryApi(() => adminApi.getPendingSubscriptionPayments(), {
-      fallback: "Không tải được danh sách gói cước chờ đối soát.",
-    });
-    if (res.success) {
-      setRows(res.payments || []);
-      setPaidStats(res.stats || { paidCount: 0, paidTotalAmount: 0 });
+    const [pendingRes, historyRes] = await Promise.all([
+      tryApi(() => adminApi.getPendingSubscriptionPayments(), {
+        fallback: "Không tải được danh sách gói cước chờ đối soát.",
+      }),
+      tryApi(() => adminApi.getSubscriptionFinanceSummary(), {
+        fallback: "Không tải được lịch sử mua gói.",
+      }),
+    ]);
+    if (pendingRes.success) {
+      setRows(pendingRes.payments || []);
+      setPaidStats(pendingRes.stats || { paidCount: 0, paidTotalAmount: 0 });
+    }
+    if (historyRes.success) {
+      setHistoryRows(historyRes.subscriptionFinance?.recentPaidRows || []);
     }
     setLoading(false);
   }, []);
@@ -74,17 +92,33 @@ export function AdminSubscriptionPayments() {
     [rows],
   );
 
+  const sourceRows = activeTab === "history" ? historyRows : rows;
+
+  const planFiltered = useMemo(
+    () => (planFilter === "all" ? sourceRows : sourceRows.filter((r) => r.plan === planFilter)),
+    [sourceRows, planFilter],
+  );
+
   const filtered = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((r) => {
+    if (!q) return planFiltered;
+    return planFiltered.filter((r) => {
       const name = String(r.user?.name || "").toLowerCase();
       const email = String(r.user?.email || "").toLowerCase();
       const ref = String(r.providerRef || r.paymentRef || "").toLowerCase();
       const plan = planLabel(r.plan).toLowerCase();
       return name.includes(q) || email.includes(q) || ref.includes(q) || plan.includes(q);
     });
-  }, [rows, searchTerm]);
+  }, [planFiltered, searchTerm]);
+
+  const planCounts = useMemo(() => {
+    const out = { starter_pro: 0, elite_pro: 0 };
+    for (const r of sourceRows) {
+      if (r.plan === "elite_pro") out.elite_pro += 1;
+      else out.starter_pro += 1;
+    }
+    return out;
+  }, [sourceRows]);
 
   return (
     <div className="min-w-0 max-w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 sm:space-y-8">
@@ -138,6 +172,69 @@ export function AdminSubscriptionPayments() {
         </div>
       </motion.div>
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab("pending")}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
+              activeTab === "pending"
+                ? "border-violet-300 bg-violet-100 text-violet-700"
+                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
+            }`}
+          >
+            Chờ đối soát
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("history")}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
+              activeTab === "history"
+                ? "border-violet-300 bg-violet-100 text-violet-700"
+                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
+            }`}
+          >
+            Lịch sử mua
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setPlanFilter("all")}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
+              planFilter === "all"
+                ? "border-slate-400 bg-slate-800 text-white"
+                : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+            }`}
+          >
+            Tất cả ({sourceRows.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setPlanFilter("starter_pro")}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
+              planFilter === "starter_pro"
+                ? "border-violet-300 bg-violet-100 text-violet-800"
+                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
+            }`}
+          >
+            <Crown size={12} /> Starter Pro ({planCounts.starter_pro})
+          </button>
+          <button
+            type="button"
+            onClick={() => setPlanFilter("elite_pro")}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
+              planFilter === "elite_pro"
+                ? "border-violet-400 bg-violet-200 text-violet-900"
+                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
+            }`}
+          >
+            <Crown size={12} /> Elite Pro ({planCounts.elite_pro})
+          </button>
+        </div>
+      </div>
+
       <div className="glass-card min-w-0 max-w-full overflow-hidden border-slate-200/90 [&:hover]:transform-none [&:hover]:shadow-[0_8px_18px_rgba(110,53,232,0.07)]">
         <div className="max-w-full overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-0 table-fixed border-collapse text-left">
@@ -154,7 +251,9 @@ export function AdminSubscriptionPayments() {
                 <th className={thCell}>Gói mua</th>
                 <th className={thCell}>Thanh toán</th>
                 <th className={`${thCell} text-right`}>Số tiền</th>
-                <th className={`${thCell} text-right`}>Thao tác</th>
+                <th className={`${thCell} text-right`}>
+                  {activeTab === "history" ? "Ngày kích hoạt" : "Thao tác"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
@@ -172,9 +271,13 @@ export function AdminSubscriptionPayments() {
                   <td colSpan={5} className={`${tdCell} py-20 text-center`}>
                     <Crown className="mx-auto mb-3 h-10 w-10 text-slate-400" />
                     <p className="text-[10px] font-black uppercase italic tracking-widest text-slate-500">
-                      {rows.length === 0
-                        ? "Không có gói chờ đối soát"
-                        : "Không có dòng phù hợp từ khóa tìm kiếm"}
+                      {sourceRows.length === 0
+                        ? activeTab === "history"
+                          ? "Chưa có gói nào được kích hoạt"
+                          : "Không có gói chờ đối soát"
+                        : planFiltered.length === 0
+                          ? "Không có giao dịch nào cho gói này"
+                          : "Không có dòng phù hợp từ khóa tìm kiếm"}
                     </p>
                   </td>
                 </tr>
@@ -215,16 +318,25 @@ export function AdminSubscriptionPayments() {
                         {Number(row.amount || 0).toLocaleString("vi-VN")}{" "}
                         <span className="text-[10px] font-medium uppercase tracking-widest text-slate-500">đ</span>
                       </td>
-                      <td className={tdCell}>
-                        <div className="relative ml-auto flex w-full max-w-[4.5rem] justify-end gap-1">
-                          <ActionSlot>
-                            <AdminSepayOverrideAction
-                              busy={busyId === row.id}
-                              onConfirm={(body) => confirmSubscriptionOverride(row, body)}
-                            />
-                          </ActionSlot>
-                        </div>
-                      </td>
+                      {activeTab === "history" ? (
+                        <td className={`${tdCell} whitespace-nowrap text-right`}>
+                          <div className="ml-auto inline-flex items-center gap-1.5 text-emerald-700">
+                            <CheckCircle2 size={14} />
+                            <span className="text-xs font-semibold">{formatDateTime(row.paidAt)}</span>
+                          </div>
+                        </td>
+                      ) : (
+                        <td className={tdCell}>
+                          <div className="relative ml-auto flex w-full max-w-[4.5rem] justify-end gap-1">
+                            <ActionSlot>
+                              <AdminSepayOverrideAction
+                                busy={busyId === row.id}
+                                onConfirm={(body) => confirmSubscriptionOverride(row, body)}
+                              />
+                            </ActionSlot>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })

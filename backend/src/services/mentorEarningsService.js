@@ -4,6 +4,7 @@ import { Course } from "../models/Course.js";
 import { Enrollment } from "../models/Enrollment.js";
 import { Mentor } from "../models/Mentor.js";
 import { resolveCoursePlatformFeeRate } from "./mentorCommissionService.js";
+import { runInTransaction } from "../helpers/dbHelper.js";
 
 function parseFeeRate(envVal, fallback) {
   const n = Number(String(envVal ?? "").trim());
@@ -56,21 +57,30 @@ export async function tryCreditMentorForCompletedBooking(bookingId) {
     return { ok: true, skipped: true, reason: "zero_net" };
   }
 
-  const mark = await Booking.updateOne(
-    {
-      _id: bookingId,
-      mentorEarningsCreditedAt: { $in: [null, undefined] },
-      status: "completed",
-      paymentStatus: "paid",
-    },
-    { $set: { mentorEarningsCreditedAt: new Date() } },
-  );
-  if (mark.modifiedCount !== 1) return { ok: true, skipped: true, race: true };
-
-  await Mentor.updateOne(
-    { _id: booking.mentorId },
-    { $inc: { "finance.availableBalance": net, "finance.totalEarned": net } },
-  );
+  // Đánh dấu "đã cộng" + cộng số dư mentor trong CÙNG 1 transaction — nếu crash giữa chừng,
+  // toàn bộ rollback thay vì để booking bị đánh dấu "đã cộng" nhưng mentor chưa nhận tiền
+  // (tiền mất vĩnh viễn vì guard idempotent chặn mọi lần credit lại sau đó).
+  let credited = false;
+  await runInTransaction(async (session) => {
+    const mark = await Booking.updateOne(
+      {
+        _id: bookingId,
+        mentorEarningsCreditedAt: { $in: [null, undefined] },
+        status: "completed",
+        paymentStatus: "paid",
+      },
+      { $set: { mentorEarningsCreditedAt: new Date() } },
+      { session },
+    );
+    if (mark.modifiedCount !== 1) return;
+    await Mentor.updateOne(
+      { _id: booking.mentorId },
+      { $inc: { "finance.availableBalance": net, "finance.totalEarned": net } },
+      { session },
+    );
+    credited = true;
+  });
+  if (!credited) return { ok: true, skipped: true, race: true };
   return { ok: true, credited: net };
 }
 
@@ -105,26 +115,34 @@ export async function tryCreditMentorForPaidEnrollment(enrollmentId) {
     mentor,
   );
 
-  const mark = await Enrollment.updateOne(
-    { _id: enrollmentId, mentorEarningsCreditedAt: { $in: [null, undefined] }, paymentStatus: "paid" },
-    {
-      $set: {
-        mentorEarningsCreditedAt: new Date(),
-        platformFeeRate: resolvedRate,
-        platformFee: resolvedFee,
+  // Đánh dấu "đã cộng" + cộng số dư mentor + cộng doanh thu khóa trong CÙNG 1 transaction —
+  // tránh crash giữa chừng để lại enrollment "đã cộng" nhưng mentor chưa thực nhận tiền.
+  let credited = false;
+  await runInTransaction(async (session) => {
+    const mark = await Enrollment.updateOne(
+      { _id: enrollmentId, mentorEarningsCreditedAt: { $in: [null, undefined] }, paymentStatus: "paid" },
+      {
+        $set: {
+          mentorEarningsCreditedAt: new Date(),
+          platformFeeRate: resolvedRate,
+          platformFee: resolvedFee,
+        },
       },
-    },
-  );
-  if (mark.modifiedCount !== 1) return { ok: true, skipped: true, race: true };
-
-  if (net > 0) {
-    await Mentor.updateOne(
-      { _id: course.mentorId },
-      { $inc: { "finance.availableBalance": net, "finance.totalEarned": net } },
+      { session },
     );
-  }
-  if (gross > 0) {
-    await Course.updateOne({ _id: row.courseId }, { $inc: { "stats.totalRevenue": gross } });
-  }
+    if (mark.modifiedCount !== 1) return;
+    if (net > 0) {
+      await Mentor.updateOne(
+        { _id: course.mentorId },
+        { $inc: { "finance.availableBalance": net, "finance.totalEarned": net } },
+        { session },
+      );
+    }
+    if (gross > 0) {
+      await Course.updateOne({ _id: row.courseId }, { $inc: { "stats.totalRevenue": gross } }, { session });
+    }
+    credited = true;
+  });
+  if (!credited) return { ok: true, skipped: true, race: true };
   return { ok: true, credited: net, gross };
 }
