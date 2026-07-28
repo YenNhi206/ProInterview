@@ -33,7 +33,7 @@ export function DiscountPromoModal() {
         aria-hidden
       />
 
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-300">
         <button
           onClick={handleClose}
           className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-md transition hover:bg-white hover:text-slate-800"
@@ -43,19 +43,30 @@ export function DiscountPromoModal() {
         </button>
 
         <div
-          className="relative overflow-hidden px-6 pt-10 pb-8 sm:px-8 sm:pt-12"
+          className="relative min-h-[190px] overflow-hidden pl-6 pt-10 pb-8 sm:min-h-[220px] sm:pl-8 sm:pt-12"
           style={{ background: "linear-gradient(135deg, #630ed4 0%, #8037f4 100%)" }}
         >
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white ring-1 ring-white/30">
-            <Sparkles className="h-3.5 w-3.5 text-[#a3e635]" aria-hidden />
-            Ưu đãi có hạn
-          </span>
-          <h2 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl">
-            Giảm <span className="text-[#a3e635]">50%</span> khi nâng cấp gói
-          </h2>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/85 sm:text-base">
-            Nhập mã dưới đây tại trang thanh toán để nâng cấp Pro/Elite với giá chỉ còn một nửa.
-          </p>
+          <div className="max-w-[190px] sm:max-w-[260px]">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white ring-1 ring-white/30">
+              <Sparkles className="h-3.5 w-3.5 text-[#a3e635]" aria-hidden />
+              Ưu đãi có hạn
+            </span>
+            <h2 className="mt-4 text-2xl font-black leading-tight text-white sm:text-3xl">
+              Giảm <span className="text-[#a3e635]">50%</span> khi nâng cấp gói
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-white/85 sm:text-base">
+              Nhập mã dưới đây tại trang
+              <br />
+              thanh toán để giảm ngay 50%.
+            </p>
+          </div>
+
+          <img
+            src="/mascot-mentor-feedback-tight.png"
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute bottom-8 right-[1.65rem] h-[7rem] w-auto object-contain drop-shadow-2xl sm:right-[2.4rem] sm:h-[9rem]"
+          />
         </div>
 
         <div className="space-y-4 px-6 py-6 sm:px-8">
