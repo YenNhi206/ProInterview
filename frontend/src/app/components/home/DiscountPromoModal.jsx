@@ -5,20 +5,15 @@ import { Link } from "react-router";
 // Phải khớp mã seed ở backend/src/scripts/seedCoupon.js — chưa có API lấy coupon đang active nên hard-code tạm ở đây.
 const PROMO_COUPON_CODE = "LAUNCH50";
 const PROMO_END = new Date("2026-08-22T23:59:59+07:00");
-const DISMISSED_KEY = "pi_discount_modal_dismissed_v1";
 
 export function DiscountPromoModal() {
-  const [isOpen, setIsOpen] = useState(
-    () => Date.now() <= PROMO_END.getTime() && !localStorage.getItem(DISMISSED_KEY)
-  );
+  const [isOpen, setIsOpen] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  if (Date.now() > PROMO_END.getTime()) return null;
   if (!isOpen) return null;
 
-  const handleClose = () => {
-    localStorage.setItem(DISMISSED_KEY, "1");
-    setIsOpen(false);
-  };
+  const handleClose = () => setIsOpen(false);
 
   const handleCopy = async () => {
     try {
