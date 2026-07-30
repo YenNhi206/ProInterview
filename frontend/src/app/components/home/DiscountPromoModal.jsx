@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, Copy, Check, Sparkles, ArrowRight } from "lucide-react";
 import { Link } from "react-router";
 
@@ -6,12 +6,26 @@ import { Link } from "react-router";
 const PROMO_COUPON_CODE = "LAUNCH50";
 const PROMO_END = new Date("2026-08-22T23:59:59+07:00");
 
-export function DiscountPromoModal({ open, onClose } = {}) {
+export function DiscountPromoModal({ open, onClose, pulseSignal } = {}) {
   const isControlled = open !== undefined;
   const [internalOpen, setInternalOpen] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [isPulsing, setIsPulsing] = useState(false);
+  const isFirstPulse = useRef(true);
 
   const isOpen = isControlled ? open : internalOpen;
+
+  // Banner "bấm để xem mã" khi popup đã mở sẵn: rung nhẹ để báo hiệu thay vì mở chồng popup mới.
+  useEffect(() => {
+    if (isFirstPulse.current) {
+      isFirstPulse.current = false;
+      return;
+    }
+    if (!pulseSignal) return;
+    setIsPulsing(true);
+    const timer = setTimeout(() => setIsPulsing(false), 500);
+    return () => clearTimeout(timer);
+  }, [pulseSignal]);
 
   if (Date.now() > PROMO_END.getTime()) return null;
   if (!isOpen) return null;
@@ -42,7 +56,11 @@ export function DiscountPromoModal({ open, onClose } = {}) {
         aria-hidden
       />
 
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-300">
+      <div
+        className={`relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-300 ${
+          isPulsing ? "animate-promo-attention" : ""
+        }`}
+      >
         <button
           onClick={handleClose}
           className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-md transition hover:bg-white hover:text-slate-800"

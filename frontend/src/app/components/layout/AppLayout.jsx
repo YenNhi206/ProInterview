@@ -5,6 +5,7 @@ import { AppSidebar } from "./Sidebar";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { PromoBanner } from "./PromoBanner";
+import { DiscountPromoModal } from "../home/DiscountPromoModal";
 import { resolveDocumentTitle } from "../../utils/shared/documentTitle.js";
 import { getUser } from "../../utils/auth/auth.js";
 import { useUserPresence } from "../../hooks/useUserPresence.js";
@@ -32,6 +33,8 @@ export function AppLayout() {
     () => typeof window !== "undefined" && !window.localStorage.getItem(PROMO_BANNER_KEY)
   );
   const showPromoBanner = showPromo && !isMentor && !hideNavbar;
+  const [promoModalOpen, setPromoModalOpen] = useState(false);
+  const [promoModalPulse, setPromoModalPulse] = useState(0);
   const ambientModifier = isHome
     ? " app-shell-ambient--home"
     : isLegalDoc
@@ -59,6 +62,21 @@ export function AppLayout() {
   const dismissPromoBanner = () => {
     window.localStorage.setItem(PROMO_BANNER_KEY, "1");
     setShowPromo(false);
+  };
+
+  // Trang chủ tự mở popup ưu đãi mỗi lần ghé lại (không lưu trạng thái đã đóng).
+  useEffect(() => {
+    if (isHome) setPromoModalOpen(true);
+  }, [isHome]);
+
+  // Banner "bấm để xem mã": nếu popup đã mở sẵn thì chỉ rung để gây chú ý,
+  // tránh mở chồng thêm một popup y hệt lên trên.
+  const handleOpenPromoModal = () => {
+    if (promoModalOpen) {
+      setPromoModalPulse((n) => n + 1);
+    } else {
+      setPromoModalOpen(true);
+    }
   };
 
   const shellClass =
@@ -98,7 +116,9 @@ export function AppLayout() {
       <div
         className="relative z-[1] flex min-h-svh w-full max-w-full min-w-0 flex-col"
       >
-        {showPromoBanner && <PromoBanner onClose={dismissPromoBanner} />}
+        {showPromoBanner && (
+          <PromoBanner onClose={dismissPromoBanner} onOpenPromoModal={handleOpenPromoModal} />
+        )}
         {!hideNavbar && <Navbar variant="customer" />}
         <main
           className={`relative z-[1] min-h-0 flex-1 ${hideNavbar
@@ -111,6 +131,11 @@ export function AppLayout() {
         </main>
         {showSiteFooter ? <Footer variant="light" /> : null}
       </div>
+      <DiscountPromoModal
+        open={promoModalOpen}
+        onClose={() => setPromoModalOpen(false)}
+        pulseSignal={promoModalPulse}
+      />
     </div>
   );
 }

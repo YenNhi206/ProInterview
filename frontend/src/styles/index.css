@@ -322,6 +322,29 @@ textarea {
   animation: fadeInUp 0.4s ease forwards;
 }
 
+/* ── Popup ưu đãi: rung nhẹ khi user bấm banner lúc popup đã mở sẵn ── */
+@keyframes promoAttention {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  25% {
+    transform: scale(1.03) rotate(-1deg);
+  }
+
+  50% {
+    transform: scale(0.99) rotate(1deg);
+  }
+
+  75% {
+    transform: scale(1.015) rotate(-0.5deg);
+  }
+}
+
+.animate-promo-attention {
+  animation: promoAttention 0.5s ease-in-out;
+}
+
 /* ── Badge ─────────────────────────────────────────── */
 .badge {
   display: inline-flex;
