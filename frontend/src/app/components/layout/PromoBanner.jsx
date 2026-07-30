@@ -1,31 +1,9 @@
 import React, { useState } from "react";
-import { X, Sparkles, Copy, Check } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-
-// Phải khớp với mã seed ở backend/src/scripts/seedCoupon.js — chưa có API lấy coupon khuyến mãi đang chạy nên hard-code tạm ở đây.
-const PROMO_COUPON_CODE = "LAUNCH50";
+import { Sparkles, X } from "lucide-react";
+import { DiscountPromoModal } from "../home/DiscountPromoModal";
 
 export function PromoBanner({ onClose }) {
   const [showCodeDialog, setShowCodeDialog] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(PROMO_COUPON_CODE);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  };
 
   return (
     <>
@@ -61,37 +39,9 @@ export function PromoBanner({ onClose }) {
         </button>
       </div>
 
-      <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Mã giảm giá 50%</DialogTitle>
-            <DialogDescription>
-              Nhập mã dưới đây tại trang thanh toán để được giảm 50% khi nâng cấp gói.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-violet-300 bg-violet-50 px-4 py-3">
-            <span className="text-lg font-bold tracking-wider text-violet-700">
-              {PROMO_COUPON_CODE}
-            </span>
-            <Button type="button" size="sm" variant="outline" onClick={handleCopy}>
-              {copied ? (
-                <>
-                  <Check className="mr-1 size-4" /> Đã chép
-                </>
-              ) : (
-                <>
-                  <Copy className="mr-1 size-4" /> Chép mã
-                </>
-              )}
-            </Button>
-          </div>
-          <DialogFooter>
-            <Button type="button" onClick={() => setShowCodeDialog(false)}>
-              Đã hiểu
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {showCodeDialog && (
+        <DiscountPromoModal open={showCodeDialog} onClose={() => setShowCodeDialog(false)} />
+      )}
     </>
   );
 }

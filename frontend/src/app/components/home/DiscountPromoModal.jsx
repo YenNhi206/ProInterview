@@ -6,14 +6,23 @@ import { Link } from "react-router";
 const PROMO_COUPON_CODE = "LAUNCH50";
 const PROMO_END = new Date("2026-08-22T23:59:59+07:00");
 
-export function DiscountPromoModal() {
-  const [isOpen, setIsOpen] = useState(true);
+export function DiscountPromoModal({ open, onClose } = {}) {
+  const isControlled = open !== undefined;
+  const [internalOpen, setInternalOpen] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  const isOpen = isControlled ? open : internalOpen;
 
   if (Date.now() > PROMO_END.getTime()) return null;
   if (!isOpen) return null;
 
-  const handleClose = () => setIsOpen(false);
+  const handleClose = () => {
+    if (isControlled) {
+      onClose?.();
+    } else {
+      setInternalOpen(false);
+    }
+  };
 
   const handleCopy = async () => {
     try {
