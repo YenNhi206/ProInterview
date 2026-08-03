@@ -46,6 +46,26 @@ function isAnthropicUrl(baseUrl) {
   return /anthropic\.com/i.test(baseUrl);
 }
 
+function isGeminiUrl(baseUrl) {
+  return /generativelanguage\.googleapis\.com/i.test(baseUrl);
+}
+
+/**
+ * Gemini (qua lớp OpenAI-compat) tính thinking tokens VÀO chung `max_tokens`, khác hẳn Groq/OpenAI.
+ * Đo thực tế với gemini-2.5-flash: prompt 2.746 + thinking 2.121 + completion 165 = 5.032 token,
+ * tức reasoning nuốt gần hết ngân sách trước khi model viết chữ nào → JSON bị cắt giữa chừng
+ * (finish_reason "length") → repair vá lại chỉ còn 1 câu → validateQuestionSet fail → HTTP 500.
+ * Sinh câu hỏi là tác vụ điền JSON theo schema cố định, chất lượng do prompt SHRM/DDI quyết định
+ * chứ không cần chain-of-thought → tắt thinking. Riêng 2.5 Pro KHÔNG tắt được (budget tối thiểu
+ * 128) nên chỉ áp cho dòng flash; đặt LLM_REASONING_EFFORT để override thủ công khi cần.
+ */
+function geminiReasoningEffort(baseUrl, model) {
+  if (!isGeminiUrl(baseUrl)) return null;
+  const override = process.env.LLM_REASONING_EFFORT?.trim();
+  if (override) return override === "default" ? null : override;
+  return /flash/i.test(model) ? "none" : null;
+}
+
 /**
  * Trả về LLM provider đang active.
  * Ưu tiên: LLM_PROVIDER env > detect từ URL > fallback openai_compat
@@ -234,6 +254,7 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
     let waitMs = Math.min(1000 * 2 ** attempt, 8_000);
     try {
       const useJsonMode = !isOllama(baseUrl);
+      const reasoningEffort = geminiReasoningEffort(baseUrl, model);
       const res = await fetch(`${baseUrl.replace(/\/+$/, "")}/chat/completions`, {
         method: "POST",
         headers: {
@@ -249,6 +270,7 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
           temperature: temp,
           max_tokens: maxTokens,
           ...(useJsonMode && { response_format: { type: "json_object" } }),
+          ...(reasoningEffort && { reasoning_effort: reasoningEffort }),
         }),
         signal: AbortSignal.timeout(120_000),
       });
@@ -593,12 +615,13 @@ export async function generateQuestionsFromText({
 
   const userMsg = buildSecureUserPrompt(ctxCV, ctxJD, questionCount, priorQAXmlBlock);
 
-  // Groq/OpenAI tính CẢ max_tokens vào hạn mức tokens-per-minute, không chỉ token thực sinh ra.
-  // Xin cứng 4000 cho 2 câu follow-up (thực tế cần ~1.5k) đốt 1/3 hạn mức 12k TPM của Groq free
-  // tier ở MỖI request → 429 ngay từ lần gọi thứ hai trong cùng một phút. Cấp theo số câu thật:
-  // ~850 token/câu (JSON tiếng Việt đủ star_guidance + rubric) + 600 khung, trần vẫn là 4000
-  // để bộ 5 câu giữ nguyên hành vi cũ.
-  const genMaxTokens = Math.min(4000, 600 + questionCount * 850);
+  // Cấp ngân sách output theo số câu thật thay vì 4000 cứng cho mọi trường hợp:
+  //  - Groq tính CẢ max_tokens vào hạn mức tokens-per-minute → xin 4000 cho 2 câu đốt 1/3 hạn
+  //    mức 12k TPM ở MỖI request, dính 429 ngay từ lần gọi thứ hai trong cùng một phút.
+  //  - Ngược lại, 4000 lại QUÁ CHẶT cho bộ 5 câu: đo thật completion = 3.688 token, chỉ còn 8%
+  //    margin, chạm trần là JSON cụt.
+  // Đo thực tế (đã tắt thinking): ~720 token/câu. Cấp 1.100/câu + 800 khung ⇒ margin ~50%.
+  const genMaxTokens = Math.min(6000, 800 + questionCount * 1100);
 
   // Step 3: LLM call với SHRM/DDI grounded prompt
   let rawContent = await callLLM(systemPrompt, userMsg, { maxTokens: genMaxTokens, traceId, traceName: "question_generation" });
@@ -637,11 +660,17 @@ export async function generateQuestionsFromText({
       parsed = JSON.parse(extractJson(retryRaw));
     }
 
-    validation = validateQuestionSet(parsed, questionCount);
+    // Lần cuối: chấp nhận thiếu câu (miễn còn ≥1 câu hợp lệ) — degrade còn hơn 500
+    validation = validateQuestionSet(parsed, questionCount, { allowFewer: true });
     if (!validation.valid) {
       logger.error("llm_output_still_invalid", { reason: validation.reason, sessionId, userId });
       finalizeTrace(traceId, "error", validation.reason);
       throw new Error(`LLM output không hợp lệ sau retry: ${validation.reason}`);
+    }
+    if (parsed.questions.length < questionCount) {
+      logger.warn("llm_output_fewer_questions", {
+        reason: `got_${parsed.questions.length}_of_${questionCount}`, sessionId, userId,
+      });
     }
   }
 
