@@ -140,6 +140,41 @@ function containsFuzzy(a, b) {
   return na.includes(nb) || nb.includes(na);
 }
 
+// ── Rate-limit aware retry ────────────────────────────────────────────────────
+// Groq/OpenAI trả 429 kèm thời gian chờ THẬT (header `retry-after`, hoặc "Please try again in
+// 23.3s" nhét trong body). Backoff mũ 1s/2s/4s ngắn hơn con số đó cả chục lần → cả 3 attempt
+// rơi vào CÙNG một cửa sổ rate-limit, mà mỗi attempt lại tính thêm (input + max_tokens) vào
+// quota TPM → tự làm nghẽn chính mình. Luôn ưu tiên khoảng chờ provider yêu cầu.
+const RETRYABLE_STATUS    = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
+const MAX_RETRY_WAIT_MS   = 25_000; // chờ lâu hơn thì proxy (Render) có nguy cơ cắt request
+const LLM_TOTAL_BUDGET_MS = 60_000; // tổng thời gian tối đa cho 1 callLLM, kể cả thời gian chờ
+
+function parseRetryAfterMs(res, errBody) {
+  const header = res.headers?.get?.("retry-after");
+  if (header) {
+    const secs = Number(header);
+    if (Number.isFinite(secs) && secs > 0) return Math.ceil(secs * 1000);
+  }
+  // Groq không phải lúc nào cũng set header — thời gian chờ nằm trong message lỗi
+  const m = /try again in\s+([\d.]+)\s*(ms|s)\b/i.exec(String(errBody ?? ""));
+  if (m) {
+    const value = Number(m[1]);
+    if (Number.isFinite(value) && value > 0) {
+      return Math.ceil(m[2].toLowerCase() === "ms" ? value : value * 1000);
+    }
+  }
+  return null;
+}
+
+/** Lỗi HTTP từ provider — gắn status để controller map sang 503 thay vì 500 chung chung. */
+function buildLLMError(status, errBody, retryAfterMs) {
+  const err = new Error(`LLM HTTP ${status}: ${String(errBody).slice(0, 400)}`);
+  err.llmStatus = status;
+  if (status === 429) err.code = "llm_rate_limited";
+  if (retryAfterMs) err.retryAfterMs = retryAfterMs;
+  return err;
+}
+
 // ── LLM helper ────────────────────────────────────────────────────────────────
 /**
  * @param {string|{static: string, dynamic: string}} system - string = prompt nhỏ dùng 1 lần;
@@ -192,8 +227,11 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
 
   // ── OpenAI-compatible API (Groq, Gemini, OpenAI, OpenRouter, Ollama) ──────
   const { baseUrl, apiKey, model } = cfg();
+  const deadlineMs = startMs + LLM_TOTAL_BUDGET_MS;
   let lastErr;
   for (let attempt = 0; attempt <= retries; attempt++) {
+    // Fallback khi provider không nói rõ phải chờ bao lâu
+    let waitMs = Math.min(1000 * 2 ** attempt, 8_000);
     try {
       const useJsonMode = !isOllama(baseUrl);
       const res = await fetch(`${baseUrl.replace(/\/+$/, "")}/chat/completions`, {
@@ -218,39 +256,44 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
       if (!res.ok) {
         const errBody = await res.text().catch(() => "");
         console.error(`[LLM] attempt=${attempt} status=${res.status} body=${errBody.slice(0, 400)}`);
-        if ([429, 500, 502, 503].includes(res.status) && attempt < retries) {
-          await new Promise(r => setTimeout(r, Math.min(1000 * 2 ** attempt, 8_000)));
-          continue;
-        }
-        throw new Error(`LLM HTTP ${res.status}: ${errBody.slice(0, 400)}`);
+        const retryAfterMs = parseRetryAfterMs(res, errBody);
+        const err = buildLLMError(res.status, errBody, retryAfterMs);
+        if (!RETRYABLE_STATUS.has(res.status)) throw err;
+        lastErr = err;
+        // Tôn trọng khoảng chờ provider yêu cầu — thử lại sớm hơn chỉ tốn thêm quota TPM
+        waitMs = Math.min(retryAfterMs ?? waitMs, MAX_RETRY_WAIT_MS) + 250;
+      } else {
+        const data   = await res.json();
+        const output = data.choices?.[0]?.message?.content ?? "";
+
+        // Langfuse: log generation nếu có traceId (fire-and-forget)
+        logGeneration({
+          traceId,
+          name:         traceName ?? "llm_call",
+          model,
+          systemPrompt: systemToText(system),
+          userPrompt:   user,
+          output,
+          latencyMs:    Date.now() - startMs,
+          usage: {
+            inputTokens:  data.usage?.prompt_tokens,
+            outputTokens: data.usage?.completion_tokens,
+            totalTokens:  data.usage?.total_tokens,
+          },
+        });
+
+        return output;
       }
-
-      const data   = await res.json();
-      const output = data.choices?.[0]?.message?.content ?? "";
-
-      // Langfuse: log generation nếu có traceId (fire-and-forget)
-      logGeneration({
-        traceId,
-        name:         traceName ?? "llm_call",
-        model,
-        systemPrompt: systemToText(system),
-        userPrompt:   user,
-        output,
-        latencyMs:    Date.now() - startMs,
-        usage: {
-          inputTokens:  data.usage?.prompt_tokens,
-          outputTokens: data.usage?.completion_tokens,
-          totalTokens:  data.usage?.total_tokens,
-        },
-      });
-
-      return output;
     } catch (err) {
+      // Lỗi không thể retry (400 sai model, 401 sai key, …) — fail ngay, đừng đốt thêm quota
+      if (err?.llmStatus && !RETRYABLE_STATUS.has(err.llmStatus)) throw err;
       lastErr = err;
-      if (attempt < retries) {
-        await new Promise(r => setTimeout(r, Math.min(1000 * 2 ** attempt, 8_000)));
-      }
     }
+
+    if (attempt >= retries) break;
+    // Hết ngân sách thời gian → fail nhanh để FE còn kịp hiện lỗi, thay vì treo tới khi proxy cắt
+    if (Date.now() + waitMs > deadlineMs) break;
+    await new Promise(r => setTimeout(r, waitMs));
   }
   throw lastErr;
 }
@@ -550,15 +593,22 @@ export async function generateQuestionsFromText({
 
   const userMsg = buildSecureUserPrompt(ctxCV, ctxJD, questionCount, priorQAXmlBlock);
 
+  // Groq/OpenAI tính CẢ max_tokens vào hạn mức tokens-per-minute, không chỉ token thực sinh ra.
+  // Xin cứng 4000 cho 2 câu follow-up (thực tế cần ~1.5k) đốt 1/3 hạn mức 12k TPM của Groq free
+  // tier ở MỖI request → 429 ngay từ lần gọi thứ hai trong cùng một phút. Cấp theo số câu thật:
+  // ~850 token/câu (JSON tiếng Việt đủ star_guidance + rubric) + 600 khung, trần vẫn là 4000
+  // để bộ 5 câu giữ nguyên hành vi cũ.
+  const genMaxTokens = Math.min(4000, 600 + questionCount * 850);
+
   // Step 3: LLM call với SHRM/DDI grounded prompt
-  let rawContent = await callLLM(systemPrompt, userMsg, { traceId, traceName: "question_generation" });
+  let rawContent = await callLLM(systemPrompt, userMsg, { maxTokens: genMaxTokens, traceId, traceName: "question_generation" });
 
   let parsed;
   try {
     parsed = JSON.parse(extractJson(rawContent));
   } catch {
     const repairPrompt = "Sửa JSON sau thành JSON hợp lệ. Chỉ trả về JSON thuần, không giải thích:";
-    rawContent = await callLLM(repairPrompt, rawContent, { maxTokens: 3000, temp: 0, retries: 1, traceId, traceName: "question_json_repair" });
+    rawContent = await callLLM(repairPrompt, rawContent, { maxTokens: genMaxTokens, temp: 0, retries: 1, traceId, traceName: "question_json_repair" });
     parsed = JSON.parse(extractJson(rawContent));
   }
 
@@ -578,12 +628,12 @@ export async function generateQuestionsFromText({
 
     // One retry at temp=0 — deterministic output is more likely to be well-structured
     logger.warn("llm_output_retry", { reason: validation.reason, sessionId, userId });
-    let retryRaw = await callLLM(systemPrompt, userMsg, { temp: 0, maxTokens: 4000, retries: 1, traceId, traceName: "question_retry" });
+    let retryRaw = await callLLM(systemPrompt, userMsg, { temp: 0, maxTokens: genMaxTokens, retries: 1, traceId, traceName: "question_retry" });
     try {
       parsed = JSON.parse(extractJson(retryRaw));
     } catch {
       const repairPrompt = "Sửa JSON sau thành JSON hợp lệ. Chỉ trả về JSON thuần:";
-      retryRaw = await callLLM(repairPrompt, retryRaw, { maxTokens: 3000, temp: 0, retries: 1, traceId, traceName: "question_retry_repair" });
+      retryRaw = await callLLM(repairPrompt, retryRaw, { maxTokens: genMaxTokens, temp: 0, retries: 1, traceId, traceName: "question_retry_repair" });
       parsed = JSON.parse(extractJson(retryRaw));
     }
 
