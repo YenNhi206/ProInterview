@@ -480,6 +480,22 @@ export const InterviewsController = {
       res.json({ success: true, questions: result.questions });
     } catch (error) {
       logger.error("generate_followup_failed", { userId: req.userId, sessionId: req.params.id, error: error.message });
+
+      // Provider AI quá tải/rate-limit không phải bug server: trả 503 + thông điệp tiếng Việt để
+      // InterviewRoom hiện đúng lý do và mời thử lại, thay vì "Lỗi 500" vô nghĩa với ứng viên.
+      if (error.llmStatus) {
+        const retryAfterSeconds = Math.ceil((error.retryAfterMs ?? 30_000) / 1000);
+        res.setHeader("Retry-After", retryAfterSeconds);
+        return res.status(503).json({
+          success: false,
+          code:    error.code ?? "llm_unavailable",
+          error:   error.code === "llm_rate_limited"
+            ? "Hệ thống AI đang quá tải. Vui lòng đợi vài giây rồi thử lại."
+            : "Không tạo được câu hỏi cá nhân hóa lúc này. Vui lòng thử lại.",
+          retryAfterSeconds,
+        });
+      }
+
       res.status(500).json({ success: false, error: error.message });
     }
   },

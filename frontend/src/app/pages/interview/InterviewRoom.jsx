@@ -571,6 +571,10 @@ export default function InterviewRoom() {
   );
   const followUpInFlightRef = useRef(false);
   const [generatingFollowUp, setGeneratingFollowUp] = useState(false);
+  // Lỗi sinh câu hỏi follow-up (thường là LLM rate-limit, tự hết sau ~30s). Giữ transcripts tại
+  // thời điểm trigger để nút "Thử lại"/"Xem kết quả" dùng lại đúng dữ liệu.
+  const [followUpError, setFollowUpError] = useState("");
+  const followUpTranscriptsRef = useRef(null);
   // Progress "creep" + tip xoay vòng — cùng pattern với InterviewLoadingState (setup flow),
   // vì bước này cũng có thể chờ tới ~150s (sinh câu hỏi LLM + pregen video D-ID/Cloudinary).
   const [followUpProgress, setFollowUpProgress] = useState(0);
@@ -1174,11 +1178,13 @@ export default function InterviewRoom() {
   };
 
   /* ── Sinh 2 câu hỏi cá nhân hóa giữa buổi (Pro user, sau khi trả lời xong baseline) ──
-     Dùng CV/JD + câu trả lời thật của ứng viên cho 3 câu baseline làm context. Thất bại/timeout
-     → graceful degradation: kết thúc phỏng vấn ở baseline, không để user bị treo. ── */
+     Dùng CV/JD + câu trả lời thật của ứng viên cho 3 câu baseline làm context. Thất bại →
+     hiện lỗi + cho chọn thử lại hoặc kết thúc sớm (KHÔNG tự nhảy sang trang kết quả). ── */
   const triggerFollowUpGeneration = async (latestTranscripts) => {
     if (followUpInFlightRef.current) return;
     followUpInFlightRef.current = true;
+    followUpTranscriptsRef.current = latestTranscripts;
+    setFollowUpError("");
     setGeneratingFollowUp(true);
 
     try {
@@ -1197,7 +1203,7 @@ export default function InterviewRoom() {
         cvText, jdText, position, field, level, baselineAnswers,
       });
       if (!qRes.success || !qRes.questions?.length) {
-        throw new Error(qRes.error || "no_questions");
+        throw new Error(qRes.error || "Không tạo được câu hỏi cá nhân hóa.");
       }
 
       let newVideoUrls = qRes.questions.map(() => null);
@@ -1224,9 +1230,11 @@ export default function InterviewRoom() {
       redFlagsPerQRef.current.push(...Array(addCount).fill(null).map(() => []));
       setPersonalizedPending(false);
       setCurrentQ((prev) => prev + 1);
-    } catch {
-      setPersonalizedPending(false);
-      goToFeedback(latestTranscripts);
+    } catch (err) {
+      // Trước đây chỗ này gọi thẳng goToFeedback() → user đang chờ thì màn hình tự nhảy ra trang
+      // kết quả, không hiểu chuyện gì xảy ra. Nguyên nhân phổ biến nhất (LLM rate-limit) tự hết
+      // sau vài chục giây, nên để họ tự quyết định thử lại hay kết thúc sớm.
+      setFollowUpError(err?.message || "Không tạo được câu hỏi cá nhân hóa. Vui lòng thử lại.");
     } finally {
       setGeneratingFollowUp(false);
       followUpInFlightRef.current = false;
@@ -1448,22 +1456,56 @@ export default function InterviewRoom() {
           />
         )}
 
-        {generatingFollowUp && (
+        {(generatingFollowUp || followUpError) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-violet-950/40 backdrop-blur-sm">
             <div className="mx-4 w-full max-w-sm rounded-md bg-white p-6 shadow-2xl sm:p-8">
               <MascotVideo className="mb-4 mx-auto h-28 aspect-[766/720] overflow-hidden rounded-md sm:h-36" />
-              <p className="text-center text-sm font-semibold text-violet-800">
-                AI đang phân tích câu trả lời của bạn để tạo câu hỏi nâng cao...
-              </p>
-              <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-violet-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#630ed4] to-[#93f72b] transition-all duration-700 ease-out"
-                  style={{ width: `${followUpProgress}%` }}
-                />
-              </div>
-              <div className="mt-4 w-full rounded-md bg-violet-50 px-3 py-2.5 text-center text-xs text-violet-700">
-                {TIPS[followUpTipIdx]}
-              </div>
+              {followUpError ? (
+                <>
+                  <p className="text-center text-sm font-semibold text-violet-800">
+                    Chưa tạo được câu hỏi nâng cao
+                  </p>
+                  <p className="mt-2 text-center text-xs text-violet-700">{followUpError}</p>
+                  <p className="mt-3 text-center text-xs text-violet-500">
+                    3 câu bạn đã trả lời vẫn được lưu đầy đủ.
+                  </p>
+                  <div className="mt-5 flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => triggerFollowUpGeneration(followUpTranscriptsRef.current ?? allTranscripts)}
+                      className="w-full rounded-md bg-[#630ed4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#520bb0]"
+                    >
+                      Thử lại
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFollowUpError("");
+                        setPersonalizedPending(false);
+                        goToFeedback(followUpTranscriptsRef.current ?? allTranscripts);
+                      }}
+                      className="w-full rounded-md border border-violet-200 px-4 py-2.5 text-sm font-medium text-violet-700 transition hover:bg-violet-50"
+                    >
+                      Kết thúc &amp; xem kết quả
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-center text-sm font-semibold text-violet-800">
+                    AI đang phân tích câu trả lời của bạn để tạo câu hỏi nâng cao...
+                  </p>
+                  <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-violet-100">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#630ed4] to-[#93f72b] transition-all duration-700 ease-out"
+                      style={{ width: `${followUpProgress}%` }}
+                    />
+                  </div>
+                  <div className="mt-4 w-full rounded-md bg-violet-50 px-3 py-2.5 text-center text-xs text-violet-700">
+                    {TIPS[followUpTipIdx]}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
