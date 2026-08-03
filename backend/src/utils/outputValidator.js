@@ -24,9 +24,13 @@ const SUSPICIOUS_PATTERNS = [
  *
  * @param {unknown} obj
  * @param {number} [expectedCount=5]
+ * @param {object} [opts]
+ * @param {boolean} [opts.allowFewer=false] - Chấp nhận ít câu hơn yêu cầu (miễn ≥1). Dùng ở lần
+ *   validate CUỐI, sau khi retry đã thất bại: thà trả 1 câu cá nhân hóa còn hơn ném 500 khiến
+ *   ứng viên bị đá thẳng ra trang kết quả. Lần validate đầu vẫn strict để retry có cơ hội sửa.
  * @returns {{ valid: boolean, reason?: string }}
  */
-function validateQuestionSet(obj, expectedCount = 5) {
+function validateQuestionSet(obj, expectedCount = 5, { allowFewer = false } = {}) {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
     return { valid: false, reason: "not_an_object" };
   }
@@ -35,7 +39,10 @@ function validateQuestionSet(obj, expectedCount = 5) {
     return { valid: false, reason: "questions_not_array" };
   }
 
-  if (obj.questions.length !== expectedCount) {
+  const countOk = allowFewer
+    ? obj.questions.length >= 1
+    : obj.questions.length === expectedCount;
+  if (!countOk) {
     return { valid: false, reason: `expected_${expectedCount}_got_${obj.questions.length}` };
   }
 
