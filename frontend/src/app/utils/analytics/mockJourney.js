@@ -146,17 +146,33 @@ function buildCvSession(userId, prefix, rand, startAt) {
  * lượt duyệt trang thường, không vượt quá endAt (= hoạt động thật gần nhất). */
 function buildPostPurchasePhase({ userId, rand, startAt, endAt, eventBudget }) {
   const events = [];
-  let cursor = startAt + gapMs(rand);
+  let cursor = startAt;
   let remaining = eventBudget;
-  let unitIdx = 0;
-  const maxUnits = Math.max(1, Math.floor(eventBudget / 1.5));
 
+  // Ưu tiên chèn trước ít nhất 1 phiên phỏng vấn + 1 phiên CV nếu còn đủ vốn/chỗ —
+  // trước đây chọn hoàn toàn ngẫu nhiên nên nhiều tài khoản ít vốn (needed nhỏ) hết
+  // vốn/hết chỗ trước khi bao giờ roll trúng, timeline chỉ toàn duyệt trang suông.
+  const priorityUnits = [
+    { build: buildInterviewSession, cost: 3, prefix: "int0" },
+    { build: buildCvSession, cost: 4, prefix: "cv0" },
+  ];
+  for (const { build, cost, prefix } of priorityUnits) {
+    if (remaining < cost || cursor >= endAt) continue;
+    const unit = build(userId, prefix, rand, cursor);
+    if (unit.endAt > endAt) continue;
+    events.push(...unit.events);
+    remaining -= unit.events.length;
+    cursor = unit.endAt + gapMs(rand);
+  }
+
+  let unitIdx = 1;
+  const maxUnits = Math.max(1, Math.floor(eventBudget / 1.5));
   while (remaining > 0 && cursor < endAt && unitIdx < maxUnits) {
     const roll = rand();
     let unit;
-    if (roll < 0.3 && remaining >= 3) {
+    if (roll < 0.2 && remaining >= 3) {
       unit = buildInterviewSession(userId, `int${unitIdx}`, rand, cursor);
-    } else if (roll < 0.6 && remaining >= 4) {
+    } else if (roll < 0.4 && remaining >= 4) {
       unit = buildCvSession(userId, `cv${unitIdx}`, rand, cursor);
     } else {
       const durationMs = 3000 + Math.floor(rand() * 60000);
@@ -225,35 +241,40 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
 
   // Đúng luồng thật (Pricing.jsx → Checkout.jsx): bấm nâng cấp ở bảng giá trước,
   // rồi mới mở trang thanh toán, rồi mới hoàn tất — không chỉ mỗi plan_upgrade trơ trọi.
+  // Nếu tài khoản đã có sự kiện plan_upgrade THẬT rồi thì bỏ qua, không thêm bản giả
+  // trùng lặp (từng gây ra cảnh "Mở trang thanh toán" lặp lại nhiều lần trên Timeline).
+  const hasRealUpgradeEvent = realEvents.some((e) => e.type === "action" && e.action === "plan_upgrade");
   const checkoutStartAt = Math.max(signupAt, purchasedAt - (2 * 60000 + Math.floor(rand() * 8 * 60000)));
   const checkoutOpenAt = Math.max(checkoutStartAt, purchasedAt - (30000 + Math.floor(rand() * 90000)));
 
-  const purchaseFunnelEvents = [
-    {
-      _id: `mock-${userId}-checkout-start`,
-      type: "action",
-      action: "plan_checkout_start",
-      route: "/pricing",
-      createdAt: new Date(checkoutStartAt).toISOString(),
-      durationMs: 0,
-    },
-    {
-      _id: `mock-${userId}-checkout-open`,
-      type: "action",
-      action: "checkout_open",
-      route: "/checkout",
-      createdAt: new Date(checkoutOpenAt).toISOString(),
-      durationMs: 0,
-    },
-    {
-      _id: `mock-${userId}-upgrade`,
-      type: "action",
-      action: "plan_upgrade",
-      route: "/checkout",
-      createdAt: new Date(purchasedAt).toISOString(),
-      durationMs: 0,
-    },
-  ];
+  const purchaseFunnelEvents = hasRealUpgradeEvent
+    ? []
+    : [
+        {
+          _id: `mock-${userId}-checkout-start`,
+          type: "action",
+          action: "plan_checkout_start",
+          route: "/pricing",
+          createdAt: new Date(checkoutStartAt).toISOString(),
+          durationMs: 0,
+        },
+        {
+          _id: `mock-${userId}-checkout-open`,
+          type: "action",
+          action: "checkout_open",
+          route: "/checkout",
+          createdAt: new Date(checkoutOpenAt).toISOString(),
+          durationMs: 0,
+        },
+        {
+          _id: `mock-${userId}-upgrade`,
+          type: "action",
+          action: "plan_upgrade",
+          route: "/checkout",
+          createdAt: new Date(purchasedAt).toISOString(),
+          durationMs: 0,
+        },
+      ];
 
   const synthetic = [...preEvents, ...purchaseFunnelEvents, ...postEvents];
   const events = [...realEvents, ...synthetic].sort(
