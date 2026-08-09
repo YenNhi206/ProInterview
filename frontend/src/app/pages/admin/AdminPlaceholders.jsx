@@ -113,6 +113,22 @@ export function AdminUserDetail() {
     if (res.success) setUser({ ...user, isActive: user.isActive === false });
   };
 
+  // Tính 1 lần duy nhất — dùng chung cho khối hiển thị quota bên dưới VÀ truyền
+  // xuống UserJourneyPanel, để số phiên phỏng vấn/CV trong Timeline khớp đúng với
+  // số quota đã dùng hiển thị ở đây (trước đây 2 chỗ bù độc lập nên bị lệch số).
+  const cvUsed = user
+    ? ensureMinQuotaUsage(user._id, user.quota?.cvAnalysisUsed ?? 0, user.quota?.cvAnalysisLimit ?? 3, user.plan, "cvAnalysis")
+    : 0;
+  const interviewUsed = user
+    ? ensureMinQuotaUsage(
+        user._id,
+        user.quota?.interviewUsed ?? 0,
+        user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1,
+        user.plan,
+        "interview",
+      )
+    : 0;
+
   return (
     <AdminPanel title="Chi tiết người dùng" description="Thông tin tài khoản, quota và hành trình trên nền tảng.">
       {loading && <p className="text-sm text-slate-500">Đang tải…</p>}
@@ -125,26 +141,11 @@ export function AdminUserDetail() {
             <p><span className="font-semibold">Vai trò:</span> {user.role}</p>
             <p><span className="font-semibold">Gói:</span> {user.plan || "free"}</p>
             <p>
-              <span className="font-semibold">CV đã dùng:</span>{" "}
-              {ensureMinQuotaUsage(
-                user._id,
-                user.quota?.cvAnalysisUsed ?? 0,
-                user.quota?.cvAnalysisLimit ?? 3,
-                user.plan,
-                "cvAnalysis",
-              )}{" "}
-              / {user.quota?.cvAnalysisLimit ?? 3}
+              <span className="font-semibold">CV đã dùng:</span> {cvUsed} / {user.quota?.cvAnalysisLimit ?? 3}
             </p>
             <p>
-              <span className="font-semibold">Phỏng vấn AI:</span>{" "}
-              {ensureMinQuotaUsage(
-                user._id,
-                user.quota?.interviewUsed ?? 0,
-                user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1,
-                user.plan,
-                "interview",
-              )}{" "}
-              / {user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1}
+              <span className="font-semibold">Phỏng vấn AI:</span> {interviewUsed} /{" "}
+              {user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1}
             </p>
             <p><span className="font-semibold">Lịch hẹn:</span> {user.stats?.bookingsCount ?? 0}</p>
             <p><span className="font-semibold">Khóa học:</span> {user.stats?.enrollmentsCount ?? 0}</p>
@@ -179,6 +180,8 @@ export function AdminUserDetail() {
             plan={user.plan}
             createdAt={user.createdAt}
             planExpiresAt={user.planExpiresAt}
+            interviewUsed={interviewUsed}
+            cvUsed={cvUsed}
           />
         </motion.div>
       )}
