@@ -153,7 +153,12 @@ export function AdminUserDetail() {
           className="rounded-2xl border border-slate-200 bg-white p-6"
         >
           <h3 className="mb-4 text-lg font-black text-slate-900">Hành trình người dùng</h3>
-          <UserJourneyPanel userId={user._id} />
+          <UserJourneyPanel
+            userId={user._id}
+            plan={user.plan}
+            createdAt={user.createdAt}
+            planExpiresAt={user.planExpiresAt}
+          />
         </motion.div>
       )}
     </AdminPanel>
