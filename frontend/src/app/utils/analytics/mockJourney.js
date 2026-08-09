@@ -8,6 +8,8 @@
  * gói → hiện tại, dùng tính năng Pro/Elite), mỗi sự kiện cách nhau ít nhất ~18-46h
  * để không dồn hết vào một ngày. */
 
+import { hashSeed, mulberry32, shuffle, pick } from "./seededRandom.js";
+
 const PRE_PURCHASE_ROUTES = ["/", "/pricing", "/mentors", "/courses", "/cv-analysis", "/dashboard"];
 
 const POST_PURCHASE_ROUTES = [
@@ -37,39 +39,6 @@ const MIN_ROUTE_COUNT = 4;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MIN_GAP_MS = 18 * 60 * 60 * 1000; // 18h
 const MAX_GAP_MS = 46 * 60 * 60 * 1000; // 46h
-
-function hashSeed(str) {
-  let h = 0;
-  const s = String(str || "");
-  for (let i = 0; i < s.length; i += 1) {
-    h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0;
-  }
-  return h || 1;
-}
-
-function mulberry32(seed) {
-  let a = seed;
-  return function rand() {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function shuffle(arr, rand) {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(rand() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
-function pick(arr, rand) {
-  return arr[Math.floor(rand() * arr.length)];
-}
 
 function gapMs(rand) {
   return MIN_GAP_MS + Math.floor(rand() * (MAX_GAP_MS - MIN_GAP_MS));
