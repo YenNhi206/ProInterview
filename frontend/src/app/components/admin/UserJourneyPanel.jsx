@@ -14,12 +14,12 @@ export function UserJourneyPanel({ userId, plan, createdAt, planExpiresAt, inter
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const res = await tryApi(() => adminApi.getUserJourney(userId, { days: 30, limit: 80 }), {
+    const res = await tryApi(() => adminApi.getUserJourney(userId, { days: 30, limit: 100 }), {
       fallback: "Không tải được hành trình người dùng.",
       silent: true,
     });
     let nextJourney = res.success ? res.journey || null : null;
-    // User Pro/Elite có dưới 25 sự kiện tracking thật (vd. mới bật tính năng, hoặc
+    // User Pro/Elite có dưới 100 sự kiện tracking thật (vd. mới bật tính năng, hoặc
     // ít khi mở app) thì bù thêm sự kiện mẫu cho đủ mức hợp lý, giữ nguyên dữ liệu thật.
     // Timeline bù tôn trọng ngày đăng ký / ngày mua gói thật, không dồn cùng 1 ngày.
     // Số phiên phỏng vấn/CV được bù khớp đúng interviewUsed/cvUsed (đã bù ở khối

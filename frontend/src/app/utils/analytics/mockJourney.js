@@ -17,7 +17,7 @@ const PRE_PURCHASE_ROUTES = ["/", "/pricing", "/mentors", "/courses", "/cv-analy
 
 const BROWSE_ROUTES = ["/mentors", "/courses", "/dashboard", "/profile"];
 
-const MIN_REAL_EVENTS = 25;
+const MIN_REAL_EVENTS = 100;
 const MIN_ROUTE_COUNT = 4;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MIN_GAP_MS = 18 * 60 * 60 * 1000; // 18h
