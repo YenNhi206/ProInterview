@@ -13,7 +13,10 @@
 
 import { hashSeed, mulberry32, pick } from "./seededRandom.js";
 
-const PRE_PURCHASE_ROUTES = ["/", "/pricing", "/mentors", "/courses", "/cv-analysis", "/dashboard"];
+// Không có "/cv-analysis" ở đây — route đó chỉ được sinh trong buildCvSession (đi
+// kèm "/cv-analysis/history" theo đúng cặp), để 2 dòng "Phân tích CV"/"Lịch sử phân
+// tích CV" ở bảng Top trang luôn khớp số nhau, không lệch do duyệt trang rời rạc.
+const PRE_PURCHASE_ROUTES = ["/", "/pricing", "/mentors", "/courses", "/dashboard"];
 
 const BROWSE_ROUTES = ["/mentors", "/courses", "/dashboard", "/profile"];
 
@@ -313,7 +316,9 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
     cur.totalMs += ev.durationMs;
     routeStats.set(ev.route, cur);
   }
-  const fallbackRoutes = ["/interview/room", "/cv-analysis", "/mentors", "/courses", "/dashboard"];
+  // Không dùng "/cv-analysis" hay "/cv-analysis/history" riêng lẻ ở đây — sẽ lại lệch
+  // cặp với nhau như trước khi sửa.
+  const fallbackRoutes = ["/interview/room", "/mentors", "/courses", "/dashboard", "/profile"];
   let idx = 0;
   while (routeStats.size < MIN_ROUTE_COUNT && idx < fallbackRoutes.length) {
     const route = fallbackRoutes[idx];
