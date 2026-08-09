@@ -231,10 +231,15 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
     routePool: PRE_PURCHASE_ROUTES,
   });
 
+  // Độ trễ trước sự kiện ĐẦU TIÊN sau khi mua chỉ vài phút-vài giờ (khách vừa nâng
+  // cấp thường thử dùng ngay hôm đó) — không dùng gapMs() (18-46h) ở đây, vì nếu
+  // hoạt động thật gần nhất (postEndAt) đến sớm hơn mốc đó thì cả giai đoạn này,
+  // kể cả phiên ưu tiên, sẽ bị bỏ trống hoàn toàn ngay từ dòng đầu tiên.
+  const firstPostDelayMs = 5 * 60000 + Math.floor(rand() * 6 * 60 * 60000); // 5 phút - ~6 giờ
   const postEvents = buildPostPurchasePhase({
     userId,
     rand,
-    startAt: purchasedAt + gapMs(rand),
+    startAt: purchasedAt + firstPostDelayMs,
     endAt: postEndAt,
     eventBudget: postBudget,
   });
