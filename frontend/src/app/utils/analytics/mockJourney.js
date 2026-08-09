@@ -1,14 +1,15 @@
 /** Bù dữ liệu hành trình cho user Pro/Elite có quá ít sự kiện tracking thật.
  * Giữ nguyên mọi sự kiện/route thật đã có, chỉ chèn thêm sự kiện giả (seed theo
- * userId nên ổn định giữa các lần tải, khác nhau giữa các tài khoản) cho tới khi
- * đạt tổng hợp lý với gói đang dùng.
+ * userId nên ổn định giữa các lần tải, khác nhau giữa các tài khoản).
  *
  * Timeline giả tôn trọng mốc thời gian thật: có một giai đoạn "trước khi mua" (đăng
- * ký → mua gói, chỉ dạo web/dashboard/pricing, không có hành động) và một giai đoạn
- * "sau khi mua" (mua gói → hoạt động thật gần nhất) gồm các phiên có logic — bắt đầu
- * phỏng vấn/phân tích CV rồi mới hoàn thành, chứ không phải hành động rời rạc ngẫu
- * nhiên — xen với vài lượt duyệt trang thường. Sự kiện giả không bao giờ mới hơn
- * hoạt động thật gần nhất (nếu không sẽ chôn sự kiện thật xuống dưới Timeline). */
+ * ký → mua gói, chỉ dạo web/dashboard/pricing, không có hành động — không được mới
+ * hơn hoạt động thật gần nhất) và một giai đoạn "sau khi mua" gồm ĐÚNG số phiên
+ * phỏng vấn/phân tích CV còn thiếu so với quota đã dùng (cvUsed/interviewUsed) —
+ * bắt đầu → hoàn thành có logic, không phải hành động rời rạc ngẫu nhiên. Phiên
+ * dạng này được phép mới hơn hoạt động thật gần nhất (tới tận hiện tại), vì nó đại
+ * diện cho usage thật đã tính vào quota mà hệ thống tracking không ghi lại lúc nào —
+ * lastStop/lastAction trả về luôn lấy đúng sự kiện mới nhất sau khi gộp. */
 
 import { hashSeed, mulberry32, pick } from "./seededRandom.js";
 
@@ -53,7 +54,7 @@ function buildBrowsingPhase({ userId, prefix, rand, startAt, endAt, routePool })
       type: "view",
       route: pick(routePool, rand),
       createdAt: new Date(cursor).toISOString(),
-      durationMs: 3000 + Math.floor(rand() * 40000),
+      durationMs: 15000 + Math.floor(rand() * 75000), // 15 giây - 1 phút 30
     });
     cursor -= gapMs(rand);
   }
@@ -167,7 +168,7 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
     const doBrowse = browseLeft > 0 && idx > 0 && idx % 3 === 0;
     let unit;
     if (doBrowse) {
-      const durationMs = 3000 + Math.floor(rand() * 60000);
+      const durationMs = 15000 + Math.floor(rand() * 75000); // 15 giây - 1 phút 30
       unit = {
         events: [
           {
@@ -208,7 +209,16 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
   const rand = mulberry32(hashSeed(userId));
   const now = Date.now();
   const signupAt = createdAt ? new Date(createdAt).getTime() : now - 60 * DAY_MS;
-  const purchasedAt = estimatePurchasedAt(signupAt, planExpiresAt, now);
+
+  // Nếu tài khoản đã có sự kiện plan_upgrade THẬT, dùng đúng thời điểm đó thay vì
+  // ước lượng từ planExpiresAt (vốn có thể lệch xa nếu gói đã gia hạn) — ước lượng
+  // sai khiến purchasedAt tính ra muộn hơn cả hoạt động thật gần nhất, làm hỏng toàn
+  // bộ cửa sổ thời gian bù ở bước sau.
+  const realUpgradeEvent = realEvents.find((e) => e.type === "action" && e.action === "plan_upgrade");
+  const hasRealUpgradeEvent = Boolean(realUpgradeEvent);
+  const purchasedAt = hasRealUpgradeEvent
+    ? new Date(realUpgradeEvent.createdAt).getTime()
+    : estimatePurchasedAt(signupAt, planExpiresAt, now);
 
   // Số phiên giả cần thêm = quota đã dùng (đã bù ở khối info) trừ số phiên thật đã
   // có trong sự kiện — để Timeline không lệch số với "CV đã dùng"/"Phỏng vấn AI" hiển
@@ -217,13 +227,6 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
   const realCvCount = realEvents.filter((e) => e.type === "action" && e.action === "cv_analyze_done").length;
   const interviewNeeded = Math.max(0, (Number(interviewUsed) || 0) - realInterviewCount);
   const cvNeeded = Math.max(0, (Number(cvUsed) || 0) - realCvCount);
-
-  // Sự kiện giả không bao giờ được mới hơn hoạt động thật gần nhất — nếu không,
-  // nó sẽ chen lên đầu Timeline (sắp mới nhất trước) và che mất sự kiện thật.
-  const mostRecentRealAt = realEvents.length
-    ? Math.max(...realEvents.map((e) => new Date(e.createdAt).getTime()))
-    : null;
-  const postEndAt = mostRecentRealAt !== null ? Math.min(now, mostRecentRealAt) : now;
 
   const preEvents = buildBrowsingPhase({
     userId,
@@ -235,15 +238,18 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
   });
 
   // Độ trễ trước sự kiện ĐẦU TIÊN sau khi mua chỉ vài phút-vài giờ (khách vừa nâng
-  // cấp thường thử dùng ngay hôm đó) — không dùng gapMs() (18-46h) ở đây, vì nếu
-  // hoạt động thật gần nhất (postEndAt) đến sớm hơn mốc đó thì cả giai đoạn này,
-  // kể cả phiên ưu tiên, sẽ bị bỏ trống hoàn toàn ngay từ dòng đầu tiên.
+  // cấp thường thử dùng ngay hôm đó).
+  // Phiên phỏng vấn/CV ở đây được PHÉP mới hơn "hoạt động thật gần nhất" (khác quy
+  // tắc chung) — vì chúng đại diện cho usage THẬT đã tính vào quota (cvUsed/
+  // interviewUsed) nhưng hệ thống tracking không ghi lại lúc nào; khóa cứng ở mốc
+  // cũ sẽ khiến quota > 0 mà Timeline không bao giờ chèn được phiên nào (đúng lỗi đã
+  // gặp: "CV đã dùng 5" nhưng Timeline trống trơn vì cửa sổ = 0).
   const firstPostDelayMs = 5 * 60000 + Math.floor(rand() * 6 * 60 * 60000); // 5 phút - ~6 giờ
   const postEvents = buildPostPurchasePhase({
     userId,
     rand,
     startAt: purchasedAt + firstPostDelayMs,
-    endAt: postEndAt,
+    endAt: now,
     interviewNeeded,
     cvNeeded,
   });
@@ -252,7 +258,6 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
   // rồi mới mở trang thanh toán, rồi mới hoàn tất — không chỉ mỗi plan_upgrade trơ trọi.
   // Nếu tài khoản đã có sự kiện plan_upgrade THẬT rồi thì bỏ qua, không thêm bản giả
   // trùng lặp (từng gây ra cảnh "Mở trang thanh toán" lặp lại nhiều lần trên Timeline).
-  const hasRealUpgradeEvent = realEvents.some((e) => e.type === "action" && e.action === "plan_upgrade");
   const checkoutStartAt = Math.max(signupAt, purchasedAt - (2 * 60000 + Math.floor(rand() * 8 * 60000)));
   const checkoutOpenAt = Math.max(checkoutStartAt, purchasedAt - (30000 + Math.floor(rand() * 90000)));
 
@@ -315,16 +320,19 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
     .map(([route, stat]) => ({ route, ...stat }))
     .sort((a, b) => b.totalMs - a.totalMs);
 
+  // Lấy trực tiếp từ events đã gộp + sắp mới nhất trước — không còn ưu tiên cứng
+  // realJourney.lastStop/lastAction, vì phiên phỏng vấn/CV bù theo quota (ở trên)
+  // được phép mới hơn hoạt động thật cũ, nên có thể chính nó mới là "gần nhất" thật.
   const lastView = events.find((e) => e.type === "view");
   const lastAction = events.find((e) => e.type === "action");
 
   return {
-    lastStop:
-      realJourney?.lastStop ||
-      (lastView ? { route: lastView.route, at: lastView.createdAt, durationMs: lastView.durationMs } : null),
-    lastAction:
-      realJourney?.lastAction ||
-      (lastAction ? { action: lastAction.action, route: lastAction.route, at: lastAction.createdAt } : null),
+    lastStop: lastView
+      ? { route: lastView.route, at: lastView.createdAt, durationMs: lastView.durationMs }
+      : realJourney?.lastStop || null,
+    lastAction: lastAction
+      ? { action: lastAction.action, route: lastAction.route, at: lastAction.createdAt }
+      : realJourney?.lastAction || null,
     topRoutes,
     events,
   };
