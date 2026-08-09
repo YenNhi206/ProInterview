@@ -142,44 +142,36 @@ function buildCvSession(userId, prefix, rand, startAt) {
   };
 }
 
-/** Giai đoạn sau khi mua: xen kẽ phiên phỏng vấn / phân tích CV có logic với vài
- * lượt duyệt trang thường, không vượt quá endAt (= hoạt động thật gần nhất). */
-function buildPostPurchasePhase({ userId, rand, startAt, endAt, eventBudget }) {
+const SESSION_GAP_MIN_MS = 20 * 60000; // 20 phút
+const SESSION_GAP_MAX_MS = 5 * 60 * 60000; // 5 giờ
+
+function sessionGapMs(rand) {
+  return SESSION_GAP_MIN_MS + Math.floor(rand() * (SESSION_GAP_MAX_MS - SESSION_GAP_MIN_MS));
+}
+
+/** Giai đoạn sau khi mua: sinh ĐÚNG interviewNeeded phiên phỏng vấn + cvNeeded phiên
+ * phân tích CV (khớp số quota đã dùng hiển thị ở khối info phía trên), xen thêm vài
+ * lượt duyệt trang cho tự nhiên. Khoảng cách giữa các phiên gần hơn khoảng cách
+ * duyệt trang thường (mới đủ chỗ nhồi nhiều phiên nếu quota dùng cao). Dừng sớm nếu
+ * hết chỗ trước endAt (= hoạt động thật gần nhất) — thà thiếu còn hơn phá mốc thời
+ * gian thật. */
+function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded, cvNeeded }) {
   const events = [];
   let cursor = startAt;
-  let remaining = eventBudget;
+  let ivLeft = Math.max(0, interviewNeeded);
+  let cvLeft = Math.max(0, cvNeeded);
+  let browseLeft = 3;
+  let idx = 0;
 
-  // Ưu tiên chèn trước ít nhất 1 phiên phỏng vấn + 1 phiên CV nếu còn đủ vốn/chỗ —
-  // trước đây chọn hoàn toàn ngẫu nhiên nên nhiều tài khoản ít vốn (needed nhỏ) hết
-  // vốn/hết chỗ trước khi bao giờ roll trúng, timeline chỉ toàn duyệt trang suông.
-  const priorityUnits = [
-    { build: buildInterviewSession, cost: 3, prefix: "int0" },
-    { build: buildCvSession, cost: 4, prefix: "cv0" },
-  ];
-  for (const { build, cost, prefix } of priorityUnits) {
-    if (remaining < cost || cursor >= endAt) continue;
-    const unit = build(userId, prefix, rand, cursor);
-    if (unit.endAt > endAt) continue;
-    events.push(...unit.events);
-    remaining -= unit.events.length;
-    cursor = unit.endAt + gapMs(rand);
-  }
-
-  let unitIdx = 1;
-  const maxUnits = Math.max(1, Math.floor(eventBudget / 1.5));
-  while (remaining > 0 && cursor < endAt && unitIdx < maxUnits) {
-    const roll = rand();
+  while ((ivLeft > 0 || cvLeft > 0 || browseLeft > 0) && cursor < endAt) {
+    const doBrowse = browseLeft > 0 && idx > 0 && idx % 3 === 0;
     let unit;
-    if (roll < 0.2 && remaining >= 3) {
-      unit = buildInterviewSession(userId, `int${unitIdx}`, rand, cursor);
-    } else if (roll < 0.4 && remaining >= 4) {
-      unit = buildCvSession(userId, `cv${unitIdx}`, rand, cursor);
-    } else {
+    if (doBrowse) {
       const durationMs = 3000 + Math.floor(rand() * 60000);
       unit = {
         events: [
           {
-            _id: `mock-${userId}-browse${unitIdx}`,
+            _id: `mock-${userId}-browse${idx}`,
             type: "view",
             route: pick(BROWSE_ROUTES, rand),
             createdAt: new Date(cursor).toISOString(),
@@ -188,20 +180,28 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, eventBudget }) {
         ],
         endAt: cursor + durationMs,
       };
+      browseLeft -= 1;
+    } else if (ivLeft > 0 && (cvLeft === 0 || rand() < 0.5)) {
+      unit = buildInterviewSession(userId, `int${idx}`, rand, cursor);
+      ivLeft -= 1;
+    } else if (cvLeft > 0) {
+      unit = buildCvSession(userId, `cv${idx}`, rand, cursor);
+      cvLeft -= 1;
+    } else {
+      break;
     }
 
     if (unit.endAt > endAt) break;
     events.push(...unit.events);
-    remaining -= unit.events.length;
-    unitIdx += 1;
-    cursor = unit.endAt + gapMs(rand);
+    cursor = unit.endAt + sessionGapMs(rand);
+    idx += 1;
   }
 
   return events;
 }
 
 /** Trả về journey đã bù, hoặc journey gốc nếu đã đủ sự kiện thật (>= MIN_REAL_EVENTS). */
-export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresAt } = {}) {
+export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresAt, interviewUsed, cvUsed } = {}) {
   const realEvents = realJourney?.events || [];
   if (realEvents.length >= MIN_REAL_EVENTS) return realJourney;
 
@@ -210,10 +210,13 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
   const signupAt = createdAt ? new Date(createdAt).getTime() : now - 60 * DAY_MS;
   const purchasedAt = estimatePurchasedAt(signupAt, planExpiresAt, now);
 
-  const targetTotal = MIN_REAL_EVENTS + Math.floor(rand() * 16); // 25-40
-  const needed = Math.max(0, targetTotal - realEvents.length);
-  const preCount = Math.max(2, Math.round(needed * 0.2));
-  const postBudget = needed - preCount;
+  // Số phiên giả cần thêm = quota đã dùng (đã bù ở khối info) trừ số phiên thật đã
+  // có trong sự kiện — để Timeline không lệch số với "CV đã dùng"/"Phỏng vấn AI" hiển
+  // thị phía trên.
+  const realInterviewCount = realEvents.filter((e) => e.type === "action" && e.action === "interview_complete").length;
+  const realCvCount = realEvents.filter((e) => e.type === "action" && e.action === "cv_analyze_done").length;
+  const interviewNeeded = Math.max(0, (Number(interviewUsed) || 0) - realInterviewCount);
+  const cvNeeded = Math.max(0, (Number(cvUsed) || 0) - realCvCount);
 
   // Sự kiện giả không bao giờ được mới hơn hoạt động thật gần nhất — nếu không,
   // nó sẽ chen lên đầu Timeline (sắp mới nhất trước) và che mất sự kiện thật.
@@ -241,7 +244,8 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
     rand,
     startAt: purchasedAt + firstPostDelayMs,
     endAt: postEndAt,
-    eventBudget: postBudget,
+    interviewNeeded,
+    cvNeeded,
   });
 
   // Đúng luồng thật (Pricing.jsx → Checkout.jsx): bấm nâng cấp ở bảng giá trước,
