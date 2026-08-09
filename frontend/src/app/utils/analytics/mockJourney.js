@@ -17,7 +17,6 @@ const POST_PURCHASE_ROUTES = [
   "/interview/room",
   "/interview/feedback",
   "/mentors",
-  "/booking",
   "/courses",
   "/dashboard",
   "/cv-analysis",
@@ -25,14 +24,10 @@ const POST_PURCHASE_ROUTES = [
   "/profile",
 ];
 
-const POST_PURCHASE_ACTIONS = [
-  "interview_start",
-  "interview_complete",
-  "cv_analyze_start",
-  "cv_analyze_done",
-  "booking_submit",
-  "course_enroll",
-];
+// Không có booking_submit / course_enroll — user chưa thật sự đặt lịch hay mua
+// khóa học (Lịch hẹn/Khóa học ở khối info trên vẫn lấy số thật, không bù), nên
+// timeline giả không được bịa ra các hành động đó.
+const POST_PURCHASE_ACTIONS = ["interview_start", "interview_complete", "cv_analyze_start", "cv_analyze_done"];
 
 const MIN_REAL_EVENTS = 25;
 const MIN_ROUTE_COUNT = 4;
