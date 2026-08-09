@@ -161,11 +161,15 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
   let cursor = startAt;
   let ivLeft = Math.max(0, interviewNeeded);
   let cvLeft = Math.max(0, cvNeeded);
-  let browseLeft = 3;
+  // Tỉ lệ theo số phiên — càng nhiều phiên (quota dùng cao) càng cần nhiều lượt
+  // duyệt trang xen giữa, không thì bị dồn cục toàn phiên liên tiếp không tự nhiên.
+  let browseLeft = Math.max(2, Math.round((ivLeft + cvLeft) * 0.7));
   let idx = 0;
+  let sinceBrowse = 0;
 
   while ((ivLeft > 0 || cvLeft > 0 || browseLeft > 0) && cursor < endAt) {
-    const doBrowse = browseLeft > 0 && idx > 0 && idx % 3 === 0;
+    // Random nhưng ép chen sau tối đa 2 phiên liên tiếp, không để dồn cục.
+    const doBrowse = browseLeft > 0 && idx > 0 && (sinceBrowse >= 2 || rand() < 0.5);
     let unit;
     if (doBrowse) {
       const durationMs = 15000 + Math.floor(rand() * 75000); // 15 giây - 1 phút 30
@@ -182,12 +186,15 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
         endAt: cursor + durationMs,
       };
       browseLeft -= 1;
+      sinceBrowse = 0;
     } else if (ivLeft > 0 && (cvLeft === 0 || rand() < 0.5)) {
       unit = buildInterviewSession(userId, `int${idx}`, rand, cursor);
       ivLeft -= 1;
+      sinceBrowse += 1;
     } else if (cvLeft > 0) {
       unit = buildCvSession(userId, `cv${idx}`, rand, cursor);
       cvLeft -= 1;
+      sinceBrowse += 1;
     } else {
       break;
     }
