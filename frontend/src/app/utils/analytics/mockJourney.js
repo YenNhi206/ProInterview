@@ -223,16 +223,39 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
     eventBudget: postBudget,
   });
 
-  const upgradeEvent = {
-    _id: `mock-${userId}-upgrade`,
-    type: "action",
-    action: "plan_upgrade",
-    route: "/checkout",
-    createdAt: new Date(purchasedAt).toISOString(),
-    durationMs: 0,
-  };
+  // Đúng luồng thật (Pricing.jsx → Checkout.jsx): bấm nâng cấp ở bảng giá trước,
+  // rồi mới mở trang thanh toán, rồi mới hoàn tất — không chỉ mỗi plan_upgrade trơ trọi.
+  const checkoutStartAt = Math.max(signupAt, purchasedAt - (2 * 60000 + Math.floor(rand() * 8 * 60000)));
+  const checkoutOpenAt = Math.max(checkoutStartAt, purchasedAt - (30000 + Math.floor(rand() * 90000)));
 
-  const synthetic = [...preEvents, upgradeEvent, ...postEvents];
+  const purchaseFunnelEvents = [
+    {
+      _id: `mock-${userId}-checkout-start`,
+      type: "action",
+      action: "plan_checkout_start",
+      route: "/pricing",
+      createdAt: new Date(checkoutStartAt).toISOString(),
+      durationMs: 0,
+    },
+    {
+      _id: `mock-${userId}-checkout-open`,
+      type: "action",
+      action: "checkout_open",
+      route: "/checkout",
+      createdAt: new Date(checkoutOpenAt).toISOString(),
+      durationMs: 0,
+    },
+    {
+      _id: `mock-${userId}-upgrade`,
+      type: "action",
+      action: "plan_upgrade",
+      route: "/checkout",
+      createdAt: new Date(purchasedAt).toISOString(),
+      durationMs: 0,
+    },
+  ];
+
+  const synthetic = [...preEvents, ...purchaseFunnelEvents, ...postEvents];
   const events = [...realEvents, ...synthetic].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
   );
