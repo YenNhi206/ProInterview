@@ -146,19 +146,25 @@ function buildCvSession(userId, prefix, rand, startAt) {
   };
 }
 
-const SESSION_GAP_MIN_MS = 20 * 60000; // 20 phút
-const SESSION_GAP_MAX_MS = 5 * 60 * 60000; // 5 giờ
+const SESSION_GAP_FLOOR_MS = 2 * 60000; // 2 phút — tối thiểu tuyệt đối giữa 2 phiên
+const SESSION_GAP_MAX_MS = 5 * 60 * 60000; // 5 giờ — tối đa khi còn dư dả thời gian
 
-function sessionGapMs(rand) {
-  return SESSION_GAP_MIN_MS + Math.floor(rand() * (SESSION_GAP_MAX_MS - SESSION_GAP_MIN_MS));
+/** Khoảng cách tới đơn vị (phiên/duyệt trang) tiếp theo — co giãn theo thời gian còn
+ * lại chia cho số đơn vị còn phải chèn, để KHÔNG dùng hết cửa sổ thời gian giữa
+ * chừng rồi bỏ cuộc (quota nói cần N phiên nhưng chỉ chèn được 1-2 vì gap cố định
+ * quá dài so với cửa sổ hẹp). Vẫn có chút ngẫu nhiên (60-100% mức tính được). */
+function adaptiveGapMs(rand, remainingTimeMs, remainingUnits) {
+  const avg = remainingUnits > 0 ? remainingTimeMs / (remainingUnits + 1) : SESSION_GAP_MAX_MS;
+  const capped = Math.max(SESSION_GAP_FLOOR_MS, Math.min(SESSION_GAP_MAX_MS, avg));
+  return Math.floor(capped * (0.6 + rand() * 0.4));
 }
 
 /** Giai đoạn sau khi mua: sinh ĐÚNG interviewNeeded phiên phỏng vấn + cvNeeded phiên
  * phân tích CV (khớp số quota đã dùng hiển thị ở khối info phía trên), xen thêm vài
- * lượt duyệt trang cho tự nhiên. Khoảng cách giữa các phiên gần hơn khoảng cách
- * duyệt trang thường (mới đủ chỗ nhồi nhiều phiên nếu quota dùng cao). Dừng sớm nếu
- * hết chỗ trước endAt (= hoạt động thật gần nhất) — thà thiếu còn hơn phá mốc thời
- * gian thật. */
+ * lượt duyệt trang cho tự nhiên. Khoảng cách giữa các đơn vị co giãn theo thời gian
+ * còn lại (adaptiveGapMs) — quota càng cao thì gap càng ngắn tự động, để chèn được
+ * ĐỦ số phiên cần thiết thay vì hết cửa sổ giữa chừng rồi bỏ cuộc. Chỉ dừng sớm khi
+ * cửa sổ thời gian thật sự quá hẹp (không đủ chứa nổi 1 phiên trọn vẹn nữa). */
 function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded, cvNeeded }) {
   const events = [];
   let cursor = startAt;
@@ -204,7 +210,9 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
 
     if (unit.endAt > endAt) break;
     events.push(...unit.events);
-    cursor = unit.endAt + sessionGapMs(rand);
+    const remainingUnits = ivLeft + cvLeft + browseLeft;
+    const remainingTimeMs = Math.max(0, endAt - unit.endAt);
+    cursor = unit.endAt + adaptiveGapMs(rand, remainingTimeMs, remainingUnits);
     idx += 1;
   }
 
