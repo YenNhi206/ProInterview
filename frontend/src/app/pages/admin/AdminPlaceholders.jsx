@@ -79,11 +79,16 @@ export function AdminUserDetail() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Có thể được UserJourneyPanel nới rộng hơn user.lastSeenAt thật (xem
+  // effectiveLastSeenAt trong ensureRichJourney) khi cửa sổ thời gian thật quá hẹp để
+  // chứa đủ phiên bù — dùng giá trị này để khối "Trực tuyến" khớp với Timeline.
+  const [displayLastSeenAt, setDisplayLastSeenAt] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       setLoading(true);
+      setDisplayLastSeenAt(null);
       const res = await tryApi(() => adminApi.getUserById(id), {
         fallback: "Không tải được người dùng.",
         silent: true,
@@ -154,7 +159,11 @@ export function AdminUserDetail() {
                 ? "— (tài khoản khóa)"
                 : user.isOnline
                   ? "Đang online"
-                  : `Không online · ${user.lastSeenAt ? new Date(user.lastSeenAt).toLocaleString("vi-VN") : "chưa từng"}`}
+                  : `Không online · ${
+                      displayLastSeenAt || user.lastSeenAt
+                        ? new Date(displayLastSeenAt || user.lastSeenAt).toLocaleString("vi-VN")
+                        : "chưa từng"
+                    }`}
             </p>
             <p><span className="font-semibold">Tài khoản:</span> {user.isActive === false ? "Đã khóa" : "Đang mở"}</p>
             <p><span className="font-semibold">Đăng ký:</span> {user.createdAt ? new Date(user.createdAt).toLocaleString("vi-VN") : "—"}</p>
@@ -183,6 +192,7 @@ export function AdminUserDetail() {
             interviewUsed={interviewUsed}
             cvUsed={cvUsed}
             lastSeenAt={user.lastSeenAt}
+            onResolvedLastSeenAt={setDisplayLastSeenAt}
           />
         </motion.div>
       )}
