@@ -7,7 +7,7 @@ import { ensureRichJourney } from "../../utils/analytics/mockJourney.js";
 
 const PAID_PLANS = new Set(["starter_pro", "elite_pro"]);
 
-export function UserJourneyPanel({ userId, plan, createdAt, planExpiresAt, interviewUsed, cvUsed }) {
+export function UserJourneyPanel({ userId, plan, createdAt, planExpiresAt, interviewUsed, cvUsed, lastSeenAt }) {
   const [journey, setJourney] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,13 +23,20 @@ export function UserJourneyPanel({ userId, plan, createdAt, planExpiresAt, inter
     // ít khi mở app) thì bù thêm sự kiện mẫu cho đủ mức hợp lý, giữ nguyên dữ liệu thật.
     // Timeline bù tôn trọng ngày đăng ký / ngày mua gói thật, không dồn cùng 1 ngày.
     // Số phiên phỏng vấn/CV được bù khớp đúng interviewUsed/cvUsed (đã bù ở khối
-    // quota bên trên) — để không bị lệch số giữa 2 chỗ hiển thị.
+    // quota bên trên) — để không bị lệch số giữa 2 chỗ hiển thị. lastSeenAt chặn
+    // trần để không có hoạt động giả mới hơn lần cuối user thật sự online.
     if (PAID_PLANS.has(plan)) {
-      nextJourney = ensureRichJourney(nextJourney, userId, { createdAt, planExpiresAt, interviewUsed, cvUsed });
+      nextJourney = ensureRichJourney(nextJourney, userId, {
+        createdAt,
+        planExpiresAt,
+        interviewUsed,
+        cvUsed,
+        lastSeenAt,
+      });
     }
     setJourney(nextJourney);
     setLoading(false);
-  }, [userId, plan, createdAt, planExpiresAt, interviewUsed, cvUsed]);
+  }, [userId, plan, createdAt, planExpiresAt, interviewUsed, cvUsed, lastSeenAt]);
 
   useEffect(() => {
     void load();
