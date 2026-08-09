@@ -182,6 +182,7 @@ export function AdminUserDetail() {
             planExpiresAt={user.planExpiresAt}
             interviewUsed={interviewUsed}
             cvUsed={cvUsed}
+            lastSeenAt={user.lastSeenAt}
           />
         </motion.div>
       )}

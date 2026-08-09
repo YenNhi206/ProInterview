@@ -7,9 +7,11 @@
  * hơn hoạt động thật gần nhất) và một giai đoạn "sau khi mua" gồm ĐÚNG số phiên
  * phỏng vấn/phân tích CV còn thiếu so với quota đã dùng (cvUsed/interviewUsed) —
  * bắt đầu → hoàn thành có logic, không phải hành động rời rạc ngẫu nhiên. Phiên
- * dạng này được phép mới hơn hoạt động thật gần nhất (tới tận hiện tại), vì nó đại
- * diện cho usage thật đã tính vào quota mà hệ thống tracking không ghi lại lúc nào —
- * lastStop/lastAction trả về luôn lấy đúng sự kiện mới nhất sau khi gộp. */
+ * dạng này được phép mới hơn hoạt động thật gần nhất theo tracking sự kiện (vì nó
+ * đại diện cho usage thật đã tính vào quota mà hệ thống tracking không ghi lại lúc
+ * nào), nhưng KHÔNG được vượt quá lastSeenAt thật (lần cuối user online) — không thể
+ * có hoạt động sau lần cuối được ghi nhận online. lastStop/lastAction trả về luôn
+ * lấy đúng sự kiện mới nhất sau khi gộp. */
 
 import { hashSeed, mulberry32, pick } from "./seededRandom.js";
 
@@ -220,13 +222,21 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
 }
 
 /** Trả về journey đã bù, hoặc journey gốc nếu đã đủ sự kiện thật (>= MIN_REAL_EVENTS). */
-export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresAt, interviewUsed, cvUsed } = {}) {
+export function ensureRichJourney(
+  realJourney,
+  userId,
+  { createdAt, planExpiresAt, interviewUsed, cvUsed, lastSeenAt } = {},
+) {
   const realEvents = realJourney?.events || [];
   if (realEvents.length >= MIN_REAL_EVENTS) return realJourney;
 
   const rand = mulberry32(hashSeed(userId));
   const now = Date.now();
-  const signupAt = createdAt ? new Date(createdAt).getTime() : now - 60 * DAY_MS;
+  // Sự kiện giả không được mới hơn "lastSeenAt" thật (khối info "Trực tuyến ·
+  // ...") — nếu không sẽ có cảnh vô lý: hoạt động trong Timeline có ngày mới hơn cả
+  // lần cuối user được ghi nhận online.
+  const activityCeiling = lastSeenAt ? Math.min(now, new Date(lastSeenAt).getTime()) : now;
+  const signupAt = createdAt ? new Date(createdAt).getTime() : activityCeiling - 60 * DAY_MS;
 
   // Nếu tài khoản đã có sự kiện plan_upgrade THẬT, dùng đúng thời điểm đó thay vì
   // ước lượng từ planExpiresAt (vốn có thể lệch xa nếu gói đã gia hạn) — ước lượng
@@ -236,7 +246,7 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
   const hasRealUpgradeEvent = Boolean(realUpgradeEvent);
   const purchasedAt = hasRealUpgradeEvent
     ? new Date(realUpgradeEvent.createdAt).getTime()
-    : estimatePurchasedAt(signupAt, planExpiresAt, now);
+    : estimatePurchasedAt(signupAt, planExpiresAt, activityCeiling);
 
   // Số phiên giả cần thêm = quota đã dùng (đã bù ở khối info) trừ số phiên thật đã
   // có trong sự kiện — để Timeline không lệch số với "CV đã dùng"/"Phỏng vấn AI" hiển
@@ -257,17 +267,19 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
 
   // Độ trễ trước sự kiện ĐẦU TIÊN sau khi mua chỉ vài phút-vài giờ (khách vừa nâng
   // cấp thường thử dùng ngay hôm đó).
-  // Phiên phỏng vấn/CV ở đây được PHÉP mới hơn "hoạt động thật gần nhất" (khác quy
-  // tắc chung) — vì chúng đại diện cho usage THẬT đã tính vào quota (cvUsed/
-  // interviewUsed) nhưng hệ thống tracking không ghi lại lúc nào; khóa cứng ở mốc
-  // cũ sẽ khiến quota > 0 mà Timeline không bao giờ chèn được phiên nào (đúng lỗi đã
-  // gặp: "CV đã dùng 5" nhưng Timeline trống trơn vì cửa sổ = 0).
+  // Phiên phỏng vấn/CV ở đây được PHÉP mới hơn "hoạt động thật gần nhất theo tracking
+  // sự kiện" (khác quy tắc chung) — vì chúng đại diện cho usage THẬT đã tính vào
+  // quota (cvUsed/interviewUsed) nhưng hệ thống tracking không ghi lại lúc nào; khóa
+  // cứng ở mốc cũ sẽ khiến quota > 0 mà Timeline không bao giờ chèn được phiên nào
+  // (đúng lỗi đã gặp: "CV đã dùng 5" nhưng Timeline trống trơn vì cửa sổ = 0). Vẫn
+  // không được vượt quá activityCeiling (lastSeenAt thật) — không thể có hoạt động
+  // sau lần cuối user được ghi nhận online.
   const firstPostDelayMs = 5 * 60000 + Math.floor(rand() * 6 * 60 * 60000); // 5 phút - ~6 giờ
   const postEvents = buildPostPurchasePhase({
     userId,
     rand,
     startAt: purchasedAt + firstPostDelayMs,
-    endAt: now,
+    endAt: activityCeiling,
     interviewNeeded,
     cvNeeded,
   });
