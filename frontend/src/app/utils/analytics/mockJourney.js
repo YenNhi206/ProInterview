@@ -102,6 +102,13 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
   const preCount = Math.max(2, Math.round(needed * 0.25));
   const postCount = needed - preCount;
 
+  // Sự kiện giả không bao giờ được mới hơn hoạt động thật gần nhất — nếu không,
+  // nó sẽ chen lên đầu Timeline (sắp mới nhất trước) và che mất sự kiện thật.
+  const mostRecentRealAt = realEvents.length
+    ? Math.max(...realEvents.map((e) => new Date(e.createdAt).getTime()))
+    : null;
+  const postEndAt = mostRecentRealAt !== null ? Math.min(now, mostRecentRealAt) : now;
+
   const preEvents = buildPhaseEvents({
     userId,
     prefix: "pre",
@@ -119,7 +126,7 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
     prefix: "post",
     rand,
     startAt: purchasedAt + gapMs(rand),
-    endAt: now,
+    endAt: postEndAt,
     forward: true,
     routePool: POST_PURCHASE_ROUTES,
     eventCap: postCount,
