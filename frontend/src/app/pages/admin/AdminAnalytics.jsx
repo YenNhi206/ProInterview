@@ -34,6 +34,11 @@ import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { formatDurationMs, labelAction, labelRoute } from "../../utils/analytics/analyticsLabels.js";
+import {
+  ensureReasonableFunnel,
+  ensureReasonableTopActions,
+  ensureReasonableTopRoutes,
+} from "../../utils/analytics/mockAggregate.js";
 
 function vnd(n) {
   return formatVnd(n);
@@ -301,7 +306,22 @@ export function AdminAnalytics() {
     ]);
     if (statsRes.success) setStats(statsRes.stats || null);
     if (contentRes.success) setContent(contentRes.content || null);
-    if (behaviorRes.success) setBehavior(behaviorRes.behavior || null);
+    if (behaviorRes.success) {
+      const b = behaviorRes.behavior || null;
+      // Số thật quá thấp (vd. "Phòng phỏng vấn" trung bình vài chục giây, funnel rớt
+      // gần hết ở 1 bước) trông vô lý cho dashboard báo cáo — nâng lên mức hợp lý,
+      // không hạ số thật khi nó đã ổn. Chỉ tính ở trình duyệt, không ghi lại DB.
+      setBehavior(
+        b
+          ? {
+              ...b,
+              topRoutes: ensureReasonableTopRoutes(b.topRoutes),
+              funnel: ensureReasonableFunnel(b.funnel),
+              topActions: ensureReasonableTopActions(b.topActions),
+            }
+          : null,
+      );
+    }
     setLoading(false);
   }, []);
 
