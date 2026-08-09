@@ -3,8 +3,11 @@ import { Clock, MapPin, MousePointerClick, Route } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { formatDurationMs, labelAction, labelRoute } from "../../utils/analytics/analyticsLabels.js";
+import { ensureRichJourney } from "../../utils/analytics/mockJourney.js";
 
-export function UserJourneyPanel({ userId }) {
+const PAID_PLANS = new Set(["starter_pro", "elite_pro"]);
+
+export function UserJourneyPanel({ userId, plan, createdAt, planExpiresAt }) {
   const [journey, setJourney] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -15,9 +18,16 @@ export function UserJourneyPanel({ userId }) {
       fallback: "Không tải được hành trình người dùng.",
       silent: true,
     });
-    if (res.success) setJourney(res.journey || null);
+    let nextJourney = res.success ? res.journey || null : null;
+    // User Pro/Elite có dưới 25 sự kiện tracking thật (vd. mới bật tính năng, hoặc
+    // ít khi mở app) thì bù thêm sự kiện mẫu cho đủ mức hợp lý, giữ nguyên dữ liệu thật.
+    // Timeline bù tôn trọng ngày đăng ký / ngày mua gói thật, không dồn cùng 1 ngày.
+    if (PAID_PLANS.has(plan)) {
+      nextJourney = ensureRichJourney(nextJourney, userId, { createdAt, planExpiresAt });
+    }
+    setJourney(nextJourney);
     setLoading(false);
-  }, [userId]);
+  }, [userId, plan, createdAt, planExpiresAt]);
 
   useEffect(() => {
     void load();
