@@ -234,8 +234,10 @@ export function ensureRichJourney(
   const now = Date.now();
   // Sự kiện giả không được mới hơn "lastSeenAt" thật (khối info "Trực tuyến ·
   // ...") — nếu không sẽ có cảnh vô lý: hoạt động trong Timeline có ngày mới hơn cả
-  // lần cuối user được ghi nhận online.
-  const activityCeiling = lastSeenAt ? Math.min(now, new Date(lastSeenAt).getTime()) : now;
+  // lần cuối user được ghi nhận online. Có thể được NỚI RỘNG thêm bên dưới nếu cửa sổ
+  // quá hẹp so với số phiên cần bù — effectiveLastSeenAt trả về để nơi gọi (khối
+  // "Trực tuyến") hiển thị đúng con số đã nới, không lệch với Timeline.
+  let activityCeiling = lastSeenAt ? Math.min(now, new Date(lastSeenAt).getTime()) : now;
   const signupAt = createdAt ? new Date(createdAt).getTime() : activityCeiling - 60 * DAY_MS;
 
   // Nếu tài khoản đã có sự kiện plan_upgrade THẬT, dùng đúng thời điểm đó thay vì
@@ -256,6 +258,21 @@ export function ensureRichJourney(
   const interviewNeeded = Math.max(0, (Number(interviewUsed) || 0) - realInterviewCount);
   const cvNeeded = Math.max(0, (Number(cvUsed) || 0) - realCvCount);
 
+  // Độ trễ trước sự kiện ĐẦU TIÊN sau khi mua chỉ vài phút-vài giờ (khách vừa nâng
+  // cấp thường thử dùng ngay hôm đó).
+  const firstPostDelayMs = 5 * 60000 + Math.floor(rand() * 6 * 60 * 60000); // 5 phút - ~6 giờ
+
+  // Tài khoản vừa đăng ký/mua gói/offline gần như cùng lúc (cửa sổ vài phút) không đủ
+  // chỗ chứa nổi dù chỉ 1 phiên phỏng vấn (tối thiểu ~3 phút) — nới "lastSeenAt hiệu
+  // dụng" rộng thêm vừa đủ cho số phiên cần bù, kẹp không vượt quá hiện tại. Thà
+  // "trực tuyến" trông muộn hơn thật một chút còn hơn quota > 0 mà Timeline trống trơn.
+  if (interviewNeeded > 0 || cvNeeded > 0) {
+    const minSessionSpanMs =
+      firstPostDelayMs + interviewNeeded * 6 * 60000 + cvNeeded * 3 * 60000 + SESSION_GAP_FLOOR_MS;
+    const neededCeiling = Math.min(now, purchasedAt + minSessionSpanMs);
+    activityCeiling = Math.max(activityCeiling, neededCeiling);
+  }
+
   const preEvents = buildBrowsingPhase({
     userId,
     prefix: "pre",
@@ -265,16 +282,12 @@ export function ensureRichJourney(
     routePool: PRE_PURCHASE_ROUTES,
   });
 
-  // Độ trễ trước sự kiện ĐẦU TIÊN sau khi mua chỉ vài phút-vài giờ (khách vừa nâng
-  // cấp thường thử dùng ngay hôm đó).
   // Phiên phỏng vấn/CV ở đây được PHÉP mới hơn "hoạt động thật gần nhất theo tracking
   // sự kiện" (khác quy tắc chung) — vì chúng đại diện cho usage THẬT đã tính vào
   // quota (cvUsed/interviewUsed) nhưng hệ thống tracking không ghi lại lúc nào; khóa
   // cứng ở mốc cũ sẽ khiến quota > 0 mà Timeline không bao giờ chèn được phiên nào
   // (đúng lỗi đã gặp: "CV đã dùng 5" nhưng Timeline trống trơn vì cửa sổ = 0). Vẫn
-  // không được vượt quá activityCeiling (lastSeenAt thật) — không thể có hoạt động
-  // sau lần cuối user được ghi nhận online.
-  const firstPostDelayMs = 5 * 60000 + Math.floor(rand() * 6 * 60 * 60000); // 5 phút - ~6 giờ
+  // không được vượt quá activityCeiling (đã tự nới rộng nếu cần ở trên).
   const postEvents = buildPostPurchasePhase({
     userId,
     rand,
@@ -388,5 +401,8 @@ export function ensureRichJourney(
       : realJourney?.lastAction || null,
     topRoutes,
     events,
+    // Có thể đã nới rộng hơn lastSeenAt thật truyền vào (xem minSessionSpanMs ở
+    // trên) — nơi gọi nên dùng giá trị này để hiển thị "Trực tuyến" khớp với Timeline.
+    effectiveLastSeenAt: new Date(activityCeiling).toISOString(),
   };
 }
