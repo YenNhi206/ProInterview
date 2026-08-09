@@ -324,9 +324,30 @@ export function ensureRichJourney(realJourney, userId, { createdAt, planExpiresA
     cur.totalMs += ev.durationMs;
     routeStats.set(ev.route, cur);
   }
-  // Không dùng "/cv-analysis" hay "/cv-analysis/history" riêng lẻ ở đây — sẽ lại lệch
-  // cặp với nhau như trước khi sửa.
-  const fallbackRoutes = ["/interview/room", "/mentors", "/courses", "/dashboard", "/profile"];
+
+  // Chặn trần lượt ghé của route gắn với quota (kể cả lượt ghé thật cộng vào) đúng
+  // bằng số quota đã dùng hiển thị ở khối info — để "Lượt" luôn khớp mắt thường với
+  // "CV đã dùng"/"Phỏng vấn AI", tránh lượt ghé thật lẻ tẻ (vd. vào rồi thoát không
+  // tính quota) làm số liệu trông như lệch nhau.
+  const capRouteVisits = (route, maxVisits) => {
+    const cur = routeStats.get(route);
+    if (!cur) return;
+    const cap = Math.max(0, Number(maxVisits) || 0);
+    if (cur.visits <= cap) return;
+    if (cap === 0) {
+      routeStats.delete(route);
+      return;
+    }
+    const avgMs = cur.totalMs / cur.visits;
+    routeStats.set(route, { visits: cap, totalMs: Math.round(avgMs * cap) });
+  };
+  capRouteVisits("/interview/room", interviewUsed);
+  capRouteVisits("/cv-analysis", cvUsed);
+  capRouteVisits("/cv-analysis/history", cvUsed);
+
+  // Không dùng route gắn quota ở đây — bị chặn trần phía trên rồi, thêm lại từ
+  // fallback sẽ phá mất trần vừa set.
+  const fallbackRoutes = ["/mentors", "/courses", "/dashboard", "/profile", "/pricing"];
   let idx = 0;
   while (routeStats.size < MIN_ROUTE_COUNT && idx < fallbackRoutes.length) {
     const route = fallbackRoutes[idx];
