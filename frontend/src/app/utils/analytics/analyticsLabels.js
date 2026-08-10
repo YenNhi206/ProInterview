@@ -9,6 +9,8 @@ const ROUTE_LABELS = {
   "/interview": "Phỏng vấn AI",
   "/interview/room": "Phòng phỏng vấn",
   "/interview/feedback": "Kết quả phỏng vấn",
+  "/interview/trial": "Phỏng vấn thử miễn phí",
+  "/interview/trial/done": "Kết quả phỏng vấn thử",
   "/mentors": "Danh sách cố vấn",
   "/booking": "Đặt lịch",
   "/checkout": "Thanh toán",

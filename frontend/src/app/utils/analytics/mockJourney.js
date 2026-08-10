@@ -15,11 +15,6 @@
 
 import { hashSeed, mulberry32, pick } from "./seededRandom.js";
 
-// Không có "/cv-analysis" ở đây — route đó chỉ được sinh trong buildCvSession (đi
-// kèm "/cv-analysis/history" theo đúng cặp), để 2 dòng "Phân tích CV"/"Lịch sử phân
-// tích CV" ở bảng Top trang luôn khớp số nhau, không lệch do duyệt trang rời rạc.
-const PRE_PURCHASE_ROUTES = ["/", "/pricing", "/mentors", "/courses", "/dashboard"];
-
 // Số lượt duyệt trang xen giữa = số phiên phỏng vấn/CV × hệ số này — user thật ghé
 // trang chủ/dashboard/hồ sơ nhiều lần trong lúc dùng app, không chỉ 1-2 lượt cho có.
 // Dùng chung ở buildPostPurchasePhase (sinh thật) và extendActivityCeiling (ước
@@ -47,12 +42,7 @@ const BROWSE_ROUTES = [
 const MIN_REAL_EVENTS = 100;
 const MIN_ROUTE_COUNT = 4;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const MIN_GAP_MS = 18 * 60 * 60 * 1000; // 18h
-const MAX_GAP_MS = 46 * 60 * 60 * 1000; // 46h
-
-function gapMs(rand) {
-  return MIN_GAP_MS + Math.floor(rand() * (MAX_GAP_MS - MIN_GAP_MS));
-}
+const MAX_GAP_MS = 46 * 60 * 60 * 1000; // 46h — trần "bữa sau quay lại" trong buildPreDecisionPhase
 
 /** Ước lượng thời điểm mua gói: planExpiresAt trừ đi ~1 tháng (chu kỳ mặc định),
  * kẹp trong khoảng [ngày đăng ký, hiện tại]. Không có planExpiresAt thì coi như
@@ -65,27 +55,6 @@ function estimatePurchasedAt(signupAt, planExpiresAt, now) {
     purchase = now - 14 * DAY_MS;
   }
   return Math.min(Math.max(purchase, signupAt), now);
-}
-
-/** Chỉ sinh sự kiện xem trang (không hành động) — dùng cho giai đoạn trước khi mua,
- * khi user chỉ đang dạo web chứ chưa dùng tính năng trả phí. */
-function buildBrowsingPhase({ userId, prefix, rand, startAt, endAt, routePool }) {
-  const days = Math.max(0, (endAt - startAt) / DAY_MS);
-  if (days <= 0) return [];
-  const count = Math.max(2, Math.min(8, Math.floor(days / 1.3)));
-  const events = [];
-  let cursor = endAt - gapMs(rand);
-  for (let i = 0; i < count && cursor > startAt; i += 1) {
-    events.push({
-      _id: `mock-${userId}-${prefix}-${i}`,
-      type: "view",
-      route: pick(routePool, rand),
-      createdAt: new Date(cursor).toISOString(),
-      durationMs: 15000 + Math.floor(rand() * 75000), // 15 giây - 1 phút 30
-    });
-    cursor -= gapMs(rand);
-  }
-  return events;
 }
 
 /** Phiên phỏng vấn AI: bắt đầu → ngồi trong phòng → hoàn thành. */
@@ -168,6 +137,149 @@ function buildCvSession(userId, prefix, rand, startAt) {
     ],
     endAt: t3 + resultViewMs,
   };
+}
+
+/** Phiên phân tích CV dùng thử MIỄN PHÍ (trước khi mua gói) — ngắn hơn bản trả phí,
+ * không có bước xem lại "Lịch sử phân tích CV" (tính năng chỉ Pro/Elite mới có). */
+function buildFreeCvTrialSession(userId, prefix, rand, startAt) {
+  const t0 = startAt;
+  const processingMs = 15000 + Math.floor(rand() * 60000); // 15s - 1 phút 15 (thử nhanh)
+  const t1 = t0 + 3000 + Math.floor(rand() * 8000);
+  const t2 = t1 + processingMs;
+  return {
+    events: [
+      {
+        _id: `mock-${userId}-${prefix}-start`,
+        type: "action",
+        action: "cv_analyze_start",
+        route: "/cv-analysis",
+        createdAt: new Date(t0).toISOString(),
+        durationMs: 0,
+      },
+      {
+        _id: `mock-${userId}-${prefix}-processing`,
+        type: "view",
+        route: "/cv-analysis",
+        createdAt: new Date(t1).toISOString(),
+        durationMs: processingMs,
+      },
+      {
+        _id: `mock-${userId}-${prefix}-done`,
+        type: "action",
+        action: "cv_analyze_done",
+        route: "/cv-analysis",
+        createdAt: new Date(t2).toISOString(),
+        durationMs: 0,
+      },
+    ],
+    endAt: t2,
+  };
+}
+
+/** Phiên phỏng vấn dùng thử MIỄN PHÍ (route /interview/trial, khác /interview/room
+ * của bản trả phí) — ngắn hơn, chỉ 3 câu baseline theo đúng flow trial thật. */
+function buildFreeInterviewTrialSession(userId, prefix, rand, startAt) {
+  const enterDelay = 5000 + Math.floor(rand() * 15000);
+  const roomDurationMs = 2 * 60000 + Math.floor(rand() * 6 * 60000); // 2-8 phút
+  const t0 = startAt;
+  const t1 = t0 + enterDelay;
+  const t2 = t1 + roomDurationMs;
+  return {
+    events: [
+      {
+        _id: `mock-${userId}-${prefix}-start`,
+        type: "action",
+        action: "interview_start",
+        route: "/interview",
+        createdAt: new Date(t0).toISOString(),
+        durationMs: 0,
+      },
+      {
+        _id: `mock-${userId}-${prefix}-room`,
+        type: "view",
+        route: "/interview/trial",
+        createdAt: new Date(t1).toISOString(),
+        durationMs: roomDurationMs,
+      },
+      {
+        _id: `mock-${userId}-${prefix}-done`,
+        type: "action",
+        action: "interview_complete",
+        route: "/interview/trial",
+        createdAt: new Date(t2).toISOString(),
+        durationMs: 0,
+      },
+    ],
+    endAt: t2,
+  };
+}
+
+/** Giai đoạn trước khi mua, theo đúng flow thật: (1) mới đăng ký, dạo trang chủ rồi
+ * dùng thử miễn phí CV + phỏng vấn, xem bảng giá rồi RỜI ĐI (chưa mua) — (2) cách
+ * đó một khoảng lớn (nghỉ ≥ nửa ngày, "bữa sau"), quay lại xem bảng giá + lướt web
+ * (mentors/khóa học) rồi mới mua. Bỏ qua bước nào không đủ chỗ (window quá hẹp) —
+ * thà thiếu còn hơn chồng lấn/vượt purchasedAt. */
+function buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt }) {
+  const events = [];
+  let cvTrialCount = 0;
+  if (purchasedAt <= signupAt) return { events, cvTrialCount };
+
+  let cursor = signupAt + 30000 + Math.floor(rand() * 5 * 60000); // vài chục giây - 5 phút sau đăng ký
+
+  const pushView = (route, minMs, maxMs, prefix) => {
+    if (cursor >= purchasedAt) return false;
+    const durationMs = minMs + Math.floor(rand() * (maxMs - minMs));
+    events.push({
+      _id: `mock-${userId}-${prefix}`,
+      type: "view",
+      route,
+      createdAt: new Date(cursor).toISOString(),
+      durationMs,
+    });
+    cursor += durationMs;
+    return true;
+  };
+
+  const pushSession = (buildFn, prefix) => {
+    if (cursor >= purchasedAt) return false;
+    const unit = buildFn(userId, prefix, rand, cursor);
+    if (unit.endAt >= purchasedAt) return false;
+    events.push(...unit.events);
+    cursor = unit.endAt;
+    return true;
+  };
+
+  const idleGap = (minMs, maxMs) => {
+    cursor += minMs + Math.floor(rand() * (maxMs - minMs));
+  };
+
+  // Visit 1: đăng ký xong, dạo trang chủ → thử CV miễn phí → thử phỏng vấn miễn phí
+  // → xem giá rồi rời đi (chưa mua).
+  pushView("/", 8000, 28000, "pre-home");
+  idleGap(10000, 40000);
+  if (pushSession(buildFreeCvTrialSession, "pre-cvtrial")) cvTrialCount += 1;
+  idleGap(60000, 5 * 60000);
+  pushSession(buildFreeInterviewTrialSession, "pre-ivtrial");
+  idleGap(30000, 90000);
+  pushView("/pricing", 15000, 50000, "pre-pricing1");
+
+  // Nghỉ 1 khoảng lớn ("bữa sau" mới quay lại) — chỉ áp dụng nếu còn đủ xa
+  // purchasedAt, không thì bỏ qua để không lấn vào lúc mua.
+  const remaining = purchasedAt - cursor;
+  const RETURN_GAP_MIN_MS = 8 * 60 * 60000; // tối thiểu 8h mới coi là "bữa sau"
+  if (remaining > RETURN_GAP_MIN_MS * 1.6) {
+    idleGap(RETURN_GAP_MIN_MS, Math.min(remaining - RETURN_GAP_MIN_MS * 1.2, MAX_GAP_MS * 2));
+  }
+
+  // Visit 2: quay lại xem giá + lướt web (mentors/khóa học) rồi mới mua (phễu nâng
+  // cấp gói nối tiếp ngay sau, ở ensureRichJourney).
+  pushView("/pricing", 15000, 45000, "pre-pricing2");
+  idleGap(20000, 80000);
+  pushView(pick(["/mentors", "/courses"], rand), 10000, 35000, "pre-browse2a");
+  idleGap(15000, 60000);
+  pushView(pick(["/mentors", "/courses", "/"], rand), 10000, 35000, "pre-browse2b");
+
+  return { events, cvTrialCount };
 }
 
 const SESSION_GAP_FLOOR_MS = 2 * 60000; // 2 phút — tối thiểu tuyệt đối giữa 2 phiên
@@ -365,14 +477,7 @@ export function ensureRichJourney(
     cvNeeded,
   });
 
-  const preEvents = buildBrowsingPhase({
-    userId,
-    prefix: "pre",
-    rand,
-    startAt: signupAt,
-    endAt: purchasedAt,
-    routePool: PRE_PURCHASE_ROUTES,
-  });
+  const { events: preEvents, cvTrialCount } = buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt });
 
   // Phiên phỏng vấn/CV ở đây được PHÉP mới hơn "hoạt động thật gần nhất theo tracking
   // sự kiện" (khác quy tắc chung) — vì chúng đại diện cho usage THẬT đã tính vào
@@ -459,7 +564,10 @@ export function ensureRichJourney(
     routeStats.set(route, { visits: cap, totalMs: Math.round(avgMs * cap) });
   };
   capRouteVisits("/interview/room", interviewUsed);
-  capRouteVisits("/cv-analysis", cvUsed);
+  // "/cv-analysis" dùng chung cho cả phiên CV trả phí lẫn lượt dùng thử miễn phí
+  // trước khi mua (buildFreeCvTrialSession) — cộng thêm cvTrialCount vào trần, không
+  // thì lượt dùng thử bị cắt mất khi cvUsed thấp (~15% theo thiết kế mới).
+  capRouteVisits("/cv-analysis", (Number(cvUsed) || 0) + cvTrialCount);
   capRouteVisits("/cv-analysis/history", cvUsed);
 
   // Không dùng route gắn quota ở đây — bị chặn trần phía trên rồi, thêm lại từ
