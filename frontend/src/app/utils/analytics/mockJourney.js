@@ -221,8 +221,7 @@ function buildFreeInterviewTrialSession(userId, prefix, rand, startAt) {
  * thà thiếu còn hơn chồng lấn/vượt purchasedAt. */
 function buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt }) {
   const events = [];
-  let cvTrialCount = 0;
-  if (purchasedAt <= signupAt) return { events, cvTrialCount };
+  if (purchasedAt <= signupAt) return events;
 
   let cursor = signupAt + 30000 + Math.floor(rand() * 5 * 60000); // vài chục giây - 5 phút sau đăng ký
 
@@ -257,7 +256,7 @@ function buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt }) {
   // → xem giá rồi rời đi (chưa mua).
   pushView("/", 8000, 28000, "pre-home");
   idleGap(10000, 40000);
-  if (pushSession(buildFreeCvTrialSession, "pre-cvtrial")) cvTrialCount += 1;
+  pushSession(buildFreeCvTrialSession, "pre-cvtrial");
   idleGap(60000, 5 * 60000);
   pushSession(buildFreeInterviewTrialSession, "pre-ivtrial");
   idleGap(30000, 90000);
@@ -279,7 +278,7 @@ function buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt }) {
   idleGap(15000, 60000);
   pushView(pick(["/mentors", "/courses", "/"], rand), 10000, 35000, "pre-browse2b");
 
-  return { events, cvTrialCount };
+  return events;
 }
 
 const SESSION_GAP_FLOOR_MS = 2 * 60000; // 2 phút — tối thiểu tuyệt đối giữa 2 phiên
@@ -477,7 +476,7 @@ export function ensureRichJourney(
     cvNeeded,
   });
 
-  const { events: preEvents, cvTrialCount } = buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt });
+  const preEvents = buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt });
 
   // Phiên phỏng vấn/CV ở đây được PHÉP mới hơn "hoạt động thật gần nhất theo tracking
   // sự kiện" (khác quy tắc chung) — vì chúng đại diện cho usage THẬT đã tính vào
@@ -565,9 +564,12 @@ export function ensureRichJourney(
   };
   capRouteVisits("/interview/room", interviewUsed);
   // "/cv-analysis" dùng chung cho cả phiên CV trả phí lẫn lượt dùng thử miễn phí
-  // trước khi mua (buildFreeCvTrialSession) — cộng thêm cvTrialCount vào trần, không
-  // thì lượt dùng thử bị cắt mất khi cvUsed thấp (~15% theo thiết kế mới).
-  capRouteVisits("/cv-analysis", (Number(cvUsed) || 0) + cvTrialCount);
+  // (buildFreeCvTrialSession, không có bước xem lịch sử) — nếu cộng riêng cvTrialCount
+  // vào trần của "/cv-analysis" thì nó sẽ nhỉnh hơn "/cv-analysis/history" đúng bằng
+  // cvTrialCount, nhìn lệch nhau. Chặn CẢ HAI cùng một mức (cvUsed) để 2 dòng luôn
+  // khớp số — lượt dùng thử dư ra (nếu có) bị gộp vào trong mức đó, không hiển thị
+  // tách riêng ở bảng tổng hợp (Timeline chi tiết bên dưới vẫn còn nguyên).
+  capRouteVisits("/cv-analysis", cvUsed);
   capRouteVisits("/cv-analysis/history", cvUsed);
 
   // Không dùng route gắn quota ở đây — bị chặn trần phía trên rồi, thêm lại từ
