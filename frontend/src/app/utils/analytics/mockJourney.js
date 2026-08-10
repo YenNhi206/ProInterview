@@ -215,10 +215,11 @@ function buildFreeInterviewTrialSession(userId, prefix, rand, startAt) {
 }
 
 /** Giai đoạn trước khi mua, theo đúng flow thật: (1) mới đăng ký, dạo trang chủ rồi
- * dùng thử miễn phí CV + phỏng vấn, xem bảng giá rồi RỜI ĐI (chưa mua) — (2) cách
- * đó một khoảng lớn (nghỉ ≥ nửa ngày, "bữa sau"), quay lại xem bảng giá + lướt web
- * (mentors/khóa học) rồi mới mua. Bỏ qua bước nào không đủ chỗ (window quá hẹp) —
- * thà thiếu còn hơn chồng lấn/vượt purchasedAt. */
+ * dùng thử miễn phí CV (luôn có) + phỏng vấn (chỉ ~50% tài khoản, không phải ai cũng
+ * thử), xem bảng giá rồi RỜI ĐI (chưa mua) — (2) cách đó một khoảng lớn (nghỉ ≥ nửa
+ * ngày, "bữa sau"), quay lại xem bảng giá + lướt web (mentors/khóa học) rồi mới mua.
+ * Bỏ qua bước nào không đủ chỗ (window quá hẹp) — thà thiếu còn hơn chồng lấn/vượt
+ * purchasedAt. */
 function buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt }) {
   const events = [];
   if (purchasedAt <= signupAt) return events;
@@ -252,13 +253,17 @@ function buildPreDecisionPhase({ userId, rand, signupAt, purchasedAt }) {
     cursor += minMs + Math.floor(rand() * (maxMs - minMs));
   };
 
-  // Visit 1: đăng ký xong, dạo trang chủ → thử CV miễn phí → thử phỏng vấn miễn phí
-  // → xem giá rồi rời đi (chưa mua).
+  // Visit 1: đăng ký xong, dạo trang chủ → thử CV miễn phí → (có thể) thử phỏng vấn
+  // miễn phí → xem giá rồi rời đi (chưa mua). Phỏng vấn thử KHÔNG phải ai cũng làm
+  // (chỉ ~50%, seed theo userId) — không thì mọi tài khoản đều giống hệt nhau ở bước
+  // này, không tự nhiên.
   pushView("/", 8000, 28000, "pre-home");
   idleGap(10000, 40000);
   pushSession(buildFreeCvTrialSession, "pre-cvtrial");
-  idleGap(60000, 5 * 60000);
-  pushSession(buildFreeInterviewTrialSession, "pre-ivtrial");
+  if (rand() < 0.5) {
+    idleGap(60000, 5 * 60000);
+    pushSession(buildFreeInterviewTrialSession, "pre-ivtrial");
+  }
   idleGap(30000, 90000);
   pushView("/pricing", 15000, 50000, "pre-pricing1");
 
