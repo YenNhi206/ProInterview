@@ -266,9 +266,20 @@ export function ensureRichJourney(
   // chỗ chứa nổi dù chỉ 1 phiên phỏng vấn (tối thiểu ~3 phút) — nới "lastSeenAt hiệu
   // dụng" rộng thêm vừa đủ cho số phiên cần bù, kẹp không vượt quá hiện tại. Thà
   // "trực tuyến" trông muộn hơn thật một chút còn hơn quota > 0 mà Timeline trống trơn.
+  //
+  // Ước lượng RỘNG RÃI (dùng mức tối đa, không phải trung bình) — công thức trước
+  // dùng 6 phút/phỏng vấn, 3 phút/CV (số trung bình) và bỏ sót hẳn thời gian các
+  // lượt duyệt trang xen giữa + khoảng cách giữa từng đơn vị, nên cửa sổ nới ra vẫn
+  // hay không đủ, buildPostPurchasePhase phải dừng sớm giữa chừng (thiếu phiên).
   if (interviewNeeded > 0 || cvNeeded > 0) {
+    const browseEstimate = Math.max(2, Math.round((interviewNeeded + cvNeeded) * 0.7));
+    const totalUnits = interviewNeeded + cvNeeded + browseEstimate;
     const minSessionSpanMs =
-      firstPostDelayMs + interviewNeeded * 6 * 60000 + cvNeeded * 3 * 60000 + SESSION_GAP_FLOOR_MS;
+      firstPostDelayMs +
+      interviewNeeded * 16 * 60000 + // phỏng vấn tối đa ~15 phút + vài chục giây vào phòng
+      cvNeeded * 5 * 60000 + // phiên CV tối đa ~4-5 phút
+      browseEstimate * 2 * 60000 + // lượt duyệt trang tối đa ~1-2 phút
+      totalUnits * 15 * 60000; // khoảng cách giữa mỗi đơn vị (rộng rãi, không chỉ dùng sàn 2 phút)
     const neededCeiling = Math.min(now, purchasedAt + minSessionSpanMs);
     activityCeiling = Math.max(activityCeiling, neededCeiling);
   }
