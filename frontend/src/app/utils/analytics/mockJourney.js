@@ -149,7 +149,9 @@ function buildCvSession(userId, prefix, rand, startAt) {
 }
 
 const SESSION_GAP_FLOOR_MS = 2 * 60000; // 2 phút — tối thiểu tuyệt đối giữa 2 phiên
-const SESSION_GAP_MAX_MS = 5 * 60 * 60000; // 5 giờ — tối đa khi còn dư dả thời gian
+// 3 ngày — tối đa khi còn dư dả thời gian. Trước là 5 giờ nên dù cửa sổ có được nới
+// rộng cỡ nào, mọi phiên vẫn luôn dồn cục trong 1 ngày (5h << 24h).
+const SESSION_GAP_MAX_MS = 3 * DAY_MS;
 
 /** Khoảng cách tới đơn vị (phiên/duyệt trang) tiếp theo — co giãn theo thời gian còn
  * lại chia cho số đơn vị còn phải chèn, để KHÔNG dùng hết cửa sổ thời gian giữa
@@ -264,23 +266,26 @@ export function ensureRichJourney(
 
   // Tài khoản vừa đăng ký/mua gói/offline gần như cùng lúc (cửa sổ vài phút) không đủ
   // chỗ chứa nổi dù chỉ 1 phiên phỏng vấn (tối thiểu ~3 phút) — nới "lastSeenAt hiệu
-  // dụng" rộng thêm vừa đủ cho số phiên cần bù, kẹp không vượt quá hiện tại. Thà
-  // "trực tuyến" trông muộn hơn thật một chút còn hơn quota > 0 mà Timeline trống trơn.
+  // dụng" rộng thêm cho số phiên cần bù, kẹp không vượt quá hiện tại. Thà "trực
+  // tuyến" trông muộn hơn thật một chút còn hơn quota > 0 mà Timeline trống trơn.
   //
-  // Ước lượng RỘNG RÃI (dùng mức tối đa, không phải trung bình) — công thức trước
-  // dùng 6 phút/phỏng vấn, 3 phút/CV (số trung bình) và bỏ sót hẳn thời gian các
-  // lượt duyệt trang xen giữa + khoảng cách giữa từng đơn vị, nên cửa sổ nới ra vẫn
-  // hay không đủ, buildPostPurchasePhase phải dừng sớm giữa chừng (thiếu phiên).
+  // TRẢI DÀI NHIỀU NGÀY thay vì tính vừa khít — nếu chỉ nới đủ tối thiểu, mọi phiên
+  // bị dồn cục vào ~1 ngày (nhìn giả trân, "phân tích CV" 8 lần trong 1 buổi tối).
+  // Mỗi đơn vị giả định cách nhau trung bình 1 khoảng ngẫu nhiên trong
+  // [SESSION_GAP_FLOOR_MS, SESSION_GAP_MAX_MS] — seed theo userId nên mỗi tài khoản
+  // một độ dài khác nhau (đúng yêu cầu), rồi buildPostPurchasePhase (adaptiveGapMs)
+  // sẽ tự trải các phiên tương ứng ra hết cửa sổ vừa nới thay vì dồn lại gần nhau.
   if (interviewNeeded > 0 || cvNeeded > 0) {
     const browseEstimate = Math.max(2, Math.round((interviewNeeded + cvNeeded) * 0.7));
     const totalUnits = interviewNeeded + cvNeeded + browseEstimate;
-    const minSessionSpanMs =
+    const sessionsDurationMs =
       firstPostDelayMs +
       interviewNeeded * 16 * 60000 + // phỏng vấn tối đa ~15 phút + vài chục giây vào phòng
       cvNeeded * 5 * 60000 + // phiên CV tối đa ~4-5 phút
-      browseEstimate * 2 * 60000 + // lượt duyệt trang tối đa ~1-2 phút
-      totalUnits * 15 * 60000; // khoảng cách giữa mỗi đơn vị (rộng rãi, không chỉ dùng sàn 2 phút)
-    const neededCeiling = Math.min(now, purchasedAt + minSessionSpanMs);
+      browseEstimate * 2 * 60000; // lượt duyệt trang tối đa ~1-2 phút
+    const avgUnitGapMs = SESSION_GAP_FLOOR_MS + Math.floor(rand() * (SESSION_GAP_MAX_MS - SESSION_GAP_FLOOR_MS));
+    const desiredSpanMs = sessionsDurationMs + totalUnits * avgUnitGapMs;
+    const neededCeiling = Math.min(now, purchasedAt + desiredSpanMs);
     activityCeiling = Math.max(activityCeiling, neededCeiling);
   }
 
