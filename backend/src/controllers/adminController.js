@@ -1031,7 +1031,7 @@ export const AdminController = {
       const bookingRows = await Booking.find({
         paymentStatus: { $in: ["paid", "partial_refund"] },
       })
-        .select("price platformFee platformFeeRate totalAmount status paidAt createdAt cancelRefundAmountVnd")
+        .select("userId price platformFee platformFeeRate totalAmount status paidAt createdAt cancelRefundAmountVnd")
         .lean();
       const bookingRowsFiltered = monthRange
         ? bookingRows.filter((row) => {
@@ -1064,7 +1064,7 @@ export const AdminController = {
       );
 
       const enrollmentRows = await Enrollment.find({ paymentStatus: "paid", pricePaid: { $gt: 0 } })
-        .select("pricePaid platformFee platformFeeRate paidAt updatedAt createdAt")
+        .select("userId pricePaid platformFee platformFeeRate paidAt updatedAt createdAt")
         .lean();
       const enrollmentRowsFiltered = monthRange
         ? enrollmentRows.filter((row) => {
@@ -1090,7 +1090,7 @@ export const AdminController = {
       );
 
       const subscriptionRows = await Payment.find({ type: "subscription", status: "success" })
-        .select("amount paidAt createdAt")
+        .select("userId amount paidAt createdAt")
         .lean();
       const subscriptionRowsFiltered = monthRange
         ? subscriptionRows.filter((row) => {
@@ -1112,10 +1112,16 @@ export const AdminController = {
         { grossCollected: 0, platformRevenue: 0, mentorNet: 0, count: 0 },
       );
 
+      const paidCustomerIds = new Set();
+      for (const row of bookingRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
+      for (const row of enrollmentRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
+      for (const row of subscriptionRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
+
       const totals = {
         grossCollected: booking.grossCollected + course.grossCollected + subscription.grossCollected,
         platformRevenue: booking.platformRevenue + course.platformRevenue + subscription.platformRevenue,
         mentorNet: booking.mentorNet + course.mentorNet + subscription.mentorNet,
+        paidCustomerCount: paidCustomerIds.size,
       };
 
       res.json({

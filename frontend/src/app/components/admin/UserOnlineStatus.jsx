@@ -1,7 +1,7 @@
 /** Hiển thị trạng thái online admin (theo `lastSeenAt` từ API). */
 
 export function formatLastSeenVi(value) {
-  if (!value) return "Chưa từng trực tuyến";
+  if (!value) return "Chưa hoạt động";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
   const diffMs = Date.now() - d.getTime();
@@ -55,8 +55,8 @@ export function UserOnlineStatus({ isOnline, lastSeenAt, isActive = true, compac
         <span className="size-2 rounded-full bg-slate-300" aria-hidden />
         Không online
       </span>
-      {!compact ? (
-        <span className="text-[10px] font-semibold text-slate-400" title={lastSeenAt ? String(lastSeenAt) : ""}>
+      {!compact && lastSeenAt ? (
+        <span className="text-[10px] font-semibold text-slate-400" title={String(lastSeenAt)}>
           {formatLastSeenVi(lastSeenAt)}
         </span>
       ) : null}

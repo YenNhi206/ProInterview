@@ -13,6 +13,7 @@ import {
   Activity,
   ArrowRight,
   BookOpen,
+  UserCheck,
 } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
@@ -198,12 +199,18 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label={`Tổng thu - ${monthLabel}`}
             value={loading ? "..." : formatVnd(platformFinance?.totals?.grossCollected || 0)}
             icon={Banknote}
             color="#4f46e5"
+          />
+          <StatCard
+            label={`Khách hàng đã trả phí - ${monthLabel}`}
+            value={loading ? "..." : (platformFinance?.totals?.paidCustomerCount ?? 0)}
+            icon={UserCheck}
+            color="#7c3aed"
           />
           <StatCard
             label={`Chia mentor - ${monthLabel}`}
