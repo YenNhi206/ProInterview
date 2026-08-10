@@ -675,7 +675,7 @@ export const AdminController = {
     try {
       const limit = Math.min(Math.max(Number(req.query.limit) || 500, 1), 1000);
       const users = await User.find()
-        .select("name email avatar role plan isActive lastSeenAt lastLoginAt createdAt")
+        .select("name email avatar role plan planExpiresAt quota isActive lastSeenAt lastLoginAt createdAt")
         .sort({ createdAt: -1 })
         .limit(limit)
         .lean();
