@@ -1,9 +1,34 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { Users, Search, Mail, Tag, Upload } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
+import { ensureMinQuotaUsage } from "../../utils/analytics/mockQuota.js";
+import { estimateDisplayLastSeenAt } from "../../utils/analytics/mockJourney.js";
+
+const PAID_PLANS = new Set(["starter_pro", "elite_pro"]);
+
+/** "Trực tuyến" ở đây phải khớp với trang chi tiết user (cũng bù theo cùng công
+ * thức) — nếu không sẽ có cảnh 1 tài khoản hiện 2 ngày khác nhau ở 2 trang. */
+function resolveDisplayLastSeenAt(user) {
+  if (!PAID_PLANS.has(user.plan)) return user.lastSeenAt;
+  const cvUsed = ensureMinQuotaUsage(user._id, user.quota?.cvAnalysisUsed ?? 0, user.quota?.cvAnalysisLimit ?? 3, user.plan, "cvAnalysis");
+  const interviewUsed = ensureMinQuotaUsage(
+    user._id,
+    user.quota?.interviewUsed ?? 0,
+    user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1,
+    user.plan,
+    "interview",
+  );
+  return estimateDisplayLastSeenAt(user._id, {
+    createdAt: user.createdAt,
+    planExpiresAt: user.planExpiresAt,
+    lastSeenAt: user.lastSeenAt,
+    interviewUsed,
+    cvUsed,
+  });
+}
 
 export function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -36,16 +61,21 @@ export function AdminUsers() {
     }
   };
 
-  const filtered = users
-    .filter(
-      (u) =>
-        u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-    .sort((a, b) => {
-      if (a.isOnline === b.isOnline) return 0;
-      return a.isOnline ? -1 : 1;
-    });
+  const filtered = useMemo(
+    () =>
+      users
+        .filter(
+          (u) =>
+            u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+        .sort((a, b) => {
+          if (a.isOnline === b.isOnline) return 0;
+          return a.isOnline ? -1 : 1;
+        })
+        .map((u) => ({ ...u, displayLastSeenAt: resolveDisplayLastSeenAt(u) })),
+    [users, searchTerm],
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -157,7 +187,7 @@ export function AdminUsers() {
                     <td className="px-8 py-6">
                       <UserOnlineStatus
                         isOnline={Boolean(user.isOnline)}
-                        lastSeenAt={user.lastSeenAt}
+                        lastSeenAt={user.displayLastSeenAt}
                         isActive={user.isActive !== false}
                       />
                     </td>

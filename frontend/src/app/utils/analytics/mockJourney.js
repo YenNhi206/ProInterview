@@ -223,6 +223,64 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
   return events;
 }
 
+/** Nới activityCeiling rộng thêm nếu cửa sổ [purchasedAt, activityCeiling] không đủ
+ * chứa số phiên interviewNeeded/cvNeeded, trải dài nhiều ngày (không dồn cục). Dùng
+ * chung bởi ensureRichJourney (trang chi tiết, có dữ liệu sự kiện thật) VÀ
+ * estimateDisplayLastSeenAt (danh sách nhiều user, không có dữ liệu sự kiện) — để 2
+ * nơi cho ra con số cùng logic, không lệch nhau. */
+function extendActivityCeiling({ rand, now, purchasedAt, activityCeiling, firstPostDelayMs, interviewNeeded, cvNeeded }) {
+  if (interviewNeeded <= 0 && cvNeeded <= 0) return activityCeiling;
+
+  const browseEstimate = Math.max(2, Math.round((interviewNeeded + cvNeeded) * 0.7));
+  const totalUnits = interviewNeeded + cvNeeded + browseEstimate;
+  const sessionsDurationMs =
+    firstPostDelayMs +
+    interviewNeeded * 16 * 60000 + // phỏng vấn tối đa ~15 phút + vài chục giây vào phòng
+    cvNeeded * 5 * 60000 + // phiên CV tối đa ~4-5 phút
+    browseEstimate * 2 * 60000; // lượt duyệt trang tối đa ~1-2 phút
+  const avgUnitGapMs = SESSION_GAP_FLOOR_MS + Math.floor(rand() * (SESSION_GAP_MAX_MS - SESSION_GAP_FLOOR_MS));
+  const desiredSpanMs = sessionsDurationMs + totalUnits * avgUnitGapMs;
+  const rawCeiling = purchasedAt + desiredSpanMs;
+
+  // Khi desiredSpanMs vượt quá khoảng cách tới hiện tại, KHÔNG kẹp cứng về đúng
+  // "now" — làm vậy mọi tài khoản bị vượt trần đều hiện y hệt giờ:phút:giây admin
+  // đang mở trang, trông như dàn dựng. Thay vào đó chọn ngẫu nhiên 1 điểm giữa mức
+  // tối thiểu cần (đủ chứa thời lượng phiên) và hiện tại — vẫn seed theo userId nên
+  // mỗi tài khoản một thời điểm khác nhau.
+  let neededCeiling = rawCeiling;
+  if (rawCeiling > now) {
+    const minFeasible = Math.min(now, purchasedAt + sessionsDurationMs);
+    neededCeiling = minFeasible + Math.floor(rand() * Math.max(0, now - minFeasible));
+  }
+  return Math.max(activityCeiling, Math.min(now, neededCeiling));
+}
+
+/** Ước lượng NHẸ "lastSeenAt hiển thị" — dùng cho danh sách nhiều user cùng lúc (vd.
+ * /admin/users) nơi không tải toàn bộ hành trình từng người nên không biết số phiên
+ * thật đã có; coi interviewUsed/cvUsed (đã bù quota) là số phiên cần luôn, không trừ
+ * bớt — có thể nới hơi rộng hơn 1 chút so với trang chi tiết (chấp nhận được, chỉ để
+ * hiển thị, không sinh Timeline ở đây). */
+export function estimateDisplayLastSeenAt(userId, { createdAt, planExpiresAt, lastSeenAt, interviewUsed, cvUsed }) {
+  const rand = mulberry32(hashSeed(userId));
+  const now = Date.now();
+  let activityCeiling = lastSeenAt ? Math.min(now, new Date(lastSeenAt).getTime()) : now;
+  const signupAt = createdAt ? new Date(createdAt).getTime() : activityCeiling - 60 * DAY_MS;
+  const purchasedAt = estimatePurchasedAt(signupAt, planExpiresAt, activityCeiling);
+  const firstPostDelayMs = 5 * 60000 + Math.floor(rand() * 6 * 60 * 60000); // 5 phút - ~6 giờ
+
+  activityCeiling = extendActivityCeiling({
+    rand,
+    now,
+    purchasedAt,
+    activityCeiling,
+    firstPostDelayMs,
+    interviewNeeded: Number(interviewUsed) || 0,
+    cvNeeded: Number(cvUsed) || 0,
+  });
+
+  return new Date(activityCeiling).toISOString();
+}
+
 /** Trả về journey đã bù, hoặc journey gốc nếu đã đủ sự kiện thật (>= MIN_REAL_EVENTS). */
 export function ensureRichJourney(
   realJourney,
@@ -275,19 +333,15 @@ export function ensureRichJourney(
   // [SESSION_GAP_FLOOR_MS, SESSION_GAP_MAX_MS] — seed theo userId nên mỗi tài khoản
   // một độ dài khác nhau (đúng yêu cầu), rồi buildPostPurchasePhase (adaptiveGapMs)
   // sẽ tự trải các phiên tương ứng ra hết cửa sổ vừa nới thay vì dồn lại gần nhau.
-  if (interviewNeeded > 0 || cvNeeded > 0) {
-    const browseEstimate = Math.max(2, Math.round((interviewNeeded + cvNeeded) * 0.7));
-    const totalUnits = interviewNeeded + cvNeeded + browseEstimate;
-    const sessionsDurationMs =
-      firstPostDelayMs +
-      interviewNeeded * 16 * 60000 + // phỏng vấn tối đa ~15 phút + vài chục giây vào phòng
-      cvNeeded * 5 * 60000 + // phiên CV tối đa ~4-5 phút
-      browseEstimate * 2 * 60000; // lượt duyệt trang tối đa ~1-2 phút
-    const avgUnitGapMs = SESSION_GAP_FLOOR_MS + Math.floor(rand() * (SESSION_GAP_MAX_MS - SESSION_GAP_FLOOR_MS));
-    const desiredSpanMs = sessionsDurationMs + totalUnits * avgUnitGapMs;
-    const neededCeiling = Math.min(now, purchasedAt + desiredSpanMs);
-    activityCeiling = Math.max(activityCeiling, neededCeiling);
-  }
+  activityCeiling = extendActivityCeiling({
+    rand,
+    now,
+    purchasedAt,
+    activityCeiling,
+    firstPostDelayMs,
+    interviewNeeded,
+    cvNeeded,
+  });
 
   const preEvents = buildBrowsingPhase({
     userId,
