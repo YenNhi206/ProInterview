@@ -20,7 +20,29 @@ import { hashSeed, mulberry32, pick } from "./seededRandom.js";
 // tích CV" ở bảng Top trang luôn khớp số nhau, không lệch do duyệt trang rời rạc.
 const PRE_PURCHASE_ROUTES = ["/", "/pricing", "/mentors", "/courses", "/dashboard"];
 
-const BROWSE_ROUTES = ["/mentors", "/courses", "/dashboard", "/profile"];
+// Số lượt duyệt trang xen giữa = số phiên phỏng vấn/CV × hệ số này — user thật ghé
+// trang chủ/dashboard/hồ sơ nhiều lần trong lúc dùng app, không chỉ 1-2 lượt cho có.
+// Dùng chung ở buildPostPurchasePhase (sinh thật) và extendActivityCeiling (ước
+// lượng cửa sổ cần) — phải khớp nhau, đổi 1 chỗ mà quên chỗ kia sẽ lại thiếu chỗ
+// chứa như các lần trước.
+const BROWSE_MULTIPLIER = 1.8;
+
+// Trang chủ/Bảng điều khiển/Hồ sơ là những trang ghé MỖI LẦN mở app (điểm vào +
+// kiểm tra tài khoản), nên phải xuất hiện dày hơn hẳn so với trang tính năng cụ thể
+// (mentors/courses, chỉ ghé khi thật sự cần) — lặp lại nhiều lần trong mảng để
+// pick() (chọn ngẫu nhiên đều) tự nhiên ưu tiên chúng hơn, không cần đổi cơ chế pick.
+const BROWSE_ROUTES = [
+  "/",
+  "/",
+  "/",
+  "/dashboard",
+  "/dashboard",
+  "/dashboard",
+  "/profile",
+  "/profile",
+  "/mentors",
+  "/courses",
+];
 
 const MIN_REAL_EVENTS = 100;
 const MIN_ROUTE_COUNT = 4;
@@ -176,7 +198,7 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
   let cvLeft = Math.max(0, cvNeeded);
   // Tỉ lệ theo số phiên — càng nhiều phiên (quota dùng cao) càng cần nhiều lượt
   // duyệt trang xen giữa, không thì bị dồn cục toàn phiên liên tiếp không tự nhiên.
-  let browseLeft = Math.max(2, Math.round((ivLeft + cvLeft) * 0.7));
+  let browseLeft = Math.max(3, Math.round((ivLeft + cvLeft) * BROWSE_MULTIPLIER));
   let idx = 0;
   let sinceBrowse = 0;
 
@@ -231,7 +253,7 @@ function buildPostPurchasePhase({ userId, rand, startAt, endAt, interviewNeeded,
 function extendActivityCeiling({ rand, now, purchasedAt, activityCeiling, firstPostDelayMs, interviewNeeded, cvNeeded }) {
   if (interviewNeeded <= 0 && cvNeeded <= 0) return activityCeiling;
 
-  const browseEstimate = Math.max(2, Math.round((interviewNeeded + cvNeeded) * 0.7));
+  const browseEstimate = Math.max(3, Math.round((interviewNeeded + cvNeeded) * BROWSE_MULTIPLIER));
   const totalUnits = interviewNeeded + cvNeeded + browseEstimate;
   const sessionsDurationMs =
     firstPostDelayMs +
