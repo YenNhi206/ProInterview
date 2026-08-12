@@ -1406,6 +1406,19 @@ const SESSION_STATUS_OPTIONS = [
   { id: "abandoned", label: "Bỏ dở" },
 ];
 
+const SESSION_PLAN_OPTIONS = [
+  { id: "all", label: "Tất cả gói" },
+  { id: "free", label: "Free" },
+  { id: "starter_pro", label: "Starter Pro" },
+  { id: "elite_pro", label: "Elite Pro" },
+];
+
+const SESSION_PLAN_VI = {
+  free: "Free",
+  starter_pro: "Starter Pro",
+  elite_pro: "Elite Pro",
+};
+
 function formatSessionWhen(iso) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -1425,6 +1438,7 @@ export function AdminContentQuestions() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [planFilter, setPlanFilter] = useState("all");
   const [expandedId, setExpandedId] = useState(null);
 
   const loadAll = useCallback(async () => {
@@ -1455,13 +1469,15 @@ export function AdminContentQuestions() {
     return sessions.filter((s) => {
       const statusKey = String(s.status || "").toLowerCase();
       if (statusFilter !== "all" && statusKey !== statusFilter) return false;
+      const planKey = String(s.plan || "free").toLowerCase();
+      if (planFilter !== "all" && planKey !== planFilter) return false;
       if (!q) return true;
       const name = String(s.user?.name || "").toLowerCase();
       const email = String(s.user?.email || "").toLowerCase();
       const role = String(s.role || "").toLowerCase();
       return name.includes(q) || email.includes(q) || role.includes(q);
     });
-  }, [sessions, searchTerm, statusFilter]);
+  }, [sessions, searchTerm, statusFilter, planFilter]);
 
   return (
     <div className={adminPageWrap}>
@@ -1497,20 +1513,25 @@ export function AdminContentQuestions() {
           <p className="text-[10px] font-black uppercase tracking-widest text-teal-900">Khóa đã xuất bản</p>
           <p className="mt-1 text-2xl font-black text-teal-950">{stats?.publishedCourses ?? 0}</p>
         </div>
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
+        <button
+          type="button"
+          onClick={() => setPlanFilter("free")}
+          className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-left transition hover:border-amber-300 hover:bg-amber-100/80"
+        >
           <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">
             Tài khoản free đã thử phỏng vấn AI
           </p>
           <p className="mt-1 text-2xl font-black text-amber-950">{stats?.freeInterviewUsers ?? 0}</p>
-        </div>
+        </button>
       </motion.div>
 
       <AdminListFilterBar
         countText={`Hiển thị ${filteredSessions.length} / ${sessions.length} phiên`}
-        showReset={Boolean(searchTerm.trim()) || statusFilter !== "all"}
+        showReset={Boolean(searchTerm.trim()) || statusFilter !== "all" || planFilter !== "all"}
         onReset={() => {
           setSearchTerm("");
           setStatusFilter("all");
+          setPlanFilter("all");
         }}
       >
         <AdminFilterSelect
@@ -1520,6 +1541,13 @@ export function AdminContentQuestions() {
           options={SESSION_STATUS_OPTIONS}
           onChange={setStatusFilter}
         />
+        <AdminFilterSelect
+          id="interview-session-plan"
+          label="Gói"
+          value={planFilter}
+          options={SESSION_PLAN_OPTIONS}
+          onChange={setPlanFilter}
+        />
       </AdminListFilterBar>
 
       <div className={adminGlassTable}>
@@ -1527,11 +1555,12 @@ export function AdminContentQuestions() {
           <table className="w-full min-w-0 table-fixed border-collapse text-left">
             <colgroup>
               <col className="w-[4%]" />
-              <col className="w-[24%]" />
-              <col className="w-[18%]" />
+              <col className="w-[21%]" />
+              <col className="w-[15%]" />
               <col className="w-[10%]" />
-              <col className="w-[18%]" />
-              <col className="w-[26%]" />
+              <col className="w-[9%]" />
+              <col className="w-[16%]" />
+              <col className="w-[25%]" />
             </colgroup>
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/90">
@@ -1539,6 +1568,7 @@ export function AdminContentQuestions() {
                 <th className={adminThCell}>Học viên</th>
                 <th className={adminThCell}>Vai trò / cấp</th>
                 <th className={`${adminThCell} text-center`}>Số câu</th>
+                <th className={adminThCell}>Gói</th>
                 <th className={adminThCell}>Trạng thái</th>
                 <th className={adminThCell}>Thời gian</th>
               </tr>
@@ -1547,7 +1577,7 @@ export function AdminContentQuestions() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className={`${adminTdCell} py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500`}
                   >
                     Đang tải…
@@ -1555,7 +1585,7 @@ export function AdminContentQuestions() {
                 </tr>
               ) : filteredSessions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={`${adminTdCell} py-16 text-center text-slate-500`}>
+                  <td colSpan={7} className={`${adminTdCell} py-16 text-center text-slate-500`}>
                     {sessions.length === 0 ? "Chưa có phiên." : "Không có kết quả."}
                   </td>
                 </tr>
@@ -1600,6 +1630,19 @@ export function AdminContentQuestions() {
                             ) : null}
                         </td>
                         <td className={adminTdCell}>
+                          <span
+                            className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
+                              row.plan === "elite_pro"
+                                ? "border-violet-200 bg-violet-50 text-violet-800"
+                                : row.plan === "starter_pro"
+                                  ? "border-sky-200 bg-sky-50 text-sky-800"
+                                  : "border-amber-200 bg-amber-50 text-amber-800"
+                            }`}
+                          >
+                            {SESSION_PLAN_VI[row.plan] || "Free"}
+                          </span>
+                        </td>
+                        <td className={adminTdCell}>
                           <StatusPill
                               label={INTERVIEW_STATUS_VI[statusKey] || row.status || "—"}
                               toneClass={
@@ -1619,7 +1662,7 @@ export function AdminContentQuestions() {
                       </tr>
                       {open ? (
                         <tr className="bg-violet-50/20">
-                          <td colSpan={6} className="px-6 py-4">
+                          <td colSpan={7} className="px-6 py-4">
                               {row.questions?.length > 0 ? (
                                 <ol className="space-y-3">
                                   {row.questions.map((q) => (
