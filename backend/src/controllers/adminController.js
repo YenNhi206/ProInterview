@@ -975,12 +975,17 @@ export const AdminController = {
   /** Tổng quan doanh thu gói Pro/Elite (CK qua SePay) cho admin Tài chính */
   getSubscriptionFinanceSummary: async (_req, res, next) => {
     try {
+      // Loại Payment demo/mock (seedFinanceDemoData.js — providerRef bắt đầu
+      // "UIMOCK-", tự xóa sau demo) — không phải giao dịch thật, không tính vào
+      // thống kê doanh thu/số lượng gói đã kích hoạt.
+      const NOT_DEMO_PAYMENT = { providerRef: { $not: /^UIMOCK-/i } };
+
       const pendAgg = await Payment.aggregate([
-        { $match: { type: "subscription", provider: "transfer", status: "pending" } },
+        { $match: { type: "subscription", provider: "transfer", status: "pending", ...NOT_DEMO_PAYMENT } },
         { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } },
       ]);
       const paidAgg = await Payment.aggregate([
-        { $match: { type: "subscription", status: "success" } },
+        { $match: { type: "subscription", status: "success", ...NOT_DEMO_PAYMENT } },
         { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } },
       ]);
 
@@ -988,13 +993,18 @@ export const AdminController = {
         type: "subscription",
         provider: "transfer",
         status: "pending",
+        ...NOT_DEMO_PAYMENT,
       })
         .populate("userId", "name email plan")
         .sort({ createdAt: -1 })
         .limit(40)
         .lean();
 
-      const recentPaidRows = await Payment.find({ type: "subscription", status: "success" })
+      const recentPaidRows = await Payment.find({
+        type: "subscription",
+        status: "success",
+        ...NOT_DEMO_PAYMENT,
+      })
         .populate("userId", "name email plan")
         .sort({ paidAt: -1, createdAt: -1 })
         .limit(200)
@@ -1700,6 +1710,14 @@ export const AdminController = {
   // Thống kê nhanh cho Dashboard & Phân tích admin
   getStats: async (req, res, next) => {
     try {
+      // Tài khoản demo/mock dùng để thuyết trình (seedFinanceDemoData.js — email
+      // "*.uimock@demo.local", tự xóa sau demo) không phải khách hàng thật, không
+      // tính vào thống kê nền tảng — không thì "Khách hàng"/"Gói Elite"... bị cộng
+      // nhầm cả data demo vào số liệu thật.
+      const REAL_CUSTOMER_FILTER = {
+        role: "customer",
+        email: { $not: /\.uimock@demo\.local$/i },
+      };
       const [
         userCount,
         mentorCount,
@@ -1712,7 +1730,7 @@ export const AdminController = {
         reportsOpen,
         bookingStatusAgg,
       ] = await Promise.all([
-        User.countDocuments({ role: "customer" }),
+        User.countDocuments(REAL_CUSTOMER_FILTER),
         Mentor.countDocuments(),
         Booking.countDocuments(),
         Booking.find()
@@ -1726,7 +1744,10 @@ export const AdminController = {
           })
           .select("date timeSlot status paymentStatus totalAmount createdAt userId mentorId")
           .lean(),
-        User.aggregate([{ $group: { _id: { $ifNull: ["$plan", "free"] }, count: { $sum: 1 } } }]),
+        User.aggregate([
+          { $match: REAL_CUSTOMER_FILTER },
+          { $group: { _id: { $ifNull: ["$plan", "free"] }, count: { $sum: 1 } } },
+        ]),
         Enrollment.countDocuments({ paymentStatus: "paid" }),
         Course.countDocuments({ status: "published" }),
         Course.countDocuments({ status: { $in: ["pending_review", "pending_update"] } }),
