@@ -1497,6 +1497,12 @@ export function AdminContentQuestions() {
           <p className="text-[10px] font-black uppercase tracking-widest text-teal-900">Khóa đã xuất bản</p>
           <p className="mt-1 text-2xl font-black text-teal-950">{stats?.publishedCourses ?? 0}</p>
         </div>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">
+            Tài khoản free đã thử phỏng vấn AI
+          </p>
+          <p className="mt-1 text-2xl font-black text-amber-950">{stats?.freeInterviewUsers ?? 0}</p>
+        </div>
       </motion.div>
 
       <AdminListFilterBar

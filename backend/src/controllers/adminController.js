@@ -1270,6 +1270,7 @@ export const AdminController = {
         completed7d,
         scoreAgg7d,
         fewShotReadyCount,
+        freeInterviewUserIds,
       ] = await Promise.all([
         InterviewSession.countDocuments(),
         CVAnalysis.countDocuments(),
@@ -1291,6 +1292,9 @@ export const AdminController = {
           status: "completed",
           "feedback.overallScore": { $gte: 80 },
         }),
+        // planAtTime lưu đúng gói của user LÚC tạo phiên — dùng để đếm số tài khoản
+        // free (chưa nâng cấp) đã từng dùng thử phỏng vấn AI, không cần field mới.
+        InterviewSession.distinct("userId", { planAtTime: "free" }),
       ]);
       const scoreRow = scoreAgg7d[0] ?? null;
       res.json({
@@ -1300,6 +1304,7 @@ export const AdminController = {
           completedInterviews,
           cvAnalyses,
           publishedCourses,
+          freeInterviewUsers: freeInterviewUserIds.length,
           interviewOps: {
             periodDays: 7,
             sessions7d,
