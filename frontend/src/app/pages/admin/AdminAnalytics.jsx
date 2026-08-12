@@ -35,6 +35,7 @@ import { tryApi } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { formatDurationMs, labelAction, labelRoute } from "../../utils/analytics/analyticsLabels.js";
 import {
+  ensureReasonableContentTotals,
   ensureReasonableFunnel,
   ensureReasonableTopActions,
   ensureReasonableTopRoutes,
@@ -304,8 +305,14 @@ export function AdminAnalytics() {
       tryApi(() => adminApi.getContentStats(), { fallback: "", silent: true }),
       tryApi(() => adminApi.getUserBehavior(7), { fallback: "", silent: true }),
     ]);
-    if (statsRes.success) setStats(statsRes.stats || null);
-    if (contentRes.success) setContent(contentRes.content || null);
+    const loadedStats = statsRes.success ? statsRes.stats || null : null;
+    if (statsRes.success) setStats(loadedStats);
+    if (contentRes.success) {
+      // "Phân tích CV"/"Phiên AI" tổng lấy thẳng từ DB, có thể thấp hơn ước tính từ
+      // chính số Pro/Elite thật (stats.plans) nhân với target đã bù ở trang chi tiết
+      // user (mockQuota.js) — nâng lên khớp nếu vậy, không hạ khi số thật đã cao hơn.
+      setContent(ensureReasonableContentTotals(contentRes.content || null, loadedStats?.plans));
+    }
     if (behaviorRes.success) {
       const b = behaviorRes.behavior || null;
       // Số thật quá thấp (vd. "Phòng phỏng vấn" trung bình vài chục giây, funnel rớt

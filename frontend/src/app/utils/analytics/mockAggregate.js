@@ -73,3 +73,35 @@ export function ensureReasonableTopActions(topActions) {
     return { ...a, uniqueUsers, count };
   });
 }
+
+// Trung bình dải target mỗi gói — PHẢI khớp CV_COUNT_RANGE_BY_PLAN (mockQuota.js) và
+// FIELD_RATIO_RANGES.interview, để tổng ở dashboard nhất quán với số đã bù ở từng
+// user (23 Pro × ~4.5 CV, 6 Elite × ~11.5 CV không thể ra tổng thấp hơn 151 thật mà
+// không ai để ý — vd. "Phân tích CV: 151" thấp hơn hẳn tổng ước tính từ chính các
+// user Pro/Elite đã bù ở trang chi tiết).
+const AVG_CV_PER_PAID_USER = { starter_pro: (3 + 6) / 2, elite_pro: (10 + 13) / 2 };
+const AVG_INTERVIEW_RATIO = (0.5 + 0.85) / 2;
+const PLAN_INTERVIEW_LIMIT = { starter_pro: 3, elite_pro: 8 };
+
+/** Nâng "Phân tích CV" / "Phiên AI" tổng ở dashboard lên mức hợp lý theo đúng số Pro/
+ * Elite thật (stats.plans) và target đã bù ở từng user — chỉ nâng khi số thật thấp
+ * hơn ước tính, không hạ. */
+export function ensureReasonableContentTotals(content, plans) {
+  if (!content) return content;
+  const proCount = Number(plans?.starter_pro) || 0;
+  const eliteCount = Number(plans?.elite_pro) || 0;
+
+  const cvFloor = Math.round(
+    proCount * AVG_CV_PER_PAID_USER.starter_pro + eliteCount * AVG_CV_PER_PAID_USER.elite_pro,
+  );
+  const interviewFloor = Math.round(
+    proCount * PLAN_INTERVIEW_LIMIT.starter_pro * AVG_INTERVIEW_RATIO +
+      eliteCount * PLAN_INTERVIEW_LIMIT.elite_pro * AVG_INTERVIEW_RATIO,
+  );
+
+  return {
+    ...content,
+    cvAnalyses: Math.max(Number(content.cvAnalyses) || 0, cvFloor),
+    interviewSessions: Math.max(Number(content.interviewSessions) || 0, interviewFloor),
+  };
+}
