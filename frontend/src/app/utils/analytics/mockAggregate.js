@@ -90,12 +90,16 @@ export function ensureReasonableFunnel(funnel) {
 }
 
 // Tỉ lệ user Pro+Elite thật (không tính free — các hành động này chỉ Pro/Elite mới
-// làm được) ước tính đã từng thực hiện mỗi hành động — vd. gần như 100% user trả phí
-// đã nâng cấp gói (hiển nhiên), phần lớn (không phải tất cả) đã thử phỏng vấn/CV.
+// làm được) ước tính đã từng thực hiện mỗi hành động. plan_upgrade PHẢI đúng bằng
+// paidCount (tỉ lệ cố định 1.0) — mọi user đang là Pro/Elite chắc chắn đã có đúng 1
+// lần nâng cấp thành công, không phải "ước lượng" như các hành động khác; để dạng %
+// như trước có thể hụt xuống dưới số gói đã kích hoạt thật (vd. 27 < 28), vô lý.
+// plan_checkout_start/checkout_open là bước TRƯỚC nâng cấp trong phễu nên phải >=
+// plan_upgrade (có người bắt đầu thanh toán rồi bỏ dở) — không phải ratio < 1.
 const ACTION_PAID_USER_RATIO = {
-  plan_upgrade: [0.85, 1.0],
-  plan_checkout_start: [0.85, 1.0],
-  checkout_open: [0.8, 1.0],
+  plan_upgrade: [1, 1],
+  plan_checkout_start: [1, 1.2],
+  checkout_open: [1, 1.15],
   interview_start: [0.6, 0.9],
   interview_complete: [0.5, 0.85],
   cv_analyze_start: [0.7, 0.95],
