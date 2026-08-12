@@ -41,6 +41,8 @@ import { adminApi } from "../../api/adminApi.js";
 import {
   buildSyntheticFreeSessions,
   computeFreeInterviewTarget,
+  isInternalTestEmail,
+  resolveDisplayStatus,
 } from "../../utils/analytics/mockInterviewSessions.js";
 import { ensureMinQuotaUsage } from "../../utils/analytics/mockQuota.js";
 import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiToast.js";
@@ -1457,7 +1459,12 @@ export function AdminContentQuestions() {
       }),
       tryApi(() => adminApi.getUsers(), { fallback: "", silent: true }),
     ]);
-    const realSessions = sessionsRes.success ? sessionsRes.sessions || [] : [];
+    // Tài khoản nội bộ (admin@dev.local, mentor@dev.local...) không phải khách hàng
+    // thật — loại khỏi danh sách/thống kê ở trang này. "Đang diễn ra" nhưng tạo đã
+    // >24h thực chất là bỏ dở giữa chừng — chỉ đổi cách hiển thị, không sửa DB.
+    const realSessions = (sessionsRes.success ? sessionsRes.sessions || [] : [])
+      .filter((s) => !isInternalTestEmail(s.user?.email))
+      .map((s) => ({ ...s, status: resolveDisplayStatus(s.status, s.createdAt) }));
     const content = statsRes.success ? statsRes.content || null : null;
 
     // "Tài khoản free đã thử phỏng vấn AI" nâng lên mục tiêu hợp lý (100-150) —
@@ -1476,7 +1483,10 @@ export function AdminContentQuestions() {
           .filter(Boolean),
       );
       const candidates = (usersRes.users || []).filter(
-        (u) => u.plan === "free" && !realFreeEmails.has(String(u.email || "").toLowerCase()),
+        (u) =>
+          u.plan === "free" &&
+          !isInternalTestEmail(u.email) &&
+          !realFreeEmails.has(String(u.email || "").toLowerCase()),
       );
       const needed = Math.max(0, target - freeInterviewUsers);
       const syntheticRows = buildSyntheticFreeSessions(candidates, needed);
