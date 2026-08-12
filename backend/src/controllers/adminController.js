@@ -1329,7 +1329,7 @@ export const AdminController = {
         .limit(limit)
         .populate("userId", "name email")
         .select(
-          "userId status inferredRole inferredSeniority competencyProfile questions answers questionsAllowed createdAt completedAt",
+          "userId status inferredRole inferredSeniority competencyProfile questions answers questionsAllowed planAtTime createdAt completedAt",
         )
         .lean();
 
@@ -1348,6 +1348,7 @@ export const AdminController = {
               ? { name: s.userId.name || "", email: s.userId.email || "" }
               : null,
             status: s.status,
+            plan: s.planAtTime || "free",
             role: roleParts.length ? roleParts.join(" · ") : "—",
             questionCount: questions.length,
             questionsAllowed: s.questionsAllowed ?? null,
