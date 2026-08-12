@@ -322,9 +322,9 @@ export function AdminAnalytics() {
         b
           ? {
               ...b,
-              topRoutes: ensureReasonableTopRoutes(b.topRoutes),
+              topRoutes: ensureReasonableTopRoutes(b.topRoutes, loadedStats?.plans),
               funnel: ensureReasonableFunnel(b.funnel),
-              topActions: ensureReasonableTopActions(b.topActions),
+              topActions: ensureReasonableTopActions(b.topActions, loadedStats?.plans),
             }
           : null,
       );

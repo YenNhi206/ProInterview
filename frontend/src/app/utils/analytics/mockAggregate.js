@@ -27,19 +27,43 @@ const MIN_VISITS_PER_USER = 1.4;
 const MAX_FUNNEL_DROP_RATIO = 0.55;
 const MIN_ACTION_UNIQUE_USERS = 3;
 
+// Route thuộc tính năng trả phí (phỏng vấn AI, phân tích CV — kể cả sub-path động
+// như /cv-analysis/jd/result/...) thì sàn uniqueUsers phải tính theo số user
+// Pro+Elite thật, không phải tổng toàn nền tảng (free không dùng được các trang này
+// nếu đã hết lượt free trial). Route chung (trang chủ, mentors, bảng giá...) thì
+// tính theo TỔNG mọi user (free vẫn duyệt web bình thường).
+const PAID_ROUTE_PREFIXES = ["/interview", "/cv-analysis"];
+const PAID_ROUTE_USER_RATIO = [0.5, 0.9];
+const GENERAL_ROUTE_USER_RATIO = [0.08, 0.25];
+
+function isPaidFeatureRoute(route) {
+  const path = String(route || "");
+  return PAID_ROUTE_PREFIXES.some((p) => path.startsWith(p));
+}
+
 function routeAvgRangeMs(route) {
   return ROUTE_AVG_RANGE_MS[route] || DEFAULT_AVG_RANGE_MS;
 }
 
 /** Nâng uniqueUsers/visits/avgMs (và totalMs suy ra) lên mức hợp lý theo loại trang
- * nếu số thật đang thấp hơn. */
-export function ensureReasonableTopRoutes(topRoutes) {
+ * nếu số thật đang thấp hơn. Sàn uniqueUsers tính theo đúng dân số thật liên quan
+ * (plans.starter_pro/elite_pro/free) nếu có, không thì lùi về sàn cố định cũ. */
+export function ensureReasonableTopRoutes(topRoutes, plans) {
+  const paidCount = (Number(plans?.starter_pro) || 0) + (Number(plans?.elite_pro) || 0);
+  const totalCount = paidCount + (Number(plans?.free) || 0);
+
   return (topRoutes || []).map((r) => {
     const rand = mulberry32(hashSeed(`route:${r.route}`));
     const [minAvg, maxAvg] = routeAvgRangeMs(r.route);
     const targetAvg = Math.round(minAvg + rand() * (maxAvg - minAvg));
 
-    const uniqueUsers = Math.max(Number(r.uniqueUsers) || 0, MIN_UNIQUE_USERS);
+    const paidFeature = isPaidFeatureRoute(r.route);
+    const population = paidFeature ? paidCount : totalCount;
+    const [minRatio, maxRatio] = paidFeature ? PAID_ROUTE_USER_RATIO : GENERAL_ROUTE_USER_RATIO;
+    const ratio = minRatio + rand() * (maxRatio - minRatio);
+    const populationFloor = population > 0 ? Math.round(population * ratio) : 0;
+
+    const uniqueUsers = Math.max(Number(r.uniqueUsers) || 0, MIN_UNIQUE_USERS, populationFloor);
     const visits = Math.max(Number(r.visits) || 0, Math.round(uniqueUsers * MIN_VISITS_PER_USER));
     const avgMs = Math.max(Number(r.avgMs) || 0, targetAvg);
     const totalMs = Math.max(Number(r.totalMs) || 0, avgMs * visits);
@@ -65,10 +89,35 @@ export function ensureReasonableFunnel(funnel) {
   return out;
 }
 
-/** Nâng count/uniqueUsers hành động nổi bật nếu quá thấp. */
-export function ensureReasonableTopActions(topActions) {
+// Tỉ lệ user Pro+Elite thật (không tính free — các hành động này chỉ Pro/Elite mới
+// làm được) ước tính đã từng thực hiện mỗi hành động — vd. gần như 100% user trả phí
+// đã nâng cấp gói (hiển nhiên), phần lớn (không phải tất cả) đã thử phỏng vấn/CV.
+const ACTION_PAID_USER_RATIO = {
+  plan_upgrade: [0.85, 1.0],
+  plan_checkout_start: [0.85, 1.0],
+  checkout_open: [0.8, 1.0],
+  interview_start: [0.6, 0.9],
+  interview_complete: [0.5, 0.85],
+  cv_analyze_start: [0.7, 0.95],
+  cv_analyze_done: [0.65, 0.9],
+};
+
+/** Nâng count/uniqueUsers hành động nổi bật nếu quá thấp. Hành động gắn liền tính
+ * năng trả phí (xem ACTION_PAID_USER_RATIO) tính sàn theo đúng số user Pro+Elite
+ * thật (plans) — hành động khác (booking/course, ngoài phạm vi bù) lùi về sàn cố
+ * định cũ, không thổi phồng. */
+export function ensureReasonableTopActions(topActions, plans) {
+  const paidCount = (Number(plans?.starter_pro) || 0) + (Number(plans?.elite_pro) || 0);
+
   return (topActions || []).map((a) => {
-    const uniqueUsers = Math.max(Number(a.uniqueUsers) || 0, MIN_ACTION_UNIQUE_USERS);
+    const ratioRange = ACTION_PAID_USER_RATIO[a.action];
+    let floorUsers = MIN_ACTION_UNIQUE_USERS;
+    if (ratioRange && paidCount > 0) {
+      const rand = mulberry32(hashSeed(`action:${a.action}`))();
+      const ratio = ratioRange[0] + rand * (ratioRange[1] - ratioRange[0]);
+      floorUsers = Math.max(MIN_ACTION_UNIQUE_USERS, Math.round(paidCount * ratio));
+    }
+    const uniqueUsers = Math.max(Number(a.uniqueUsers) || 0, floorUsers);
     const count = Math.max(Number(a.count) || 0, uniqueUsers);
     return { ...a, uniqueUsers, count };
   });
