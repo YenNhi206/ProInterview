@@ -10,7 +10,6 @@ import {
   Flag,
   Brain,
   Route,
-  MousePointerClick,
   TrendingDown,
   ArrowRight,
   BarChart3,
@@ -33,11 +32,10 @@ import { BookingStatusPill, PaymentStatusPill } from "../../components/admin/Adm
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
-import { formatDurationMs, labelAction, labelRoute } from "../../utils/analytics/analyticsLabels.js";
+import { formatDurationMs, labelRoute } from "../../utils/analytics/analyticsLabels.js";
 import {
   ensureReasonableContentTotals,
   ensureReasonableFunnel,
-  ensureReasonableTopActions,
   ensureReasonableTopRoutes,
 } from "../../utils/analytics/mockAggregate.js";
 
@@ -272,18 +270,6 @@ function FunnelSummary({ funnel }) {
   );
 }
 
-function ActionChip({ action, count, uniqueUsers }) {
-  return (
-    <li className="flex items-center justify-between gap-3 rounded-2xl border border-violet-100/80 bg-gradient-to-r from-violet-50/60 to-white px-4 py-3.5">
-      <span className="text-sm font-bold text-slate-900">{labelAction(action)}</span>
-      <div className="flex shrink-0 items-center gap-2 text-xs font-semibold tabular-nums">
-        <span className="rounded-full bg-white px-2.5 py-1 font-black text-violet-800 shadow-sm">{count}</span>
-        <span className="text-slate-500">{uniqueUsers} user</span>
-      </div>
-    </li>
-  );
-}
-
 function EmptyHint({ children }) {
   return (
     <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-6 py-10 text-center">
@@ -324,7 +310,6 @@ export function AdminAnalytics() {
               ...b,
               topRoutes: ensureReasonableTopRoutes(b.topRoutes, loadedStats?.plans),
               funnel: ensureReasonableFunnel(b.funnel),
-              topActions: ensureReasonableTopActions(b.topActions, loadedStats?.plans),
             }
           : null,
       );
@@ -486,25 +471,6 @@ export function AdminAnalytics() {
                       ))}
                     </ul>
                   )}
-
-                  {(behavior.topActions || []).length > 0 ? (
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50/40 p-4 sm:p-5">
-                      <p className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                        <MousePointerClick className="h-3.5 w-3.5 text-violet-600" />
-                        Hành động nổi bật
-                      </p>
-                      <ul className="space-y-2.5">
-                        {behavior.topActions.map((a) => (
-                          <ActionChip
-                            key={a.action}
-                            action={a.action}
-                            count={a.count}
-                            uniqueUsers={a.uniqueUsers}
-                          />
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
                 </div>
               </motion.div>
             </div>
