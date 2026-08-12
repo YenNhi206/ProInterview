@@ -25,7 +25,6 @@ const DEFAULT_AVG_RANGE_MS = [8000, 30000];
 const MIN_UNIQUE_USERS = 5;
 const MIN_VISITS_PER_USER = 1.4;
 const MAX_FUNNEL_DROP_RATIO = 0.55;
-const MIN_ACTION_UNIQUE_USERS = 3;
 
 // Route thuộc tính năng trả phí (phỏng vấn AI, phân tích CV — kể cả sub-path động
 // như /cv-analysis/jd/result/...) thì sàn uniqueUsers phải tính theo số user
@@ -87,44 +86,6 @@ export function ensureReasonableFunnel(funnel) {
     out.push({ ...steps[i], users });
   }
   return out;
-}
-
-// Tỉ lệ user Pro+Elite thật (không tính free — các hành động này chỉ Pro/Elite mới
-// làm được) ước tính đã từng thực hiện mỗi hành động. plan_upgrade PHẢI đúng bằng
-// paidCount (tỉ lệ cố định 1.0) — mọi user đang là Pro/Elite chắc chắn đã có đúng 1
-// lần nâng cấp thành công, không phải "ước lượng" như các hành động khác; để dạng %
-// như trước có thể hụt xuống dưới số gói đã kích hoạt thật (vd. 27 < 28), vô lý.
-// plan_checkout_start/checkout_open là bước TRƯỚC nâng cấp trong phễu nên phải >=
-// plan_upgrade (có người bắt đầu thanh toán rồi bỏ dở) — không phải ratio < 1.
-const ACTION_PAID_USER_RATIO = {
-  plan_upgrade: [1, 1],
-  plan_checkout_start: [1, 1.2],
-  checkout_open: [1, 1.15],
-  interview_start: [0.6, 0.9],
-  interview_complete: [0.5, 0.85],
-  cv_analyze_start: [0.7, 0.95],
-  cv_analyze_done: [0.65, 0.9],
-};
-
-/** Nâng count/uniqueUsers hành động nổi bật nếu quá thấp. Hành động gắn liền tính
- * năng trả phí (xem ACTION_PAID_USER_RATIO) tính sàn theo đúng số user Pro+Elite
- * thật (plans) — hành động khác (booking/course, ngoài phạm vi bù) lùi về sàn cố
- * định cũ, không thổi phồng. */
-export function ensureReasonableTopActions(topActions, plans) {
-  const paidCount = (Number(plans?.starter_pro) || 0) + (Number(plans?.elite_pro) || 0);
-
-  return (topActions || []).map((a) => {
-    const ratioRange = ACTION_PAID_USER_RATIO[a.action];
-    let floorUsers = MIN_ACTION_UNIQUE_USERS;
-    if (ratioRange && paidCount > 0) {
-      const rand = mulberry32(hashSeed(`action:${a.action}`))();
-      const ratio = ratioRange[0] + rand * (ratioRange[1] - ratioRange[0]);
-      floorUsers = Math.max(MIN_ACTION_UNIQUE_USERS, Math.round(paidCount * ratio));
-    }
-    const uniqueUsers = Math.max(Number(a.uniqueUsers) || 0, floorUsers);
-    const count = Math.max(Number(a.count) || 0, uniqueUsers);
-    return { ...a, uniqueUsers, count };
-  });
 }
 
 // Trung bình dải target mỗi gói — PHẢI khớp CV_COUNT_RANGE_BY_PLAN (mockQuota.js) và
