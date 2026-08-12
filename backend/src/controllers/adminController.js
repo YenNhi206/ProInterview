@@ -40,11 +40,21 @@ function normalizeRateInput(raw) {
 function serializeSubscriptionPayment(p) {
   const pr = p.providerResponse && typeof p.providerResponse === "object" ? p.providerResponse : {};
   const u = p.userId && typeof p.userId === "object" ? p.userId : null;
+  // providerResponse.plan có thể thiếu (vd. Payment tạo qua script seed cũ không ghi
+  // providerResponse) — khi đó dùng plan THẬT hiện tại của user thay vì mặc định
+  // cứng starter_pro, tránh đếm nhầm user elite_pro thành starter_pro ở trang thống
+  // kê (lệch số với /admin/analytics vốn đếm thẳng từ User.plan).
+  const plan =
+    pr.plan === "elite_pro" || pr.plan === "starter_pro"
+      ? pr.plan
+      : u?.plan === "elite_pro"
+        ? "elite_pro"
+        : "starter_pro";
   return {
     id: String(p._id),
     amount: p.amount,
     providerRef: p.providerRef || "",
-    plan: pr.plan === "elite_pro" ? "elite_pro" : "starter_pro",
+    plan,
     status: p.status,
     createdAt: p.createdAt,
     paidAt: p.paidAt || null,
