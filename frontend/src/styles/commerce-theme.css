@@ -1,0 +1,81 @@
+/* Shared palette for customer account, purchases and learning library pages. */
+.commerce-theme {
+  --commerce-violet: #7c3aed;
+  --commerce-blue: #3b82f6;
+  --commerce-orchid: #9333ea;
+  --commerce-indigo: #252a78;
+  --commerce-base-start: #150a2e;
+  --commerce-base-middle: #0d0a26;
+  --commerce-base-end: #070818;
+  --commerce-text: #f1f5f9;
+  --commerce-muted: #cbd5e1;
+  --commerce-accent: #c4b5fd;
+  --commerce-accent-bright: #ddd6fe;
+  --commerce-border: rgba(255, 255, 255, 0.12);
+  --commerce-border-strong: rgba(167, 139, 250, 0.35);
+  --commerce-surface: rgba(255, 255, 255, 0.04);
+  --commerce-surface-hover: rgba(25, 16, 54, 0.75);
+  --commerce-control: rgba(22, 13, 54, 0.9);
+  --commerce-primary-hover: #6d28d9;
+  --commerce-accent-soft: rgba(124, 58, 237, 0.2);
+  --commerce-success: #6ee7b7;
+  --commerce-success-soft: rgba(16, 185, 129, 0.15);
+  --commerce-error: #fda4af;
+  --commerce-error-soft: rgba(244, 63, 94, 0.15);
+  --commerce-warning: #fcd34d;
+  --commerce-warning-soft: rgba(245, 158, 11, 0.15);
+  background-color: var(--commerce-base-middle);
+}
+
+.app-shell-ambient--commerce {
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(124, 58, 237, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 75% 55% at 85% 15%, rgba(59, 130, 246, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 20% 60%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse 85% 65% at 80% 85%, rgba(37, 42, 120, 0.75) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 95%, rgba(168, 85, 247, 0.35) 0%, transparent 50%),
+    linear-gradient(135deg, var(--commerce-base-start) 0%, var(--commerce-base-middle) 50%, var(--commerce-base-end) 100%);
+}
+
+.commerce-glow {
+  position: absolute;
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+  filter: blur(140px);
+}
+.commerce-glow--top-left { top: -128px; left: -128px; background: var(--commerce-violet); opacity: 0.4; }
+.commerce-glow--top-right { top: -128px; right: -128px; background: var(--commerce-blue); opacity: 0.35; }
+.commerce-glow--bottom-left { bottom: -128px; left: -128px; background: var(--commerce-orchid); opacity: 0.35; }
+.commerce-glow--bottom-right { bottom: -128px; right: -128px; width: 700px; height: 700px; background: var(--commerce-indigo); opacity: 0.65; filter: blur(150px); }
+
+.commerce-panel {
+  border: 1px solid var(--commerce-border);
+  background: var(--commerce-surface);
+  backdrop-filter: blur(24px);
+}
+.commerce-panel--interactive:hover {
+  border-color: var(--commerce-border-strong);
+  background: var(--commerce-surface-hover);
+  box-shadow: 0 16px 36px rgba(124, 58, 237, 0.22);
+}
+.commerce-control {
+  color-scheme: dark;
+  border: 1px solid var(--commerce-border);
+  background: var(--commerce-control);
+  color: var(--commerce-text);
+}
+.commerce-control option { background: var(--commerce-base-start); color: var(--commerce-text); }
+.commerce-action { background: var(--commerce-violet); color: #fff; }
+.commerce-action:hover { background: var(--commerce-primary-hover); }
+.commerce-action--secondary {
+  border: 1px solid var(--commerce-border-strong);
+  background: var(--commerce-accent-soft);
+  color: var(--commerce-accent-bright);
+}
+.commerce-action--secondary:hover { background: rgba(124, 58, 237, 0.3); }
+.payment-history-page :is(a, button, select):not(.pi-select-trigger):focus-visible {
+  outline: 2px solid var(--commerce-accent);
+  outline-offset: 4px;
+}

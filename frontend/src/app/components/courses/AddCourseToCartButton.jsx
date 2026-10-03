@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ShoppingCart, Check } from "lucide-react";
+import { ShoppingBag, Check } from "lucide-react";
 import { useCart } from "../../hooks/useCart.jsx";
 import { hasAuthCredentials, getUser } from "../../utils/auth/auth.js";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
@@ -22,9 +22,10 @@ export function AddCourseToCartButton({ courseId, className = "" }) {
     catch (error) { toastApiError(error.message); }
     finally { setBusy(false); }
   };
-  const Icon = inCart ? Check : ShoppingCart;
+  const Icon = inCart ? Check : ShoppingBag;
   return <button type="button" disabled={busy} onClick={handleClick}
-    className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border border-violet-200 px-4 py-2.5 text-sm font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50 ${className}`}>
-    <Icon className="size-4" />{busy ? "Đang thêm…" : inCart ? "Xem giỏ hàng" : "Thêm vào giỏ"}
+    aria-busy={busy}
+    className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-white/[0.12] hover:border-white/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 active:scale-[0.98] cursor-pointer disabled:cursor-wait disabled:opacity-50 ${className}`}>
+    <Icon className="size-4 text-violet-300" strokeWidth={1.8} aria-hidden="true" />{busy ? "Đang thêm…" : inCart ? "Xem trong giỏ hàng" : "Thêm vào giỏ"}
   </button>;
 }

@@ -10,20 +10,19 @@ import {
 import { cn } from "./utils";
 
 const TRIGGER_SIZE = {
-  default:
-    "h-auto min-h-[46px] rounded-2xl border-slate-200 bg-white px-5 py-3 text-xs font-bold text-slate-900 shadow-none focus:border-[#8037f4] focus:ring-4 focus:ring-[#8037f4]/10 data-[size=default]:h-auto",
-  md: "h-auto min-h-[42px] rounded-lg border-slate-200/90 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-900 shadow-none focus:border-[#8037f4] focus:bg-[#faf8ff] focus:ring-2 focus:ring-[#8037f4]/12 data-[size=default]:h-auto",
-  sm: "h-8 min-h-8 rounded-md border-slate-200 bg-white px-2 py-1 text-sm font-semibold text-slate-900 shadow-none focus:border-[#8037f4] focus:ring-2 focus:ring-[#8037f4]/15 data-[size=default]:h-8",
-  compact:
-    "h-auto min-h-[38px] rounded-lg border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm focus:border-[#8037f4] focus:ring-1 focus:ring-[#8037f4]/20 data-[size=default]:h-auto",
-  filter:
-    "h-[42px] min-h-[42px] rounded-2xl border-slate-200 bg-white py-2.5 pl-3 pr-9 text-sm font-semibold text-slate-900 shadow-none focus:border-[#8037f4] focus:ring-2 focus:ring-[#8037f4]/12 data-[size=default]:h-[42px]",
+  default: "min-h-[46px] px-4 py-3 text-sm",
+  md: "min-h-[42px] px-3.5 py-2.5 text-sm",
+  sm: "min-h-8 px-2.5 py-1 text-xs",
+  compact: "min-h-[38px] px-3 py-2 text-xs",
+  filter: "min-h-[42px] px-3.5 py-2.5 text-sm",
 };
 
-/**
- * Dropdown theo brand ProInterview (Radix) — thay `<select>` native.
- * @param {{ value: string|number, onValueChange: (v: string) => void, options: {value: string|number, label: string, disabled?: boolean}[], placeholder?: string, disabled?: boolean, size?: keyof TRIGGER_SIZE, id?: string, triggerClassName?: string, contentClassName?: string, "aria-label"?: string }} props
- */
+// Radix items cannot use an empty value. Keep an explicit "all" option
+// distinct from an unselected field, so placeholders still work in forms.
+const EMPTY_OPTION = "__all__";
+const isEmpty = (value) => value === undefined || value === null || value === "";
+
+/** Shared select for forms and filters; theme also travels with the portal. */
 export function AppSelect({
   value,
   onValueChange,
@@ -31,17 +30,22 @@ export function AppSelect({
   placeholder = "Chọn…",
   disabled = false,
   size = "md",
+  theme = "light",
+  icon: Icon,
   id,
   triggerClassName,
   contentClassName,
   noRing = false,
   "aria-label": ariaLabel,
+  ...triggerProps
 }) {
-  const stringValue =
-    value === undefined || value === null || value === "" ? "__all__" : String(value);
+  const hasEmptyOption = options.some((opt) => isEmpty(opt.value));
+  const stringValue = isEmpty(value)
+    ? (hasEmptyOption ? EMPTY_OPTION : "")
+    : String(value);
 
   const handleValueChange = (val) => {
-    if (val === "__all__") {
+    if (val === EMPTY_OPTION) {
       onValueChange?.("");
     } else {
       onValueChange?.(val);
@@ -58,15 +62,18 @@ export function AppSelect({
         id={id}
         aria-label={ariaLabel}
         data-noring={noRing ? "true" : undefined}
+        data-ui-theme={theme}
         className={cn(TRIGGER_SIZE[size] || TRIGGER_SIZE.md, triggerClassName)}
+        {...triggerProps}
       >
+        {Icon && <Icon className="pi-select-leading-icon size-4" aria-hidden="true" />}
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent className={contentClassName} position="popper">
+      <SelectContent data-ui-theme={theme} className={contentClassName} position="popper">
         {options.map((opt) => {
           const optValue =
-            opt.value === undefined || opt.value === null || opt.value === ""
-              ? "__all__"
+            isEmpty(opt.value)
+              ? EMPTY_OPTION
               : String(opt.value);
           return (
             <SelectItem

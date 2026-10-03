@@ -11,6 +11,8 @@ import { normalizeBillingCycle, resolveSubscriptionAmount } from "../constants/p
 import { newPaymentExpiresAt } from "../utils/transferPaymentExpiry.js";
 import {
   expireSubscriptionTransferIfNeeded,
+  expireBookingTransferById,
+  expireEnrollmentTransferById,
 } from "./transferPaymentExpiryService.js";
 import { incrementCourseEnrollmentCount } from "./courseStatsService.js";
 import { tryCreditMentorForPaidEnrollment } from "./mentorEarningsService.js";
@@ -818,6 +820,36 @@ export async function recordTransferSubmitted({ userId, type, referenceId, payme
 
 export async function listPaymentHistory(userId, limit = 50, options = {}) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
+
+  // Tự động kiểm tra và cập nhật các đơn transfer pending đã quá hạn 15 phút
+  try {
+    const expiredCutoff = new Date(Date.now() - 15 * 60 * 1000);
+    const expiredPending = await Payment.find({
+      userId,
+      provider: "transfer",
+      status: "pending",
+      $or: [
+        { paymentExpiresAt: { $lt: new Date() } },
+        { paymentExpiresAt: { $exists: false }, createdAt: { $lt: expiredCutoff } },
+        { paymentExpiresAt: null, createdAt: { $lt: expiredCutoff } },
+      ],
+    });
+    for (const p of expiredPending) {
+      if (p.type === "booking") {
+        await expireBookingTransferById(p.referenceId).catch(() => {});
+      } else if (p.type === "course") {
+        await expireEnrollmentTransferById(p.referenceId).catch(() => {});
+      } else {
+        await expireSubscriptionTransferIfNeeded(p).catch(() => {});
+      }
+      p.status = "cancelled";
+      p.failureReason = "payment_timeout";
+      await p.save().catch(() => {});
+    }
+  } catch (err) {
+    console.error("[listPaymentHistory] Error expiring timed out payments:", err);
+  }
+
   const lim = Math.min(100, Math.max(1, parseInt(limit) || 50));
   const page = Math.max(1, parseInt(options.page) || 1);
   const filter = { userId };

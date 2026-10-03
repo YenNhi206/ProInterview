@@ -5,6 +5,8 @@
 @import './admin-typography.css';
 @import './mentor-typography.css';
 @import './customer-typography.css';
+@import './commerce-theme.css';
+@import './account-motion.css';
 
 @theme {
   /* Lime chủ đạo — dùng với nền #120B2E + chữ sáng */

@@ -30,7 +30,7 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { useParams, useNavigate, useSearchParams } from "react-router";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router";
 import { usePageAnalytics } from "../../hooks/usePageAnalytics.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
 import {
@@ -1241,12 +1241,19 @@ export function CourseLearning() {
       {/* ── Top bar (Coursera / Udemy: breadcrumb + progress) ── */}
       <header className="z-30 flex min-h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900 sm:px-4">
         <div className="min-w-0 flex-1 py-0.5">
-          <h1 className="truncate text-base font-semibold leading-tight tracking-tight text-slate-900 dark:text-slate-50 sm:text-lg md:text-xl">
-            {course.title}
-          </h1>
-          <p className="mt-0.5 truncate text-xs font-medium text-slate-600 dark:text-slate-400 sm:text-sm">
-            Bài {currentLessonIdx + 1}/{lessons.length}: {currentLesson.title}
-          </p>
+          <nav className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mb-0.5">
+            <Link to="/courses" className="hover:text-slate-900 dark:hover:text-white transition-colors">
+              Khóa học
+            </Link>
+            <span className="text-slate-400 dark:text-slate-600">›</span>
+            <Link to={`/courses/${id}`} className="hover:text-slate-900 dark:hover:text-white transition-colors truncate max-w-[160px] sm:max-w-xs">
+              {course.title}
+            </Link>
+            <span className="text-slate-400 dark:text-slate-600">›</span>
+            <span className="text-violet-600 dark:text-violet-400 font-semibold truncate max-w-[180px] sm:max-w-xs">
+              Bài {currentLessonIdx + 1}: {currentLesson.title}
+            </span>
+          </nav>
         </div>
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <button

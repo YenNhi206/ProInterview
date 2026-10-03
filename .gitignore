@@ -29,6 +29,7 @@ coverage/
 
 # frontend-only (monorepo)
 frontend/scratch/
+frontend/tmp/
 
 # Python cache
 __pycache__/

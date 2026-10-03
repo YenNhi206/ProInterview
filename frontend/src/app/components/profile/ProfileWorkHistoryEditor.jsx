@@ -2,18 +2,18 @@ import { Plus, Trash2 } from "lucide-react";
 import { emptyWorkEntry, formatWorkEntryPeriod } from "../../utils/profile/profileWorkHistory.js";
 
 const fieldClass =
-  "w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-200/80 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500";
+  "w-full rounded-xl border border-white/15 bg-slate-900/50 px-3.5 py-2.5 text-sm font-medium text-slate-100 shadow-sm placeholder:text-slate-400 focus:border-[#c4ace8] focus:outline-none focus:ring-2 focus:ring-[#c4ace8]/30 disabled:cursor-not-allowed disabled:opacity-50 transition-colors";
 
-const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
+const labelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300";
 
 function PeriodSummary({ entry }) {
   const period = formatWorkEntryPeriod(entry);
   if (!period) return null;
 
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-md border border-violet-100 bg-violet-50/80 px-3 py-2 text-sm">
-      <span className="text-slate-500">Hiển thị trên hồ sơ:</span>
-      <span className="font-semibold text-violet-900">{period}</span>
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-xl border border-violet-400/25 bg-violet-500/15 px-3.5 py-2 text-sm">
+      <span className="text-slate-300">Hiển thị trên hồ sơ:</span>
+      <span className="font-bold text-violet-300">{period}</span>
     </div>
   );
 }
@@ -59,30 +59,29 @@ export function ProfileWorkHistoryEditor({
 
   return (
     <div className="space-y-4">
-      {/* Removed description text as requested */}
       {showMentorRequiredHint ? (
-        <p className="text-sm font-medium leading-relaxed text-violet-900">
-          <span className="font-extrabold text-red-500" aria-hidden>
+        <p className="text-xs font-medium leading-relaxed text-violet-300">
+          <span className="font-extrabold text-rose-400" aria-hidden>
             *
           </span>{" "}
-          Điền ít nhất <strong>chức danh</strong> hoặc <strong>công ty</strong> ở một mục bên dưới.
+          Điền ít nhất <strong className="text-white">chức danh</strong> hoặc <strong className="text-white">công ty</strong> ở một mục bên dưới.
         </p>
       ) : null}
 
       {list.map((entry, index) => (
         <div
           key={index}
-          className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+          className="space-y-4 rounded-2xl border border-white/10 bg-slate-900/60 p-4 sm:p-5 shadow-md"
         >
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-            <h4 className="text-sm font-semibold text-slate-900">
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+            <h4 className="text-sm font-bold text-white">
               {entry.isCurrent ? "Công việc hiện tại" : `Kinh nghiệm ${index + 1}`}
             </h4>
             {!disabled && list.length > 1 ? (
               <button
                 type="button"
                 onClick={() => removeEntry(index)}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-rose-400 hover:bg-rose-500/15 transition-colors"
               >
                 <Trash2 size={14} aria-hidden />
                 Xóa
@@ -119,17 +118,17 @@ export function ProfileWorkHistoryEditor({
             </div>
           </div>
 
-          <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-slate-100 bg-slate-50/80 px-3 py-2.5">
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5">
             <input
               type="checkbox"
               disabled={disabled}
               checked={entry.isCurrent}
-              className="mt-0.5 size-4 shrink-0 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+              className="mt-0.5 size-4 shrink-0 rounded border-slate-600 bg-slate-800 text-violet-500 focus:ring-violet-400"
               onChange={(e) => setCurrentAt(index, e.target.checked)}
             />
-            <span className="text-sm text-slate-700">
-              <span className="font-medium text-slate-900">Đang làm việc tại đây</span>
-              <span className="mt-0.5 block text-xs text-slate-500">
+            <span className="text-sm text-slate-200">
+              <span className="font-bold text-white">Đang làm việc tại đây</span>
+              <span className="mt-0.5 block text-xs text-slate-400">
                 Chỉ một mục được đánh dấu hiện tại. Khi bật, ô &quot;Đến&quot; sẽ tự ẩn.
               </span>
             </span>
@@ -144,7 +143,7 @@ export function ProfileWorkHistoryEditor({
                 id={`work-start-${index}`}
                 type="month"
                 disabled={disabled}
-                className={`${fieldClass} [color-scheme:light]`}
+                className={`${fieldClass} [color-scheme:dark]`}
                 value={entry.startMonth}
                 onChange={(e) => updateEntry(index, { startMonth: e.target.value })}
               />
@@ -157,12 +156,12 @@ export function ProfileWorkHistoryEditor({
                 id={`work-end-${index}`}
                 type="month"
                 disabled={disabled || entry.isCurrent}
-                className={`${fieldClass} [color-scheme:light]`}
+                className={`${fieldClass} [color-scheme:dark]`}
                 value={entry.isCurrent ? "" : entry.endMonth}
                 onChange={(e) => updateEntry(index, { endMonth: e.target.value })}
               />
               {entry.isCurrent ? (
-                <p className="mt-1.5 text-xs text-slate-500">Không cần điền khi vẫn đang làm việc.</p>
+                <p className="mt-1.5 text-xs text-slate-400">Không cần điền khi vẫn đang làm việc.</p>
               ) : null}
             </div>
           </div>
@@ -190,7 +189,7 @@ export function ProfileWorkHistoryEditor({
         <button
           type="button"
           onClick={addEntry}
-          className="inline-flex items-center gap-2 rounded-md border border-dashed border-violet-300 bg-violet-50/50 px-4 py-2.5 text-sm font-medium text-violet-800 hover:bg-violet-50"
+          className="inline-flex items-center gap-2 rounded-xl border border-dashed border-violet-400/40 bg-violet-500/10 px-4 py-2.5 text-xs font-bold text-violet-300 hover:bg-violet-500/20 transition-colors cursor-pointer"
         >
           <Plus size={16} aria-hidden />
           Thêm kinh nghiệm khác
@@ -199,3 +198,4 @@ export function ProfileWorkHistoryEditor({
     </div>
   );
 }
+

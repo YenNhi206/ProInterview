@@ -5,7 +5,6 @@ import {
   getUserCancelPolicyFromHours,
 } from "../../constants/bookingPolicy";
 import { BOOKING_POLICY_COPY } from "../../constants/brandVoice";
-import { BRAND_PURPLE, BRAND_PURPLE_SOFT_LIGHT } from "../../constants/brandColors";
 
 function PolicyLineList({ lines, activeTier, compact }) {
   return (
@@ -15,8 +14,8 @@ function PolicyLineList({ lines, activeTier, compact }) {
           key={line.id}
           className={
             activeTier === line.id
-              ? "font-semibold text-[#8037f4]"
-              : "font-normal text-slate-600"
+              ? "font-semibold text-violet-400"
+              : "font-normal text-slate-300"
           }
         >
           {line.text}
@@ -31,16 +30,15 @@ function PolicySection({ icon: Icon, title, lines, activeTier, compact }) {
     <div className="flex gap-3">
       {Icon ? (
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-          style={{ background: BRAND_PURPLE_SOFT_LIGHT }}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-300"
           aria-hidden
         >
-          <Icon className="h-4 w-4" style={{ color: BRAND_PURPLE }} strokeWidth={2.25} />
+          <Icon className="h-4 w-4" strokeWidth={2.25} />
         </div>
       ) : null}
       <div className="min-w-0 flex-1">
         <p
-          className={`font-bold text-slate-900 ${compact ? "text-[11px]" : "text-sm leading-snug"}`}
+          className={`font-bold text-white ${compact ? "text-[11px]" : "text-sm leading-snug"}`}
         >
           {title}
         </p>
@@ -76,7 +74,7 @@ export function UserCancelPolicyBrief({
         activeTier={activeTier}
         compact={!isIcons}
       />
-      <div className={`border-t border-slate-200 ${isIcons ? "my-4" : "my-3"}`} />
+      <div className={`border-t border-white/10 ${isIcons ? "my-4" : "my-3"}`} />
       <PolicySection
         icon={isIcons ? UserRound : null}
         title={MENTOR_CANCEL_POLICY_BRIEF.title}
@@ -90,7 +88,7 @@ export function UserCancelPolicyBrief({
   if (isIcons) {
     return (
       <div
-        className={`rounded-xl border border-slate-200 bg-slate-50/80 p-4 ${className}`.trim()}
+        className={`rounded-2xl border border-white/10 bg-white/[0.02] p-4 ${className}`.trim()}
       >
         {body}
       </div>

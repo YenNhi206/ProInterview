@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { financeRequest } from "../../api/financeOperationsApi.js";
+import { AppSelect } from "../../components/ui/AppSelect";
 
 export function AdminAuditLog() {
   const [page, setPage] = useState(1); const [success, setSuccess] = useState(""); const [method, setMethod] = useState("");
@@ -11,8 +12,28 @@ export function AdminAuditLog() {
     return () => { active = false; };
   }, [page, success, method, revision]);
   return <div className="space-y-6"><h1 className="text-3xl font-black">Nhật ký thao tác admin</h1><p className="text-slate-500">Ghi lại người thao tác, yêu cầu và kết quả. Các trường bí mật được che trước khi lưu.</p>
-    <div className="flex flex-wrap gap-3"><select aria-label="Kết quả" className="rounded-xl border p-3" value={success} onChange={(e) => { setSuccess(e.target.value); setPage(1); }}><option value="">Mọi kết quả</option><option value="true">Thành công</option><option value="false">Không thành công</option></select>
-      <select aria-label="Phương thức" className="rounded-xl border p-3" value={method} onChange={(e) => { setMethod(e.target.value); setPage(1); }}><option value="">Mọi thao tác</option>{["POST", "PATCH", "PUT", "DELETE"].map((m) => <option key={m}>{m}</option>)}</select>
+    <div className="flex flex-wrap gap-3">
+      <AppSelect
+        aria-label="Kết quả"
+        triggerClassName="w-full sm:w-52"
+        value={success}
+        onValueChange={(value) => { setSuccess(value); setPage(1); }}
+        options={[
+          { value: "", label: "Mọi kết quả" },
+          { value: "true", label: "Thành công" },
+          { value: "false", label: "Không thành công" },
+        ]}
+      />
+      <AppSelect
+        aria-label="Phương thức"
+        triggerClassName="w-full sm:w-48"
+        value={method}
+        onValueChange={(value) => { setMethod(value); setPage(1); }}
+        options={[
+          { value: "", label: "Mọi thao tác" },
+          ...["POST", "PATCH", "PUT", "DELETE"].map((value) => ({ value, label: value })),
+        ]}
+      />
       <button onClick={() => setRevision((n) => n + 1)} className="px-3 text-violet-700">Tải lại</button></div>
     {error && <p role="alert" className="text-red-700">{error}</p>}{!data && !error && <p>Đang tải…</p>}
     <div className="space-y-3">{data?.entries.map((row) => <article className="rounded-xl border bg-white p-4" key={row._id}>

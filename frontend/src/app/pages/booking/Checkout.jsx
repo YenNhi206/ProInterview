@@ -50,12 +50,12 @@ function formatAmountParts(amount) {
 function PaymentAmountBlock({ payAmount, className = "" }) {
   const { value, suffix } = formatAmountParts(payAmount);
   const amountClass =
-    "mt-1.5 text-[2rem] font-extrabold leading-none tabular-nums tracking-tight text-slate-900 sm:text-[2.25rem]";
+    "mt-1.5 text-[2rem] font-black leading-none tabular-nums tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 sm:text-[2.25rem]";
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3 text-left ${className}`}
+      className={`rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-4 py-3 text-left ${className}`}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
         Số tiền cần thanh toán
       </p>
       <p className={amountClass}>
@@ -67,7 +67,7 @@ function PaymentAmountBlock({ payAmount, className = "" }) {
 }
 
 const checkoutCard =
-  "rounded-2xl border border-slate-200 bg-white shadow-sm";
+  "rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl shadow-xl";
 
 // Bold riêng con số đầu dòng ("10 lượt...", "Ưu đãi 5%...") — đồng bộ style Pricing.jsx.
 const LEADING_NUMBER = /^(\d+)(.*)$/;
@@ -97,11 +97,11 @@ function FeatureLabel({ text, accentColor = "#8037f4" }) {
   }
   return <span className="leading-snug">{text}</span>;
 }
-const labelMuted = "text-xs font-medium text-slate-500";
-const textMuted = "text-sm text-slate-600";
+const labelMuted = "text-xs font-medium text-slate-400";
+const textMuted = "text-sm text-slate-300";
 const pageShell =
-  "relative min-h-svh w-full overflow-x-hidden bg-[#f3f0f9] text-slate-900 antialiased selection:bg-violet-100 selection:text-violet-900";
-const mainTopPad = "pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem]";
+  "relative min-h-svh w-full overflow-x-hidden bg-[#070314] text-[#f0edf7] antialiased selection:bg-[rgba(122,35,229,0.35)] selection:text-white";
+const mainTopPad = "pt-[5.25rem] sm:pt-[6.25rem] md:pt-[6.75rem]";
 
 function mentorIdsMatch(a, b) {
   const na = String(a || "").trim().toLowerCase();
@@ -221,10 +221,11 @@ function CopyBtn({ text, variant = "default" }) {
     <button
       type="button"
       onClick={copy}
-      className={`flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold transition-all ${copied
-          ? "border-[#8037f4]/40 bg-[#8037f4] text-white"
-          : "border-[#93f72b]/40 bg-[#93f72b] text-slate-900 shadow-sm hover:bg-[#7fe015]"
-        }`}
+      className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+        copied
+          ? "border-emerald-500/50 bg-emerald-500 text-white shadow-sm"
+          : "border-violet-500/40 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm hover:from-violet-500 hover:to-indigo-500"
+      }`}
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
       {copied ? "Đã copy" : "Sao chép"}
@@ -264,23 +265,23 @@ function BankTransferPaymentDetails({
   const { value, suffix } = formatAmountParts(payAmount);
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-[#8037f4]/15 bg-white shadow-[0_8px_32px_rgba(128,55,244,0.08)] ring-1 ring-[#8037f4]/5">
-      <div className="bg-gradient-to-r from-[#faf8ff] via-white to-[#f5fce8]/40 px-3.5 py-3 sm:px-4 sm:py-3.5">
-        <div className="flex flex-wrap items-start justify-between gap-2.5">
+    <div className="flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl shadow-2xl">
+      <div className="bg-gradient-to-r from-violet-950/70 via-purple-950/50 to-slate-950/70 px-5 py-3.5 border-b border-white/10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8037f4]/80">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Số tiền cần thanh toán
             </p>
-            <p className="mt-1 text-[1.5rem] font-extrabold leading-none tabular-nums tracking-tight text-[#630ed4] sm:text-[1.75rem]">
+            <p className="mt-0.5 text-2xl sm:text-3xl font-black leading-none tabular-nums tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-300">
               {value}
               {suffix}
             </p>
           </div>
           {!paymentExpired && typeof expiresInMs === "number" ? (
-            <div className="flex shrink-0 items-center gap-2 rounded border border-[#93f72b]/35 bg-[#93f72b]/10 px-2.5 py-1.5">
-              <Clock className="h-3.5 w-3.5 shrink-0 text-[#630ed4]" aria-hidden />
-              <span className="text-xs text-slate-600">Còn</span>
-              <span className="font-mono text-sm font-bold tabular-nums text-[#630ed4]">
+            <div className="flex shrink-0 items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 shadow-inner">
+              <Clock className="h-3.5 w-3.5 shrink-0 text-emerald-400" aria-hidden />
+              <span className="text-xs text-slate-300 font-medium">Còn</span>
+              <span className="font-mono text-sm font-bold tabular-nums text-emerald-300">
                 {formatTransferCountdown(expiresInMs)}
               </span>
             </div>
@@ -288,65 +289,63 @@ function BankTransferPaymentDetails({
         </div>
       </div>
 
-      <div className="px-3.5 pb-3.5 sm:px-4 sm:pb-4">
-      {paymentExpired ? (
-        <div className="rounded border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800">
-          <p className="font-semibold">Đơn đã hết hạn ({timeoutMinutes} phút)</p>
-          <p className="mt-1 text-xs leading-relaxed text-red-700/90">
-            Mã PI cũ không còn hiệu lực. Tạo đơn mới để nhận QR và mã chuyển khoản mới.
-          </p>
-          {onRetryOrder ? (
-            <button
-              type="button"
-              onClick={onRetryOrder}
-              className="mt-3 rounded bg-[#a3e635] px-4 py-2 text-xs font-bold text-slate-900 transition-colors hover:bg-[#84cc16]"
-            >
-              Tạo đơn mới
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      <div className="my-3 h-px bg-gradient-to-r from-[#93f72b]/30 via-[#8037f4]/20 to-transparent" />
-
-      <div className="overflow-hidden rounded-md border border-[#8037f4]/20">
-        <div className="flex items-center bg-gradient-to-r from-[#630ed4] to-[#8037f4] px-3 py-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/95">
-            Nội dung chuyển khoản
-          </p>
-        </div>
-        <div className="flex items-center justify-between gap-3 border-t border-[#8037f4]/10 bg-[#faf8ff] px-3.5 py-3 sm:px-4">
-          <p className="min-w-0 flex-1 break-all font-mono text-xl font-bold tracking-wide text-[#630ed4]">
-            {transferOrderNum}
-          </p>
-          <CopyBtn text={transferOrderNum} variant="lime" />
-        </div>
-      </div>
-
-      <div className="mt-3 overflow-hidden rounded-md border border-[#8037f4]/12 bg-[#faf8ff]/50">
-        <dl className="divide-y divide-[#8037f4]/8 text-sm">
-          <div className="px-3.5 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#8037f4]/70">Ngân hàng</dt>
-            <dd className="mt-1 font-medium leading-snug text-slate-800">{bankName}</dd>
+      <div className="p-4 sm:p-5 space-y-3.5">
+        {paymentExpired ? (
+          <div className="rounded-2xl border border-red-500/30 bg-red-950/40 p-3.5 text-xs text-red-200">
+            <p className="font-bold">Đơn đã hết hạn ({timeoutMinutes} phút)</p>
+            <p className="mt-1 text-xs leading-relaxed text-red-300">
+              Mã PI cũ không còn hiệu lực. Tạo đơn mới để nhận QR và mã chuyển khoản mới.
+            </p>
+            {onRetryOrder ? (
+              <button
+                type="button"
+                onClick={onRetryOrder}
+                className="mt-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1.5 text-xs font-bold text-white transition-colors hover:from-violet-500 hover:to-indigo-500"
+              >
+                Tạo đơn mới
+              </button>
+            ) : null}
           </div>
-          <div className="relative flex items-start justify-between gap-3 bg-white/60 px-3.5 py-2.5 pl-4">
-            <span className="absolute bottom-2 left-0 top-2 w-0.5 rounded-full bg-[#93f72b]" aria-hidden />
-            <div className="min-w-0">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#8037f4]/70">Số tài khoản</dt>
-              <dd className="mt-1 font-mono text-base font-bold text-[#630ed4] sm:text-lg">
-                {BANK_TRANSFER.accountNumber}
-              </dd>
-            </div>
-            {BANK_TRANSFER.accountNumber ? <CopyBtn text={BANK_TRANSFER.accountNumber} /> : null}
+        ) : null}
+
+        <div className="overflow-hidden rounded-2xl border border-violet-500/30 bg-white/[0.02]">
+          <div className="flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white">
+              Nội dung chuyển khoản (bắt buộc)
+            </p>
           </div>
-          {BANK_TRANSFER.accountOwner ? (
-            <div className="px-3.5 py-2.5">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#8037f4]/70">Chủ tài khoản</dt>
-              <dd className="mt-1 font-semibold text-slate-900">{BANK_TRANSFER.accountOwner}</dd>
+          <div className="flex items-center justify-between gap-3 border-t border-white/10 bg-white/[0.03] px-4 py-2.5 sm:px-5">
+            <p className="min-w-0 flex-1 break-all font-mono text-lg sm:text-xl font-black tracking-wider text-white">
+              {transferOrderNum}
+            </p>
+            <CopyBtn text={transferOrderNum} variant="lime" />
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+          <dl className="divide-y divide-white/10 text-xs sm:text-sm">
+            <div className="px-4 py-2.5">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ngân hàng</dt>
+              <dd className="mt-0.5 font-semibold text-white leading-snug">{bankName}</dd>
             </div>
-          ) : null}
-        </dl>
-      </div>
+            <div className="relative flex items-center justify-between gap-3 bg-white/[0.03] px-4 py-2.5 pl-5">
+              <span className="absolute bottom-1.5 left-0 top-1.5 w-1 rounded-full bg-emerald-400" aria-hidden />
+              <div>
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Số tài khoản</dt>
+                <dd className="mt-0.5 font-mono text-base sm:text-lg font-black text-emerald-400">
+                  {BANK_TRANSFER.accountNumber}
+                </dd>
+              </div>
+              {BANK_TRANSFER.accountNumber ? <CopyBtn text={BANK_TRANSFER.accountNumber} /> : null}
+            </div>
+            {BANK_TRANSFER.accountOwner ? (
+              <div className="px-4 py-2.5">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Chủ tài khoản</dt>
+                <dd className="mt-0.5 font-semibold text-white uppercase">{BANK_TRANSFER.accountOwner}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
       </div>
     </div>
   );
@@ -355,30 +354,30 @@ function BankTransferPaymentDetails({
 /** QR VietQR, căn giữa, khung đồng bộ panel thông tin CK */
 function BankTransferQrFocus({ vietQrUrl, vietQrLoadFailed, onQrError, onOpenQrModal }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center lg:py-2">
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
       {vietQrUrl && !vietQrLoadFailed ? (
         <button
           type="button"
           onClick={onOpenQrModal}
-          className="group flex w-full max-w-[15.5rem] flex-col sm:max-w-[17rem]"
+          className="group flex w-full max-w-[17rem] sm:max-w-[19rem] flex-col items-center"
         >
-          <div className="rounded-2xl border border-[#8037f4]/10 bg-white p-3 shadow-[0_8px_28px_rgba(128,55,244,0.08)] ring-1 ring-[#8037f4]/5 transition-all group-hover:shadow-[0_12px_36px_rgba(128,55,244,0.12)] group-hover:ring-[#8037f4]/20">
+          <div className="w-full rounded-3xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl shadow-2xl ring-1 ring-white/10 transition-all duration-300 group-hover:border-violet-500/50 group-hover:shadow-[0_12px_36px_rgba(128,55,244,0.35)] group-hover:scale-[1.01]">
             <img
               src={vietQrUrl}
               alt="Mã QR VietQR"
-              className="aspect-square w-full rounded-xl object-contain"
+              className="aspect-square w-full rounded-2xl object-contain bg-white p-2.5 shadow-sm"
               loading="lazy"
               onError={onQrError}
             />
           </div>
-          <span className="mt-2.5 text-center text-xs font-medium text-slate-500 transition-colors group-hover:text-[#8037f4]">
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1 text-xs font-semibold text-slate-300 transition-colors group-hover:border-violet-500/40 group-hover:bg-violet-500/10 group-hover:text-violet-200">
             Chạm để phóng to QR
           </span>
         </button>
       ) : vietQrUrl && vietQrLoadFailed ? (
-        <p className="max-w-xs text-center text-sm text-slate-600">Không tải được QR, dùng thông tin bên cạnh.</p>
+        <p className="max-w-xs text-center text-sm text-slate-400">Không tải được QR, dùng thông tin bên cạnh.</p>
       ) : (
-        <p className="max-w-xs text-center text-sm text-slate-600">
+        <p className="max-w-xs text-center text-sm text-slate-400">
           Thêm <span className="font-mono text-xs">VITE_VIETQR_BANK_ID</span> để hiện mã QR.
         </p>
       )}
@@ -411,7 +410,7 @@ function BankTransferFocusLayout({
   );
 
   return (
-    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start lg:gap-6">
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-8">
       <BankTransferQrFocus
         vietQrUrl={vietQrUrl}
         vietQrLoadFailed={vietQrLoadFailed}
@@ -461,32 +460,39 @@ const STEPS_REBOOK = ["TÓM TẮT", "XÁC NHẬN"];
 
 function StepBar({ current, steps = STEPS_BOOKING }) {
   return (
-    <div className="mb-5 flex items-center justify-center">
+    <div className="mb-3.5 flex items-center justify-center">
       {steps.map((label, i) => {
         const done = i < current;
         const active = i === current;
         return (
           <div key={i} className="flex items-center">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-1">
               <div
-                className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all ${done || active
-                    ? "bg-[#8037f4] text-white shadow-md shadow-violet-500/25"
-                    : "border border-slate-200 bg-white text-slate-400"
-                  }`}
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-black transition-all ${
+                  active
+                    ? "bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 text-white shadow-[0_0_16px_rgba(139,92,246,0.6)] border border-violet-400/50 scale-105"
+                    : done
+                      ? "bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]"
+                      : "border border-white/20 bg-white/[0.05] text-slate-400"
+                }`}
               >
-                {done ? <Check className="h-4 w-4" /> : i + 1}
+                {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
               </div>
               <span
-                className={`text-[11px] font-semibold uppercase tracking-wide ${done || active ? "text-[#8037f4]" : "text-slate-400"
-                  }`}
+                className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  active ? "text-white" : done ? "text-emerald-400" : "text-slate-400"
+                }`}
               >
                 {label}
               </span>
             </div>
             {i < steps.length - 1 && (
               <div
-                className={`mx-4 mb-6 h-0.5 w-10 rounded-full md:w-16 ${i < current ? "bg-[#8037f4]" : "bg-slate-200"
-                  }`}
+                className={`mx-3 mb-3.5 h-0.5 w-10 sm:w-14 rounded-full transition-all ${
+                  i < current
+                    ? "bg-gradient-to-r from-violet-500 to-indigo-500 shadow-[0_0_8px_rgba(139,92,246,0.6)]"
+                    : "bg-white/15"
+                }`}
               />
             )}
           </div>
@@ -568,14 +574,14 @@ function CheckoutPayPanel({ mode, fmt, rebookCreditVnd, bookingTotalEstimate, bo
           <button
             type="button"
             onClick={() => navigate(`/mentors?rebookFrom=${encodeURIComponent(rebookFrom)}`)}
-            className="rounded-lg bg-[#a3e635] px-3 py-2 text-[10px] font-black uppercase text-slate-900"
+            className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-1.5 text-[10px] font-black uppercase text-white hover:from-violet-500 hover:to-indigo-500"
           >
             Mentor khác
           </button>
           <button
             type="button"
             onClick={() => navigate(`/session/${encodeURIComponent(rebookFrom)}`)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-[10px] font-bold uppercase text-slate-700 hover:border-violet-300"
+            className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-bold uppercase text-slate-300 hover:text-white"
           >
             Buổi cũ
           </button>
@@ -593,7 +599,9 @@ function DiscountedPrice({ baseTotal, discountedTotal, fmt, size = "text-lg" }) 
       {hasDiscount && (
         <p className="text-xs font-medium text-slate-400 line-through">{fmt(baseTotal)}</p>
       )}
-      <p className={`${size} font-bold text-[#8037f4]`}>{fmt(hasDiscount ? discountedTotal : baseTotal)}</p>
+      <p className={`${size} font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300`}>
+        {fmt(hasDiscount ? discountedTotal : baseTotal)}
+      </p>
     </div>
   );
 }
@@ -615,43 +623,43 @@ function OrderLineItem({
 }) {
   if (isCourse) {
     return (
-      <div className={`${checkoutCard} flex gap-4 p-4 sm:p-5`}>
+      <div className={`${checkoutCard} flex items-center gap-3.5 p-3.5 sm:p-4`}>
         <img
           src={courseInfo?.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&q=80"}
           alt=""
-          className="h-20 w-28 shrink-0 rounded-lg border border-slate-200 object-cover sm:h-24 sm:w-32"
+          className="h-16 w-24 shrink-0 rounded-xl border border-white/10 object-cover sm:h-20 sm:w-28"
         />
         <div className="min-w-0 flex-1">
-          <p className="text-base font-semibold leading-snug text-slate-900 sm:text-lg">
+          <p className="text-sm sm:text-base font-bold leading-snug text-white">
             {courseInfo?.title || "Đang tải khóa học…"}
           </p>
           {courseInfo?.mentorId?.userId?.name && (
-            <p className={`mt-1 ${labelMuted}`}>Giảng viên: {courseInfo.mentorId.userId.name}</p>
+            <p className={`mt-0.5 ${labelMuted}`}>Giảng viên: <span className="text-slate-300">{courseInfo.mentorId.userId.name}</span></p>
           )}
         </div>
-        <DiscountedPrice baseTotal={baseTotal} discountedTotal={discountedTotal} fmt={fmt} />
+        <DiscountedPrice baseTotal={baseTotal} discountedTotal={discountedTotal} fmt={fmt} size="text-base sm:text-lg" />
       </div>
     );
   }
   if (isBooking) {
     const slots = bookingSlots ?? (bookingDate ? [{ dateKey: bookingDate, dayFull: bookingDate, time: bookingTime }] : []);
     return (
-      <div className={`${checkoutCard} p-4 sm:p-5`}>
-        <div className="flex gap-4">
+      <div className={`${checkoutCard} p-3.5 sm:p-4`}>
+        <div className="flex items-center gap-3.5">
           {bookingMentor ? (
             <img
               src={bookingMentor.avatar}
               alt={bookingMentor.name}
-              className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 object-cover"
+              className="h-13 w-13 sm:h-14 sm:w-14 shrink-0 rounded-2xl border border-white/10 ring-2 ring-violet-500/30 object-cover shadow-md"
             />
           ) : (
-            <div className="h-16 w-16 shrink-0 rounded-xl bg-slate-100" />
+            <div className="h-13 w-13 sm:h-14 sm:w-14 shrink-0 rounded-2xl bg-white/[0.05] border border-white/10" />
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-base font-semibold text-slate-900 sm:text-lg">
+            <p className="text-base sm:text-lg font-bold text-white leading-tight">
               {bookingMentor?.name || "Đang tải mentor…"}
             </p>
-            <p className={`mt-0.5 ${labelMuted}`}>
+            <p className="mt-0.5 text-xs font-semibold text-violet-300">
               {isBooking && bookingSessionType
                 ? sessionTypeLabel(bookingSessionType)
                 : bookingMentor?.title || "Buổi phỏng vấn 1:1"}
@@ -659,42 +667,42 @@ function OrderLineItem({
             {slots.length > 1 ? (
               <div className="mt-2 space-y-1">
                 {slots.map((s, i) => (
-                  <div key={`${s.dateKey}_${s.time}`} className="flex items-center gap-2 text-xs text-slate-600">
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#8037f4] text-[0.6rem] font-black text-white">
+                  <div key={`${s.dateKey}_${s.time}`} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-300">
+                    <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-violet-600 text-[0.55rem] font-black text-white">
                       {i + 1}
                     </span>
-                    <Calendar className="h-3 w-3 text-[#8037f4]" />
-                    <span className="font-medium">{s.dayFull || s.dateKey}</span>
-                    <Clock className="h-3 w-3 text-[#8037f4]" />
-                    <span className="font-bold">{s.time}</span>
+                    <Calendar className="h-3 w-3 text-violet-400" />
+                    <span className="font-medium text-white">{s.dayFull || s.dateKey}</span>
+                    <Clock className="h-3 w-3 text-violet-400 ml-1" />
+                    <span className="font-bold text-emerald-400">{s.time}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className={`mt-2 flex flex-wrap gap-3 ${textMuted} text-xs`}>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-300">
                 {bookingDate && (
-                  <span className="inline-flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5 text-[#8037f4]" />
+                  <span className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] sm:text-xs">
+                    <Calendar className="h-3 w-3 text-violet-400" />
                     {bookingDate}
                   </span>
                 )}
                 {bookingTime && (
-                  <span className="inline-flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5 text-[#8037f4]" />
+                  <span className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] sm:text-xs font-bold text-emerald-400">
+                    <Clock className="h-3 w-3 text-violet-400" />
                     {bookingTime}
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1">
-                  <Video className="h-3.5 w-3.5 text-[#8037f4]" />
+                <span className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] sm:text-xs text-slate-400">
+                  <Video className="h-3 w-3 text-violet-400" />
                   Jitsi trên ProInterview · 60 phút
                 </span>
               </div>
             )}
           </div>
           <div className="shrink-0 text-right">
-            <DiscountedPrice baseTotal={baseTotal} discountedTotal={discountedTotal} fmt={fmt} />
+            <DiscountedPrice baseTotal={baseTotal} discountedTotal={discountedTotal} fmt={fmt} size="text-lg sm:text-xl" />
             {slots.length > 1 && (
-              <p className="text-xs text-slate-500">{slots.length} buổi</p>
+              <p className="mt-1 text-xs text-slate-400 font-medium">{slots.length} buổi</p>
             )}
           </div>
         </div>
@@ -703,9 +711,9 @@ function OrderLineItem({
   }
   const planTextDark = false;
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-sm">
+    <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-0 shadow-xl">
       <div
-        className="flex items-start justify-between gap-4 p-4 sm:p-5"
+        className="flex items-start justify-between gap-4 p-5 sm:p-6"
         style={{ background: plan.accentColor }}
       >
         <div>
@@ -772,56 +780,56 @@ function VietQrModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-5 flex items-center justify-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="vietqr-modal-title"
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/75 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md"
         onClick={onClose}
         aria-label="Đóng"
       />
-      <div className="relative z-10 w-full max-w-[400px] overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="relative z-10 w-full max-w-[420px] my-auto max-h-[92vh] overflow-y-auto rounded-3xl border border-white/10 bg-[#0f0728]/95 p-6 backdrop-blur-2xl shadow-2xl text-slate-200">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white transition-colors"
           aria-label="Đóng cửa sổ QR"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="px-6 pb-6 pt-8">
+        <div className="pt-2">
           <p
             id="vietqr-modal-title"
-            className="mb-4 text-center text-lg font-bold tracking-tight text-slate-800"
+            className="mb-4 text-center text-xl font-bold tracking-tight text-white"
           >
-            VietQR
+            Quét mã VietQR
           </p>
 
           {vietQrUrl && !vietQrLoadFailed ? (
-            <div className="mx-auto max-w-[300px]">
+            <div className="mx-auto max-w-[280px] rounded-2xl bg-white p-3 shadow-xl">
               <img
                 src={vietQrUrl}
                 alt="Mã QR thanh toán VietQR"
-                className="w-full rounded-lg"
+                className="w-full rounded-xl"
                 loading="eager"
                 onError={onQrError}
               />
             </div>
           ) : (
-            <p className="rounded-lg bg-slate-50 px-4 py-8 text-center text-sm text-slate-600">
+            <p className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-8 text-center text-sm text-slate-400">
               {vietQrLoadFailed
                 ? "Không tải được mã QR. Vui lòng chuyển khoản thủ công theo thông tin bên dưới."
                 : "Chưa có mã QR. Kiểm tra cấu hình VITE_VIETQR_BANK_ID và STK ngân hàng."}
             </p>
           )}
 
-          <div className="mt-5 space-y-3 border-t border-slate-100 pt-5 text-left">
+          <div className="mt-5 space-y-3 border-t border-white/10 pt-5 text-left">
             {BANK_TRANSFER.bankName ? (
-              <VietQrModalDetailRow label="Ngân hàng" valueClassName="font-medium leading-snug">
+              <VietQrModalDetailRow label="Ngân hàng" valueClassName="font-semibold text-white leading-snug">
                 {displayBankName(BANK_TRANSFER.bankName)}
               </VietQrModalDetailRow>
             ) : null}
@@ -829,7 +837,7 @@ function VietQrModal({
               <div className="min-w-0 flex-1">
                 <VietQrModalDetailRow
                   label="Số tài khoản"
-                  valueClassName="font-mono text-base font-bold text-[#8037f4]"
+                  valueClassName="font-mono text-base font-bold text-violet-300"
                 >
                   {BANK_TRANSFER.accountNumber || "—"}
                 </VietQrModalDetailRow>
@@ -838,11 +846,11 @@ function VietQrModal({
                 <CopyBtn text={BANK_TRANSFER.accountNumber} />
               ) : null}
             </div>
-            <VietQrModalDetailRow label="Số tiền" valueClassName="text-base font-extrabold tabular-nums">
+            <VietQrModalDetailRow label="Số tiền" valueClassName="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 tabular-nums">
               {fmt(payAmount)}
             </VietQrModalDetailRow>
             {BANK_TRANSFER.accountOwner ? (
-              <VietQrModalDetailRow label="Chủ tài khoản" valueClassName="font-semibold">
+              <VietQrModalDetailRow label="Chủ tài khoản" valueClassName="font-semibold text-white">
                 {BANK_TRANSFER.accountOwner}
               </VietQrModalDetailRow>
             ) : null}
@@ -850,7 +858,7 @@ function VietQrModal({
               <div className="min-w-0 flex-1">
                 <VietQrModalDetailRow
                   label="Nội dung chuyển khoản"
-                  valueClassName="break-all font-mono text-sm font-bold"
+                  valueClassName="break-all font-mono text-sm font-bold text-violet-300"
                 >
                   {transferOrderNum}
                 </VietQrModalDetailRow>
@@ -859,7 +867,7 @@ function VietQrModal({
             </div>
           </div>
 
-          <p className="mt-4 text-center text-xs text-slate-500">Quét mã QR trong app ngân hàng để thanh toán</p>
+          <p className="mt-5 text-center text-xs text-slate-400">Quét mã QR trong ứng dụng ngân hàng để thanh toán tự động</p>
         </div>
       </div>
     </div>
@@ -920,37 +928,37 @@ function BankTransferBlock({
   return (
     <div className="mt-4 grid gap-4 md:grid-cols-2">
       {paymentExpired ? (
-        <div className="md:col-span-2 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800">
+        <div className="md:col-span-2 rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-sm text-rose-200">
           <p className="font-semibold">Đơn đã hết hạn ({timeoutMinutes ?? 15} phút)</p>
           {onRetryOrder ? (
             <button
               type="button"
               onClick={onRetryOrder}
-              className="mt-2 rounded-lg bg-[#a3e635] px-3 py-1.5 text-xs font-bold text-slate-900"
+              className="mt-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-violet-500/25 hover:brightness-110"
             >
               Tạo đơn mới
             </button>
           ) : null}
         </div>
       ) : typeof expiresInMs === "number" ? (
-        <div className="md:col-span-2 flex items-center justify-center gap-2 rounded-full border border-[#8037f4]/12 bg-[#faf8ff] px-4 py-2 text-sm text-slate-600">
-          <Clock className="h-3.5 w-3.5 text-[#8037f4]" aria-hidden />
+        <div className="md:col-span-2 flex items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-slate-300">
+          <Clock className="h-3.5 w-3.5 text-emerald-400" aria-hidden />
           Còn{" "}
-          <strong className="font-mono font-bold tabular-nums text-[#8037f4]">
+          <strong className="font-mono font-bold tabular-nums text-emerald-300">
             {formatTransferCountdown(expiresInMs)}
           </strong>
         </div>
       ) : null}
       <div className="space-y-3 text-sm">
-        <TransferDetailRow label="Ngân hàng" large={false} labelClass={labelClass} valueWrapClass={valueClass}>
-          <p className="leading-snug text-slate-800">{displayBankName(BANK_TRANSFER.bankName)}</p>
+        <TransferDetailRow label="Ngân hàng" large={false} labelClass="text-xs font-semibold uppercase tracking-wider text-slate-400" valueWrapClass="text-white">
+          <p className="leading-snug text-white font-medium">{displayBankName(BANK_TRANSFER.bankName)}</p>
         </TransferDetailRow>
-        <TransferDetailRow label="Số tài khoản" large={false} labelClass={labelClass} valueWrapClass="">
-          <span className={accountClass}>{BANK_TRANSFER.accountNumber}</span>
+        <TransferDetailRow label="Số tài khoản" large={false} labelClass="text-xs font-semibold uppercase tracking-wider text-slate-400" valueWrapClass="">
+          <span className="font-mono text-base font-bold text-violet-300">{BANK_TRANSFER.accountNumber}</span>
         </TransferDetailRow>
         {BANK_TRANSFER.accountOwner ? (
-          <TransferDetailRow label="Chủ tài khoản" large={false} labelClass={labelClass} valueWrapClass={valueClass}>
-            <span className={valueClass}>{BANK_TRANSFER.accountOwner}</span>
+          <TransferDetailRow label="Chủ tài khoản" large={false} labelClass="text-xs font-semibold uppercase tracking-wider text-slate-400" valueWrapClass="text-white">
+            <span className="text-white font-medium">{BANK_TRANSFER.accountOwner}</span>
           </TransferDetailRow>
         ) : null}
         <TransferMemoCard
@@ -966,10 +974,12 @@ function BankTransferBlock({
           <button
             type="button"
             onClick={onOpenQrModal}
-            className="w-full max-w-[200px] rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm transition-colors hover:border-violet-300 hover:shadow-md"
+            className="group w-full max-w-[200px] rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center shadow-lg backdrop-blur-md transition-all hover:border-violet-500/50 hover:bg-white/[0.08]"
           >
-            <img src={vietQrUrl} alt="Mã QR VietQR" className="w-full" loading="lazy" onError={onQrError} />
-            <p className="mt-1 text-xs font-medium text-slate-500">Phóng to QR</p>
+            <div className="overflow-hidden rounded-xl bg-white p-2">
+              <img src={vietQrUrl} alt="Mã QR VietQR" className="w-full" loading="lazy" onError={onQrError} />
+            </div>
+            <p className="mt-2 text-xs font-medium text-slate-300 group-hover:text-white transition-colors">Phóng to QR</p>
           </button>
         ) : vietQrUrl && vietQrLoadFailed ? (
           <p className={`text-center text-xs ${labelMuted}`}>Không tải QR, chuyển thủ công theo STK.</p>
@@ -1773,7 +1783,7 @@ export function Checkout() {
         .fade-in { animation: fadeIn 0.35s ease-out both; }
       `}</style>
 
-      <div className="app-shell-ambient" aria-hidden />
+      <div className="app-shell-ambient app-shell-ambient--commerce" aria-hidden />
       <Navbar variant="customer" />
 
       <main
@@ -1782,14 +1792,75 @@ export function Checkout() {
             : "mx-auto max-w-6xl flex-1 flex-col pb-10"
           }`}
       >
+        {/* Breadcrumb navigation */}
+        <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
+          {isBooking && bookingMentor ? (
+            <>
+              <button
+                type="button"
+                onClick={() => navigate("/mentors")}
+                className="hover:text-white transition-colors"
+              >
+                Chuyên gia
+              </button>
+              <span className="text-slate-500">›</span>
+              <button
+                type="button"
+                onClick={() => navigate(`/mentors/${bookingMentor.id || bookingMentor._id}`)}
+                className="hover:text-white transition-colors truncate max-w-[200px]"
+              >
+                {bookingMentor.name}
+              </button>
+              <span className="text-slate-500">›</span>
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="hover:text-white transition-colors"
+              >
+                Đặt lịch
+              </button>
+              <span className="text-slate-500">›</span>
+              <span className="text-slate-100 font-semibold">
+                {!preCheckoutConfirmed ? "Xác nhận đơn hàng" : "Thanh toán"}
+              </span>
+            </>
+          ) : isCourse && courseInfo ? (
+            <>
+              <button
+                type="button"
+                onClick={() => navigate("/courses")}
+                className="hover:text-white transition-colors"
+              >
+                Khóa học
+              </button>
+              <span className="text-slate-500">›</span>
+              <button
+                type="button"
+                onClick={() => navigate(`/courses/${courseId}`)}
+                className="hover:text-white transition-colors truncate max-w-[200px]"
+              >
+                {courseInfo.title}
+              </button>
+              <span className="text-slate-500">›</span>
+              <span className="text-slate-100 font-semibold">
+                {!preCheckoutConfirmed ? "Xác nhận đơn hàng" : "Thanh toán"}
+              </span>
+            </>
+          ) : (
+            <span className="text-slate-100 font-semibold">
+              {!preCheckoutConfirmed ? "Xác nhận đơn hàng" : "Thanh toán"}
+            </span>
+          )}
+        </nav>
+
         {transferFocus ? (
           <div className="flex flex-col">
             {!preCheckoutConfirmed ? (
-              <div className="rounded-lg bg-white p-4 shadow-[0_16px_48px_rgba(128,55,244,0.1)] ring-1 ring-[#8037f4]/10 sm:p-5">
-                <header className="mb-4 shrink-0 border-b border-[#8037f4]/8 pb-3">
+              <div className="w-full rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 backdrop-blur-xl shadow-2xl">
+                <header className="mb-4 shrink-0 border-b border-white/10 pb-3 sm:pb-3.5">
                   <StepBar current={0} steps={STEPS_BOOKING} />
-                  <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Xác nhận đơn hàng</h1>
-                  <p className="mt-1 text-sm text-slate-600">
+                  <h1 className="text-xl font-bold text-white sm:text-2xl">Xác nhận đơn hàng</h1>
+                  <p className="mt-0.5 text-xs text-slate-300 sm:text-sm">
                     Kiểm tra thông tin, áp mã giảm giá (nếu có) trước khi chuyển sang bước chuyển khoản.
                   </p>
                 </header>
@@ -1810,25 +1881,23 @@ export function Checkout() {
                   fmt={fmt}
                 />
 
-                <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#8037f4]/10">
-                      <Tag className="h-3.5 w-3.5 text-[#8037f4]" />
-                    </span>
-                    <p className="text-sm font-semibold text-slate-800">Mã giảm giá</p>
+                <div className="mt-3.5 rounded-2xl border border-white/10 bg-white/[0.02] p-3.5 sm:p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Tag className="h-3.5 w-3.5 text-violet-400" />
+                    <p className="text-xs font-bold text-slate-300">Mã giảm giá</p>
                   </div>
                   {couponApplied ? (
-                    <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-                      <div className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                        <span className="font-semibold text-emerald-700">{appliedCouponCode}</span>
-                        <span className="text-emerald-600">— giảm {fmt(couponDiscountAmount)}</span>
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3.5 py-2">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                        <span className="font-bold text-emerald-300">{appliedCouponCode}</span>
+                        <span className="text-emerald-400/90">— giảm {fmt(couponDiscountAmount)}</span>
                       </div>
                       <button
                         type="button"
                         onClick={handleRemoveCoupon}
                         disabled={couponValidating}
-                        className="shrink-0 text-xs font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800 disabled:opacity-50"
+                        className="shrink-0 text-xs font-semibold text-emerald-400 underline underline-offset-2 hover:text-emerald-300 disabled:opacity-50"
                       >
                         Bỏ mã
                       </button>
@@ -1849,20 +1918,20 @@ export function Checkout() {
                               handleApplyCoupon();
                             }
                           }}
-                          placeholder="Nhập mã giảm giá"
-                          className="h-11 min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-sm placeholder:text-slate-400 focus:border-[#8037f4] focus:outline-none focus:ring-2 focus:ring-[#8037f4]/15"
+                          placeholder="Nhập mã giảm giá (nếu có)"
+                          className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-white/[0.05] px-3.5 text-xs sm:text-sm text-white placeholder:text-slate-400 focus:border-violet-500 focus:bg-white/[0.08] focus:outline-none focus:ring-1 focus:ring-violet-500/30"
                         />
                         <button
                           type="button"
                           onClick={handleApplyCoupon}
                           disabled={!coupon.trim() || couponValidating}
-                          className="h-11 shrink-0 rounded-xl bg-[#93f72b] px-5 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:bg-[#7fe015] active:scale-[0.98] disabled:pointer-events-none disabled:hover:bg-[#93f72b]"
+                          className="h-10 shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 text-xs sm:text-sm font-bold text-white shadow-md shadow-violet-500/25 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
                         >
                           {couponValidating ? "Đang kiểm tra…" : "Áp dụng"}
                         </button>
                       </div>
                       {couponError && (
-                        <p className="mt-2 flex items-center gap-1.5 text-xs text-red-600">
+                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-400 font-medium">
                           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                           {couponError}
                         </p>
@@ -1871,38 +1940,42 @@ export function Checkout() {
                   )}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between gap-4 border-t border-slate-200 pt-4">
+                <div className="mt-4 flex items-center justify-between gap-4 border-t border-white/10 pt-3.5 sm:pt-4">
                   <div>
-                    <p className={labelMuted}>Tổng cộng cần thanh toán</p>
-                    <p className="mt-0.5 text-2xl font-bold tabular-nums text-slate-900 sm:text-3xl">{fmt(payAmount)}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tổng cộng cần thanh toán</p>
+                    <p className="mt-0.5 text-xl font-black tabular-nums tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-300 sm:text-2xl">{fmt(payAmount)}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setPreCheckoutConfirmed(true)}
-                    className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#93f72b] px-6 text-base font-semibold text-slate-900 shadow-sm transition-all hover:bg-[#7fe015] active:scale-[0.98]"
+                    className="relative group overflow-hidden inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 px-7 text-sm sm:text-base font-bold text-white shadow-lg shadow-violet-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-600/50 active:scale-[0.98]"
                   >
-                    Tiếp tục
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000 ease-out" />
+                    <span className="relative z-10 flex items-center gap-2">
+                      Tiếp tục
+                      <span className="text-base">→</span>
+                    </span>
                   </button>
                 </div>
 
                 {cardError ? (
-                  <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                  <div className="mt-3 flex items-start gap-2 rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-2.5 text-xs text-rose-200">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>{cardError}</span>
                   </div>
                 ) : null}
               </div>
             ) : !orderCreated ? (
-              <div className={`${checkoutCard} flex flex-col items-center justify-center gap-2 p-8 text-center`}>
-                <span className="inline-block h-7 w-7 animate-spin rounded-full border-2 border-violet-200 border-t-[#8037f4]" />
-                <p className="text-sm font-medium text-slate-600">Đang tạo đơn chờ chuyển khoản…</p>
+              <div className={`${checkoutCard} flex flex-col items-center justify-center gap-3 p-12 text-center`}>
+                <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-violet-500/20 border-t-violet-400" />
+                <p className="text-sm font-medium text-slate-300">Đang tạo đơn chờ chuyển khoản…</p>
               </div>
             ) : (
-              <div className="rounded-lg bg-white p-4 shadow-[0_16px_48px_rgba(128,55,244,0.1)] ring-1 ring-[#8037f4]/10 sm:p-5">
-                <header className="mb-3 shrink-0 border-b border-[#8037f4]/8 pb-3">
+              <div className="w-full rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-7 backdrop-blur-xl shadow-2xl">
+                <header className="mb-4 shrink-0 border-b border-white/10 pb-3 sm:pb-3.5">
                   <StepBar current={1} steps={STEPS_BOOKING} />
-                  <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Thanh toán chuyển khoản</h1>
-                  <p className="mt-1 text-sm text-slate-600">
+                  <h1 className="text-xl font-bold text-white sm:text-2xl">Thanh toán chuyển khoản</h1>
+                  <p className="mt-0.5 text-xs text-slate-300 sm:text-sm">
                     Quét QR hoặc chuyển thủ công, hệ thống tự xác nhận qua SePay.
                   </p>
                 </header>
@@ -1924,20 +1997,20 @@ export function Checkout() {
                   />
                 </div>
                 {awaitingAutoConfirm && !paymentConfirmed && !paymentExpired ? (
-                  <div className="relative z-10 mt-4 shrink-0">
-                    <div className="flex items-center justify-center gap-2.5 rounded border border-[#8037f4]/12 bg-[#faf8ff] px-4 py-2.5 text-sm font-medium text-[#630ed4]">
-                      <span className="relative flex h-2 w-2 shrink-0" aria-hidden>
+                  <div className="relative z-10 mt-5 shrink-0 flex justify-center">
+                    <div className="inline-flex items-center justify-center gap-2.5 rounded-full border border-violet-500/30 bg-violet-950/60 px-6 py-2.5 text-xs sm:text-sm font-semibold text-violet-200 backdrop-blur-md shadow-lg shadow-violet-950/50">
+                      <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden>
                         <span
-                          className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#93f72b]/70 opacity-75"
+                          className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/80 opacity-75"
                         />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#93f72b]" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
                       </span>
-                      Đang chờ xác nhận thanh toán…
+                      Đang chờ hệ thống tự động xác nhận thanh toán…
                     </div>
                   </div>
                 ) : null}
                 {cardError ? (
-                  <div className="mt-4 flex shrink-0 items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                  <div className="mt-3 flex shrink-0 items-start gap-2 rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-2 text-xs text-rose-200">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>{cardError}</span>
                   </div>
@@ -1949,10 +2022,10 @@ export function Checkout() {
           <>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Thanh toán</h1>
+                <h1 className="text-2xl font-bold text-white sm:text-3xl">Thanh toán</h1>
                 {orderCreated ? (
                   <p className={`mt-1 ${textMuted}`}>
-                    Mã CK: <span className="font-mono font-semibold text-slate-800">{transferOrderNum}</span>
+                    Mã CK: <span className="font-mono font-bold text-violet-300">{transferOrderNum}</span>
                   </p>
                 ) : null}
               </div>
@@ -1992,7 +2065,7 @@ export function Checkout() {
 
                   {showBankQr && (
                     <>
-                      <h2 className="mb-4 text-base font-semibold text-slate-900">Chuyển khoản</h2>
+                      <h2 className="mb-4 text-base font-semibold text-white">Chuyển khoản</h2>
                       <BankTransferBlock
                         hasBank={hasBank}
                         payAmount={payAmount}
@@ -2011,11 +2084,11 @@ export function Checkout() {
                   )}
 
                   {isPlanCheckout && !isCourse && !isBooking && (
-                    <div className="mt-5 border-t border-slate-200 pt-5">
+                    <div className="mt-5 border-t border-white/10 pt-5">
                       <ul className="mt-4 space-y-2">
                         {plan.features.map((f, i) => (
                           <li key={i} className={`flex items-start gap-2 text-xs ${textMuted}`}>
-                            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8037f4]" />
+                            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-400" />
                             <FeatureLabel text={f} accentColor={plan.accentColor} />
                           </li>
                         ))}
@@ -2024,7 +2097,7 @@ export function Checkout() {
                   )}
 
                   {cardError && (
-                    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                    <div className="flex items-start gap-2 rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-xs text-rose-200">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{cardError}</span>
                     </div>
@@ -2035,7 +2108,7 @@ export function Checkout() {
               {/* Cột phải ~30%: tóm tắt + xác nhận CK */}
               <aside className="min-w-0">
                 <div className={`${checkoutCard} sticky top-20 overflow-hidden`}>
-                  <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+                  <div className="border-b border-white/10 px-5 py-5 sm:px-6">
                     {displayedDiscountAmount > 0 && (
                       <div className="mb-2 space-y-1">
                         <div className="flex justify-between text-sm">
@@ -2044,29 +2117,29 @@ export function Checkout() {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className={labelMuted}>Ưu đãi {displayedDiscountLabel} (-{Math.round((displayedDiscountAmount / total) * 100)}%)</span>
-                          <span className="font-medium text-emerald-600">−{fmt(displayedDiscountAmount)}</span>
+                          <span className="font-semibold text-emerald-400">−{fmt(displayedDiscountAmount)}</span>
                         </div>
                       </div>
                     )}
                     <p className={labelMuted}>Tổng cộng</p>
-                    <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">{fmt(grandTotal)}</p>
+                    <p className="mt-1 text-3xl font-black tabular-nums tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-300">{fmt(grandTotal)}</p>
                   </div>
 
-                  <div className="border-t border-slate-200 p-5 sm:p-6">
+                  <div className="border-t border-white/10 p-5 sm:p-6">
                     {!payBlocked && !orderCreated && !showBankQr ? (
                       <button
                         type="button"
                         onClick={handlePay}
                         disabled={!isPaidCheckout || payMode === PAY_MODE.REBOOK_LOADING}
-                        className={`${landingPrimaryButtonClass} h-12 w-full gap-2 rounded-xl text-base font-semibold disabled:pointer-events-none disabled:opacity-40`}
+                        className="relative group overflow-hidden inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-base font-bold text-white shadow-xl shadow-violet-600/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-600/50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40"
                       >
                         <Lock className="h-4 w-4" />
                         {payMode === PAY_MODE.REBOOK_READY ? "Xác nhận đặt lại" : "Tiếp tục"}
                       </button>
                     ) : null}
                     {showBankQr && orderCreated && !paymentConfirmed && awaitingAutoConfirm && !paymentExpired ? (
-                      <div className="flex items-center justify-center gap-2 rounded-xl border border-[#8037f4]/12 bg-[#faf8ff] py-2.5 text-center text-sm font-medium text-[#630ed4]">
-                        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#8037f4]/20 border-t-[#8037f4]" />
+                      <div className="flex items-center justify-center gap-2 rounded-2xl border border-violet-500/30 bg-violet-950/40 py-3 text-center text-sm font-semibold text-violet-200">
+                        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-violet-400/30 border-t-violet-400" />
                         Đang chờ xác nhận thanh toán…
                       </div>
                     ) : null}
@@ -2083,17 +2156,17 @@ export function Checkout() {
 
       {paymentSuccessOverlay ? (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
           role="alertdialog"
           aria-live="assertive"
           aria-label="Thanh toán thành công"
         >
-          <div className="w-full max-w-md rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-2xl">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-              <CheckCircle2 className="h-9 w-9 text-emerald-600" />
+          <div className="w-full max-w-md rounded-3xl border border-emerald-500/30 bg-[#0c0620]/95 p-8 text-center shadow-2xl backdrop-blur-xl">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/30">
+              <CheckCircle2 className="h-9 w-9 text-emerald-400" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900">{paymentSuccessOverlay.title}</h2>
-            <p className="mt-2 text-sm text-slate-600">{paymentSuccessOverlay.subtitle}</p>
+            <h2 className="text-2xl font-bold text-white">{paymentSuccessOverlay.title}</h2>
+            <p className="mt-2 text-sm text-slate-300">{paymentSuccessOverlay.subtitle}</p>
           </div>
         </div>
       ) : null}

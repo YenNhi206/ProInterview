@@ -39,40 +39,24 @@ export function AccountDangerZone({ SectionCard }) {
   };
 
   return (
-    <div className="animate-in fade-in duration-500">
-      <SectionCard title="Đóng tài khoản" icon={Trash}>
-        <div className="flex flex-col gap-6 rounded-2xl border border-red-300/40 bg-red-50/60 p-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-md">
-            <h4 className="mb-3 text-2xl font-black tracking-tight text-slate-900">Vùng nguy hiểm</h4>
-            <p className="text-sm font-semibold text-slate-600">
-              Đóng tài khoản, ẩn danh thông tin cơ bản và vô hiệu phiên đăng nhập. Lịch sử thanh toán và rút tiền được giữ để đối soát. Nhập email{" "}
-              <span className="font-bold text-slate-900">{email || "của bạn"}</span> để xác nhận.
-            </p>
-            {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
-            {!impact && !error && <p className="mt-3 text-sm">Đang kiểm tra khoản còn tồn…</p>}
-            {impact?.blockers.length > 0 && <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-amber-800">{impact.blockers.map((b) => <li key={b.code}>{b.message}</li>)}</ul>}
-            {impact && <p className="mt-3 text-sm">Sau khi đóng, bạn không thể truy cập {impact.asStudent.activeEnrollments} khóa học đã mua bằng tài khoản này.</p>}
-            <button type="button" onClick={loadImpact} className="mt-3 text-sm font-bold text-violet-700">Kiểm tra lại</button>
-            <input
-              type="email"
-              autoComplete="off"
-              placeholder={email || "email@example.com"}
-              className="input-glass mt-4 w-full"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-            />
-          </div>
-          <button
-            type="button"
-            disabled={!canDelete || deleting}
-            onClick={handleDeleteAccount}
-            className="rounded-2xl border border-red-400 bg-red-500 px-10 py-4 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {deleting ? "Đang đóng…" : "Đóng tài khoản vĩnh viễn"}
-          </button>
-        </div>
-      </SectionCard>
-    </div>
+    <SectionCard className="settings-danger" title="Đóng tài khoản" icon={Trash}>
+      <div className="settings-danger-copy">
+        <p>Tài khoản sẽ bị đóng vĩnh viễn, thông tin cơ bản được ẩn danh và các phiên đăng nhập bị vô hiệu hóa. Lịch sử tài chính vẫn được giữ để đối soát.</p>
+        {error && <p role="alert" className="settings-text-error">{error}</p>}
+        {!impact && !error && <p role="status">Đang kiểm tra tài khoản…</p>}
+        {impact?.blockers.length > 0 && <ul className="settings-text-warning">{impact.blockers.map((blocker) => <li key={blocker.code}>{blocker.message}</li>)}</ul>}
+        {impact && <p>Sau khi đóng, bạn không thể truy cập {impact.asStudent.activeEnrollments} khóa học đã mua bằng tài khoản này.</p>}
+        <button type="button" onClick={loadImpact} className="settings-text-action">Kiểm tra lại</button>
+      </div>
+      <div className="settings-danger-controls">
+        <label htmlFor="settings-close-email">Nhập email tài khoản để xác nhận</label>
+        <input id="settings-close-email" type="email" autoComplete="off" placeholder={email || "email@example.com"}
+          className="settings-input" value={confirmText} disabled={deleting} onChange={(event) => setConfirmText(event.target.value)} />
+        <button type="button" className="settings-button settings-button--danger" disabled={!canDelete || deleting} onClick={handleDeleteAccount}>
+          {deleting ? "Đang đóng…" : "Đóng tài khoản"}
+        </button>
+      </div>
+    </SectionCard>
   );
 }
 

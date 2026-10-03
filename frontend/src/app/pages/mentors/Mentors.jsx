@@ -413,15 +413,17 @@ export function Mentors() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 items-end">
                 {/* Chọn Chủ đề */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Chọn Chủ đề</label>
+                  <label htmlFor="mentor-selectedtopic" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Chọn Chủ đề</label>
                   <AppSelect
+                    id="mentor-selectedtopic"
                     value={selectedTopic}
                     onValueChange={setSelectedTopic}
                     options={[
                       { value: "", label: "Tất cả chủ đề" },
                       ...TOPIC_OPTIONS
                     ]}
-                    triggerClassName="w-full !bg-violet-950/40 !border-violet-850 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                    theme="dark"
+                    size="compact"
                   />
                 </div>
 
@@ -473,8 +475,9 @@ export function Mentors() {
 
                 {/* Lịch rảnh */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Lịch rảnh</label>
+                  <label htmlFor="mentor-selectedschedule" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Lịch rảnh</label>
                   <AppSelect
+                    id="mentor-selectedschedule"
                     value={selectedSchedule}
                     onValueChange={setSelectedSchedule}
                     options={[
@@ -482,7 +485,8 @@ export function Mentors() {
                       { value: "today", label: "Hôm nay" },
                       { value: "week", label: "Có sẵn tuần này" }
                     ]}
-                    triggerClassName="w-full !bg-violet-950/40 !border-violet-850 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                    theme="dark"
+                    size="compact"
                   />
                 </div>
 
@@ -521,43 +525,49 @@ export function Mentors() {
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 animate-in fade-in duration-200">
                     {/* Kinh nghiệm */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Kinh nghiệm</label>
+                      <label htmlFor="mentor-selectedexp" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Kinh nghiệm</label>
                       <AppSelect
+                        id="mentor-selectedexp"
                         value={selectedExp || ""}
                         onValueChange={(val) => setSelectedExp(val || null)}
                         options={[
                           { value: "", label: "Tất cả kinh nghiệm" },
                           ...EXPERIENCE_OPTIONS
                         ]}
-                        triggerClassName="w-full !bg-violet-950/40 !border-violet-850 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                        theme="dark"
+                        size="compact"
                       />
                     </div>
 
                     {/* Mức giá */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Mức giá</label>
+                      <label htmlFor="mentor-selectedpriceindex" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Mức giá</label>
                       <AppSelect
+                        id="mentor-selectedpriceindex"
                         value={selectedPriceIndex ?? ""}
                         onValueChange={(val) => setSelectedPriceIndex(val === "" ? null : Number(val))}
                         options={[
                           { value: "", label: "Tất cả mức giá" },
                           ...PRICE_OPTIONS.map((opt, i) => ({ value: i, label: opt.label }))
                         ]}
-                        triggerClassName="w-full !bg-violet-950/40 !border-violet-850 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                        theme="dark"
+                        size="compact"
                       />
                     </div>
 
                     {/* Đánh giá */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Đánh giá</label>
+                      <label htmlFor="mentor-selectedrating" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Đánh giá</label>
                       <AppSelect
+                        id="mentor-selectedrating"
                         value={selectedRating || ""}
                         onValueChange={(val) => setSelectedRating(val || null)}
                         options={[
                           { value: "", label: "Tất cả đánh giá" },
                           ...RATING_OPTIONS.map((opt) => ({ value: opt.label, label: opt.label }))
                         ]}
-                        triggerClassName="w-full !bg-violet-950/40 !border-violet-850 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                        theme="dark"
+                        size="compact"
                       />
                     </div>
                   </div>

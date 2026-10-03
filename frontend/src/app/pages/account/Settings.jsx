@@ -1,33 +1,34 @@
-import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Bell,
   CheckCircle,
   ShieldCheck,
-  ChevronRight,
   CalendarPlus,
   Clock,
   Star,
   ArrowLeftRight,
   Wallet,
   ClipboardCheck,
-  Fingerprint,
-  MonitorSmartphone,
   KeyRound,
   UserCheck,
-  ImageIcon,
+  ArrowUpRight,
   CalendarCheck,
   CalendarX,
   CreditCard,
   LogOut,
+  Sparkles,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { logout, getUser, getDisplayName, updateUser, refreshUserProfile, resendVerification } from "../../utils/auth/auth.js";
 import { avatarSrc, DEFAULT_AVATAR } from "../../utils/shared/mediaUrl.js";
 import { LoginSessionsSection } from "../../components/account/LoginSessionsSection";
 import { AccountDangerZone } from "../../components/account/AccountDangerZone";
+import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
+import "../../../styles/settings.css";
 
 const NOTIF_PREFS_KEY_CUSTOMER = "prointerview_notif_prefs";
 const NOTIF_PREFS_KEY_MENTOR   = "prointerview_notif_prefs_mentor";
@@ -63,262 +64,257 @@ function mergeNotifFromServer(defaults, serverPrefs, isMentor) {
   }));
 }
 
-/* ─── Toggle ─────────────────────────────────────────────── */
-function ToggleSwitch({ enabled, onChange }) {
+/* ─── Compact iOS Glass Toggle ───────────────────────────── */
+function ToggleSwitch({ enabled, onChange, disabled, labelledBy, describedBy }) {
   return (
     <button
       type="button"
-      onClick={() => onChange(!enabled)}
-      aria-checked={enabled}
       role="switch"
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#8037f4]/20 ${
-        enabled ? "bg-[#8037f4]" : "bg-slate-200"
-      }`}
+      aria-checked={enabled}
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
+      disabled={disabled}
+      onClick={() => onChange(!enabled)}
+      className={`relative inline-flex h-5.5 w-10 sm:h-6 sm:w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0e0c22] ${
+        enabled
+          ? "border-violet-400/60 bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_14px_rgba(124,58,237,0.5)]"
+          : "border-white/15 bg-slate-800/80 hover:border-white/30"
+      } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
     >
-      <motion.div
-        animate={{ x: enabled ? 20 : 4 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        className="absolute top-1 h-4 w-4 rounded-full bg-white shadow-md"
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-4 w-4 sm:h-4.5 sm:w-4.5 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out ${
+          enabled
+            ? "translate-x-4.5 sm:translate-x-5 shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
+            : "translate-x-0.5 bg-slate-200"
+        }`}
       />
     </button>
   );
 }
 
-/* ─── Section card ───────────────────────────────────────── */
+/* ─── Section Card Wrapper ───────────────────────────────── */
 function SectionCard({ children, className = "", title, subtitle, icon: Icon }) {
   return (
-    <div className={`settings-card overflow-hidden ${className}`}>
+    <section className={`rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/75 via-[#13112c]/80 to-[#0e0c22]/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl overflow-hidden p-4 sm:p-5 ${className}`}>
       {title && (
-        <div className="flex flex-col gap-2 border-b border-[rgba(128,55,244,0.12)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex items-center gap-3">
-            {Icon && (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-[#8037f4]">
-                <Icon size={18} strokeWidth={2.2} />
-              </div>
-            )}
-            <h2 className="font-headline text-lg font-bold text-slate-900">{title}</h2>
+        <header className="flex items-center gap-3 pb-3 mb-3 border-b border-white/[0.08]">
+          {Icon && (
+            <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.15)] shrink-0">
+              <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
+            </div>
+          )}
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">{title}</h3>
+            {subtitle && <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{subtitle}</p>}
           </div>
-          {subtitle ? <p className="text-xs font-semibold text-slate-500">{subtitle}</p> : null}
-        </div>
+        </header>
       )}
-      <div className="p-5 sm:p-6">{children}</div>
-    </div>
+      <div className="settings-section-body">{children}</div>
+    </section>
   );
 }
 
-/* ─── Save bar ───────────────────────────────────────────── */
-function SaveBar({ dirty, saving, saved, onSave, onReset }) {
-  if (!dirty && !saved) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-[0_12px_40px_rgba(15,23,42,0.12)] backdrop-blur-md transition-all sm:bottom-8 sm:left-auto sm:right-8 sm:gap-5 sm:px-6 sm:py-4 ${
-        saved
-          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-          : "border-slate-200 bg-white/95"
-      }`}
-    >
-      {saved ? (
-        <div className="flex items-center gap-3">
-          <CheckCircle className="h-5 w-5" />
-          <span className="text-xs font-bold text-emerald-800">Đã đồng bộ thành công</span>
-        </div>
-      ) : (
-        <>
-          <span className="text-xs font-semibold text-slate-500">Có thay đổi chưa lưu</span>
-          <div className="flex items-center gap-3">
-            <button onClick={onReset} className="rounded-full px-4 py-2 text-xs font-semibold text-slate-500 transition hover:text-slate-800">
-              Hủy
-            </button>
-            <motion.button
-              onClick={onSave}
-              disabled={saving}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="rounded-full bg-[#a3e635] px-5 py-2.5 text-xs font-bold text-slate-900 transition disabled:opacity-50"
-            >
-              {saving ? "Đang lưu…" : "Lưu thay đổi"}
-            </motion.button>
-          </div>
-        </>
-      )}
-    </motion.div>
-  );
-}
-
-/* ─── Notifications tab ──────────────────────────────────── */
-/* P = purple, L = lime — chỉ 2 màu chủ đạo */
-const P = { bg: "rgba(128,55,244,0.10)", color: "#8037f4" };
-const L = { bg: "rgba(147,247,43,0.18)", color: "#4a7c00" };
-
+/* ─── Notifications Tab (2-Column Grid) ───────────────────── */
 const DEFAULT_CUSTOMER_NOTIFS = [
-  { id: "booking_confirmed", label: "Xác nhận lịch hẹn thành công", description: "Khi thanh toán được duyệt và lịch mentor được xác nhận.", value: true, icon: CalendarCheck, iconBg: P.bg, iconColor: P.color },
-  { id: "interview_reminder", label: "Nhắc lịch trước buổi hẹn", description: "Email và thông báo app khoảng 1 giờ trước buổi mentor.", value: true, icon: Clock, iconBg: L.bg, iconColor: L.color },
-  { id: "booking_cancelled", label: "Lịch hẹn bị hủy hoặc đổi", description: "Khi mentor hủy, đổi lịch hoặc có cập nhật hoàn tiền.", value: true, icon: CalendarX, iconBg: P.bg, iconColor: P.color },
-  { id: "mentor_feedback", label: "Phản hồi từ mentor", description: "Khi mentor gửi góp ý sau buổi hoặc nhận xét về bạn.", value: true, icon: UserCheck, iconBg: L.bg, iconColor: L.color },
-  { id: "streak_reminder", label: "Nhắc luyện tập đều đặn", description: "Nhắc luyện phỏng vấn AI và hoàn thành mục tiêu tuần.", value: true, icon: Star, iconBg: P.bg, iconColor: P.color },
-  { id: "plan_expiring", label: "Gói sắp hết hạn", description: "Nhắc trước 7 ngày khi gói Pro hoặc Elite của bạn sắp hết.", value: true, icon: CreditCard, iconBg: L.bg, iconColor: L.color },
+  { id: "booking_confirmed", label: "Xác nhận lịch hẹn", description: "Khi thanh toán được duyệt và lịch hẹn được xác nhận.", value: true, icon: CalendarCheck },
+  { id: "interview_reminder", label: "Nhắc trước buổi hẹn", description: "Nhắc qua email và ứng dụng trước buổi hẹn khoảng 1 giờ.", value: true, icon: Clock },
+  { id: "booking_cancelled", label: "Thay đổi hoặc hủy lịch", description: "Cập nhật đổi lịch, hủy lịch và hoàn tiền từ mentor.", value: true, icon: CalendarX },
+  { id: "mentor_feedback", label: "Phản hồi từ mentor", description: "Nhận góp ý và nhận xét sau buổi hẹn.", value: true, icon: UserCheck },
+  { id: "streak_reminder", label: "Nhắc luyện tập", description: "Nhắc luyện phỏng vấn AI và hoàn thành mục tiêu tuần.", value: true, icon: Star },
+  { id: "plan_expiring", label: "Gói sắp hết hạn", description: "Nhắc trước 7 ngày khi gói Pro hoặc Elite sắp hết hạn.", value: true, icon: CreditCard },
 ];
 
 const DEFAULT_MENTOR_NOTIFS = [
-  { id: "booking_request", label: "Buổi mentor đã thanh toán", description: "Thông báo khi học viên xác nhận thanh toán (CK / SePay).", value: true, icon: CalendarPlus, iconBg: P.bg, iconColor: P.color },
-  { id: "session_reminder", label: "Nhắc buổi mentor sắp tới", description: "Email và thông báo app khoảng 1 giờ trước buổi.", value: true, icon: Clock, iconBg: L.bg, iconColor: L.color },
-  { id: "mentee_review", label: "Đánh giá từ học viên", description: "Học viên gửi nhận xét sau buổi học với bạn.", value: true, icon: Star, iconBg: P.bg, iconColor: P.color },
-  { id: "booking_change", label: "Đổi hoặc hủy lịch", description: "Học viên hủy, đổi lịch hoặc có cập nhật hoàn tiền.", value: true, icon: ArrowLeftRight, iconBg: L.bg, iconColor: L.color },
-  { id: "payout_update", label: "Cập nhật tài chính", description: "Thu nhập, rút tiền và xác nhận thanh toán từ admin.", value: true, icon: Wallet, iconBg: P.bg, iconColor: P.color },
-  { id: "peer_review_course", label: "Đánh giá chéo khóa học", description: "Có khóa học cần bạn thực hiện đánh giá chéo.", value: true, icon: ClipboardCheck, iconBg: L.bg, iconColor: L.color },
+  { id: "booking_request", label: "Buổi mentor đã thanh toán", description: "Thông báo khi học viên xác nhận thanh toán (CK / SePay).", value: true, icon: CalendarPlus },
+  { id: "session_reminder", label: "Nhắc buổi mentor sắp tới", description: "Email và thông báo app khoảng 1 giờ trước buổi.", value: true, icon: Clock },
+  { id: "mentee_review", label: "Đánh giá từ học viên", description: "Học viên gửi nhận xét sau buổi học với bạn.", value: true, icon: Star },
+  { id: "booking_change", label: "Đổi hoặc hủy lịch", description: "Học viên hủy, đổi lịch hoặc có cập nhật hoàn tiền.", value: true, icon: ArrowLeftRight },
+  { id: "payout_update", label: "Cập nhật tài chính", description: "Thu nhập, rút tiền và xác nhận thanh toán từ admin.", value: true, icon: Wallet },
+  { id: "peer_review_course", label: "Đánh giá chéo khóa học", description: "Có khóa học cần bạn thực hiện đánh giá chéo.", value: true, icon: ClipboardCheck },
 ];
 
-function NotificationsTab({ isMentor, profileFromServer, onProfileSynced }) {
-  const defaults   = isMentor ? DEFAULT_MENTOR_NOTIFS : DEFAULT_CUSTOMER_NOTIFS;
-  const storageKey = notifStorageKey(isMentor ? "mentor" : "customer");
-
-  const initialPrefs = () => {
-    if (profileFromServer?.notificationPrefs) {
-      return mergeNotifFromServer(defaults, profileFromServer.notificationPrefs, isMentor);
-    }
-    return mergeNotifPrefs(defaults, storageKey);
+function NotificationsTab({ isMentor, push, toggle, saving, userEmail }) {
+  const groupAppointments = {
+    id: "appointments",
+    title: "Lịch hẹn",
+    icon: CalendarCheck,
+    subtitle: "Thông báo về phiên cố vấn & lịch phỏng vấn",
+    items: push.slice(0, 4),
   };
 
-  const [push, setPush]   = useState(initialPrefs);
-  const [dirty, setDirty] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const defs = isMentor ? DEFAULT_MENTOR_NOTIFS : DEFAULT_CUSTOMER_NOTIFS;
-    if (profileFromServer?.notificationPrefs) {
-      setPush(mergeNotifFromServer(defs, profileFromServer.notificationPrefs, isMentor));
-    } else {
-      setPush(mergeNotifPrefs(defs, storageKey));
-    }
-    setDirty(false);
-  }, [isMentor, profileFromServer?.notificationPrefs, storageKey]);
-
-  const toggle = (id) => {
-    setPush((prev) => prev.map((t) => (t.id === id ? { ...t, value: !t.value } : t)));
-    setDirty(true);
+  const groupAccount = {
+    id: "account",
+    title: isMentor ? "Tài chính & khóa học" : "Luyện tập & tài khoản",
+    icon: isMentor ? Wallet : Star,
+    subtitle: isMentor ? "Cập nhật doanh thu & hoạt động mentor" : "Nhắc luyện tập AI & gói dịch vụ",
+    items: push.slice(4),
   };
-
-  const allOn  = push.every((t) => t.value);
-  const allOff = push.every((t) => !t.value);
-  const toggleAll = () => {
-    const next = allOn ? false : true;
-    setPush((prev) => prev.map((t) => ({ ...t, value: next })));
-    setDirty(true);
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    const prefMap = Object.fromEntries(push.map(({ id, value }) => [id, value]));
-    const payload = isMentor
-      ? { notificationPrefs: { mentor: prefMap } }
-      : { notificationPrefs: { customer: prefMap } };
-    const res = await updateUser(payload);
-    setSaving(false);
-    if (!res.success) { toastApiError(res.error, "Không lưu được cài đặt thông báo."); return; }
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(push.map(({ id, value }) => ({ id, value }))));
-    } catch { /* cache optional */ }
-    onProfileSynced?.(getUser());
-    setDirty(false);
-    toastApiSuccess("Đã lưu, thông báo sẽ áp dụng theo lựa chọn của bạn.");
-  };
-
-  const handleReset = () => { setPush(defaults); setDirty(false); };
 
   return (
-    <div className="space-y-6">
-      <div className="glass-card !overflow-hidden !rounded-2xl">
-        {/* Header */}
-        <div className="flex flex-col gap-3 border-b border-[rgba(186,165,255,0.25)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div>
-            <h2 className="font-headline text-lg font-bold text-slate-900">
-              {isMentor ? "Thông báo mentor" : "Trung tâm thông báo"}
-            </h2>
-            <p className="mt-0.5 text-sm text-slate-500">Chọn loại thông báo bạn muốn nhận</p>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      {/* Column 1: Lịch hẹn (4 items) */}
+      <section
+        className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/75 via-[#13112c]/80 to-[#0e0c22]/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl p-4 sm:p-5"
+        aria-labelledby="settings-group-appointments"
+      >
+        <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-white/[0.08]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.15)] shrink-0">
+              <CalendarCheck size={16} strokeWidth={1.8} aria-hidden="true" />
+            </div>
+            <div>
+              <h3 id="settings-group-appointments" className="text-sm sm:text-base font-bold text-white tracking-tight">
+                {groupAppointments.title}
+              </h3>
+              <p className="text-[11px] text-slate-400 leading-snug">
+                {groupAppointments.subtitle}
+              </p>
+            </div>
           </div>
-          <motion.button
-            type="button"
-            onClick={toggleAll}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className={`shrink-0 rounded-full border px-4 py-2 text-xs font-bold transition ${
-              allOff
-                ? "border-[#8037f4]/30 bg-violet-50 text-[#8037f4] hover:bg-violet-100"
-                : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100"
-            }`}
-          >
-            {allOn ? "Tắt tất cả" : "Bật tất cả"}
-          </motion.button>
+          <span className="text-[11px] font-semibold text-violet-300 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-400/30">
+            {groupAppointments.items.filter((i) => i.value).length}/{groupAppointments.items.length} bật
+          </span>
         </div>
 
-        {/* Rows */}
-        <div>
-          {push.map((item, index) => {
-            const ItemIcon = item.icon;
+        <div className="space-y-2">
+          {groupAppointments.items.map((item) => {
+            const Icon = item.icon;
             return (
-              <motion.div
+              <div
                 key={item.id}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.35, delay: index * 0.055, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center justify-between gap-4 border-b border-[rgba(186,165,255,0.18)] px-5 py-4 last:border-b-0 sm:px-6"
+                className="flex items-center justify-between gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-violet-500/20 transition-all duration-150 group"
               >
-                <div className="flex min-w-0 items-center gap-3.5">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: item.iconBg }}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 ${
+                      item.value
+                        ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.2)]"
+                        : "bg-white/5 border border-white/10 text-slate-500"
+                    }`}
                   >
-                    <ItemIcon size={17} strokeWidth={2.2} style={{ color: item.iconColor }} />
+                    <Icon size={15} strokeWidth={1.8} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900">{item.label}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{item.description}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
+                      {item.label}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-1" id={"pref-" + item.id + "-description"} title={item.description}>
+                      {item.description}
+                    </p>
                   </div>
                 </div>
-                <ToggleSwitch enabled={item.value} onChange={() => toggle(item.id)} />
-              </motion.div>
+                <div className="shrink-0 pl-2">
+                  <ToggleSwitch
+                    enabled={item.value}
+                    disabled={saving}
+                    onChange={() => toggle(item.id)}
+                    labelledBy={"pref-" + item.id}
+                    describedBy={"pref-" + item.id + "-description"}
+                  />
+                </div>
+              </div>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      <SaveBar dirty={dirty} saving={saving} saved={false} onSave={handleSave} onReset={handleReset} />
+      {/* Column 2: Luyện tập & Tài khoản + Delivery status */}
+      <div className="space-y-4">
+        <section
+          className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/75 via-[#13112c]/80 to-[#0e0c22]/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl p-4 sm:p-5"
+          aria-labelledby="settings-group-account"
+        >
+          <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-white/[0.08]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.15)] shrink-0">
+                <groupAccount.icon size={16} strokeWidth={1.8} aria-hidden="true" />
+              </div>
+              <div>
+                <h3 id="settings-group-account" className="text-sm sm:text-base font-bold text-white tracking-tight">
+                  {groupAccount.title}
+                </h3>
+                <p className="text-[11px] text-slate-400 leading-snug">
+                  {groupAccount.subtitle}
+                </p>
+              </div>
+            </div>
+            <span className="text-[11px] font-semibold text-violet-300 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-400/30">
+              {groupAccount.items.filter((i) => i.value).length}/{groupAccount.items.length} bật
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {groupAccount.items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-violet-500/20 transition-all duration-150 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 ${
+                        item.value
+                          ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.2)]"
+                          : "bg-white/5 border border-white/10 text-slate-500"
+                      }`}
+                    >
+                      <Icon size={15} strokeWidth={1.8} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
+                        {item.label}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-1" id={"pref-" + item.id + "-description"} title={item.description}>
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 pl-2">
+                    <ToggleSwitch
+                      enabled={item.value}
+                      disabled={saving}
+                      onChange={() => toggle(item.id)}
+                      labelledBy={"pref-" + item.id}
+                      describedBy={"pref-" + item.id + "-description"}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Sync & Channels Tip Card (keeps height balanced with Col 1) */}
+        <div className="p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-gradient-to-r from-violet-950/30 via-slate-900/40 to-indigo-950/30 backdrop-blur-xl flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+              <CheckCircle size={15} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-white truncate">Đồng bộ qua Email & Ứng dụng</p>
+              <p className="text-[11px] text-slate-400 truncate">{userEmail || "Tự động gửi thông báo theo thời gian thực"}</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            Thời gian thực
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ─── Security tab ───────────────────────────────────────── */
+/* ─── Security Tab (2-Column Grid) ───────────────────────── */
 const MIN_PASS = 6;
-const DEFAULT_SECURITY_PREFS = [
-  {
-    id: "two_factor",
-    label: "Xác thực 2 bước",
-    description: "Tăng cường bảo vệ tài khoản khi đăng nhập.",
-    value: false,
-    icon: Fingerprint,
-    iconBg: P.bg,
-    iconColor: P.color,
-  },
-  {
-    id: "login_alert",
-    label: "Thông báo đăng nhập mới",
-    description: "Nhận thông báo khi tài khoản đăng nhập từ thiết bị lạ.",
-    value: true,
-    icon: MonitorSmartphone,
-    iconBg: L.bg,
-    iconColor: L.color,
-  },
-];
-
 function SecurityTab({ profileFromServer, onProfileSynced }) {
   const [currentPassword,  setCurrentPassword]  = useState("");
   const [newPassword,      setNewPassword]       = useState("");
   const [confirmPassword,  setConfirmPassword]   = useState("");
   const [saving,           setSaving]            = useState(false);
   const [resendingVerify,  setResendingVerify]   = useState(false);
-  const [securityPrefs,    setSecurityPrefs]     = useState(DEFAULT_SECURITY_PREFS);
   const [sessionUser,      setSessionUser]       = useState(() => profileFromServer ?? getUser());
 
   useEffect(() => { setSessionUser(profileFromServer ?? getUser()); }, [profileFromServer]);
@@ -327,10 +323,9 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
   const needsEmailVerification = !hasGoogleLogin && !sessionUser?.isEmailVerified;
   const needsCurrentPassword  = !hasGoogleLogin;
 
-  const toggleSecurityPref = (id) =>
-    setSecurityPrefs((prev) => prev.map((item) => (item.id === id ? { ...item, value: !item.value } : item)));
-
-  const handleUpdatePassword = async () => {
+  const handleUpdatePassword = async (event) => {
+    event.preventDefault();
+    if (saving) return;
     const np = newPassword.trim();
     const cp = confirmPassword.trim();
     if (np.length < MIN_PASS) { toastApiError(`Mật khẩu mới cần ít nhất ${MIN_PASS} ký tự.`); return; }
@@ -371,97 +366,128 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
   };
 
   return (
-    <div className="space-y-6">
-      {needsEmailVerification && (
-        <SectionCard title="Xác minh email" subtitle="Tài khoản chưa xác minh. Một số tính năng có thể bị giới hạn." icon={UserCheck}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-medium text-slate-600">
-              Email: <span className="font-bold text-slate-900">{sessionUser?.email}</span>
-            </p>
-            <button type="button" className="btn-primary shrink-0 px-5 py-2.5 text-sm" disabled={resendingVerify} onClick={handleResendVerification}>
-              {resendingVerify ? "Đang gửi…" : "Gửi lại email xác minh"}
-            </button>
-          </div>
-        </SectionCard>
-      )}
-
-      <SectionCard title="Bảo mật đăng nhập" subtitle="Tùy chọn bảo vệ tài khoản khi đăng nhập." icon={ShieldCheck}>
-        <div className="space-y-3">
-          {securityPrefs.map((item) => {
-            const ItemIcon = item.icon;
-            return (
-              <div key={item.id} className="flex items-center justify-between gap-4 rounded-2xl border border-[rgba(128,55,244,0.10)] bg-violet-50/30 px-4 py-4 sm:px-5">
-                <div className="flex items-center gap-3.5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
-                    <ItemIcon size={18} strokeWidth={2} style={{ color: item.iconColor }} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{item.label}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{item.description}</p>
-                  </div>
-                </div>
-                <ToggleSwitch enabled={item.value} onChange={() => toggleSecurityPref(item.id)} />
-              </div>
-            );
-          })}
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Đổi mật khẩu" subtitle="Cập nhật mật khẩu đăng nhập của bạn." icon={KeyRound}>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="text-xs font-semibold text-slate-600">Mật khẩu hiện tại</label>
-            {!needsCurrentPassword && (
-              <p className="text-xs text-slate-400">Không bắt buộc nếu bạn đăng nhập bằng Google.</p>
-            )}
-            <input
-              type="password"
-              autoComplete="current-password"
-              placeholder={needsCurrentPassword ? "Nhập mật khẩu hiện tại" : "Để trống hoặc nhập mật khẩu cũ nếu có"}
-              className="input-glass w-full"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600">Mật khẩu mới</label>
-            <input type="password" autoComplete="new-password" placeholder="••••••••" className="input-glass w-full" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600">Xác nhận mật khẩu mới</label>
-            <input type="password" autoComplete="new-password" placeholder="••••••••" className="input-glass w-full" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-          </div>
-        </div>
-        <div className="mt-5">
-          <motion.button
-            type="button"
-            disabled={saving}
-            onClick={handleUpdatePassword}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="rounded-xl bg-[#a3e635] px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition disabled:opacity-50"
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      {/* Column 1: Đổi mật khẩu + Email verification */}
+      <div className="space-y-4">
+        {needsEmailVerification && (
+          <SectionCard
+            title="Xác minh email"
+            subtitle="Xác minh địa chỉ email để bảo vệ tài khoản và nhận thông báo quan trọng."
+            icon={UserCheck}
+            className="border-amber-500/30 bg-gradient-to-b from-[#251b36]/80 via-[#1a142c]/80 to-[#120e24]/90"
           >
-            {saving ? "Đang lưu…" : "Cập nhật mật khẩu"}
-          </motion.button>
-        </div>
-      </SectionCard>
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
+              <div>
+                <p className="text-xs sm:text-sm font-bold text-white">{sessionUser?.email}</p>
+                <p className="text-[11px] text-amber-300/80 mt-0.5">Tài khoản chưa được xác thực email.</p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_12px_rgba(245,158,11,0.35)] hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 transition-all"
+                disabled={resendingVerify}
+                onClick={handleResendVerification}
+              >
+                {resendingVerify ? "Đang gửi…" : "Gửi email xác minh"}
+              </button>
+            </div>
+          </SectionCard>
+        )}
 
-      <LoginSessionsSection SectionCard={SectionCard} />
-      <AccountDangerZone SectionCard={SectionCard} />
+        <SectionCard
+          title="Đổi mật khẩu"
+          subtitle="Mật khẩu mới cần ít nhất 6 ký tự để bảo vệ an toàn cho tài khoản."
+          icon={KeyRound}
+        >
+          <form onSubmit={handleUpdatePassword} className="space-y-3.5">
+            {needsCurrentPassword && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="settings-current-password">
+                  Mật khẩu hiện tại
+                </label>
+                <input
+                  id="settings-current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  required={needsCurrentPassword}
+                  disabled={saving}
+                  className="w-full px-3.5 py-2 rounded-xl border border-white/15 bg-slate-900/60 text-white text-xs sm:text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Nhập mật khẩu hiện tại"
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="settings-new-password">
+                  Mật khẩu mới
+                </label>
+                <input
+                  id="settings-new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={MIN_PASS}
+                  disabled={saving}
+                  className="w-full px-3.5 py-2 rounded-xl border border-white/15 bg-slate-900/60 text-white text-xs sm:text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Ít nhất 6 ký tự"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="settings-confirm-password">
+                  Xác nhận mật khẩu mới
+                </label>
+                <input
+                  id="settings-confirm-password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={MIN_PASS}
+                  disabled={saving}
+                  className="w-full px-3.5 py-2 rounded-xl border border-white/15 bg-slate-900/60 text-white text-xs sm:text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Nhập lại mật khẩu mới"
+                />
+              </div>
+            </div>
+
+            <div className="pt-1">
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_16px_rgba(124,58,237,0.4)] hover:shadow-[0_0_24px_rgba(124,58,237,0.6)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-40"
+                disabled={saving}
+              >
+                {saving ? "Đang lưu…" : "Cập nhật mật khẩu"}
+              </button>
+            </div>
+          </form>
+        </SectionCard>
+      </div>
+
+      {/* Column 2: Phiên đăng nhập & Đóng tài khoản */}
+      <div className="space-y-4">
+        <LoginSessionsSection SectionCard={SectionCard} />
+        <AccountDangerZone SectionCard={SectionCard} />
+      </div>
     </div>
   );
 }
 
-/* ─── Main ───────────────────────────────────────────────── */
+/* ─── Main Component ─────────────────────────────────────── */
 const TABS = [
-  { id: "notifications", label: "Thông báo",  icon: Bell },
-  { id: "security",      label: "Bảo mật",    icon: ShieldCheck },
+  { id: "notifications", label: "Thông báo", icon: Bell },
+  { id: "security",      label: "Bảo mật",   icon: ShieldCheck },
 ];
 
 export function Settings() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab]           = useState("notifications");
+  const [activeTab, setActiveTab] = useState("notifications");
   const [profileFromServer, setProfileFromServer] = useState(() => getUser());
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -470,202 +496,379 @@ export function Settings() {
   }, []);
 
   const handleLogout = async () => { await logout(); navigate("/"); };
-
-  const isMentor    = profileFromServer?.role === "mentor";
+  const isMentor = profileFromServer?.role === "mentor";
   const displayName = getDisplayName(profileFromServer) || "Thành viên";
-  const userEmail   = profileFromServer?.email || "";
-  const userAvatar  = avatarSrc(profileFromServer?.avatar);
-  const hasAvatar   = userAvatar && userAvatar !== DEFAULT_AVATAR;
+  const userEmail = profileFromServer?.email || "";
+  const userAvatar = avatarSrc(profileFromServer?.avatar);
+  const hasAvatar = userAvatar && userAvatar !== DEFAULT_AVATAR;
+  const initials = displayName.replace(/\([^)]*\)/g, "").trim().split(/\s+/).slice(-2).map((word) => word[0]).join("").toUpperCase();
+
+  // Notification Preferences State:
+  const defaults = isMentor ? DEFAULT_MENTOR_NOTIFS : DEFAULT_CUSTOMER_NOTIFS;
+  const storageKey = notifStorageKey(isMentor ? "mentor" : "customer");
+  const initialPrefs = () => {
+    if (profileFromServer?.notificationPrefs) {
+      return mergeNotifFromServer(defaults, profileFromServer.notificationPrefs, isMentor);
+    }
+    return mergeNotifPrefs(defaults, storageKey);
+  };
+
+  const [push, setPush] = useState(initialPrefs);
+  const [baseline, setBaseline] = useState(initialPrefs);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const dirty = push.some((item, index) => item.value !== baseline[index]?.value);
+  const allOn = push.every((t) => t.value);
+
+  useEffect(() => {
+    const defs = isMentor ? DEFAULT_MENTOR_NOTIFS : DEFAULT_CUSTOMER_NOTIFS;
+    const next = profileFromServer?.notificationPrefs
+      ? mergeNotifFromServer(defs, profileFromServer.notificationPrefs, isMentor)
+      : mergeNotifPrefs(defs, storageKey);
+    setPush((current) => current.some((item, index) => item.value !== baseline[index]?.value) ? current : next);
+    setBaseline(next);
+  }, [isMentor, profileFromServer?.notificationPrefs, storageKey]);
+
+  const toggle = (id) => {
+    setPush((prev) => prev.map((t) => (t.id === id ? { ...t, value: !t.value } : t)));
+    setSaved(false);
+    setError("");
+  };
+
+  const toggleAll = () => {
+    const next = allOn ? false : true;
+    setPush((prev) => prev.map((t) => ({ ...t, value: next })));
+    setSaved(false);
+    setError("");
+  };
+
+  const handleSave = async () => {
+    if (!dirty || saving) return;
+    setSaving(true);
+    setError("");
+    const prefMap = Object.fromEntries(push.map(({ id, value }) => [id, value]));
+    const payload = isMentor
+      ? { notificationPrefs: { mentor: prefMap } }
+      : { notificationPrefs: { customer: prefMap } };
+    const res = await updateUser(payload);
+    setSaving(false);
+    if (!res.success) {
+      setError(res.error || "Không lưu được cài đặt. Hãy thử lại.");
+      toastApiError(res.error, "Không lưu được cài đặt.");
+      return;
+    }
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(push.map(({ id, value }) => ({ id, value }))));
+    } catch { /* optional */ }
+    setProfileFromServer(getUser());
+    setBaseline(push);
+    setSaved(true);
+    toastApiSuccess("Đã lưu tùy chọn thông báo.");
+  };
+
+  const handleReset = () => {
+    setPush(baseline);
+    setSaved(false);
+    setError("");
+  };
+
+  const handleTabKey = (event, index) => {
+    const next = event.key === "Home" ? 0 : event.key === "End" ? TABS.length - 1
+      : ["ArrowRight", "ArrowDown"].includes(event.key) ? (index + 1) % TABS.length
+      : ["ArrowLeft", "ArrowUp"].includes(event.key) ? (index + TABS.length - 1) % TABS.length : null;
+    if (next === null) return;
+    event.preventDefault();
+    setActiveTab(TABS[next].id);
+    document.getElementById("settings-tab-" + TABS[next].id)?.focus();
+  };
 
   return (
-    <MentorPageShell bottomPad="pb-24">
-      <style>{`
-        .settings-card {
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(128, 55, 244, 0.15);
-          border-radius: 24px;
-          box-shadow: 0 10px 30px -10px rgba(128, 55, 244, 0.05), 0 1px 3px rgba(128, 55, 244, 0.02);
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @media (hover: hover) {
-          .settings-card:hover {
-            border-color: rgba(128, 55, 244, 0.25);
-            box-shadow: 0 20px 40px -12px rgba(128, 55, 244, 0.1);
-            transform: translateY(-2px);
-          }
-        }
-        .input-glass {
-          background: rgba(255,255,255,0.85);
-          border: 1px solid rgba(128,55,244,0.16);
-          border-radius: 16px;
-          color: #0f172a;
-          padding: 12px 16px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          letter-spacing: -0.01em;
-          transition: all 0.25s ease;
-          backdrop-filter: blur(4px);
-        }
-        .input-glass:focus { 
-          border-color: rgba(128,55,244,0.5); 
-          outline: none; 
-          box-shadow: 0 0 0 3.5px rgba(128,55,244,0.12); 
-          background: #ffffff;
-        }
-        .input-glass::placeholder { color: #94a3b8; }
-      `}</style>
-
-      <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
-        {/* Header */}
-        <motion.header
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6 pt-2 sm:pt-3 sm:mb-8"
-        >
-          <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-slate-900">
-            Cài đặt <span className="text-[#8037f4]">tài khoản</span>
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-slate-500">
-            {isMentor ? "Thông báo, bảo mật và phiên đăng nhập." : "Thông báo và bảo mật tài khoản."}
-          </p>
-        </motion.header>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Sidebar */}
-          <aside className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-24 space-y-3">
-              {/* Profile card */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.05 }}
-                className="settings-card overflow-hidden"
-              >
-                {/* Purple → lime gradient strip */}
-                <div className="h-20 bg-gradient-to-br from-[#8037f4] via-[#6d2fd6] to-[#4a1fb8] relative">
-                  <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(ellipse at 80% 50%, #93f72b 0%, transparent 60%)" }} />
-                </div>
-                <div className="flex flex-col items-center px-5 pb-6 text-center">
-                  <div className="relative z-10 -mt-10 mb-3">
-                    {hasAvatar ? (
-                      <img
-                        src={userAvatar}
-                        alt=""
-                        className="h-[72px] w-[72px] rounded-full object-cover ring-[4px] ring-violet-50/50 shadow-lg"
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = DEFAULT_AVATAR; }}
-                      />
-                    ) : (
-                      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-[3px] border-white bg-violet-100 shadow-lg">
-                        <ImageIcon size={26} className="text-[#8037f4]" strokeWidth={1.5} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <p className="text-sm font-bold text-slate-900">{displayName}</p>
-                    <span className="inline-block rounded-full bg-violet-100/60 px-2.5 py-0.5 text-[9px] font-bold text-[#8037f4] uppercase tracking-wider">
-                      {isMentor ? "Mentor" : "Học viên"}
-                    </span>
-                  </div>
-                  <p className="mt-1.5 w-full truncate px-2 text-xs text-slate-500">{userEmail}</p>
-                  <Link
-                    to="/profile"
-                    className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#8037f4] to-[#6d28d9] px-4 py-2.5 text-xs font-black uppercase tracking-wide text-white shadow-[0_4px_14px_rgba(128,55,244,0.3)] transition hover:brightness-110"
-                  >
-                    Chỉnh sửa hồ sơ
-                  </Link>
-                </div>
-              </motion.div>
-
-              {/* Nav */}
-              <motion.nav
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.1 }}
-                className="settings-card overflow-hidden p-2"
-                aria-label="Cài đặt tài khoản"
-              >
-                {TABS.map((tab, index) => {
-                  const isActive = tab.id === activeTab;
-                  const TabIcon  = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`group relative flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition-all duration-300 ${
-                        isActive
-                          ? "text-[#8037f4]"
-                          : "text-slate-500 hover:text-slate-900"
-                      }`}
-                    >
-                      {/* Active tab slider background */}
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeSettingTab"
-                          className="absolute inset-0 rounded-xl bg-[rgba(128,55,244,0.06)] border border-[rgba(128,55,244,0.15)]"
-                          transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                        />
-                      )}
-                      
-                      <div className="relative z-10 flex items-center gap-3">
-                        <span className={`text-[10px] font-black tabular-nums ${isActive ? "text-[#8037f4]/60" : "text-slate-300"}`}>
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        <TabIcon size={15} strokeWidth={2.2} className={isActive ? "text-[#8037f4]" : "text-slate-400 group-hover:text-slate-600"} />
-                        <span className="text-sm font-bold">{tab.label}</span>
-                      </div>
-                      {isActive && <ChevronRight size={15} className="relative z-10 shrink-0 text-[#8037f4]" />}
-                    </button>
-                  );
-                })}
-
-                <div className="my-1.5 border-t border-slate-100" />
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-slate-500 transition hover:bg-[rgba(128,55,244,0.05)] hover:text-slate-700"
-                >
-                  <span className="text-[10px] font-black tabular-nums text-slate-300">03</span>
-                  <LogOut size={15} strokeWidth={2.2} className="text-slate-400" />
-                  <span className="text-sm font-bold">Đăng xuất</span>
-                </button>
-              </motion.nav>
+    <div className="settings-page">
+      <div className={`${CUSTOMER_SHELL_GUTTER} pb-10 pt-6 sm:pt-8 settings-container`}>
+        <div className={`${CUSTOMER_SHELL_MAX} settings-frame`}>
+          {/* Header (Compact) */}
+          <motion.header
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+                Cài đặt tài khoản
+              </h1>
+              <p className="text-xs text-slate-300 mt-0.5 font-medium">
+                Quản lý thông báo, bảo mật mật khẩu và các thiết bị đăng nhập.
+              </p>
             </div>
-          </aside>
 
-          {/* Content */}
-          <main className="lg:col-span-8 xl:col-span-9">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="min-h-[400px]"
+            {/* Compact Profile Card */}
+            <Link
+              to="/profile"
+              className="group relative flex items-center gap-3 px-3.5 py-2 rounded-xl border border-white/15 bg-gradient-to-br from-[#1c183d]/80 via-[#14122e]/85 to-[#0e0c24]/90 backdrop-blur-xl shadow-[0_6px_24px_rgba(0,0,0,0.3)] hover:border-violet-400/50 hover:shadow-[0_10px_30px_rgba(124,58,237,0.22)] hover:-translate-y-0.5 transition-all duration-200 shrink-0 self-start sm:self-auto"
+              aria-label="Chỉnh sửa hồ sơ"
+              title={userEmail}
+            >
+              <div className="relative shrink-0">
+                {hasAvatar ? (
+                  <img
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-violet-400/40 shadow-[0_0_10px_rgba(124,58,237,0.3)]"
+                    src={userAvatar}
+                    alt=""
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = DEFAULT_AVATAR;
+                    }}
+                  />
+                ) : (
+                  <span className="w-9 h-9 rounded-full grid place-items-center bg-gradient-to-br from-violet-600 to-indigo-700 text-white text-xs font-bold ring-2 ring-violet-400/40" aria-hidden="true">
+                    {initials}
+                  </span>
+                )}
+                <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-1.5 ring-[#0e0c24]" />
+              </div>
+
+              <div className="min-w-0 pr-0.5">
+                <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors truncate max-w-[160px] sm:max-w-[200px]">
+                  {displayName}
+                </p>
+                <p className="text-[10px] text-slate-300/80 flex items-center gap-1 mt-0.5">
+                  <span className="font-semibold text-violet-300">{isMentor ? "Mentor" : "Học viên"}</span>
+                  <span>•</span>
+                  <span className="group-hover:text-violet-200 transition-colors">Chỉnh sửa hồ sơ</span>
+                </p>
+              </div>
+
+              <div className="p-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 group-hover:text-white group-hover:bg-violet-600/30 group-hover:border-violet-400/40 transition-all ml-0.5">
+                <ArrowUpRight size={13} aria-hidden="true" />
+              </div>
+            </Link>
+          </motion.header>
+
+          {/* Navigation & Action Dock Toolbar */}
+          <motion.div
+            className="flex flex-wrap items-center justify-between gap-3 mb-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.08, ease: "easeOut" }}
+          >
+            {/* Apple-style Floating Glass Segmented Dock */}
+            <div
+              className="relative flex items-center p-1 rounded-xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl"
+              role="tablist"
+              aria-label="Cài đặt tài khoản"
+            >
+              {TABS.map((tab, index) => {
+                const isSelected = activeTab === tab.id;
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    id={"settings-tab-" + tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isSelected}
+                    aria-controls={"settings-panel-" + tab.id}
+                    tabIndex={isSelected ? 0 : -1}
+                    onClick={() => setActiveTab(tab.id)}
+                    onKeyDown={(event) => handleTabKey(event, index)}
+                    className={`relative px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 select-none outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
+                      isSelected
+                        ? "text-white font-bold"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    {isSelected && (
+                      <motion.div
+                        layoutId="settings-active-tab-glow"
+                        className="absolute inset-0 rounded-lg bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_16px_rgba(124,58,237,0.55)]"
+                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-1.5">
+                      <Icon size={15} strokeWidth={isSelected ? 2.2 : 1.8} className={isSelected ? "text-white" : "text-slate-400"} />
+                      {tab.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Actions Area: Save Controls (on Notifications tab) + Logout */}
+            <div className="flex items-center gap-2.5 ml-auto">
+              {activeTab === "notifications" && (
+                <>
+                  {/* Toggle All button */}
+                  <button
+                    type="button"
+                    onClick={toggleAll}
+                    disabled={saving}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 hover:border-violet-400/30 transition-all active:scale-95 disabled:opacity-40"
+                  >
+                    {allOn ? "Tắt tất cả" : "Bật tất cả"}
+                  </button>
+
+                  {/* Status Indicator */}
+                  {dirty ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      Chưa lưu
+                    </span>
+                  ) : saved ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
+                      <CheckCircle size={13} className="text-emerald-400" />
+                      Đã lưu
+                    </span>
+                  ) : null}
+
+                  {dirty && (
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all"
+                      disabled={saving}
+                      onClick={handleReset}
+                    >
+                      Hủy
+                    </button>
+                  )}
+
+                  {/* Save button */}
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_16px_rgba(124,58,237,0.4)] hover:shadow-[0_0_24px_rgba(124,58,237,0.65)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none transition-all duration-200"
+                    disabled={!dirty || saving}
+                    onClick={handleSave}
+                  >
+                    {saving ? (
+                      <>
+                        <RefreshCw size={13} className="animate-spin" />
+                        Đang lưu…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={13} />
+                        Lưu thay đổi
+                      </>
+                    )}
+                  </button>
+
+                  <span className="h-4 w-px bg-white/15 mx-0.5 hidden sm:block" />
+                </>
+              )}
+
+              {/* Logout button */}
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(true)}
+                aria-label="Đăng xuất"
+                title="Đăng xuất khỏi tài khoản"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border border-rose-500/25 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:border-rose-500/50 hover:text-rose-100 hover:shadow-[0_0_16px_rgba(244,63,94,0.35)] transition-all duration-200"
               >
-                {activeTab === "notifications" && (
-                  <NotificationsTab
-                    isMentor={isMentor}
-                    profileFromServer={profileFromServer}
-                    onProfileSynced={(u) => setProfileFromServer(u ?? getUser())}
-                  />
-                )}
-                {activeTab === "security" && (
-                  <SecurityTab
-                    profileFromServer={profileFromServer}
-                    onProfileSynced={(u) => setProfileFromServer(u)}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </main>
+                <LogOut size={14} strokeWidth={1.8} />
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Inline error if save fails */}
+          {error && (
+            <div className="mb-4 p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs font-medium flex items-center gap-2" role="alert">
+              <AlertCircle size={15} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Tab Content Panels */}
+          <div className="settings-content">
+            <div
+              id="settings-panel-notifications"
+              role="tabpanel"
+              aria-labelledby="settings-tab-notifications"
+              hidden={activeTab !== "notifications"}
+            >
+              {activeTab === "notifications" && (
+                <NotificationsTab
+                  key={isMentor ? "mentor" : "customer"}
+                  isMentor={isMentor}
+                  push={push}
+                  toggle={toggle}
+                  saving={saving}
+                  userEmail={userEmail}
+                />
+              )}
+            </div>
+            <div
+              id="settings-panel-security"
+              role="tabpanel"
+              aria-labelledby="settings-tab-security"
+              hidden={activeTab !== "security"}
+            >
+              {activeTab === "security" && (
+                <SecurityTab
+                  profileFromServer={profileFromServer}
+                  onProfileSynced={setProfileFromServer}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </MentorPageShell>
+
+      {/* Main Account Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-modal-title"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="relative w-full max-w-md rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d] via-[#14122e] to-[#0e0c24] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_16px_rgba(244,63,94,0.3)] shrink-0">
+                  <LogOut size={20} strokeWidth={2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 id="logout-modal-title" className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    Xác nhận đăng xuất?
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+                    Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không? Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-white/[0.08]">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all border border-white/15"
+                  onClick={() => setShowLogoutConfirm(false)}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-rose-600 to-red-600 shadow-[0_0_16px_rgba(244,63,94,0.4)] hover:shadow-[0_0_24px_rgba(244,63,94,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                  onClick={() => {
+                    setShowLogoutConfirm(false);
+                    handleLogout();
+                  }}
+                >
+                  <LogOut size={14} />
+                  <span>Xác nhận đăng xuất</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

@@ -9,6 +9,7 @@ export function FlowStepBar({
   current = 1,
   className = "",
   ariaLabel = "Tiến trình",
+  onStepClick,
 }) {
   const items = [];
 
@@ -19,8 +20,10 @@ export function FlowStepBar({
         <li
           key={`line-${s.n}`}
           aria-hidden
-          className={`mx-1 mt-[1.125rem] h-0.5 w-10 shrink-0 rounded-full sm:mx-2 sm:w-14 ${
-            lineDone ? "bg-violet-500" : "bg-violet-200"
+          className={`mx-1 mt-[1.125rem] h-0.5 w-10 shrink-0 rounded-full sm:mx-2 sm:w-16 transition-all ${
+            lineDone
+              ? "bg-gradient-to-r from-violet-500 to-indigo-500 shadow-[0_0_10px_rgba(139,92,246,0.6)]"
+              : "bg-white/15"
           }`}
         />,
       );
@@ -28,25 +31,38 @@ export function FlowStepBar({
 
     const done = s.n < current;
     const active = s.n === current;
+    const isClickable = done && typeof onStepClick === "function";
 
     items.push(
       <li key={s.n} className="flex shrink-0 flex-col items-center gap-2">
-        <span
-          className={`flex h-9 w-9 items-center justify-center rounded-full text-base font-bold transition-colors sm:text-sm ${
-            active || done
-              ? "bg-[#630ed4] text-white shadow-[0_4px_14px_rgba(128,55,244,0.28)]"
-              : "border-2 border-violet-200 bg-white text-violet-400"
+        <button
+          type="button"
+          disabled={!isClickable}
+          onClick={() => isClickable && onStepClick(s.n)}
+          className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-all ${
+            active
+              ? "bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.6)] border border-violet-400/50 scale-105"
+              : done
+                ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)] hover:brightness-110 cursor-pointer active:scale-95"
+                : "border border-white/20 bg-white/[0.05] text-slate-400 cursor-default"
           }`}
         >
-          {done ? <Check className="h-4 w-4" strokeWidth={2.5} /> : s.n}
-        </span>
-        <span
-          className={`max-w-[7.5rem] text-center text-sm font-bold uppercase leading-tight tracking-wide sm:max-w-none sm:text-xs ${
-            active ? "text-[#630ed4]" : done ? "text-violet-800" : "text-violet-400"
+          {done ? <Check className="h-4 w-4" strokeWidth={3} /> : s.n}
+        </button>
+        <button
+          type="button"
+          disabled={!isClickable}
+          onClick={() => isClickable && onStepClick(s.n)}
+          className={`max-w-[8rem] text-center text-xs font-bold uppercase leading-tight tracking-wider transition-colors sm:max-w-none ${
+            active
+              ? "text-white"
+              : done
+                ? "text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                : "text-slate-400 cursor-default"
           }`}
         >
           {s.label}
-        </span>
+        </button>
       </li>,
     );
   });

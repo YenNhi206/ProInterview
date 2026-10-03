@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Smartphone, Laptop, ChevronRight, ShieldAlert, Key } from "lucide-react";
+import { Smartphone, Laptop, LogOut, ShieldAlert, Key, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiToast.js";
 import {
   fetchAuthSessions,
   revokeAuthSession,
   getCurrentAuthSessionId,
 } from "../../utils/auth/auth.js";
-
-const ITEM_DESC_CLS = "text-sm text-slate-500 leading-relaxed tracking-normal";
 
 function formatRelativeWhen(iso) {
   if (!iso) return "";
@@ -59,62 +58,52 @@ function isMobileDevice(sess) {
 
 function sessionMetaLine(sess) {
   const when = formatRelativeWhen(sess.lastUsedAt || sess.createdAt);
-  return when ? `Việt Nam · ${when}` : "Việt Nam";
+  return when || "Chưa có thời gian hoạt động";
 }
 
 function SessionRow({ sess, isCurrent, suspicious, onRevoke, revoking, showChevron = true }) {
   const DeviceIcon = isMobileDevice(sess) ? Smartphone : Laptop;
 
   return (
-    <div
-      className={`flex items-center gap-4 border-b border-slate-100 py-4 last:border-b-0 ${
-        suspicious ? "bg-amber-50/50 -mx-2 px-2 rounded-xl" : ""
-      }`}
-    >
-      <div
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-          suspicious ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600"
-        }`}
-      >
-        <DeviceIcon size={20} strokeWidth={1.75} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-bold text-slate-900">{deviceDisplayName(sess)}</p>
-          {isCurrent && (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-              Đang dùng
-            </span>
-          )}
-          {suspicious && (
-            <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-950">
-              Đăng nhập lạ
-            </span>
-          )}
+    <div className="flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] hover:border-violet-500/20 transition-all duration-150">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+            isCurrent
+              ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.2)]"
+              : "bg-white/5 border border-white/10 text-slate-400"
+          }`}
+          aria-hidden="true"
+        >
+          <DeviceIcon size={16} strokeWidth={1.8} />
         </div>
-        <p className="mt-0.5 text-sm text-slate-500">{sessionMetaLine(sess)}</p>
-        {isCurrent && (
-          <button
-            type="button"
-            disabled={revoking}
-            onClick={onRevoke}
-            className="mt-2 text-sm font-semibold text-[#8037f4] hover:underline disabled:opacity-50"
-          >
-            {revoking ? "Đang đăng xuất…" : "Đăng xuất phiên này"}
-          </button>
-        )}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="text-xs sm:text-sm font-semibold text-white truncate">{deviceDisplayName(sess)}</p>
+            {isCurrent && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Thiết bị này
+              </span>
+            )}
+            {suspicious && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/15 text-violet-300 border border-violet-500/30">
+                Đăng nhập lạ
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-400 mt-0.5 leading-none">{sessionMetaLine(sess)}</p>
+        </div>
       </div>
-      {/* Phiên đang dùng: chỉ link chữ, không mũi tên (tránh trùng hành động + confirm browser) */}
-      {showChevron && !isCurrent && (
+      {(isCurrent || showChevron) && (
         <button
           type="button"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border border-rose-500/25 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:border-rose-500/40 hover:text-rose-100 transition-all disabled:opacity-40 shrink-0 ml-2"
           disabled={revoking}
           onClick={onRevoke}
-          className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-label="Thu hồi phiên đăng nhập"
-          title="Thu hồi phiên"
+          aria-label={isCurrent ? "Đăng xuất thiết bị này" : "Thu hồi phiên đăng nhập"}
         >
-          <ChevronRight size={20} strokeWidth={2} />
+          <LogOut size={13} aria-hidden="true" />
+          <span>{revoking ? "Đang xử lý…" : "Đăng xuất"}</span>
         </button>
       )}
     </div>
@@ -129,6 +118,8 @@ export function LoginSessionsSection({ SectionCard }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [revokingId, setRevokingId] = useState("");
+  const [showAllOthers, setShowAllOthers] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -154,17 +145,14 @@ export function LoginSessionsSection({ SectionCard }) {
     void load();
   }, []);
 
-  const handleRevoke = async (sessionId) => {
-    if (!sessionId) return;
-    const isCurrent = sessionId === currentId;
-    const msg = isCurrent
-      ? "Đăng xuất khỏi thiết bị này? Bạn sẽ cần đăng nhập lại."
-      : "Thu hồi phiên đăng nhập trên thiết bị đó?";
-    if (!window.confirm(msg)) return;
-    setRevokingId(sessionId);
-    const res = await tryApi(() => revokeAuthSession(sessionId), {
+  const handleConfirmRevoke = async () => {
+    if (!confirmTarget) return;
+    const { id, isCurrent } = confirmTarget;
+    setRevokingId(id);
+    setConfirmTarget(null);
+    const res = await tryApi(() => revokeAuthSession(id), {
       fallback: "Không thu hồi được phiên.",
-      successMessage: isCurrent ? "Đã đăng xuất." : "Đã thu hồi phiên.",
+      successMessage: isCurrent ? "Đã đăng xuất." : "Đã thu hồi phiên đăng nhập.",
     });
     setRevokingId("");
     if (!res.success) return;
@@ -172,82 +160,144 @@ export function LoginSessionsSection({ SectionCard }) {
       navigate("/");
       return;
     }
-    toastApiSuccess("Đã thu hồi phiên lạ.");
     await load();
   };
 
   const currentSession = sessions.find((s) => s.id === currentId || s.isCurrent);
   const otherSessions = sessions.filter((s) => s.id !== currentId && !s.isCurrent);
-  const suspiciousOthers = otherSessions.filter((s) => s.isSuspicious);
 
   return (
-    <SectionCard title="Phiên đăng nhập & thiết bị" icon={Key}>
-      <p className={`mb-6 ${ITEM_DESC_CLS}`}>
-        Theo dõi các thiết bị đang đăng nhập vào tài khoản ProInterview của bạn.
-      </p>
-
-      {security?.hasSuspiciousLogin && (
-        <div className="mb-6 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-          <div>
-            <p className="text-sm font-bold text-amber-950">Cảnh báo đăng nhập lạ</p>
-            <p className={`mt-1 ${ITEM_DESC_CLS} text-amber-900/90`}>
-              Có {security.suspiciousSessionCount} phiên từ thiết bị khác so với phiên bạn đang
-              dùng. Nếu không phải bạn, hãy thu hồi phiên đó và đổi mật khẩu.
-            </p>
+    <>
+      <SectionCard title="Thiết bị đăng nhập" subtitle="Kiểm tra và đăng xuất thiết bị bạn không còn sử dụng." icon={Key}>
+        {security?.hasSuspiciousLogin && (
+          <div className="flex items-start gap-2.5 p-3 rounded-xl border border-violet-500/25 bg-violet-950/30 text-violet-200 mb-3" role="status">
+            <ShieldAlert size={16} className="text-violet-400 shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="text-xs font-semibold text-white">Có {security.suspiciousSessionCount} phiên đăng nhập từ thiết bị khác</p>
+              <p className="text-[11px] text-slate-300 mt-0.5">Nếu không phải bạn, hãy bấm Đăng xuất thiết bị đó và đổi mật khẩu.</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {loading && (
-        <p className="text-sm font-medium text-slate-500">Đang tải phiên đăng nhập…</p>
-      )}
-      {error && !loading && <p className="text-sm font-medium text-red-600">{error}</p>}
-      {!loading && !error && sessions.length === 0 && (
-        <p className="text-sm font-medium text-slate-500">Không có phiên đăng nhập nào.</p>
-      )}
+        {loading && <p className="text-xs text-slate-400" role="status">Đang tải thiết bị…</p>}
+        {error && !loading && (
+          <div role="alert" className="space-y-1">
+            <p className="settings-text-error text-xs">{error}</p>
+            <button type="button" className="settings-text-action text-xs" onClick={load}>Thử lại</button>
+          </div>
+        )}
 
-      {!loading && !error && sessions.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 sm:px-5">
-          {currentSession && (
-            <SessionRow
-              sess={currentSession}
-              isCurrent
-              suspicious={Boolean(currentSession.isSuspicious)}
-              revoking={revokingId === currentSession.id}
-              onRevoke={() => handleRevoke(currentSession.id)}
-            />
-          )}
+        {!loading && !error && sessions.length === 0 && (
+          <p className="text-xs text-slate-400">Không có phiên đăng nhập nào.</p>
+        )}
 
-          {otherSessions.length > 0 && (
-            <>
-              <p
-                className={`text-xs font-bold uppercase tracking-wide text-slate-600 ${
-                  currentSession ? "border-t border-slate-100 pt-4" : "pt-4"
-                }`}
-              >
-                Lần đăng nhập trên thiết bị khác
-              </p>
-              {otherSessions.map((sess) => (
+        {!loading && !error && sessions.length > 0 && (
+          <div className="space-y-3">
+            {/* Current Session */}
+            {currentSession && (
+              <div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Thiết bị hiện tại</p>
                 <SessionRow
-                  key={sess.id}
-                  sess={sess}
-                  isCurrent={false}
-                  suspicious={Boolean(sess.isSuspicious)}
-                  revoking={revokingId === sess.id}
-                  onRevoke={() => handleRevoke(sess.id)}
+                  sess={currentSession}
+                  isCurrent
+                  suspicious={Boolean(currentSession.isSuspicious)}
+                  revoking={revokingId === currentSession.id}
+                  onRevoke={() => setConfirmTarget({ id: currentSession.id, label: deviceDisplayName(currentSession), isCurrent: true })}
                 />
-              ))}
-            </>
-          )}
-        </div>
-      )}
+              </div>
+            )}
 
-      {!loading && suspiciousOthers.length > 0 && (
-        <p className={`mt-4 ${ITEM_DESC_CLS}`}>
-          Gợi ý: thu hồi các phiên “Đăng nhập lạ” nếu bạn không nhận ra thiết bị đó.
-        </p>
-      )}
-    </SectionCard>
+            {/* Other Sessions (Collapsed to 3 by default) */}
+            {otherSessions.length > 0 && (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.08]">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    Thiết bị khác
+                    <span className="text-[10px] font-semibold text-slate-500">({otherSessions.length})</span>
+                  </p>
+                  {otherSessions.length > 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllOthers(!showAllOthers)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors"
+                    >
+                      <span>{showAllOthers ? "Thu gọn" : `Xem tất cả (${otherSessions.length})`}</span>
+                      {showAllOthers ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                    </button>
+                  )}
+                </div>
+
+                <div className={`space-y-2 ${showAllOthers ? "max-h-[220px] overflow-y-auto pr-1" : ""}`}>
+                  {(showAllOthers ? otherSessions : otherSessions.slice(0, 3)).map((sess) => (
+                    <SessionRow
+                      key={sess.id}
+                      sess={sess}
+                      isCurrent={false}
+                      suspicious={Boolean(sess.isSuspicious)}
+                      revoking={revokingId === sess.id}
+                      onRevoke={() => setConfirmTarget({ id: sess.id, label: deviceDisplayName(sess), isCurrent: false })}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </SectionCard>
+
+      {/* Luxury Dark Glass Confirmation Modal */}
+      <AnimatePresence>
+        {confirmTarget && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-modal-title"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="relative w-full max-w-md rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d] via-[#14122e] to-[#0e0c24] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_16px_rgba(244,63,94,0.3)] shrink-0">
+                  <LogOut size={20} strokeWidth={2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 id="confirm-modal-title" className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    {confirmTarget.isCurrent ? "Đăng xuất thiết bị này?" : "Xác nhận đăng xuất thiết bị?"}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+                    {confirmTarget.isCurrent
+                      ? "Bạn sẽ được đăng xuất khỏi tài khoản trên thiết bị này và cần đăng nhập lại để tiếp tục sử dụng."
+                      : `Bạn có chắc chắn muốn thu hồi phiên đăng nhập trên thiết bị "${confirmTarget.label}" không?`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-white/[0.08]">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all border border-white/15"
+                  onClick={() => setConfirmTarget(null)}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-rose-600 to-red-600 shadow-[0_0_16px_rgba(244,63,94,0.4)] hover:shadow-[0_0_24px_rgba(244,63,94,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                  onClick={handleConfirmRevoke}
+                >
+                  <LogOut size={14} />
+                  <span>Xác nhận đăng xuất</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

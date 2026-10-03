@@ -346,7 +346,7 @@ export function AdminSidebar() {
               <DropdownMenuContent side="top" align="end" className="mb-1 w-56">
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="flex cursor-pointer items-center gap-2.5 text-destructive focus:text-destructive"
+                  variant="destructive"
                 >
                   <LogOut className="size-4" />
                   Đăng xuất

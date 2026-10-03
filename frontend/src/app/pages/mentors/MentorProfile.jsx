@@ -1,9 +1,8 @@
 import React from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router";
 import { AnimatePresence } from "motion/react";
 import { fetchMentor, fetchMentorPublicReviews } from "../../api/mentorApi.js";
 import { ReportMentorModal } from "../../components/modals/ReportMentorModal";
-import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorProfileHeader } from "../../components/mentor/profile/MentorProfileHeader";
 import { MentorProfileAside } from "../../components/mentor/profile/MentorProfileAside";
 import {
@@ -32,7 +31,7 @@ const PROFILE_TABS = [
 function TabBar({ activeTab, onChange }) {
   return (
     <div
-      className="flex gap-1 overflow-x-auto border-b border-slate-200/90"
+      className="flex gap-2 overflow-x-auto border-b border-white/10 pb-2"
       role="tablist"
       aria-label="Nội dung hồ sơ mentor"
     >
@@ -45,10 +44,10 @@ function TabBar({ activeTab, onChange }) {
             role="tab"
             aria-selected={active}
             onClick={() => onChange(tab.id)}
-            className={`shrink-0 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+            className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition-all cursor-pointer ${
               active
-                ? "border-lime-400 text-[#8037f4]"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "bg-violet-600/30 border border-violet-400/40 text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                : "border border-transparent text-slate-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
             {tab.label}
@@ -60,7 +59,7 @@ function TabBar({ activeTab, onChange }) {
 }
 
 function SectionDivider() {
-  return <hr className="my-8 border-slate-200/90" />;
+  return <hr className="my-8 border-white/10" />;
 }
 
 export function MentorProfile() {
@@ -107,25 +106,29 @@ export function MentorProfile() {
 
   if (loadingMentor && !mentor) {
     return (
-      <MentorPageShell bottomPad="pb-32">
-        <div className="flex min-h-[50vh] items-center justify-center px-6">
-          <div
-            className="h-8 w-8 animate-spin rounded-full border-4 border-violet-300 border-t-violet-700"
-            aria-hidden
-          />
-          <span className="sr-only">Đang tải…</span>
+      <div className={`relative z-10 min-h-[calc(100svh-76px)] text-[#f0edf7] pb-32 pt-16 ${CUSTOMER_SHELL_GUTTER}`}>
+        <div className="flex min-h-[50vh] flex-col items-center justify-center px-6 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-400/20 border-t-violet-500" aria-hidden />
+          <span className="mt-4 text-sm font-semibold text-slate-300">Đang tải hồ sơ mentor…</span>
         </div>
-      </MentorPageShell>
+      </div>
     );
   }
 
   if (!mentor) {
     return (
-      <MentorPageShell bottomPad="pb-32">
-        <div className="px-6 py-20 text-center text-sm font-medium text-slate-600">
-          Không tìm thấy mentor.
+      <div className={`relative z-10 min-h-[calc(100svh-76px)] text-[#f0edf7] pb-32 pt-16 ${CUSTOMER_SHELL_GUTTER}`}>
+        <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl">
+          <p className="text-base font-semibold text-white">Không tìm thấy mentor.</p>
+          <button
+            type="button"
+            onClick={() => navigate("/mentors")}
+            className="mt-4 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-violet-500 cursor-pointer"
+          >
+            Quay lại danh sách
+          </button>
         </div>
-      </MentorPageShell>
+      </div>
     );
   }
 
@@ -154,41 +157,48 @@ export function MentorProfile() {
   );
 
   return (
-    <MentorPageShell bottomPad="pb-24">
-      <div className={`relative z-10 pb-8 pt-6 sm:pt-8 ${CUSTOMER_SHELL_GUTTER}`}>
-        <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
-          <div className="grid items-start gap-6 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]">
-            <div className="min-w-0 space-y-5">
-              <MentorProfileHeader
-                mentor={mentor}
-                ratingDisplay={ratingDisplay}
-                reviewCount={reviewCount}
-                experienceYears={experienceYears}
-              />
+    <div className={`relative z-10 min-h-[calc(100svh-76px)] text-[#f0edf7] pb-24 pt-6 sm:pt-8 ${CUSTOMER_SHELL_GUTTER}`}>
+      <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
+        {/* Breadcrumb */}
+        <nav className="mb-4 flex flex-wrap items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
+          <Link to="/mentors" className="hover:text-white transition-colors">
+            Chuyên gia
+          </Link>
+          <span className="text-slate-500">›</span>
+          <span className="text-slate-100 font-semibold truncate max-w-lg">{mentor.name}</span>
+        </nav>
 
-              <div className="glass-card overflow-hidden">
-                <div className="px-4 pt-2 sm:px-6">
-                  <TabBar activeTab={activeTab} onChange={setActiveTab} />
-                </div>
+        <div className="grid items-start gap-8 lg:grid-cols-12 lg:gap-8">
+          <div className="min-w-0 space-y-6 lg:col-span-8">
+            <MentorProfileHeader
+              mentor={mentor}
+              ratingDisplay={ratingDisplay}
+              reviewCount={reviewCount}
+              experienceYears={experienceYears}
+            />
 
-                <div className="p-4 sm:p-6">
-                  {activeTab === "intro" ? introFull : null}
-                  {activeTab === "work" ? (
-                    <MentorWorkSection mentor={mentor} workEntries={workEntries} />
-                  ) : null}
-                  {activeTab === "skills" ? (
-                    <MentorSkillsSection skillTags={skillTags} />
-                  ) : null}
-                  {activeTab === "reviews" ? (
-                    <MentorReviewsSection
-                      realReviews={realReviews}
-                      reviewSummary={reviewSummary}
-                    />
-                  ) : null}
-                </div>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+              <TabBar activeTab={activeTab} onChange={setActiveTab} />
+
+              <div className="pt-6">
+                {activeTab === "intro" ? introFull : null}
+                {activeTab === "work" ? (
+                  <MentorWorkSection mentor={mentor} workEntries={workEntries} />
+                ) : null}
+                {activeTab === "skills" ? (
+                  <MentorSkillsSection skillTags={skillTags} />
+                ) : null}
+                {activeTab === "reviews" ? (
+                  <MentorReviewsSection
+                    realReviews={realReviews}
+                    reviewSummary={reviewSummary}
+                  />
+                ) : null}
               </div>
             </div>
+          </div>
 
+          <div className="lg:col-span-4 lg:sticky lg:top-6">
             <MentorProfileAside
               mentor={mentor}
               bookingHref={bookingHref}
@@ -209,6 +219,6 @@ export function MentorProfile() {
           />
         ) : null}
       </AnimatePresence>
-    </MentorPageShell>
+    </div>
   );
 }

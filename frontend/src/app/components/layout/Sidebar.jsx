@@ -477,7 +477,7 @@ export function AppSidebar() {
 
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="flex items-center gap-2.5 text-destructive focus:text-destructive cursor-pointer"
+                  variant="destructive"
                 >
                   <LogOut className="size-4" />
                   Đăng xuất

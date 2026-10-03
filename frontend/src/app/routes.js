@@ -11,7 +11,6 @@ import { getUser } from "./utils/auth/auth.js";
 import { CVAnalysisHub } from "./pages/cv/CVAnalysisHub";
 import { CVAnalysis } from "./pages/cv/CVAnalysis";
 import { CVAnalysisResult } from "./pages/cv/CVAnalysisResult";
-import { AnalysisHistory } from "./pages/cv/AnalysisHistory";
 import { CVAnalysisHistoryHub } from "./pages/cv/CVAnalysisHistoryHub";
 import { Interview } from "./pages/interview/Interview";
 import { AIGenderSelection } from "./pages/interview/__archived__/AIGenderSelection";
@@ -114,11 +113,11 @@ export const router = createBrowserRouter([
       { path: "terms", Component: Terms },
       { path: "privacy", Component: Privacy },
       { path: "cv-analysis", Component: CVAnalysisHub },
-      { path: "cv-analysis/jd/history", Component: AnalysisHistory },
+      { path: "cv-analysis/jd/history", Component: CVAnalysisHistoryHub },
       { path: "cv-analysis/jd/result/:analysisId", Component: CVAnalysisResult },
       { path: "cv-analysis/jd/result", Component: CVAnalysisResult },
       { path: "cv-analysis/jd", Component: CVAnalysis },
-      { path: "cv-analysis/field/history", Component: AnalysisHistory },
+      { path: "cv-analysis/field/history", Component: CVAnalysisHistoryHub },
       { path: "cv-analysis/field/result/:analysisId", Component: CVAnalysisResult },
       { path: "cv-analysis/field/result", Component: CVAnalysisResult },
       { path: "cv-analysis/field", Component: CVAnalysis },

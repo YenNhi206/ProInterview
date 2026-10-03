@@ -15,11 +15,13 @@ import {
 function InfoRow({ icon: Icon, label, value }) {
   if (!value) return null;
   return (
-    <li className="flex items-start gap-2.5 text-sm text-slate-700">
-      <Icon className="mt-0.5 size-4 shrink-0 text-violet-500" aria-hidden />
-      <span>
-        <span className="font-medium text-slate-500">{label}: </span>
-        <span className="font-semibold text-slate-900">{value}</span>
+    <li className="flex items-center gap-2.5 rounded-2xl bg-white/[0.03] border border-white/5 px-3.5 py-2.5 text-sm text-slate-300">
+      <div className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-400">
+        <Icon className="size-3.5" aria-hidden />
+      </div>
+      <span className="min-w-0 truncate">
+        <span className="text-slate-400 font-medium">{label}: </span>
+        <span className="font-semibold text-white">{value}</span>
       </span>
     </li>
   );
@@ -41,62 +43,65 @@ export function MentorProfileHeader({ mentor, ratingDisplay, reviewCount, experi
     experienceYears > 0 ? `${experienceYears} năm` : null;
 
   return (
-    <div className="glass-card overflow-hidden p-5 sm:p-6">
+    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+      {/* Top subtle highlight line */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-400/50 to-transparent" />
+
       <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
         <div className="flex shrink-0 flex-col items-center sm:items-start">
           {avatarUrl ? (
             <img
               src={avatarUrl}
               alt=""
-              className="size-28 rounded-full object-cover ring-4 ring-violet-100 shadow-md sm:size-32"
+              className="size-28 rounded-full object-cover ring-4 ring-violet-500/30 shadow-[0_0_25px_rgba(139,92,246,0.3)] sm:size-32"
             />
           ) : (
-            <div className="flex size-28 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-violet-400 text-2xl font-bold text-white shadow-md ring-4 ring-violet-100 sm:size-32">
+            <div className="flex size-28 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 text-2xl font-black text-white shadow-[0_0_25px_rgba(139,92,246,0.3)] ring-4 ring-violet-500/30 sm:size-32">
               {initials}
             </div>
           )}
           {mentor.available ? (
-            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
-              <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
+            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-300">
+              <span className="size-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
               Sẵn sàng nhận lịch
             </span>
           ) : (
-            <span className="mt-3 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+            <span className="mt-3 inline-flex rounded-full bg-slate-800 border border-white/10 px-3 py-1 text-xs font-medium text-slate-400">
               Đang bận
             </span>
           )}
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:text-left">
-          <h1 className="flex flex-wrap items-center justify-center gap-2 text-2xl font-bold text-slate-900 sm:justify-start sm:text-3xl">
+          <h1 className="flex flex-wrap items-center justify-center gap-2 text-2xl font-black text-white sm:justify-start sm:text-3xl tracking-tight">
             {mentor.name}
             {Boolean(mentor.name && mentor.title && mentor.company && mentor.avatar) ? (
               <BadgeCheck
-                className="size-6 shrink-0 fill-amber-400 text-white"
+                className="size-6 shrink-0 fill-amber-400 text-slate-950"
                 aria-label="Mentor đầy đủ thông tin"
               />
             ) : null}
           </h1>
 
           {fieldTags.length > 0 ? (
-            <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
+            <div className="mt-2.5 flex flex-wrap justify-center gap-2 sm:justify-start">
               {fieldTags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-block max-w-full rounded-lg border border-violet-200/60 bg-violet-50 px-3 py-1 text-xs font-medium text-violet-800 shadow-sm"
+                  className="inline-block rounded-xl border border-violet-500/25 bg-violet-500/15 px-3 py-1 text-xs font-semibold text-violet-200"
                 >
-                  <span className="line-clamp-2 text-left">{tag}</span>
+                  {tag}
                 </span>
               ))}
             </div>
           ) : null}
 
-          <p className="mt-2 text-base text-slate-600">{subtitle}</p>
+          <p className="mt-2 text-base font-medium text-slate-300">{subtitle}</p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             {Number(mentor.rating) > 0 ? (
               <>
-                <span className="text-lg font-bold text-slate-900">{ratingDisplay}</span>
+                <span className="text-lg font-bold text-amber-300">{ratingDisplay}</span>
                 <span className="inline-flex gap-0.5" aria-hidden>
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star
@@ -104,13 +109,13 @@ export function MentorProfileHeader({ mentor, ratingDisplay, reviewCount, experi
                       className={`size-4 ${
                         i <= Math.round(Number(mentor.rating) || 0)
                           ? "fill-amber-400 text-amber-400"
-                          : "fill-slate-200 text-slate-200"
+                          : "fill-white/10 text-white/20"
                       }`}
                     />
                   ))}
                 </span>
-                <span className="text-sm text-slate-500">
-                  ({reviewCount} {reviewCount === 1 ? "đánh giá" : "đánh giá"})
+                <span className="text-sm text-slate-400">
+                  ({reviewCount} đánh giá)
                 </span>
               </>
             ) : (
@@ -118,7 +123,7 @@ export function MentorProfileHeader({ mentor, ratingDisplay, reviewCount, experi
             )}
           </div>
 
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+          <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
             <InfoRow icon={Briefcase} label="Chức vụ" value={subtitle} />
             <InfoRow icon={Clock} label="Kinh nghiệm" value={expLabel} />
             <InfoRow

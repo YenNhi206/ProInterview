@@ -5,7 +5,6 @@ import { isLoggedIn } from "../../utils/auth/auth.js";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { CVAnalysisResultContent } from "../../components/cv/CVAnalysisResultContent";
-import { CvJdAnalysisPage } from "../../components/cv/CvJdAnalysisFrame";
 import {
   CV_FIELD_ANALYSIS_PATH,
   CV_FIELD_HISTORY_PATH,
@@ -13,6 +12,7 @@ import {
   CV_JD_HISTORY_PATH,
   cvAnalysisResultPath,
 } from "../../components/cv/CvJdAnalysisTabs";
+import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 
 export function CVAnalysisResult() {
   const navigate = useNavigate();
@@ -90,42 +90,55 @@ export function CVAnalysisResult() {
   }, [paramId, location.state, navigate, loginReturnPath]);
 
   return (
-    <CvJdAnalysisPage showTabs={false} showHeader={false}>
-      {loading && (
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-[#8037f4]" />
-        </div>
-      )}
+    <div className={`relative z-[1] min-h-[calc(100svh-76px)] pb-20 pt-6 sm:pt-8 text-[#f0edf7] ${CUSTOMER_SHELL_GUTTER}`}>
+      <div className={CUSTOMER_SHELL_MAX}>
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-28 text-center">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute h-16 w-16 animate-ping rounded-full bg-violet-400/20" />
+              <div className="h-14 w-14 rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-lg shadow-violet-500/10">
+                <Loader2 className="h-7 w-7 animate-spin text-violet-400" />
+              </div>
+            </div>
+            <p className="mt-5 text-base font-bold text-white">Đang tổng hợp báo cáo phân tích...</p>
+            <p className="text-xs text-slate-400 mt-1">Đang trích xuất điểm số, từ khóa và đề xuất cải thiện</p>
+          </div>
+        )}
 
-      {!loading && loadError && (
-        <div className="px-6 py-12 text-center sm:px-8">
-          <p className="text-sm font-medium text-slate-700">{loadError}</p>
-          <button
-            type="button"
-            onClick={() => navigate(analysisPath)}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#8037f4] px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            Mở trang phân tích
-          </button>
-        </div>
-      )}
+        {!loading && loadError && (
+          <div className="mx-auto max-w-lg rounded-3xl border border-rose-500/30 bg-gradient-to-br from-[#1c183f]/90 via-[#13112c]/90 to-[#0e0c24]/95 p-8 text-center shadow-xl shadow-rose-950/20 backdrop-blur-xl my-12">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 mb-4">
+              <Loader2 className="h-6 w-6 stroke-[2.5]" />
+            </div>
+            <h2 className="text-lg font-bold text-white">Không tìm thấy kết quả phân tích</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => navigate(analysisPath)}
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-violet-500/25 transition-transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              Mở trang phân tích mới
+            </button>
+          </div>
+        )}
 
-      {!loading && !loadError && resultReady && (
-        <CVAnalysisResultContent
-          routeMode={routeMode}
-          analysisResult={analysisResult}
-          historySaveWarning={historySaveWarning}
-          cvFile={cvFile}
-          jdFile={jdFile}
-          cvFileName={savedFileInfo?.cvFileName ?? cvFile?.name}
-          jdFileName={savedFileInfo?.jdFileName ?? jdFile?.name}
-          cvFileUrl={savedFileInfo?.cvFileUrl ?? analysisResult?.cvFileUrl}
-          jdFileUrl={savedFileInfo?.jdFileUrl ?? analysisResult?.jdFileUrl}
-          analysisPath={analysisPath}
-          historyPath={historyPath}
-          analysisId={savedFileInfo?.analysisId ?? paramId ?? null}
-        />
-      )}
-    </CvJdAnalysisPage>
+        {!loading && !loadError && resultReady && (
+          <CVAnalysisResultContent
+            routeMode={routeMode}
+            analysisResult={analysisResult}
+            historySaveWarning={historySaveWarning}
+            cvFile={cvFile}
+            jdFile={jdFile}
+            cvFileName={savedFileInfo?.cvFileName ?? cvFile?.name}
+            jdFileName={savedFileInfo?.jdFileName ?? jdFile?.name}
+            cvFileUrl={savedFileInfo?.cvFileUrl ?? analysisResult?.cvFileUrl}
+            jdFileUrl={savedFileInfo?.jdFileUrl ?? analysisResult?.jdFileUrl}
+            analysisPath={analysisPath}
+            historyPath={historyPath}
+            analysisId={savedFileInfo?.analysisId ?? paramId ?? null}
+          />
+        )}
+      </div>
+    </div>
   );
 }
