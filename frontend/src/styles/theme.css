@@ -100,16 +100,6 @@ body, .app-user-shell {
   background-attachment: fixed;
 }
 
-.app-shell-ambient--home {
-  background-color: #0a0416;
-  background-image:
-    radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.2) 0%, transparent 55%),
-    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(37, 42, 120, 0.25) 0%, transparent 65%),
-    radial-gradient(circle at 0% 100%, rgba(147, 51, 234, 0.2) 0%, transparent 55%),
-    linear-gradient(135deg, #150a2e 0%, #0d0a26 50%, #070818 100%);
-}
-
 .app-shell-ambient--legal {
   background-color: #0a0416;
   background-image: none;
@@ -250,15 +240,3 @@ body, .app-user-shell {
     animation: none;
   }
 }
-
-/* Home — chung nền sáng, không dải tím nhạt hai đầu */
-.app-shell-ambient--home {
-  background-color: #f6f4fc;
-  background-image:
-    radial-gradient(ellipse 100% 92% at -10% 45%, rgba(128, 55, 244, 0.12), transparent 62%),
-    radial-gradient(ellipse 100% 92% at 110% 55%, rgba(128, 55, 244, 0.1), transparent 62%),
-    radial-gradient(ellipse 200% 80% at 50% 0%, rgba(235, 228, 246, 0.5), transparent 55%),
-    radial-gradient(ellipse 240% 110% at 50% 112%, rgba(99, 14, 212, 0.05), transparent 70%),
-    radial-gradient(ellipse 58% 54% at 50% 52%, rgba(255, 255, 255, 0.8), transparent 68%);
-}
->>>>>>> Stashed changes
