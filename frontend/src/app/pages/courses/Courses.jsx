@@ -84,13 +84,18 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
       viewport={{ once: true, amount: 0.12 }}
       transition={{ duration: 0.48, delay: (index % 4) * 0.09, ease: [0.16, 1, 0.3, 1] }}
       className={`pi-course-card-3d ${flipped ? "is-flipped" : ""}`}
+      onMouseEnter={() => setFlipped(true)}
+      onMouseLeave={() => setFlipped(false)}
     >
       <div className="pi-course-card-3d__inner">
         {/* ════════ FRONT FACE ════════ */}
         <div
           className="pi-course-card-3d__front group cursor-pointer"
-          onClick={() => setFlipped(true)}
-          title="Click để lật xem tổng quan khóa học"
+          onClick={(e) => {
+            e.stopPropagation();
+            setFlipped(true);
+          }}
+          title="Rà chuột hoặc click để lật xem tổng quan khóa học"
         >
           {/* Thumbnail */}
           <div className="relative aspect-video w-full overflow-hidden bg-[#18113c] shrink-0">
@@ -202,8 +207,11 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
         {/* ════════ BACK FACE (Rotating Neon Border + Glowing Ambient Orbs) ════════ */}
         <div
           className="pi-course-card-3d__back cursor-pointer"
-          onClick={() => setFlipped(false)}
-          title="Click vào thẻ để quay lại mặt trước"
+          onClick={(e) => {
+            e.stopPropagation();
+            setFlipped(false);
+          }}
+          title="Click vào bất kỳ đâu trên thẻ để quay lại mặt trước"
         >
           <div className="pi-course-card-3d__back-surface">
             {/* Ambient Floating Orbs */}
@@ -220,17 +228,22 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
                   {course.title}
                 </h4>
               </div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFlipped(false);
-                }}
-                title="Lật lại mặt trước"
-                className="shrink-0 rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer"
-              >
-                <RotateCcw className="size-3.5" />
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="hidden sm:inline-flex text-[10px] text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                  Click để quay lại
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFlipped(false);
+                  }}
+                  title="Lật lại mặt trước"
+                  className="rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer"
+                >
+                  <RotateCcw className="size-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Back Content Highlights */}
