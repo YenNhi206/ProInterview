@@ -15,6 +15,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
+import { AppSelect } from "../../components/ui/AppSelect";
 
 const FIELD_OPTIONS = [
   "IT / Công nghệ",
@@ -456,16 +457,16 @@ export function AdminImportUsers() {
                       />
                     </td>
                     <td className="px-5 py-3">
-                      <select
+                      <AppSelect
+                        aria-label={`Lĩnh vực của ${row.name || row.email || `dòng ${idx + 1}`}`}
+                        size="sm"
                         value={row.field}
-                        onChange={(e) => updateRow(idx, "field", e.target.value)}
+                        onValueChange={(value) => updateRow(idx, "field", value)}
                         disabled={row.status === "running" || row.status === "success"}
-                        className={`w-44 rounded-lg border bg-white px-2 py-1 text-xs text-slate-800 outline-none focus:border-violet-400 disabled:opacity-50 ${
-                          row.fieldConfident === false ? "border-amber-400" : "border-slate-200"
-                        }`}
-                      >
-                        {FIELD_OPTIONS.map((f) => <option key={f}>{f}</option>)}
-                      </select>
+                        data-attention={row.fieldConfident === false || undefined}
+                        triggerClassName="w-44"
+                        options={FIELD_OPTIONS.map((value) => ({ value, label: value }))}
+                      />
                       {row.fieldConfident === false && (
                         <span
                           className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-amber-600"

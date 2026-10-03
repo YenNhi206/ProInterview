@@ -5,9 +5,9 @@ export const CV_JD_ANALYSIS_PATH = "/cv-analysis/jd";
 export const CV_FIELD_ANALYSIS_PATH = "/cv-analysis/field";
 export const CV_JD_RESULT_PATH = "/cv-analysis/jd/result";
 export const CV_FIELD_RESULT_PATH = "/cv-analysis/field/result";
-/** Lịch sử riêng từng tính năng, tab Lịch sử trên trang JD/field trỏ đúng path này */
-export const CV_JD_HISTORY_PATH = "/cv-analysis/jd/history";
-export const CV_FIELD_HISTORY_PATH = "/cv-analysis/field/history";
+/** Lịch sử phân tích trung tâm */
+export const CV_JD_HISTORY_PATH = "/cv-analysis/history?mode=jd";
+export const CV_FIELD_HISTORY_PATH = "/cv-analysis/history?mode=field";
 
 /** URL trang kết quả, có hoặc không có id bản ghi đã lưu */
 export function cvAnalysisResultPath(mode, analysisId) {

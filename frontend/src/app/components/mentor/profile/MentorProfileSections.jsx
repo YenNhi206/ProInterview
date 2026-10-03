@@ -5,13 +5,13 @@ import { mentorDisplayTitle, workEntryPeriodLabel } from "../../../utils/mentor/
 
 function EmptyBlock({ icon: Icon, message }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-violet-200/80 bg-violet-50/40 px-4 py-8 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-4 py-8 text-center">
       {Icon ? (
-        <div className="flex size-10 items-center justify-center rounded-full bg-white text-violet-500 shadow-sm">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-400 shadow-sm">
           <Icon size={20} strokeWidth={1.75} aria-hidden />
         </div>
       ) : null}
-      <p className="max-w-md text-sm text-slate-600">{message}</p>
+      <p className="max-w-md text-sm text-slate-400">{message}</p>
     </div>
   );
 }
@@ -25,7 +25,7 @@ function StarRow({ value, size = "md" }) {
         <Star
           key={i}
           className={`${iconClass} ${
-            i <= rounded ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"
+            i <= rounded ? "fill-amber-400 text-amber-400" : "fill-white/10 text-white/20"
           }`}
         />
       ))}
@@ -36,14 +36,14 @@ function StarRow({ value, size = "md" }) {
 function RatingBadge({ rating }) {
   const value = Number(rating) || 0;
   return (
-    <span className="inline-flex items-center gap-1 rounded bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
+    <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 text-xs font-bold text-amber-300 shadow-xs">
       {value.toFixed(1)}
       <span className="inline-flex gap-px">
         {[1, 2, 3, 4, 5].map((i) => (
           <Star
             key={i}
             className={`size-2.5 ${
-              i <= Math.round(value) ? "fill-white text-white" : "fill-amber-300/50 text-amber-300/50"
+              i <= Math.round(value) ? "fill-amber-300 text-amber-300" : "fill-white/10 text-white/20"
             }`}
             aria-hidden
           />
@@ -69,17 +69,17 @@ function formatReviewDateTime(iso) {
 export function ReviewSummary({ summary }) {
   const max = Math.max(1, ...summary.buckets.map((b) => b.count));
   return (
-    <div className="mb-6 flex flex-col gap-6 border-b border-slate-200/90 pb-6 sm:flex-row sm:items-start">
+    <div className="mb-6 flex flex-col gap-6 border-b border-white/10 pb-6 sm:flex-row sm:items-start">
       <div className="shrink-0 text-center sm:min-w-[130px] sm:text-left">
         {summary.total > 0 ? (
           <>
-            <p className="text-5xl font-bold leading-none text-slate-900">
+            <p className="text-5xl font-black leading-none text-white">
               {summary.average.toFixed(1)}
             </p>
-            <div className="mt-2 flex justify-center sm:justify-start">
+            <div className="mt-2.5 flex justify-center sm:justify-start">
               <StarRow value={summary.average} />
             </div>
-            <p className="mt-2 text-sm font-medium text-slate-600">
+            <p className="mt-2 text-xs font-semibold text-slate-400">
               {summary.total} đánh giá
             </p>
           </>
@@ -90,14 +90,14 @@ export function ReviewSummary({ summary }) {
       <div className="min-w-0 flex-1 space-y-2.5">
         {summary.buckets.map((b) => (
           <div key={b.stars} className="flex items-center gap-3 text-sm">
-            <span className="w-[7.5rem] shrink-0 text-slate-600">{b.label}</span>
-            <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-200">
+            <span className="w-[7.5rem] shrink-0 text-xs font-medium text-slate-400">{b.label}</span>
+            <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-white/10">
               <div
-                className="h-full rounded-full bg-[#8037f4] transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all shadow-[0_0_8px_rgba(139,92,246,0.5)]"
                 style={{ width: `${(b.count / max) * 100}%` }}
               />
             </div>
-            <span className="w-8 shrink-0 text-right font-semibold text-slate-800">{b.count}</span>
+            <span className="w-8 shrink-0 text-right font-semibold text-xs text-slate-300">{b.count}</span>
           </div>
         ))}
       </div>
@@ -122,16 +122,16 @@ function ReviewStarFilters({ active, onChange }) {
             key={item.key}
             type="button"
             onClick={() => onChange(item.stars)}
-            className={`inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
               isActive
-                ? "border-violet-300 bg-violet-100 text-violet-900"
-                : "border-slate-200 bg-white text-slate-700 hover:border-violet-200 hover:bg-violet-50/50"
+                ? "border-violet-400/50 bg-violet-600/30 text-white shadow-[0_0_12px_rgba(139,92,246,0.3)]"
+                : "border-white/10 bg-white/[0.04] text-slate-300 hover:text-white hover:bg-white/[0.08]"
             }`}
           >
             {item.stars !== null ? (
               <>
                 {item.label}
-                <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden />
+                <Star className="size-3 fill-amber-400 text-amber-400" aria-hidden />
               </>
             ) : (
               item.label
@@ -145,32 +145,36 @@ function ReviewStarFilters({ active, onChange }) {
 
 export function MentorIntroSection({ mentor, bioText, education, awards }) {
   return (
-    <section>
-      <h2 className="mb-4 text-lg font-bold text-slate-900">
-        Giới thiệu chuyên gia {mentor.name}
-      </h2>
-      {bioText ? (
-        <div className="space-y-3 text-sm leading-relaxed text-slate-700">
-          {bioText.split(/\n+/).map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
-        </div>
-      ) : (
-        <EmptyBlock
-          icon={Lightning}
-          message="Mentor chưa cập nhật phần giới thiệu. Bạn vẫn có thể đặt lịch và trao đổi trực tiếp trong buổi mentor."
-        />
-      )}
+    <section className="space-y-6">
+      <div>
+        <h2 className="mb-4 text-xl font-bold text-white">
+          Giới thiệu chuyên gia {mentor.name}
+        </h2>
+        {bioText ? (
+          <div className="space-y-3 text-sm leading-relaxed text-slate-300">
+            {bioText.split(/\n+/).map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        ) : (
+          <EmptyBlock
+            icon={Lightning}
+            message="Mentor chưa cập nhật phần giới thiệu. Bạn vẫn có thể đặt lịch và trao đổi trực tiếp trong buổi mentor."
+          />
+        )}
+      </div>
+
       {education ? (
-        <div className="mt-6 border-t border-slate-100 pt-5">
-          <h3 className="mb-2 text-sm font-bold text-slate-900">Học vấn</h3>
-          <p className="whitespace-pre-line text-sm text-slate-700">{education}</p>
+        <div className="border-t border-white/10 pt-5">
+          <h3 className="mb-2 text-base font-bold text-white">Học vấn</h3>
+          <p className="whitespace-pre-line text-sm text-slate-300">{education}</p>
         </div>
       ) : null}
+
       {awards ? (
-        <div className="mt-5 border-t border-slate-100 pt-5">
-          <h3 className="mb-2 text-sm font-bold text-slate-900">Giải thưởng</h3>
-          <p className="whitespace-pre-line text-sm text-slate-700">{awards}</p>
+        <div className="border-t border-white/10 pt-5">
+          <h3 className="mb-2 text-base font-bold text-white">Giải thưởng</h3>
+          <p className="whitespace-pre-line text-sm text-slate-300">{awards}</p>
         </div>
       ) : null}
     </section>
@@ -181,7 +185,7 @@ export function MentorWorkSection({ mentor, workEntries, compactTitle = false })
   return (
     <section>
       <h2
-        className={`font-bold text-slate-900 ${compactTitle ? "mb-3 text-base" : "mb-4 text-lg"}`}
+        className={`font-bold text-white ${compactTitle ? "mb-3 text-base" : "mb-5 text-xl"}`}
       >
         {compactTitle
           ? "Kinh nghiệm làm việc"
@@ -198,37 +202,37 @@ export function MentorWorkSection({ mentor, workEntries, compactTitle = false })
             return (
               <li
                 key={`${entry.company}-${i}`}
-                className="rounded-md border border-violet-200/80 border-l-[5px] border-l-[#8037f4] bg-white px-5 py-5 sm:px-6 sm:py-6"
+                className="rounded-2xl border border-white/10 border-l-4 border-l-violet-500 bg-white/[0.03] backdrop-blur-md px-5 py-5 sm:px-6 sm:py-6 shadow-sm"
               >
-                <p className="text-base font-bold text-slate-900 sm:text-[17px]">
+                <p className="text-base font-bold text-white sm:text-lg">
                   {entry.role || mentorDisplayTitle(mentor)}
                 </p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                <ul className="mt-2.5 space-y-1.5 text-sm text-slate-300">
                   {entry.company ? (
                     <li className="flex items-center gap-2">
-                      <Building2 className="size-4 shrink-0 text-[#8037f4]" aria-hidden />
+                      <Building2 className="size-4 shrink-0 text-violet-400" aria-hidden />
                       <span>
-                        <span className="text-slate-500">Công ty: </span>
-                        <span className="font-medium text-slate-800">{entry.company}</span>
+                        <span className="text-slate-400">Công ty: </span>
+                        <span className="font-semibold text-white">{entry.company}</span>
                       </span>
                     </li>
                   ) : null}
                   {period ? (
                     <li className="flex items-center gap-2">
-                      <Clock className="size-4 shrink-0 text-[#8037f4]" aria-hidden />
-                      <span className="font-medium text-slate-800">{period}</span>
+                      <Clock className="size-4 shrink-0 text-violet-400" aria-hidden />
+                      <span className="font-medium text-slate-300">{period}</span>
                     </li>
                   ) : null}
                 </ul>
                 {noteLines.length > 0 ? (
-                  <div className="mt-4 space-y-2 text-sm leading-relaxed text-slate-700">
+                  <div className="mt-4 space-y-2 text-sm leading-relaxed text-slate-300">
                     {noteLines.length === 1 && !noteLines[0].startsWith("-") ? (
                       <p>{noteLines[0]}</p>
                     ) : (
                       <ul className="space-y-1.5">
                         {noteLines.map((line, j) => (
                           <li key={j} className="flex gap-2">
-                            <span className="shrink-0 font-medium text-violet-600">-</span>
+                            <span className="shrink-0 font-bold text-violet-400">•</span>
                             <span>{line.replace(/^[-•]\s*/, "")}</span>
                           </li>
                         ))}
@@ -254,16 +258,16 @@ export function MentorSkillsSection({ skillTags, compactTitle = false }) {
   return (
     <section>
       <h2
-        className={`font-bold text-slate-900 ${compactTitle ? "mb-3 text-base" : "mb-4 text-lg"}`}
+        className={`font-bold text-white ${compactTitle ? "mb-3 text-base" : "mb-5 text-xl"}`}
       >
         Kỹ năng
       </h2>
       {skillTags.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           {skillTags.map((tag) => (
             <span
               key={tag}
-              className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-900"
+              className="rounded-xl border border-violet-500/25 bg-violet-500/15 px-3.5 py-2 text-xs sm:text-sm font-semibold text-violet-200"
             >
               {tag}
             </span>
@@ -294,7 +298,7 @@ export function MentorReviewsSection({ realReviews, reviewSummary, compactTitle 
   return (
     <section>
       <h2
-        className={`font-bold text-slate-900 ${compactTitle ? "mb-3 text-base" : "mb-4 text-lg"}`}
+        className={`font-bold text-white ${compactTitle ? "mb-3 text-base" : "mb-5 text-xl"}`}
       >
         Đánh giá
       </h2>
@@ -308,24 +312,24 @@ export function MentorReviewsSection({ realReviews, reviewSummary, compactTitle 
               setVisibleCount(REVIEW_PAGE_SIZE);
             }}
           />
-          <div className="divide-y divide-slate-200/90 border-t border-slate-200/90">
+          <div className="divide-y divide-white/10 border-t border-white/10">
             {visible.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">
+              <p className="py-8 text-center text-sm text-slate-400">
                 Không có đánh giá {starFilter} sao.
               </p>
             ) : (
               visible.map((review, i) => (
                 <article key={review.id || i} className="py-5 first:pt-5">
-                  <div className="flex gap-3">
+                  <div className="flex gap-3.5">
                     <div
-                      className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#8037f4] text-white"
+                      className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm"
                       aria-hidden
                     >
                       <User className="size-5" strokeWidth={2} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-start justify-between gap-2">
-                        <p className="text-base font-bold text-slate-900">
+                        <p className="text-base font-bold text-white">
                           {review.userName || "Học viên"}
                         </p>
                         {review.createdAt ? (
@@ -341,7 +345,7 @@ export function MentorReviewsSection({ realReviews, reviewSummary, compactTitle 
                         <RatingBadge rating={review.rating} />
                       </div>
                       {review.comment ? (
-                        <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                        <p className="mt-2.5 text-sm leading-relaxed text-slate-300">
                           {review.comment}
                         </p>
                       ) : null}
@@ -356,7 +360,7 @@ export function MentorReviewsSection({ realReviews, reviewSummary, compactTitle 
             <button
               type="button"
               onClick={() => setVisibleCount((n) => n + REVIEW_PAGE_SIZE)}
-              className="mx-auto mt-4 flex items-center gap-1 text-sm font-semibold text-[#8037f4] hover:text-violet-700"
+              className="mx-auto mt-5 flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs sm:text-sm font-semibold text-violet-300 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
             >
               Xem thêm
               <ChevronDown className="size-4" aria-hidden />

@@ -1,0 +1,356 @@
+/* Account settings: Luxury Dark Glass Design System */
+.settings-page {
+  --settings-text: #f0edf7;
+  --settings-muted: #b9b4cd;
+  --settings-line: rgba(255, 255, 255, 0.08);
+  --settings-accent: #c4ace8;
+  min-height: calc(100svh - 76px);
+  color: var(--settings-text);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-variation-settings: normal;
+  letter-spacing: -0.012em;
+}
+
+.settings-page :is(h1, h2, h3, p) { margin: 0; }
+.settings-page p { font-weight: 400; font-variation-settings: normal; }
+.settings-page :is(button, input, a) { font-family: inherit; font-variation-settings: normal; }
+.settings-page :is(button, a, input):focus-visible { outline: 2px solid var(--settings-accent); outline-offset: 3px; }
+.settings-page button { cursor: pointer; }
+.settings-page button:disabled { cursor: not-allowed; opacity: 0.45; }
+.settings-container, .settings-frame { min-width: 0; }
+
+/* ─── Header & Profile Card ───────────────────────────────── */
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.settings-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  max-width: 345px;
+  padding: 8px 14px;
+  color: #d5c8ef;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  background: rgba(28, 24, 61, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 180ms ease;
+  flex-shrink: 0;
+}
+.settings-account:hover {
+  color: #ffffff;
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(35, 30, 75, 0.85);
+  transform: translateY(-1px);
+}
+.settings-avatar {
+  flex-shrink: 0;
+  width: 38px !important;
+  height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1.5px solid rgba(139, 92, 246, 0.4);
+}
+.settings-avatar--initials {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.settings-account-copy {
+  min-width: 0;
+}
+.settings-page .settings-account-name {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 190px;
+}
+.settings-page .settings-account-role {
+  margin-top: 2px;
+  color: #a78bfa;
+  font-size: 11px;
+}
+.settings-workspace {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(21, 18, 48, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 16px 40px rgba(8, 8, 25, 0.25);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.settings-page .settings-button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 8px 16px;
+  color: #ded3ef;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  transition: all 180ms ease;
+}
+
+.settings-button:hover:not(:disabled) {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.12);
+  color: #ffffff;
+}
+
+.settings-page .settings-button--primary {
+  border-color: transparent;
+  color: #ffffff;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.35);
+  font-weight: 600;
+}
+
+.settings-button--primary:hover:not(:disabled) {
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.55);
+  transform: translateY(-1px);
+}
+
+.settings-page .settings-button--danger {
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  font-weight: 600;
+}
+
+.settings-button--danger:hover:not(:disabled) {
+  background: rgba(244, 63, 94, 0.22);
+  border-color: rgba(244, 63, 94, 0.5);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.3);
+}
+
+/* ─── Inputs ──────────────────────────────────────────────── */
+.settings-page input.settings-input[type] {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: rgba(14, 12, 34, 0.65);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 180ms ease;
+  outline: none;
+}
+
+.settings-input::placeholder { color: #8e87a2; }
+.settings-input:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.35);
+}
+
+/* ─── Session Management ──────────────────────────────────── */
+.settings-session {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 10px;
+  transition: all 180ms ease;
+}
+
+.settings-session:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+.settings-session-icon {
+  flex-shrink: 0;
+  color: #c4ace8;
+}
+
+.settings-session-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-session-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-page .settings-session-title p {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-session-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.settings-session-badge--warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.settings-page .settings-session-meta {
+  margin-top: 3px;
+  color: #9f96b5;
+  font-size: 11px;
+}
+
+.settings-session-revoke {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  background: rgba(244, 63, 94, 0.08);
+  color: #fda4af;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 160ms ease;
+}
+
+.settings-session-revoke:hover {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.5);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.25);
+}
+
+.settings-security-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  padding: 12px 16px;
+  background: rgba(139, 92, 246, 0.08);
+  color: #ded3ef;
+}
+
+.settings-security-notice > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #a78bfa;
+}
+
+.settings-page .settings-security-notice p {
+  color: #ded3ef;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.settings-page .settings-session-group-label {
+  margin: 12px 0 6px;
+  color: #9f96b5;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Danger Zone ─────────────────────────────────────────── */
+.settings-danger {
+  border-color: rgba(244, 63, 94, 0.25) !important;
+}
+
+.settings-danger-copy p + p {
+  margin-top: 10px;
+}
+
+.settings-danger-controls {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin-top: 16px;
+}
+
+.settings-danger-controls label {
+  color: #d1c7e2;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.settings-danger-controls .settings-button {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.settings-text-error { color: #fda4af; }
+.settings-text-warning { color: #c4ace8; }
+.settings-page .settings-text-action {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 5px;
+  color: #c4ace8;
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.settings-text-action:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.settings-page ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.settings-page ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.settings-page ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+.settings-page ::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-page *, .settings-page *::before, .settings-page *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

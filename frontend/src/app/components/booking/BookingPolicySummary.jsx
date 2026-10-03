@@ -38,25 +38,25 @@ export function BookingPolicySummary({
 
 function PolicyBlock({ title, rows, activeId, footer }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-600">{title}</p>
-      <ul className="space-y-1.5 text-xs text-slate-600">
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3 text-slate-300">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">{title}</p>
+      <ul className="space-y-1.5 text-xs text-slate-300">
         {rows.map((row) => (
           <li
             key={row.id}
             className={
               activeId === row.id
-                ? "rounded-lg border border-emerald-200 bg-emerald-50/90 px-2 py-1.5 font-medium text-emerald-900"
+                ? "rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2 py-1.5 font-medium text-emerald-300"
                 : "px-0.5"
             }
           >
-            <span className="text-slate-800">• {row.when}:</span>{" "}
-            <strong className="text-slate-900">{row.policy}</strong>
+            <span className="text-slate-400">• {row.when}:</span>{" "}
+            <strong className="text-white">{row.policy}</strong>
           </li>
         ))}
       </ul>
       {footer ? (
-        <p className="mt-2 border-t border-slate-200 pt-2 text-[11px] leading-relaxed text-slate-500">{footer}</p>
+        <p className="mt-2 border-t border-white/10 pt-2 text-[11px] leading-relaxed text-slate-400">{footer}</p>
       ) : null}
     </div>
   );

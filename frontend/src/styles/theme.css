@@ -187,3 +187,78 @@ body, .app-user-shell {
     @apply bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all;
   }
 }
+
+@media (max-width: 1023px) {
+  .top-nav-shell-outer {
+    box-sizing: border-box;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    overflow: visible;
+  }
+
+  .home-hero-section {
+    overflow-x: clip;
+  }
+
+  html.app-route-home .home-layout-fixed {
+    width: 100%;
+    min-width: 0;
+    overflow-x: visible;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-layout-fixed {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  html.app-route-home .top-nav-pill {
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  html.app-route-home .top-nav-pill>* {
+    flex-shrink: 0;
+  }
+
+  .home-hero-section {
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
+  .home-hero-section .home-hero-title {
+    font-size: 5.25rem !important;
+    line-height: 0.98 !important;
+  }
+
+  .home-hero-section .hero-title-line {
+    white-space: nowrap;
+    line-height: 0.98;
+  }
+
+  .home-hero-section .hero-title-stack {
+    gap: 0.7rem;
+  }
+
+  .home-hero-section .hero-intro-badge {
+    margin-top: -3rem;
+  }
+
+  .home-hero-section .hero-title-highlight {
+    animation: none;
+  }
+}
+
+/* Home — chung nền sáng, không dải tím nhạt hai đầu */
+.app-shell-ambient--home {
+  background-color: #f6f4fc;
+  background-image:
+    radial-gradient(ellipse 100% 92% at -10% 45%, rgba(128, 55, 244, 0.12), transparent 62%),
+    radial-gradient(ellipse 100% 92% at 110% 55%, rgba(128, 55, 244, 0.1), transparent 62%),
+    radial-gradient(ellipse 200% 80% at 50% 0%, rgba(235, 228, 246, 0.5), transparent 55%),
+    radial-gradient(ellipse 240% 110% at 50% 112%, rgba(99, 14, 212, 0.05), transparent 70%),
+    radial-gradient(ellipse 58% 54% at 50% 52%, rgba(255, 255, 255, 0.8), transparent 68%);
+}
+>>>>>>> Stashed changes

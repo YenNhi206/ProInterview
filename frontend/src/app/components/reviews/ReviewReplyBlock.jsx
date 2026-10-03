@@ -6,12 +6,12 @@ export function ReviewReplyBlock({ reply, className = "" }) {
   const repliedAt = reply?.repliedAt;
   return (
     <div
-      className={`mt-3 rounded-sm border border-violet-100 bg-violet-50/80 px-3 py-2.5 ${className}`.trim()}
+      className={`mt-3 rounded-2xl border border-violet-500/20 bg-violet-500/10 px-3.5 py-2.5 backdrop-blur-md ${className}`.trim()}
     >
-      <p className="text-[10px] font-bold uppercase tracking-wider text-violet-800">Phản hồi mentor</p>
-      <p className="mt-1 text-sm leading-relaxed text-slate-700">{content}</p>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-violet-300">Phản hồi từ Mentor</p>
+      <p className="mt-1 text-sm leading-relaxed text-slate-200">{content}</p>
       {repliedAt ? (
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1.5 text-xs text-slate-400">
           {new Date(repliedAt).toLocaleString("vi-VN", {
             day: "2-digit",
             month: "2-digit",

@@ -480,54 +480,62 @@ export function Courses() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 items-end">
                   {/* Cấp độ */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Cấp độ</label>
+                    <label htmlFor="course-selectedlevel" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Cấp độ</label>
                     <AppSelect
+                      id="course-selectedlevel"
                       value={selectedLevel}
                       onValueChange={setSelectedLevel}
                       options={[
                         { value: "", label: "Tất cả cấp độ" },
                         ...LEVEL_OPTIONS
                       ]}
-                      triggerClassName="w-full !bg-violet-950/40 !border-violet-800 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                      theme="dark"
+                      size="compact"
                     />
                   </div>
 
                   {/* Danh mục */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Danh mục</label>
+                    <label htmlFor="course-selectedcategory" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Danh mục</label>
                     <AppSelect
+                      id="course-selectedcategory"
                       value={selectedCategory}
                       onValueChange={setSelectedCategory}
                       options={[
                         { value: "", label: "Tất cả danh mục" },
                         ...filterCategories
                       ]}
-                      triggerClassName="w-full !bg-violet-950/40 !border-violet-800 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                      theme="dark"
+                      size="compact"
                     />
                   </div>
 
                   {/* Học phí */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Học phí</label>
+                    <label htmlFor="course-selectedfee" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Học phí</label>
                     <AppSelect
+                      id="course-selectedfee"
                       value={selectedFee}
                       onValueChange={setSelectedFee}
                       options={[
                         { value: "", label: "Tất cả" },
                         ...FEE_OPTIONS
                       ]}
-                      triggerClassName="w-full !bg-violet-950/40 !border-violet-800 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                      theme="dark"
+                      size="compact"
                     />
                   </div>
 
                   {/* Sắp xếp */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Sắp xếp</label>
+                    <label htmlFor="course-sortby" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Sắp xếp</label>
                     <AppSelect
+                      id="course-sortby"
                       value={sortBy}
                       onValueChange={setSortBy}
                       options={SORT_OPTIONS}
-                      triggerClassName="w-full !bg-violet-950/40 !border-violet-800 !text-slate-100 hover:!bg-violet-900/30 focus:!border-[#8037f4] focus:ring-2 focus:ring-violet-500/20 rounded-2xl h-[38px] text-xs font-bold"
+                      theme="dark"
+                      size="compact"
                     />
                   </div>
 

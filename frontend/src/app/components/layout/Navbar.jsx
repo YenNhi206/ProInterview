@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import {
-  Bell,
   BookOpen,
   Calendar,
   FileText,
@@ -11,13 +10,14 @@ import {
   Settings,
   Shield,
   ShoppingCart,
+  ShoppingBag,
   User,
   UserPlus,
   X,
 } from "lucide-react";
 import { TopNavShell } from "./TopNavShell";
 import { HOME_SHELL_MAX } from "./customerShellLayout";
-import { useNavbarNotifications } from "../../hooks/useNavbarNotifications.js";
+import { NotificationCenter } from "./NotificationCenter.jsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,20 +125,8 @@ function CustomerNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
 
   const { loggedIn, user } = useAuthSession();
-  const {
-    notifications,
-    unreadCount,
-    loadNotifications,
-    handleMarkAllRead,
-    handleMarkOneRead,
-  } = useNavbarNotifications(loggedIn);
-
-  useEffect(() => {
-    if (notifOpen && loggedIn) loadNotifications();
-  }, [notifOpen, loggedIn, loadNotifications]);
   const displayName = getDisplayName(user);
   const initials = getInitials(displayName);
   const loginHref = buildLoginPath(`${location.pathname}${location.search}`);
@@ -150,10 +138,6 @@ function CustomerNavbar() {
   }, [location.pathname]);
 
   const handleRead = (notif) => {
-    const id = notif._id;
-    handleMarkOneRead(id);
-    setNotifOpen(false);
-
     const actionUrl = notif.metadata?.actionUrl || notif.actionUrl;
     if (actionUrl) {
       navigate(actionUrl);
@@ -232,89 +216,38 @@ function CustomerNavbar() {
         />
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <Link to={loggedIn ? "/cart" : buildLoginPath("/cart")} aria-label={`Giỏ hàng, ${cart.items.length} khóa học`}
-            className="relative inline-flex size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white">
-            <ShoppingCart className="size-5" />
-            {cart.items.length > 0 && <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#93f72b] text-[10px] font-bold text-slate-900">{cart.items.length}</span>}
+          <Link
+            to={loggedIn ? "/cart" : buildLoginPath("/cart")}
+            aria-label={`Giỏ hàng, ${cart.items.length} khóa học`}
+            aria-current={location.pathname === "/cart" ? "page" : undefined}
+            title="Giỏ hàng"
+            className={
+              isHome
+                ? "relative inline-flex size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                : "relative inline-flex size-11 shrink-0 items-center justify-center rounded-full text-slate-700 transition-colors hover:bg-violet-50 hover:text-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+            }
+          >
+            {isHome ? (
+              <ShoppingCart className="size-5" />
+            ) : (
+              <ShoppingBag className="size-5" strokeWidth={1.5} aria-hidden="true" />
+            )}
+            {cart.items.length > 0 && (
+              <span
+                aria-hidden="true"
+                className={
+                  isHome
+                    ? "absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#93f72b] text-[10px] font-bold text-slate-900"
+                    : "absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-semibold text-white"
+                }
+              >
+                {cart.items.length > 99 ? "99+" : cart.items.length}
+              </span>
+            )}
           </Link>
           {loggedIn ? (
             <>
-              <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-xl transition-all focus:outline-none md:size-9"
-                      style={{
-                        background: notifOpen ? "rgba(128,55,244,0.1)" : "transparent",
-                        border: notifOpen ? "1px solid rgba(128,55,244,0.25)" : "1px solid transparent",
-                      }}
-                      aria-label="Thông báo"
-                    >
-                      <Bell className="size-4 text-[#8037f4]/75 md:size-5" />
-                      {unreadCount > 0 && (
-                        <span
-                          className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full font-bold text-[#1d1a26]"
-                          style={{
-                            background: "#93f72b",
-                            fontSize: "0.6rem",
-                            boxShadow: "0 2px 8px rgba(180,245,0,0.45)",
-                          }}
-                        >
-                          {unreadCount > 9 ? "9+" : unreadCount}
-                        </span>
-                      )}
-                    </button>
-                  </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-[min(calc(100vw-1.5rem),20rem)] overflow-hidden border border-slate-200/90 bg-white p-0 text-slate-900 shadow-xl"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                    <span className="text-sm font-semibold text-slate-900">Thông báo</span>
-                    {unreadCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleMarkAllRead}
-                        className="text-[10px] font-semibold text-[#8037f4] hover:underline"
-                      >
-                        Đọc tất cả
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-[400px] overflow-y-auto py-1">
-                    {notifications.length === 0 && (
-                      <div className="px-4 py-8 text-center text-xs text-slate-500">
-                        Không có thông báo mới
-                      </div>
-                    )}
-                    {notifications.map((n) => (
-                      <DropdownMenuItem
-                        key={n._id}
-                        onClick={() => handleRead(n)}
-                        className="flex cursor-pointer items-start gap-3 px-4 py-3 focus:bg-violet-50"
-                      >
-                        <div
-                          className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
-                          style={{
-                            background: !n.isRead ? "#8037f4" : "transparent",
-                            border: !n.isRead ? "none" : "1px solid rgba(148, 163, 184, 0.5)",
-                          }}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`truncate text-sm ${!n.isRead ? "font-bold text-slate-900" : "font-medium text-slate-600"}`}
-                          >
-                            {n.title}
-                          </p>
-                          <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-                            {n.body || n.message}
-                          </p>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <NotificationCenter active={loggedIn} onSelect={handleRead} />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -328,7 +261,7 @@ function CustomerNavbar() {
                     </span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
                     <User className="mr-2 size-4" />
                     Hồ sơ
@@ -361,7 +294,7 @@ function CustomerNavbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="font-semibold text-[#8037f4] focus:text-[#8037f4]"
+                    variant="destructive"
                   >
                     <LogOut className="mr-2 size-4" />
                     Đăng xuất
@@ -453,21 +386,9 @@ function CustomerNavbar() {
 function MentorNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [notifOpen, setNotifOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const { user } = useAuthSession();
-  const {
-    notifications,
-    unreadCount,
-    loadNotifications,
-    handleMarkAllRead,
-    handleMarkOneRead,
-  } = useNavbarNotifications(Boolean(user));
-
-  useEffect(() => {
-    if (notifOpen && user) loadNotifications();
-  }, [notifOpen, user, loadNotifications]);
 
   const displayName = getDisplayName(user);
   const initials = getInitials(displayName);
@@ -477,9 +398,6 @@ function MentorNavbar() {
   }, [location.pathname]);
 
   const handleRead = (notif) => {
-    handleMarkOneRead(notif._id);
-    setNotifOpen(false);
-
     const actionUrl = notif.metadata?.actionUrl || notif.actionUrl;
     if (actionUrl) {
       navigate(actionUrl);
@@ -525,78 +443,7 @@ function MentorNavbar() {
         />
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-xl transition-all focus:outline-none md:size-9"
-                style={{
-                  background: notifOpen ? "rgba(128,55,244,0.1)" : "transparent",
-                  border: notifOpen ? "1px solid rgba(128,55,244,0.25)" : "1px solid transparent",
-                }}
-                aria-label="Thông báo"
-              >
-                <Bell className="size-4 text-[#8037f4]/75 md:size-5" />
-                {unreadCount > 0 && (
-                  <span
-                    className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full font-bold text-[#1d1a26]"
-                    style={{
-                      background: "#93f72b",
-                      fontSize: "0.6rem",
-                      boxShadow: "0 2px 8px rgba(180,245,0,0.45)",
-                    }}
-                  >
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-[min(calc(100vw-1.5rem),20rem)] overflow-hidden border border-slate-200/90 bg-white p-0 text-slate-900 shadow-xl"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <span className="text-sm font-semibold text-slate-900">Thông báo</span>
-                {unreadCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleMarkAllRead}
-                    className="text-[10px] font-semibold text-[#8037f4] hover:underline"
-                  >
-                    Đọc tất cả
-                  </button>
-                )}
-              </div>
-              <div className="max-h-[400px] overflow-y-auto py-1">
-                {notifications.length === 0 && (
-                  <div className="px-4 py-8 text-center text-xs text-slate-500">Không có thông báo mới</div>
-                )}
-                {notifications.map((n) => (
-                  <DropdownMenuItem
-                    key={n._id}
-                    onClick={() => handleRead(n)}
-                    className="flex cursor-pointer items-start gap-3 px-4 py-3 focus:bg-violet-50"
-                  >
-                    <div
-                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
-                      style={{
-                        background: !n.isRead ? "#8037f4" : "transparent",
-                        border: !n.isRead ? "none" : "1px solid rgba(148, 163, 184, 0.5)",
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className={`truncate text-sm ${!n.isRead ? "font-bold text-slate-900" : "font-medium text-slate-600"}`}
-                      >
-                        {n.title}
-                      </p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{n.body || n.message}</p>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationCenter active={Boolean(user)} onSelect={handleRead} />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -634,7 +481,7 @@ function MentorNavbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="flex cursor-pointer items-center gap-2 font-semibold text-[#8037f4] focus:text-[#8037f4]"
+                variant="destructive"
               >
                 <LogOut className="size-4" />
                 Đăng xuất

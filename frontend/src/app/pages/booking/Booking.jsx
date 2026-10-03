@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   Calendar as CalendarBlank,
   Clock,
@@ -28,11 +28,9 @@ import { fetchBookedSlots, fetchRebookCredit } from "../../api/bookingsApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { uploadFile } from "../../api/uploadApi.js";
 import { getSuggestedBookingDataAsync, saveUploadedCV, saveUploadedJD } from "../../utils/shared/history.js";
-import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { BookingStepBar } from "../../components/booking/BookingStepBar";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { BookingPolicySummary } from "../../components/booking/BookingPolicySummary";
-import { BRAND_CTA_LIME_STYLE } from "../../constants/brandColors";
 import { avatarSrc } from "../../utils/shared/mediaUrl.js";
 import {
   resolveMentorSessionTypeOptions,
@@ -391,100 +389,127 @@ export function Booking() {
   const headerPerkDiscountAmount = perkDiscountRate > 0 ? Math.round(sessionPrice * perkDiscountRate) : 0;
 
   const fieldClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-[#8037f4]/45 focus:outline-none focus:ring-2 focus:ring-[#8037f4]/15";
+    "w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 transition-colors focus:border-violet-500/60 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-violet-500/20";
 
   if (mentorLoading) {
     return (
-      <MentorPageShell bottomPad="pb-32">
-        <div className={`relative z-10 flex min-h-[50vh] items-center justify-center pb-8 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
-          <div className={`${CUSTOMER_SHELL_MAX} w-full text-center text-sm font-medium text-slate-600`}>
-            Đang tải thông tin mentor…
+      <div className={`relative z-10 flex min-h-[60vh] items-center justify-center pb-32 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
+        <div className={`${CUSTOMER_SHELL_MAX} w-full text-center text-sm font-medium text-slate-400`}>
+          <div className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-4 backdrop-blur-xl">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+            <span>Đang tải thông tin mentor…</span>
           </div>
         </div>
-      </MentorPageShell>
+      </div>
     );
   }
 
   if (!mentor) {
     return (
-      <MentorPageShell bottomPad="pb-32">
-        <div className={`relative z-10 flex min-h-[50vh] flex-col items-center justify-center gap-4 pb-8 pt-8 text-center text-slate-600 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
-          <div className={`${CUSTOMER_SHELL_MAX} flex w-full flex-col items-center gap-4`}>
-          <p>Không tìm thấy mentor hoặc mentor chưa mở nhận booking.</p>
-          <button
-            type="button"
-            onClick={() => navigate("/mentors")}
-            className="rounded-full bg-[#93f72b] px-6 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:brightness-95"
-          >
-            Về danh sách mentor
-          </button>
+      <div className={`relative z-10 flex min-h-[60vh] flex-col items-center justify-center gap-4 pb-32 pt-8 text-center text-slate-300 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
+        <div className={`${CUSTOMER_SHELL_MAX} flex w-full flex-col items-center gap-4`}>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 backdrop-blur-xl max-w-md">
+            <p className="text-base text-slate-300">Không tìm thấy mentor hoặc mentor chưa mở nhận booking.</p>
+            <button
+              type="button"
+              onClick={() => navigate("/mentors")}
+              className="mt-5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:from-violet-500 hover:to-indigo-500"
+            >
+              Về danh sách mentor
+            </button>
           </div>
         </div>
-      </MentorPageShell>
+      </div>
     );
   }
 
   return (
-    <MentorPageShell bottomPad="pb-32">
-      <div className={`relative z-10 pb-8 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
-        <div
-          className={`${CUSTOMER_SHELL_MAX} w-full font-sans text-slate-900 antialiased selection:bg-[rgba(122,35,229,0.18)] selection:text-slate-900`}
-        >
-        <BookingStepBar current={step} />
+    <div className={`relative z-10 min-h-[calc(100svh-76px)] text-[#f0edf7] pb-32 pt-6 sm:pt-8 ${CUSTOMER_SHELL_GUTTER}`}>
+      <div className={`${CUSTOMER_SHELL_MAX} w-full antialiased selection:bg-[rgba(122,35,229,0.35)] selection:text-white`}>
+        {/* Breadcrumbs & Navigation */}
+        <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
+          <Link to="/mentors" className="hover:text-white transition-colors">Chuyên gia</Link>
+          <span className="text-slate-500">›</span>
+          <Link to={`/mentors/${mentor.id || mentor._id || id}`} className="hover:text-white transition-colors truncate max-w-xs">{mentor.name}</Link>
+          <span className="text-slate-500">›</span>
+          {step === 2 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title="Bấm để quay lại bước chọn lịch"
+              >
+                Đặt lịch
+              </button>
+              <span className="text-slate-500">›</span>
+              <span className="text-slate-100 font-semibold">Thông tin & xác nhận</span>
+            </>
+          ) : (
+            <span className="text-slate-100 font-semibold">Đặt lịch</span>
+          )}
+        </nav>
+
+        <BookingStepBar current={step} onStepClick={setStep} />
 
         {step === 1 ? (
-        <div className="mb-6 flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <img
-            src={avatarSrc(mentor.avatar)}
-            alt={mentor.name}
-            className="h-12 w-12 flex-shrink-0 rounded-xl object-cover ring-1 ring-slate-200"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = avatarSrc("");
-            }}
-          />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-900">{mentor.name}</p>
-            <p className="truncate text-xs text-slate-600">
-              {mentor.title} · {mentor.company}
-            </p>
-          </div>
-          <div className="ml-auto flex-shrink-0 text-right">
-            <p className="flex items-center justify-end gap-1.5">
-              {headerPerkDiscountAmount > 0 && (
-                <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                  -{Math.round(perkDiscountRate * 100)}%
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="relative">
+                <img
+                  src={avatarSrc(mentor.avatar)}
+                  alt={mentor.name}
+                  className="h-14 w-14 flex-shrink-0 rounded-2xl object-cover ring-2 ring-violet-500/30 shadow-md shadow-violet-500/20"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = avatarSrc("");
+                  }}
+                />
+                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-[#0e0926] bg-emerald-500" title="Sẵn sàng nhận lịch" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate text-base sm:text-lg font-bold text-white tracking-tight">{mentor.name}</h1>
+                <p className="truncate text-xs sm:text-sm text-slate-300">
+                  {mentor.title} {mentor.company ? `· ${mentor.company}` : ""}
+                </p>
+              </div>
+            </div>
+            <div className="ml-auto flex-shrink-0 text-right">
+              <div className="flex items-center justify-end gap-1.5">
+                {headerPerkDiscountAmount > 0 && (
+                  <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                    -{Math.round(perkDiscountRate * 100)}%
+                  </span>
+                )}
+                <span className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                  {formatVnd(sessionPrice - headerPerkDiscountAmount)}
                 </span>
+              </div>
+              {headerPerkDiscountAmount > 0 && (
+                <p className="text-xs text-slate-500 line-through">{formatVnd(sessionPrice)}</p>
               )}
-              <span className="text-lg font-black text-[#3d5200]">
-                {formatVnd(sessionPrice - headerPerkDiscountAmount)}
-              </span>
-            </p>
-            {headerPerkDiscountAmount > 0 && (
-              <p className="text-xs text-slate-400 line-through">{formatVnd(sessionPrice)}</p>
-            )}
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">/ buổi · 60 phút</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">/ buổi · 60 phút</p>
+            </div>
           </div>
-        </div>
         ) : null}
 
         {step === 1 && (
-          <div className="space-y-4">
-            <div className="glass-card overflow-hidden">
-              <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100">
-                  <CalendarBlank className="h-4 w-4 text-[#8037f4]" strokeWidth={2} />
+          <div className="space-y-5">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl overflow-hidden shadow-2xl">
+              <div className="flex items-center gap-3 border-b border-white/10 bg-white/[0.02] px-6 py-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600/30 to-purple-600/20 border border-violet-500/30 text-violet-300 shadow-inner">
+                  <CalendarBlank className="h-5 w-5" strokeWidth={2} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">Chọn ngày phỏng vấn</p>
-                  <p className="text-xs text-slate-500">Lịch trống của {mentor.name}, theo thời gian hiện tại</p>
+                  <p className="text-sm font-bold text-white">Chọn ngày phỏng vấn</p>
+                  <p className="text-xs text-slate-400">Lịch trống của {mentor.name}, theo giờ Việt Nam (UTC+7)</p>
                 </div>
               </div>
-              <div className="space-y-5 p-5">
+              <div className="space-y-6 p-6">
                 {calendarWeeks.map((week) => (
                   <div key={week.label}>
-                    <p className="mb-3 text-[10px] font-black uppercase tracking-wide text-slate-500">{week.label}</p>
-                    <div className="grid grid-cols-7 gap-2">
+                    <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-violet-300/80">{week.label}</p>
+                    <div className="grid grid-cols-7 gap-2.5">
                       {week.days.map((d) => {
                         const isSelected = selectedDay === d.dateKey;
                         const mentorSlots = getMentorSlotsForDay(d);
@@ -501,32 +526,32 @@ export function Booking() {
                               setSelectedDay(d.dateKey);
                               setSelectedDayFull(d.full);
                             }}
-                            className={`flex flex-col items-center rounded-xl py-3 transition-all ${
+                            className={`group relative flex flex-col items-center rounded-2xl py-3.5 transition-all ${
                               isSelected
-                                ? "bg-gradient-to-br from-[#8037f4] to-[#a66ff8] text-white shadow-[0_8px_24px_rgba(128,55,244,0.35)]"
+                                ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-[0_8px_24px_rgba(128,55,244,0.45)] border border-violet-400/50 scale-[1.02]"
                                 : canBookDay
-                                  ? "border border-slate-200 bg-white text-slate-900 shadow-sm hover:border-violet-300 hover:shadow-md"
-                                  : "cursor-not-allowed border border-slate-100 bg-slate-50 opacity-45"
+                                  ? "border border-white/10 bg-white/[0.03] text-white hover:border-violet-500/50 hover:bg-white/[0.08] hover:shadow-lg"
+                                  : "cursor-not-allowed border border-white/5 bg-white/[0.01] opacity-30 text-slate-500"
                             }`}
                           >
                             <span
                               className={`mb-1 text-xs font-semibold ${
-                                isSelected ? "text-white/80" : canBookDay ? "text-slate-500" : "text-slate-400"
+                                isSelected ? "text-white/90" : canBookDay ? "text-slate-400 group-hover:text-slate-200" : "text-slate-600"
                               }`}
                             >
                               {d.day}
                             </span>
-                            <span className={`text-[0.95rem] font-black ${isSelected ? "text-white" : canBookDay ? "text-slate-900" : "text-slate-400"}`}>
+                            <span className={`text-[1.05rem] font-black ${isSelected ? "text-white" : canBookDay ? "text-white" : "text-slate-600"}`}>
                               {d.date.split("/")[0]}
                             </span>
                             {canBookDay && (
                               <span
-                                className={`mt-1 rounded-full px-1.5 text-[0.6rem] font-bold ${
+                                className={`mt-1.5 rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${
                                   isSelected
-                                    ? "bg-white/20 text-white"
+                                    ? "bg-white/25 text-white"
                                     : freeSlots <= 3
-                                      ? "bg-orange-100 text-orange-800"
-                                      : "bg-lime-100 text-[#2f4200]"
+                                      ? "bg-amber-500/20 border border-amber-500/30 text-amber-300"
+                                      : "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300"
                                 }`}
                               >
                                 {freeSlots} chỗ
@@ -538,48 +563,48 @@ export function Booking() {
                     </div>
                   </div>
                 ))}
-                <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-3 text-xs text-slate-500">
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-[#8037f4] to-[#a66ff8]" />
-                    Đã chọn
+                <div className="flex flex-wrap items-center gap-5 border-t border-white/10 pt-4 text-xs text-slate-400">
+                  <span className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 shadow-sm shadow-violet-500/50" />
+                    <span className="text-slate-200">Đã chọn</span>
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full border border-slate-300 bg-white" />
-                    Còn chỗ
+                  <span className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full border border-white/30 bg-white/10" />
+                    <span>Còn chỗ</span>
                   </span>
-                  <span className="flex items-center gap-1.5 text-orange-700">
-                    <span className="h-2.5 w-2.5 rounded-full bg-orange-400" />
-                    Còn ít chỗ
+                  <span className="flex items-center gap-2 text-amber-300">
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50" />
+                    <span>Còn ít chỗ</span>
                   </span>
                 </div>
               </div>
             </div>
 
             {selectedDay ? (
-              <div className="glass-card overflow-hidden">
-                <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50/90 px-5 py-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100">
-                    <Clock className="h-4 w-4 text-[#8037f4]" strokeWidth={2} />
+              <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl overflow-hidden shadow-2xl">
+                <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-white/[0.02] px-6 py-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600/30 to-purple-600/20 border border-violet-500/30 text-violet-300 shadow-inner">
+                    <Clock className="h-5 w-5" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900">Chọn khung giờ</p>
-                    <p className="truncate text-xs text-slate-500">
-                      {selectedDayFull} · {availableSlotCount} khung giờ trống
+                    <p className="text-sm font-bold text-white">Chọn khung giờ</p>
+                    <p className="truncate text-xs text-slate-400">
+                      {selectedDayFull} · <span className="text-emerald-400 font-medium">{availableSlotCount} khung giờ trống</span>
                     </p>
                   </div>
-                  <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 rounded-full border border-lime-300 bg-lime-50 px-3 py-1.5 text-[11px] font-bold text-[#2f4200]">
+                  <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-bold text-emerald-300">
                     <Timer className="h-3.5 w-3.5" />
                     60 phút / buổi
                   </div>
                 </div>
-                <div className="space-y-5 p-5">
+                <div className="space-y-6 p-6">
                   {TIME_GROUPS.map((group) => (
                     <div key={group.label}>
                       <div className="mb-3 flex items-center gap-2">
-                        <group.icon className="h-3.5 w-3.5 text-slate-500" />
-                        <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{group.label}</p>
+                        <group.icon className="h-3.5 w-3.5 text-violet-400" />
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{group.label}</p>
                       </div>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                         {group.slots
                           .filter((time) => {
                             const selectedObj = calendarWeeks.flatMap((w) => w.days).find((d) => d.dateKey === selectedDay);
@@ -600,27 +625,27 @@ export function Booking() {
                               type="button"
                               disabled={disabled}
                               onClick={() => toggleSlot(time)}
-                              className={`relative rounded-xl py-3 text-sm font-bold transition-all ${
+                              className={`relative rounded-2xl py-3.5 text-sm font-bold transition-all ${
                                 selected
-                                  ? "bg-gradient-to-br from-[#8037f4] to-[#a66ff8] text-white shadow-[0_6px_20px_rgba(128,55,244,0.35)]"
+                                  ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-[0_6px_20px_rgba(128,55,244,0.45)] border border-violet-400/60 scale-[1.02]"
                                   : disabled
-                                    ? "cursor-not-allowed border border-slate-100 bg-slate-50 text-slate-400"
-                                    : "border border-slate-200 bg-white text-slate-900 shadow-sm hover:border-violet-300 hover:text-[#8037f4]"
+                                    ? "cursor-not-allowed border border-white/5 bg-white/[0.01] text-slate-600 opacity-40"
+                                    : "border border-white/10 bg-white/[0.03] text-slate-200 hover:border-violet-500/50 hover:bg-white/[0.08] hover:text-white"
                               }`}
                             >
                               {time}
                               {selected && slotOrder && (
-                                <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#93f72b] text-[0.55rem] font-black text-slate-900 shadow">
+                                <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-teal-300 text-[0.6rem] font-black text-slate-950 shadow-md">
                                   {slotOrder}
                                 </span>
                               )}
                               {booked && (
-                                <span className="absolute -right-1 -top-1 rounded-full bg-slate-200 px-1 text-[0.55rem] font-bold text-slate-600">
+                                <span className="absolute -right-1 -top-1 rounded-full bg-white/10 border border-white/10 px-1.5 py-0.5 text-[0.6rem] font-bold text-slate-400">
                                   Hết
                                 </span>
                               )}
                               {inPast && !booked && (
-                                <span className="absolute -right-1 -top-1 rounded-full bg-slate-200 px-1 text-[0.55rem] font-bold text-slate-600">
+                                <span className="absolute -right-1 -top-1 rounded-full bg-white/10 border border-white/10 px-1.5 py-0.5 text-[0.6rem] font-bold text-slate-400">
                                   Qua giờ
                                 </span>
                               )}
@@ -632,20 +657,20 @@ export function Booking() {
                   ))}
 
                   {selectedSlots.length > 0 && (
-                    <div className="mt-2 rounded-xl border border-violet-200 bg-violet-50 p-4">
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-sm font-bold text-slate-900">
+                    <div className="mt-4 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-purple-950/30 to-black/40 p-5 backdrop-blur-md">
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <p className="text-sm font-bold text-white">
                           Đã chọn {selectedSlots.length}/{MAX_SLOTS} buổi
                         </p>
                         <div className="flex flex-col items-end gap-0.5">
                           {perkDiscountAmount > 0 && (
-                            <span className="text-[10px] font-medium text-slate-400 line-through">
+                            <span className="text-[10px] font-medium text-slate-500 line-through">
                               {formatVnd(totalPrice)}
                             </span>
                           )}
-                          <span className="flex items-center gap-1 rounded-full bg-[#8037f4] px-2.5 py-0.5 text-[11px] font-black text-white">
+                          <span className="flex items-center gap-1.5 rounded-full bg-violet-600/40 border border-violet-400/30 px-3 py-1 text-xs font-black text-white shadow">
                             {perkDiscountAmount > 0 && (
-                              <span className="rounded-full bg-emerald-500 px-1 text-[9px] font-bold">
+                              <span className="rounded-full bg-emerald-500/30 border border-emerald-500/40 px-1.5 text-[9px] font-bold text-emerald-300">
                                 -{Math.round(perkDiscountRate * 100)}%
                               </span>
                             )}
@@ -657,42 +682,42 @@ export function Booking() {
                         {selectedSlots.map((s, i) => (
                           <div
                             key={`${s.dateKey}_${s.time}`}
-                            className="flex items-center gap-1.5 rounded-full border border-violet-300 bg-white px-3 py-1.5 text-xs font-semibold text-violet-900"
+                            className="flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/20 px-3.5 py-1.5 text-xs font-semibold text-violet-100 shadow-sm"
                           >
-                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#8037f4] text-[0.6rem] font-black text-white">
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-violet-500 text-[0.6rem] font-black text-white">
                               {i + 1}
                             </span>
                             <span>{s.dayFull} · {s.time}</span>
                             <button
                               type="button"
                               onClick={() => removeSlot(s.dateKey, s.time)}
-                              className="text-violet-400 hover:text-violet-900"
+                              className="text-violet-300 hover:text-white transition-colors ml-0.5"
                               aria-label="Bỏ slot này"
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         ))}
                       </div>
                       {selectedSlots.length < MAX_SLOTS && (
-                        <p className="mt-2 text-[11px] text-violet-600">
-                          Nhấn thêm vào khung giờ khác để chọn thêm buổi
+                        <p className="mt-2.5 text-[11px] text-violet-300/80">
+                          Bạn có thể chọn thêm các khung giờ khác trong tuần (tối đa {MAX_SLOTS} buổi)
                         </p>
                       )}
                     </div>
                   )}
 
-                  <div className="flex items-start gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                    <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
+                  <div className="flex items-start gap-2 border-t border-white/10 pt-4 text-xs text-slate-400">
+                    <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-violet-400" />
                     <span>
-                      Múi giờ: <strong className="text-slate-700">Việt Nam (UTC+7)</strong> · Khung giờ được giữ trong 15 phút sau khi tiếp tục.
+                      Múi giờ: <strong className="text-white">Việt Nam (UTC+7)</strong> · Khung giờ được giữ trong 15 phút sau khi tiếp tục.
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-                <Clock className="h-5 w-5 flex-shrink-0 text-slate-400" />
+              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-sm text-slate-400 backdrop-blur-sm">
+                <Clock className="h-5 w-5 flex-shrink-0 text-violet-400" />
                 <p>Chọn ngày để xem các khung giờ trống khả dụng</p>
               </div>
             )}
@@ -701,16 +726,19 @@ export function Booking() {
               type="button"
               disabled={selectedSlots.length === 0}
               onClick={() => setStep(2)}
-              className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-wide transition-all active:scale-[0.98] ${
+              className={`group relative overflow-hidden flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-wider transition-all active:scale-[0.99] ${
                 selectedSlots.length > 0
-                  ? "bg-gradient-to-br from-[#8037f4] to-[#a66ff8] text-white shadow-[0_8px_28px_rgba(128,55,244,0.35)] hover:shadow-[0_12px_36px_rgba(128,55,244,0.45)]"
-                  : "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400"
+                  ? "bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-white shadow-[0_8px_28px_rgba(128,55,244,0.4)] hover:shadow-[0_12px_36px_rgba(128,55,244,0.55)] hover:from-violet-500 hover:to-purple-500"
+                  : "cursor-not-allowed border border-white/5 bg-white/[0.02] text-slate-500"
               }`}
             >
+              {selectedSlots.length > 0 && (
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+              )}
               {selectedSlots.length > 0 ? (
                 <>
-                  Tiếp tục · {selectedSlots.length} buổi · {formatVnd(totalPrice - perkDiscountAmount)}
-                  <CaretRight className="h-4 w-4" />
+                  <span>Tiếp tục · {selectedSlots.length} buổi · {formatVnd(totalPrice - perkDiscountAmount)}</span>
+                  <CaretRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </>
               ) : (
                 "Vui lòng chọn ít nhất 1 khung giờ"
@@ -720,39 +748,29 @@ export function Booking() {
         )}
 
         {step === 2 && (
-          <div className="space-y-5">
-            <div className="flex items-center">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="group -ml-2 flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-              >
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                Quay lại chọn lịch
-              </button>
-            </div>
+          <div className="space-y-6">
             {showSmartBanner && suggestedData && (
-              <div className="flex items-start gap-3 rounded-2xl border border-lime-200 bg-gradient-to-br from-lime-50 to-violet-50 p-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-lime-100">
-                  <Sparkle className="h-5 w-5 text-[#4d6600]" />
+              <div className="flex items-start gap-3 rounded-3xl border border-violet-500/30 bg-gradient-to-r from-violet-950/60 via-purple-950/40 to-black/60 p-4 sm:p-5 backdrop-blur-xl shadow-xl">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-violet-600/30 border border-violet-500/40 text-violet-300">
+                  <Sparkle className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="mb-1 text-sm font-bold text-[#2f4200]">Tự động điền từ phân tích CV/JD gần nhất</p>
-                  <p className="mb-2 text-xs text-slate-600">
-                    Đã phân tích <span className="font-bold text-slate-900">{suggestedData.position}</span>. Điền nhanh để tiết kiệm thời gian?
+                  <p className="mb-1 text-sm font-bold text-white">Tự động điền từ phân tích CV/JD gần nhất</p>
+                  <p className="mb-3 text-xs text-slate-300">
+                    Đã nhận diện vị trí <span className="font-bold text-violet-300">{suggestedData.position}</span>. Điền nhanh để tiết kiệm thời gian?
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     <button
                       type="button"
                       onClick={handleUseSmartFill}
-                      className="rounded-lg bg-gradient-to-br from-[#8037f4] to-[#a66ff8] px-4 py-1.5 text-xs font-black text-white shadow-lg"
+                      className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-violet-500/30 hover:from-violet-500 hover:to-indigo-500 transition-all"
                     >
                       Dùng ngay
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowSmartBanner(false)}
-                      className="rounded-lg px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-white hover:text-slate-900"
+                      className="rounded-xl border border-white/10 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-white/[0.06] hover:text-white transition-all"
                     >
                       Bỏ qua
                     </button>
@@ -761,7 +779,7 @@ export function Booking() {
                 <button
                   type="button"
                   onClick={() => setShowSmartBanner(false)}
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
                   aria-label="Đóng"
                 >
                   <X className="h-4 w-4" />
@@ -769,13 +787,13 @@ export function Booking() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-              <div className="glass-card space-y-5 p-5 lg:col-span-7 xl:col-span-8">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-6 space-y-6 lg:col-span-7 xl:col-span-8 shadow-2xl">
                 <div>
-                  <label className="mb-3 block text-[10px] font-black uppercase tracking-wide text-slate-500">
-                    Loại buổi <span className="text-[#4d6600]">*</span>
+                  <label className="mb-3 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Loại buổi <span className="text-violet-400">*</span>
                   </label>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {sessionTypeOptions.map((opt) => {
                       const Icon = SESSION_TYPE_ICONS[opt.value] || VideoCamera;
                       const selected = sessionType === opt.value;
@@ -784,23 +802,25 @@ export function Booking() {
                           key={opt.value}
                           type="button"
                           onClick={() => setSessionType(opt.value)}
-                          className={`rounded-xl border p-4 text-left transition-all ${
+                          className={`rounded-2xl border p-4 text-left transition-all ${
                             selected
-                              ? "border-[#8037f4] bg-violet-50 shadow-[0_4px_16px_rgba(128,55,244,0.12)]"
-                              : "border-slate-200 bg-white hover:border-violet-200 hover:bg-slate-50"
+                              ? "border-violet-500/80 bg-violet-600/15 shadow-[0_4px_20px_rgba(128,55,244,0.25)] ring-1 ring-violet-500/40 text-white"
+                              : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05] text-slate-300"
                           }`}
                         >
                           <div className="flex items-start gap-3">
                             <div
-                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                                selected ? "bg-[#8037f4] text-white" : "bg-slate-100 text-slate-600"
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                                selected
+                                  ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+                                  : "bg-white/[0.06] text-slate-400"
                               }`}
                             >
                               <Icon className="h-4 w-4" strokeWidth={2} />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-bold text-slate-900">{opt.label}</p>
-                              <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{opt.hint}</p>
+                              <p className="text-sm font-bold text-white">{opt.label}</p>
+                              <p className="mt-1 text-xs leading-relaxed text-slate-400">{opt.hint}</p>
                             </div>
                           </div>
                         </button>
@@ -810,8 +830,8 @@ export function Booking() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wide text-slate-500">
-                    Vị trí đang ứng tuyển <span className="text-[#4d6600]">*</span>
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Vị trí đang ứng tuyển <span className="text-violet-400">*</span>
                   </label>
                   <input
                     className={fieldClass}
@@ -822,8 +842,8 @@ export function Booking() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wide text-slate-500">
-                    Tải lên CV <span className="font-normal normal-case text-slate-600">(bắt buộc)</span>
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Tải lên CV <span className="font-normal normal-case text-slate-400">(bắt buộc)</span>
                   </label>
                   <input
                     ref={cvInputRef}
@@ -839,32 +859,32 @@ export function Booking() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") cvInputRef.current?.click();
                     }}
-                    className={`cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-all ${
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-5 text-center transition-all ${
                       form.cv && selectedCvFile
-                        ? "border-lime-400 bg-lime-50"
-                        : "border-slate-300 hover:border-violet-300 hover:bg-violet-50/40"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                        : "border-white/15 bg-white/[0.02] hover:border-violet-500/40 hover:bg-violet-500/5 text-slate-300"
                     }`}
                   >
                     {cvUploading ? (
-                      <p className="text-sm font-medium text-violet-700">Đang tải CV lên server…</p>
+                      <p className="text-sm font-medium text-violet-300">Đang tải CV lên server…</p>
                     ) : form.cv && selectedCvFile ? (
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center justify-center gap-2 text-sm font-bold text-[#2f4200]">
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="flex items-center justify-center gap-2 text-sm font-bold text-emerald-300">
                           <Check className="h-4 w-4 shrink-0" strokeWidth={2.5} />
                           <span className="truncate max-w-[280px]" title={selectedCvFile}>
                             {selectedCvFile}
                           </span>
                         </div>
                         {selectedCvUrl ? (
-                          <p className="text-xs text-slate-500">Mentor sẽ mở được file sau khi đặt lịch</p>
+                          <p className="text-xs text-slate-400">Mentor sẽ mở được file sau khi đặt lịch</p>
                         ) : null}
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-3">
                         <FileText className="h-6 w-6 text-slate-400" />
                         <div className="text-left">
-                          <p className="text-sm font-semibold text-slate-800">Nhấn để tải lên CV</p>
-                          <p className="text-xs text-slate-500">PDF, DOC (tối đa 5MB)</p>
+                          <p className="text-sm font-semibold text-white">Nhấn để tải lên CV</p>
+                          <p className="text-xs text-slate-400">PDF, DOC (tối đa 5MB)</p>
                         </div>
                       </div>
                     )}
@@ -872,8 +892,8 @@ export function Booking() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wide text-slate-500">
-                    Tải lên JD <span className="font-normal normal-case text-slate-600">(khuyến khích)</span>
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Tải lên JD <span className="font-normal normal-case text-slate-400">(khuyến khích)</span>
                   </label>
                   <input
                     ref={jdInputRef}
@@ -889,16 +909,16 @@ export function Booking() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") jdInputRef.current?.click();
                     }}
-                    className={`cursor-pointer rounded-xl border-2 border-dashed p-4 text-center transition-all ${
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-5 text-center transition-all ${
                       form.jd && selectedJdFile
-                        ? "border-lime-400 bg-lime-50"
-                        : "border-slate-300 hover:border-violet-300 hover:bg-violet-50/40"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                        : "border-white/15 bg-white/[0.02] hover:border-violet-500/40 hover:bg-violet-500/5 text-slate-300"
                     }`}
                   >
                     {jdUploading ? (
-                      <p className="text-sm font-medium text-violet-700">Đang tải JD lên server…</p>
+                      <p className="text-sm font-medium text-violet-300">Đang tải JD lên server…</p>
                     ) : form.jd && selectedJdFile ? (
-                      <div className="flex items-center justify-center gap-2 text-sm font-bold text-[#2f4200]">
+                      <div className="flex items-center justify-center gap-2 text-sm font-bold text-emerald-300">
                         <Check className="h-4 w-4 shrink-0" strokeWidth={2.5} />
                         <span className="truncate max-w-[280px]" title={selectedJdFile}>
                           {selectedJdFile}
@@ -908,8 +928,8 @@ export function Booking() {
                       <div className="flex items-center justify-center gap-3">
                         <UploadSimple className="h-6 w-6 text-slate-400" />
                         <div className="text-left">
-                          <p className="text-sm font-semibold text-slate-800">Nhấn để tải lên JD</p>
-                          <p className="text-xs text-slate-500">Giúp mentor chuẩn bị câu hỏi phù hợp hơn</p>
+                          <p className="text-sm font-semibold text-white">Nhấn để tải lên JD</p>
+                          <p className="text-xs text-slate-400">Giúp mentor chuẩn bị câu hỏi phù hợp hơn</p>
                         </div>
                       </div>
                     )}
@@ -917,7 +937,7 @@ export function Booking() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-[10px] font-black uppercase tracking-wide text-slate-500">Ghi chú (nếu có)</label>
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Ghi chú (nếu có)</label>
                   <textarea
                     className={`${fieldClass} resize-none`}
                     rows={2}
@@ -929,53 +949,53 @@ export function Booking() {
               </div>
 
               <div className="space-y-4 lg:col-span-5 xl:col-span-4">
-                <div className="glass-card p-5">
-                  <h2 className="mb-4 text-[10px] font-black uppercase tracking-wide text-slate-500">Tóm tắt đặt lịch</h2>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between gap-2 border-b border-slate-100 pb-3">
-                      <span className="text-slate-500">Mentor</span>
-                      <span className="max-w-[60%] text-right font-semibold text-slate-900">{mentor.name}</span>
+                <div className="rounded-3xl border border-violet-500/30 bg-gradient-to-b from-[#1d1245]/90 via-[#130c2e]/90 to-[#0b061c]/95 backdrop-blur-2xl p-6 shadow-2xl space-y-4">
+                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-violet-300/80">Tóm tắt đặt lịch</h2>
+                  <div className="space-y-3.5 text-sm">
+                    <div className="flex justify-between gap-2 border-b border-white/10 pb-3">
+                      <span className="text-slate-400">Mentor</span>
+                      <span className="max-w-[60%] text-right font-semibold text-white">{mentor.name}</span>
                     </div>
                     <div className="flex justify-between gap-2">
-                      <span className="flex items-center gap-2 text-slate-500">
-                        <VideoCamera className="h-3.5 w-3.5 text-slate-400" />
+                      <span className="flex items-center gap-2 text-slate-400">
+                        <VideoCamera className="h-3.5 w-3.5 text-violet-400" />
                         Loại buổi
                       </span>
-                      <span className="max-w-[55%] text-right font-semibold text-slate-900">
+                      <span className="max-w-[55%] text-right font-semibold text-white">
                         {sessionTypeLabel(sessionType)}
                       </span>
                     </div>
-                    <div className="space-y-1.5 border-t border-slate-100 pt-3">
-                      <span className="flex items-center gap-2 text-slate-500">
-                        <CalendarBlank className="h-3.5 w-3.5 text-slate-400" />
+                    <div className="space-y-2 border-t border-white/10 pt-3">
+                      <span className="flex items-center gap-2 text-slate-400">
+                        <CalendarBlank className="h-3.5 w-3.5 text-violet-400" />
                         {selectedSlots.length} buổi đã chọn
                       </span>
                       {selectedSlots.map((s, i) => (
-                        <div key={`${s.dateKey}_${s.time}`} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5">
+                        <div key={`${s.dateKey}_${s.time}`} className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#8037f4] text-[0.6rem] font-black text-white">
+                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-violet-600 text-[0.6rem] font-black text-white">
                               {i + 1}
                             </span>
-                            <span className="truncate text-xs font-medium text-slate-700">{s.dayFull}</span>
+                            <span className="truncate text-xs font-medium text-slate-300">{s.dayFull}</span>
                           </div>
-                          <span className="shrink-0 text-xs font-bold text-slate-900">{s.time}</span>
+                          <span className="shrink-0 text-xs font-bold text-white">{s.time}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="space-y-1 border-t border-slate-200 pt-3">
-                      <div className="flex justify-between text-xs text-slate-500">
+                    <div className="space-y-1.5 border-t border-white/10 pt-3">
+                      <div className="flex justify-between text-xs text-slate-400">
                         <span>{formatVnd(sessionPrice)} × {selectedSlots.length} buổi</span>
                         <span>{formatVnd(totalPrice)}</span>
                       </div>
                       {perkDiscountAmount > 0 && (
                         <div className="flex justify-between text-xs">
-                          <span className="text-emerald-600">Ưu đãi {perkPlans.elitePro ? "Elite" : "Pro"} (-{Math.round(perkDiscountRate * 100)}%)</span>
-                          <span className="font-medium text-emerald-600">−{formatVnd(perkDiscountAmount)}</span>
+                          <span className="text-emerald-400">Ưu đãi {perkPlans.elitePro ? "Elite" : "Pro"} (-{Math.round(perkDiscountRate * 100)}%)</span>
+                          <span className="font-semibold text-emerald-400">−{formatVnd(perkDiscountAmount)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between">
-                        <span className="font-bold text-slate-900">Tổng tiền</span>
-                        <span className="text-lg font-black text-[#3d5200]">
+                      <div className="flex justify-between items-center pt-1">
+                        <span className="font-bold text-white">Tổng tiền</span>
+                        <span className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
                           {formatVnd(totalPrice - perkDiscountAmount)}
                         </span>
                       </div>
@@ -983,47 +1003,44 @@ export function Booking() {
                   </div>
                 </div>
 
-                <div className="glass-card p-4">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-5 shadow-xl">
                   <BookingPolicySummary variant="compact" />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl border border-violet-200 bg-violet-50/90 px-4 py-3">
-              <Bell className="h-4 w-4 flex-shrink-0 text-[#8037f4]" />
-              <p className="text-xs font-medium leading-relaxed text-violet-900/90">
-                Email nhắc lịch sẽ được gửi trước buổi phỏng vấn 01 giờ
+            <div className="flex items-center gap-3 rounded-2xl border border-violet-500/30 bg-violet-950/30 px-5 py-3.5 backdrop-blur-md">
+              <Bell className="h-4 w-4 flex-shrink-0 text-violet-400" />
+              <p className="text-xs font-medium leading-relaxed text-slate-300">
+                Email nhắc lịch sẽ được gửi trước buổi phỏng vấn 01 giờ kèm đường dẫn phòng họp trực tuyến.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
-              <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                <ShieldCheck className="h-4 w-4 flex-shrink-0 text-[#8037f4]" />
-                Thanh toán bảo mật và mã hóa
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <ShieldCheck className="h-4 w-4 flex-shrink-0 text-violet-400" />
+                Thanh toán bảo mật và mã hóa đa tầng
               </div>
               <button
                 type="button"
                 disabled={!form.position || !form.cv || !selectedCvFile || !selectedCvUrl || cvUploading || jdUploading}
                 onClick={handleProceed}
-                className={`flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-sm font-black uppercase tracking-wide transition-all active:scale-[0.98] sm:w-auto ${
+                className={`group relative overflow-hidden flex w-full items-center justify-center gap-2 rounded-2xl px-8 py-4 text-sm font-black uppercase tracking-wider transition-all active:scale-[0.98] sm:w-auto ${
                   form.position && form.cv && selectedCvFile && selectedCvUrl && !cvUploading && !jdUploading
-                    ? "shadow-[0_8px_28px_rgba(147,247,43,0.35)] hover:brightness-95"
-                    : "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400"
+                    ? "bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-white shadow-[0_8px_28px_rgba(128,55,244,0.4)] hover:shadow-[0_12px_36px_rgba(128,55,244,0.55)] hover:from-violet-500 hover:to-purple-500"
+                    : "cursor-not-allowed border border-white/5 bg-white/[0.02] text-slate-500"
                 }`}
-                style={
-                  form.position && form.cv && selectedCvFile && selectedCvUrl && !cvUploading && !jdUploading
-                    ? BRAND_CTA_LIME_STYLE
-                    : undefined
-                }
               >
-                Tiếp tục thanh toán · {selectedSlots.length} buổi · {formatVnd(totalPrice - perkDiscountAmount)}
-                <CaretRight className="h-4 w-4" />
+                {form.position && form.cv && selectedCvFile && selectedCvUrl && !cvUploading && !jdUploading && (
+                  <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+                )}
+                <span>Tiếp tục thanh toán · {selectedSlots.length} buổi · {formatVnd(totalPrice - perkDiscountAmount)}</span>
+                <CaretRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
           </div>
         )}
-        </div>
       </div>
-    </MentorPageShell>
+    </div>
   );
 }

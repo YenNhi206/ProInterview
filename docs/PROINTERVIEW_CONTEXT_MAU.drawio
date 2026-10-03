@@ -1,0 +1,497 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="ProInterview" version="24.7.17" type="device">
+  <diagram id="academic_context" name="Context Diagram - Mau hoc thuat">
+    <mxGraphModel dx="2000" dy="1300" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3200" pageHeight="2200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="guest_1" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.18182;exitY=1.00000;entryX=0.20520;entryY=0.09615;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="guest" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="300.00" y="550.00" />
+              <mxPoint x="1356.70" y="550.00" />
+              <mxPoint x="1356.70" y="890.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="guest_2" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.30682;exitY=1.00000;entryX=0.14868;entryY=0.14423;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="guest" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="355.00" y="592.00" />
+              <mxPoint x="1327.31" y="592.00" />
+              <mxPoint x="1327.31" y="915.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="guest_3" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.43182;exitY=1.00000;entryX=0.10589;entryY=0.19231;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="guest" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410.00" y="634.00" />
+              <mxPoint x="1305.06" y="634.00" />
+              <mxPoint x="1305.06" y="940.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="guest_4" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.07268;exitY=0.24038;entryX=0.55682;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="guest">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1287.80" y="965.00" />
+              <mxPoint x="1287.80" y="676.00" />
+              <mxPoint x="465.00" y="676.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="guest_5" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.04695;exitY=0.28846;entryX=0.68182;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="guest">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1274.42" y="990.00" />
+              <mxPoint x="1274.42" y="718.00" />
+              <mxPoint x="520.00" y="718.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="guest_6" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.02747;exitY=0.33654;entryX=0.80682;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="guest">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1264.29" y="1015.00" />
+              <mxPoint x="1264.29" y="760.00" />
+              <mxPoint x="575.00" y="760.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_1" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.09000;exitY=0.00000;entryX=0.07692;entryY=0.76647;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="265.00" y="1390.00" />
+              <mxPoint x="1380.00" y="1390.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_2" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.10769;exitY=0.80999;entryX=0.16400;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="candidate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1396.00" y="1417.00" />
+              <mxPoint x="302.00" y="1417.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_3" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.23800;exitY=0.00000;entryX=0.13846;entryY=0.84538;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="339.00" y="1444.00" />
+              <mxPoint x="1412.00" y="1444.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_4" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.16923;exitY=0.87496;entryX=0.31200;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="candidate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1428.00" y="1471.00" />
+              <mxPoint x="376.00" y="1471.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_5" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.38600;exitY=0.00000;entryX=0.20000;entryY=0.90000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="413.00" y="1498.00" />
+              <mxPoint x="1444.00" y="1498.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_6" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.23077;exitY=0.92133;entryX=0.46000;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="candidate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1460.00" y="1525.00" />
+              <mxPoint x="450.00" y="1525.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_7" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.53400;exitY=0.00000;entryX=0.26154;entryY=0.93947;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="487.00" y="1552.00" />
+              <mxPoint x="1476.00" y="1552.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_8" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.29231;exitY=0.95482;entryX=0.60800;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="candidate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1492.00" y="1579.00" />
+              <mxPoint x="524.00" y="1579.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_9" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.68200;exitY=0.00000;entryX=0.32308;entryY=0.96765;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="561.00" y="1606.00" />
+              <mxPoint x="1508.00" y="1606.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_10" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.35385;exitY=0.97816;entryX=0.75600;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="candidate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1524.00" y="1633.00" />
+              <mxPoint x="598.00" y="1633.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_11" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.83000;exitY=0.00000;entryX=0.38462;entryY=0.98650;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="635.00" y="1660.00" />
+              <mxPoint x="1540.00" y="1660.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="candidate_12" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.41538;exitY=0.99279;entryX=0.90400;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="candidate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1556.00" y="1687.00" />
+              <mxPoint x="672.00" y="1687.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin_1" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.15909;exitY=1.00000;entryX=0.79480;entryY=0.09615;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="admin" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2610.00" y="550.00" />
+              <mxPoint x="1843.30" y="550.00" />
+              <mxPoint x="1843.30" y="890.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin_2" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.85132;exitY=0.14423;entryX=0.28409;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="admin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1872.69" y="915.00" />
+              <mxPoint x="1872.69" y="592.00" />
+              <mxPoint x="2665.00" y="592.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin_3" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.40909;exitY=1.00000;entryX=0.89411;entryY=0.19231;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="admin" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2720.00" y="634.00" />
+              <mxPoint x="1894.94" y="634.00" />
+              <mxPoint x="1894.94" y="940.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin_4" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.92732;exitY=0.24038;entryX=0.53409;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="admin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1912.20" y="965.00" />
+              <mxPoint x="1912.20" y="676.00" />
+              <mxPoint x="2775.00" y="676.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin_5" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.65909;exitY=1.00000;entryX=0.95305;entryY=0.28846;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="admin" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2830.00" y="718.00" />
+              <mxPoint x="1925.58" y="718.00" />
+              <mxPoint x="1925.58" y="990.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin_6" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.97253;exitY=0.33654;entryX=0.78409;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="admin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1935.71" y="1015.00" />
+              <mxPoint x="1935.71" y="760.00" />
+              <mxPoint x="2885.00" y="760.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="reviewer_1" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.98650;exitY=0.38462;entryX=0.00000;entryY=0.18421;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="system" target="reviewer">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1852.98" y="990.00" />
+              <mxPoint x="2450.00" y="990.00" />
+              <mxPoint x="2450.00" y="885.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="reviewer_2" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.00000;exitY=0.39474;entryX=0.99852;entryY=0.46154;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="reviewer" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2450.00" y="925.00" />
+              <mxPoint x="2450.00" y="1038.00" />
+              <mxPoint x="1859.23" y="1038.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="reviewer_3" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.99852;exitY=0.53846;entryX=0.00000;entryY=0.60526;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="system" target="reviewer">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1859.23" y="1086.00" />
+              <mxPoint x="2450.00" y="1086.00" />
+              <mxPoint x="2450.00" y="965.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="reviewer_4" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.00000;exitY=0.81579;entryX=0.98650;entryY=0.61538;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="reviewer" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2450.00" y="1005.00" />
+              <mxPoint x="2450.00" y="1134.00" />
+              <mxPoint x="1852.98" y="1134.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_1" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.10227;exitY=0.00000;entryX=0.58654;entryY=0.99245;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="mentor" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2585.00" y="1400.00" />
+              <mxPoint x="1645.00" y="1400.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_2" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.62692;exitY=0.98362;entryX=0.21136;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="mentor">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1666.00" y="1438.00" />
+              <mxPoint x="2633.00" y="1438.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_3" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.32045;exitY=0.00000;entryX=0.66731;entryY=0.97118;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="mentor" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2681.00" y="1476.00" />
+              <mxPoint x="1687.00" y="1476.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_4" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.70769;exitY=0.95482;entryX=0.42955;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="mentor">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1708.00" y="1514.00" />
+              <mxPoint x="2729.00" y="1514.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_5" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.53864;exitY=0.00000;entryX=0.74808;entryY=0.93412;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="mentor" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2777.00" y="1552.00" />
+              <mxPoint x="1729.00" y="1552.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_6" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.78846;exitY=0.90840;entryX=0.64773;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="mentor">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1750.00" y="1590.00" />
+              <mxPoint x="2825.00" y="1590.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_7" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.75682;exitY=0.00000;entryX=0.82885;entryY=0.87664;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="mentor" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2873.00" y="1628.00" />
+              <mxPoint x="1771.00" y="1628.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mentor_8" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.86923;exitY=0.83715;entryX=0.86591;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="mentor">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1792.00" y="1666.00" />
+              <mxPoint x="2921.00" y="1666.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ai_1" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.32692;exitY=0.03091;entryX=0.30769;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="ai">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1510.00" y="460.00" />
+              <mxPoint x="1010.00" y="460.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ai_2" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.73077;exitY=1.00000;entryX=0.40385;entryY=0.00933;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="ai" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1175.00" y="510.00" />
+              <mxPoint x="1550.00" y="510.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="payment_1" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.59615;exitY=0.00933;entryX=0.27500;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="payment">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1650.00" y="460.00" />
+              <mxPoint x="2010.00" y="460.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="payment_2" value="" style="edgeStyle=segmentEdgeStyle;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;endArrow=classic;endFill=1;exitX=0.67500;exitY=1.00000;entryX=0.67308;entryY=0.03091;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="payment" target="system">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2170.00" y="510.00" />
+              <mxPoint x="1690.00" y="510.00" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="title" value="&lt;b&gt;&lt;i&gt;II.3 Context Diagram — ProInterview&lt;/i&gt;&lt;/b&gt;" style="text;html=1;whiteSpace=wrap;fillColor=none;strokeColor=none;fontFamily=Georgia;fontSize=54;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="350.00" y="30.00" width="1450.00" height="95.00" as="geometry" />
+        </mxCell>
+        <mxCell id="guest" value="&lt;b&gt;KHÁCH&lt;/b&gt;&lt;br/&gt;Chưa đăng nhập" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.7;fontColor=#111111;fontFamily=Arial;fontSize=22;align=center;verticalAlign=middle;spacing=14;" vertex="1" parent="1">
+          <mxGeometry x="220.00" y="170.00" width="440.00" height="190.00" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate" value="&lt;b&gt;ỨNG VIÊN&lt;/b&gt;&lt;br/&gt;Tài khoản đã đăng nhập" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.7;fontColor=#111111;fontFamily=Arial;fontSize=22;align=center;verticalAlign=middle;spacing=14;" vertex="1" parent="1">
+          <mxGeometry x="220.00" y="1750.00" width="500.00" height="230.00" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" value="&lt;b&gt;ADMIN&lt;/b&gt;&lt;br/&gt;Quản trị nền tảng" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.7;fontColor=#111111;fontFamily=Arial;fontSize=22;align=center;verticalAlign=middle;spacing=14;" vertex="1" parent="1">
+          <mxGeometry x="2540.00" y="170.00" width="440.00" height="190.00" as="geometry" />
+        </mxCell>
+        <mxCell id="reviewer" value="&lt;b&gt;KIỂM DUYỆT VIÊN&lt;/b&gt;&lt;br/&gt;Tính năng dự kiến" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.7;fontColor=#111111;fontFamily=Arial;fontSize=22;align=center;verticalAlign=middle;spacing=14;dashed=1;dashPattern=8 5;" vertex="1" parent="1">
+          <mxGeometry x="2540.00" y="850.00" width="440.00" height="190.00" as="geometry" />
+        </mxCell>
+        <mxCell id="mentor" value="&lt;b&gt;MENTOR&lt;/b&gt;&lt;br/&gt;Tư vấn và tạo khóa học" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.7;fontColor=#111111;fontFamily=Arial;fontSize=22;align=center;verticalAlign=middle;spacing=14;" vertex="1" parent="1">
+          <mxGeometry x="2540.00" y="1760.00" width="440.00" height="230.00" as="geometry" />
+        </mxCell>
+        <mxCell id="ai" value="&lt;b&gt;DỊCH VỤ AI&lt;/b&gt;&lt;br/&gt;LLM · D-ID · Vision · STT/TTS" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.7;fontColor=#111111;fontFamily=Arial;fontSize=22;align=center;verticalAlign=middle;spacing=14;" vertex="1" parent="1">
+          <mxGeometry x="890.00" y="130.00" width="390.00" height="170.00" as="geometry" />
+        </mxCell>
+        <mxCell id="payment" value="&lt;b&gt;THANH TOÁN&lt;/b&gt;&lt;br/&gt;VNPay · SePay" style="shape=rectangle;whiteSpace=wrap;html=1;rounded=0;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.7;fontColor=#111111;fontFamily=Arial;fontSize=22;align=center;verticalAlign=middle;spacing=14;" vertex="1" parent="1">
+          <mxGeometry x="1900.00" y="130.00" width="400.00" height="170.00" as="geometry" />
+        </mxCell>
+        <mxCell id="system" value="&lt;b&gt;PROINTERVIEW&lt;/b&gt;&lt;br/&gt;Hệ thống luyện phỏng vấn AI&lt;br/&gt;và kết nối mentor" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=2.2;fontColor=#111111;fontFamily=Arial;fontSize=25;align=center;verticalAlign=middle;spacing=14;" vertex="1" parent="1">
+          <mxGeometry x="1340.00" y="840.00" width="520.00" height="520.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_guest_1" value="Đăng ký / đăng nhập / Google" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="695.00" y="535.00" width="490.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_guest_2" value="Tìm mentor và khóa học" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="695.00" y="577.00" width="490.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_guest_3" value="Yêu cầu phỏng vấn thử" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="695.00" y="619.00" width="490.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_guest_4" value="Tài khoản / phiên đăng nhập" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="695.00" y="661.00" width="490.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_guest_5" value="Danh sách mentor / khóa học" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="695.00" y="703.00" width="490.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_guest_6" value="Câu hỏi phỏng vấn thử" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="695.00" y="745.00" width="490.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_1" value="CV, JD hoặc lĩnh vực cần phân tích" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1375.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_2" value="Điểm khớp và gợi ý cải thiện CV" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1402.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_3" value="Vị trí và câu trả lời phỏng vấn" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1429.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_4" value="Câu hỏi, điểm và phản hồi AI" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1456.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_5" value="Tìm mentor; đặt / đổi / hủy lịch" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1483.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_6" value="Booking và liên kết phòng tư vấn" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1510.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_7" value="Giỏ hàng; ghi danh khóa học" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1537.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_8" value="Bài học, tiến độ và chứng chỉ" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1564.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_9" value="Chọn gói; yêu cầu thanh toán" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1591.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_10" value="Trạng thái giao dịch và hóa đơn" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1618.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_11" value="Đánh giá mentor / gửi báo cáo" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1645.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_candidate_12" value="Dashboard cá nhân và thông báo" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="735.00" y="1672.00" width="570.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_admin_1" value="Duyệt mentor / khóa học" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1970.00" y="535.00" width="540.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_admin_2" value="Hồ sơ và khóa học chờ duyệt" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1970.00" y="577.00" width="540.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_admin_3" value="Quản lý user, booking, thanh toán" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1970.00" y="619.00" width="540.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_admin_4" value="Báo cáo và thống kê hệ thống" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1970.00" y="661.00" width="540.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_admin_5" value="Xử lý hoàn tiền / payout" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1970.00" y="703.00" width="540.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_admin_6" value="Nhật ký kiểm toán / cảnh báo" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1970.00" y="745.00" width="540.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_reviewer_1" value="Review Queue: câu hỏi / CV-JD" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1940.00" y="975.00" width="520.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_reviewer_2" value="Duyệt / từ chối nội dung" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1940.00" y="1023.00" width="520.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_reviewer_3" value="Quality Dashboard" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1940.00" y="1071.00" width="520.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_reviewer_4" value="Nhận xét và yêu cầu chỉnh sửa" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1940.00" y="1119.00" width="520.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_1" value="Hồ sơ mentor và lịch rảnh" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1385.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_2" value="Danh sách booking / học viên" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1423.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_3" value="Xác nhận / hoàn tất buổi tư vấn" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1461.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_4" value="Thông tin cuộc họp và đánh giá" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1499.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_5" value="Tạo / cập nhật khóa học" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1537.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_6" value="Q&amp;amp;A, học viên và thống kê khóa" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1575.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_7" value="Yêu cầu rút tiền / tài khoản nhận" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1613.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_mentor_8" value="Doanh thu và trạng thái payout" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1930.00" y="1651.00" width="580.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_ai_1" value="Prompt CV-JD / phỏng vấn / avatar" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1095.00" y="445.00" width="410.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_ai_2" value="Câu hỏi, điểm, video, transcript" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1095.00" y="495.00" width="410.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_payment_1" value="Yêu cầu thanh toán VNPay" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1660.00" y="445.00" width="400.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="label_payment_2" value="IPN VNPay / webhook SePay" style="text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontColor=#111111;fontFamily=Arial;fontSize=18;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1660.00" y="495.00" width="400.00" height="30.00" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Nét đứt: Kiểm duyệt viên là tính năng dự kiến. Các luồng còn lại dựa trên route/service hiện có." style="text;html=1;whiteSpace=wrap;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="450.00" y="2070.00" width="2300.00" height="55.00" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,258 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="24.7.17" type="device">
+  <diagram id="conceptual" name="Conceptual Diagram">
+    <mxGraphModel dx="1800" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2050" pageHeight="1650" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="relationship_1" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToOne;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.41667;exitY=0.00000;entryX=0.50000;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="MENTOR">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="755" y="385" />
+              <mxPoint x="840" y="385" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_2" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.83333;exitY=0.00000;entryX=0.50000;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="BOOKING">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="445" />
+              <mxPoint x="1200" y="445" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_3" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.50000;entryX=0.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="MENTOR" target="BOOKING">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="relationship_4" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.86111;exitY=1.00000;entryX=0.00000;entryY=0.53030;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="MENTOR" target="COURSE">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="905" y="935" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_5" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.50000;exitY=0.00000;entryX=0.50000;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="MENTOR" target="PAYOUT_REQUEST">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="840" y="185" />
+              <mxPoint x="1770" y="185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_6" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToOne;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.00000;exitY=0.15152;entryX=1.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="SUBSCRIPTION">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="520" />
+              <mxPoint x="520" y="253" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_7" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.00000;exitY=0.53030;entryX=1.00000;entryY=0.53030;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="CV_ANALYSIS">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="relationship_8" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.00000;exitY=0.84848;entryX=1.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="INTERVIEW_SESSION">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="566" />
+              <mxPoint x="560" y="813" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_9" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.11111;exitY=1.00000;entryX=1.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="NOTIFICATION">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="700" y="665" />
+              <mxPoint x="620" y="665" />
+              <mxPoint x="620" y="1203" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_10" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.02778;exitY=1.00000;entryX=0.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="REPORT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="685" y="705" />
+              <mxPoint x="100" y="705" />
+              <mxPoint x="100" y="1453" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_11" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.61111;exitY=1.00000;entryX=0.66667;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="REVIEW">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="relationship_12" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.45455;entryX=0.00000;entryY=0.45455;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="PAYMENT">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="relationship_13" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.83333;entryX=0.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="ENROLLMENT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1260" y="565" />
+              <mxPoint x="1260" y="863" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_14" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToOne;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.15152;entryX=0.50000;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="CART">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1040" y="520" />
+              <mxPoint x="1040" y="430" />
+              <mxPoint x="1785" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_15" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.94444;exitY=1.00000;entryX=0.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="CART_ORDER">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="875" y="576" />
+              <mxPoint x="875" y="750" />
+              <mxPoint x="1640" y="750" />
+              <mxPoint x="1640" y="933" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_16" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.50000;exitY=1.00000;entryX=0.50000;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="BOOKING" target="PAYMENT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1200" y="365" />
+              <mxPoint x="1480" y="365" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_17" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.50000;exitY=0.00000;entryX=1.00000;entryY=0.45455;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="SUBSCRIPTION" target="PAYMENT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235" y="155" />
+              <mxPoint x="1610" y="155" />
+              <mxPoint x="1610" y="540" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_18" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.52632;exitY=0.00000;entryX=0.38889;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="ENROLLMENT" target="PAYMENT">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="relationship_19" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.50000;entryX=0.00000;entryY=0.68182;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="COURSE" target="ENROLLMENT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1290" y="933" />
+              <mxPoint x="1290" y="875" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_20" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.00000;exitY=0.50000;entryX=1.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="COURSE" target="REVIEW">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="relationship_21" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.00000;exitY=0.53030;entryX=0.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="MENTOR" target="REVIEW">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="640" y="255" />
+              <mxPoint x="640" y="933" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_22" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.50000;exitY=1.00000;entryX=0.66667;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="COURSE" target="COURSE_QA">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="relationship_23" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.60606;entryX=0.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="USER" target="COURSE_QA">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="965" y="550" />
+              <mxPoint x="965" y="1223" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_24" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.75758;entryX=0.50000;entryY=1.00000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="MENTOR" target="MENTOR_PEER_REVIEW">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="950" y="270" />
+              <mxPoint x="950" y="1370" />
+              <mxPoint x="1405" y="1370" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_25" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERmandOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=1.00000;exitY=0.75758;entryX=0.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="COURSE" target="MENTOR_PEER_REVIEW">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1250" y="950" />
+              <mxPoint x="1250" y="1243" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_26" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToMany;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.50000;exitY=1.00000;entryX=0.61111;entryY=0.00000;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="CART" target="COURSE">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1785" y="680" />
+              <mxPoint x="1140" y="680" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relationship_27" value="" style="edgeStyle=none;rounded=0;orthogonal=1;html=1;strokeColor=#111111;strokeWidth=1.5;startArrow=ERzeroToOne;endArrow=ERzeroToMany;startFill=1;endFill=1;startSize=13;endSize=13;exitX=0.00000;exitY=0.75758;entryX=1.00000;entryY=0.50000;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="CART_ORDER" target="ENROLLMENT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1620" y="950" />
+              <mxPoint x="1620" y="863" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="heading" value="II.6 Entity Relationship Diagram" style="text;html=1;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;fontSize=43;fontStyle=3;fontColor=#111111;" vertex="1" parent="1">
+          <mxGeometry x="125" y="25" width="1500" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="subheading" value="Conceptual Diagram" style="text;html=1;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontFamily=Times New Roman;fontSize=31;fontStyle=1;fontColor=#111111;" vertex="1" parent="1">
+          <mxGeometry x="125" y="95" width="1200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SUBSCRIPTION" value="SUBSCRIPTION" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="140" y="220" width="190" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="MENTOR" value="MENTOR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="750" y="220" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="BOOKING" value="BOOKING" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="220" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="PAYOUT_REQUEST" value="PAYOUT_REQUEST" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1670" y="220" width="200" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="CV_ANALYSIS" value="CV_ANALYSIS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="140" y="510" width="210" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="USER" value="USER" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="510" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="PAYMENT" value="PAYMENT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="510" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="CART" value="CART" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="510" width="170" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="INTERVIEW_SESSION" value="INTERVIEW_SESSION" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="140" y="780" width="220" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="REVIEW" value="REVIEW" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="670" y="900" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="COURSE" value="COURSE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="900" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="ENROLLMENT" value="ENROLLMENT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="830" width="190" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="CART_ORDER" value="CART_ORDER" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1710" y="900" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="NOTIFICATION" value="NOTIFICATION" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1170" width="190" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="COURSE_QA" value="COURSE_QA" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="1190" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="MENTOR_PEER_REVIEW" value="MENTOR_PEER_REVIEW" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="1210" width="230" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="REPORT" value="REPORT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;strokeWidth=1.5;fontFamily=Arial;fontSize=16;fontStyle=1;fontColor=#111111;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="140" y="1420" width="180" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Nét đứt: liên kết theo referenceModel / targetType hoặc mảng courseIds.  Module, Lesson, Certificate, CV và JD là dữ liệu nằm trong model khác." style="text;html=1;whiteSpace=wrap;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#333333;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="130" y="1540" width="1790" height="55" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

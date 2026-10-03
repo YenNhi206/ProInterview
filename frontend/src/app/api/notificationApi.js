@@ -76,3 +76,20 @@ export async function markAllNotificationsRead() {
     return { success: false, error: "Lỗi kết nối khi đánh dấu đã đọc tất cả." };
   }
 }
+
+export async function deleteNotification(id) {
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
+  try {
+    const res = await authFetch(`/api/notifications/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { Accept: "application/json" },
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || body.success === false) {
+      return { success: false, error: body.error || "Không thể xóa thông báo. Hãy thử lại." };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: "Lỗi kết nối khi xóa thông báo. Hãy thử lại." };
+  }
+}

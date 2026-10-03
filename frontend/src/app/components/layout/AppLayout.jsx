@@ -23,6 +23,16 @@ export function AppLayout() {
   const isHome = location.pathname === "/" || location.pathname === "";
   const pathNorm = location.pathname.replace(/^\/+/, "");
   const isAbout = pathNorm === "about";
+  const usesDarkPalette =
+    ["cart", "checkout", "payment-history", "settings", "profile", "my-bookings", "my-courses"].includes(pathNorm) ||
+    pathNorm.startsWith("courses/") ||
+    pathNorm.startsWith("mentors/") ||
+    pathNorm.startsWith("booking/") ||
+    pathNorm.includes("cv-analysis/history") ||
+    pathNorm.includes("cv-analysis/jd/result") ||
+    pathNorm.includes("cv-analysis/field/result") ||
+    pathNorm.includes("cv-analysis/jd/history") ||
+    pathNorm.includes("cv-analysis/field/history");
   const isCvAnalysisHub = pathNorm === "cv-analysis";
   const allowHorizontalScroll = isCvAnalysisHub;
   const isLegalDoc = pathNorm === "terms" || pathNorm === "privacy";
@@ -37,9 +47,11 @@ export function AppLayout() {
   const [promoModalPulse, setPromoModalPulse] = useState(0);
   const ambientModifier = isHome
     ? " app-shell-ambient--home"
-    : isLegalDoc
-      ? " app-shell-ambient--legal"
-      : "";
+    : usesDarkPalette
+      ? " app-shell-ambient--commerce"
+      : isLegalDoc
+        ? " app-shell-ambient--legal"
+        : "";
 
   useEffect(() => {
     document.title = resolveDocumentTitle(location.pathname);
@@ -88,19 +100,38 @@ export function AppLayout() {
           ? "overflow-x-clip bg-transparent text-white"
           : allowHorizontalScroll
             ? "bg-transparent text-slate-900"
-            : "overflow-x-hidden bg-[#f3f0f9] text-slate-900"
+            : usesDarkPalette
+              ? "overflow-x-hidden bg-transparent text-white"
+              : "overflow-x-hidden bg-[#f3f0f9] text-slate-900"
     }`;
 
   const shellStyle = {
     fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif",
   };
 
+  const pageAmbient = (
+    <div
+      className={`app-shell-ambient${ambientModifier}`}
+      aria-hidden
+    >
+      {usesDarkPalette && (
+        <>
+          <span className="commerce-glow commerce-glow--top-left" />
+          <span className="commerce-glow commerce-glow--top-right" />
+          <span className="commerce-glow commerce-glow--bottom-left" />
+          <span className="commerce-glow commerce-glow--bottom-right" />
+        </>
+      )}
+    </div>
+  );
+
   if (isMentor) {
     return (
       <div
-        className="pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 bg-[#f8f9fc] text-slate-900 antialiased selection:bg-violet-100 selection:text-violet-900"
+        className={`pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 text-slate-900 antialiased selection:bg-violet-100 selection:text-violet-900 ${usesDarkPalette ? "commerce-theme bg-transparent" : "bg-[#f8f9fc]"}`}
         style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
+        {usesDarkPalette && pageAmbient}
         <Navbar variant="mentor" />
         <main className="relative z-[1] min-h-0 flex-1 pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem]">
           <Outlet />
@@ -110,11 +141,8 @@ export function AppLayout() {
   }
 
   return (
-    <div className={shellClass} style={shellStyle}>
-      <div
-        className={`app-shell-ambient${ambientModifier}`}
-        aria-hidden
-      />
+    <div className={`${shellClass}${usesDarkPalette ? " commerce-theme" : ""}`} style={shellStyle}>
+      {pageAmbient}
       <div
         className="relative z-[1] flex min-h-svh w-full max-w-full min-w-0 flex-col"
       >
@@ -131,7 +159,7 @@ export function AppLayout() {
           {showPromoBanner && <div style={{ height: PROMO_BANNER_HEIGHT }} aria-hidden />}
           <Outlet />
         </main>
-        {showSiteFooter ? <Footer variant="dark" /> : null}
+        {showSiteFooter ? <Footer variant={usesDarkPalette || isHome ? "dark" : "light"} /> : null}
       </div>
       <DiscountPromoModal
         open={promoModalOpen}

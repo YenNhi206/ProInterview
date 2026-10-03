@@ -1,0 +1,336 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="ProInterview documentation" version="24.7.17" type="device">
+  <diagram id="context" name="01 - Context Diagram">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2700" pageHeight="1900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="&lt;b&gt;PROINTERVIEW · CONTEXT DIAGRAM (DFD MỨC 0)&lt;/b&gt;" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="560" y="30" width="1600" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="col_people" value="NGƯỜI DÙNG" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="130" y="130" width="470" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="col_services" value="DỊCH VỤ BÊN NGOÀI" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="130" width="540" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate" value="&lt;b&gt;ỨNG VIÊN&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;8 nhóm trao đổi dữ liệu với hệ thống.&lt;br/&gt;Mỗi đường nối là một nhóm nghiệp vụ riêng.&lt;br/&gt;&lt;br/&gt;Xem trang 02 để đọc luồng chi tiết." style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;fontColor=#172554;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="260" width="540" height="760" as="geometry" />
+        </mxCell>
+        <mxCell id="mentor" value="&lt;b&gt;MENTOR&lt;/b&gt;&lt;br/&gt;Lịch rảnh · tư vấn · tạo khóa học" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;fontColor=#172554;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1110" width="540" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" value="&lt;b&gt;ADMIN&lt;/b&gt;&lt;br/&gt;Quản lý · duyệt mentor · thanh toán" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;fontColor=#172554;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1330" width="540" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="reviewer" value="&lt;b&gt;KIỂM DUYỆT VIÊN&lt;/b&gt;&lt;br/&gt;Câu hỏi · CV-JD · Review Queue · Quality" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4E9FF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#3B0764;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1550" width="540" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="system" value="&lt;b&gt;0. PROINTERVIEW&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Tài khoản &amp;amp; hồ sơ&lt;br/&gt;CV-JD &amp;amp; phỏng vấn AI&lt;br/&gt;Mentor &amp;amp; booking&lt;br/&gt;Khóa học &amp;amp; thanh toán&lt;br/&gt;Đánh giá &amp;amp; thông báo" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#1F1B4B;strokeColor=#6D4AFF;strokeWidth=3;fontColor=#FFFFFF;fontFamily=Arial;fontSize=27;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="260" width="460" height="760" as="geometry" />
+        </mxCell>
+        <mxCell id="google" value="&lt;b&gt;GOOGLE SIGN-IN&lt;/b&gt;&lt;br/&gt;Đăng nhập &amp;amp; xác thực" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="210" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_google" value="Đăng nhập ↔ xác thực" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.08;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="google">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="llm" value="&lt;b&gt;NHÀ CUNG CẤP LLM&lt;/b&gt;&lt;br/&gt;Câu hỏi · chấm điểm · gợi ý" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="375" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_llm" value="Prompt ↔ kết quả AI" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.185;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vision" value="&lt;b&gt;GOOGLE VISION / HUME&lt;/b&gt;&lt;br/&gt;Phân tích hình ảnh / cảm xúc" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="540" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_vision" value="Ảnh ↔ phân tích" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.29;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="vision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="did" value="&lt;b&gt;D-ID&lt;/b&gt;&lt;br/&gt;Avatar phỏng vấn" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="705" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_did" value="Kịch bản ↔ avatar" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.395;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="did">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cloudinary" value="&lt;b&gt;CLOUDINARY&lt;/b&gt;&lt;br/&gt;Ảnh · CV · âm thanh · video" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="870" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cloudinary" value="Tệp ↔ URL lưu trữ" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="cloudinary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="speech" value="&lt;b&gt;ASSEMBLYAI / ELEVENLABS&lt;/b&gt;&lt;br/&gt;Giọng nói &amp;amp; bản chép lời" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="1035" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_speech" value="Âm thanh ↔ văn bản" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.605;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="speech">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="payment" value="&lt;b&gt;VNPAY / SEPAY&lt;/b&gt;&lt;br/&gt;Thanh toán &amp;amp; webhook" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="1200" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_payment" value="Giao dịch ↔ trạng thái" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.71;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="payment">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="smtp" value="&lt;b&gt;SMTP&lt;/b&gt;&lt;br/&gt;Email xác thực và thông báo" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="1365" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_smtp" value="Gửi email" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;exitX=1;exitY=0.815;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="smtp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="meeting" value="&lt;b&gt;JITSI / JAAS&lt;/b&gt;&lt;br/&gt;Phòng tư vấn trực tuyến" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="1530" width="550" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e_meeting" value="Mở phòng ↔ phiên họp" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.92;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="system" target="meeting">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_1" value="1 · Đăng nhập ↔ hồ sơ / phiên" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.1;entryX=0;entryY=0.1;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_2" value="2 · CV/JD ↔ điểm khớp / gợi ý" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.213;entryX=0;entryY=0.213;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_3" value="3 · Phỏng vấn AI ↔ câu hỏi / phản hồi" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.326;entryX=0;entryY=0.326;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_4" value="4 · Tìm mentor ↔ hồ sơ / lịch trống" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.439;entryX=0;entryY=0.439;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_5" value="5 · Booking / họp ↔ xác nhận / lịch" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.552;entryX=0;entryY=0.552;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_6" value="6 · Khóa học ↔ bài học / tiến độ" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.665;entryX=0;entryY=0.665;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_7" value="7 · Gói / thanh toán ↔ hóa đơn" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.778;entryX=0;entryY=0.778;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_candidate_8" value="8 · Đánh giá / báo cáo ↔ thông báo" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.891;entryX=0;entryY=0.891;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_mentor" value="Lịch / nội dung ↔ booking / thu nhập" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0.22;entryY=1;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="mentor" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_admin" value="Quản lý ↔ báo cáo" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0.5;entryY=1;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="admin" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_reviewer" value="Duyệt/từ chối ↔ hàng chờ" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;dashed=1;dashPattern=8 5;exitX=1;exitY=0.5;entryX=0.78;entryY=1;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="reviewer" target="system">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context_note" value="Nét đứt màu tím: Kiểm duyệt viên là tính năng dự kiến. Frontend, backend, FastAPI CV-JD và MongoDB nằm trong ProInterview." style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="530" y="1790" width="1650" height="55" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="candidate_detail" name="02 - Ung vien chi tiet">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="1900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="candidate_title" value="&lt;b&gt;ỨNG VIÊN · CÁC LUỒNG TƯƠNG TÁC CHI TIẾT&lt;/b&gt;" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="550" y="30" width="1500" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="internal_heading" value="CHỨC NĂNG TRONG PROINTERVIEW" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="820" y="125" width="630" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="provider_heading" value="DỊCH VỤ / DỮ LIỆU LIÊN QUAN" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1870" y="125" width="580" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_actor" value="&lt;b&gt;ỨNG VIÊN&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Chủ động gửi yêu cầu,&lt;br/&gt;nhận kết quả và&lt;br/&gt;theo dõi tiến trình" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;fontColor=#172554;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="210" width="390" height="1380" as="geometry" />
+        </mxCell>
+        <mxCell id="account" value="&lt;b&gt;1. TÀI KHOẢN &amp;amp; HỒ SƠ&lt;/b&gt;&lt;br/&gt;Đăng ký, xác thực, đăng nhập, cập nhật hồ sơ" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="200" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_account" value="Thông tin tài khoản ↔ phiên đăng nhập" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.043;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="account">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="google_provider" value="&lt;b&gt;GOOGLE SIGN-IN&lt;/b&gt;&lt;br/&gt;Xác thực tài khoản" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="205" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="account_to_provider" value="Token ↔ thông tin đăng nhập" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="account" target="google_provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cv" value="&lt;b&gt;2. PHÂN TÍCH CV-JD&lt;/b&gt;&lt;br/&gt;Tải PDF, đối chiếu JD, xem điểm và gợi ý" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="384" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_cv" value="CV/JD ↔ điểm khớp, kỹ năng, gợi ý" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.177;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="cv">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="llm_provider" value="&lt;b&gt;NHÀ CUNG CẤP LLM&lt;/b&gt;&lt;br/&gt;Trích xuất và đánh giá CV-JD" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="389" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="cv_to_provider" value="Prompt ↔ phân tích" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="cv" target="llm_provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="interview" value="&lt;b&gt;3. PHỎNG VẤN AI&lt;/b&gt;&lt;br/&gt;Chọn CV/vị trí, trả lời, nhận điểm và lịch sử" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="568" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_interview" value="Thiết lập/câu trả lời ↔ phản hồi" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.31;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="interview">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="interview_provider" value="&lt;b&gt;D-ID · VISION · STT/TTS&lt;/b&gt;&lt;br/&gt;Avatar, hình ảnh, giọng nói" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="573" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="interview_to_provider" value="Yêu cầu ↔ avatar / phân tích" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="interview" target="interview_provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mentor_search" value="&lt;b&gt;4. TÌM MENTOR &amp;amp; ĐẶT LỊCH&lt;/b&gt;&lt;br/&gt;Xem hồ sơ/lịch trống, đặt, đổi hoặc hủy lịch" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="752" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_mentor_search" value="Tìm/đặt lịch ↔ mentor, lịch trống" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.443;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="mentor_search">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mentor_meeting" value="&lt;b&gt;5. HỌP &amp;amp; ĐÁNH GIÁ MENTOR&lt;/b&gt;&lt;br/&gt;Vào phòng, đánh giá, báo vắng nếu cần" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="936" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_mentor_meeting" value="Tham gia/đánh giá ↔ thông tin buổi họp" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.577;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="mentor_meeting">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jitsi_provider" value="&lt;b&gt;JITSI / JAAS&lt;/b&gt;&lt;br/&gt;Cuộc họp trực tuyến" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="941" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="mentor_meeting_to_provider" value="Phiên họp" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="mentor_meeting" target="jitsi_provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="learning" value="&lt;b&gt;6. KHÓA HỌC&lt;/b&gt;&lt;br/&gt;Tìm khóa, giỏ hàng, ghi danh, học, tiến độ" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="1120" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_learning" value="Chọn/học ↔ bài học, tiến độ, chứng chỉ" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.71;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="learning">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cloudinary_provider" value="&lt;b&gt;CLOUDINARY&lt;/b&gt;&lt;br/&gt;Ảnh và video bài học" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="1125" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="learning_to_provider" value="Tệp ↔ URL nội dung" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="learning" target="cloudinary_provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="billing" value="&lt;b&gt;7. GÓI &amp;amp; THANH TOÁN&lt;/b&gt;&lt;br/&gt;Xem gói, mua, chuyển khoản, xem hóa đơn" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="1304" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_billing" value="Thanh toán ↔ trạng thái, hóa đơn" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.843;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="billing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="payment_provider" value="&lt;b&gt;VNPAY / SEPAY&lt;/b&gt;&lt;br/&gt;Thanh toán và xác nhận" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="1309" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="billing_to_provider" value="Giao dịch ↔ kết quả" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="billing" target="payment_provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dashboard" value="&lt;b&gt;8. THEO DÕI &amp;amp; PHẢN HỒI&lt;/b&gt;&lt;br/&gt;Dashboard, thông báo, đánh giá, gửi báo cáo" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#E8F4FF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0C4A6E;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="1488" width="650" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_to_dashboard" value="Yêu cầu/đánh giá ↔ thông báo, thống kê" style="html=1;rounded=1;strokeWidth=2;strokeColor=#2563EB;fontColor=#2563EB;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;exitX=1;exitY=0.977;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="candidate_actor" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="smtp_provider" value="&lt;b&gt;SMTP&lt;/b&gt;&lt;br/&gt;Email và nhắc lịch" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4F7FC;strokeColor=#64748B;strokeWidth=2;fontColor=#0F172A;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="1493" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="dashboard_to_provider" value="Gửi email" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="dashboard" target="smtp_provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cv_to_interview" value="CV dùng cho phỏng vấn" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;exitX=0.75;exitY=1;entryX=0.75;entryY=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="cv" target="interview">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="booking_to_meeting" value="Booking được xác nhận" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;exitX=0.75;exitY=1;entryX=0.75;entryY=0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="mentor_search" target="mentor_meeting">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate_note" value="Trang này phóng to luồng Ứng viên. FastAPI phân tích CV-JD và MongoDB là thành phần nội bộ của ProInterview, không phải dịch vụ ngoài ở trang 01." style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="410" y="1740" width="1780" height="75" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="reviewer" name="03 - Kiem duyet vien">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="review_title" value="&lt;b&gt;KIỂM DUYỆT VIÊN · DFD MỨC 1 (ĐỀ XUẤT)&lt;/b&gt;" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="450" y="30" width="1500" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="reviewer_actor" value="&lt;b&gt;KIỂM DUYỆT VIÊN&lt;/b&gt;&lt;br/&gt;Xem, đánh giá và ra quyết định" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4E9FF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#3B0764;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="90" y="650" width="350" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_source" value="&lt;b&gt;ĐẦU RA TỪ AI&lt;/b&gt;&lt;br/&gt;Câu hỏi và kết quả CV-JD" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFF7ED;strokeColor=#EA580C;strokeWidth=2;fontColor=#7C2D12;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="160" width="400" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="queue" value="&lt;b&gt;1. REVIEW QUEUE&lt;/b&gt;&lt;br/&gt;Gom mục chờ, sắp ưu tiên, theo dõi trạng thái" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4E9FF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#3B0764;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="620" width="400" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="questions" value="&lt;b&gt;2. DUYỆT CÂU HỎI&lt;/b&gt;&lt;br/&gt;Duyệt · sửa · từ chối" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4E9FF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#3B0764;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="250" width="430" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="matching" value="&lt;b&gt;3. DUYỆT LOGIC CV-JD&lt;/b&gt;&lt;br/&gt;Xem ca mẫu · duyệt quy tắc · yêu cầu sửa" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4E9FF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#3B0764;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="590" width="430" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="dashboard" value="&lt;b&gt;4. QUALITY DASHBOARD&lt;/b&gt;&lt;br/&gt;Tỉ lệ đạt · thời gian xử lý · chất lượng đầu ra" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#F4E9FF;strokeColor=#7C3AED;strokeWidth=2;fontColor=#3B0764;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="980" width="430" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="q_store" value="&lt;b&gt;D1. NGÂN HÀNG CÂU HỎI&lt;/b&gt;&lt;br/&gt;Câu hỏi, phiên bản, trạng thái" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;fontColor=#064E3B;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1780" y="220" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="m_store" value="&lt;b&gt;D2. LOGIC &amp;amp; MẪU CV-JD&lt;/b&gt;&lt;br/&gt;Quy tắc, ca mẫu, trạng thái" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;fontColor=#064E3B;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1780" y="510" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="log_store" value="&lt;b&gt;D3. LỊCH SỬ KIỂM DUYỆT&lt;/b&gt;&lt;br/&gt;Người duyệt, lý do, thời điểm" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;fontColor=#064E3B;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1780" y="800" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="result_store" value="&lt;b&gt;D4. KẾT QUẢ SẢN PHẨM&lt;/b&gt;&lt;br/&gt;Điểm phỏng vấn và CV-JD" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;fontColor=#064E3B;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="1780" y="1090" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="Câu hỏi mới" style="html=1;rounded=1;strokeWidth=2;strokeColor=#EA580C;fontColor=#EA580C;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="ai_source" target="q_store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="Kết quả / đề xuất" style="html=1;rounded=1;strokeWidth=2;strokeColor=#EA580C;fontColor=#EA580C;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="ai_source" target="m_store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="Mục câu hỏi chờ" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="q_store" target="queue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="Mục CV-JD chờ" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="m_store" target="queue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r5" value="Mở hàng chờ ↔ danh sách" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;startArrow=classic;startFill=1;" edge="1" parent="1" source="reviewer_actor" target="queue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r6" value="Quyết định câu hỏi" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="reviewer_actor" target="questions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r7" value="Cập nhật nội dung / trạng thái" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="questions" target="q_store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r8" value="Quyết định logic CV-JD" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="reviewer_actor" target="matching">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r9" value="Cập nhật quy tắc / trạng thái" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="matching" target="m_store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r10" value="Lưu quyết định" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="questions" target="log_store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r11" value="Lưu quyết định" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="matching" target="log_store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r12" value="Tỉ lệ câu hỏi đạt" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="q_store" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r13" value="Tỉ lệ logic đạt" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="m_store" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r14" value="Tồn đọng và thời gian xử lý" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="log_store" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r15" value="Chất lượng đầu ra" style="html=1;rounded=1;strokeWidth=2;strokeColor=#64748B;fontColor=#64748B;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="result_store" target="dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r16" value="Biểu đồ / cảnh báo" style="html=1;rounded=1;strokeWidth=2;strokeColor=#7C3AED;fontColor=#7C3AED;fontFamily=Arial;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=classic;endFill=1;" edge="1" parent="1" source="dashboard" target="reviewer_actor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="review_note" value="Trang này phóng to vai trò Kiểm duyệt viên. Các quy trình và kho dữ liệu là thiết kế đề xuất từ yêu cầu trong ảnh." style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;strokeWidth=2;fontColor=#334155;fontFamily=Arial;fontSize=18;fontStyle=0;align=center;verticalAlign=middle;spacing=12;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="470" y="1360" width="1450" height="55" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
