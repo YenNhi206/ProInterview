@@ -221,25 +221,13 @@ function CustomerNavbar() {
             aria-label={`Giỏ hàng, ${cart.items.length} khóa học`}
             aria-current={location.pathname === "/cart" ? "page" : undefined}
             title="Giỏ hàng"
-            className={
-              isHome
-                ? "relative inline-flex size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
-                : "relative inline-flex size-11 shrink-0 items-center justify-center rounded-full text-slate-700 transition-colors hover:bg-violet-50 hover:text-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
-            }
+            className="relative inline-flex size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
           >
-            {isHome ? (
-              <ShoppingCart className="size-5" />
-            ) : (
-              <ShoppingBag className="size-5" strokeWidth={1.5} aria-hidden="true" />
-            )}
+            <ShoppingCart className="size-5" />
             {cart.items.length > 0 && (
               <span
                 aria-hidden="true"
-                className={
-                  isHome
-                    ? "absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#93f72b] text-[10px] font-bold text-slate-900"
-                    : "absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-semibold text-white"
-                }
+                className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#93f72b] text-[10px] font-bold text-slate-900"
               >
                 {cart.items.length > 99 ? "99+" : cart.items.length}
               </span>
@@ -253,10 +241,10 @@ function CustomerNavbar() {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex shrink-0 items-center justify-center rounded-full border border-violet-200/80 bg-white p-0 shadow-sm transition-colors hover:border-violet-300 size-7 md:gap-2 md:py-1 md:pl-1 md:pr-2.5 md:size-auto"
+                    className="flex shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 p-0 transition-colors hover:border-violet-400/60 hover:bg-white/10 size-7 md:gap-2 md:py-1 md:pl-1 md:pr-2.5 md:size-auto"
                   >
                     <NavUserAvatar avatar={user?.avatar} initials={initials} />
-                    <span className="hidden max-w-[7rem] truncate text-sm font-semibold text-slate-700 md:inline">
+                    <span className="hidden max-w-[7rem] truncate text-sm font-semibold text-white md:inline">
                       {displayName}
                     </span>
                   </button>
@@ -449,11 +437,11 @@ function MentorNavbar() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex shrink-0 items-center justify-center rounded-full border border-violet-200/80 bg-white p-0 shadow-sm transition-colors hover:border-violet-300 size-7 md:gap-2 md:py-1 md:pl-1 md:pr-2.5 md:size-auto"
+                className="flex shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 p-0 transition-colors hover:border-violet-400/60 hover:bg-white/10 size-7 md:gap-2 md:py-1 md:pl-1 md:pr-2.5 md:size-auto"
                 aria-label="Tài khoản mentor"
               >
                 <NavUserAvatar avatar={user?.avatar} initials={initials} />
-                <span className="hidden max-w-[7rem] truncate text-sm font-semibold text-slate-700 md:inline">
+                <span className="hidden max-w-[7rem] truncate text-sm font-semibold text-white md:inline">
                   {displayName}
                 </span>
               </button>

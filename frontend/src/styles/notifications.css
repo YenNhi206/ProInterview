@@ -2,16 +2,16 @@
   position: relative;
   display: inline-flex;
   width: 36px;
-  height: 44px;
+  height: 36px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  color: #66547f;
+  color: rgba(255, 255, 255, 0.65);
   cursor: pointer;
   transition: background-color 160ms, color 160ms;
 }
-.notification-trigger:hover, .notification-trigger[data-state="open"] { background: #eee8f8; color: #7038c5; }
+.notification-trigger:hover, .notification-trigger[data-state="open"] { background-color: rgba(255, 255, 255, 0.1); color: #fff; }
 .notification-trigger:focus-visible { outline: 2px solid #8037f4; outline-offset: 3px; }
 .notification-trigger-count {
   position: absolute;

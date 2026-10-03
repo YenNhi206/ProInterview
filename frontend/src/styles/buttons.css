@@ -33,7 +33,7 @@
 }
 
 @media (hover: hover) {
-  :is(button, input[type="submit"], input[type="button"], input[type="reset"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"], .btn-brand-lime, .btn-brand-purple, .btn-gradient):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"]):not(:disabled, [aria-disabled="true"]):hover {
+  :is(button, input[type="submit"], input[type="button"], input[type="reset"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"], .btn-brand-lime, .btn-brand-purple, .btn-gradient):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"], .ms-cta-btn):not(:disabled, [aria-disabled="true"]):hover {
     box-shadow:
       inset 0 1px 1px #ffffff50,
       inset 0 -2px 2px color-mix(in srgb, var(--button-highlight) 75%, transparent),
@@ -44,11 +44,11 @@
   }
 }
 
-:is(button, input[type="submit"], input[type="button"], input[type="reset"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"]):focus-visible {
+:is(button, input[type="submit"], input[type="button"], input[type="reset"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"], .ms-cta-btn):focus-visible {
   outline: 2px solid var(--button-highlight, #8037f4);
   outline-offset: 5px;
 }
-:is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"]):not(:disabled, [aria-disabled="true"]):active {
+:is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"], .ms-cta-btn):not(:disabled, [aria-disabled="true"]):active {
   box-shadow: inset 0 2px 5px #160d2c30, inset 0 -2px 3px var(--button-highlight), 0 0 0 3px var(--button-ring) !important;
 }
 :is(button, input[type="submit"], input[type="button"], a[data-slot="button"]):is(:disabled, [aria-disabled="true"]) {

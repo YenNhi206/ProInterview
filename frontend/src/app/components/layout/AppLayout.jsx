@@ -46,7 +46,7 @@ export function AppLayout() {
   const [promoModalOpen, setPromoModalOpen] = useState(false);
   const [promoModalPulse, setPromoModalPulse] = useState(0);
   const ambientModifier = isHome
-    ? " app-shell-ambient--home"
+    ? " app-shell-ambient--commerce commerce-theme"
     : usesDarkPalette
       ? " app-shell-ambient--commerce"
       : isLegalDoc
@@ -114,7 +114,7 @@ export function AppLayout() {
       className={`app-shell-ambient${ambientModifier}`}
       aria-hidden
     >
-      {usesDarkPalette && (
+      {(usesDarkPalette || isHome) && (
         <>
           <span className="commerce-glow commerce-glow--top-left" />
           <span className="commerce-glow commerce-glow--top-right" />
