@@ -84,8 +84,8 @@ function ShellNavLinks({ items, pathname, isActive, onNavigate, className = "", 
               key={item.url}
               to={item.url}
               onClick={onNavigate}
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-violet-50 hover:text-violet-700"
-              style={active ? { color: "#8037f4", fontWeight: 800 } : undefined}
+              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+              style={active ? { color: "#c7f36b", fontWeight: 800 } : undefined}
             >
               {item.title}
             </Link>
@@ -98,8 +98,8 @@ function ShellNavLinks({ items, pathname, isActive, onNavigate, className = "", 
             onClick={onNavigate}
             className="relative shrink-0 cursor-pointer whitespace-nowrap py-1 text-sm transition-all duration-300"
             style={{
-              color: active ? "#8037f4" : "rgb(71, 85, 105)",
-              fontWeight: active ? 800 : 600,
+              color: active ? "#c7f36b" : "rgba(255, 255, 255, 0.7)",
+              fontWeight: active ? 800 : 500,
             }}
           >
             {item.title}
@@ -218,7 +218,7 @@ function CustomerNavbar() {
           <img
             src="/Logo.png"
             alt=""
-            className="block h-7 w-auto shrink-0 object-contain contrast-[1.12] brightness-[0.94]"
+            className="block h-7 w-auto shrink-0 object-contain brightness-0 invert opacity-90"
           />
         </Link>
 
@@ -233,7 +233,7 @@ function CustomerNavbar() {
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link to={loggedIn ? "/cart" : buildLoginPath("/cart")} aria-label={`Giỏ hàng, ${cart.items.length} khóa học`}
-            className="relative inline-flex size-9 items-center justify-center rounded-xl text-violet-700 hover:bg-violet-50">
+            className="relative inline-flex size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white">
             <ShoppingCart className="size-5" />
             {cart.items.length > 0 && <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#93f72b] text-[10px] font-bold text-slate-900">{cart.items.length}</span>}
           </Link>
@@ -373,19 +373,14 @@ function CustomerNavbar() {
             <>
               <Link
                 to={loginHref}
-                className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 sm:inline-flex"
+                className="hidden sm:inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium text-white/80 transition-all hover:text-white"
               >
                 <LogIn className="size-3.5 shrink-0" aria-hidden />
                 Đăng nhập
               </Link>
               <Link
                 to={registerHref}
-                className="hidden sm:inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold transition-all hover:scale-105 active:scale-95 sm:px-5"
-                style={{
-                  background: "#fff",
-                  color: "#8037f4",
-                  border: "1.5px solid #8037f4",
-                }}
+                className="hidden sm:inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-white transition-all hover:border-[#93f72b] hover:text-[#93f72b]"
               >
                 <UserPlus className="size-3.5 shrink-0" aria-hidden />
                 Đăng ký
@@ -417,7 +412,7 @@ function CustomerNavbar() {
           className="top-nav-shell-outer fixed right-3 top-[3.8rem] z-[99] w-[min(100vw-1.5rem,16rem)] sm:right-6 sm:top-[4.2rem] md:hidden"
         >
           <div
-            className="rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl"
+            className="liquid-glass rounded-2xl p-3 shadow-2xl"
           >
           <ShellNavLinks
             items={CUSTOMER_NAV_ITEMS}
@@ -428,10 +423,10 @@ function CustomerNavbar() {
             stacked
           />
           {!loggedIn ? (
-            <div className="mt-2 flex flex-col gap-2 border-t border-slate-100 pt-2">
+            <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2">
               <Link
                 to={loginHref}
-                className="flex items-center justify-center gap-2 rounded-full border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                className="liquid-glass flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold text-white transition-colors"
                 onClick={() => setMobileOpen(false)}
               >
                 <LogIn className="size-4" aria-hidden />
@@ -439,12 +434,7 @@ function CustomerNavbar() {
               </Link>
               <Link
                 to={registerHref}
-                className="flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-all"
-                style={{
-                  background: "#fff",
-                  color: "#8037f4",
-                  border: "1.5px solid #8037f4",
-                }}
+                className="liquid-glass-strong flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold text-white transition-all"
                 onClick={() => setMobileOpen(false)}
               >
                 <UserPlus className="size-4" aria-hidden />
@@ -523,7 +513,7 @@ function MentorNavbar() {
           <img
             src="/Logo.png"
             alt=""
-            className="block h-7 w-auto shrink-0 object-contain contrast-[1.12] brightness-[0.94]"
+            className="block h-7 w-auto shrink-0 object-contain brightness-0 invert opacity-90"
           />
         </Link>
 

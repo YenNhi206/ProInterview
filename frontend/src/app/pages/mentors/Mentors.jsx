@@ -1,4 +1,5 @@
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import "../../../styles/mentor-search.css";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "motion/react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -314,57 +315,69 @@ export function Mentors() {
             Tiến nhanh và xa hơn trong hành trình sự nghiệp cùng ProInterview
           </motion.p>
 
-          {/* Search form overlay inside Hero */}
+          {/* Search form overlay inside Hero — poda-style animated border */}
           <motion.div
-            className="w-full bg-[#120b24]/90 border border-violet-850/50 p-2 rounded-3xl md:rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-2 max-w-3xl backdrop-blur-lg"
+            className="ms-wrap"
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
           >
-            {/* Input Keyword */}
-            <div className="flex-1 w-full relative pl-2">
-              <input
-                type="text"
-                placeholder="Nhập từ khóa để tìm kiếm, ví dụ Tên, Công ty, Vị trí..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-white placeholder-slate-400 text-xs font-semibold px-4 py-3 outline-none border-none"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white"
-                >
-                  <X className="size-3.5" />
-                </button>
-              )}
+            {/* Animated border layers */}
+            <div className="ms-darkBorderBg" aria-hidden="true" />
+            <div className="ms-border"       aria-hidden="true" />
+            <div className="ms-white"        aria-hidden="true" />
+            <div className="ms-glow"         aria-hidden="true" />
+
+            {/* Actual bar content */}
+            <div className="ms-inner flex-col md:flex-row">
+              {/* Input Keyword */}
+              <div className="flex-1 w-full relative pl-2">
+                <input
+                  type="text"
+                  placeholder="Tìm mentor..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-transparent text-white placeholder-slate-400 text-xs font-semibold px-4 py-3 outline-none border-none"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Separator */}
+              <div className="hidden md:block h-6 w-px bg-violet-700/30 shrink-0" />
+
+              {/* Dropdown Field */}
+              <div className="w-full md:w-48 shrink-0">
+                <AppSelect
+                  value={selectedField || ""}
+                  onValueChange={(val) => setSelectedField(val || null)}
+                  options={[
+                    { value: "", label: "Chọn Lĩnh vực" },
+                    ...MENTOR_FILTER_FIELDS.map((opt) => ({ value: opt, label: opt }))
+                  ]}
+                  noRing
+                  triggerClassName="w-full !bg-transparent !border-none !text-white hover:!bg-violet-900/30 rounded-none shadow-none text-xs font-bold h-11 px-4 !ring-0 !outline-none focus-visible:!ring-0 focus-visible:!border-transparent"
+                />
+              </div>
+
+              {/* Button TÌM KIẾM */}
+              <button
+                type="button"
+                className="ms-cta-btn inline-flex shrink-0 items-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#93f72b] w-full md:w-auto justify-center cursor-pointer"
+              >
+                TÌM KIẾM
+                <span className="ms-cta-icon">
+                  <MagnifyingGlass className="size-3.5" />
+                </span>
+              </button>
             </div>
-
-            {/* Separator */}
-            <div className="hidden md:block h-6 w-px bg-violet-800/40 shrink-0" />
-
-            {/* Dropdown Field */}
-            <div className="w-full md:w-48 shrink-0">
-              <AppSelect
-                value={selectedField || ""}
-                onValueChange={(val) => setSelectedField(val || null)}
-                options={[
-                  { value: "", label: "Chọn Lĩnh vực" },
-                  ...MENTOR_FILTER_FIELDS.map((opt) => ({ value: opt, label: opt }))
-                ]}
-                triggerClassName="w-full !bg-transparent !border-none !text-white hover:!bg-violet-900/30 rounded-none shadow-none text-xs font-bold h-11 px-4"
-              />
-            </div>
-
-            {/* Button TÌM KIẾM */}
-            <button
-              type="button"
-              className="w-full md:w-auto bg-[#a3e635] hover:bg-[#84cc16] active:scale-98 transition-all px-6 py-3 rounded-full text-slate-900 font-black flex items-center justify-center gap-2 text-xs cursor-pointer shadow-md shadow-[#a3e635]/20"
-            >
-              <MagnifyingGlass className="size-3.5" />
-              <span>TÌM KIẾM</span>
-            </button>
           </motion.div>
         </div>
       </div>

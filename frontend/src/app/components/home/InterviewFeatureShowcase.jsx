@@ -35,10 +35,10 @@ export function InterviewFeatureShowcase() {
               className="flex w-full flex-col gap-0.5 font-headline font-bold leading-[1.1] tracking-tight"
               style={{ fontSize: HOME_SECTION_TITLE_SIZE }}
             >
-              <span className="text-slate-900 sm:whitespace-nowrap">Luyện phỏng vấn với AI</span>
+              <span className="text-white sm:whitespace-nowrap">Luyện phỏng vấn với AI</span>
               <div className="sm:whitespace-nowrap">
-                <span className="text-slate-900">sẵn sàng </span>
-                <span className="text-[#630ed4]">cho cơ hội thật</span>
+                <span className="text-white">sẵn sàng </span>
+                <span className="text-[#c7f36b]">cho cơ hội thật</span>
               </div>
             </h2>
             <p className={`${ty.sectionBody} max-w-md lg:max-w-none`}>

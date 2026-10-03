@@ -541,10 +541,10 @@ export function MyBookings() {
                     onClick={() => navigate("/mentors")}
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.95 }}
-                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#a3e635] px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-900 shadow-[0_4px_14px_rgba(163,230,53,0.3)]"
+                    className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-[15px] font-bold text-white backdrop-blur-md transition-all hover:bg-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
                   >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Tìm mentor ngay
+                    <Users className="h-4 w-4" />
+                    Tìm Mentor ngay
                   </motion.button>
                 )}
               </motion.div>

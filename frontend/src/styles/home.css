@@ -297,3 +297,161 @@
   pointer-events: none;
   z-index: 10;
 }
+
+/* --- HERO ENTRANCE ANIMATIONS --- */
+.animate-headline-reveal {
+  animation: headline-reveal 0.84s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-headline-reveal-1 { animation-delay: 0.08s; }
+.animate-headline-reveal-2 { animation-delay: 0.17s; }
+
+.animate-intro-reveal {
+  animation: intro-reveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+.animate-card-establish {
+  animation: card-establish 0.76s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-card-delay-1 { animation-delay: 0.46s; }
+.animate-card-delay-2 { animation-delay: 0.58s; }
+.animate-card-delay-3 { animation-delay: 0.70s; }
+
+@keyframes headline-reveal {
+  from { opacity: 0; transform: translateY(0.52em); clip-path: inset(0 0 56% 0); }
+  to   { opacity: 1; transform: translateY(0); clip-path: inset(-8% -2% -8% -2%); }
+}
+
+@keyframes intro-reveal {
+  from { opacity: 0; transform: translateY(12px); } 
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes card-establish {
+  from { opacity: 0; transform: translateY(20px) scale(0.985); } 
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-headline-reveal,
+  .animate-intro-reveal,
+  .animate-card-establish {
+    animation: none !important;
+  }
+}
+.animate-card-delay-4 { animation-delay: 0.82s; }
+
+/* Fine glass-like edges: brighter at the top and bottom, faded along the sides. */
+.home-feature-outline {
+  --feature-border: linear-gradient(180deg, #c7f36bee 0%, #c7f36b99 24%, #c7f36b26 52%, #c7f36b88 78%, #c7f36bdd 100%);
+  background: transparent;
+  border-radius: 28px;
+}
+.home-feature-outline::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  border-radius: inherit;
+  background: var(--feature-border);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.95;
+  transition: opacity 300ms ease;
+}
+.home-feature-outline--mixed {
+  --feature-border: linear-gradient(150deg, #c7f36bee 0%, #c7f36bbb 18%, #a855f799 42%, #a855f755 55%, #d8b4febb 80%, #ffffffee 100%);
+}
+.home-feature-outline--purple {
+  --feature-border: linear-gradient(180deg, #c084fcf2 0%, #a855f7aa 24%, #a855f72e 52%, #a855f799 78%, #c084fcee 100%);
+}
+.home-feature-outline--white {
+  --feature-border: linear-gradient(180deg, #ffffffdd 0%, #ffffff88 24%, #ffffff26 52%, #ffffff77 78%, #ffffffcc 100%);
+}
+.group:hover > .home-feature-outline::before {
+  opacity: 1;
+}
+
+
+
+
+
+
+/* Glass windows adapted from Uiverse.io by Fcodingx; scoped to Home features. */
+.feature-summary-section {
+  position: relative;
+  min-height: calc(100svh - 120px);
+  padding-block: 32px;
+  justify-content: center;
+  background: transparent;
+}
+.feature-showcase-stage { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 48px; }
+.feature-summary-heading { width: 100%; margin: 0; background: transparent; }
+.feature-window-grid {
+  width: min(100%, 1200px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+  align-items: start;
+  min-height: 350px;
+  padding-inline: 20px;
+}
+.feature-window {
+  height: 200px;
+  padding: 8px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(198, 185, 221, 0.12);
+  backdrop-filter: blur(5px);
+  border-top: 1px solid #ffffff26;
+  border-right: 1px solid #ffffff18;
+  border-bottom: 3px solid #c7f36b66;
+  border-left: 2px outset #c4a3f88b;
+  box-shadow: -20px 28px 24px #08051c40;
+  transform: skewX(7deg);
+  transform-origin: center bottom;
+  transition: height 400ms ease, transform 400ms ease, background-color 400ms ease, box-shadow 400ms ease;
+  color: white;
+}
+.feature-window:nth-child(2), .feature-window:nth-child(3) { border-bottom-color: #b784f599; }
+.feature-window:nth-child(4) { border-bottom-color: #ffffff70; }
+.feature-window:is(:hover, :focus-within) {
+  height: 350px;
+  transform: skewX(0deg);
+  background: rgba(198, 185, 221, 0.18);
+  box-shadow: -12px 20px 28px #08051c50;
+}
+.feature-window:focus-visible { outline: 2px solid #c7f36b; outline-offset: 5px; }
+.feature-window__lights { display: flex; gap: 6px; padding: 12px 12px 8px; }
+.feature-window__lights span { width: 9px; height: 9px; border-radius: 50%; box-shadow: -3px 3px 5px #08051c40; background: #ff605c; }
+.feature-window__lights span:nth-child(2) { background: #ffbd44; }
+.feature-window__lights span:nth-child(3) { background: #00ca4e; }
+.feature-window > .group { height: auto; }
+.feature-window .home-feature-outline { padding: 0; border-radius: 0; height: auto; }
+.feature-window .home-feature-outline::before { content: none; }
+.feature-window .home-feature-outline > div { min-height: 0; height: auto; padding: 10px 12px 18px; justify-content: start; gap: 16px; }
+.feature-window .home-feature-outline > div > div:last-child { gap: 12px; }
+.feature-window .home-feature-outline > div > div:last-child > div { gap: 6px; }
+.feature-window .home-feature-outline > div > div:last-child > div > span { font-size: 21px; line-height: 1.35; }
+.feature-window p { margin: 0; font-size: 14px; line-height: 1.65; color: #d3cce1; opacity: 0; transition: opacity 180ms ease; }
+.feature-window:is(:hover, :focus-within) p { opacity: 1; transition-delay: 100ms; }
+@media (max-width: 1023px) {
+  .feature-window-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+}
+@media (hover: none), (max-width: 767px) {
+  .feature-showcase-stage { gap: 28px; }
+  .feature-window, .feature-window:is(:hover, :focus-within) { height: auto; min-height: 280px; transform: none; }
+  .feature-window p { opacity: 1; }
+  .feature-summary-heading h2 { font-size: 24px; line-height: 1.3; }
+}
+@media (max-width: 540px) {
+  .feature-window-grid { grid-template-columns: 1fr; padding-inline: 0; }
+  .feature-window, .feature-window:is(:hover, :focus-within) { min-height: 240px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-window, .feature-window:is(:hover, :focus-within) { height: auto; min-height: 320px; transform: none; transition: none; }
+  .feature-window p { opacity: 1; transition: none; }
+}

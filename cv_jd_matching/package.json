@@ -3,6 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "python3 -m uvicorn main:app --reload --host 127.0.0.1 --port 8000"
+    "dev": "DEVELOPER_DIR=/Library/Developer/CommandLineTools python3 -m uvicorn main:app --reload --host 127.0.0.1 --port 8000"
   }
 }

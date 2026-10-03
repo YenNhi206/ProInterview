@@ -10,9 +10,9 @@ export function scoreStatusFromValue(score, max = 10) {
 }
 
 function badgeClass(status) {
-  if (status === "good") return "bg-lime-100 text-lime-900";
-  if (status === "ok") return "bg-violet-100 text-violet-900";
-  return "bg-orange-100 text-orange-900";
+  if (status === "good") return "bg-[#c7f36b]/20 text-[#c7f36b]";
+  if (status === "ok") return "bg-[#8b5cf6]/20 text-[#d8b4fe]";
+  return "bg-orange-500/20 text-orange-300";
 }
 
 function barColor(status) {
@@ -58,26 +58,26 @@ export function CvAnalysisScoreBreakdown({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}
+      className={`overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-sm ${className}`}
     >
       {showHeader && (
         <div
-          className={`flex items-center gap-2 border-b border-slate-200 bg-violet-50/80 ${
+          className={`flex items-center gap-2 border-b border-white/10 bg-white/5 ${
             dense ? "px-3 py-1.5" : "px-4 py-2.5 sm:px-5 sm:py-3"
           }`}
         >
           <div
-            className={`flex items-center justify-center rounded-lg bg-violet-100 ${
+            className={`flex items-center justify-center rounded-lg bg-[#c7f36b]/20 ${
               dense ? "h-6 w-6" : "h-7 w-7 sm:h-8 sm:w-8 sm:rounded-xl"
             }`}
           >
-            <BarChart3 className={`text-[#8037f4] ${dense ? "h-3 w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4"}`} />
+            <BarChart3 className={`text-[#c7f36b] ${dense ? "h-3 w-3" : "h-3.5 w-3.5 sm:h-4 sm:w-4"}`} />
           </div>
           <div>
-            <h3 className={`font-semibold text-slate-900 ${dense ? "text-[11px]" : "text-xs sm:text-sm"}`}>
+            <h3 className={`font-semibold text-white ${dense ? "text-[11px]" : "text-xs sm:text-sm"}`}>
               Đánh giá chi tiết
             </h3>
-            {!dense && <p className="text-[10px] text-slate-600 sm:text-xs">4 tiêu chí theo chuẩn tuyển dụng</p>}
+            {!dense && <p className="text-[10px] text-slate-400 sm:text-xs">4 tiêu chí theo chuẩn tuyển dụng</p>}
           </div>
         </div>
       )}
@@ -101,7 +101,7 @@ export function CvAnalysisScoreBreakdown({
           >
             <div className="relative" style={{ width: ring, height: ring }}>
               <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="10" />
                 <circle
                   cx="50"
                   cy="50"
@@ -121,7 +121,7 @@ export function CvAnalysisScoreBreakdown({
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span
-                  className="font-bold text-slate-900"
+                  className="font-bold text-white"
                   style={{
                     fontSize: dense
                       ? shrinkRem
@@ -138,11 +138,11 @@ export function CvAnalysisScoreBreakdown({
                 >
                   {overallScore}
                 </span>
-                <span className="text-[11px] text-slate-500 sm:text-xs">/ 100</span>
+                <span className="text-[11px] text-slate-400 sm:text-xs">/ 100</span>
               </div>
             </div>
             <p
-              className={`font-semibold text-slate-700 ${
+              className={`font-semibold text-white/90 ${
                 dense
                   ? "mt-0.5 text-[9px]"
                   : hubPreview
@@ -154,7 +154,7 @@ export function CvAnalysisScoreBreakdown({
             </p>
             {!dense && (
               <p
-                className="mt-0.5 text-center text-[11px] leading-snug text-slate-500 sm:text-xs"
+                className="mt-0.5 text-center text-[11px] leading-snug text-slate-400 sm:text-xs"
               >
                 Clarity · Structure
                 <br />
@@ -185,7 +185,7 @@ export function CvAnalysisScoreBreakdown({
                     }`}
                   >
                     <span
-                      className={`min-w-0 font-medium text-slate-800 ${
+                      className={`min-w-0 font-medium text-white/90 ${
                         rowsTight
                           ? "text-[10px] leading-tight"
                           : hubPreview
@@ -208,7 +208,7 @@ export function CvAnalysisScoreBreakdown({
                     </span>
                   </div>
                   <div
-                    className={`overflow-hidden rounded-full bg-slate-200 ${
+                    className={`overflow-hidden rounded-full bg-white/10 ${
                       rowsTight ? "h-1" : hubPreview ? "h-1.5 sm:h-2" : "h-1.5 sm:h-2"
                     }`}
                   >
@@ -222,7 +222,7 @@ export function CvAnalysisScoreBreakdown({
                   </div>
                   {row.note ? (
                     <p
-                      className={`leading-snug text-slate-600 ${
+                      className={`leading-snug text-slate-400 ${
                         rowsTight
                           ? "mt-0 line-clamp-1 text-[8.5px]"
                           : hubPreview
