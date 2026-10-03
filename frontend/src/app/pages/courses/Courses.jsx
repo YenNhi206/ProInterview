@@ -15,6 +15,8 @@ import {
   AlertCircle,
   Sparkles,
   PlayCircle,
+  Repeat,
+  RotateCcw,
 } from "lucide-react";
 
 import { fetchCourses } from "../../api/courseApi.js";
@@ -61,8 +63,9 @@ function normalizeLevel(raw) {
   return "Beginner";
 }
 
-/* ─── Course grid card ───────────────────────────────────────── */
+/* ─── Course grid card (3D Flip Card with Neon Runner & Glow) ─── */
 function CourseCard({ course, formatPrice, onOpen, index }) {
+  const [flipped, setFlipped] = useState(false);
   const ratingDisplay  = course.rating != null ? course.rating.toFixed(1) : null;
   const durationHours  = Math.floor((course.duration || 0) / 60);
   const avatarFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(course.mentorName || "M")}&background=ede9fe&color=6d28d9`;
@@ -75,106 +78,211 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
   const perkFinalPrice = coursePrice - perkDiscountAmount;
 
   return (
-    <motion.article
-      onClick={onOpen}
+    <motion.div
       initial={{ opacity: 0, y: 44 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.12 }}
       transition={{ duration: 0.48, delay: (index % 4) * 0.09, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{
-        y: -8,
-        boxShadow: "0 20px 48px rgba(128,55,244,0.14)",
-        borderColor: "rgba(128,55,244,0.25)",
-      }}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border border-violet-100/80 bg-white shadow-[0_4px_24px_rgba(128,55,244,0.06)]"
+      className={`pi-course-card-3d ${flipped ? "is-flipped" : ""}`}
     >
-      {/* Thumbnail */}
-      <div className="relative aspect-video w-full overflow-hidden bg-violet-50">
-        <ImageWithFallback
-          src={course.thumbnail}
-          alt=""
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
-
-        {/* Mentor avatar overlay */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2">
-          <img
-            src={course.mentorAvatar || avatarFallback}
-            onError={(e) => { e.currentTarget.src = avatarFallback; }}
-            alt=""
-            className="h-7 w-7 rounded-full border-2 border-white object-cover shadow-sm"
-          />
-          <p className="truncate text-[11px] font-bold text-white drop-shadow-sm max-w-[140px]">
-            {course.mentorName}
-          </p>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-sm font-black leading-snug text-slate-900 transition-colors duration-200 group-hover:text-[#8037f4]">
-          {course.title}
-        </h3>
-        {course.description && (
-          <p className="mt-1.5 line-clamp-2 flex-1 text-xs leading-relaxed text-slate-500">
-            {course.description}
-          </p>
-        )}
-
-        {/* Stats row */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-          {ratingDisplay ? (
-            <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
-              <Star className="size-3 fill-amber-400 text-amber-400" />
-              {ratingDisplay}
-            </span>
-          ) : (
-            <span className="text-slate-400">Chưa có đánh giá</span>
-          )}
-          {durationHours > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <Clock className="size-3" />
-              {durationHours}h
-            </span>
-          )}
-          {course.mentorTitle && (
-            <span className="truncate text-slate-400">{course.mentorTitle}</span>
-          )}
-        </div>
-
-        {/* Price */}
-        <div className="mt-3 flex items-center justify-center gap-2">
-          {perkDiscountAmount > 0 && (
-            <span className="whitespace-nowrap rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
-              -{Math.round(perkDiscountRate * 100)}% {perkPlanLabel}
-            </span>
-          )}
-          <span className="text-base font-black text-violet-950">
-            {formatPrice(perkFinalPrice)}
-          </span>
-          {perkDiscountAmount > 0 && (
-            <span className="text-xs font-semibold text-slate-400 line-through">
-              {formatPrice(coursePrice)}
-            </span>
-          )}
-        </div>
-
-        {/* CTA button */}
-        <motion.button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onOpen(); }}
-          whileHover={{ scale: 1.03, backgroundColor: "#84cc16" }}
-          whileTap={{ scale: 0.94 }}
-          transition={{ type: "spring", stiffness: 380, damping: 22 }}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#a3e635] py-2.5 text-xs font-black uppercase tracking-wide text-slate-900 shadow-[0_4px_14px_rgba(163,230,53,0.3)]"
+      <div className="pi-course-card-3d__inner">
+        {/* ════════ FRONT FACE ════════ */}
+        <div
+          className="pi-course-card-3d__front group cursor-pointer"
+          onClick={() => setFlipped(true)}
+          title="Click để lật xem tổng quan khóa học"
         >
-          <PlayCircle className="size-3.5" />
-          Xem khóa học
-        </motion.button>
-        <AddCourseToCartButton courseId={course.id} className="mt-2 text-xs" />
+          {/* Thumbnail */}
+          <div className="relative aspect-video w-full overflow-hidden bg-[#18113c] shrink-0">
+            <ImageWithFallback
+              src={course.thumbnail}
+              alt=""
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#140d30] via-transparent to-transparent" />
+
+            {/* Mentor avatar overlay */}
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <img
+                src={course.mentorAvatar || avatarFallback}
+                onError={(e) => { e.currentTarget.src = avatarFallback; }}
+                alt=""
+                className="h-7 w-7 rounded-full border border-[#93f72b]/50 object-cover shadow-sm"
+              />
+              <p className="truncate text-[11px] font-bold text-white drop-shadow-sm max-w-[140px]">
+                {course.mentorName}
+              </p>
+            </div>
+
+            {/* Level Badge */}
+            {course.level && (
+              <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-bold text-[#93f72b] backdrop-blur-md border border-[#93f72b]/30">
+                {course.level}
+              </span>
+            )}
+          </div>
+
+          {/* Body */}
+          <div className="flex flex-1 flex-col justify-between p-4">
+            <div>
+              <h3 className="line-clamp-2 text-sm font-black leading-snug text-white transition-colors duration-200 group-hover:text-[#93f72b]">
+                {course.title}
+              </h3>
+              {course.description && (
+                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-300">
+                  {course.description}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-white/10">
+              {/* Stats row */}
+              <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-300">
+                {ratingDisplay ? (
+                  <span className="inline-flex items-center gap-1 font-bold text-amber-400">
+                    <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                    {ratingDisplay}
+                  </span>
+                ) : (
+                  <span className="text-slate-400">Chưa có đánh giá</span>
+                )}
+                {durationHours > 0 && (
+                  <span className="inline-flex items-center gap-1 text-slate-300">
+                    <Clock className="size-3 text-violet-400" />
+                    {durationHours}h học
+                  </span>
+                )}
+                {course.mentorTitle && (
+                  <span className="truncate text-slate-400 max-w-[110px]">{course.mentorTitle}</span>
+                )}
+              </div>
+
+              {/* Price & Hint */}
+              <div className="mt-3 flex items-center justify-between">
+                <div>
+                  <span className="text-base font-black text-[#93f72b]">
+                    {formatPrice(perkFinalPrice)}
+                  </span>
+                  {perkDiscountAmount > 0 && (
+                    <span className="ml-1.5 text-xs font-semibold text-slate-400 line-through">
+                      {formatPrice(coursePrice)}
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFlipped(true);
+                  }}
+                  className="pi-card-3d-hint cursor-pointer hover:bg-[#93f72b]/25 transition-colors"
+                  title="Click để lật xem chi tiết"
+                >
+                  <span>Chi tiết</span>
+                  <Sparkles className="size-3" />
+                </button>
+              </div>
+
+              {/* Touch toggle button for mobile */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFlipped(true);
+                }}
+                className="mt-3.5 flex md:hidden w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-1.5 text-[11px] font-bold text-violet-300 hover:text-white"
+              >
+                <Repeat className="size-3" /> Lật xem nhanh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ════════ BACK FACE (Rotating Neon Border + Glowing Ambient Orbs) ════════ */}
+        <div
+          className="pi-course-card-3d__back cursor-pointer"
+          onClick={() => setFlipped(false)}
+          title="Click vào thẻ để quay lại mặt trước"
+        >
+          <div className="pi-course-card-3d__back-surface">
+            {/* Ambient Floating Orbs */}
+            <div className="pi-card-glow-orb pi-card-glow-orb--top" aria-hidden="true" />
+            <div className="pi-card-glow-orb pi-card-glow-orb--bottom" aria-hidden="true" />
+
+            {/* Back Header */}
+            <div className="relative z-10 flex items-start justify-between gap-2 border-b border-white/10 pb-2.5">
+              <div>
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#93f72b]">
+                  <Sparkles className="size-3" /> Tổng quan khóa học
+                </span>
+                <h4 className="mt-0.5 line-clamp-1 text-sm font-black text-white">
+                  {course.title}
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFlipped(false);
+                }}
+                title="Lật lại mặt trước"
+                className="shrink-0 rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer"
+              >
+                <RotateCcw className="size-3.5" />
+              </button>
+            </div>
+
+            {/* Back Content Highlights */}
+            <div className="relative z-10 flex-1 py-2.5 flex flex-col justify-between gap-2 text-xs">
+              <div className="pi-card-3d-info-box">
+                <p className="text-[11px] font-medium text-slate-200 line-clamp-3 leading-relaxed">
+                  {course.description || "Khóa học thực chiến chuyên sâu rèn luyện tư duy, kỹ năng phỏng vấn và giải quyết bài toán thực tế."}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="rounded-xl bg-white/5 p-2 border border-white/5">
+                  <p className="text-[10px] text-slate-400 font-semibold">Giảng viên</p>
+                  <p className="text-xs font-bold text-white truncate mt-0.5">{course.mentorName}</p>
+                </div>
+                <div className="rounded-xl bg-white/5 p-2 border border-white/5">
+                  <p className="text-[10px] text-slate-400 font-semibold">Thời lượng</p>
+                  <p className="text-xs font-bold text-[#93f72b] mt-0.5">{durationHours > 0 ? `${durationHours}h video` : "Tự học"}</p>
+                </div>
+              </div>
+
+              {perkDiscountAmount > 0 && (
+                <div className="flex items-center justify-between rounded-xl bg-violet-950/60 border border-violet-500/30 px-3 py-1.5 text-[11px]">
+                  <span className="text-violet-300 font-medium">Gói {perkPlanLabel}:</span>
+                  <span className="font-bold text-[#93f72b]">Tiết kiệm {formatPrice(perkDiscountAmount)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Back CTA Buttons */}
+            <div className="relative z-10 pt-2.5 border-t border-white/10 flex flex-col gap-2">
+              <motion.button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpen();
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#93f72b] hover:bg-[#84cc16] py-2 text-xs font-black uppercase tracking-wide text-slate-950 shadow-[0_4px_16px_rgba(147,247,43,0.35)] transition-all cursor-pointer"
+              >
+                <PlayCircle className="size-3.5" />
+                Vào xem khóa học
+              </motion.button>
+              <div onClick={(e) => e.stopPropagation()}>
+                <AddCourseToCartButton courseId={course.id} className="w-full text-xs" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </motion.article>
+    </motion.div>
   );
 }
 

@@ -7,6 +7,7 @@
 @import './customer-typography.css';
 @import './commerce-theme.css';
 @import './account-motion.css';
+@import './course-card-3d.css';
 
 @theme {
   /* Lime chủ đạo — dùng với nền #120B2E + chữ sáng */

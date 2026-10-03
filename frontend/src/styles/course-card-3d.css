@@ -1,0 +1,173 @@
+/* ─── ProInterview 3D Flip Course Card with Rotating Neon Border & Glow ─── */
+
+.pi-course-card-3d {
+  perspective: 1200px;
+  width: 100%;
+  height: 100%;
+  min-height: 490px;
+  position: relative;
+  border-radius: 1.5rem;
+}
+
+.pi-course-card-3d__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 650ms cubic-bezier(0.23, 1, 0.32, 1);
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px -10px rgba(18, 11, 46, 0.6);
+}
+
+/* Hover lift & glow (flip is triggered on click) */
+@media (hover: hover) and (pointer: fine) {
+  .pi-course-card-3d:hover:not(.is-flipped) .pi-course-card-3d__front {
+    border-color: rgba(147, 247, 43, 0.4);
+    box-shadow: 0 16px 40px -12px rgba(128, 55, 244, 0.35);
+  }
+}
+
+.pi-course-card-3d.is-flipped .pi-course-card-3d__inner {
+  transform: rotateY(180deg);
+}
+
+/* ─── Front & Back Faces ─── */
+.pi-course-card-3d__front,
+.pi-course-card-3d__back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 1.5rem;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+/* ════════ FRONT FACE ════════ */
+.pi-course-card-3d__front {
+  transform: rotateY(0deg);
+  background: #140d30;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pi-course-card-3d:hover .pi-course-card-3d__front {
+  border-color: rgba(147, 247, 43, 0.3);
+  box-shadow: 0 16px 40px -12px rgba(128, 55, 244, 0.25);
+}
+
+/* ════════ BACK FACE ════════ */
+.pi-course-card-3d__back {
+  transform: rotateY(180deg);
+  background: #0d0722;
+  border: 1px solid rgba(147, 247, 43, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Rotating Neon Border (Border Glow Runner) */
+.pi-course-card-3d__back::before {
+  position: absolute;
+  content: '';
+  display: block;
+  width: 180%;
+  height: 180%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(147, 247, 43, 0.85) 30%,
+    rgba(128, 55, 244, 0.95) 50%,
+    rgba(147, 247, 43, 0.85) 70%,
+    transparent 100%
+  );
+  animation: pi_card_rotation 5500ms infinite linear;
+  pointer-events: none;
+}
+
+@keyframes pi_card_rotation {
+  0% {
+    transform: rotateZ(0deg);
+  }
+  100% {
+    transform: rotateZ(360deg);
+  }
+}
+
+/* Back Inner Dark Surface */
+.pi-course-card-3d__back-surface {
+  position: absolute;
+  inset: 2px;
+  background: radial-gradient(ellipse at 50% 0%, #1e1346 0%, #0d0722 100%);
+  border-radius: calc(1.5rem - 2px);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ─── Floating Ambient Glow Orbs ─── */
+.pi-card-glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(24px);
+  pointer-events: none;
+  opacity: 0.6;
+  animation: pi_card_floating 3200ms infinite ease-in-out;
+}
+
+.pi-card-glow-orb--top {
+  width: 130px;
+  height: 130px;
+  background: rgba(147, 247, 43, 0.25);
+  top: -30px;
+  right: -30px;
+  animation-delay: -900ms;
+}
+
+.pi-card-glow-orb--bottom {
+  width: 150px;
+  height: 150px;
+  background: rgba(128, 55, 244, 0.35);
+  bottom: -30px;
+  left: -30px;
+  animation-delay: -2100ms;
+}
+
+@keyframes pi_card_floating {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(12px) scale(1.06);
+  }
+}
+
+/* ─── Back Card Details Overlay ─── */
+.pi-card-3d-info-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border-radius: 1rem;
+  padding: 0.85rem;
+}
+
+/* Touch indicator on mobile */
+.pi-card-3d-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: #93f72b;
+  background: rgba(147, 247, 43, 0.1);
+  border: 1px solid rgba(147, 247, 43, 0.25);
+  border-radius: 9999px;
+  padding: 0.25rem 0.65rem;
+}
