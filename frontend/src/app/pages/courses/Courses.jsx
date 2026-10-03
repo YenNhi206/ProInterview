@@ -228,22 +228,17 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
                   {course.title}
                 </h4>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="hidden sm:inline-flex text-[10px] text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
-                  Click để quay lại
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFlipped(false);
-                  }}
-                  title="Lật lại mặt trước"
-                  className="rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer"
-                >
-                  <RotateCcw className="size-3.5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFlipped(false);
+                }}
+                title="Lật lại mặt trước"
+                className="rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer shrink-0"
+              >
+                <RotateCcw className="size-3.5" />
+              </button>
             </div>
 
             {/* Back Content Highlights */}
