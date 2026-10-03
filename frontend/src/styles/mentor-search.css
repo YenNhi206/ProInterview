@@ -1,0 +1,206 @@
+/* ═══════════════════════════════════════════════════
+   Mentor/Courses Search Bar
+   Default : liquid-glass (tối, viền trắng mờ)
+   Hover   : neon conic-gradient border sáng
+   ═══════════════════════════════════════════════════ */
+
+/* ── Wrapper ── */
+.ms-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 768px;
+}
+
+/* ── Neon border via ::after (hidden by default) ── */
+.ms-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 9999px;
+  padding: 1.5px;
+  background: conic-gradient(
+    from 250deg at 50% 50%,
+    #8037f4,
+    #0a0614 18%,
+    #0a0614 48%,
+    #93f72b 66%,
+    #0a0614 82%,
+    #8037f4
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 350ms ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Ambient glow via ::before (hidden by default) ── */
+.ms-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -24px;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 250deg at 50% 50%,
+    rgba(128,55,244,0.5),
+    transparent 25%,
+    transparent 50%,
+    rgba(147,247,43,0.35) 65%,
+    transparent 80%
+  );
+  filter: blur(22px);
+  opacity: 0;
+  transition: opacity 350ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (max-width: 767px) {
+  .ms-wrap::before,
+  .ms-wrap::after { border-radius: 20px; }
+  .ms-inner { border-radius: 18px !important; }
+}
+
+/* ── Show on hover or focus ── */
+.ms-wrap:hover::after,
+.ms-wrap:focus-within::after {
+  opacity: 1;
+}
+.ms-wrap:hover::before,
+.ms-wrap:focus-within::before {
+  opacity: 1;
+}
+
+/* ── Inner bar ── */
+.ms-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  background: rgba(10, 6, 20, 0.93);
+  border-radius: 9999px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  /* Default: liquid-glass thin white border */
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.10),
+    0 0 0 1px rgba(255,255,255,0.09);
+  transition: box-shadow 350ms ease;
+}
+
+.ms-wrap:hover .ms-inner,
+.ms-wrap:focus-within .ms-inner {
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.06),
+    0 0 0 0px transparent;
+}
+
+/* ── Suppress Radix SelectTrigger focus ring ── */
+.ms-inner [data-slot="select-trigger"],
+.ms-inner [data-slot="select-trigger"]:hover,
+.ms-inner [data-slot="select-trigger"]:focus,
+.ms-inner [data-slot="select-trigger"]:focus-visible,
+.ms-inner [data-slot="select-trigger"]:focus-within,
+[data-noring="true"],
+[data-noring="true"]:hover,
+[data-noring="true"]:focus,
+[data-noring="true"]:focus-visible,
+[data-noring="true"]:focus-within,
+[data-noring="true"]:active {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  --tw-shadow: 0 0 #0000 !important;
+}
+
+/* ── Suppress global outline-ring from theme.css ── */
+.ms-wrap *,
+.ms-wrap *:focus,
+.ms-wrap *:focus-visible {
+  outline: none !important;
+}
+
+/* ══════════════════════════════════════════════════
+   CTA Button — default: trắng/mờ  |  hover: lime
+   ══════════════════════════════════════════════════ */
+.ms-cta-btn {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+  border: none;
+  color: white;
+  transition: color 300ms ease, transform 150ms ease;
+}
+
+/* Default border: white/silver mờ */
+.ms-cta-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.38) 0%,
+    rgba(255,255,255,0.06) 40%,
+    rgba(255,255,255,0.04) 60%,
+    rgba(255,255,255,0.28) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: background 300ms ease;
+}
+
+/* Hover border: lime/purple neon */
+.ms-cta-btn:hover::before {
+  background: linear-gradient(
+    160deg,
+    rgba(147,247,43,0.7) 0%,
+    rgba(128,55,244,0.5) 50%,
+    rgba(147,247,43,0.6) 100%
+  );
+}
+
+.ms-cta-btn:hover {
+  color: #93f72b;
+}
+
+.ms-cta-btn:active { transform: scale(0.97); }
+
+/* ── Icon circle ── */
+.ms-cta-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.12) !important;
+  background-image: none !important;
+  color: white !important;
+  flex-shrink: 0;
+  transition: background 300ms ease, color 300ms ease, box-shadow 300ms ease, transform 200ms ease;
+}
+
+.ms-cta-btn:hover .ms-cta-icon {
+  background: #93f72b !important;
+  background-image: none !important;
+  color: #111827 !important;
+  box-shadow: 0 0 16px rgba(147,247,43,0.5);
+  transform: translateX(1px);
+}

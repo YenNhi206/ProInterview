@@ -1,4 +1,5 @@
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import "../../../styles/mentor-search.css";
 import { AddCourseToCartButton } from "../../components/courses/AddCourseToCartButton.jsx";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "motion/react";
@@ -368,41 +369,51 @@ export function Courses() {
             Các khóa học do Mentor xây dựng, giúp bạn bổ sung kỹ năng cần thiết cho hành trình ứng tuyển.
           </motion.p>
 
-          {/* Search bar */}
+          {/* Search bar — poda-style animated border */}
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
-            className="flex w-full max-w-2xl items-center gap-2 rounded-full border border-violet-800/50 bg-[#120b24]/90 p-2 shadow-2xl backdrop-blur-lg"
+            className="ms-wrap"
+            style={{ maxWidth: "42rem" }}
           >
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm khóa học, kỹ năng, mentor..."
-                className="w-full bg-transparent py-3 pl-11 pr-4 text-xs font-semibold text-white placeholder-slate-400 outline-none"
-              />
-            </div>
-            {searchQuery && (
+            {/* Animated border layers */}
+            <div className="ms-darkBorderBg" aria-hidden="true" />
+            <div className="ms-border"       aria-hidden="true" />
+            <div className="ms-white"        aria-hidden="true" />
+            <div className="ms-glow"         aria-hidden="true" />
+
+            {/* Bar content */}
+            <div className="ms-inner">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Tìm khóa học..."
+                  className="w-full bg-transparent py-3 pl-11 pr-4 text-xs font-semibold text-white placeholder-slate-400 outline-none"
+                />
+              </div>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-800/60 text-slate-300 hover:text-white"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-800/60 text-slate-300 hover:text-white"
+                className="ms-cta-btn inline-flex shrink-0 items-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#93f72b] cursor-pointer"
               >
-                <X className="size-3.5" />
-              </button>
-            )}
-            <button
-              type="button"
-              className="shrink-0 rounded-full bg-[#a3e635] px-6 py-3 text-xs font-black text-slate-900 shadow-md transition-colors hover:bg-[#84cc16]"
-            >
-              <span className="flex items-center gap-1.5">
-                <Search className="size-3.5" />
                 TÌM KIẾM
-              </span>
-            </button>
+                <span className="ms-cta-icon">
+                  <Search className="size-3.5" />
+                </span>
+              </button>
+            </div>
           </motion.div>
 
           {/* Quick stats */}

@@ -1,0 +1,69 @@
+/* Surface treatment adapted from Uiverse.io by dexter-st.
+   Shadows replace wrapper/pseudo-element layers so existing icons, loading labels,
+   Radix composition and click targets retain their original markup and behavior. */
+:root {
+  --pi-button-highlight: #a66ff8;
+  --pi-button-ring: rgba(128, 55, 244, 0.18);
+}
+
+/* Native buttons plus links already styled as buttons. Exclude input primitives
+   and text-only links: their state is communicated by their own component. */
+:is(button, input[type="submit"], input[type="button"], input[type="reset"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"], .btn-brand-lime, .btn-brand-purple, .btn-gradient):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"], .ms-cta-btn) {
+  --button-highlight: var(--pi-button-highlight);
+  --button-ring: var(--pi-button-ring);
+  background-image: linear-gradient(180deg, #ffffff18 0%, #ffffff06 45%, #140b240a 100%);
+  box-shadow:
+    inset 0 1px 1px #ffffff40,
+    inset 0 3px 4px #ffffff10,
+    inset 0 -1px 1px #1a0b3026,
+    0 0 0 1px var(--button-ring),
+    0 0 0 4px #8037f409,
+    0 3px 8px #160d2c14 !important;
+  transition: background-color 240ms ease, border-color 240ms ease, box-shadow 240ms ease, color 240ms ease, transform 180ms ease;
+}
+
+/* Keep existing fills/text colors; lime and destructive actions get matching light. */
+:is(button, a, input):is([class*="lime"], [class*="bg-[#93f72b]"], [class*="bg-[#c7f36b]"], [class*="bg-[#a3e635]"], [aria-current="true"]) {
+  --pi-button-highlight: #c7f36b;
+  --pi-button-ring: #93f72b40;
+}
+:is(button, a, input):is([data-variant="destructive"], [class*="bg-red-"], [class*="text-red-"], [class*="bg-rose-"], [class*="text-rose-"]) {
+  --pi-button-highlight: #fb7185;
+  --pi-button-ring: #f43f5e40;
+}
+
+@media (hover: hover) {
+  :is(button, input[type="submit"], input[type="button"], input[type="reset"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"], .btn-brand-lime, .btn-brand-purple, .btn-gradient):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"]):not(:disabled, [aria-disabled="true"]):hover {
+    box-shadow:
+      inset 0 1px 1px #ffffff50,
+      inset 0 -2px 2px color-mix(in srgb, var(--button-highlight) 75%, transparent),
+      inset 0 -10px 14px -10px var(--button-highlight),
+      0 0 0 1px var(--button-ring),
+      0 0 0 4px color-mix(in srgb, var(--button-highlight) 12%, transparent),
+      0 5px 16px -8px var(--button-highlight) !important;
+  }
+}
+
+:is(button, input[type="submit"], input[type="button"], input[type="reset"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"]):focus-visible {
+  outline: 2px solid var(--button-highlight, #8037f4);
+  outline-offset: 5px;
+}
+:is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-variant="link"], [data-button-surface="none"], [data-slot="select-trigger"]):not(:disabled, [aria-disabled="true"]):active {
+  box-shadow: inset 0 2px 5px #160d2c30, inset 0 -2px 3px var(--button-highlight), 0 0 0 3px var(--button-ring) !important;
+}
+:is(button, input[type="submit"], input[type="button"], a[data-slot="button"]):is(:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed;
+  box-shadow: inset 0 1px 1px #ffffff18 !important;
+}
+
+/* Shared Button defaults follow the site's purple/lime palette. */
+[data-slot="button"][data-variant="default"] { background-color: #7030cf; color: #fff; border-radius: 24px; }
+[data-slot="button"][data-variant="secondary"] { background-color: #c7f36b; color: #19122b; border-radius: 24px; --pi-button-highlight: #c7f36b; }
+[data-slot="button"][data-variant="outline"] { border-color: #8037f459; border-radius: 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]) { transition: none !important; }
+}
+@media (forced-colors: active) {
+  :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"]) { border: 1px solid ButtonText; box-shadow: none !important; }
+}

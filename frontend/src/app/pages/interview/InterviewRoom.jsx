@@ -1511,29 +1511,29 @@ export default function InterviewRoom() {
         )}
 
         {/* Top bar */}
-        <div className="flex shrink-0 items-center justify-between border-b border-violet-200/80 bg-white/85 px-4 py-2 backdrop-blur-sm">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-2">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50 px-2.5 py-1">
+            <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2.5 py-1">
               <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#b5e636]" />
-              <span className="text-xs font-semibold text-violet-800">REC</span>
+              <span className="text-xs font-semibold text-white">REC</span>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50 px-2.5 py-1">
-              <Clock className="h-3 w-3 text-violet-500" />
-              <span className="text-xs tabular-nums text-violet-800">{formatTimer(timerSeconds)}</span>
+            <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2.5 py-1">
+              <Clock className="h-3 w-3 text-white/70" />
+              <span className="text-xs tabular-nums text-white">{formatTimer(timerSeconds)}</span>
             </div>
             {isListening && (
-              <div className="flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50 px-2.5 py-1">
+              <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2.5 py-1">
                 <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#b5e636]" />
-                <span className="text-xs font-medium text-violet-800">Ghi âm</span>
+                <span className="text-xs font-medium text-white">Ghi âm</span>
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 border-violet-300/80">
+            <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 border-white/20">
               <video src={hrVideoUrl} autoPlay loop muted playsInline className="h-full w-full object-cover" />
             </div>
-            <span className="hidden text-sm font-medium text-violet-900 sm:block">{hrName}</span>
+            <span className="hidden text-sm font-medium text-white sm:block">{hrName}</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -1542,32 +1542,32 @@ export default function InterviewRoom() {
                 const locked = !isPro && i >= FREE_LIMIT;
                 return (
                   <div key={i} className={`h-1.5 w-7 rounded-full transition-all duration-500 ${
-                    locked ? "bg-violet-200"
+                    locked ? "bg-white/10"
                     : i < currentQ ? "bg-[#b5e636]/55"
                     : i === currentQ ? "bg-[#b5e636]"
-                    : "bg-violet-100"
+                    : "bg-white/20"
                   }`} />
                 );
               })}
             </div>
-            <span className="text-xs font-medium text-violet-600">{currentQ + 1}/{QUESTIONS.length}</span>
+            <span className="text-xs font-medium text-white/70">{currentQ + 1}/{QUESTIONS.length}</span>
           </div>
         </div>
 
         {/* Question banner */}
-        <div className="shrink-0 border-b border-violet-100 bg-white/70 px-4 py-2">
-          <div className="flex items-start gap-2.5 rounded-md border border-violet-200/80 bg-violet-50/50 px-3 py-2">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#6E35E8] to-[#8B4DFF] text-xs font-bold text-white">
+        <div className="shrink-0 border-b border-white/10 px-4 py-2">
+          <div className="liquid-glass flex items-start gap-2.5 rounded-md px-3 py-2">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#c7f36b] text-xs font-bold text-black">
               {currentQ + 1}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 text-sm leading-snug text-violet-950">{QUESTIONS[currentQ]}</p>
+              <p className="line-clamp-2 text-sm leading-snug text-white">{QUESTIONS[currentQ]}</p>
               {QUESTION_OBJECTS && (() => {
                 const layer = QUESTION_OBJECTS[currentQ]?.layer;
                 const layerMap = {
-                  theory:   { label: "Lý thuyết",     color: "#630ed4", bg: "rgba(110,53,232,0.12)", border: "rgba(110,53,232,0.28)" },
-                  project:  { label: "Dự án",          color: "#8B4DFF", bg: "rgba(139,77,255,0.12)", border: "rgba(139,77,255,0.28)" },
-                  behavior: { label: "Hành vi · STAR", color: "#630ed4", bg: "rgba(110,53,232,0.1)",  border: "rgba(110,53,232,0.22)" },
+                  theory:   { label: "Lý thuyết",     color: "#c7f36b", bg: "rgba(199,243,107,0.12)", border: "rgba(199,243,107,0.28)" },
+                  project:  { label: "Dự án",          color: "#c7f36b", bg: "rgba(199,243,107,0.12)", border: "rgba(199,243,107,0.28)" },
+                  behavior: { label: "Hành vi · STAR", color: "#c7f36b", bg: "rgba(199,243,107,0.1)",  border: "rgba(199,243,107,0.22)" },
                 };
                 const lm = layerMap[layer];
                 if (!lm) return null;
@@ -1588,33 +1588,33 @@ export default function InterviewRoom() {
           const hasContent = sg && (sg.situation?.length || sg.task?.length || sg.action?.length || sg.result?.length);
           if (!hasContent) return null;
           return (
-            <div className="shrink-0 border-b border-violet-100 bg-white/60 px-4 py-1.5">
-              <div className="overflow-hidden rounded-md border border-violet-200/70 bg-violet-50/40">
+            <div className="shrink-0 border-b border-white/10 px-4 py-1.5">
+              <div className="liquid-glass overflow-hidden rounded-md">
                 <button type="button"
                   onClick={() => setShowStarHints((p) => !p)}
-                  className="flex w-full items-center justify-between px-4 py-2 text-left transition-colors hover:bg-violet-100/50">
+                  className="flex w-full items-center justify-between px-4 py-2 text-left transition-colors hover:bg-white/5">
                   <div className="flex items-center gap-2">
-                    <Star className="h-3.5 w-3.5 text-[#630ed4]" />
-                    <span className="text-xs font-semibold text-violet-950">Gợi ý STAR</span>
-                    <span className="text-xs text-violet-600/70">— nhấn để {showStarHints ? "ẩn" : "xem"}</span>
+                    <Star className="h-3.5 w-3.5 text-[#c7f36b]" />
+                    <span className="text-xs font-semibold text-white">Gợi ý STAR</span>
+                    <span className="text-xs text-white/50">— nhấn để {showStarHints ? "ẩn" : "xem"}</span>
                   </div>
-                  <ChevronDown className={`h-3.5 w-3.5 text-violet-500/60 transition-transform duration-200 ${showStarHints ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-3.5 w-3.5 text-white/50 transition-transform duration-200 ${showStarHints ? "rotate-180" : ""}`} />
                 </button>
                 {showStarHints && (
                   <div className="grid max-h-24 grid-cols-2 gap-2 overflow-y-auto px-4 pb-2 sm:grid-cols-4">
                     {[
-                      { key: "situation", label: "S · Tình huống", color: "#630ed4", border: "border-violet-200" },
-                      { key: "task",      label: "T · Nhiệm vụ",   color: "#8B4DFF", border: "border-violet-200" },
-                      { key: "action",    label: "A · Hành động",  color: "#8B4DFF", border: "border-violet-200" },
-                      { key: "result",    label: "R · Kết quả",    color: "#630ed4", border: "border-violet-300" },
+                      { key: "situation", label: "S · Tình huống", color: "#c7f36b", border: "border-white/10" },
+                      { key: "task",      label: "T · Nhiệm vụ",   color: "#c7f36b", border: "border-white/10" },
+                      { key: "action",    label: "A · Hành động",  color: "#c7f36b", border: "border-white/10" },
+                      { key: "result",    label: "R · Kết quả",    color: "#c7f36b", border: "border-white/10" },
                     ].map(({ key, label, color, border }) => {
                       const hints = sg[key] ?? [];
                       if (!hints.length) return null;
                       return (
-                        <div key={key} className={`rounded border bg-white p-2.5 ${border}`}>
+                        <div key={key} className={`liquid-glass rounded border p-2.5 ${border}`}>
                           <p className="mb-1 text-xs font-semibold" style={{ color }}>{label}</p>
                           {hints.slice(0, 2).map((h, i) => (
-                            <p key={i} className="text-xs leading-relaxed text-violet-700">· {h}</p>
+                            <p key={i} className="text-xs leading-relaxed text-white/80">· {h}</p>
                           ))}
                         </div>
                       );
@@ -1629,8 +1629,8 @@ export default function InterviewRoom() {
         {/* Main video panels */}
         <div className="grid min-h-0 flex-1 gap-2 px-3 pb-2 max-lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)_4.5rem] lg:grid-cols-2 lg:grid-rows-[minmax(0,1fr)_4.5rem]">
           {/* HR panel */}
-          <div className={`relative min-h-0 h-full overflow-hidden rounded-xl border-2 bg-[#0a0a18] ${
-            (isDIDActive || ttsAvailable) ? "border-violet-300/80 shadow-[0_8px_32px_rgba(110,53,232,0.12)]" : "border-violet-200/70"
+          <div className={`liquid-glass relative min-h-0 h-full overflow-hidden rounded-xl ${
+            (isDIDActive || ttsAvailable) ? "shadow-[0_8px_32px_rgba(0,0,0,0.3)]" : ""
           }`}>
 
             {/* ── Nhánh 0: D-ID Express pre-generated video (ưu tiên cao nhất) ── */}
@@ -1770,8 +1770,8 @@ export default function InterviewRoom() {
           </div>
 
           {/* User camera panel, UserCameraTile exposes video to cameraVideoRef */}
-          <div className={`relative min-h-0 h-full overflow-hidden rounded-xl border-2 ${
-            isListening ? "border-violet-400 shadow-[0_0_20px_rgba(110,53,232,0.15)]" : "border-violet-200/80 shadow-[0_8px_24px_rgba(110,53,232,0.1)]"
+          <div className={`liquid-glass relative min-h-0 h-full overflow-hidden rounded-xl ${
+            isListening ? "shadow-[0_0_20px_rgba(110,53,232,0.15)] ring-2 ring-violet-400" : "shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
           }`}>
             <UserCameraTile ref={cameraVideoRef} isRecording={isListening} onAudioTrack={handleAudioTrack} />
             {isListening && (
@@ -1801,38 +1801,38 @@ export default function InterviewRoom() {
           </div>
 
           {/* Transcript panel */}
-          <div className={`flex h-[4.5rem] max-h-[4.5rem] shrink-0 flex-col overflow-hidden rounded-md border bg-white transition-all lg:col-span-2 ${
-            isListening ? "border-violet-300" : hasTranscript ? "border-violet-300/80" : "border-violet-200/80"
+          <div className={`liquid-glass flex h-[4.5rem] max-h-[4.5rem] shrink-0 flex-col overflow-hidden rounded-xl transition-all lg:col-span-2 ${
+            isListening ? "ring-2 ring-violet-300" : ""
           }`}>
-            <div className="flex shrink-0 items-center justify-between border-b border-violet-100 bg-violet-50/60 px-2.5 py-1.5">
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/5 px-2.5 py-1.5">
               <div className="flex items-center gap-2">
                 {isListening ? (
                   <>
                     <div className="h-2 w-2 animate-pulse rounded-full bg-[#b5e636]" />
-                    <span className="text-xs font-semibold text-violet-800">Đang ghi âm...</span>
-                    <Waveform active={true} color="#9B6DFF" />
+                    <span className="text-xs font-semibold text-white">Đang ghi âm...</span>
+                    <Waveform active={true} color="#b5e636" />
                   </>
                 ) : hasTranscript ? (
                   <>
-                    <CheckCircle className="h-3.5 w-3.5 text-violet-600" />
-                    <span className="text-xs font-semibold text-violet-900">Đã ghi nhận</span>
+                    <CheckCircle className="h-3.5 w-3.5 text-[#b5e636]" />
+                    <span className="text-xs font-semibold text-white">Đã ghi nhận</span>
                   </>
                 ) : (
                   <>
-                    <ChatCircle className="h-3.5 w-3.5 text-violet-400" />
-                    <span className="text-xs text-violet-600">Câu trả lời của bạn</span>
+                    <ChatCircle className="h-3.5 w-3.5 text-white/50" />
+                    <span className="text-xs text-white/70">Câu trả lời của bạn</span>
                   </>
                 )}
               </div>
               {(hasTranscript || isListening) && (
-                <span className="text-xs tabular-nums text-violet-500">{wordCount} từ</span>
+                <span className="text-xs tabular-nums text-white/70">{wordCount} từ</span>
               )}
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-2.5 py-1.5">
               {!sttSupported ? (
                 <div className="flex h-full flex-col gap-2">
-                  <p className="text-xs text-violet-700">
+                  <p className="text-xs text-white/70">
                     Trình duyệt không nhận diện được giọng nói, hãy gõ câu trả lời bên dưới.
                   </p>
                   <textarea
@@ -1849,14 +1849,14 @@ export default function InterviewRoom() {
                     }}
                     placeholder="Gõ câu trả lời của bạn vào đây..."
                     rows={2}
-                    className="w-full flex-1 resize-none rounded-xl border border-violet-200 bg-white p-3 text-sm text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                    className="w-full flex-1 resize-none rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#c7f36b]"
                   />
                 </div>
               ) : !hasTranscript && !interimTranscript && !isListening ? null : (
                 <div>
-                  {hasTranscript && <p className="line-clamp-2 text-xs leading-snug text-black">{transcript}</p>}
+                  {hasTranscript && <p className="line-clamp-2 text-xs leading-snug text-white">{transcript}</p>}
                   {interimTranscript && (
-                    <p className="line-clamp-2 text-xs leading-snug text-black italic">
+                    <p className="line-clamp-2 text-xs leading-snug text-white/70 italic">
                       {interimTranscript}
                       {isListening && <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-[#b5e636] align-middle" />}
                     </p>
@@ -1867,9 +1867,9 @@ export default function InterviewRoom() {
                 </div>
               )}
               {sttError && (
-                <div className="mt-2 flex items-start gap-1.5 rounded-xl border border-violet-200 bg-violet-50 p-2.5">
-                  <WarningCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-600" />
-                  <p className="text-xs text-violet-800">{sttError}</p>
+                <div className="mt-2 flex items-start gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 p-2.5">
+                  <WarningCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-400" />
+                  <p className="text-xs text-red-200">{sttError}</p>
                 </div>
               )}
             </div>
@@ -1908,7 +1908,7 @@ export default function InterviewRoom() {
                         try { recognitionRef.current?.start(); } catch (_) {}
                       }, 150);
                     }}
-                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-violet-700 transition-all hover:bg-violet-50">
+                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-white/70 transition-all hover:bg-white/10">
                     <Microphone className="w-3.5 h-3.5" />
                     Ghi lại (còn {Math.max(0, MAX_RETRIES_PER_QUESTION - (retryCounts[currentQ] ?? 0))} lượt)
                   </button>
@@ -1919,10 +1919,10 @@ export default function InterviewRoom() {
         </div>
 
         {/* Control bar */}
-        <div className="flex shrink-0 items-center justify-center gap-3 border-t border-violet-200/80 bg-white/90 px-4 py-2 backdrop-blur-sm">
+        <div className="flex shrink-0 items-center justify-center gap-3 border-t border-white/10 px-4 py-2">
           <button type="button" onClick={handleEndSession} title="Kết thúc phỏng vấn"
-            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-violet-200 bg-violet-50 transition-all hover:bg-violet-100">
-            <PhoneDisconnect className="h-5 w-5 text-violet-700" />
+            className="liquid-glass flex h-10 w-10 items-center justify-center rounded-full transition-all hover:bg-white/10">
+            <PhoneDisconnect className="h-5 w-5 text-white/80" />
           </button>
 
           <div className="relative">
@@ -1931,24 +1931,24 @@ export default function InterviewRoom() {
               title={isListening ? "Dừng ghi âm" : "Bắt đầu trả lời"}
               className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-40"
               style={{
-                background: "linear-gradient(135deg,#6E35E8,#8B4DFF)",
-                boxShadow: isListening ? "0 0 24px rgba(110,53,232,0.55)" : "0 0 24px rgba(110,53,232,0.5)",
+                background: "linear-gradient(135deg,#c7f36b,#b5e636)",
+                boxShadow: isListening ? "0 0 24px rgba(199,243,107,0.55)" : "0 0 24px rgba(199,243,107,0.2)",
               }}>
               {isListening
-                ? <Microphone className="h-7 w-7 text-white" />
-                : <MicrophoneSlash className="h-7 w-7 text-white" />}
+                ? <Microphone className="h-7 w-7 text-black" />
+                : <MicrophoneSlash className="h-7 w-7 text-black" />}
             </button>
           </div>
 
           {currentQ < QUESTIONS.length - 1 || personalizedPending ? (
             <button type="button" onClick={handleNextQuestion}
-              className="flex items-center gap-2 rounded-md bg-gradient-to-r from-[#c4ff47] to-[#d4ff00] px-4 py-2 text-sm font-bold text-violet-950 shadow-[0_6px_20px_rgba(196,255,71,0.2)] transition-all hover:brightness-105">
-              {!isPro && currentQ === FREE_LIMIT - 1 ? <><Lock className="h-4 w-4" /> Câu tiếp theo</> : <>Câu tiếp theo <CaretRight className="h-4 w-4" /></>}
+              className="liquid-glass-strong flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white transition-all hover:scale-[1.02]">
+              {!isPro && currentQ === FREE_LIMIT - 1 ? <><Lock className="h-4 w-4 text-[#c7f36b]" /> Câu tiếp theo</> : <>Câu tiếp theo <CaretRight className="h-4 w-4 text-[#c7f36b]" /></>}
             </button>
           ) : (
             <button type="button" onClick={handleNextQuestion}
-              className="flex items-center gap-2 rounded-md bg-gradient-to-r from-[#c4ff47] to-[#d4ff00] px-4 py-2 text-sm font-bold text-violet-950 shadow-[0_6px_20px_rgba(196,255,71,0.2)] transition-all hover:brightness-105">
-              Hoàn thành <CheckCircle className="h-4 w-4" />
+              className="liquid-glass-strong flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white transition-all hover:scale-[1.02]">
+              Hoàn thành <CheckCircle className="h-4 w-4 text-[#c7f36b]" />
             </button>
           )}
         </div>

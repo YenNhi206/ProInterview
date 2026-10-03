@@ -58,16 +58,16 @@ function LessonRow({ title, active, locked }) {
   return (
     <li
       className={`flex items-center gap-2 rounded-xl px-2 py-1.5 sm:px-2.5 sm:py-2 ${
-        active ? "bg-[#630ed4] text-white" : ""
+        active ? "bg-white/10 text-white" : ""
       }`}
     >
       <span
         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full sm:h-[1.375rem] sm:w-[1.375rem] ${
           active
-            ? "bg-white/20 text-white"
+            ? "bg-[#c7f36b] text-[#0f172a]"
             : locked
-              ? "bg-slate-100 text-slate-400"
-              : "bg-violet-50 text-violet-400"
+              ? "bg-white/5 text-white/30"
+              : "bg-white/10 text-white/70"
         }`}
       >
         {locked ? (
@@ -78,7 +78,7 @@ function LessonRow({ title, active, locked }) {
       </span>
       <span
         className={`min-w-0 flex-1 text-[11px] font-semibold leading-snug sm:text-xs ${
-          active ? "text-white" : locked ? "text-slate-400" : "text-slate-700"
+          active ? "text-white" : locked ? "text-white/30" : "text-white/70"
         }`}
       >
         {title}
@@ -94,7 +94,7 @@ function CoursesLearningMockup() {
   const moreLessons = Math.max(0, (DEMO_COURSE.lessonsCount ?? 0) - displayLessons.length);
 
   return (
-    <div className="courses-mock-panel relative mx-auto w-full max-w-[42rem] overflow-visible rounded-[2rem] px-4 pb-5 pt-[5rem] sm:px-5 sm:pb-6 sm:pt-[5.5rem] lg:max-w-none">
+    <div className="liquid-glass-strong relative mx-auto w-full max-w-[42rem] overflow-visible rounded-[2rem] px-4 pb-5 pt-[5rem] sm:px-5 sm:pb-6 sm:pt-[5.5rem] lg:max-w-none">
       <div
         className="pointer-events-none absolute left-1/2 top-0 z-[2] w-[11rem] -translate-x-1/2 translate-y-[calc(-38%+0.5rem)] sm:w-[12rem] lg:w-[12.2rem]"
         aria-hidden
@@ -107,7 +107,7 @@ function CoursesLearningMockup() {
       </div>
 
       <div
-        className="relative z-[1] flex flex-wrap justify-center gap-1.5 rounded-2xl border border-white/80 bg-white/90 p-1.5 shadow-sm sm:gap-2 sm:p-2"
+        className="liquid-glass relative z-[1] flex flex-wrap justify-center gap-1.5 rounded-2xl p-1.5 shadow-sm sm:gap-2 sm:p-2"
         aria-hidden
       >
         {DEMO_FILTER_LABELS.map((label, idx) => (
@@ -115,8 +115,8 @@ function CoursesLearningMockup() {
             key={label}
             className={`inline-flex items-center rounded-xl px-3 py-1.5 text-[11px] font-bold sm:px-3.5 sm:py-2 sm:text-xs ${
               idx === 0
-                ? "bg-[#630ed4] text-white shadow-md shadow-violet-500/25"
-                : "text-slate-600"
+                ? "liquid-glass !bg-[#c7f36b]/20 text-[#c7f36b] shadow-md"
+                : "text-white/70"
             }`}
           >
             {label}
@@ -125,9 +125,9 @@ function CoursesLearningMockup() {
       </div>
 
       <div className="relative z-[1] mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1.05fr_0.95fr] sm:items-stretch sm:gap-3.5">
-        <div className="flex flex-col rounded-2xl border border-violet-100/80 bg-white p-3.5 shadow-[0_10px_28px_rgba(99,14,212,0.08)] sm:p-4">
-          <div className="mb-2.5 flex items-start gap-2.5 border-b border-slate-100 pb-2.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-violet-100 bg-violet-50/90 sm:h-10 sm:w-10">
+        <div className="liquid-glass flex flex-col rounded-2xl p-3.5 shadow-lg sm:p-4">
+          <div className="mb-2.5 flex items-start gap-2.5 border-b border-white/10 pb-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/20 bg-white/10 sm:h-10 sm:w-10">
               <img
                 src={COURSE_CARD_MENTOR_AVATAR}
                 alt=""
@@ -140,15 +140,15 @@ function CoursesLearningMockup() {
               />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 text-xs font-bold leading-snug text-[#1a1b23] sm:text-sm">
+              <p className="line-clamp-2 text-xs font-bold leading-snug text-white sm:text-sm">
                 {DEMO_COURSE.title}
               </p>
-              <p className="text-[10px] font-medium text-slate-500 sm:text-[11px]">
+              <p className="text-[10px] font-medium text-slate-400 sm:text-[11px]">
                 {DEMO_COURSE.mentorName} · {DEMO_COURSE.mentorCompany}
               </p>
             </div>
           </div>
-          <p className="mb-2.5 text-xs font-bold text-[#630ed4] sm:text-sm">
+          <p className="mb-2.5 text-xs font-bold text-[#c7f36b] sm:text-sm">
             Gồm {DEMO_COURSE.lessonsCount} bài video · {formatDurationMinutes(DEMO_COURSE.duration)}
           </p>
           <ul className="space-y-1.5">
@@ -169,12 +169,12 @@ function CoursesLearningMockup() {
         </div>
 
         <div className="flex h-full flex-col justify-between gap-2.5 sm:gap-3">
-          <div className="rounded-2xl border border-violet-100/80 bg-white px-3.5 py-2.5 shadow-sm sm:px-4 sm:py-3">
-            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-800 sm:text-xs">
-              <Video className="h-4 w-4 shrink-0 text-[#630ed4]" />
+          <div className="liquid-glass rounded-2xl px-3.5 py-2.5 shadow-sm sm:px-4 sm:py-3">
+            <div className="flex items-center gap-2 text-[11px] font-bold text-white sm:text-xs">
+              <Video className="h-4 w-4 shrink-0 text-[#c7f36b]" />
               {COURSES_SHOWCASE_COPY.panelVideoTitle}
             </div>
-            <p className="mt-1.5 text-[11px] font-medium leading-snug text-slate-600 sm:text-xs">
+            <p className="mt-1.5 text-[11px] font-medium leading-snug text-slate-400 sm:text-xs">
               {COURSES_SHOWCASE_COPY.panelVideoBody}
             </p>
             <p className="mt-1 text-[10px] text-slate-500 sm:text-[11px]">
@@ -185,23 +185,23 @@ function CoursesLearningMockup() {
           {DEMO_PROGRESS.map((mod) => (
             <div
               key={mod.id}
-              className="rounded-2xl border border-violet-100/80 bg-white px-3.5 py-2.5 shadow-sm sm:px-4 sm:py-3"
+              className="liquid-glass rounded-2xl px-3.5 py-2.5 shadow-sm sm:px-4 sm:py-3"
             >
               <div className="mb-1.5 flex items-start justify-between gap-2">
-                <p className="line-clamp-2 text-[11px] font-bold leading-snug text-slate-800 sm:text-xs">
+                <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white sm:text-xs">
                   {mod.title}
                 </p>
-                <span className="shrink-0 text-[11px] font-bold text-[#630ed4]">
+                <span className="shrink-0 text-[11px] font-bold text-[#c7f36b]">
                   {mod.done}/{mod.total}
                 </span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-violet-100">
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#630ed4] to-[#a66ff8]"
+                  className="h-full rounded-full bg-gradient-to-r from-[#c7f36b] to-[#a3e635]"
                   style={{ width: `${mod.pct}%` }}
                 />
               </div>
-              <p className="mt-1.5 text-[10px] font-medium text-slate-500 sm:text-[11px]">
+              <p className="mt-1.5 text-[10px] font-medium text-slate-400 sm:text-[11px]">
                 {mod.category}
               </p>
             </div>
@@ -216,13 +216,7 @@ function CoursesLearningMockup() {
 export function CoursesFeatureShowcase({ onCtaClick }) {
   return (
     <section id="courses" className={ty.section}>
-      <style>{`
-        .courses-mock-panel {
-          background: linear-gradient(165deg, #f0ebf8 0%, #ebe4f6 50%, #e6ddf3 100%);
-          border: 2px solid #8037f4;
-          box-shadow: 0 12px 32px rgba(99, 14, 212, 0.1);
-        }
-      `}</style>
+
       <div className={`${ty.sectionShell} ${HOME_SECTION_INNER} !overflow-visible`}>
         <div className={ty.sectionGrid}>
           <div className="relative z-10 flex w-full min-w-0 justify-center max-lg:order-last">
@@ -257,7 +251,7 @@ export function CoursesFeatureShowcase({ onCtaClick }) {
                 <button
                   type="button"
                   onClick={onCtaClick}
-                  className={`courses-cta-primary mt-1 ${ty.cta} text-[#0f172a]`}
+                  className={`mt-1 ${ty.cta}`}
                 >
                   {COURSES_SHOWCASE_COPY.cta}
                 </button>

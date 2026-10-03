@@ -39,7 +39,8 @@ const INPUT_CLS =
 const AUTH_CTA_STYLE = {
   background: BRAND_LIME,
   color: "#0f172a",
-  boxShadow: "0 8px 22px rgba(147, 247, 43, 0.35)",
+  "--pi-button-highlight": "#c7f36b",
+  "--pi-button-ring": "#93f72b40",
 };
 
 /** % = tâm sticker; kích thước lệch, nằm trong vùng inset của lớp nền */

@@ -34,6 +34,7 @@ export function AppSelect({
   id,
   triggerClassName,
   contentClassName,
+  noRing = false,
   "aria-label": ariaLabel,
 }) {
   const stringValue =
@@ -56,6 +57,7 @@ export function AppSelect({
       <SelectTrigger
         id={id}
         aria-label={ariaLabel}
+        data-noring={noRing ? "true" : undefined}
         className={cn(TRIGGER_SIZE[size] || TRIGGER_SIZE.md, triggerClassName)}
       >
         <SelectValue placeholder={placeholder} />

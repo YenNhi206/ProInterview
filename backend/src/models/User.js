@@ -17,7 +17,7 @@ const userSchema = new Schema(
     avatar: { type: String, default: "" },
 
     role: { type: String, enum: ["customer", "mentor", "admin"], default: "customer" },
-    plan: { type: String, enum: ["free", "starter_pro", "elite_pro"], default: "free" },
+    plan: { type: String, enum: ["free", "starter_pro", "elite_pro", "professional", "pro", "basic", "premium"], default: "free" },
     planExpiresAt: { type: Date, default: null },
 
     quota: {

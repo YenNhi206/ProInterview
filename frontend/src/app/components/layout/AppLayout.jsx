@@ -80,13 +80,15 @@ export function AppLayout() {
   };
 
   const shellClass =
-    `pi-typography-shell app-user-shell relative min-h-svh w-full max-w-full min-w-0 text-slate-900 antialiased selection:bg-violet-100 selection:text-violet-900 ${isLegalDoc
-      ? "overflow-x-hidden bg-slate-50"
+    `pi-typography-shell app-user-shell relative min-h-svh w-full max-w-full min-w-0 antialiased selection:bg-violet-100 selection:text-violet-900 ${isLegalDoc
+      ? "overflow-x-hidden bg-slate-50 text-slate-900"
       : isAbout
-        ? "bg-[#F9F6F0]"
-        : allowHorizontalScroll
-          ? "bg-transparent"
-          : "overflow-x-hidden bg-[#f3f0f9]"
+        ? "bg-[#F9F6F0] text-slate-900"
+        : isHome
+          ? "overflow-x-clip bg-transparent text-white"
+          : allowHorizontalScroll
+            ? "bg-transparent text-slate-900"
+            : "overflow-x-hidden bg-[#f3f0f9] text-slate-900"
     }`;
 
   const shellStyle = {
@@ -123,13 +125,13 @@ export function AppLayout() {
         <main
           className={`relative z-[1] min-h-0 flex-1 ${hideNavbar
             ? "flex min-h-svh flex-col pt-0"
-            : `pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem] overflow-x-hidden`
+            : `pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem] ${isHome ? "overflow-x-clip" : "overflow-x-hidden"}`
             }`}
         >
           {showPromoBanner && <div style={{ height: PROMO_BANNER_HEIGHT }} aria-hidden />}
           <Outlet />
         </main>
-        {showSiteFooter ? <Footer variant="light" /> : null}
+        {showSiteFooter ? <Footer variant="dark" /> : null}
       </div>
       <DiscountPromoModal
         open={promoModalOpen}

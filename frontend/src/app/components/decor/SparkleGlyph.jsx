@@ -6,11 +6,12 @@ import React, { useId } from "react";
 export function SparkleGlyph({ className = "", style, tone = "brand" }) {
   const uid = useId().replace(/:/g, "");
   const isLime = tone === "lime";
-  const mainStart = isLime ? "#bef264" : "#630ed4";
-  const mainEnd = isLime ? "#84cc16" : "#4B18CC";
-  const coreStart = isLime ? "#ffffff" : "#99FF00";
-  const coreEnd = isLime ? "#f1f5f9" : "#63D800";
-  const accentColor = isLime ? "#bef264" : "#C7ADFF";
+  const isWhite = tone === "white";
+  const mainStart = isWhite ? "#ffffff" : (isLime ? "#bef264" : "#630ed4");
+  const mainEnd = isWhite ? "#f8fafc" : (isLime ? "#84cc16" : "#4B18CC");
+  const coreStart = isWhite ? "#e2e8f0" : (isLime ? "#ffffff" : "#99FF00");
+  const coreEnd = isWhite ? "#cbd5e1" : (isLime ? "#f1f5f9" : "#63D800");
+  const accentColor = isWhite ? "#ffffff" : (isLime ? "#bef264" : "#C7ADFF");
   const gid = `${tone}-${uid}`;
 
   return (

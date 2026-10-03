@@ -59,11 +59,11 @@ function MentorCard({ mentor }) {
   return (
     <Link
       to={href}
-      className="group relative flex h-[380px] w-[280px] shrink-0 flex-col justify-between gap-3 rounded-2xl border-2 border-violet-400 bg-violet-600 p-6 transition-all duration-200 hover:-translate-y-2 hover:border-violet-300 hover:bg-violet-500 sm:w-[300px] lg:w-[320px]"
+      className="liquid-glass group relative flex h-[380px] w-[280px] shrink-0 flex-col justify-between gap-3 rounded-2xl p-6 transition-all duration-200 hover:-translate-y-2 sm:w-[300px] lg:w-[320px] shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
     >
       {/* Tag Mentor Đề xuất */}
-      <div className="absolute -right-2 -top-2 z-10 flex items-center gap-1 rounded-full bg-lime-400 px-3 py-1.5 text-[11px] font-bold tracking-wide text-violet-950 shadow-lg">
-        <SparkleGlyph className="h-4 w-4 shrink-0" tone="brand" />
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full border border-lime-400/30 bg-lime-400/10 px-2.5 py-1 text-[10px] font-bold tracking-wider text-lime-400 backdrop-blur-md shadow-[0_0_15px_rgba(147,247,43,0.15)]">
+        <SparkleGlyph className="h-3 w-3 shrink-0" tone="lime" />
         ĐỀ XUẤT
       </div>
 
@@ -94,7 +94,7 @@ function MentorCard({ mentor }) {
           <span className="text-[11px] text-violet-300">({reviewCount})</span>
         </span>
         {price && (
-          <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[11px] font-bold text-violet-950">
+          <span className="liquid-glass rounded-full px-2 py-0.5 text-[11px] font-bold text-[#c7f36b]">
             {price}
           </span>
         )}
@@ -106,7 +106,7 @@ function MentorCard({ mentor }) {
           {tags.map((tag) => (
             <span
               key={tag}
-              className="min-w-0 max-w-full truncate rounded-full border border-white/30 bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white"
+              className="liquid-glass min-w-0 max-w-full truncate rounded-full px-2 py-0.5 text-[10px] font-medium text-white/90"
             >
               {tag}
             </span>
@@ -115,7 +115,7 @@ function MentorCard({ mentor }) {
       )}
 
       {/* Hover CTA */}
-      <span className="flex items-center justify-center gap-1 rounded-lg bg-lime-400 py-1.5 text-[11px] font-bold text-violet-950 transition-all group-hover:bg-lime-300">
+      <span className="liquid-glass-strong flex items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] font-bold text-white transition-all group-hover:scale-[1.02] group-hover:text-[#93f72b] group-hover:shadow-[0_0_12px_rgba(147,247,43,0.15)]">
         Đặt lịch <ArrowRight className="h-3 w-3" />
       </span>
     </Link>
@@ -160,16 +160,16 @@ export function MentorFeatureShowcase() {
           <button
             onClick={() => scroll(-1)}
             aria-label="Cuộn trái"
-            className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-violet-200 bg-white p-2 shadow-md transition hover:bg-violet-50 lg:flex"
+            className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 p-2 shadow-md transition hover:bg-white/20 lg:flex backdrop-blur-md"
           >
-            <ChevronLeft className="h-5 w-5 text-violet-600" />
+            <ChevronLeft className="h-5 w-5 text-white" />
           </button>
           <button
             onClick={() => scroll(1)}
             aria-label="Cuộn phải"
-            className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-violet-200 bg-white p-2 shadow-md transition hover:bg-violet-50 lg:flex"
+            className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 p-2 shadow-md transition hover:bg-white/20 lg:flex backdrop-blur-md"
           >
-            <ChevronRight className="h-5 w-5 text-violet-600" />
+            <ChevronRight className="h-5 w-5 text-white" />
           </button>
 
           {/* Scrollable list */}

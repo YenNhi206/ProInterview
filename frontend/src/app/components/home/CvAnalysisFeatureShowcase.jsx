@@ -25,7 +25,7 @@ function ScoreCard({
 }) {
   return (
     <div
-      className={`cv-analysis-glass-card rounded-3xl border-2 border-[#8037f4] bg-white px-[1.5rem] py-[0.875rem] shadow-xl transition-all duration-300 hover:scale-[1.02] sm:px-[1.75rem] sm:py-[1.15rem] max-lg:rounded-xl max-lg:px-4 max-lg:py-3 max-lg:shadow-md ${className}`}
+      className={`liquid-glass-strong rounded-3xl px-[1.5rem] py-[0.875rem] shadow-xl transition-all duration-300 hover:scale-[1.02] sm:px-[1.75rem] sm:py-[1.15rem] max-lg:rounded-xl max-lg:px-4 max-lg:py-3 max-lg:shadow-md ${className}`}
     >
       <div className={`flex items-center justify-between gap-3 ${children ? "mb-3 sm:mb-3.5" : ""}`}>
         <h3 className={`${ty.cardTitle} ${titleClassName}`}>{title}</h3>
@@ -56,7 +56,11 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
   return (
     <section id="features" className={ty.section}>
       <style>{`
-        .cv-analysis-glass-card { background-color: #ffffff; }
+        .cv-analysis-glass-card { 
+          background-color: rgba(255, 255, 255, 0.05); 
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
         @keyframes cv-score-card-grow {
           0% { opacity: 0; transform: scale(0.88); }
           100% { opacity: 1; transform: scale(1); }
@@ -90,11 +94,7 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
               <button
                 type="button"
                 onClick={onCtaClick}
-                className={`${ty.cta} text-[#0f172a] hover:brightness-110`}
-                style={{
-                  background: "#93f72b",
-                  boxShadow: "0 8px 20px rgba(15,23,42,0.08)",
-                }}
+                className={ty.cta}
               >
                 {CV_SHOWCASE_COPY.cta}
               </button>
@@ -118,17 +118,17 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
                     className="scale-95 transform max-lg:px-[1.15rem] max-lg:py-[0.9rem]"
                     title="Độ khớp CV–JD"
                     score={`${DEMO_MATCH.percent}% Khá tốt`}
-                    scoreBg="bg-[#e6f7ed]"
-                    scoreClass="text-[#2e7d32]"
-                    scoreBorder="border-[#c8e6c9]"
+                    scoreBg="liquid-glass"
+                    scoreClass="text-white"
+                    scoreBorder="border-0"
                   />
                 </CardReveal>
 
                 <CardReveal delayMs={140} className="relative z-20">
-                  <div className="cv-analysis-glass-card rounded-3xl border-2 border-[#8037f4] bg-white px-[1.5rem] py-[0.875rem] shadow-xl transition-all duration-300 hover:scale-[1.02] sm:px-[1.75rem] sm:py-[1.15rem]">
+                  <div className="liquid-glass-strong rounded-3xl p-[1.5rem] shadow-xl transition-all duration-300 hover:scale-[1.02] sm:px-[1.75rem] sm:py-[1.15rem]">
                     <div className="mb-3 flex items-center gap-2.5 sm:mb-3.5">
-                      <div className="flex h-[1.7rem] w-[1.7rem] shrink-0 items-center justify-center rounded-lg bg-violet-100 sm:h-[1.95rem] sm:w-[1.95rem]">
-                        <FileText className="h-[0.7rem] w-[0.7rem] text-[#630ed4] sm:h-[0.825rem] sm:w-[0.825rem]" />
+                      <div className="flex h-[1.7rem] w-[1.7rem] shrink-0 items-center justify-center rounded-lg bg-[#c7f36b]/20 sm:h-[1.95rem] sm:w-[1.95rem]">
+                        <FileText className="h-[0.7rem] w-[0.7rem] text-[#c7f36b] sm:h-[0.825rem] sm:w-[0.825rem]" />
                       </div>
                       <h3 className={ty.cardTitle}>Từ khóa khớp với JD</h3>
                     </div>
@@ -136,9 +136,9 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
                       {CV_HOME_DEMO_JD_KEYWORDS.map((kw) => (
                         <span
                           key={kw}
-                          className="rounded-full border border-lime-400/70 bg-lime-50 px-2.5 py-1 text-sm font-semibold lowercase text-emerald-900 sm:text-base"
+                          className="liquid-glass rounded-full px-2.5 py-1 text-sm font-semibold lowercase text-white/90 sm:text-base"
                         >
-                          {kw} ✓
+                          {kw} <span className="text-[#c7f36b]">✓</span>
                         </span>
                       ))}
                     </div>
@@ -146,14 +146,14 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
                 </CardReveal>
 
                 <CardReveal delayMs={280} className="relative z-30">
-                  <div className="cv-analysis-glass-card relative w-full overflow-hidden rounded-3xl border-2 border-[#8037f4] bg-white shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <div className="liquid-glass-strong relative w-full overflow-hidden rounded-3xl shadow-xl transition-all duration-300 hover:scale-[1.02]">
                     <CvAnalysisScoreBreakdown
                       overallScore={DEMO_MATCH.percent}
                       rows={CV_HUB_DEMO_SCORE_ROWS}
                       compact
                       homePreview
                       showHeader={false}
-                      className="!rounded-none !border-0 !shadow-none"
+                      className="!rounded-none !border-0 !shadow-none !bg-transparent !backdrop-blur-none"
                     />
                   </div>
                 </CardReveal>
