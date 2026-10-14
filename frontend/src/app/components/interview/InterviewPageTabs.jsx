@@ -12,7 +12,7 @@ const TABS = [
  */
 export function InterviewPageTabs({ activeTab, onTabChange }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 px-6 py-4 sm:px-8 sm:py-5">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5 sm:px-6 sm:py-3">
       <div
         className="inline-flex rounded-xl border border-white/10 bg-white/[0.04] p-1 backdrop-blur-md"
         role="tablist"
@@ -30,13 +30,13 @@ export function InterviewPageTabs({ activeTab, onTabChange }) {
               onClick={() => {
                 if (!active) onTabChange(tab.id);
               }}
-              className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all sm:px-4 sm:py-2 sm:text-sm ${
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold transition-all sm:px-3.5 sm:py-1.5 ${
                 active
                   ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.4)]"
                   : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
               }`}
             >
-              <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden />
+              <Icon className="h-3.5 w-3.5" aria-hidden />
               {tab.label}
             </button>
           );
