@@ -548,9 +548,6 @@ export function Interview() {
   const optOn =
     "border-[#93f72b] bg-[#93f72b]/[0.08] ring-1 ring-[#93f72b]/40 shadow-[0_0_20px_rgba(147,247,43,0.12)]";
 
-  const activeHrPreviewKey = hrGender || "male";
-  const activeHrPreview = HR_PREVIEWS[activeHrPreviewKey];
-
   return (
     <MentorPageShell bottomPad="pb-24">
       {/* ── Browser STT compatibility warning ─────────────────── */}
@@ -580,460 +577,330 @@ export function Interview() {
       <div className="relative w-full">
         <InterviewHeroAtmosphere />
 
-        <div className={`relative z-10 flex min-h-0 flex-col pb-10 pt-8 sm:pt-12 ${CUSTOMER_SHELL_GUTTER}`}>
-          <div className={`${CUSTOMER_SHELL_MAX} mx-auto flex w-full flex-col`}>
+        <div className={`relative z-10 flex min-h-0 flex-col pb-12 pt-8 sm:pt-12 ${CUSTOMER_SHELL_GUTTER}`}>
+          <div className={`${CUSTOMER_SHELL_MAX} mx-auto flex w-full max-w-3xl flex-col`}>
 
             {/* ═══════ HERO BANNER ═══════ */}
-            <div className="text-center relative z-10 mb-10 max-w-3xl mx-auto">
+            <div className="text-center relative z-10 mb-8 max-w-2xl mx-auto">
               {/* Pill Badge */}
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-4 py-1.5 text-xs font-bold text-violet-300 shadow-[0_0_20px_rgba(168,85,247,0.2)] backdrop-blur-md">
                 <Sparkles className="size-3.5 text-[#93f72b]" />
-                <span>PHÒNG LUYỆN PHỎNG VẤN AI THỰC CHIẾN</span>
+                <span>AI MOCK INTERVIEW STUDIO</span>
               </div>
 
-              <h1 className="font-headline text-[clamp(2rem,3.8vw,3.2rem)] font-extrabold leading-[1.12] tracking-tight text-white">
+              <h1 className="font-headline text-[clamp(1.85rem,3.4vw,2.85rem)] font-extrabold leading-[1.15] tracking-tight text-white">
                 Luyện phỏng vấn với AI{" "}
                 <span className="bg-gradient-to-r from-[#93f72b] to-[#a6ff42] bg-clip-text text-transparent">
                   từ CV của bạn
                 </span>
               </h1>
 
-              <p className="mt-3.5 text-sm sm:text-base font-normal leading-relaxed text-slate-300 max-w-2xl mx-auto">
-                Từ CV của bạn, ProInterview tạo buổi phỏng vấn thử với HR AI và góp ý sau từng câu trả lời để bạn tự tin hơn trước buổi thật.
+              <p className="mt-3 text-sm sm:text-base font-normal leading-relaxed text-slate-300">
+                Hệ thống phân tích hồ sơ và mô phỏng buổi phỏng vấn thử thực tế với HR AI chuyên sâu theo vị trí IT của bạn.
               </p>
-
-              {/* Feature Chips */}
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-medium text-slate-300">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-md">
-                  <Volume2 className="h-3.5 w-3.5 text-[#93f72b]" />
-                  Voice AI nhận diện giọng nói mượt mà
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-md">
-                  <Sparkles className="h-3.5 w-3.5 text-violet-400" />
-                  Chấm điểm theo khung chuẩn STAR
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-md">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                  Bộ câu hỏi cá nhân hóa theo JD thực tế
-                </span>
-              </div>
             </div>
 
-            {/* ═══════ 2-COLUMN STUDIO LAYOUT ═══════ */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-              
-              {/* ── LEFT COLUMN (Live AI Interviewer & STAR Guide) ── */}
-              <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
-                {/* Card 1: Live HR AI Showcase */}
-                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#140d2b]/85 p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className="relative flex h-2.5 w-2.5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#93f72b] opacity-75" />
-                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#93f72b]" />
-                      </span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                        Phòng AI trực tuyến
-                      </span>
-                    </div>
-                    <span className="rounded-full border border-violet-400/30 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-bold text-violet-300">
-                      Voice & Video
-                    </span>
-                  </div>
+            {/* ═══════ MAIN STUDIO CARD ═══════ */}
+            <div className="relative w-full overflow-hidden rounded-[2rem] border border-white/10 bg-[#130b28]/90 shadow-[0_24px_70px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+              {/* Top ambient highlight line */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent" />
 
-                  {/* HR Preview Visual */}
-                  <div className="mt-4 flex flex-col items-center text-center">
-                    <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-inner">
-                      <video
-                        key={activeHrPreviewKey}
-                        src={activeHrPreview.video}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        disablePictureInPicture
-                        controlsList="nodownload noplaybackrate"
-                        className="h-full w-full object-contain"
+              <InterviewPageTabs activeTab={setupSubTab} onTabChange={setSetupSubTab} />
+
+              {setupSubTab === "history" ? (
+                <div className="px-6 py-6 sm:px-8 sm:py-8">
+                  <InterviewHistoryPanel />
+                </div>
+              ) : (
+                <div className="px-5 py-6 sm:px-8 sm:py-8">
+                  <InterviewStepBar
+                    current={flowStep}
+                    onStepClick={(step) => {
+                      if (step === 1 && flowStep === 2) setFlowStep(1);
+                    }}
+                  />
+
+                  {flowStep === 1 && (
+                    <section className="space-y-6">
+                      <input
+                        ref={cvFileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
+                        aria-hidden
+                        tabIndex={-1}
+                        onChange={handleFileUpload}
                       />
-                      {/* Floating soundwave equalizer */}
-                      <div className="absolute bottom-2.5 right-3 flex items-end gap-1 rounded-full bg-black/70 px-2.5 py-1 backdrop-blur-md border border-white/10">
-                        <span className="h-2 w-0.5 animate-pulse bg-[#93f72b]" style={{ animationDelay: "0.1s" }} />
-                        <span className="h-3.5 w-0.5 animate-pulse bg-[#93f72b]" style={{ animationDelay: "0.3s" }} />
-                        <span className="h-5 w-0.5 animate-pulse bg-[#93f72b]" style={{ animationDelay: "0.2s" }} />
-                        <span className="h-3 w-0.5 animate-pulse bg-[#93f72b]" style={{ animationDelay: "0.4s" }} />
-                        <span className="h-1.5 w-0.5 animate-pulse bg-[#93f72b]" style={{ animationDelay: "0.15s" }} />
-                      </div>
-                    </div>
-
-                    <div className="mt-3.5 flex items-center gap-2">
-                      <Bot className="h-4 w-4 text-[#93f72b]" />
-                      <p className="text-base font-extrabold text-white">
-                        {activeHrPreview.name}
-                      </p>
-                      <span className="text-xs text-slate-400">· {activeHrPreview.subtitle}</span>
-                    </div>
-
-                    <p className="mt-2 text-xs leading-relaxed text-slate-300 italic">
-                      "Tôi sẽ đặt câu hỏi bám sát vị trí bạn ứng tuyển và nhận xét chi tiết sau từng câu trả lời."
-                    </p>
-                  </div>
-                </div>
-
-                {/* Card 2: STAR Technique Guide */}
-                <div className="rounded-3xl border border-white/10 bg-[#140d2b]/85 p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-                  <div className="flex items-center gap-2 text-white">
-                    <Sparkles className="h-4 w-4 text-[#93f72b]" />
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200">
-                      Mẹo ghi điểm theo khung STAR
-                    </h3>
-                  </div>
-
-                  <div className="mt-4 space-y-2.5">
-                    <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-2.5 transition-colors hover:border-violet-500/30">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-violet-600/30 text-xs font-black text-violet-300">
-                        S
-                      </span>
-                      <div>
-                        <p className="text-xs font-bold text-white">Situation (Bối cảnh)</p>
-                        <p className="mt-0.5 text-[11px] text-slate-400">Nêu rõ dự án hoặc thử thách thực tế bạn từng gặp.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-2.5 transition-colors hover:border-violet-500/30">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-600/30 text-xs font-black text-indigo-300">
-                        T
-                      </span>
-                      <div>
-                        <p className="text-xs font-bold text-white">Task (Nhiệm vụ)</p>
-                        <p className="mt-0.5 text-[11px] text-slate-400">Trọng trách và mục tiêu cụ thể bạn cần hoàn thành.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-2.5 transition-colors hover:border-violet-500/30">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#93f72b]/20 text-xs font-black text-[#93f72b]">
-                        A
-                      </span>
-                      <div>
-                        <p className="text-xs font-bold text-white">Action (Hành động)</p>
-                        <p className="mt-0.5 text-[11px] text-slate-400">Công nghệ & giải pháp kỹ thuật bạn đã áp dụng.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-2.5 transition-colors hover:border-violet-500/30">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-600/30 text-xs font-black text-emerald-300">
-                        R
-                      </span>
-                      <div>
-                        <p className="text-xs font-bold text-white">Result (Kết quả)</p>
-                        <p className="mt-0.5 text-[11px] text-slate-400">Số liệu đo lường thành công (% tối ưu, thời gian).</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3: Privacy & Security */}
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-md">
-                  <ShieldCheck className="h-5 w-5 shrink-0 text-[#93f72b]" />
-                  <p className="text-[11px] leading-relaxed text-slate-300">
-                    <strong className="text-white">Bảo mật tuyệt đối:</strong> CV & đối thoại chỉ dùng cho phiên luyện tập cá nhân của bạn.
-                  </p>
-                </div>
-              </div>
-
-              {/* ── RIGHT COLUMN (Main Studio Workspace) ── */}
-              <div className="lg:col-span-7">
-                <div className="relative w-full overflow-hidden rounded-[2rem] border border-white/10 bg-[#140d2b]/85 shadow-[0_24px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
-                  {/* Top ambient highlight line */}
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent" />
-
-                  <InterviewPageTabs activeTab={setupSubTab} onTabChange={setSetupSubTab} />
-
-                  {setupSubTab === "history" ? (
-                    <div className="px-6 py-6 sm:px-8 sm:py-8">
-                      <InterviewHistoryPanel />
-                    </div>
-                  ) : (
-                    <div className="px-5 py-6 sm:px-8 sm:py-8">
-                      <InterviewStepBar
-                        current={flowStep}
-                        onStepClick={(step) => {
-                          if (step === 1 && flowStep === 2) setFlowStep(1);
-                        }}
+                      <input
+                        ref={jdFileInputRef}
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                        aria-hidden
+                        tabIndex={-1}
+                        onChange={handleJdFileUpload}
                       />
+                      <div>
+                        <h2 className="text-base sm:text-lg font-bold text-white">Bước 1: Chọn nguồn CV để bắt đầu</h2>
+                        <p className="mt-0.5 text-xs sm:text-sm text-slate-400">
+                          AI đọc CV của bạn để trích xuất kỹ năng và tạo bộ câu hỏi phỏng vấn phù hợp.
+                        </p>
+                      </div>
 
-                      {flowStep === 1 && (
-                        <section className="space-y-6">
-                          <input
-                            ref={cvFileInputRef}
-                            type="file"
-                            accept=".pdf,.doc,.docx"
-                            className="hidden"
-                            aria-hidden
-                            tabIndex={-1}
-                            onChange={handleFileUpload}
-                          />
-                          <input
-                            ref={jdFileInputRef}
-                            type="file"
-                            accept=".pdf"
-                            className="hidden"
-                            aria-hidden
-                            tabIndex={-1}
-                            onChange={handleJdFileUpload}
-                          />
-                          <div>
-                            <h2 className="text-base sm:text-lg font-bold text-white">Bước 1: Chọn nguồn CV</h2>
-                            <p className="mt-0.5 text-xs sm:text-sm text-slate-400">
-                              AI đọc CV của bạn để tạo bộ câu hỏi phỏng vấn phù hợp.
-                            </p>
-                          </div>
-
-                          <div className="grid gap-3.5 sm:grid-cols-2">
-                            <button
-                              type="button"
-                              aria-pressed={option === "A"}
-                              onClick={handleSelectAnalyzedCv}
-                              disabled={!latestCV}
-                              className={`${optBase} ${option === "A" ? optOn : optIdle} ${!latestCV ? "cursor-not-allowed opacity-40" : ""}`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <SelectOptionRing selected={option === "A"} />
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <FileStack className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
-                                    <p className="font-bold text-white">CV đã phân tích</p>
-                                  </div>
-                                  <p className="mt-1 text-xs text-slate-400">
-                                    {latestCV ? "Kết quả CV + JD đã lưu trên hệ thống" : "Cần phân tích CV trước"}
-                                  </p>
-                                </div>
+                      <div className="grid gap-3.5 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          aria-pressed={option === "A"}
+                          onClick={handleSelectAnalyzedCv}
+                          disabled={!latestCV}
+                          className={`${optBase} ${option === "A" ? optOn : optIdle} ${!latestCV ? "cursor-not-allowed opacity-40" : ""}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <SelectOptionRing selected={option === "A"} />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <FileStack className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
+                                <p className="font-bold text-white">CV đã phân tích</p>
                               </div>
-                            </button>
-
-                            <button
-                              type="button"
-                              aria-pressed={option === "B"}
-                              onClick={handleSelectUploadCv}
-                              className={`${optBase} ${option === "B" ? optOn : optIdle}`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <SelectOptionRing selected={option === "B"} />
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <CloudUpload className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
-                                    <p className="font-bold text-white">Tải CV mới</p>
-                                  </div>
-                                  <p className="mt-1 text-xs text-slate-400">Chọn thẻ, rồi upload file trong ô bên dưới</p>
-                                </div>
-                              </div>
-                            </button>
-                          </div>
-
-                          {!latestCV && (
-                            <p className="text-xs text-slate-400">
-                              Chưa có phân tích CV.{" "}
-                              <button
-                                type="button"
-                                onClick={() => navigate("/cv-analysis")}
-                                className="font-semibold text-[#93f72b] hover:underline"
-                              >
-                                Phân tích CV trước
-                              </button>
-                              {" "}hoặc chọn Tải CV mới.
-                            </p>
-                          )}
-
-                          <SourceDetailPanel
-                            option={option}
-                            latestCV={latestCV}
-                            cvUploaded={cvUploaded}
-                            uploadedFile={uploadedFile}
-                            onPickFile={openCvFilePicker}
-                          />
-
-                          {/* JD optional, giúp câu hỏi sát yêu cầu công ty hơn */}
-                          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-all">
-                            <button
-                              type="button"
-                              onClick={() => setJdExpanded(v => !v)}
-                              className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03]"
-                            >
-                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-violet-400/40 bg-violet-500/20 text-[10px] font-extrabold text-[#c084fc]">
-                                JD
-                              </span>
-                              <span className="flex-1 text-sm font-medium text-slate-200">
-                                Thêm mô tả công việc
-                                {(jdFile || jdInputText.trim()) ? (
-                                  <span className="ml-2 text-xs font-semibold text-[#93f72b]">
-                                    ✓ {jdFile ? jdFile.name : `${jdInputText.trim().slice(0, 30)}…`}
-                                  </span>
-                                ) : (
-                                  <span className="ml-1 text-xs font-normal text-slate-500">(tùy chọn)</span>
-                                )}
-                              </span>
-                              <ChevronDown
-                                className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${jdExpanded ? "rotate-180" : ""}`}
-                                strokeWidth={1.75}
-                              />
-                            </button>
-
-                            {jdExpanded && (
-                              <div className="space-y-3 border-t border-white/10 bg-black/20 px-4 pb-4 pt-3">
-                                <p className="text-xs text-slate-400">
-                                  Dán nội dung JD hoặc upload file, AI sẽ bám sát yêu cầu tuyển dụng thực tế khi tạo câu hỏi.
-                                </p>
-                                <textarea
-                                  value={jdInputText}
-                                  onChange={e => { setJdInputText(e.target.value); if (e.target.value.trim()) setJdFile(null); }}
-                                  placeholder="Dán mô tả công việc (Job Description) vào đây..."
-                                  rows={5}
-                                  className="w-full resize-none rounded-xl border border-white/15 bg-black/40 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-[#93f72b] focus:outline-none focus:ring-1 focus:ring-[#93f72b]"
-                                />
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-slate-500">hoặc</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => jdFileInputRef.current?.click()}
-                                    className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
-                                  >
-                                    <FileText className="h-3.5 w-3.5 text-[#93f72b]" strokeWidth={1.75} />
-                                    {jdFile ? jdFile.name : "Upload file JD (PDF)"}
-                                  </button>
-                                  {jdFile && (
-                                    <button
-                                      type="button"
-                                      onClick={() => setJdFile(null)}
-                                      className="text-xs text-slate-400 hover:text-rose-400"
-                                    >
-                                      ✕ Xoá
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={handleContinueToHr}
-                            disabled={!canProceedSetup}
-                            className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
-                              canProceedSetup ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
-                            }`}
-                          >
-                            Tiếp tục sang Chọn HR AI
-                            <ArrowRight className="h-4 w-4" {...IS} />
-                          </button>
-                        </section>
-                      )}
-
-                      {flowStep === 2 && (
-                        <section className="space-y-6">
-                          <div>
-                            <h2 className="text-base sm:text-lg font-bold text-white">Bước 2: Chọn HR AI & Giọng nói</h2>
-                            <p className="mt-0.5 text-xs sm:text-sm text-slate-400">
-                              Chọn HR ảo phù hợp để bắt đầu phiên luyện tập có video & âm thanh trực tiếp.
-                            </p>
-                          </div>
-
-                          <div className="grid items-stretch gap-3.5 sm:grid-cols-2">
-                            {(["male", "female"]).map((g) => {
-                              const preview = HR_PREVIEWS[g];
-                              const Icon = g === "male" ? Mars : Venus;
-                              return (
-                                <button
-                                  key={g}
-                                  type="button"
-                                  aria-pressed={hrGender === g}
-                                  onClick={() => setHrGender(g)}
-                                  className={`${optBase} h-full ${hrGender === g ? optOn : optIdle}`}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <SelectOptionRing selected={hrGender === g} />
-                                    <div className="min-w-0 flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <Icon className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
-                                        <p className="font-bold text-white">{preview.name}</p>
-                                      </div>
-                                      <p className="mt-1 text-xs text-slate-400">{preview.subtitle}</p>
-                                    </div>
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          <HrPreviewPanel hrGender={hrGender} />
-
-                          {extractWarning && (
-                            <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5">
-                              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-                              <p className="text-xs leading-relaxed text-amber-200">
-                                {extractWarning}
-                                {extractWarning.includes("hết lượt") && (
-                                  <>
-                                    {" "}
-                                    <button
-                                      type="button"
-                                      onClick={() => navigate("/pricing")}
-                                      className="font-semibold text-[#93f72b] hover:underline"
-                                    >
-                                      Nâng cấp Pro
-                                    </button>
-                                  </>
-                                )}
+                              <p className="mt-1 text-xs text-slate-400">
+                                {latestCV ? "Kết quả CV + JD đã lưu trên hệ thống" : "Cần phân tích CV trước"}
                               </p>
                             </div>
-                          )}
-
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() => setFlowStep(1)}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-bold text-slate-300 transition-all hover:bg-white/10 hover:text-white"
-                            >
-                              <ArrowLeft className="h-4 w-4" {...IS} />
-                              Quay lại
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={handleStart}
-                              disabled={!canStart || Boolean(loadingStep)}
-                              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
-                                canStart && !loadingStep ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
-                              }`}
-                            >
-                              {loadingStep ? (
-                                <>
-                                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                                  {loadingStep === "extracting_cv" && "Đang đọc CV..."}
-                                  {loadingStep === "extracting_jd" && "Đang đọc JD..."}
-                                  {loadingStep === "generating_questions" && "AI đang tạo câu hỏi..."}
-                                  {loadingStep === "creating_session" && "Đang chuẩn bị..."}
-                                  {loadingStep === "pregenerating_videos" && "Đang tạo video HR..."}
-                                </>
-                              ) : (
-                                <>
-                                  <Mic className="h-4 w-4" {...IS} />
-                                  {canStart ? "Bắt đầu phỏng vấn" : "Chọn HR để bắt đầu"}
-                                </>
-                              )}
-                            </button>
                           </div>
-                        </section>
+                        </button>
+
+                        <button
+                          type="button"
+                          aria-pressed={option === "B"}
+                          onClick={handleSelectUploadCv}
+                          className={`${optBase} ${option === "B" ? optOn : optIdle}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <SelectOptionRing selected={option === "B"} />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <CloudUpload className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
+                                <p className="font-bold text-white">Tải CV mới</p>
+                              </div>
+                              <p className="mt-1 text-xs text-slate-400">Chọn thẻ, rồi upload file trong ô bên dưới</p>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+
+                      {!latestCV && (
+                        <p className="text-xs text-slate-400">
+                          Chưa có phân tích CV.{" "}
+                          <button
+                            type="button"
+                            onClick={() => navigate("/cv-analysis")}
+                            className="font-semibold text-[#93f72b] hover:underline"
+                          >
+                            Phân tích CV trước
+                          </button>
+                          {" "}hoặc chọn Tải CV mới.
+                        </p>
                       )}
-                    </div>
+
+                      <SourceDetailPanel
+                        option={option}
+                        latestCV={latestCV}
+                        cvUploaded={cvUploaded}
+                        uploadedFile={uploadedFile}
+                        onPickFile={openCvFilePicker}
+                      />
+
+                      {/* JD optional, giúp câu hỏi sát yêu cầu công ty hơn */}
+                      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-all">
+                        <button
+                          type="button"
+                          onClick={() => setJdExpanded(v => !v)}
+                          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03]"
+                        >
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-violet-400/40 bg-violet-500/20 text-[10px] font-extrabold text-[#c084fc]">
+                            JD
+                          </span>
+                          <span className="flex-1 text-sm font-medium text-slate-200">
+                            Thêm mô tả công việc
+                            {(jdFile || jdInputText.trim()) ? (
+                              <span className="ml-2 text-xs font-semibold text-[#93f72b]">
+                                ✓ {jdFile ? jdFile.name : `${jdInputText.trim().slice(0, 30)}…`}
+                              </span>
+                            ) : (
+                              <span className="ml-1 text-xs font-normal text-slate-500">(tùy chọn)</span>
+                            )}
+                          </span>
+                          <ChevronDown
+                            className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${jdExpanded ? "rotate-180" : ""}`}
+                            strokeWidth={1.75}
+                          />
+                        </button>
+
+                        {jdExpanded && (
+                          <div className="space-y-3 border-t border-white/10 bg-black/20 px-4 pb-4 pt-3">
+                            <p className="text-xs text-slate-400">
+                              Dán nội dung JD hoặc upload file, AI sẽ bám sát yêu cầu tuyển dụng thực tế khi tạo câu hỏi.
+                            </p>
+                            <textarea
+                              value={jdInputText}
+                              onChange={e => { setJdInputText(e.target.value); if (e.target.value.trim()) setJdFile(null); }}
+                              placeholder="Dán mô tả công việc (Job Description) vào đây..."
+                              rows={5}
+                              className="w-full resize-none rounded-xl border border-white/15 bg-black/40 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-[#93f72b] focus:outline-none focus:ring-1 focus:ring-[#93f72b]"
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-slate-500">hoặc</span>
+                              <button
+                                type="button"
+                                onClick={() => jdFileInputRef.current?.click()}
+                                className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                              >
+                                <FileText className="h-3.5 w-3.5 text-[#93f72b]" strokeWidth={1.75} />
+                                {jdFile ? jdFile.name : "Upload file JD (PDF)"}
+                              </button>
+                              {jdFile && (
+                                <button
+                                  type="button"
+                                  onClick={() => setJdFile(null)}
+                                  className="text-xs text-slate-400 hover:text-rose-400"
+                                >
+                                  ✕ Xoá
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleContinueToHr}
+                        disabled={!canProceedSetup}
+                        className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
+                          canProceedSetup ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
+                        }`}
+                      >
+                        Tiếp tục: Chọn HR AI & Giọng nói
+                        <ArrowRight className="h-4 w-4" {...IS} />
+                      </button>
+                    </section>
+                  )}
+
+                  {flowStep === 2 && (
+                    <section className="space-y-6">
+                      <div>
+                        <h2 className="text-base sm:text-lg font-bold text-white">Bước 2: Chọn HR AI đồng hành</h2>
+                        <p className="mt-0.5 text-xs sm:text-sm text-slate-400">
+                          Chọn người phỏng vấn ảo phù hợp với vị trí và phong cách bạn muốn luyện tập.
+                        </p>
+                      </div>
+
+                      <div className="grid items-stretch gap-3.5 sm:grid-cols-2">
+                        {(["male", "female"]).map((g) => {
+                          const preview = HR_PREVIEWS[g];
+                          const Icon = g === "male" ? Mars : Venus;
+                          const roleSubtitle = g === "male" ? "Lead Technical Interviewer" : "Talent & Culture Fit Lead";
+                          const desc = g === "male"
+                            ? "Tập trung kiến trúc hệ thống, tư duy logic và giải quyết vấn đề kỹ thuật."
+                            : "Tập trung kỹ năng mềm, mô hình STAR, làm việc nhóm và văn hóa doanh nghiệp.";
+
+                          return (
+                            <button
+                              key={g}
+                              type="button"
+                              aria-pressed={hrGender === g}
+                              onClick={() => setHrGender(g)}
+                              className={`${optBase} h-full ${hrGender === g ? optOn : optIdle}`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <SelectOptionRing selected={hrGender === g} />
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <Icon className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
+                                    <p className="font-bold text-white">{preview.name}</p>
+                                    <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+                                      {preview.subtitle.split("·")[0].trim()}
+                                    </span>
+                                  </div>
+                                  <p className="mt-1 text-xs font-medium text-violet-300">{roleSubtitle}</p>
+                                  <p className="mt-1 text-[11px] leading-relaxed text-slate-400">{desc}</p>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <HrPreviewPanel hrGender={hrGender} />
+
+                      {extractWarning && (
+                        <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5">
+                          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                          <p className="text-xs leading-relaxed text-amber-200">
+                            {extractWarning}
+                            {extractWarning.includes("hết lượt") && (
+                              <>
+                                {" "}
+                                <button
+                                  type="button"
+                                  onClick={() => navigate("/pricing")}
+                                  className="font-semibold text-[#93f72b] hover:underline"
+                                >
+                                  Nâng cấp Pro
+                                </button>
+                              </>
+                            )}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setFlowStep(1)}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-bold text-slate-300 transition-all hover:bg-white/10 hover:text-white"
+                        >
+                          <ArrowLeft className="h-4 w-4" {...IS} />
+                          Quay lại
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleStart}
+                          disabled={!canStart || Boolean(loadingStep)}
+                          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
+                            canStart && !loadingStep ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
+                          }`}
+                        >
+                          {loadingStep ? (
+                            <>
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                              {loadingStep === "extracting_cv" && "Đang đọc CV..."}
+                              {loadingStep === "extracting_jd" && "Đang đọc JD..."}
+                              {loadingStep === "generating_questions" && "AI đang tạo câu hỏi..."}
+                              {loadingStep === "creating_session" && "Đang chuẩn bị..."}
+                              {loadingStep === "pregenerating_videos" && "Đang tạo video HR..."}
+                            </>
+                          ) : (
+                            <>
+                              <Mic className="h-4 w-4" {...IS} />
+                              {canStart ? "Bắt đầu phỏng vấn ngay" : "Chọn HR để bắt đầu"}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </section>
                   )}
                 </div>
-              </div>
-
+              )}
             </div>
+
           </div>
         </div>
       </div>
     </MentorPageShell>
   );
 }
+
 
 
