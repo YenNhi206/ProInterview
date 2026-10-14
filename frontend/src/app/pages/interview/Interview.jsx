@@ -28,12 +28,8 @@ import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pr
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { InterviewHistoryPanel } from "../../components/interview/InterviewHistoryPanel";
 import { InterviewPageTabs } from "../../components/interview/InterviewPageTabs";
-import { CV_JD_CARD_CLASS } from "../../components/cv/CvJdAnalysisFrame";
-import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
-import { CustomerPageHeader } from "../../components/layout/CustomerPageHeader";
-
 const CTA_LIME =
-  "bg-gradient-to-r from-[#93f72b] to-[#93f72b] text-violet-950 shadow-[0_8px_28px_rgba(196,255,71,0.25)] hover:brightness-110";
+  "bg-[#93f72b] text-slate-950 font-extrabold shadow-[0_0_25px_rgba(147,247,43,0.3)] hover:brightness-110 active:scale-[0.99] transition-all";
 
 const INTERVIEW_SETUP_DRAFT_KEY = "prointerview_setup_draft";
 
@@ -48,11 +44,11 @@ const IS = { strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" 
 
 /** Chiều cao cố định ô chi tiết bước 1 */
 const SOURCE_DETAIL_PANEL_CLASS =
-  "flex h-[15rem] flex-col rounded-md border border-violet-200/80 bg-violet-50/50 px-4 py-4 sm:h-[16rem] sm:px-5 sm:py-5 md:h-[18rem] lg:h-[20rem]";
+  "flex h-[15rem] flex-col rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 sm:h-[16rem] sm:px-5 sm:py-5 md:h-[18rem] lg:h-[20rem] backdrop-blur-sm";
 
 /** Ô xem trước HR, cao hơn để video lớn hơn */
 const HR_PREVIEW_PANEL_CLASS =
-  "flex h-[16rem] flex-col rounded-md border border-violet-200/80 bg-violet-50/50 px-4 py-3 sm:h-[18rem] sm:px-5 md:h-[20rem] lg:h-[22rem]";
+  "flex h-[16rem] flex-col rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:h-[18rem] sm:px-5 md:h-[20rem] lg:h-[22rem] backdrop-blur-sm";
 
 function formatCvAnalysisDate(value) {
   if (!value) return "";
@@ -75,35 +71,37 @@ function AnalyzedCvDetailPanel({ cv }) {
   const when = formatCvAnalysisDate(cv.createdAt || cv.date);
 
   return (
-    <div className="flex h-full min-h-0 flex-col space-y-3 overflow-y-auto text-sm text-violet-800">
-      <p className="shrink-0 text-xs font-bold uppercase tracking-wide text-violet-500">Phân tích CV gần nhất</p>
+    <div className="flex h-full min-h-0 flex-col space-y-3 overflow-y-auto text-sm text-slate-300">
+      <p className="shrink-0 text-xs font-bold uppercase tracking-wider text-[#93f72b]">
+        Phân tích CV gần nhất
+      </p>
       <div>
-        <p className="text-base font-bold text-violet-950">{title}</p>
-        {cv.company ? <p className="mt-0.5 text-violet-600">{cv.company}</p> : null}
+        <p className="text-base font-bold text-white">{title}</p>
+        {cv.company ? <p className="mt-0.5 text-xs text-slate-400">{cv.company}</p> : null}
       </div>
       <dl className="grid gap-2 text-xs sm:grid-cols-2 sm:text-sm">
         {cv.matchScore != null && cv.matchScore > 0 && (
-          <div>
-            <dt className="font-medium text-violet-500">Độ khớp JD</dt>
-            <dd className="font-semibold text-violet-900">{cv.matchScore}%</dd>
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5">
+            <dt className="text-xs font-medium text-slate-400">Độ khớp JD</dt>
+            <dd className="text-base font-bold text-[#93f72b]">{cv.matchScore}%</dd>
           </div>
         )}
         {when && (
-          <div>
-            <dt className="font-medium text-violet-500">Ngày phân tích</dt>
-            <dd className="text-violet-900">{when}</dd>
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5">
+            <dt className="text-xs font-medium text-slate-400">Ngày phân tích</dt>
+            <dd className="font-semibold text-white">{when}</dd>
           </div>
         )}
         {cvName && (
-          <div className="sm:col-span-2">
-            <dt className="font-medium text-violet-500">File CV</dt>
-            <dd className="truncate text-violet-900">{cvName}</dd>
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 sm:col-span-2">
+            <dt className="text-xs font-medium text-slate-400">File CV</dt>
+            <dd className="truncate font-medium text-white">{cvName}</dd>
           </div>
         )}
         {jdName && (
-          <div className="sm:col-span-2">
-            <dt className="font-medium text-violet-500">File JD</dt>
-            <dd className="truncate text-violet-900">{jdName}</dd>
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 sm:col-span-2">
+            <dt className="text-xs font-medium text-slate-400">File JD</dt>
+            <dd className="truncate font-medium text-white">{jdName}</dd>
           </div>
         )}
       </dl>
@@ -115,18 +113,22 @@ function AnalyzedCvDetailPanel({ cv }) {
 function UploadCvDetailPanel({ cvUploaded, uploadedFile, onPickFile }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <p className="mb-3 shrink-0 text-xs font-bold uppercase tracking-wide text-violet-500">Tải file CV</p>
+      <p className="mb-3 shrink-0 text-xs font-bold uppercase tracking-wider text-[#93f72b]">
+        Tải file CV
+      </p>
       {cvUploaded && uploadedFile ? (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 text-center">
-          <Check className="h-10 w-10 text-[#630ed4]" {...IS} strokeWidth={2} />
-          <p className="text-sm font-semibold text-violet-950">{uploadedFile.name}</p>
-          <p className="text-xs text-violet-500">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#93f72b]/20 text-[#93f72b] shadow-[0_0_15px_rgba(147,247,43,0.3)]">
+            <Check className="h-6 w-6" {...IS} strokeWidth={2.5} />
+          </div>
+          <p className="text-sm font-semibold text-white">{uploadedFile.name}</p>
+          <p className="text-xs text-slate-400">
             {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
           </p>
           <button
             type="button"
             onClick={onPickFile}
-            className="text-sm font-semibold text-[#630ed4] hover:underline"
+            className="mt-1 text-xs font-bold text-[#93f72b] hover:underline"
           >
             Đổi file khác
           </button>
@@ -135,11 +137,11 @@ function UploadCvDetailPanel({ cvUploaded, uploadedFile, onPickFile }) {
         <button
           type="button"
           onClick={onPickFile}
-          className="flex min-h-0 flex-1 w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-violet-200 bg-white text-center transition-colors hover:border-violet-300 hover:bg-violet-50/50"
+          className="group flex min-h-0 flex-1 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/20 bg-white/[0.02] text-center transition-all hover:border-[#93f72b]/60 hover:bg-white/[0.06]"
         >
-          <Upload className="h-9 w-9 text-violet-500" {...IS} />
-          <p className="text-sm font-semibold text-violet-900">Chọn file CV</p>
-          <p className="text-xs text-violet-500">PDF, DOC, DOCX · tối đa 5 MB</p>
+          <Upload className="h-8 w-8 text-slate-400 transition-colors group-hover:text-[#93f72b]" {...IS} />
+          <p className="text-sm font-semibold text-white">Chọn file CV</p>
+          <p className="text-xs text-slate-400">PDF, DOC, DOCX · tối đa 5 MB</p>
         </button>
       )}
     </div>
@@ -153,10 +155,10 @@ function HrPreviewPanel({ hrGender }) {
 
   return (
     <div className={HR_PREVIEW_PANEL_CLASS}>
-      <p className="mb-2 shrink-0 text-xs font-semibold text-violet-600">
-        Xem trước, {preview.name}
+      <p className="mb-2 shrink-0 text-xs font-semibold text-slate-300">
+        Xem trước: <span className="font-bold text-[#93f72b]">{preview.name}</span> ({preview.subtitle})
       </p>
-      <div className="flex min-h-0 flex-1 items-center justify-center">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
         <video
           key={hrGender}
           src={preview.video}
@@ -166,7 +168,7 @@ function HrPreviewPanel({ hrGender }) {
           playsInline
           disablePictureInPicture
           controlsList="nodownload noplaybackrate"
-          className="h-full w-auto max-w-full rounded-md object-contain"
+          className="h-full w-auto max-w-full rounded-lg object-contain"
         />
       </div>
     </div>
@@ -196,21 +198,22 @@ function SourceDetailPanel({ option, latestCV, cvUploaded, uploadedFile, onPickF
 function SelectOptionRing({ selected }) {
   return (
     <div
-      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
         selected
-          ? "border-[#630ed4] bg-[#630ed4] shadow-[0_2px_10px_rgba(99,14,212,0.35)]"
-          : "border-violet-400 bg-white group-hover:border-[#630ed4]/70"
+          ? "border-[#93f72b] bg-[#93f72b] shadow-[0_0_12px_rgba(147,247,43,0.5)]"
+          : "border-white/30 bg-white/5 group-hover:border-white/50"
       }`}
       aria-hidden
     >
       {selected ? (
-        <Check className="h-4 w-4 text-white" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        <Check className="h-3.5 w-3.5 text-black" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
       ) : (
-        <span className="h-2.5 w-2.5 rounded-full bg-violet-200/90 group-hover:bg-violet-300" />
+        <span className="h-2 w-2 rounded-full bg-white/20 group-hover:bg-white/40" />
       )}
     </div>
   );
 }
+
 
 const HR_PREVIEWS = {
   male: {
@@ -527,10 +530,11 @@ export function Interview() {
   };
 
   const optBase =
-    "group relative w-full rounded-md border-2 p-4 text-left transition-all duration-200 sm:p-5";
+    "group relative w-full rounded-2xl border-2 p-4 text-left transition-all duration-200 sm:p-5";
   const optIdle =
-    "cursor-pointer border-violet-200 bg-white hover:border-violet-300 hover:bg-violet-50/80";
-  const optOn = "border-[#630ed4] bg-violet-50 ring-2 ring-violet-200/80";
+    "cursor-pointer border-white/10 bg-white/[0.03] hover:border-violet-500/40 hover:bg-white/[0.06]";
+  const optOn =
+    "border-[#93f72b] bg-[#93f72b]/[0.08] ring-1 ring-[#93f72b]/40 shadow-[0_0_20px_rgba(147,247,43,0.12)]";
 
   return (
     <MentorPageShell bottomPad="pb-24">
@@ -544,9 +548,9 @@ export function Interview() {
 
       {/* ── Loading step overlay ───────────────────────────────── */}
       {loadingStep && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-violet-950/40 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-md bg-white p-6 shadow-2xl sm:p-8">
-            <p className="mb-5 text-center text-base font-bold text-violet-800">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-md">
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-white/10 bg-[#160d33] p-6 shadow-2xl sm:p-8">
+            <p className="mb-5 text-center text-base font-bold text-white">
               Quá trình này có thể diễn ra trong ít phút
             </p>
             <AiLoadingState currentStep={loadingStep} />
@@ -560,284 +564,291 @@ export function Interview() {
       <div className={`relative flex min-h-0 flex-col bg-transparent pb-8 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
         <div className={`${CUSTOMER_SHELL_MAX} mx-auto flex w-full max-w-3xl flex-col`}>
           <CustomerPageHeader
-            className="mb-5 w-full"
+            className="mb-8 w-full text-center"
             title={
               <>
-                <span className="font-extrabold text-[#630ed4]">Luyện phỏng vấn với AI</span>{" "}
-                <span className="font-extrabold text-[#1a1b23]">từ CV của bạn</span>
+                <span className="font-extrabold text-white">Luyện phỏng vấn với AI</span>{" "}
+                <span className="bg-gradient-to-r from-[#93f72b] to-[#a6ff42] bg-clip-text font-extrabold text-transparent">
+                  từ CV của bạn
+                </span>
               </>
             }
-            titleClassName="font-headline text-[clamp(1.45rem,2.8vw,2.65rem)] font-extrabold leading-[1.12] tracking-tight"
+            titleClassName="font-headline text-[clamp(1.75rem,3.2vw,2.75rem)] font-extrabold leading-[1.15] tracking-tight"
             subtitle="Từ CV của bạn, ProInterview tạo buổi phỏng vấn thử với HR AI và góp ý sau từng câu trả lời để bạn tự tin hơn trước buổi thật."
-            subtitleClassName="mt-3 max-w-none text-base font-medium leading-relaxed text-violet-700/90 lg:whitespace-nowrap"
+            subtitleClassName="mt-3.5 max-w-2xl mx-auto text-sm sm:text-base font-normal leading-relaxed text-slate-300"
           />
 
-        <div className={CV_JD_CARD_CLASS}>
-          <InterviewPageTabs activeTab={setupSubTab} onTabChange={setSetupSubTab} />
+          <div className="relative w-full overflow-hidden rounded-[2rem] border border-white/10 bg-[#140d2b]/85 shadow-[0_24px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+            {/* Top ambient highlight */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent" />
 
-          {setupSubTab === "history" ? (
-            <div className="px-6 py-5 sm:px-8 sm:py-6">
-              <InterviewHistoryPanel />
-            </div>
-          ) : (
-            <div className="px-4 py-5 sm:px-6 sm:py-6">
-              <InterviewStepBar current={flowStep} />
+            <InterviewPageTabs activeTab={setupSubTab} onTabChange={setSetupSubTab} />
 
-        {flowStep === 1 && (
-        <section className="space-y-5">
-          <input
-            ref={cvFileInputRef}
-            type="file"
-            accept=".pdf,.doc,.docx"
-            className="hidden"
-            aria-hidden
-            tabIndex={-1}
-            onChange={handleFileUpload}
-          />
-          <input
-            ref={jdFileInputRef}
-            type="file"
-            accept=".pdf"
-            className="hidden"
-            aria-hidden
-            tabIndex={-1}
-            onChange={handleJdFileUpload}
-          />
-          <div>
-            <h2 className="text-sm sm:text-base font-bold text-violet-950">Bước 1: Chọn nguồn CV</h2>
-            <p className="mt-0.5 text-xs sm:text-sm text-violet-600">
-              AI đọc CV của bạn để tạo bộ câu hỏi phỏng vấn phù hợp.
-            </p>
-          </div>
+            {setupSubTab === "history" ? (
+              <div className="px-6 py-6 sm:px-8 sm:py-8">
+                <InterviewHistoryPanel />
+              </div>
+            ) : (
+              <div className="px-5 py-6 sm:px-8 sm:py-8">
+                <InterviewStepBar current={flowStep} />
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  aria-pressed={option === "A"}
-                  onClick={handleSelectAnalyzedCv}
-                  disabled={!latestCV}
-                  className={`${optBase} ${option === "A" ? optOn : optIdle} ${!latestCV ? "cursor-not-allowed opacity-55" : ""}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <SelectOptionRing selected={option === "A"} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <FileStack className="h-5 w-5 shrink-0 text-[#630ed4]" {...IS} />
-                        <p className="font-bold text-violet-950">CV đã phân tích</p>
-                      </div>
-                      <p className="mt-0.5 text-xs text-violet-600">
-                        {latestCV ? "Kết quả CV + JD đã lưu trên hệ thống" : "Cần phân tích CV trước"}
+                {flowStep === 1 && (
+                  <section className="space-y-6">
+                    <input
+                      ref={cvFileInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                      aria-hidden
+                      tabIndex={-1}
+                      onChange={handleFileUpload}
+                    />
+                    <input
+                      ref={jdFileInputRef}
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      aria-hidden
+                      tabIndex={-1}
+                      onChange={handleJdFileUpload}
+                    />
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold text-white">Bước 1: Chọn nguồn CV</h2>
+                      <p className="mt-0.5 text-xs sm:text-sm text-slate-400">
+                        AI đọc CV của bạn để tạo bộ câu hỏi phỏng vấn phù hợp.
                       </p>
                     </div>
-                  </div>
-                </button>
 
-                <button
-                  type="button"
-                  aria-pressed={option === "B"}
-                  onClick={handleSelectUploadCv}
-                  className={`${optBase} ${option === "B" ? optOn : optIdle}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <SelectOptionRing selected={option === "B"} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <CloudUpload className="h-5 w-5 shrink-0 text-[#630ed4]" {...IS} />
-                        <p className="font-bold text-violet-950">Tải CV mới</p>
-                      </div>
-                      <p className="mt-0.5 text-xs text-violet-600">Chọn thẻ, rồi upload file trong ô bên dưới</p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              {!latestCV && (
-                <p className="text-xs text-violet-600">
-                  Chưa có phân tích CV.{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("/cv-analysis")}
-                    className="font-semibold text-[#630ed4] hover:underline"
-                  >
-                    Phân tích CV trước
-                  </button>
-                  {" "}hoặc chọn Tải CV mới.
-                </p>
-              )}
-
-              <SourceDetailPanel
-                option={option}
-                latestCV={latestCV}
-                cvUploaded={cvUploaded}
-                uploadedFile={uploadedFile}
-                onPickFile={openCvFilePicker}
-              />
-
-              {/* JD optional, giúp câu hỏi sát yêu cầu công ty hơn */}
-              <div className="rounded-md border border-violet-100 bg-violet-50/40">
-                <button
-                  type="button"
-                  onClick={() => setJdExpanded(v => !v)}
-                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left"
-                >
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-violet-300 bg-white text-[10px] font-bold text-violet-600">
-                    JD
-                  </span>
-                  <span className="flex-1 text-sm font-medium text-violet-700">
-                    Thêm mô tả công việc
-                    {(jdFile || jdInputText.trim()) ? (
-                      <span className="ml-1.5 text-xs font-normal text-emerald-600">
-                        ✓ {jdFile ? jdFile.name : `${jdInputText.trim().slice(0, 30)}…`}
-                      </span>
-                    ) : (
-                      <span className="ml-1 text-xs font-normal text-violet-400">(tùy chọn)</span>
-                    )}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-violet-400 transition-transform ${jdExpanded ? "rotate-180" : ""}`}
-                    strokeWidth={1.75}
-                  />
-                </button>
-
-                {jdExpanded && (
-                  <div className="space-y-2.5 border-t border-violet-100 px-4 pb-4 pt-3">
-                    <p className="text-xs text-violet-500">
-                      Dán nội dung JD hoặc upload file, AI sẽ bám sát yêu cầu tuyển dụng thực tế khi tạo câu hỏi.
-                    </p>
-                    <textarea
-                      value={jdInputText}
-                      onChange={e => { setJdInputText(e.target.value); if (e.target.value.trim()) setJdFile(null); }}
-                      placeholder="Dán mô tả công việc (Job Description) vào đây..."
-                      rows={5}
-                      className="w-full resize-none rounded border border-violet-200 bg-white px-3 py-2 text-sm text-violet-900 placeholder:text-violet-300 focus:outline-none focus:ring-1 focus:ring-violet-300"
-                    />
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-violet-400">hoặc</span>
+                    <div className="grid gap-3.5 sm:grid-cols-2">
                       <button
                         type="button"
-                        onClick={() => jdFileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 rounded border border-violet-200 bg-white px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-50"
+                        aria-pressed={option === "A"}
+                        onClick={handleSelectAnalyzedCv}
+                        disabled={!latestCV}
+                        className={`${optBase} ${option === "A" ? optOn : optIdle} ${!latestCV ? "cursor-not-allowed opacity-40" : ""}`}
                       >
-                        <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
-                        {jdFile ? jdFile.name : "Upload file JD (PDF)"}
+                        <div className="flex items-start gap-3">
+                          <SelectOptionRing selected={option === "A"} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <FileStack className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
+                              <p className="font-bold text-white">CV đã phân tích</p>
+                            </div>
+                            <p className="mt-1 text-xs text-slate-400">
+                              {latestCV ? "Kết quả CV + JD đã lưu trên hệ thống" : "Cần phân tích CV trước"}
+                            </p>
+                          </div>
+                        </div>
                       </button>
-                      {jdFile && (
+
+                      <button
+                        type="button"
+                        aria-pressed={option === "B"}
+                        onClick={handleSelectUploadCv}
+                        className={`${optBase} ${option === "B" ? optOn : optIdle}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <SelectOptionRing selected={option === "B"} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <CloudUpload className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
+                              <p className="font-bold text-white">Tải CV mới</p>
+                            </div>
+                            <p className="mt-1 text-xs text-slate-400">Chọn thẻ, rồi upload file trong ô bên dưới</p>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+
+                    {!latestCV && (
+                      <p className="text-xs text-slate-400">
+                        Chưa có phân tích CV.{" "}
                         <button
                           type="button"
-                          onClick={() => setJdFile(null)}
-                          className="text-xs text-violet-400 hover:text-violet-700"
+                          onClick={() => navigate("/cv-analysis")}
+                          className="font-semibold text-[#93f72b] hover:underline"
                         >
-                          ✕ Xoá
+                          Phân tích CV trước
                         </button>
+                        {" "}hoặc chọn Tải CV mới.
+                      </p>
+                    )}
+
+                    <SourceDetailPanel
+                      option={option}
+                      latestCV={latestCV}
+                      cvUploaded={cvUploaded}
+                      uploadedFile={uploadedFile}
+                      onPickFile={openCvFilePicker}
+                    />
+
+                    {/* JD optional, giúp câu hỏi sát yêu cầu công ty hơn */}
+                    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-all">
+                      <button
+                        type="button"
+                        onClick={() => setJdExpanded(v => !v)}
+                        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03]"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-violet-400/40 bg-violet-500/20 text-[10px] font-extrabold text-[#c084fc]">
+                          JD
+                        </span>
+                        <span className="flex-1 text-sm font-medium text-slate-200">
+                          Thêm mô tả công việc
+                          {(jdFile || jdInputText.trim()) ? (
+                            <span className="ml-2 text-xs font-semibold text-[#93f72b]">
+                              ✓ {jdFile ? jdFile.name : `${jdInputText.trim().slice(0, 30)}…`}
+                            </span>
+                          ) : (
+                            <span className="ml-1 text-xs font-normal text-slate-500">(tùy chọn)</span>
+                          )}
+                        </span>
+                        <ChevronDown
+                          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${jdExpanded ? "rotate-180" : ""}`}
+                          strokeWidth={1.75}
+                        />
+                      </button>
+
+                      {jdExpanded && (
+                        <div className="space-y-3 border-t border-white/10 bg-black/20 px-4 pb-4 pt-3">
+                          <p className="text-xs text-slate-400">
+                            Dán nội dung JD hoặc upload file, AI sẽ bám sát yêu cầu tuyển dụng thực tế khi tạo câu hỏi.
+                          </p>
+                          <textarea
+                            value={jdInputText}
+                            onChange={e => { setJdInputText(e.target.value); if (e.target.value.trim()) setJdFile(null); }}
+                            placeholder="Dán mô tả công việc (Job Description) vào đây..."
+                            rows={5}
+                            className="w-full resize-none rounded-xl border border-white/15 bg-black/40 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-[#93f72b] focus:outline-none focus:ring-1 focus:ring-[#93f72b]"
+                          />
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-500">hoặc</span>
+                            <button
+                              type="button"
+                              onClick={() => jdFileInputRef.current?.click()}
+                              className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                            >
+                              <FileText className="h-3.5 w-3.5 text-[#93f72b]" strokeWidth={1.75} />
+                              {jdFile ? jdFile.name : "Upload file JD (PDF)"}
+                            </button>
+                            {jdFile && (
+                              <button
+                                type="button"
+                                onClick={() => setJdFile(null)}
+                                className="text-xs text-slate-400 hover:text-rose-400"
+                              >
+                                ✕ Xoá
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
 
-              <button
-                type="button"
-                onClick={handleContinueToHr}
-                disabled={!canProceedSetup}
-                className={`flex w-full items-center justify-center gap-2 rounded-md py-3.5 text-sm font-bold transition-all ${
-                  canProceedSetup ? CTA_LIME : "cursor-not-allowed bg-violet-100 text-violet-400"
-                }`}
-              >
-                Tiếp tục
-                <ArrowRight className="h-4 w-4" {...IS} />
-              </button>
-        </section>
-        )}
-
-        {flowStep === 2 && (
-        <section className="space-y-5">
-          <div>
-            <h2 className="text-sm sm:text-base font-bold text-violet-950">Bước 2: Chọn HR AI</h2>
-            <p className="mt-0.5 text-xs sm:text-sm text-violet-600">Chọn một HR, có thể xem video ngắn bên dưới trước khi bắt đầu.</p>
-          </div>
-
-          <div className="grid items-stretch gap-3 sm:grid-cols-2">
-            {(["male", "female"]).map((g) => {
-              const preview = HR_PREVIEWS[g];
-              const Icon = g === "male" ? Mars : Venus;
-              return (
-                <button
-                  key={g}
-                  type="button"
-                  aria-pressed={hrGender === g}
-                  onClick={() => setHrGender(g)}
-                  className={`${optBase} h-full ${hrGender === g ? optOn : optIdle}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <SelectOptionRing selected={hrGender === g} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-5 w-5 shrink-0 text-[#630ed4]" {...IS} />
-                        <p className="font-bold text-violet-950">{preview.name}</p>
-                      </div>
-                      <p className="mt-0.5 text-xs text-violet-600">{preview.subtitle}</p>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <HrPreviewPanel hrGender={hrGender} />
-
-          {extractWarning && (
-            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-              <p className="text-xs leading-relaxed text-amber-900">
-                {extractWarning}
-                {extractWarning.includes("hết lượt") && (
-                  <>
-                    {" "}
                     <button
                       type="button"
-                      onClick={() => navigate("/pricing")}
-                      className="font-semibold text-[#630ed4] hover:underline"
+                      onClick={handleContinueToHr}
+                      disabled={!canProceedSetup}
+                      className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
+                        canProceedSetup ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
+                      }`}
                     >
-                      Nâng cấp Pro
+                      Tiếp tục
+                      <ArrowRight className="h-4 w-4" {...IS} />
                     </button>
-                  </>
+                  </section>
                 )}
-              </p>
-            </div>
-          )}
 
-          <button
-            type="button"
-            onClick={handleStart}
-            disabled={!canStart || Boolean(loadingStep)}
-            className={`flex w-full items-center justify-center gap-2 rounded-md py-3.5 text-sm font-bold transition-all ${
-              canStart && !loadingStep ? CTA_LIME : "cursor-not-allowed bg-violet-100 text-violet-400"
-            }`}
-          >
-            {loadingStep ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                {loadingStep === "extracting_cv" && "Đang đọc CV..."}
-                {loadingStep === "extracting_jd" && "Đang đọc JD..."}
-                {loadingStep === "generating_questions" && "AI đang tạo câu hỏi..."}
-                {loadingStep === "creating_session" && "Đang chuẩn bị..."}
-                {loadingStep === "pregenerating_videos" && "Đang tạo video HR..."}
-              </>
-            ) : (
-              <>
-                <Mic className="h-4 w-4" {...IS} />
-                {canStart ? "Bắt đầu phỏng vấn" : "Chọn HR để bắt đầu"}
-              </>
+                {flowStep === 2 && (
+                  <section className="space-y-6">
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold text-white">Bước 2: Chọn HR AI</h2>
+                      <p className="mt-0.5 text-xs sm:text-sm text-slate-400">
+                        Chọn một HR, có thể xem video ngắn bên dưới trước khi bắt đầu.
+                      </p>
+                    </div>
+
+                    <div className="grid items-stretch gap-3.5 sm:grid-cols-2">
+                      {(["male", "female"]).map((g) => {
+                        const preview = HR_PREVIEWS[g];
+                        const Icon = g === "male" ? Mars : Venus;
+                        return (
+                          <button
+                            key={g}
+                            type="button"
+                            aria-pressed={hrGender === g}
+                            onClick={() => setHrGender(g)}
+                            className={`${optBase} h-full ${hrGender === g ? optOn : optIdle}`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <SelectOptionRing selected={hrGender === g} />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
+                                  <p className="font-bold text-white">{preview.name}</p>
+                                </div>
+                                <p className="mt-1 text-xs text-slate-400">{preview.subtitle}</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <HrPreviewPanel hrGender={hrGender} />
+
+                    {extractWarning && (
+                      <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                        <p className="text-xs leading-relaxed text-amber-200">
+                          {extractWarning}
+                          {extractWarning.includes("hết lượt") && (
+                            <>
+                              {" "}
+                              <button
+                                type="button"
+                                onClick={() => navigate("/pricing")}
+                                className="font-semibold text-[#93f72b] hover:underline"
+                              >
+                                Nâng cấp Pro
+                              </button>
+                            </>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleStart}
+                      disabled={!canStart || Boolean(loadingStep)}
+                      className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
+                        canStart && !loadingStep ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
+                      }`}
+                    >
+                      {loadingStep ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          {loadingStep === "extracting_cv" && "Đang đọc CV..."}
+                          {loadingStep === "extracting_jd" && "Đang đọc JD..."}
+                          {loadingStep === "generating_questions" && "AI đang tạo câu hỏi..."}
+                          {loadingStep === "creating_session" && "Đang chuẩn bị..."}
+                          {loadingStep === "pregenerating_videos" && "Đang tạo video HR..."}
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="h-4 w-4" {...IS} />
+                          {canStart ? "Bắt đầu phỏng vấn" : "Chọn HR để bắt đầu"}
+                        </>
+                      )}
+                    </button>
+                  </section>
+                )}
+              </div>
             )}
-          </button>
-
-        </section>
-        )}
-            </div>
-          )}
-        </div>
+          </div>
         </div>
       </div>
     </MentorPageShell>
   );
 }
+
