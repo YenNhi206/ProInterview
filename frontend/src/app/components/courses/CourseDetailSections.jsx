@@ -13,7 +13,9 @@ import {
   Award,
   Video,
   Lock,
-  ShoppingBag,
+  ShoppingCart,
+  GraduationCap,
+  CreditCard,
   BadgeCheck,
   Pencil,
   MessageCircle,
@@ -121,7 +123,7 @@ export function CoursePurchaseCard({
   );
 
   const ctaClassName =
-    "relative overflow-hidden group flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:via-indigo-500 hover:to-purple-500 py-3.5 text-sm font-bold text-white shadow-[0_10px_30px_-5px_rgba(139,92,246,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(139,92,246,0.7)] active:scale-[0.98] transition-all cursor-pointer";
+    "relative overflow-hidden group flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:via-indigo-500 hover:to-purple-500 text-sm font-bold text-white shadow-[0_10px_30px_-5px_rgba(139,92,246,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(139,92,246,0.7)] active:scale-[0.98] transition-all cursor-pointer";
 
   return (
     <motion.div
@@ -200,76 +202,104 @@ export function CoursePurchaseCard({
           )}
         </div>
 
-        {/* CTA Button with Shimmer Sweep Effect */}
-        {hasPaidEnrollment && !isReadOnlyMentorView ? (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={onContinueLearn}
-            className={ctaClassName}
-          >
-            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-            <PlayCircle className="size-4" />
-            Tiếp tục học
-          </motion.button>
-        ) : hasPaidEnrollment && isReadOnlyMentorView ? (
-          <button
-            type="button"
-            disabled
-            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3.5 text-sm font-bold text-slate-400"
-          >
-            <Lock className="size-4" />
-            Mentor chỉ xem
-          </button>
-        ) : hasPendingPayment && canTakeStudentActions ? (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={onContinuePayment}
-            className={ctaClassName}
-          >
-            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-            <ShoppingBag className="size-4" strokeWidth={1.5} aria-hidden="true" />
-            Tiếp tục thanh toán
-          </motion.button>
-        ) : (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={canTakeStudentActions ? onEnroll : undefined}
-            disabled={!canTakeStudentActions}
-            className={`${ctaClassName} disabled:cursor-not-allowed disabled:opacity-50`}
-          >
-            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-            <ShoppingBag className="size-4" strokeWidth={1.5} aria-hidden="true" />
-            {canTakeStudentActions
-              ? price === 0
-                ? "Đăng ký miễn phí"
-                : "Tham gia khóa học"
-              : "Mentor chỉ xem"}
-          </motion.button>
-        )}
+        {/* Action Buttons Group - Căn đều chiều cao, bo góc, icon thẳng hàng và khoảng cách */}
+        <div className="flex flex-col gap-2.5">
+          {hasPaidEnrollment && !isReadOnlyMentorView ? (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={onContinueLearn}
+              className={ctaClassName}
+            >
+              <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+              <span className="inline-flex w-[185px] items-center justify-start gap-2.5">
+                <span className="flex size-5 shrink-0 items-center justify-center">
+                  <PlayCircle className="size-4.5" />
+                </span>
+                <span className="truncate">Tiếp tục học</span>
+              </span>
+            </motion.button>
+          ) : hasPaidEnrollment && isReadOnlyMentorView ? (
+            <button
+              type="button"
+              disabled
+              className="flex h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-sm font-bold text-slate-400"
+            >
+              <span className="inline-flex w-[185px] items-center justify-start gap-2.5">
+                <span className="flex size-5 shrink-0 items-center justify-center">
+                  <Lock className="size-4.5" />
+                </span>
+                <span className="truncate">Mentor chỉ xem</span>
+              </span>
+            </button>
+          ) : hasPendingPayment && canTakeStudentActions ? (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={onContinuePayment}
+              className={ctaClassName}
+            >
+              <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+              <span className="inline-flex w-[185px] items-center justify-start gap-2.5">
+                <span className="flex size-5 shrink-0 items-center justify-center">
+                  <CreditCard className="size-4.5" strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <span className="truncate">Tiếp tục thanh toán</span>
+              </span>
+            </motion.button>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={canTakeStudentActions ? onEnroll : undefined}
+              disabled={!canTakeStudentActions}
+              className={`${ctaClassName} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+              <span className="inline-flex w-[185px] items-center justify-start gap-2.5">
+                <span className="flex size-5 shrink-0 items-center justify-center">
+                  <GraduationCap className="size-4.5" strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <span className="truncate">
+                  {canTakeStudentActions
+                    ? price === 0
+                      ? "Đăng ký miễn phí"
+                      : "Mua khóa học"
+                    : "Mentor chỉ xem"}
+                </span>
+              </span>
+            </motion.button>
+          )}
 
-        {!hasPaidEnrollment && !hasPendingPayment && canTakeStudentActions && (
-          <AddCourseToCartButton courseId={course.id} />
-        )}
+          {!hasPaidEnrollment && !hasPendingPayment && canTakeStudentActions && (
+            <AddCourseToCartButton
+              courseId={course.id}
+              className="h-12 !min-h-12 w-full"
+              contentClassName="w-[185px] justify-start"
+            />
+          )}
 
-        {hasFreeLesson && !hasPaidEnrollment && !hasPendingPayment && canTakeStudentActions && (
-          <button
-            type="button"
-            onClick={() => {
-              const el = document.getElementById("course-curriculum");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 py-3 text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer"
-          >
-            <PlayCircle className="size-4 text-violet-400" />
-            Học thử miễn phí
-          </button>
-        )}
+          {hasFreeLesson && !hasPaidEnrollment && !hasPendingPayment && canTakeStudentActions && (
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("course-curriculum");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="flex h-12 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer active:scale-[0.98]"
+            >
+              <span className="inline-flex w-[185px] items-center justify-start gap-2.5">
+                <span className="flex size-5 shrink-0 items-center justify-center">
+                  <PlayCircle className="size-4.5 text-violet-400" />
+                </span>
+                <span className="truncate">Học thử miễn phí</span>
+              </span>
+            </button>
+          )}
+        </div>
 
         {/* Khóa học này bao gồm - Glowing Interactive Tiles */}
         <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-4.5 backdrop-blur-md">

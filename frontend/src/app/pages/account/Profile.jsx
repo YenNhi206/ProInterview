@@ -7,9 +7,6 @@ import {
   Phone,
   Check,
   Star,
-  Mic as Microphone,
-  Users,
-  TrendingUp as TrendUp,
   Camera,
   Zap as Lightning,
   Medal,
@@ -20,6 +17,17 @@ import {
   Sparkles,
   CheckCircle2,
   Sprout as Plant,
+  Briefcase,
+  GraduationCap,
+  Award,
+  Trophy,
+  Users,
+  FileText,
+  DollarSign,
+  ChevronRight,
+  Settings,
+  CircleDashed,
+  ExternalLink,
 } from "lucide-react";
 import {
   getPlans,
@@ -56,6 +64,7 @@ import {
   emptyWorkEntry,
   estimateExperienceYears,
   formatWorkHistoryLines,
+  inferStartMonthFromExperienceYears,
   parseWorkHistory,
   pickCurrentWorkEntry,
   serializeWorkHistory,
@@ -182,21 +191,21 @@ function getCvSectionCopy(isMentor) {
   return {
     intro: {
       placeholder: isMentor
-        ? "Giới thiệu thế mạnh, mục tiêu nghề nghiệp và lý do muốn làm Mentor..."
-        : "Chia sẻ ngắn về bản thân, định hướng nghề nghiệp và mục tiêu hiện tại.",
+        ? "Giới thiệu thế mạnh, lĩnh vực chuyên môn và định hướng hỗ trợ học viên..."
+        : "Chia sẻ ngắn về bản thân, định hướng nghề nghiệp và mục tiêu phỏng vấn hiện tại...",
     },
     education: {
       placeholder:
-        "Thêm trường, bằng cấp, chuyên ngành và thời gian học, có thể nhiều mốc.",
+        "Thêm trường học, bằng cấp, chuyên ngành và thời gian đào tạo...",
     },
     extracurricular: {
-      placeholder: "Thêm hoạt động, câu lạc bộ hoặc dự án ngoài lớp bạn từng tham gia.",
+      placeholder: "Thêm hoạt động, câu lạc bộ, dự án cộng đồng hoặc hoạt động ngoại khóa từng tham gia...",
     },
     awards: {
-      placeholder: "Thêm thành tích, giải thưởng hoặc sự ghi nhận nổi bật.",
+      placeholder: "Thêm thành tích, chứng nhận, giải thưởng hoặc học bổng nổi bật...",
     },
     skills: {
-      placeholder: "Cập nhật kỹ năng, công cụ, chứng chỉ hoặc khóa học bạn đã hoàn thành.",
+      placeholder: "Ví dụ: React, Node.js, System Design, IELTS 7.5, AWS Certified Practitioner...",
     },
   };
 }
@@ -221,7 +230,7 @@ export function Profile() {
   const avatarInputRef = useRef(null);
   const [cvProfile, setCvProfile] = useState(() => buildCvProfileFromSources(user, null));
   const [openCvSections, setOpenCvSections] = useState({
-    intro: false,
+    intro: true, // Open intro by default for quick editing
     work: false,
     education: false,
     extracurricular: false,
@@ -244,6 +253,14 @@ export function Profile() {
     setOpenCvSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const jumpToSection = (key) => {
+    setOpenCvSections((prev) => ({ ...prev, [key]: true }));
+    setTimeout(() => {
+      const el = document.getElementById(`cv-section-${key}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  };
+
   const expandCvSectionsForEdit = (cv = cvProfile, contact = form) => {
     const keys = getCvSectionKeysToExpand(cv, contact);
     if (!keys.length) return;
@@ -260,23 +277,70 @@ export function Profile() {
   const userAvatar = avatarSrc(user?.avatar || avatarUrl);
   const hasAvatar = userAvatar && userAvatar !== DEFAULT_AVATAR;
   const initials = getInitials(displayName || "U");
-  const showMentorRequiredMarks = !isMentor;
   const cvSectionCopy = useMemo(() => getCvSectionCopy(isMentor), [isMentor]);
   const mentorReviewStatus = mentorProfile
     ? mentorProfile?.adminReview?.status || (mentorProfile?.isVerified ? "approved" : "pending")
     : "";
 
-  // Dynamic Profile Completion Score
-  const completionPercentage = useMemo(() => {
+  // Dynamic Profile Completion Score & Checkpoints
+  const { completionPercentage, checklist } = useMemo(() => {
     let score = 0;
-    if (form.name?.trim()) score += 15;
-    if (form.email?.trim()) score += 15;
-    if (form.phone?.trim()) score += 10;
-    if (cvProfile.intro?.trim()) score += 15;
-    if (cvProfile.workHistory?.length && cvProfile.workHistory.some((w) => w.role || w.company)) score += 20;
-    if (cvProfile.educationHistory?.length && cvProfile.educationHistory.some((e) => e.school)) score += 15;
-    if (cvProfile.skillsCerts?.trim()) score += 10;
-    return Math.min(score, 100);
+    const items = [];
+
+    const hasName = Boolean(form.name?.trim());
+    const hasEmail = Boolean(form.email?.trim());
+    const hasPhone = Boolean(form.phone?.trim());
+    const hasContact = hasName && hasEmail;
+    if (hasName) score += 15;
+    if (hasEmail) score += 15;
+    if (hasPhone) score += 10;
+    items.push({
+      id: "contact",
+      label: "Thông tin liên lạc",
+      done: hasContact,
+      action: () => document.getElementById("profile-contact-section")?.scrollIntoView({ behavior: "smooth" }),
+    });
+
+    const hasIntro = Boolean(cvProfile.intro?.trim());
+    if (hasIntro) score += 15;
+    items.push({
+      id: "intro",
+      label: "Giới thiệu bản thân",
+      done: hasIntro,
+      action: () => jumpToSection("intro"),
+    });
+
+    const hasWork = Boolean(cvProfile.workHistory?.length && cvProfile.workHistory.some((w) => w.role || w.company));
+    if (hasWork) score += 20;
+    items.push({
+      id: "work",
+      label: "Kinh nghiệm làm việc",
+      done: hasWork,
+      action: () => jumpToSection("work"),
+    });
+
+    const hasEdu = Boolean(cvProfile.educationHistory?.length && cvProfile.educationHistory.some((e) => e.school));
+    if (hasEdu) score += 15;
+    items.push({
+      id: "education",
+      label: "Quá trình học tập",
+      done: hasEdu,
+      action: () => jumpToSection("education"),
+    });
+
+    const hasSkills = Boolean(cvProfile.skillsCerts?.trim());
+    if (hasSkills) score += 10;
+    items.push({
+      id: "skills",
+      label: "Kỹ năng & chuyên môn",
+      done: hasSkills,
+      action: () => jumpToSection("skills"),
+    });
+
+    return {
+      completionPercentage: Math.min(score, 100),
+      checklist: items,
+    };
   }, [form, cvProfile]);
 
   const scrollToCv = () => {
@@ -420,29 +484,23 @@ export function Profile() {
     }
   };
 
-  const FORM_FIELDS = [
-    { label: "Họ và tên", key: "name", icon: User, mentorRequired: true },
-    { label: "Email", key: "email", icon: EnvelopeSimple, mentorRequired: true },
-    { label: "Số điện thoại", key: "phone", icon: Phone, mentorRequired: false },
-  ];
-
   const planInfo = useMemo(() => {
     if (plans.elitePro) return {
       name: "Thượng hạng (Elite)",
       nameIcon: Medal,
-      desc: "Không giới hạn · Phân tích hành vi · Mentor 1:1",
+      desc: "Không giới hạn phỏng vấn · Phân tích hành vi nâng cao · Mentor 1:1 chuyên sâu",
       isPaid: true,
     };
     if (plans.starterPro) return {
       name: "Chuyên nghiệp (Pro)",
       nameIcon: Lightning,
-      desc: "Phỏng vấn AI · Nhận diện giọng nói · 10 buổi/tháng",
+      desc: "Phỏng vấn AI không giới hạn · Nhận diện giọng nói chuẩn xác · 10 buổi/tháng",
       isPaid: true,
     };
     return {
       name: "Cơ bản (Free)",
       nameIcon: Plant,
-      desc: "2 buổi AI miễn phí · 3 lần phân tích CV",
+      desc: "2 buổi AI trải nghiệm · 3 lần phân tích CV chuyên sâu theo chuẩn ngành",
       isPaid: false,
     };
   }, [plans]);
@@ -512,109 +570,52 @@ export function Profile() {
 
   return (
     <div className="settings-page profile-page min-h-screen">
-      <style>{`
-        @keyframes avatarPulse {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 0.45;
-          }
-          50% {
-            transform: scale(1.15);
-            opacity: 0.85;
-          }
-        }
-        .avatar-glow-effect {
-          position: absolute;
-          inset: -12px;
-          border-radius: 40px;
-          background: radial-gradient(circle, rgba(147, 51, 234, 0.45) 0%, rgba(124, 58, 237, 0.25) 50%, transparent 75%);
-          z-index: 0;
-          animation: avatarPulse 4.5s ease-in-out infinite;
-          filter: blur(12px);
-          pointer-events: none;
-        }
-        .interactive-card {
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .interactive-card:hover {
-          border-color: rgba(167, 139, 250, 0.35);
-          box-shadow: 0 16px 40px rgba(10, 8, 30, 0.4), 0 0 24px rgba(139, 92, 246, 0.12);
-        }
-        .profile-page textarea:focus,
-        .profile-page textarea:focus-visible,
-        .profile-page input:focus,
-        .profile-page input:focus-visible {
-          outline: none !important;
-          outline-offset: 0 !important;
-        }
-      `}</style>
-
-      <div className={`${CUSTOMER_SHELL_GUTTER} pb-24 pt-8 sm:pt-12 settings-container`}>
+      <div className={`${CUSTOMER_SHELL_GUTTER} pb-24 pt-10 sm:pt-14 md:pt-16 settings-container`}>
         <div className={`${CUSTOMER_SHELL_MAX} settings-frame space-y-8`}>
 
-          {/* Header section with entrance animation */}
+          {/* Top Page Header with Apple/Linear Tab Switcher */}
           <motion.header
-            initial={{ opacity: 0, y: -16 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="settings-header"
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6"
           >
             <div>
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white flex items-center gap-3">
                 Hồ sơ cá nhân
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-violet-300 bg-violet-500/20 border border-violet-400/30 px-3 py-1 rounded-full">
-                  <Sparkles size={12} className="animate-spin" style={{ animationDuration: '6s' }} />
-                  {isMentor ? "Hồ sơ Mentor" : "Hồ sơ Học viên"}
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 rounded-full">
+                  <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                  {isMentor ? "Mentor" : "Học viên"}
                 </span>
               </h1>
-              <p className="text-slate-300/80 text-xs sm:text-sm mt-1.5 font-medium leading-relaxed">
-                Quản lý thông tin cá nhân, mục tiêu nghề nghiệp và hồ sơ mentor của bạn.
+              <p className="text-slate-300/80 text-xs sm:text-sm mt-1.5 font-medium leading-relaxed max-w-2xl">
+                Cập nhật thông tin học vấn, kinh nghiệm và kỹ năng để tối ưu hóa lộ trình luyện phỏng vấn AI và kết nối Mentor.
               </p>
             </div>
 
-            <Link
-              to="/settings"
-              className="group relative flex items-center gap-3 px-3.5 py-2 rounded-xl border border-white/15 bg-gradient-to-br from-[#1c183d]/80 via-[#14122e]/85 to-[#0e0c24]/90 backdrop-blur-xl shadow-[0_6px_24px_rgba(0,0,0,0.3)] hover:border-violet-400/50 hover:shadow-[0_10px_30px_rgba(124,58,237,0.22)] hover:-translate-y-0.5 transition-all duration-200 shrink-0 self-start sm:self-auto"
-              aria-label="Cài đặt tài khoản"
-              title={userEmail}
+            {/* Account Suite Tab Switcher */}
+            <div
+              className="relative flex items-center p-1 sm:p-1.5 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl shrink-0 self-start sm:self-auto"
+              role="tablist"
+              aria-label="Điều hướng tài khoản"
             >
-              <div className="relative shrink-0">
-                {hasAvatar ? (
-                  <img
-                    className="w-9 h-9 rounded-full object-cover ring-2 ring-violet-400/40 shadow-[0_0_10px_rgba(124,58,237,0.3)]"
-                    src={userAvatar}
-                    alt=""
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = DEFAULT_AVATAR;
-                    }}
-                  />
-                ) : (
-                  <span className="w-9 h-9 rounded-full grid place-items-center bg-gradient-to-br from-violet-600 to-indigo-700 text-white text-xs font-bold ring-2 ring-violet-400/40" aria-hidden="true">
-                    {initials}
-                  </span>
-                )}
-                <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-1.5 ring-[#0e0c24]" />
-              </div>
-
-              <div className="min-w-0 pr-0.5">
-                <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors truncate max-w-[160px] sm:max-w-[200px]">
-                  {displayName}
-                </p>
-                <p className="text-[10px] text-slate-300/80 flex items-center gap-1 mt-0.5">
-                  <span className="font-semibold text-violet-300">{isMentor ? "Mentor" : "Học viên"}</span>
-                  <span>•</span>
-                  <span className="group-hover:text-violet-200 transition-colors">Cài đặt tài khoản</span>
-                </p>
-              </div>
-
-              <div className="p-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 group-hover:text-white group-hover:bg-violet-600/30 group-hover:border-violet-400/40 transition-all ml-0.5">
-                <ArrowUpRight size={13} aria-hidden="true" />
-              </div>
-            </Link>
+              <span
+                className="relative flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md select-none"
+              >
+                <User size={15} className="text-violet-200" />
+                <span>Hồ sơ cá nhân</span>
+              </span>
+              <Link
+                to="/settings"
+                className="relative flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-all duration-200 select-none"
+              >
+                <Settings size={15} />
+                <span>Cài đặt & Bảo mật</span>
+              </Link>
+            </div>
           </motion.header>
 
-          {/* Validation & Status Banners with AnimatePresence */}
+          {/* Validation & Status Banners */}
           <AnimatePresence>
             {mentorApplyError && !isMentor && (
               <motion.div
@@ -644,7 +645,7 @@ export function Profile() {
                       </p>
                       <p className="mt-1 text-sm leading-relaxed">{mentorProfile.adminReview.reason}</p>
                       <p className="mt-2 text-xs text-rose-300/80">
-                        Chỉnh sửa <strong>Hồ sơ cá nhân</strong> bên dưới, rồi bấm <strong>Đăng ký làm Mentor</strong> để gửi lại.
+                        Vui lòng hoàn thiện hồ sơ bên dưới rồi bấm <strong>Đăng ký làm Mentor</strong> để ban quản trị xem xét lại.
                       </p>
                     </div>
                   </div>
@@ -652,46 +653,49 @@ export function Profile() {
               )}
           </AnimatePresence>
 
-          {/* Main Grid: Left Avatar/Plan Card + Right Profile CV Editor */}
-          <div className="grid lg:grid-cols-12 gap-8" id="profile-main-grid">
-            
-            {/* Left Column: Avatar, Profile Progress, Plan, Badges */}
+          {/* Main Grid: Left Avatar/Stats + Right Workspace */}
+          <div className="grid lg:grid-cols-12 gap-8 items-start" id="profile-main-grid">
+
+            {/* Left Column: Avatar Card + Strength Meter + Plan */}
             <motion.aside
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:col-span-4 space-y-6"
+              transition={{ duration: 0.4, delay: 0.05 }}
+              className="lg:col-span-4 space-y-6 lg:sticky lg:top-24"
             >
               {/* Profile Card */}
-              <div className="settings-workspace interactive-card p-7 text-center flex flex-col items-center relative overflow-hidden">
-                {/* Avatar Glow Ring Container */}
-                <div className="relative mx-auto mb-5 w-fit">
-                  <div className="avatar-glow-effect" />
-                  <div className="relative z-10 w-32 h-32 rounded-[30px] bg-slate-900/90 border-2 border-violet-400/40 overflow-hidden flex items-center justify-center text-3xl font-black text-violet-200 shadow-[0_8px_32px_rgba(124,58,237,0.35)]">
-                    {avatarUrl && !avatarBroken ? (
-                      <img
-                        src={resolveMediaUrl(avatarUrl)}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                        onError={() => setAvatarBroken(true)}
-                      />
-                    ) : (
-                      initials
-                    )}
+              <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0a24]/95 p-6 sm:p-7 text-center flex flex-col items-center relative overflow-hidden shadow-[0_20px_50px_rgba(5,3,20,0.5)] backdrop-blur-2xl">
+                
+                {/* Avatar with Glow and Upload Action */}
+                <div className="relative mx-auto mb-4 w-fit">
+                  <div className="relative size-28 sm:size-32 rounded-3xl p-1 bg-gradient-to-tr from-violet-600 via-indigo-500 to-fuchsia-500 shadow-[0_10px_35px_rgba(124,58,237,0.4)]">
+                    <div className="size-full rounded-[22px] bg-slate-950 overflow-hidden flex items-center justify-center text-3xl font-black text-violet-200">
+                      {avatarUrl && !avatarBroken ? (
+                        <img
+                          src={resolveMediaUrl(avatarUrl)}
+                          alt=""
+                          className="size-full object-cover transition-transform duration-500 hover:scale-105"
+                          onError={() => setAvatarBroken(true)}
+                        />
+                      ) : (
+                        initials
+                      )}
+                    </div>
                   </div>
+
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.94 }}
                     type="button"
                     disabled={avatarUploading}
                     onClick={() => avatarInputRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 z-20 flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-900 bg-violet-600 text-white shadow-lg transition-colors hover:bg-violet-500 disabled:opacity-60 cursor-pointer"
+                    className="absolute -bottom-1 -right-1 z-10 flex size-9 items-center justify-center rounded-2xl border border-white/25 border-t-white/50 bg-gradient-to-b from-violet-500/80 via-violet-600/90 to-indigo-700 shadow-[0_4px_16px_rgba(124,58,237,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] backdrop-blur-md text-white hover:brightness-110 active:scale-95 disabled:opacity-60 cursor-pointer transition-all"
                     title="Đổi ảnh đại diện"
                   >
                     {avatarUploading ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     ) : (
-                      <Camera size={18} />
+                      <Camera size={16} />
                     )}
                   </motion.button>
                   <input
@@ -703,39 +707,40 @@ export function Profile() {
                   />
                 </div>
 
-                <h2 className="mb-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
-                  {form.name || "Người dùng"}
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white mb-1">
+                  {displayName}
                 </h2>
-                <p className="text-xs font-bold text-violet-300/80 tracking-wide mb-4">
+                <p className="text-xs font-medium text-slate-300/80 tracking-wide mb-4 truncate max-w-[240px]">
                   {userEmail}
                 </p>
 
                 {/* Status Badges */}
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/20 px-3 py-1 text-xs font-bold text-violet-300">
-                    <User size={12} />
+                    <User size={13} />
                     {isMentor ? "Mentor" : "Học viên"}
                   </span>
 
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
-                    <planInfo.nameIcon size={12} />
+                    <planInfo.nameIcon size={13} />
                     {planInfo.name}
                   </span>
                 </div>
 
-                {/* Interactive Profile Completion Indicator */}
-                <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left space-y-2.5 mb-5">
+                {/* Profile Strength Card with Checklist */}
+                <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left space-y-3 mb-5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-200 flex items-center gap-1.5">
-                      <CheckCircle2 size={14} className="text-emerald-400" />
+                      <CheckCircle2 size={15} className="text-emerald-400" />
                       Mức độ hoàn thiện
                     </span>
-                    <span className="font-black text-violet-300 tabular-nums">
+                    <span className="font-black text-violet-300 text-sm tabular-nums">
                       {completionPercentage}%
                     </span>
                   </div>
-                  {/* Animated Progress Bar */}
-                  <div className="h-2 w-full rounded-full bg-slate-800/80 overflow-hidden p-0.5 border border-white/5">
+
+                  {/* Gradient Progress Bar */}
+                  <div className="h-2 w-full rounded-full bg-slate-900/90 overflow-hidden p-0.5 border border-white/5">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${completionPercentage}%` }}
@@ -743,253 +748,491 @@ export function Profile() {
                       className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-emerald-400 shadow-[0_0_12px_rgba(124,58,237,0.5)]"
                     />
                   </div>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
+
+                  {/* Interactive Checklist Pills */}
+                  <div className="space-y-1.5 pt-1">
+                    {checklist.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={item.action}
+                        className="w-full flex items-center justify-between text-[11px] py-1 px-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer text-left"
+                      >
+                        <span className={`font-medium ${item.done ? "text-slate-300" : "text-slate-400"}`}>
+                          {item.label}
+                        </span>
+                        {item.done ? (
+                          <span className="text-emerald-400 font-bold flex items-center gap-1">
+                            <Check size={11} strokeWidth={3} /> Đã có
+                          </span>
+                        ) : (
+                          <span className="text-violet-400 font-semibold hover:underline">
+                            + Thêm
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed border-t border-white/5 pt-2">
                     {completionPercentage >= 100
-                      ? "🎉 Hồ sơ đã hoàn thiện 100%!"
-                      : "Điền thêm kinh nghiệm, học vấn và kỹ năng để tăng độ hoàn thiện."}
+                      ? "🎉 Tuyệt vời! Hồ sơ đã đầy đủ 100% để tối ưu hóa phỏng vấn AI."
+                      : "Điền thêm thông tin giúp AI cá nhân hóa câu hỏi phỏng vấn chuẩn xác nhất."}
                   </p>
                 </div>
 
                 {/* Account Plan Details Card */}
                 <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-300">Gói tài khoản</span>
+                    <span className="text-xs font-bold text-slate-300">Gói dịch vụ</span>
                     <span className="text-xs font-bold text-violet-300">{planInfo.name}</span>
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">{planInfo.desc}</p>
                   {!planInfo.isPaid && (
                     <Link
                       to="/pricing"
-                      className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:brightness-110 hover:shadow-violet-600/30"
+                      className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-violet-400/40 border-t-white/45 bg-gradient-to-b from-violet-500/80 via-violet-600/70 to-indigo-700/80 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-md hover:brightness-110 active:scale-[0.98] transition-all"
                     >
                       <Sparkles size={14} />
                       Nâng cấp Pro / Elite
                     </Link>
                   )}
                 </div>
+
               </div>
             </motion.aside>
 
-            {/* Right Column: CV & Form Editor */}
+            {/* Right Column: CV & Form Workspace */}
             <motion.main
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.4, delay: 0.1 }}
               className="lg:col-span-8 space-y-6"
             >
-              <div id="profile-cv" className="settings-workspace interactive-card scroll-mt-28 p-8 sm:p-10">
-                <div className="border-b border-white/10 mb-8 pb-6 flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-white sm:text-2xl">
-                      <User size={22} className="text-violet-400" strokeWidth={2} />
-                      Hồ sơ <span className="text-violet-300">cá nhân</span>
-                    </h2>
-                    <ProfileCvMentorHint isMentor={isMentor} />
+              <div
+                id="profile-cv"
+                className="rounded-3xl border border-white/10 bg-[#120d2c]/85 backdrop-blur-2xl p-6 sm:p-9 shadow-[0_20px_50px_rgba(5,3,20,0.45)]"
+              >
+                {/* Workspace Header */}
+                <div className="border-b border-white/10 pb-6 mb-7">
+                  <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-2xl bg-violet-600/25 border border-violet-400/30 text-violet-300 flex items-center justify-center shadow-[0_0_16px_rgba(124,58,237,0.25)]">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                        Hồ sơ năng lực & CV
+                      </h2>
+                      <ProfileCvMentorHint isMentor={isMentor} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="profile-cv-accordion-list">
-                  {/* Basic Contact Info Section */}
-                  <ProfileCvStaticSection title="THÔNG TIN" showDividerBelow>
-                    <div className="grid gap-6 md:grid-cols-3">
-                      {FORM_FIELDS.map(({ label, key, icon: Icon, mentorRequired }) => (
-                        <div key={key} className="space-y-2">
-                          <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
-                            <Icon size={13} className="text-violet-400" /> {label}
-                            {showMentorRequiredMarks && mentorRequired ? (
-                              <span className="font-extrabold text-rose-400" aria-hidden>
-                                *
-                              </span>
-                            ) : null}
-                          </label>
-                          <input
-                            className="w-full rounded-xl border border-white/15 bg-slate-900/50 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-400 focus:border-[#c4ace8] focus:outline-none focus:ring-2 focus:ring-[#c4ace8]/30 transition-all hover:border-white/25"
-                            value={form[key]}
-                            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                            placeholder={`Nhập ${label.toLowerCase()}...`}
-                          />
-                        </div>
-                      ))}
+                {/* 1. Basic Contact Info */}
+                <div id="profile-contact-section" className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <User size={15} className="text-violet-400" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                      Thông tin liên lạc cơ bản
+                    </h3>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Name */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Họ và tên <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        placeholder="Nhập họ và tên..."
+                      />
                     </div>
-                  </ProfileCvStaticSection>
 
-                  {/* Intro Section */}
-                  <ProfileCvAccordionSection
-                    title="Giới thiệu bản thân"
-                    requiredMark={showMentorRequiredMarks}
-                    isOpen={openCvSections.intro}
-                    onToggle={() => toggleCvSection("intro")}
-                  >
-                    <ProfileCvTextarea
-                      placeholder={cvSectionCopy.intro.placeholder}
-                      value={cvProfile.intro}
-                      onChange={(e) => {
-                        setMentorApplyError("");
-                        setCvProfile({ ...cvProfile, intro: e.target.value });
-                      }}
-                      rows={5}
-                    />
-                  </ProfileCvAccordionSection>
+                    {/* Phone */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Số điện thoại
+                      </label>
+                      <input
+                        className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                        value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        placeholder="Nhập số điện thoại..."
+                      />
+                    </div>
 
-                  {/* Work Experience Section */}
-                  <ProfileCvAccordionSection
-                    title="Kinh nghiệm làm việc"
-                    requiredMark={showMentorRequiredMarks}
-                    isOpen={openCvSections.work}
-                    onToggle={() => toggleCvSection("work")}
-                  >
-                    <ProfileWorkHistoryEditor
-                      entries={cvProfile.workHistory}
-                      showMentorRequiredHint={showMentorRequiredMarks}
-                      onChange={(workHistory) => {
-                        setMentorApplyError("");
-                        setCvProfile(syncCvFromWorkHistory({ ...cvProfile, workHistory }));
-                      }}
-                    />
-                  </ProfileCvAccordionSection>
-
-                  {/* Skills & Certifications Section */}
-                  <ProfileCvAccordionSection
-                    title="Kỹ năng & chứng chỉ"
-                    requiredMark={showMentorRequiredMarks}
-                    isOpen={openCvSections.skills}
-                    onToggle={() => toggleCvSection("skills")}
-                  >
-                    <ProfileCvTextarea
-                      placeholder={cvSectionCopy.skills.placeholder}
-                      value={cvProfile.skillsCerts}
-                      onChange={(e) => {
-                        setMentorApplyError("");
-                        setCvProfile({ ...cvProfile, skillsCerts: e.target.value });
-                      }}
-                      rows={3}
-                    />
-                  </ProfileCvAccordionSection>
-
-                  {/* Mentor Hourly Target Rate (for non-mentors registering) */}
-                  {!isMentor && (
-                    <ProfileCvAccordionSection
-                      title="Mức giá đăng ký"
-                      requiredMark={showMentorRequiredMarks}
-                      isOpen={openCvSections.mentorExtra}
-                      onToggle={() => toggleCvSection("mentorExtra")}
-                    >
-                      <div className="relative max-w-md">
+                    {/* Email - Full width so long emails never get truncated */}
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Địa chỉ Email <span className="text-rose-400">*</span>
+                      </label>
+                      <div className="relative">
                         <input
-                          type="text"
-                          inputMode="numeric"
-                          className="w-full rounded-xl border border-white/15 bg-slate-900/50 px-4 py-3 pr-16 text-sm font-medium text-slate-100 placeholder:text-slate-400 focus:border-[#c4ace8] focus:outline-none focus:ring-2 focus:ring-[#c4ace8]/30 transition-all hover:border-white/25"
-                          placeholder="VD: 300.000 (VNĐ / 60 phút)"
-                          value={
-                            cvProfile.targetRate
-                              ? Number(cvProfile.targetRate).toLocaleString("vi-VN")
-                              : ""
-                          }
-                          onChange={(e) =>
-                            setCvProfile({
-                              ...cvProfile,
-                              targetRate: e.target.value.replace(/\D/g, ""),
-                            })
-                          }
+                          className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 pr-24 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                          value={form.email}
+                          onChange={(e) => setForm({ ...form, email: e.target.value })}
+                          placeholder="Nhập email..."
                         />
-                        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                          VND
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+                          Tài khoản chính
                         </span>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Professional Background Accordions */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Briefcase size={15} className="text-violet-400" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Hồ sơ chuyên môn & kinh nghiệm
+                      </h3>
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Bấm vào từng mục để mở rộng và cập nhật
+                    </span>
+                  </div>
+
+                  {/* Intro Section */}
+                  <div id="cv-section-intro">
+                    <ProfileCvAccordionSection
+                      title="Giới thiệu bản thân"
+                      icon={FileText}
+                      isFilled={Boolean(cvProfile.intro?.trim())}
+                      preview={cvProfile.intro?.trim()}
+                      isOpen={openCvSections.intro}
+                      onToggle={() => toggleCvSection("intro")}
+                      description="Tóm tắt ngắn gọn thế mạnh, tính cách làm việc và định hướng nghề nghiệp giúp bạn nổi bật trong mắt nhà tuyển dụng hoặc mentor."
+                    >
+                      <ProfileCvTextarea
+                        placeholder={cvSectionCopy.intro.placeholder}
+                        value={cvProfile.intro}
+                        onChange={(e) => {
+                          setMentorApplyError("");
+                          setCvProfile({ ...cvProfile, intro: e.target.value });
+                        }}
+                        rows={4}
+                      />
                     </ProfileCvAccordionSection>
-                  )}
+                  </div>
+
+                  {/* Work Experience Section */}
+                  <div id="cv-section-work">
+                    <ProfileCvAccordionSection
+                      title="Kinh nghiệm làm việc"
+                      icon={Briefcase}
+                      isFilled={Boolean(cvProfile.workHistory?.length && cvProfile.workHistory.some((w) => w.role || w.company))}
+                      preview={
+                        cvProfile.workHistory?.length
+                          ? `${cvProfile.workHistory.filter((w) => w.role || w.company).length} vị trí đã ghi nhận`
+                          : null
+                      }
+                      isOpen={openCvSections.work}
+                      onToggle={() => toggleCvSection("work")}
+                      description="Liệt kê các công việc thực tế, kỳ thực tập hoặc dự án thực chiến mà bạn đã tham gia."
+                    >
+                      <ProfileWorkHistoryEditor
+                        entries={cvProfile.workHistory}
+                        showMentorRequiredHint={false}
+                        onChange={(workHistory) => {
+                          setMentorApplyError("");
+                          setCvProfile(syncCvFromWorkHistory({ ...cvProfile, workHistory }));
+                        }}
+                      />
+                    </ProfileCvAccordionSection>
+                  </div>
+
+                  {/* Skills & Certifications Section */}
+                  <div id="cv-section-skills">
+                    <ProfileCvAccordionSection
+                      title="Kỹ năng & chứng chỉ"
+                      icon={Sparkles}
+                      isFilled={Boolean(cvProfile.skillsCerts?.trim())}
+                      preview={cvProfile.skillsCerts?.trim()}
+                      isOpen={openCvSections.skills}
+                      onToggle={() => toggleCvSection("skills")}
+                      description="Các công nghệ, kỹ năng mềm, chứng chỉ quốc tế hoặc ngoại ngữ (phân cách bằng dấu phẩy)."
+                    >
+                      <ProfileCvTextarea
+                        placeholder={cvSectionCopy.skills.placeholder}
+                        value={cvProfile.skillsCerts}
+                        onChange={(e) => {
+                          setMentorApplyError("");
+                          setCvProfile({ ...cvProfile, skillsCerts: e.target.value });
+                        }}
+                        rows={3}
+                        hint="Gợi ý: Viết theo định dạng tên kỹ năng, phân tách bằng dấu phẩy (vd: React, Docker, IELTS 7.0)"
+                      />
+                    </ProfileCvAccordionSection>
+                  </div>
 
                   {/* Education History Section */}
-                  <ProfileCvAccordionSection
-                    title="Quá trình học tập"
-                    isOpen={openCvSections.education}
-                    onToggle={() => toggleCvSection("education")}
-                  >
-                    <ProfileEducationHistoryEditor
-                      entries={cvProfile.educationHistory}
-                      onChange={(educationHistory) => {
-                        setMentorApplyError("");
-                        setCvProfile(syncCvFromEducationHistory({ ...cvProfile, educationHistory }));
-                      }}
-                    />
-                  </ProfileCvAccordionSection>
+                  <div id="cv-section-education">
+                    <ProfileCvAccordionSection
+                      title="Quá trình học tập"
+                      icon={GraduationCap}
+                      isFilled={Boolean(cvProfile.educationHistory?.length && cvProfile.educationHistory.some((e) => e.school))}
+                      preview={
+                        cvProfile.educationHistory?.length
+                          ? `${cvProfile.educationHistory.filter((e) => e.school).length} cơ sở đào tạo`
+                          : null
+                      }
+                      isOpen={openCvSections.education}
+                      onToggle={() => toggleCvSection("education")}
+                      description="Trường đại học, cao đẳng, chứng chỉ chuyên sâu hoặc khóa học nghề mà bạn đã hoặc đang theo học."
+                    >
+                      <ProfileEducationHistoryEditor
+                        entries={cvProfile.educationHistory}
+                        onChange={(educationHistory) => {
+                          setMentorApplyError("");
+                          setCvProfile(syncCvFromEducationHistory({ ...cvProfile, educationHistory }));
+                        }}
+                      />
+                    </ProfileCvAccordionSection>
+                  </div>
 
                   {/* Extracurricular Section */}
-                  <ProfileCvAccordionSection
-                    title="Hoạt động ngoại khóa"
-                    isOpen={openCvSections.extracurricular}
-                    onToggle={() => toggleCvSection("extracurricular")}
-                  >
-                    <ProfileCvTextarea
-                      placeholder={cvSectionCopy.extracurricular.placeholder}
-                      value={cvProfile.extracurricular}
-                      onChange={(e) => {
-                        setMentorApplyError("");
-                        setCvProfile({ ...cvProfile, extracurricular: e.target.value });
-                      }}
-                      rows={3}
-                    />
-                  </ProfileCvAccordionSection>
+                  <div id="cv-section-extracurricular">
+                    <ProfileCvAccordionSection
+                      title="Hoạt động ngoại khóa"
+                      icon={Users}
+                      badge="Tùy chọn"
+                      isFilled={Boolean(cvProfile.extracurricular?.trim())}
+                      preview={cvProfile.extracurricular?.trim()}
+                      isOpen={openCvSections.extracurricular}
+                      onToggle={() => toggleCvSection("extracurricular")}
+                      description="Câu lạc bộ, hoạt động tình nguyện, dự án phi lợi nhuận hoặc sự kiện tổ chức bạn từng tham gia."
+                    >
+                      <ProfileCvTextarea
+                        placeholder={cvSectionCopy.extracurricular.placeholder}
+                        value={cvProfile.extracurricular}
+                        onChange={(e) => {
+                          setMentorApplyError("");
+                          setCvProfile({ ...cvProfile, extracurricular: e.target.value });
+                        }}
+                        rows={3}
+                      />
+                    </ProfileCvAccordionSection>
+                  </div>
 
                   {/* Awards Section */}
-                  <ProfileCvAccordionSection
-                    title="Tên giải thưởng"
-                    isOpen={openCvSections.awards}
-                    onToggle={() => toggleCvSection("awards")}
-                  >
-                    <ProfileCvTextarea
-                      placeholder={cvSectionCopy.awards.placeholder}
-                      value={cvProfile.awards}
-                      onChange={(e) => {
-                        setMentorApplyError("");
-                        setCvProfile({ ...cvProfile, awards: e.target.value });
-                      }}
-                      rows={2}
-                    />
-                  </ProfileCvAccordionSection>
+                  <div id="cv-section-awards">
+                    <ProfileCvAccordionSection
+                      title="Giải thưởng & thành tích"
+                      icon={Trophy}
+                      badge="Tùy chọn"
+                      isFilled={Boolean(cvProfile.awards?.trim())}
+                      preview={cvProfile.awards?.trim()}
+                      isOpen={openCvSections.awards}
+                      onToggle={() => toggleCvSection("awards")}
+                      description="Các cuộc thi học thuật, học bổng, sự ghi nhận hoặc giải thưởng nổi bật mà bạn đã đạt được."
+                    >
+                      <ProfileCvTextarea
+                        placeholder={cvSectionCopy.awards.placeholder}
+                        value={cvProfile.awards}
+                        onChange={(e) => {
+                          setMentorApplyError("");
+                          setCvProfile({ ...cvProfile, awards: e.target.value });
+                        }}
+                        rows={2}
+                      />
+                    </ProfileCvAccordionSection>
+                  </div>
+                </div>
 
-                  {/* Submit Action Buttons with micro-animations */}
-                  <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row gap-3">
+                {/* 3. Mentor Configuration or Application Section */}
+                <div id="cv-section-mentorExtra" className="mb-8">
+                  {isMentor ? (
+                    /* For existing Mentors: Consulting Fee & Settings */
+                    <ProfileCvAccordionSection
+                      title="Cấu hình Cố vấn & Mức giá (Mentor Settings)"
+                      icon={DollarSign}
+                      badge="Mentor"
+                      isFilled={Boolean(cvProfile.targetRate)}
+                      preview={cvProfile.targetRate ? `${Number(cvProfile.targetRate).toLocaleString("vi-VN")} VNĐ / 60 phút` : "Chưa đặt giá"}
+                      isOpen={openCvSections.mentorExtra}
+                      onToggle={() => toggleCvSection("mentorExtra")}
+                      description="Thiết lập mức giá tư vấn 1:1 cho mỗi buổi kéo dài 60 phút và thông tin liên kết mạng xã hội."
+                    >
+                      <div className="space-y-4">
+                        <div>
+                          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Mức giá tư vấn (VNĐ / 60 phút)
+                          </label>
+                          <div className="relative max-w-sm">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 pr-16 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                              placeholder="VD: 300.000"
+                              value={
+                                cvProfile.targetRate
+                                  ? Number(cvProfile.targetRate).toLocaleString("vi-VN")
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                setCvProfile({
+                                  ...cvProfile,
+                                  targetRate: e.target.value.replace(/\D/g, ""),
+                                })
+                              }
+                            />
+                            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-violet-300">
+                              VNĐ
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                              LinkedIn Profile
+                            </label>
+                            <input
+                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                              placeholder="https://linkedin.com/in/..."
+                              value={cvProfile.linkedinProfile}
+                              onChange={(e) => setCvProfile({ ...cvProfile, linkedinProfile: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                              Portfolio / Website cá nhân
+                            </label>
+                            <input
+                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                              placeholder="https://yourportfolio.dev"
+                              value={cvProfile.portfolioLink}
+                              onChange={(e) => setCvProfile({ ...cvProfile, portfolioLink: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </ProfileCvAccordionSection>
+                  ) : (
+                    /* For Students: Become a Mentor Spotlight Card */
+                    <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-900/20 via-[#16103c]/60 to-[#0e0a26]/80 p-5 sm:p-6 shadow-lg">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div className="flex items-start gap-3.5">
+                          <div className="size-10 rounded-xl bg-violet-600/30 border border-violet-400/40 text-violet-200 flex items-center justify-center shrink-0">
+                            <Sparkles size={20} />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-base font-bold text-white">
+                                Trở thành Mentor tại ProInterview
+                              </h4>
+                              <span className="text-[10px] font-bold text-violet-300 bg-violet-500/20 px-2 py-0.5 rounded-full border border-violet-400/30">
+                                Thu nhập & Uy tín
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-300/80 mt-1 leading-relaxed">
+                              Chia sẻ kinh nghiệm phỏng vấn thực tế, hướng dẫn học viên và gia tăng thu nhập của bạn qua các buổi tư vấn 1:1.
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => toggleCvSection("mentorExtra")}
+                          className="text-xs font-bold text-white bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md px-4 py-2 rounded-xl hover:brightness-110 active:scale-95 transition-all self-start sm:self-auto shrink-0 cursor-pointer"
+                        >
+                          {openCvSections.mentorExtra ? "Thu gọn đăng ký" : "Thiết lập mức giá"}
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {openCvSections.mentorExtra && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="overflow-hidden border-t border-white/10 pt-4 mt-3 space-y-4"
+                          >
+                            <div>
+                              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                                Mức giá đề xuất nhận học viên (VNĐ / 60 phút) <span className="text-rose-400">*</span>
+                              </label>
+                              <div className="relative max-w-sm">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  className="w-full rounded-xl border border-white/15 bg-slate-950/80 px-4 py-3 pr-16 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                                  placeholder="VD: 300.000"
+                                  value={
+                                    cvProfile.targetRate
+                                      ? Number(cvProfile.targetRate).toLocaleString("vi-VN")
+                                      : ""
+                                  }
+                                  onChange={(e) =>
+                                    setCvProfile({
+                                      ...cvProfile,
+                                      targetRate: e.target.value.replace(/\D/g, ""),
+                                    })
+                                  }
+                                />
+                                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-violet-300">
+                                  VNĐ
+                                </span>
+                              </div>
+                              <p className="mt-1.5 text-[11px] text-slate-400">
+                                Bạn có thể điều chỉnh mức thù lao bất cứ lúc nào sau khi hồ sơ được ban quản trị xét duyệt.
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Action Buttons */}
+                <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.015 }}
+                    whileTap={{ scale: 0.985 }}
+                    type="button"
+                    disabled={saving}
+                    onClick={handleSaveProfile}
+                    className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 border-t-white/45 bg-gradient-to-b from-white/[0.22] via-white/[0.10] to-transparent shadow-[0_6px_24px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl hover:bg-white/[0.25] text-white px-6 py-3.5 text-sm font-bold disabled:opacity-50 transition-all cursor-pointer"
+                  >
+                    {saving ? (
+                      <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <>
+                        <Check size={16} strokeWidth={2.5} />
+                        Lưu thay đổi hồ sơ
+                      </>
+                    )}
+                  </motion.button>
+
+                  {!isMentor && (
                     <motion.button
                       whileHover={{ scale: 1.015 }}
                       whileTap={{ scale: 0.985 }}
                       type="button"
-                      disabled={saving}
-                      onClick={handleSaveProfile}
-                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-violet-400/40 bg-violet-500/20 px-6 py-3.5 text-sm font-bold text-violet-200 hover:bg-violet-500/30 disabled:opacity-50 transition-all cursor-pointer shadow-md"
+                      disabled={applying}
+                      onClick={handleSidebarMentorRegister}
+                      className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 shadow-[0_6px_24px_rgba(124,58,237,0.5),inset_0_1px_1px_rgba(255,255,255,0.35)] backdrop-blur-xl px-6 py-3.5 text-sm font-bold text-white hover:brightness-110 active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer"
                     >
-                      {saving ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-violet-300 border-t-transparent" />
+                      {applying ? (
+                        <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       ) : (
                         <>
-                          <Check size={16} />
-                          Lưu hồ sơ
+                          <Sparkles size={16} />
+                          Đăng ký làm Mentor
                         </>
                       )}
                     </motion.button>
-
-                    {!isMentor && (
-                      <motion.button
-                        whileHover={{ scale: 1.015 }}
-                        whileTap={{ scale: 0.985 }}
-                        type="button"
-                        disabled={applying}
-                        onClick={handleSidebarMentorRegister}
-                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer"
-                      >
-                        {applying ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        ) : (
-                          <>
-                            <Sparkles size={16} />
-                            Đăng ký làm Mentor
-                          </>
-                        )}
-                      </motion.button>
-                    )}
-                  </div>
-
+                  )}
                 </div>
+
               </div>
             </motion.main>
 
@@ -1018,7 +1261,7 @@ export function Profile() {
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-emerald-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-emerald-300 shadow-2xl backdrop-blur-md"
               >
-                <Check size={18} /> Đã cập nhật thành công
+                <Check size={18} /> Đã cập nhật thành công hồ sơ
               </motion.div>
             )}
 
@@ -1033,9 +1276,9 @@ export function Profile() {
                   <Check size={14} />
                 </div>
                 <div>
-                  <p>Hồ sơ đã được gửi!</p>
+                  <p>Hồ sơ mentor đã được gửi!</p>
                   <p className="mt-1 text-[10px] font-medium lowercase first-letter:uppercase text-slate-300">
-                    Hệ thống sẽ phản hồi kết quả trong vòng 24-48 giờ làm việc.
+                    Ban quản trị sẽ xem xét và phản hồi kết quả trong vòng 24-48 giờ làm việc.
                   </p>
                 </div>
               </motion.div>
@@ -1054,7 +1297,7 @@ export function Profile() {
                 <div>
                   <p>Đã gửi duyệt lại hồ sơ mentor!</p>
                   <p className="mt-1 text-[10px] font-semibold lowercase first-letter:uppercase text-slate-300">
-                    Admin sẽ xem xét lại hồ sơ của bạn trong thời gian sớm nhất.
+                    Ban quản trị sẽ xem xét lại hồ sơ cập nhật của bạn trong thời gian sớm nhất.
                   </p>
                 </div>
               </motion.div>
@@ -1083,7 +1326,7 @@ export function Profile() {
               >
                 <div className="border-b border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 px-6 pb-5 pt-6 sm:px-7">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
                       <AlertTriangle size={22} strokeWidth={2.25} aria-hidden />
                     </div>
                     <div className="min-w-0 flex-1 pr-1">

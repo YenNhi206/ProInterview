@@ -1,0 +1,129 @@
+/* ═════════════════════════════════════════════════════════════════
+   Hero Connected Waves & Knowledge Network
+   Seamlessly blends with ProInterview Course Explorer & Cards
+   ═════════════════════════════════════════════════════════════════ */
+
+.hero-connected-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: transparent;
+  z-index: 1;
+}
+
+/* ── 1. Subtle Learning Tech Grid (Lưới tri thức công nghệ chìm) ── */
+.hero-connected-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(128, 55, 244, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(128, 55, 244, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 65% 50% at 50% 45%, black 15%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 50% at 50% 45%, black 15%, transparent 75%);
+  opacity: 0.6;
+}
+
+/* ── 2. Ambient Focus Glow (Tụ sáng nhẹ sau tiêu đề & Search, không chạm viền) ── */
+.hero-connected-ambient {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 220px;
+  background: radial-gradient(
+    ellipse 50% 50% at center,
+    rgba(128, 55, 244, 0.22) 0%,
+    rgba(147, 247, 43, 0.06) 40%,
+    transparent 70%
+  );
+  filter: blur(55px);
+  animation: heroPulse 9s ease-in-out infinite alternate;
+}
+
+@keyframes heroPulse {
+  0% { transform: translate(-50%, -50%) scale(0.94); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.95; }
+}
+
+/* ── 3. Fluid Wave Tracks (Hiển thị sống động 2 bên cánh, làm mờ trung tâm để không đè lên chữ/search/stats) ── */
+.hero-cwave-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 200%;
+  height: 280px;
+  margin-top: -140px;
+  display: flex;
+  will-change: transform;
+  /* Mask trung tâm: triệt tiêu đường dây cắt qua tiêu đề, mô tả, thanh tìm kiếm và stats */
+  mask-image: radial-gradient(ellipse 520px 220px at 50% 50%, rgba(0, 0, 0, 0.06) 20%, rgba(0, 0, 0, 0.6) 70%, black 100%);
+  -webkit-mask-image: radial-gradient(ellipse 520px 220px at 50% 50%, rgba(0, 0, 0, 0.06) 20%, rgba(0, 0, 0, 0.6) 70%, black 100%);
+}
+
+/* Sóng 1 (Tím neon - Luồng kiến thức) chạy từ phải sang trái mượt mà */
+.hero-cwave-track-1 {
+  animation: cwaveScrollLeft 24s linear infinite;
+}
+
+/* Sóng 2 (Xanh lime - Đồng bộ màu badge & nút Tìm kiếm) trôi ngược chiều */
+.hero-cwave-track-2 {
+  animation: cwaveScrollRight 30s linear infinite;
+  opacity: 0.92;
+}
+
+/* Sóng 3 (Deep Indigo) trôi nhẹ tầng sâu */
+.hero-cwave-track-3 {
+  animation: cwaveScrollLeft 36s linear infinite;
+  opacity: 0.65;
+}
+
+@keyframes cwaveScrollLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes cwaveScrollRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* Dao động nhấp nhô nhẹ theo trục Y */
+.hero-cwave-bob-1 {
+  animation: cwaveBob1 8s ease-in-out infinite alternate;
+}
+
+.hero-cwave-bob-2 {
+  animation: cwaveBob2 11s ease-in-out infinite alternate;
+}
+
+@keyframes cwaveBob1 {
+  0% { transform: translateY(-7px) scaleY(0.96); }
+  100% { transform: translateY(7px) scaleY(1.04); }
+}
+
+@keyframes cwaveBob2 {
+  0% { transform: translateY(6px) scaleY(1.03); }
+  100% { transform: translateY(-6px) scaleY(0.97); }
+}
+
+/* ── 4. Điểm nút tri thức (Micro Knowledge Nodes) ── */
+.hero-knode {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  animation: knodeGlow ease-in-out infinite alternate;
+}
+
+@keyframes knodeGlow {
+  0% { transform: scale(0.7); opacity: 0.25; }
+  50% { opacity: 0.85; transform: scale(1.15); }
+  100% { transform: scale(0.8); opacity: 0.35; }
+}
+
+/* ── 5. Bottom Blend Overlay ── */
+.hero-bottom-blend {
+  display: none;
+}

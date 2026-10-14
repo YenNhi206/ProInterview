@@ -1,6 +1,7 @@
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import "../../../styles/mentor-search.css";
 import { AddCourseToCartButton } from "../../components/courses/AddCourseToCartButton.jsx";
+import { CourseHeroConnected } from "../../components/courses/CourseHeroConnected.jsx";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "motion/react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -448,10 +449,6 @@ export function Courses() {
         ref={heroRef}
         className="relative w-full overflow-hidden text-center"
         style={{
-          backgroundImage: "linear-gradient(rgba(26,13,53,0.85), rgba(26,13,53,0.95)), url('/courses_hero_bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           paddingTop: "5rem",
           paddingBottom: "5rem",
           minHeight: "420px",
@@ -460,27 +457,26 @@ export function Courses() {
           justifyContent: "center",
         }}
       >
-        {/* Glow orbs — parallax */}
-        <motion.div style={{ y: glow1Y }} className="pointer-events-none absolute left-1/4 top-0 h-[350px] w-[350px] rounded-full bg-[#8037f4]/20 blur-[90px]" />
-        <motion.div style={{ y: glow2Y }} className="pointer-events-none absolute bottom-0 right-1/4 h-[300px] w-[300px] rounded-full bg-lime-500/10 blur-[80px]" />
-        <div className="pointer-events-none absolute right-16 top-10 h-48 w-48 rounded-full bg-[#93f72b]/8 blur-2xl" />
+        {/* Seamless Connected Waves + Tech Grid (Uiverse style) */}
+        <CourseHeroConnected />
 
         <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-4">
           {/* Heading */}
           <motion.h1
-            initial={{ opacity: 0, y: -24 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.07 }}
-            className="font-headline text-3xl font-black uppercase tracking-tight text-white sm:text-4xl md:text-5xl"
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
+            className="font-headline text-3xl font-extrabold uppercase tracking-wider text-white sm:text-4xl md:text-5xl"
           >
             KHÓA HỌC KỸ NĂNG
           </motion.h1>
 
+          {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.2 }}
-            className="mb-10 mt-3 max-w-2xl text-sm font-medium leading-relaxed text-slate-300 sm:text-base"
+            transition={{ duration: 0.45, delay: 0.18 }}
+            className="mb-12 mt-4 max-w-2xl text-center text-sm font-normal leading-relaxed text-slate-300 sm:text-base"
           >
             Các khóa học do Mentor xây dựng, giúp bạn bổ sung kỹ năng cần thiết cho hành trình ứng tuyển.
           </motion.p>
@@ -561,12 +557,12 @@ export function Courses() {
 
           {/* Results bar + filter toggle */}
           <motion.div
-            className="mb-6 flex items-center justify-between border-b border-slate-100 pb-3 px-1"
+            className="mb-6 flex items-center justify-between border-b border-white/10 pb-3 px-1"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
-            <p className="text-sm font-semibold text-slate-700">
+            <p className="text-sm font-semibold text-slate-300">
               Tìm thấy{" "}
               <span className="text-base font-extrabold text-[#8037f4]">{filteredCourses.length}</span>{" "}
               khóa học cho bạn!

@@ -977,6 +977,7 @@ export function CourseLearning() {
             setPaymentPendingInfo({
               courseId: String(id),
               price: Number(c.price || 0),
+              cartOrderId: found.cartOrderId || "",
             });
           }
         } else {
@@ -1159,11 +1160,13 @@ export function CourseLearning() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               type="button"
-              onClick={() =>
-                navigate(
-                  `/checkout?type=course&courseId=${paymentPendingInfo.courseId}&price=${paymentPendingInfo.price}`,
-                )
-              }
+              onClick={() => {
+                if (paymentPendingInfo.cartOrderId) {
+                  navigate(`/cart?order=${paymentPendingInfo.cartOrderId}`);
+                } else {
+                  navigate(`/courses/${paymentPendingInfo.courseId}`);
+                }
+              }}
               className={`${landingPrimaryButtonClass} rounded-xl px-6 py-3 text-sm shadow-md`}
             >
               Tiếp tục thanh toán

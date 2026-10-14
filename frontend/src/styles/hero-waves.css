@@ -1,0 +1,136 @@
+/* ═════════════════════════════════════════════════════════════════
+   Uiverse-inspired Fluid Hero Waves Animation
+   Smooth undulating glowing wave ribbons for Course Hero Banner
+   ═════════════════════════════════════════════════════════════════ */
+
+.hero-waves-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 15%, #230c4e 0%, #14072b 55%, #0c041a 100%);
+  z-index: 1;
+}
+
+/* Ambient glow in center behind text */
+.hero-waves-ambient-center {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 720px;
+  height: 320px;
+  background: radial-gradient(ellipse at center, rgba(128, 55, 244, 0.24) 0%, rgba(147, 247, 43, 0.08) 50%, transparent 75%);
+  filter: blur(60px);
+  animation: heroAmbientPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes heroAmbientPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.92);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.12);
+    opacity: 0.95;
+  }
+}
+
+/* Continuous looping tracks */
+.hero-wave-track {
+  position: absolute;
+  top: 52%;
+  left: 0;
+  width: 200%;
+  height: 260px;
+  margin-top: -130px;
+  display: flex;
+  will-change: transform;
+}
+
+.hero-wave-track-1 {
+  animation: waveTravelLeft 22s linear infinite;
+}
+
+.hero-wave-track-2 {
+  animation: waveTravelRight 28s linear infinite;
+  opacity: 0.9;
+}
+
+.hero-wave-track-3 {
+  animation: waveTravelLeft 34s linear infinite;
+  opacity: 0.75;
+}
+
+@keyframes waveTravelLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes waveTravelRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Subtle vertical undulation / bobbing */
+.hero-wave-float-1 {
+  animation: waveBobbing1 8s ease-in-out infinite alternate;
+}
+
+.hero-wave-float-2 {
+  animation: waveBobbing2 10s ease-in-out infinite alternate;
+}
+
+.hero-wave-float-3 {
+  animation: waveBobbing1 12s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes waveBobbing1 {
+  0% {
+    transform: translateY(-9px) scaleY(0.95);
+  }
+  100% {
+    transform: translateY(9px) scaleY(1.05);
+  }
+}
+
+@keyframes waveBobbing2 {
+  0% {
+    transform: translateY(7px) scaleY(1.04);
+  }
+  100% {
+    transform: translateY(-7px) scaleY(0.96);
+  }
+}
+
+/* Subtle star/light dust particles */
+.hero-particle {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  background-color: #fff;
+  filter: blur(0.5px);
+  animation: particleDrift ease-in-out infinite alternate;
+}
+
+@keyframes particleDrift {
+  0% {
+    transform: translateY(0) scale(0.7);
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(-16px) scale(1.2);
+    opacity: 0.2;
+  }
+}
