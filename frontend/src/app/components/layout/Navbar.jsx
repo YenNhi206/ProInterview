@@ -10,7 +10,6 @@ import {
   Settings,
   Shield,
   ShoppingCart,
-  ShoppingBag,
   User,
   UserPlus,
   X,

@@ -1,0 +1,165 @@
+/* ═════════════════════════════════════════════════════════════════
+   Uiverse-inspired Aurora Borealis + Starfield Particles
+   Luminous cosmic mesh glow with drifting orbs & sparkling stars
+   ═════════════════════════════════════════════════════════════════ */
+
+.hero-aurora-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(130% 100% at 50% 10%, #200a48 0%, #110524 60%, #0a0316 100%);
+  z-index: 1;
+}
+
+/* Subtle dot-matrix starfield backdrop */
+.hero-aurora-dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: radial-gradient(#ffffff 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Aurora Light Curtain / Mesh Orbs */
+.aurora-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(85px);
+  will-change: transform, opacity;
+}
+
+/* Violet / Purple Aurora */
+.aurora-orb-1 {
+  width: 600px;
+  height: 520px;
+  top: -15%;
+  left: 12%;
+  background: radial-gradient(circle, rgba(128, 55, 244, 0.45) 0%, rgba(168, 85, 247, 0.22) 50%, transparent 75%);
+  animation: auroraMorph1 14s ease-in-out infinite alternate;
+}
+
+/* Lime-Green / Emerald Aurora */
+.aurora-orb-2 {
+  width: 480px;
+  height: 440px;
+  top: 10%;
+  right: 10%;
+  background: radial-gradient(circle, rgba(147, 247, 43, 0.28) 0%, rgba(74, 222, 128, 0.14) 45%, transparent 75%);
+  animation: auroraMorph2 16s ease-in-out infinite alternate;
+}
+
+/* Deep Magenta / Pink Cosmic Aurora */
+.aurora-orb-3 {
+  width: 520px;
+  height: 460px;
+  bottom: -20%;
+  left: 32%;
+  background: radial-gradient(circle, rgba(217, 70, 239, 0.3) 0%, rgba(139, 92, 246, 0.16) 50%, transparent 75%);
+  animation: auroraMorph3 18s ease-in-out infinite alternate;
+}
+
+/* Cyan / Blue Highlight Aurora */
+.aurora-orb-4 {
+  width: 380px;
+  height: 380px;
+  top: 0%;
+  left: 55%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.24) 0%, transparent 70%);
+  animation: auroraMorph4 12s ease-in-out infinite alternate;
+}
+
+@keyframes auroraMorph1 {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0.75; }
+  50% { transform: translate(60px, 35px) scale(1.15) rotate(45deg); opacity: 0.95; }
+  100% { transform: translate(-40px, 20px) scale(0.92) rotate(-25deg); opacity: 0.8; }
+}
+
+@keyframes auroraMorph2 {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0.7; }
+  50% { transform: translate(-70px, -30px) scale(1.18) rotate(-40deg); opacity: 0.92; }
+  100% { transform: translate(45px, 25px) scale(0.88) rotate(30deg); opacity: 0.65; }
+}
+
+@keyframes auroraMorph3 {
+  0% { transform: translate(0, 0) scale(0.95); opacity: 0.6; }
+  50% { transform: translate(-50px, -40px) scale(1.12); opacity: 0.85; }
+  100% { transform: translate(70px, -20px) scale(1.05); opacity: 0.7; }
+}
+
+@keyframes auroraMorph4 {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  50% { transform: translate(40px, 40px) scale(1.2); opacity: 0.82; }
+  100% { transform: translate(-30px, -20px) scale(0.95); opacity: 0.55; }
+}
+
+/* Horizontal Aurora Light Beam / Curtain */
+.aurora-curtain {
+  position: absolute;
+  top: 25%;
+  left: -20%;
+  right: -20%;
+  height: 160px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(128, 55, 244, 0.14) 20%,
+    rgba(147, 247, 43, 0.18) 50%,
+    rgba(168, 85, 247, 0.2) 75%,
+    transparent 100%
+  );
+  filter: blur(40px);
+  transform: skewY(-4deg);
+  animation: curtainWave 11s ease-in-out infinite alternate;
+}
+
+@keyframes curtainWave {
+  0% { transform: skewY(-5deg) translateY(0); opacity: 0.6; }
+  100% { transform: skewY(-2deg) translateY(35px); opacity: 0.95; }
+}
+
+/* Starfield Particles */
+.aurora-star {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  animation: starTwinkle ease-in-out infinite alternate;
+}
+
+@keyframes starTwinkle {
+  0% {
+    transform: scale(0.6) translateY(0);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.2) translateY(-4px);
+  }
+  100% {
+    transform: scale(0.7) translateY(-8px);
+    opacity: 0.3;
+  }
+}
+
+/* 4-point Sparkle Stars */
+.aurora-sparkle {
+  position: absolute;
+  pointer-events: none;
+  animation: sparkleRotate 6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes sparkleRotate {
+  0% {
+    transform: scale(0.4) rotate(0deg);
+    opacity: 0.15;
+  }
+  50% {
+    transform: scale(1.25) rotate(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.4) rotate(180deg);
+    opacity: 0.15;
+  }
+}

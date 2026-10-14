@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { BookOpen, Check, ArrowLeft, Sparkles, AlertCircle, Loader2, Users, Layers, FileText } from "lucide-react";
 import { fetchCourseById, fetchAllReviewsForCourse } from "../../api/courseApi.js";
 import { enrollmentApi } from "../../api/enrollmentApi.js";
-import { getUser } from "../../utils/auth/auth.js";
+import { getUser, isLoggedIn } from "../../utils/auth/auth.js";
+import { cartApi } from "../../api/cartApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { requireLoginNavigate } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
@@ -153,7 +154,22 @@ export function CourseDetail() {
   const handleEnroll = async () => {
     if (!id || !course) return;
     if (course.price > 0) {
-      navigate(`/checkout?type=course&courseId=${id}&price=${course.price}`);
+      if (!isLoggedIn()) {
+        requireLoginNavigate(navigate, `/courses/${id}`);
+        return;
+      }
+      try {
+        await cartApi.add(id);
+        const res = await cartApi.checkout();
+        if (res?.order?._id || res?.order?.id) {
+          navigate(`/cart?order=${res.order._id || res.order.id}`);
+          return;
+        }
+      } catch (err) {
+        console.error("Cart checkout error:", err);
+        navigate("/cart");
+        return;
+      }
       return;
     }
     try {
@@ -218,9 +234,22 @@ export function CourseDetail() {
       isReadOnlyMentorView={isReadOnlyMentorView}
       onEnroll={handleEnroll}
       onContinueLearn={() => navigate(`/courses/${course.id}/learn`)}
-      onContinuePayment={() =>
-        navigate(enrollmentRow?.cartOrderId ? `/cart?order=${enrollmentRow.cartOrderId}` : `/checkout?type=course&courseId=${course.id}&price=${course.price}`)
-      }
+      onContinuePayment={async () => {
+        if (enrollmentRow?.cartOrderId) {
+          navigate(`/cart?order=${enrollmentRow.cartOrderId}`);
+          return;
+        }
+        try {
+          await cartApi.add(course.id);
+          const res = await cartApi.checkout();
+          if (res?.order?._id || res?.order?.id) {
+            navigate(`/cart?order=${res.order._id || res.order.id}`);
+            return;
+          }
+        } catch {
+          navigate("/cart");
+        }
+      }}
     />
   );
 

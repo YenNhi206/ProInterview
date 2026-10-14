@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowRight, GraduationCap, Star, Users, BadgeCheck, PlayCircle, AlertTriangle, TrendingUp, Zap, ShoppingBag } from "lucide-react";
+import { ArrowRight, GraduationCap, Star, Users, BadgeCheck, PlayCircle, AlertTriangle, TrendingUp, Zap, ShoppingCart } from "lucide-react";
 
 import { fetchCourses, mapApiCourseToCard } from "../../api/courseApi.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { cartApi } from "../../api/cartApi.js";
+import { isLoggedIn } from "../../utils/auth/auth.js";
+import { requireLoginNavigate } from "../../utils/auth/authGate.js";
 
 export function CourseRecommendations({
   courses: propCourses,
@@ -229,9 +232,22 @@ export function CourseRecommendations({
             </button>
             <button
               type="button"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                navigate(`/checkout?type=course&courseId=${course.id}&price=${course.price}`);
+                if (!isLoggedIn()) {
+                  requireLoginNavigate(navigate, `/courses/${course.id}`);
+                  return;
+                }
+                try {
+                  await cartApi.add(course.id);
+                  const res = await cartApi.checkout();
+                  if (res?.order?._id || res?.order?.id) {
+                    navigate(`/cart?order=${res.order._id || res.order.id}`);
+                    return;
+                  }
+                } catch {
+                  navigate("/cart");
+                }
               }}
               className="flex-1 py-2.5 rounded-xl text-[11px] font-extrabold transition-all text-center flex items-center justify-center gap-1.5 hover:brightness-110"
               style={{
@@ -239,7 +255,7 @@ export function CourseRecommendations({
                 color: "#1a0a3e",
               }}
             >
-              <ShoppingBag className="w-3.5 h-3.5" /> Mua ngay
+              <ShoppingCart className="w-3.5 h-3.5" /> Mua ngay
             </button>
           </div>
         </div>

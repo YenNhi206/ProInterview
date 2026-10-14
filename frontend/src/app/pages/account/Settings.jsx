@@ -21,6 +21,13 @@ import {
   Sparkles,
   AlertCircle,
   RefreshCw,
+  User,
+  Sliders,
+  Check,
+  Lock,
+  Smartphone,
+  Mail,
+  Zap,
 } from "lucide-react";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { logout, getUser, getDisplayName, updateUser, refreshUserProfile, resendVerification } from "../../utils/auth/auth.js";
@@ -29,6 +36,7 @@ import { LoginSessionsSection } from "../../components/account/LoginSessionsSect
 import { AccountDangerZone } from "../../components/account/AccountDangerZone";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import "../../../styles/settings.css";
+import "../../../styles/commerce-theme.css";
 
 const NOTIF_PREFS_KEY_CUSTOMER = "prointerview_notif_prefs";
 const NOTIF_PREFS_KEY_MENTOR   = "prointerview_notif_prefs_mentor";
@@ -51,7 +59,7 @@ function mergeNotifPrefs(defaults, storageKey) {
   if (!saved) return defaults;
   return defaults.map((d) => {
     const hit = saved.find((s) => s.id === d.id);
-    return hit ? { ...d, value: !!hit.value } : d;
+    return hit ? { ...d, value: Boolean(hit.value) } : d;
   });
 }
 
@@ -64,7 +72,7 @@ function mergeNotifFromServer(defaults, serverPrefs, isMentor) {
   }));
 }
 
-/* ─── Compact iOS Glass Toggle ───────────────────────────── */
+/* ─── Premium iOS Glass Toggle ───────────────────────────── */
 function ToggleSwitch({ enabled, onChange, disabled, labelledBy, describedBy }) {
   return (
     <button
@@ -75,17 +83,17 @@ function ToggleSwitch({ enabled, onChange, disabled, labelledBy, describedBy }) 
       aria-describedby={describedBy}
       disabled={disabled}
       onClick={() => onChange(!enabled)}
-      className={`relative inline-flex h-5.5 w-10 sm:h-6 sm:w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0e0c22] ${
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0e0c22] ${
         enabled
-          ? "border-violet-400/60 bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_14px_rgba(124,58,237,0.5)]"
+          ? "border-violet-400/60 bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 shadow-[0_0_14px_rgba(124,58,237,0.5)]"
           : "border-white/15 bg-slate-800/80 hover:border-white/30"
       } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
     >
       <span
         aria-hidden="true"
-        className={`pointer-events-none inline-block h-4 w-4 sm:h-4.5 sm:w-4.5 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out ${
+        className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out ${
           enabled
-            ? "translate-x-4.5 sm:translate-x-5 shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
+            ? "translate-x-5 shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
             : "translate-x-0.5 bg-slate-200"
         }`}
       />
@@ -93,21 +101,28 @@ function ToggleSwitch({ enabled, onChange, disabled, labelledBy, describedBy }) 
   );
 }
 
-/* ─── Section Card Wrapper ───────────────────────────────── */
-function SectionCard({ children, className = "", title, subtitle, icon: Icon }) {
+/* ─── Luxury Section Card Wrapper ────────────────────────── */
+function SectionCard({ children, className = "", title, subtitle, icon: Icon, badge }) {
   return (
-    <section className={`rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/75 via-[#13112c]/80 to-[#0e0c22]/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl overflow-hidden p-4 sm:p-5 ${className}`}>
+    <section className={`rounded-3xl border border-white/10 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0a24]/95 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl overflow-hidden p-5 sm:p-7 ${className}`}>
       {title && (
-        <header className="flex items-center gap-3 pb-3 mb-3 border-b border-white/[0.08]">
-          {Icon && (
-            <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.15)] shrink-0">
-              <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
+        <header className="flex items-center justify-between pb-4 mb-4 border-b border-white/[0.08]">
+          <div className="flex items-center gap-3">
+            {Icon && (
+              <div className="size-9 rounded-xl bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.18)] shrink-0">
+                <Icon size={17} strokeWidth={2} aria-hidden="true" />
+              </div>
+            )}
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">{title}</h3>
+              {subtitle && <p className="text-xs text-slate-300/80 mt-0.5 leading-snug">{subtitle}</p>}
             </div>
-          )}
-          <div>
-            <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">{title}</h3>
-            {subtitle && <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{subtitle}</p>}
           </div>
+          {badge && (
+            <span className="text-[11px] font-bold text-violet-300 px-2.5 py-1 rounded-full bg-violet-500/15 border border-violet-400/30 shrink-0">
+              {badge}
+            </span>
+          )}
         </header>
       )}
       <div className="settings-section-body">{children}</div>
@@ -117,94 +132,94 @@ function SectionCard({ children, className = "", title, subtitle, icon: Icon }) 
 
 /* ─── Notifications Tab (2-Column Grid) ───────────────────── */
 const DEFAULT_CUSTOMER_NOTIFS = [
-  { id: "booking_confirmed", label: "Xác nhận lịch hẹn", description: "Khi thanh toán được duyệt và lịch hẹn được xác nhận.", value: true, icon: CalendarCheck },
-  { id: "interview_reminder", label: "Nhắc trước buổi hẹn", description: "Nhắc qua email và ứng dụng trước buổi hẹn khoảng 1 giờ.", value: true, icon: Clock },
-  { id: "booking_cancelled", label: "Thay đổi hoặc hủy lịch", description: "Cập nhật đổi lịch, hủy lịch và hoàn tiền từ mentor.", value: true, icon: CalendarX },
-  { id: "mentor_feedback", label: "Phản hồi từ mentor", description: "Nhận góp ý và nhận xét sau buổi hẹn.", value: true, icon: UserCheck },
-  { id: "streak_reminder", label: "Nhắc luyện tập", description: "Nhắc luyện phỏng vấn AI và hoàn thành mục tiêu tuần.", value: true, icon: Star },
-  { id: "plan_expiring", label: "Gói sắp hết hạn", description: "Nhắc trước 7 ngày khi gói Pro hoặc Elite sắp hết hạn.", value: true, icon: CreditCard },
+  { id: "booking_confirmed", label: "Xác nhận lịch hẹn", description: "Khi thanh toán được duyệt và lịch hẹn được xác nhận thành công.", value: true, icon: CalendarCheck },
+  { id: "interview_reminder", label: "Nhắc trước buổi hẹn", description: "Nhắc qua email và thông báo trước phiên cố vấn khoảng 1 giờ.", value: true, icon: Clock },
+  { id: "booking_cancelled", label: "Thay đổi hoặc hủy lịch", description: "Cập nhật đổi lịch, hủy lịch và thông tin hoàn tiền từ mentor.", value: true, icon: CalendarX },
+  { id: "mentor_feedback", label: "Phản hồi từ mentor", description: "Nhận góp ý, đánh giá và nhận xét sau buổi phỏng vấn.", value: true, icon: UserCheck },
+  { id: "streak_reminder", label: "Nhắc luyện tập AI", description: "Nhắc luyện phỏng vấn cùng Pio AI để duy trì mục tiêu tuần.", value: true, icon: Star },
+  { id: "plan_expiring", label: "Gói sắp hết hạn", description: "Nhắc trước 7 ngày khi gói Pro hoặc Elite của bạn sắp hết hạn.", value: true, icon: CreditCard },
 ];
 
 const DEFAULT_MENTOR_NOTIFS = [
-  { id: "booking_request", label: "Buổi mentor đã thanh toán", description: "Thông báo khi học viên xác nhận thanh toán (CK / SePay).", value: true, icon: CalendarPlus },
-  { id: "session_reminder", label: "Nhắc buổi mentor sắp tới", description: "Email và thông báo app khoảng 1 giờ trước buổi.", value: true, icon: Clock },
-  { id: "mentee_review", label: "Đánh giá từ học viên", description: "Học viên gửi nhận xét sau buổi học với bạn.", value: true, icon: Star },
-  { id: "booking_change", label: "Đổi hoặc hủy lịch", description: "Học viên hủy, đổi lịch hoặc có cập nhật hoàn tiền.", value: true, icon: ArrowLeftRight },
-  { id: "payout_update", label: "Cập nhật tài chính", description: "Thu nhập, rút tiền và xác nhận thanh toán từ admin.", value: true, icon: Wallet },
-  { id: "peer_review_course", label: "Đánh giá chéo khóa học", description: "Có khóa học cần bạn thực hiện đánh giá chéo.", value: true, icon: ClipboardCheck },
+  { id: "booking_request", label: "Buổi mentor đã thanh toán", description: "Thông báo khi học viên hoàn tất thanh toán đặt lịch.", value: true, icon: CalendarPlus },
+  { id: "session_reminder", label: "Nhắc buổi mentor sắp tới", description: "Email và thông báo ứng dụng trước phiên cố vấn 1 giờ.", value: true, icon: Clock },
+  { id: "mentee_review", label: "Đánh giá từ học viên", description: "Học viên gửi nhận xét và chấm điểm sau buổi học với bạn.", value: true, icon: Star },
+  { id: "booking_change", label: "Đổi hoặc hủy lịch", description: "Học viên yêu cầu đổi lịch hoặc hủy phiên cố vấn.", value: true, icon: ArrowLeftRight },
+  { id: "payout_update", label: "Cập nhật tài chính & thu nhập", description: "Thông báo thu nhập, quyết toán và chuyển khoản từ hệ thống.", value: true, icon: Wallet },
+  { id: "peer_review_course", label: "Đánh giá chéo khóa học", description: "Có khóa học đồng nghiệp cần bạn thực hiện thẩm định.", value: true, icon: ClipboardCheck },
 ];
 
 function NotificationsTab({ isMentor, push, toggle, saving, userEmail }) {
   const groupAppointments = {
     id: "appointments",
-    title: "Lịch hẹn",
+    title: "Lịch hẹn & Phiên cố vấn",
     icon: CalendarCheck,
-    subtitle: "Thông báo về phiên cố vấn & lịch phỏng vấn",
+    subtitle: "Thông báo về phiên cố vấn 1:1 & lịch phỏng vấn",
     items: push.slice(0, 4),
   };
 
   const groupAccount = {
     id: "account",
-    title: isMentor ? "Tài chính & khóa học" : "Luyện tập & tài khoản",
+    title: isMentor ? "Tài chính & Khóa học" : "Luyện tập & Gói tài khoản",
     icon: isMentor ? Wallet : Star,
-    subtitle: isMentor ? "Cập nhật doanh thu & hoạt động mentor" : "Nhắc luyện tập AI & gói dịch vụ",
+    subtitle: isMentor ? "Cập nhật doanh thu & hoạt động mentor" : "Nhắc luyện tập cùng Pio AI & gói dịch vụ",
     items: push.slice(4),
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       {/* Column 1: Lịch hẹn (4 items) */}
       <section
-        className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/75 via-[#13112c]/80 to-[#0e0c22]/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl p-4 sm:p-5"
+        className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0a24]/95 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl p-5 sm:p-7"
         aria-labelledby="settings-group-appointments"
       >
-        <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-white/[0.08]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.15)] shrink-0">
-              <CalendarCheck size={16} strokeWidth={1.8} aria-hidden="true" />
+        <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-white/[0.08]">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.18)] shrink-0">
+              <CalendarCheck size={17} strokeWidth={2} aria-hidden="true" />
             </div>
             <div>
               <h3 id="settings-group-appointments" className="text-sm sm:text-base font-bold text-white tracking-tight">
                 {groupAppointments.title}
               </h3>
-              <p className="text-[11px] text-slate-400 leading-snug">
+              <p className="text-xs text-slate-300/80 leading-snug">
                 {groupAppointments.subtitle}
               </p>
             </div>
           </div>
-          <span className="text-[11px] font-semibold text-violet-300 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-400/30">
+          <span className="text-xs font-bold text-violet-300 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/30">
             {groupAppointments.items.filter((i) => i.value).length}/{groupAppointments.items.length} bật
           </span>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {groupAppointments.items.map((item) => {
             const Icon = item.icon;
             return (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-violet-500/20 transition-all duration-150 group"
+                className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#0c0822]/60 hover:bg-[#120d2e]/80 hover:border-violet-500/30 transition-all duration-200 group"
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3.5 min-w-0 pr-2">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 ${
+                    className={`size-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
                       item.value
-                        ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.2)]"
+                        ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.25)]"
                         : "bg-white/5 border border-white/10 text-slate-500"
                     }`}
                   >
-                    <Icon size={15} strokeWidth={1.8} />
+                    <Icon size={16} strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
+                    <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
                       {item.label}
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-1" id={"pref-" + item.id + "-description"} title={item.description}>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed" id={"pref-" + item.id + "-description"}>
                       {item.description}
                     </p>
                   </div>
                 </div>
-                <div className="shrink-0 pl-2">
+                <div className="shrink-0 pl-1">
                   <ToggleSwitch
                     enabled={item.value}
                     disabled={saving}
@@ -220,58 +235,58 @@ function NotificationsTab({ isMentor, push, toggle, saving, userEmail }) {
       </section>
 
       {/* Column 2: Luyện tập & Tài khoản + Delivery status */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         <section
-          className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/75 via-[#13112c]/80 to-[#0e0c22]/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl p-4 sm:p-5"
+          className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0a24]/95 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl p-5 sm:p-7"
           aria-labelledby="settings-group-account"
         >
-          <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-white/[0.08]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.15)] shrink-0">
-                <groupAccount.icon size={16} strokeWidth={1.8} aria-hidden="true" />
+          <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-white/[0.08]">
+            <div className="flex items-center gap-3">
+              <div className="size-9 rounded-xl bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.18)] shrink-0">
+                <groupAccount.icon size={17} strokeWidth={2} aria-hidden="true" />
               </div>
               <div>
                 <h3 id="settings-group-account" className="text-sm sm:text-base font-bold text-white tracking-tight">
                   {groupAccount.title}
                 </h3>
-                <p className="text-[11px] text-slate-400 leading-snug">
+                <p className="text-xs text-slate-300/80 leading-snug">
                   {groupAccount.subtitle}
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-semibold text-violet-300 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-400/30">
+            <span className="text-xs font-bold text-violet-300 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/30">
               {groupAccount.items.filter((i) => i.value).length}/{groupAccount.items.length} bật
             </span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {groupAccount.items.map((item) => {
               const Icon = item.icon;
               return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-violet-500/20 transition-all duration-150 group"
+                  className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#0c0822]/60 hover:bg-[#120d2e]/80 hover:border-violet-500/30 transition-all duration-200 group"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3.5 min-w-0 pr-2">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 ${
+                      className={`size-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
                         item.value
-                          ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.2)]"
+                          ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.25)]"
                           : "bg-white/5 border border-white/10 text-slate-500"
                       }`}
                     >
-                      <Icon size={15} strokeWidth={1.8} />
+                      <Icon size={16} strokeWidth={2} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-semibold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
+                      <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
                         {item.label}
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug line-clamp-1" id={"pref-" + item.id + "-description"} title={item.description}>
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed" id={"pref-" + item.id + "-description"}>
                         {item.description}
                       </p>
                     </div>
                   </div>
-                  <div className="shrink-0 pl-2">
+                  <div className="shrink-0 pl-1">
                     <ToggleSwitch
                       enabled={item.value}
                       disabled={saving}
@@ -286,19 +301,19 @@ function NotificationsTab({ isMentor, push, toggle, saving, userEmail }) {
           </div>
         </section>
 
-        {/* Sync & Channels Tip Card (keeps height balanced with Col 1) */}
-        <div className="p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-gradient-to-r from-violet-950/30 via-slate-900/40 to-indigo-950/30 backdrop-blur-xl flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-              <CheckCircle size={15} />
+        {/* Sync & Channels Card */}
+        <div className="p-4 sm:p-5 rounded-3xl border border-white/10 bg-gradient-to-r from-violet-950/30 via-[#130f30]/80 to-indigo-950/30 backdrop-blur-2xl flex items-center justify-between gap-4 shadow-lg">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="size-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_14px_rgba(16,185,129,0.2)]">
+              <CheckCircle size={18} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-white truncate">Đồng bộ qua Email & Ứng dụng</p>
-              <p className="text-[11px] text-slate-400 truncate">{userEmail || "Tự động gửi thông báo theo thời gian thực"}</p>
+              <p className="text-xs sm:text-sm font-bold text-white truncate">Đồng bộ qua Email & Ứng dụng</p>
+              <p className="text-xs text-slate-400 truncate mt-0.5">{userEmail || "Tự động gửi thông báo theo thời gian thực"}</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
+            <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
             Thời gian thực
           </span>
         </div>
@@ -342,7 +357,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
         const next = u ?? getUser();
         setSessionUser(next);
         onProfileSynced?.(next);
-        toastApiSuccess("Đã cập nhật mật khẩu.");
+        toastApiSuccess("Đã cập nhật mật khẩu thành công.");
       } else {
         toastApiError(result?.error, "Không lưu được mật khẩu.");
       }
@@ -357,7 +372,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
     try {
       const result = await resendVerification(email);
       if (result?.success) {
-        toastApiSuccess(result.message || "Đã gửi email xác minh. Kiểm tra hộp thư của bạn.");
+        toastApiSuccess(result.message || "Đã gửi email xác minh. Vui lòng kiểm tra hộp thư của bạn.");
       } else {
         toastApiError(result?.error, "Không gửi được email xác minh.");
       }
@@ -366,24 +381,24 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       {/* Column 1: Đổi mật khẩu + Email verification */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {needsEmailVerification && (
           <SectionCard
-            title="Xác minh email"
-            subtitle="Xác minh địa chỉ email để bảo vệ tài khoản và nhận thông báo quan trọng."
+            title="Xác minh địa chỉ Email"
+            subtitle="Xác minh email để bảo vệ tài khoản và nhận đầy đủ thông báo lịch hẹn."
             icon={UserCheck}
             className="border-amber-500/30 bg-gradient-to-b from-[#251b36]/80 via-[#1a142c]/80 to-[#120e24]/90"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/10">
               <div>
                 <p className="text-xs sm:text-sm font-bold text-white">{sessionUser?.email}</p>
-                <p className="text-[11px] text-amber-300/80 mt-0.5">Tài khoản chưa được xác thực email.</p>
+                <p className="text-xs text-amber-300/80 mt-1">Tài khoản chưa được kích hoạt xác thực email.</p>
               </div>
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_12px_rgba(245,158,11,0.35)] hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-amber-200 border border-amber-500/35 border-t-amber-400/50 bg-gradient-to-b from-amber-500/25 via-amber-500/10 to-transparent shadow-[0_4px_16px_rgba(245,158,11,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                 disabled={resendingVerify}
                 onClick={handleResendVerification}
               >
@@ -395,13 +410,13 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
 
         <SectionCard
           title="Đổi mật khẩu"
-          subtitle="Mật khẩu mới cần ít nhất 6 ký tự để bảo vệ an toàn cho tài khoản."
+          subtitle="Mật khẩu cần ít nhất 6 ký tự để đảm bảo an toàn cho tài khoản của bạn."
           icon={KeyRound}
         >
-          <form onSubmit={handleUpdatePassword} className="space-y-3.5">
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
             {needsCurrentPassword && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="settings-current-password">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5" htmlFor="settings-current-password">
                   Mật khẩu hiện tại
                 </label>
                 <input
@@ -410,7 +425,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
                   autoComplete="current-password"
                   required={needsCurrentPassword}
                   disabled={saving}
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/15 bg-slate-900/60 text-white text-xs sm:text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-white/12 bg-[#0b0820]/90 text-white text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Nhập mật khẩu hiện tại"
@@ -418,9 +433,9 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="settings-new-password">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5" htmlFor="settings-new-password">
                   Mật khẩu mới
                 </label>
                 <input
@@ -430,14 +445,14 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
                   required
                   minLength={MIN_PASS}
                   disabled={saving}
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/15 bg-slate-900/60 text-white text-xs sm:text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-white/12 bg-[#0b0820]/90 text-white text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Ít nhất 6 ký tự"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="settings-confirm-password">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5" htmlFor="settings-confirm-password">
                   Xác nhận mật khẩu mới
                 </label>
                 <input
@@ -447,7 +462,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
                   required
                   minLength={MIN_PASS}
                   disabled={saving}
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/15 bg-slate-900/60 text-white text-xs sm:text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-white/12 bg-[#0b0820]/90 text-white text-sm placeholder-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25 transition-all outline-none"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Nhập lại mật khẩu mới"
@@ -455,10 +470,10 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
               </div>
             </div>
 
-            <div className="pt-1">
+            <div className="pt-2">
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_16px_rgba(124,58,237,0.4)] hover:shadow-[0_0_24px_rgba(124,58,237,0.6)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-40"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold text-white border border-white/25 border-t-white/45 bg-gradient-to-b from-white/[0.22] via-white/[0.10] to-transparent shadow-[0_6px_24px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl hover:bg-white/[0.25] active:scale-95 transition-all cursor-pointer disabled:opacity-40"
                 disabled={saving}
               >
                 {saving ? "Đang lưu…" : "Cập nhật mật khẩu"}
@@ -469,7 +484,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
       </div>
 
       {/* Column 2: Phiên đăng nhập & Đóng tài khoản */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         <LoginSessionsSection SectionCard={SectionCard} />
         <AccountDangerZone SectionCard={SectionCard} />
       </div>
@@ -480,7 +495,7 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
 /* ─── Main Component ─────────────────────────────────────── */
 const TABS = [
   { id: "notifications", label: "Thông báo", icon: Bell },
-  { id: "security",      label: "Bảo mật",   icon: ShieldCheck },
+  { id: "security",      label: "Bảo mật & Thiết bị",   icon: ShieldCheck },
 ];
 
 export function Settings() {
@@ -499,9 +514,6 @@ export function Settings() {
   const isMentor = profileFromServer?.role === "mentor";
   const displayName = getDisplayName(profileFromServer) || "Thành viên";
   const userEmail = profileFromServer?.email || "";
-  const userAvatar = avatarSrc(profileFromServer?.avatar);
-  const hasAvatar = userAvatar && userAvatar !== DEFAULT_AVATAR;
-  const initials = displayName.replace(/\([^)]*\)/g, "").trim().split(/\s+/).slice(-2).map((word) => word[0]).join("").toUpperCase();
 
   // Notification Preferences State:
   const defaults = isMentor ? DEFAULT_MENTOR_NOTIFS : DEFAULT_CUSTOMER_NOTIFS;
@@ -584,78 +596,62 @@ export function Settings() {
   };
 
   return (
-    <div className="settings-page">
-      <div className={`${CUSTOMER_SHELL_GUTTER} pb-10 pt-6 sm:pt-8 settings-container`}>
-        <div className={`${CUSTOMER_SHELL_MAX} settings-frame`}>
-          {/* Header (Compact) */}
+    <div className="settings-page min-h-screen">
+      <div className={`${CUSTOMER_SHELL_GUTTER} pb-24 pt-10 sm:pt-14 md:pt-16 settings-container`}>
+        <div className={`${CUSTOMER_SHELL_MAX} settings-frame space-y-8`}>
+          
+          {/* Top Page Header with Apple/Linear Tab Switcher */}
           <motion.header
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6"
           >
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white flex items-center gap-3">
                 Cài đặt tài khoản
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-violet-300 bg-violet-500/20 border border-violet-400/30 px-3 py-1 rounded-full">
+                  <Sliders size={12} />
+                  {isMentor ? "Mentor" : "Học viên"}
+                </span>
               </h1>
-              <p className="text-xs text-slate-300 mt-0.5 font-medium">
-                Quản lý thông báo, bảo mật mật khẩu và các thiết bị đăng nhập.
+              <p className="text-slate-300/80 text-xs sm:text-sm mt-1.5 font-medium leading-relaxed max-w-2xl">
+                Quản lý các kênh thông báo, bảo mật mật khẩu, thiết bị đăng nhập và các tùy chọn bảo vệ tài khoản.
               </p>
             </div>
 
-            {/* Compact Profile Card */}
-            <Link
-              to="/profile"
-              className="group relative flex items-center gap-3 px-3.5 py-2 rounded-xl border border-white/15 bg-gradient-to-br from-[#1c183d]/80 via-[#14122e]/85 to-[#0e0c24]/90 backdrop-blur-xl shadow-[0_6px_24px_rgba(0,0,0,0.3)] hover:border-violet-400/50 hover:shadow-[0_10px_30px_rgba(124,58,237,0.22)] hover:-translate-y-0.5 transition-all duration-200 shrink-0 self-start sm:self-auto"
-              aria-label="Chỉnh sửa hồ sơ"
-              title={userEmail}
+            {/* Account Suite Tab Switcher */}
+            <div
+              className="relative flex items-center p-1 sm:p-1.5 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl shrink-0 self-start sm:self-auto"
+              role="tablist"
+              aria-label="Điều hướng tài khoản"
             >
-              <div className="relative shrink-0">
-                {hasAvatar ? (
-                  <img
-                    className="w-9 h-9 rounded-full object-cover ring-2 ring-violet-400/40 shadow-[0_0_10px_rgba(124,58,237,0.3)]"
-                    src={userAvatar}
-                    alt=""
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = DEFAULT_AVATAR;
-                    }}
-                  />
-                ) : (
-                  <span className="w-9 h-9 rounded-full grid place-items-center bg-gradient-to-br from-violet-600 to-indigo-700 text-white text-xs font-bold ring-2 ring-violet-400/40" aria-hidden="true">
-                    {initials}
-                  </span>
-                )}
-                <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-1.5 ring-[#0e0c24]" />
-              </div>
-
-              <div className="min-w-0 pr-0.5">
-                <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors truncate max-w-[160px] sm:max-w-[200px]">
-                  {displayName}
-                </p>
-                <p className="text-[10px] text-slate-300/80 flex items-center gap-1 mt-0.5">
-                  <span className="font-semibold text-violet-300">{isMentor ? "Mentor" : "Học viên"}</span>
-                  <span>•</span>
-                  <span className="group-hover:text-violet-200 transition-colors">Chỉnh sửa hồ sơ</span>
-                </p>
-              </div>
-
-              <div className="p-1 rounded-lg bg-white/5 border border-white/10 text-slate-300 group-hover:text-white group-hover:bg-violet-600/30 group-hover:border-violet-400/40 transition-all ml-0.5">
-                <ArrowUpRight size={13} aria-hidden="true" />
-              </div>
-            </Link>
+              <Link
+                to="/profile"
+                className="relative flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-all duration-200 select-none"
+              >
+                <User size={15} />
+                <span>Hồ sơ cá nhân</span>
+              </Link>
+              <span
+                className="relative flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md select-none"
+              >
+                <ShieldCheck size={15} className="text-violet-200" />
+                <span>Cài đặt & Bảo mật</span>
+              </span>
+            </div>
           </motion.header>
 
-          {/* Navigation & Action Dock Toolbar */}
+          {/* Navigation Dock Toolbar & Action Area */}
           <motion.div
-            className="flex flex-wrap items-center justify-between gap-3 mb-4"
+            className="flex flex-wrap items-center justify-between gap-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.08, ease: "easeOut" }}
           >
             {/* Apple-style Floating Glass Segmented Dock */}
             <div
-              className="relative flex items-center p-1 rounded-xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl"
+              className="relative flex items-center p-1 sm:p-1.5 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl"
               role="tablist"
               aria-label="Cài đặt tài khoản"
             >
@@ -673,7 +669,7 @@ export function Settings() {
                     tabIndex={isSelected ? 0 : -1}
                     onClick={() => setActiveTab(tab.id)}
                     onKeyDown={(event) => handleTabKey(event, index)}
-                    className={`relative px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 select-none outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
+                    className={`relative px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 select-none outline-none cursor-pointer ${
                       isSelected
                         ? "text-white font-bold"
                         : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
@@ -682,12 +678,12 @@ export function Settings() {
                     {isSelected && (
                       <motion.div
                         layoutId="settings-active-tab-glow"
-                        className="absolute inset-0 rounded-lg bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_16px_rgba(124,58,237,0.55)]"
+                        className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md"
                         transition={{ type: "spring", stiffness: 450, damping: 35 }}
                       />
                     )}
-                    <span className="relative z-10 flex items-center gap-1.5">
-                      <Icon size={15} strokeWidth={isSelected ? 2.2 : 1.8} className={isSelected ? "text-white" : "text-slate-400"} />
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Icon size={16} strokeWidth={isSelected ? 2.2 : 1.8} className={isSelected ? "text-white" : "text-slate-400"} />
                       {tab.label}
                     </span>
                   </button>
@@ -695,8 +691,8 @@ export function Settings() {
               })}
             </div>
 
-            {/* Actions Area: Save Controls (on Notifications tab) + Logout */}
-            <div className="flex items-center gap-2.5 ml-auto">
+            {/* Actions Area: Save Controls + Logout */}
+            <div className="flex items-center gap-3 ml-auto">
               {activeTab === "notifications" && (
                 <>
                   {/* Toggle All button */}
@@ -704,20 +700,20 @@ export function Settings() {
                     type="button"
                     onClick={toggleAll}
                     disabled={saving}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 hover:border-violet-400/30 transition-all active:scale-95 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border border-white/20 border-t-white/35 bg-gradient-to-b from-white/[0.14] via-white/[0.06] to-transparent shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.22)] backdrop-blur-md text-slate-100 hover:text-white hover:bg-white/[0.2] transition-all cursor-pointer disabled:opacity-40"
                   >
                     {allOn ? "Tắt tất cả" : "Bật tất cả"}
                   </button>
 
                   {/* Status Indicator */}
                   {dirty ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold">
+                      <span className="size-2 rounded-full bg-amber-400 animate-pulse" />
                       Chưa lưu
                     </span>
                   ) : saved ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
-                      <CheckCircle size={13} className="text-emerald-400" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
+                      <CheckCircle size={14} className="text-emerald-400" />
                       Đã lưu
                     </span>
                   ) : null}
@@ -725,7 +721,7 @@ export function Settings() {
                   {dirty && (
                     <button
                       type="button"
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-all"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
                       disabled={saving}
                       onClick={handleReset}
                     >
@@ -736,18 +732,18 @@ export function Settings() {
                   {/* Save button */}
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 shadow-[0_0_16px_rgba(124,58,237,0.4)] hover:shadow-[0_0_24px_rgba(124,58,237,0.65)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none transition-all duration-200"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white border border-white/25 border-t-white/50 bg-gradient-to-b from-white/[0.22] via-white/[0.10] to-transparent shadow-[0_6px_24px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl hover:bg-white/[0.25] active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
                     disabled={!dirty || saving}
                     onClick={handleSave}
                   >
                     {saving ? (
                       <>
-                        <RefreshCw size={13} className="animate-spin" />
+                        <RefreshCw size={14} className="animate-spin" />
                         Đang lưu…
                       </>
                     ) : (
                       <>
-                        <Sparkles size={13} />
+                        <Sparkles size={14} />
                         Lưu thay đổi
                       </>
                     )}
@@ -763,9 +759,9 @@ export function Settings() {
                 onClick={() => setShowLogoutConfirm(true)}
                 aria-label="Đăng xuất"
                 title="Đăng xuất khỏi tài khoản"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border border-rose-500/25 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:border-rose-500/50 hover:text-rose-100 hover:shadow-[0_0_16px_rgba(244,63,94,0.35)] transition-all duration-200"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-rose-500/35 border-t-rose-400/50 bg-gradient-to-b from-rose-500/20 via-rose-500/10 to-transparent shadow-[0_4px_16px_rgba(244,63,94,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)] text-rose-200 hover:text-white hover:bg-rose-500/30 backdrop-blur-md transition-all cursor-pointer"
               >
-                <LogOut size={14} strokeWidth={1.8} />
+                <LogOut size={14} strokeWidth={2} />
                 <span>Đăng xuất</span>
               </button>
             </div>
@@ -773,8 +769,8 @@ export function Settings() {
 
           {/* Inline error if save fails */}
           {error && (
-            <div className="mb-4 p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs font-medium flex items-center gap-2" role="alert">
-              <AlertCircle size={15} className="shrink-0" />
+            <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs font-medium flex items-center gap-2.5" role="alert">
+              <AlertCircle size={16} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -827,12 +823,12 @@ export function Settings() {
             <motion.div
               initial={{ opacity: 0, scale: 0.94, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 10 }}
+              exit={{ opacity: 0, scale: 0.94 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="relative w-full max-w-md rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d] via-[#14122e] to-[#0e0c24] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-md rounded-3xl border border-white/15 bg-gradient-to-b from-[#1c183d] via-[#14122e] to-[#0e0c24] p-6 sm:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
             >
               <div className="flex items-start gap-4">
-                <div className="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_16px_rgba(244,63,94,0.3)] shrink-0">
+                <div className="size-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_16px_rgba(244,63,94,0.3)] shrink-0">
                   <LogOut size={20} strokeWidth={2} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -840,22 +836,22 @@ export function Settings() {
                     Xác nhận đăng xuất?
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
-                    Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không? Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng.
+                    Bạn có chắc chắn muốn đăng xuất khỏi tài khoản của mình không? Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng dịch vụ.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-white/[0.08]">
                 <button
                   type="button"
-                  className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all border border-white/15"
+                  className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all border border-white/15 cursor-pointer"
                   onClick={() => setShowLogoutConfirm(false)}
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-rose-600 to-red-600 shadow-[0_0_16px_rgba(244,63,94,0.4)] hover:shadow-[0_0_24px_rgba(244,63,94,0.65)] hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white border border-rose-500/40 border-t-rose-400/60 bg-gradient-to-b from-rose-500/90 via-rose-600/80 to-rose-700 shadow-[0_6px_24px_rgba(244,63,94,0.5),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer"
                   onClick={() => {
                     setShowLogoutConfirm(false);
                     handleLogout();
