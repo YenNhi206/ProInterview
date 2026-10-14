@@ -22,8 +22,8 @@ function getPaginationItems(currentPage, totalPages) {
 }
 
 function cnPageNav(disabled) {
-  return `gap-1 px-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50 ${
-    disabled ? "pointer-events-none opacity-40" : ""
+  return `gap-1 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors ${
+    disabled ? "pointer-events-none opacity-30" : ""
   }`;
 }
 
@@ -32,7 +32,7 @@ function changePage(onPageChange, page) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-export function ListPagination({ currentPage, totalPages, onPageChange, className = "mt-8 border-t border-slate-100 pt-6" }) {
+export function ListPagination({ currentPage, totalPages, onPageChange, className = "mt-8 border-t border-white/10 pt-6" }) {
   if (totalPages <= 1) return null;
 
   const items = getPaginationItems(currentPage, totalPages);
@@ -59,7 +59,7 @@ export function ListPagination({ currentPage, totalPages, onPageChange, classNam
         {items.map((item) =>
           typeof item === "string" ? (
             <PaginationItem key={item}>
-              <PaginationEllipsis />
+              <PaginationEllipsis className="text-slate-500" />
             </PaginationItem>
           ) : (
             <PaginationItem key={item}>
@@ -69,8 +69,8 @@ export function ListPagination({ currentPage, totalPages, onPageChange, classNam
                 size="icon"
                 className={
                   item === currentPage
-                    ? "min-w-9 border-slate-200 bg-white font-semibold text-slate-900 shadow-sm"
-                    : "min-w-9 font-medium text-slate-700 hover:bg-slate-50"
+                    ? "min-w-9 border border-[#93f72b] bg-[#93f72b] font-black text-[#0a0518] shadow-sm rounded-xl"
+                    : "min-w-9 font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent rounded-xl transition-colors"
                 }
                 onClick={(e) => {
                   e.preventDefault();
