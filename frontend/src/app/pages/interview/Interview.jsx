@@ -28,7 +28,11 @@ import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pr
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { InterviewHistoryPanel } from "../../components/interview/InterviewHistoryPanel";
 import { InterviewPageTabs } from "../../components/interview/InterviewPageTabs";
+import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
+import { CustomerPageHeader } from "../../components/layout/CustomerPageHeader";
+
 const CTA_LIME =
+
   "bg-[#93f72b] text-slate-950 font-extrabold shadow-[0_0_25px_rgba(147,247,43,0.3)] hover:brightness-110 active:scale-[0.99] transition-all";
 
 const INTERVIEW_SETUP_DRAFT_KEY = "prointerview_setup_draft";
