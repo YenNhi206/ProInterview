@@ -108,20 +108,8 @@ async function activeOrder(userId) {
 }
 
 export async function getCart(userId) {
-  let cart = await Cart.findOne({ userId }).lean();
-  let order = await activeOrder(userId);
-
-  if (order && order.status === "pending") {
-    const orderCourseIds = (order.items || []).map((i) => String(i.courseId));
-    const cartCourseIds = (cart?.courseIds || []).map((id) => String(id));
-    const hasDifferentItems = cartCourseIds.some((id) => !orderCourseIds.includes(id));
-    if (hasDifferentItems) {
-      await cancelCartOrder(userId, order._id);
-      cart = await Cart.findOne({ userId }).lean();
-      order = null;
-    }
-  }
-
+  const cart = await Cart.findOne({ userId }).lean();
+  const order = await activeOrder(userId);
   const ids = cart?.courseIds || [];
   let buyer = await User.findById(userId).select("plan planExpiresAt").lean();
   if (buyer) buyer = await enforceExpiry(buyer);
@@ -153,11 +141,6 @@ export async function addCartCourse(userId, courseId) {
   if (String(course.mentorId?.userId) === String(userId)) fail("Không thể tự mua khóa học của chính mình.");
   if (await Enrollment.exists({ userId, courseId, paymentStatus: "paid" })) fail("Bạn đã sở hữu khóa học này.");
 
-  const prevOrder = await activeOrder(userId);
-  if (prevOrder && prevOrder.status === "pending") {
-    await cancelCartOrder(userId, prevOrder._id);
-  }
-
   try {
     await Cart.updateOne({ userId }, { $setOnInsert: { userId, courseIds: [] } }, { upsert: true });
   } catch (error) { if (error.code !== 11000) throw error; }
@@ -177,19 +160,13 @@ export async function removeCartCourse(userId, courseId) {
 
 export async function checkoutCart(userId, { couponCode = "" } = {}) {
   const previous = await activeOrder(userId);
+  if (previous) {
+    if (previous.status === "preparing") fail("Đơn hàng đang được tạo. Vui lòng thử lại sau.", 409);
+    return serializeCartOrder(previous);
+  }
   const cart = await getCart(userId);
   if (!cart.items.length) fail("Giỏ hàng trống.");
   if (cart.items.some((i) => !i.available)) fail("Vui lòng xóa khóa học không còn mở bán khỏi giỏ hàng.");
-
-  if (previous) {
-    if (previous.status === "preparing") fail("Đơn hàng đang được tạo. Vui lòng thử lại sau.", 409);
-    const prevIds = (previous.items || []).map((i) => String(i.courseId)).sort().join(",");
-    const currentIds = cart.items.map((i) => String(i.courseId)).sort().join(",");
-    if (prevIds === currentIds && (!couponCode || couponCode === previous.couponCode)) {
-      return serializeCartOrder(previous);
-    }
-    await cancelCartOrder(userId, previous._id);
-  }
   const items = [];
   for (const item of cart.items) {
     const existing = await Enrollment.findOne({ userId, courseId: item.courseId });
