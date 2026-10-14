@@ -1,5 +1,5 @@
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-import { CourseHeroConnected } from "../../components/courses/CourseHeroConnected";
+import { MentorHeroAtmosphere } from "../../components/mentor/MentorHeroAtmosphere";
 import "../../../styles/mentor-search.css";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "motion/react";
@@ -277,8 +277,8 @@ export function Mentors() {
           justifyContent: "center",
         }}
       >
-        {/* Seamless Connected Waves + Tech Grid (Hoàn toàn trong suốt, đồng bộ 100% màu nền hệ thống) */}
-        <CourseHeroConnected />
+        {/* Unique Celestial & Orbital Atmosphere for Mentors (No horizontal waves, 100% seamless transparent) */}
+        <MentorHeroAtmosphere />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 flex flex-col items-center">
           {rebookCredit?.available ? (
