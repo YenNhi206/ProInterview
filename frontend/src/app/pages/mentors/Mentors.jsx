@@ -1,4 +1,5 @@
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { CourseHeroConnected } from "../../components/courses/CourseHeroConnected";
 import "../../../styles/mentor-search.css";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "motion/react";
@@ -266,12 +267,8 @@ export function Mentors() {
       {/* Hero Banner Section */}
       <div
         ref={heroRef}
-        className="relative w-full text-center overflow-hidden"
+        className="relative w-full overflow-hidden text-center"
         style={{
-          backgroundImage: "linear-gradient(rgba(26, 19, 47, 0.8), rgba(26, 19, 47, 0.92)), url('/mentor_hero_handshake.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           paddingTop: "5rem",
           paddingBottom: "5rem",
           minHeight: "420px",
@@ -280,9 +277,8 @@ export function Mentors() {
           justifyContent: "center",
         }}
       >
-        {/* Glow Effects — parallax */}
-        <motion.div style={{ y: glow1Y }} className="absolute top-0 left-1/4 w-[350px] h-[350px] rounded-full bg-[#8037f4]/20 blur-[90px] pointer-events-none" />
-        <motion.div style={{ y: glow2Y }} className="absolute bottom-0 right-1/4 w-[300px] h-[300px] rounded-full bg-lime-500/10 blur-[80px] pointer-events-none" />
+        {/* Seamless Connected Waves + Tech Grid (Hoàn toàn trong suốt, đồng bộ 100% màu nền hệ thống) */}
+        <CourseHeroConnected />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 flex flex-col items-center">
           {rebookCredit?.available ? (
@@ -299,18 +295,19 @@ export function Mentors() {
           {/* Heading */}
           <motion.h1
             className="font-headline text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white mb-3"
-            initial={{ opacity: 0, y: -28 }}
+            initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
           >
             CỘNG ĐỒNG MENTOR
           </motion.h1>
+
           {/* Subtitle */}
           <motion.p
             className="text-sm sm:text-base font-medium text-slate-300 max-w-2xl mb-10 leading-relaxed"
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: "easeOut", delay: 0.2 }}
+            transition={{ duration: 0.45, ease: "easeOut", delay: 0.18 }}
           >
             Tiến nhanh và xa hơn trong hành trình sự nghiệp cùng ProInterview
           </motion.p>
@@ -320,7 +317,7 @@ export function Mentors() {
             className="ms-wrap"
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
           >
             {/* Animated border layers */}
             <div className="ms-darkBorderBg" aria-hidden="true" />
@@ -388,22 +385,22 @@ export function Mentors() {
           
           {/* Results count indicator and Toggle Button */}
           <motion.div
-            className="mb-6 flex items-center justify-between px-1 border-b border-slate-100 pb-3"
+            className="mb-6 flex items-center justify-between px-1 border-b border-white/10 pb-4"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
-            <p className="text-sm font-semibold text-slate-700">
-              Tìm thấy <span className="text-base font-extrabold text-[#8037f4]">{filteredMentors.length}</span> Mentor cho bạn!
+            <p className="text-sm font-semibold text-slate-300">
+              Tìm thấy <span className="text-base font-black text-[#93f72b]">{filteredMentors.length}</span> Mentor cho bạn!
             </p>
             <button
               type="button"
               onClick={() => setFiltersOpen(!filtersOpen)}
-              className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#8037f4] hover:text-[#6d28d9] transition-all cursor-pointer bg-violet-50 hover:bg-violet-100/80 px-4.5 py-2.5 rounded-full border border-violet-100"
+              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white transition-all cursor-pointer bg-[#18113c]/90 hover:bg-[#221752] px-4.5 py-2.5 rounded-full border border-white/12 hover:border-violet-500/40 shadow-sm backdrop-blur-md"
             >
-              <Filter className="size-3.5" />
+              <Filter className="size-3.5 text-[#93f72b]" />
               <span>Lọc kết quả</span>
-              <ChevronDown className={`size-3.5 transition-transform duration-200 ${filtersOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`size-3.5 text-slate-400 transition-transform duration-200 ${filtersOpen ? "rotate-180" : ""}`} />
             </button>
           </motion.div>
 
@@ -580,23 +577,23 @@ export function Mentors() {
           {loading ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="rounded-3xl border border-violet-50 bg-white p-5 shadow-sm space-y-4 animate-pulse flex flex-col items-center">
-                  <div className="size-24 rounded-full bg-violet-100/80" />
-                  <div className="h-4 w-32 bg-violet-100 rounded" />
-                  <div className="h-3 w-40 bg-violet-50 rounded" />
-                  <div className="h-6 w-28 bg-emerald-50 rounded-full" />
-                  <div className="w-full border-t border-slate-100 pt-3 flex justify-between">
-                    <div className="h-3 w-16 bg-violet-50 rounded" />
-                    <div className="h-3 w-12 bg-violet-50 rounded" />
+                <div key={i} className="rounded-3xl border border-white/10 bg-[#18113c]/80 p-5 shadow-sm space-y-4 animate-pulse flex flex-col items-center">
+                  <div className="size-24 rounded-full bg-white/10" />
+                  <div className="h-4 w-32 bg-white/10 rounded" />
+                  <div className="h-3 w-40 bg-white/5 rounded" />
+                  <div className="h-6 w-28 bg-white/10 rounded-full" />
+                  <div className="w-full border-t border-white/10 pt-3 flex justify-between">
+                    <div className="h-3 w-16 bg-white/5 rounded" />
+                    <div className="h-3 w-12 bg-white/5 rounded" />
                   </div>
-                  <div className="h-8 w-full bg-slate-100 rounded-2xl" />
+                  <div className="h-8 w-full bg-white/10 rounded-2xl" />
                 </div>
               ))}
             </div>
           ) : error ? (
-            <div className="rounded-3xl border border-violet-100 bg-white py-16 text-center shadow-sm">
+            <div className="rounded-3xl border border-white/10 bg-[#18113c]/80 py-16 text-center shadow-lg backdrop-blur-xl">
               <AlertCircle className="mx-auto mb-3 size-10 text-violet-400" />
-              <p className="font-semibold text-violet-950">Không thể tải danh sách mentor</p>
+              <p className="font-bold text-white text-base">Không thể tải danh sách mentor</p>
               <button
                 type="button"
                 onClick={() => {
@@ -615,20 +612,20 @@ export function Mentors() {
                     .catch(() => toastApiError("Lỗi kết nối khi tải danh sách mentor."))
                     .finally(() => setLoading(false));
                 }}
-                className="mt-4 rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16] cursor-pointer"
+                className="mt-4 rounded-xl bg-[#93f72b] px-6 py-2.5 text-xs font-black text-[#0a0518] hover:bg-[#82e221] cursor-pointer shadow-md"
               >
                 Thử lại
               </button>
             </div>
           ) : filteredMentors.length === 0 ? (
-            <div className="rounded-3xl border border-violet-100 bg-white py-16 text-center shadow-sm">
-              <MagnifyingGlass className="mx-auto mb-4 size-12 text-violet-300" />
-              <h3 className="mb-2 text-lg font-bold text-violet-950">Không tìm thấy mentor phù hợp</h3>
-              <p className="mb-6 text-sm text-slate-600">Thử đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
+            <div className="rounded-3xl border border-white/10 bg-[#18113c]/80 py-16 text-center shadow-lg backdrop-blur-xl">
+              <MagnifyingGlass className="mx-auto mb-4 size-12 text-violet-400" />
+              <h3 className="mb-2 text-lg font-bold text-white">Không tìm thấy mentor phù hợp</h3>
+              <p className="mb-6 text-sm text-slate-300">Thử đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16] cursor-pointer"
+                className="rounded-xl bg-[#93f72b] px-6 py-2.5 text-xs font-black text-[#0a0518] hover:bg-[#82e221] cursor-pointer shadow-md"
               >
                 Xóa bộ lọc
               </button>
