@@ -331,7 +331,7 @@ export function Mentors() {
               <div className="flex-1 w-full relative pl-2">
                 <input
                   type="text"
-                  placeholder="Tìm mentor..."
+                  placeholder="Tìm mentor IT (React, Node.js, AI, DevOps...)"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full bg-transparent text-white placeholder-slate-400 text-xs font-semibold px-4 py-3 outline-none border-none"
@@ -351,14 +351,15 @@ export function Mentors() {
               <div className="hidden md:block h-6 w-px bg-violet-700/30 shrink-0" />
 
               {/* Dropdown Field */}
-              <div className="w-full md:w-48 shrink-0">
+              <div className="w-full md:w-52 shrink-0">
                 <AppSelect
                   value={selectedField || ""}
                   onValueChange={(val) => setSelectedField(val || null)}
                   options={[
-                    { value: "", label: "Chọn Lĩnh vực" },
+                    { value: "", label: "Tất cả chuyên môn IT" },
                     ...MENTOR_FILTER_FIELDS.map((opt) => ({ value: opt, label: opt }))
                   ]}
+                  theme="dark"
                   noRing
                   triggerClassName="w-full !bg-transparent !border-none !text-white hover:!bg-violet-900/30 rounded-none shadow-none text-xs font-bold h-11 px-4 !ring-0 !outline-none focus-visible:!ring-0 focus-visible:!border-transparent"
                 />
