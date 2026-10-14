@@ -53,7 +53,7 @@ export function FlowStepBar({
           type="button"
           disabled={!isClickable}
           onClick={() => isClickable && onStepClick(s.n)}
-          className={`max-w-[8rem] text-center text-xs font-bold uppercase leading-tight tracking-wider transition-colors sm:max-w-none ${
+          className={`border-none bg-transparent outline-none max-w-[8rem] text-center text-xs font-bold uppercase leading-tight tracking-wider transition-colors sm:max-w-none ${
             active
               ? "text-white"
               : done
