@@ -24,7 +24,7 @@ import {
   Clock,
   ExternalLink,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { financeRequest, downloadInvoice } from "../../api/financeOperationsApi.js";
@@ -233,7 +233,8 @@ function PendingPaymentModal({ payment, onClose, onRefresh }) {
         onClick={onClose}
         aria-label="Đóng"
       />
-      <div className="relative z-10 w-full max-w-[640px] my-auto max-h-[92vh] overflow-y-auto rounded-3xl border border-white/10 bg-[#0f0728]/95 p-5 sm:p-6 backdrop-blur-2xl shadow-2xl text-slate-200">
+      <div className="relative z-10 w-full max-w-[660px] my-auto uiverse-payment-card-wrap">
+        <div className="cart-payment-main-card p-5 sm:p-7 relative text-slate-200">
         {/* Close button */}
         <button
           type="button"
@@ -277,92 +278,113 @@ function PendingPaymentModal({ payment, onClose, onRefresh }) {
         </div>
 
         {/* Modal Body: 2 Columns on desktop/laptop */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-[190px_1fr] gap-4 sm:gap-5 items-center">
-          {/* Left Column: QR Code */}
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-[210px_1fr] gap-4 sm:gap-6 items-center">
+          {/* Left Column: QR Code with Apple Laser & HUD brackets */}
           <div className="flex flex-col items-center justify-center">
             {vietQrUrl && !isExpired ? (
-              <div className="w-[180px] sm:w-[190px] rounded-2xl bg-white p-2 shadow-xl ring-2 ring-violet-500/30">
+              <div className="cart-payment-qr-wrap w-[190px] sm:w-[210px]">
+                <div className="cart-qr-corner cart-qr-corner--tl" />
+                <div className="cart-qr-corner cart-qr-corner--tr" />
+                <div className="cart-qr-corner cart-qr-corner--bl" />
+                <div className="cart-qr-corner cart-qr-corner--br" />
+                <div className="cart-payment-qr-laser" />
                 <img
                   src={vietQrUrl}
                   alt="VietQR thanh toán"
-                  className="w-full rounded-xl"
+                  className="cart-payment-qr-img w-full"
                   loading="eager"
                 />
               </div>
             ) : isExpired ? (
-              <div className="w-[180px] sm:w-[190px] rounded-2xl border border-rose-500/30 bg-rose-950/30 p-4 text-center text-xs text-rose-300">
+              <div className="w-[190px] sm:w-[210px] rounded-2xl border border-rose-500/30 bg-rose-950/30 p-4 text-center text-xs text-rose-300">
                 <p className="font-bold">Đã hết hạn</p>
-                <p className="mt-1 text-[11px] text-rose-400">Vui lòng đặt lịch lại để lấy mã mới.</p>
+                <p className="mt-1 text-[11px] text-rose-400">Vui lòng đặt lại để lấy mã mới.</p>
               </div>
             ) : (
               <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center text-xs text-slate-400">
                 Chưa có mã QR. Chuyển khoản theo thông tin bên cạnh.
               </div>
             )}
-            <p className="mt-2 text-center text-[10.5px] text-slate-400">
-              Quét mã bằng app ngân hàng để tự điền STK & Nội dung
+            <p className="mt-2.5 text-center text-[10.5px] text-slate-400">
+              Quét mã bằng app ngân hàng
             </p>
           </div>
 
-          {/* Right Column: Bank Details Table */}
-          <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-xs">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-400">Ngân hàng</span>
-              <span className="font-semibold text-white text-right leading-tight">
-                {displayBankName(BANK_TRANSFER.bankName)}
-              </span>
+          {/* Right Column: Apple Frosted Bank Details */}
+          <div className="cart-bank-fields-list">
+            <div className="cart-bank-field-card">
+              <span className="cart-field-label">Ngân hàng</span>
+              <div className="cart-field-val-row">
+                <span className="cart-field-val font-semibold text-white">
+                  {displayBankName(BANK_TRANSFER.bankName)}
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between gap-2 border-t border-white/5 pt-2">
-              <span className="text-slate-400">Số tài khoản</span>
-              <div className="flex items-center gap-1.5 font-mono text-sm font-bold text-violet-300">
-                <span>{BANK_TRANSFER.accountNumber}</span>
+            <div className="cart-bank-field-card">
+              <span className="cart-field-label">Số tài khoản</span>
+              <div className="cart-field-val-row">
+                <span className="cart-field-val font-mono text-base font-bold text-violet-300">
+                  {BANK_TRANSFER.accountNumber}
+                </span>
                 <button
                   type="button"
                   onClick={() => copy("acc", BANK_TRANSFER.accountNumber)}
-                  className="rounded bg-white/10 p-1 hover:bg-white/20 text-slate-300 hover:text-white"
-                  title="Sao chép STK"
+                  className={`cart-copy-btn ${copiedKey === "acc" ? "copied" : ""}`}
                 >
-                  {copiedKey === "acc" ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+                  {copiedKey === "acc" ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                  <span>{copiedKey === "acc" ? "Đã chép" : "Sao chép"}</span>
                 </button>
               </div>
             </div>
 
             {BANK_TRANSFER.accountOwner ? (
-              <div className="flex items-center justify-between gap-2 border-t border-white/5 pt-2">
-                <span className="text-slate-400">Chủ tài khoản</span>
-                <span className="font-semibold text-white">{BANK_TRANSFER.accountOwner}</span>
+              <div className="cart-bank-field-card">
+                <span className="cart-field-label">Chủ tài khoản</span>
+                <div className="cart-field-val-row">
+                  <span className="cart-field-val font-medium uppercase text-slate-200">
+                    {BANK_TRANSFER.accountOwner}
+                  </span>
+                </div>
               </div>
             ) : null}
 
-            <div className="flex items-center justify-between gap-2 border-t border-white/5 pt-2">
-              <span className="text-slate-400">Số tiền</span>
-              <div className="flex items-center gap-1.5">
-                <strong className="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 tabular-nums">
+            <div className="cart-bank-field-card">
+              <span className="cart-field-label">Số tiền</span>
+              <div className="cart-field-val-row">
+                <span className="cart-field-val font-mono text-lg font-bold text-white">
                   {formatVnd(payment.amount)}
-                </strong>
+                </span>
                 <button
                   type="button"
                   onClick={() => copy("amt", payment.amount)}
-                  className="rounded bg-white/10 p-1 hover:bg-white/20 text-slate-300 hover:text-white"
-                  title="Sao chép số tiền"
+                  className={`cart-copy-btn ${copiedKey === "amt" ? "copied" : ""}`}
                 >
-                  {copiedKey === "amt" ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+                  {copiedKey === "amt" ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                  <span>{copiedKey === "amt" ? "Đã chép" : "Sao chép"}</span>
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-2 border-t border-white/5 pt-2">
-              <span className="text-slate-400">Nội dung CK</span>
-              <div className="flex items-center gap-1.5 font-mono text-sm font-black text-amber-300">
-                <span>{transferOrderNum}</span>
+            <div className="cart-bank-field-card cart-bank-field-card--memo">
+              <div className="flex items-center justify-between">
+                <span className="cart-field-label">Nội dung CK</span>
+                <span className="cart-memo-badge">
+                  <span className="cart-memo-beacon"></span>
+                  Bắt buộc chính xác
+                </span>
+              </div>
+              <div className="cart-field-val-row">
+                <span className="cart-field-val font-mono text-base font-bold text-violet-300">
+                  {transferOrderNum}
+                </span>
                 <button
                   type="button"
                   onClick={() => copy("ref", transferOrderNum)}
-                  className="rounded bg-white/10 p-1 hover:bg-white/20 text-slate-300 hover:text-white"
-                  title="Sao chép nội dung"
+                  className={`cart-copy-btn cart-copy-btn--memo ${copiedKey === "ref" ? "copied" : ""}`}
                 >
-                  {copiedKey === "ref" ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
+                  {copiedKey === "ref" ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                  <span>{copiedKey === "ref" ? "Đã chép" : "Sao chép"}</span>
                 </button>
               </div>
             </div>
@@ -370,7 +392,7 @@ function PendingPaymentModal({ payment, onClose, onRefresh }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-1.5">
+        <div className="mt-5 pt-3.5 border-t border-white/10 flex flex-col gap-2.5">
           <button
             type="button"
             onClick={onRefresh}
@@ -379,9 +401,16 @@ function PendingPaymentModal({ payment, onClose, onRefresh }) {
             <RotateCcw className="size-3.5" />
             Tôi đã chuyển khoản — Kiểm tra trạng thái
           </button>
-          <p className="text-center text-[10.5px] text-slate-400">
-            Hệ thống tự động kích hoạt buổi hẹn qua SePay sau khi nhận được tiền.
-          </p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <p className="text-center text-[10.5px] text-slate-400">
+              Hệ thống đang tự động kiểm tra giao dịch chuyển khoản realtime…
+            </p>
+          </div>
+        </div>
         </div>
       </div>
     </div>
@@ -390,6 +419,7 @@ function PendingPaymentModal({ payment, onClose, onRefresh }) {
 
 /* ─── Main Payment History Page ─────────────────────────────── */
 export function PaymentHistory() {
+  const navigate = useNavigate();
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
@@ -626,7 +656,7 @@ export function PaymentHistory() {
               <div className="pt-3">
                 <Link
                   to="/courses"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 px-4 py-2 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:brightness-110 active:scale-[0.98] transition-all"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-violet-400/40 border-t-white/45 bg-gradient-to-b from-violet-500/80 via-violet-600/70 to-indigo-700/80 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)] backdrop-blur-md hover:brightness-110 active:scale-[0.98] transition-all"
                 >
                   <Sparkles size={14} />
                   Khám phá thêm khóa học
@@ -660,14 +690,14 @@ export function PaymentHistory() {
                       setStatus(tabItem.id);
                       setPage(1);
                     }}
-                    className={`relative z-10 flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold tracking-tight transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                      isSelected ? "text-white" : "text-slate-400 hover:text-slate-200"
+                    className={`relative z-10 flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold tracking-tight transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
+                      isSelected ? "text-white font-bold" : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
                     }`}
                   >
                     {isSelected && (
                       <motion.div
                         layoutId="payment-status-dock-glow"
-                        className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 shadow-[0_4px_16px_rgba(124,58,237,0.45)]"
+                        className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md"
                         transition={{ type: "spring", stiffness: 450, damping: 35 }}
                       />
                     )}
@@ -702,7 +732,7 @@ export function PaymentHistory() {
               {/* Refresh button */}
               <button
                 type="button"
-                className="inline-flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c22]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl text-violet-300 hover:text-white hover:border-violet-400/50 hover:shadow-[0_0_20px_rgba(124,58,237,0.3)] active:scale-95 transition-all cursor-pointer"
+                className="inline-flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-2xl border border-white/15 border-t-white/30 bg-gradient-to-b from-white/[0.12] via-white/[0.05] to-transparent shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-2xl text-slate-300 hover:text-white hover:border-white/30 hover:shadow-[0_0_20px_rgba(124,58,237,0.3)] active:scale-95 transition-all cursor-pointer"
                 onClick={() => setRevision((n) => n + 1)}
                 title="Tải lại danh sách"
                 aria-label="Tải lại danh sách"
@@ -861,9 +891,21 @@ export function PaymentHistory() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (row.cartOrderId) {
+                                navigate(`/cart?order=${row.cartOrderId}`);
+                                return;
+                              }
+                              if (row.type === "course") {
+                                if (row.orderId) {
+                                  navigate(`/cart?order=${row.orderId}`);
+                                  return;
+                                }
+                                navigate("/cart");
+                                return;
+                              }
                               setSelectedPendingPayment(row);
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md shadow-violet-600/30 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 px-4 py-2 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.45),inset_0_1px_1px_rgba(255,255,255,0.35)] backdrop-blur-md hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
                           >
                             <CreditCard className="size-3.5" />
                             Thanh toán ngay
@@ -876,7 +918,7 @@ export function PaymentHistory() {
                           <Link
                             to={row.type === "course" ? "/courses" : "/mentors"}
                             onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.12] hover:border-violet-400/40 px-3.5 py-1.5 text-xs font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 border-t-white/35 bg-gradient-to-b from-white/[0.14] via-white/[0.06] to-transparent hover:bg-white/[0.2] px-4 py-2 text-xs font-bold text-slate-200 hover:text-white shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-md transition-all cursor-pointer"
                           >
                             <RotateCcw className="size-3.5" />
                             {row.type === "course" ? "Mua lại" : "Đặt lại lịch"}
@@ -891,7 +933,7 @@ export function PaymentHistory() {
                             type="button"
                             disabled={Boolean(busy)}
                             onClick={() => download(row)}
-                            className="commerce-action inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold disabled:opacity-50 shadow-md hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 border-t-white/35 bg-gradient-to-b from-white/[0.14] via-white/[0.06] to-transparent px-3.5 py-2 text-xs font-bold text-slate-100 hover:text-white hover:bg-white/[0.2] shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-md disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer"
                           >
                             <Download className="size-3.5" />
                             {busy === row.id ? "Đang xuất PDF…" : "Hóa đơn PDF"}
@@ -902,7 +944,7 @@ export function PaymentHistory() {
                               type="button"
                               disabled={Boolean(busy)}
                               onClick={() => download(row, true)}
-                              className="commerce-action--secondary inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold disabled:opacity-50 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 border-t-white/35 bg-gradient-to-b from-white/[0.14] via-white/[0.06] to-transparent px-3.5 py-2 text-xs font-bold text-slate-100 hover:text-white hover:bg-white/[0.2] shadow-[0_2px_10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-md disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer"
                             >
                               <FileText className="size-3.5" />
                               PDF toàn đơn
@@ -929,13 +971,13 @@ export function PaymentHistory() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.12] px-4 py-2 text-xs font-bold text-slate-200 shadow-md disabled:opacity-40 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/18 border-t-white/35 bg-gradient-to-b from-white/[0.14] via-white/[0.06] to-transparent hover:bg-white/[0.2] px-4 py-2 text-xs font-bold text-slate-200 hover:text-white shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-md disabled:opacity-40 transition-all cursor-pointer"
               >
                 <ChevronLeft className="size-4" />
                 Trang trước
               </button>
 
-              <span className="text-xs font-bold text-slate-300 bg-white/[0.06] px-4 py-2 rounded-xl border border-white/10 shadow-inner">
+              <span className="text-xs font-bold text-violet-200 bg-violet-400/20 px-4 py-2 rounded-xl border border-violet-400/35 shadow-[0_0_12px_rgba(167,139,250,0.25)]">
                 Trang {page} / {data.pagination?.totalPages || 1}
               </span>
 
@@ -943,7 +985,7 @@ export function PaymentHistory() {
                 type="button"
                 disabled={page >= (data.pagination?.totalPages || 1)}
                 onClick={() => setPage(page + 1)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.12] px-4 py-2 text-xs font-bold text-slate-200 shadow-md disabled:opacity-40 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/18 border-t-white/35 bg-gradient-to-b from-white/[0.14] via-white/[0.06] to-transparent hover:bg-white/[0.2] px-4 py-2 text-xs font-bold text-slate-200 hover:text-white shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-md disabled:opacity-40 transition-all cursor-pointer"
               >
                 Trang sau
                 <ChevronRight className="size-4" />

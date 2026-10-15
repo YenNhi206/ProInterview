@@ -91,30 +91,40 @@ function CourseCard({ item, index }) {
       as="article"
       index={index}
       onClick={handleCardClick}
-      className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/75 via-[#13112c]/80 to-[#0e0c22]/90 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl hover:border-violet-400/40 hover:shadow-[0_16px_40px_rgba(124,58,237,0.22)] hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer select-none"
+      className="uiverse-course-card group"
     >
-      {/* Thumbnail with overlay & badge */}
+      {/* Thumbnail with overlay & badge & Uiverse play overlay */}
       <div className="relative aspect-video overflow-hidden bg-slate-950">
         <CourseCover src={course.thumbnail} />
         {/* Soft dark vignette */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0e0c22] via-transparent to-black/25 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0e0c22] via-transparent to-black/30 pointer-events-none" />
 
-        {/* Status Badge */}
-        <div className="absolute top-3 left-3 z-10">
+        {/* Uiverse Floating Play button on hover */}
+        <div className="uiverse-cover-play-wrap">
+          <div className="uiverse-cover-play-btn">
+            <Play size={20} className="fill-current translate-x-0.5" />
+          </div>
+        </div>
+
+        {/* Status Badge with Uiverse Radar Pulse */}
+        <div className="absolute top-3 left-3 z-10 pointer-events-none">
           {hasPaidAccess && isCompleted && (
-            <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 backdrop-blur-md shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+            <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-[#0c2420]/80 text-emerald-300 border border-emerald-400/40 backdrop-blur-md shadow-[0_0_14px_rgba(16,185,129,0.35)]">
+              <span className="uiverse-radar-dot-emerald" />
               <CheckCircle2 size={13} aria-hidden="true" />
               Hoàn thành
             </span>
           )}
           {hasPaidAccess && !isCompleted && (
-            <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-violet-500/25 text-violet-200 border border-violet-400/40 backdrop-blur-md shadow-[0_0_12px_rgba(124,58,237,0.3)]">
-              <Play size={11} className="fill-current" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-[#201542]/80 text-violet-200 border border-violet-400/50 backdrop-blur-md shadow-[0_0_14px_rgba(168,85,247,0.35)]">
+              <span className="uiverse-radar-dot-violet" />
+              <Play size={10} className="fill-current" aria-hidden="true" />
               Đang học
             </span>
           )}
           {!hasPaidAccess && (
-            <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-amber-500/25 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+            <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-[#2c1d0c]/80 text-amber-300 border border-amber-400/40 backdrop-blur-md shadow-[0_0_14px_rgba(245,158,11,0.3)]">
+              <span className="uiverse-radar-dot-amber" />
               <Clock size={12} aria-hidden="true" />
               Chờ thanh toán
             </span>
@@ -145,12 +155,12 @@ function CourseCard({ item, index }) {
                   <AnimatedNumber value={progressPct} duration={0.8} />%
                 </span>
               </div>
-              <div className="h-2 w-full rounded-full bg-slate-900 border border-white/10 overflow-hidden p-0.5">
+              <div className="h-2.5 w-full rounded-full bg-slate-950/80 border border-white/10 overflow-hidden p-0.5 shadow-inner">
                 <motion.div
-                  className={`h-full rounded-full ${
+                  className={`h-full rounded-full uiverse-shimmer-bar ${
                     isCompleted
-                      ? "bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                      : "bg-gradient-to-r from-violet-500 via-indigo-500 to-violet-300 shadow-[0_0_10px_rgba(124,58,237,0.5)]"
+                      ? "bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.55)]"
+                      : "bg-gradient-to-r from-violet-500 via-indigo-500 to-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.55)]"
                   }`}
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.max(5, progressPct)}%` }}
@@ -171,10 +181,10 @@ function CourseCard({ item, index }) {
               <Link
                 to={courseLearnUrl}
                 onClick={(e) => e.stopPropagation()}
-                className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition-all active:scale-[0.98] ${
+                className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold transition-all uiverse-beam-btn active:scale-[0.98] ${
                   isCompleted
-                    ? "border border-emerald-400/30 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25 shadow-sm"
-                    : "bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 text-white shadow-md hover:brightness-110"
+                    ? "border border-emerald-400/35 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                    : "bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:brightness-110"
                 }`}
               >
                 <Play size={13} className="fill-current" aria-hidden="true" />
@@ -184,7 +194,7 @@ function CourseCard({ item, index }) {
               <Link
                 to={courseDetailUrl}
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:brightness-110 active:scale-[0.98] transition-all uiverse-beam-btn"
               >
                 Thanh toán ngay
               </Link>
@@ -193,11 +203,11 @@ function CourseCard({ item, index }) {
             <Link
               to={courseDetailUrl}
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.12] hover:border-violet-400/40 px-3.5 py-2.5 text-xs font-bold text-slate-200 hover:text-white shadow-sm transition-all active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.06] hover:bg-white/[0.12] hover:border-violet-400/40 px-3.5 py-2.5 text-xs font-bold text-slate-200 hover:text-white shadow-sm transition-all active:scale-[0.98] group/btn"
               aria-label={`Chi tiết khóa học ${course.title}`}
             >
               <span>Chi tiết</span>
-              <ArrowUpRight size={13} aria-hidden="true" />
+              <ArrowUpRight size={13} className="transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -326,8 +336,12 @@ export function MyCourses() {
             <p>Tiếp tục học và theo dõi tiến độ của bạn.</p>
           </motion.header>
 
+          {/* Ambient Glow Orbs behind header & scoreboard */}
+          <div className="pointer-events-none absolute -top-10 left-1/4 h-72 w-72 rounded-full bg-violet-600/15 blur-[100px]" />
+          <div className="pointer-events-none absolute top-20 right-1/4 h-64 w-64 rounded-full bg-indigo-600/15 blur-[100px]" />
+
           {/* Prominent Hero Metrics Scoreboard */}
-          <div className="my-7">
+          <div className="my-7 relative z-10">
             {enrolledCourses.length > 0 ? (
               <motion.div
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -347,35 +361,36 @@ export function MyCourses() {
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
                   }}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="relative overflow-hidden rounded-2xl border border-violet-400/30 bg-gradient-to-br from-[#23174a]/90 via-[#18133b]/85 to-[#120f2e]/90 p-5 shadow-[0_12px_32px_rgba(10,8,30,0.4)] backdrop-blur-xl transition-all duration-300 hover:border-violet-400/50 hover:shadow-[0_16px_40px_rgba(124,58,237,0.28)]"
+                  className="uiverse-stat-card uiverse-stat-card-violet bg-gradient-to-br from-[#23174a]/90 via-[#18133b]/85 to-[#120f2e]/90 p-5 shadow-[0_12px_32px_rgba(10,8,30,0.4)] flex flex-col justify-between"
                 >
-                  <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-violet-500/20 blur-2xl" />
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                      <span className="p-1.5 rounded-lg bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/30">
-                        <Target size={15} />
+                  <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-violet-500/25 blur-2xl uiverse-ambient-orb" />
+                  <div>
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                        <span className="p-2 rounded-xl bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/30 uiverse-floating-icon">
+                          <Target size={15} />
+                        </span>
+                        Tiến độ trung bình
                       </span>
-                      Tiến độ trung bình
-                    </span>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                      avgProgress >= 80 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" :
-                      avgProgress >= 40 ? "bg-sky-500/20 text-sky-300 border border-sky-500/30" :
-                      "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                    }`}>
-                      {avgProgress >= 80 ? "Xuất sắc" : avgProgress >= 40 ? "Tiến triển tốt" : "Đang bắt đầu"}
-                    </span>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                        avgProgress >= 80 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" :
+                        avgProgress >= 40 ? "bg-sky-500/20 text-sky-300 border border-sky-500/30" :
+                        "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                      }`}>
+                        {avgProgress >= 80 ? "Xuất sắc" : avgProgress >= 40 ? "Tiến triển tốt" : "Đang bắt đầu"}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-violet-200 to-indigo-200 tabular-nums">
+                        <AnimatedNumber value={avgProgress} duration={1.1} />
+                      </span>
+                      <span className="text-sm font-bold text-violet-300/70">% hoàn thành</span>
+                    </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-violet-200 to-indigo-200 tabular-nums">
-                      <AnimatedNumber value={avgProgress} duration={1.1} />
-                    </span>
-                    <span className="text-sm font-bold text-violet-300/70">% hoàn thành</span>
-                  </div>
-                  <div className="mt-3.5">
-                    <div className="h-2 w-full rounded-full bg-slate-900/80 overflow-hidden p-0.5 border border-white/5">
+                  <div className="mt-4">
+                    <div className="h-2.5 w-full rounded-full bg-slate-950/80 overflow-hidden p-0.5 border border-white/5 shadow-inner">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.5)]"
+                        className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.6)] uiverse-shimmer-bar"
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.max(5, avgProgress)}%` }}
                         transition={{ duration: 0.85, ease: "easeOut", delay: 0.2 }}
@@ -390,31 +405,32 @@ export function MyCourses() {
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
                   }}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="relative overflow-hidden rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-[#0e2927]/90 via-[#0d2027]/85 to-[#0f1729]/90 p-5 shadow-[0_12px_32px_rgba(10,8,30,0.4)] backdrop-blur-xl transition-all duration-300 hover:border-emerald-400/50 hover:shadow-[0_16px_40px_rgba(16,185,129,0.28)]"
+                  className="uiverse-stat-card uiverse-stat-card-emerald bg-gradient-to-br from-[#0e2927]/90 via-[#0d2027]/85 to-[#0f1729]/90 p-5 shadow-[0_12px_32px_rgba(10,8,30,0.4)] flex flex-col justify-between"
                 >
-                  <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-emerald-500/20 blur-2xl" />
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                      <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/30">
-                        <Trophy size={15} />
+                  <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-emerald-500/25 blur-2xl uiverse-ambient-orb" />
+                  <div>
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                        <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/30 uiverse-floating-icon">
+                          <Trophy size={15} />
+                        </span>
+                        Đã hoàn thành
                       </span>
-                      Đã hoàn thành
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
-                      <Sparkles size={11} /> Tốt nghiệp
-                    </span>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                        <Sparkles size={11} /> Tốt nghiệp
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-teal-200 tabular-nums">
+                        <AnimatedNumber value={groups.completed.length} duration={1.1} />
+                      </span>
+                      <span className="text-sm font-bold text-emerald-300/70">/ {paidCourses.length} khóa học</span>
+                    </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-200 to-teal-200 tabular-nums">
-                      <AnimatedNumber value={groups.completed.length} duration={1.1} />
-                    </span>
-                    <span className="text-sm font-bold text-emerald-300/70">/ {paidCourses.length} khóa học</span>
-                  </div>
-                  <div className="mt-3.5">
-                    <div className="h-2 w-full rounded-full bg-slate-900/80 overflow-hidden p-0.5 border border-white/5">
+                  <div className="mt-4">
+                    <div className="h-2.5 w-full rounded-full bg-slate-950/80 overflow-hidden p-0.5 border border-white/5 shadow-inner">
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.5)]"
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.6)] uiverse-shimmer-bar"
                         initial={{ width: 0 }}
                         animate={{ width: `${paidCourses.length ? Math.round((groups.completed.length / paidCourses.length) * 100) : 0}%` }}
                         transition={{ duration: 0.85, ease: "easeOut", delay: 0.3 }}
@@ -429,13 +445,13 @@ export function MyCourses() {
                     hidden: { opacity: 0, y: 20 },
                     visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
                   }}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#19173d]/90 via-[#131230]/85 to-[#0f0e24]/90 p-5 shadow-[0_12px_32px_rgba(10,8,30,0.4)] backdrop-blur-xl sm:col-span-2 lg:col-span-1 flex flex-col justify-between transition-all duration-300 hover:border-white/25 hover:shadow-[0_16px_40px_rgba(99,102,241,0.2)]"
+                  className="uiverse-stat-card uiverse-stat-card-sky bg-gradient-to-br from-[#19173d]/90 via-[#131230]/85 to-[#0f0e24]/90 p-5 shadow-[0_12px_32px_rgba(10,8,30,0.4)] sm:col-span-2 lg:col-span-1 flex flex-col justify-between"
                 >
+                  <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-sky-500/25 blur-2xl uiverse-ambient-orb" />
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                        <span className="p-1.5 rounded-lg bg-sky-500/20 text-sky-300 ring-1 ring-sky-400/30">
+                        <span className="p-2 rounded-xl bg-sky-500/20 text-sky-300 ring-1 ring-sky-400/30 uiverse-floating-icon">
                           <GraduationCap size={15} />
                         </span>
                         Tổng khóa học
@@ -453,7 +469,7 @@ export function MyCourses() {
                   <div className="pt-4">
                     <Link
                       to="/courses"
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:brightness-110 active:scale-[0.98] transition-all"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:brightness-110 active:scale-[0.98] transition-all uiverse-beam-btn"
                     >
                       <BookOpen size={15} />
                       Khám phá thêm khóa học
@@ -466,12 +482,12 @@ export function MyCourses() {
 
           {/* Toolbar: Floating Glass Segmented Dock + Actions */}
           <motion.div
-            className="flex flex-wrap items-center justify-between gap-4 mb-6"
+            className="flex flex-wrap items-center justify-between gap-4 mb-6 relative z-10"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
           >
-            {/* Apple-style Floating Glass Segmented Dock */}
+            {/* Apple & Uiverse-style Floating Glass Segmented Dock */}
             <div
               className="relative flex items-center p-1 sm:p-1.5 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl w-full sm:w-auto"
               role="tablist"
@@ -524,7 +540,7 @@ export function MyCourses() {
             <div className="flex items-center gap-3 ml-auto">
               {!loading && !error && enrolledCourses.length > 0 && (
                 <Link
-                  className="inline-flex items-center gap-2 h-[46px] px-4 sm:px-5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:brightness-110 active:scale-95 text-xs sm:text-sm font-bold transition-all group"
+                  className="inline-flex items-center gap-2 h-[46px] px-5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 text-white shadow-[0_4px_20px_rgba(124,58,237,0.4)] hover:brightness-110 active:scale-95 text-xs sm:text-sm font-bold transition-all uiverse-beam-btn group"
                   to="/courses"
                 >
                   <span>Khám phá khóa học</span>
@@ -536,13 +552,13 @@ export function MyCourses() {
 
               <motion.button
                 type="button"
-                className="relative flex items-center justify-center h-[46px] w-[46px] rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl text-violet-300 hover:text-white hover:border-violet-400/40 hover:shadow-[0_8px_32px_rgba(5,3,20,0.5),0_0_16px_rgba(167,139,250,0.25)] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed group shrink-0"
+                className="relative flex items-center justify-center h-[46px] w-[46px] rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl text-violet-300 hover:text-white hover:border-violet-400/50 hover:shadow-[0_8px_32px_rgba(5,3,20,0.5),0_0_20px_rgba(167,139,250,0.3)] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed group shrink-0"
                 onClick={loadData}
                 disabled={loading}
                 aria-label="Tải lại khóa học"
                 title="Tải lại khóa học"
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
               >
                 <RefreshCw
                   size={17}
@@ -580,19 +596,20 @@ export function MyCourses() {
 
             {!loading && !error && filtered.length === 0 && (
               <motion.div
-                className="flex min-h-[360px] flex-col items-center justify-center p-12 text-center rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/50 via-[#13112c]/60 to-[#0e0c22]/70 shadow-lg backdrop-blur-xl"
+                className="flex min-h-[360px] flex-col items-center justify-center p-12 text-center rounded-2xl border border-white/10 bg-gradient-to-b from-[#181538]/60 via-[#13112c]/70 to-[#0e0c22]/80 shadow-2xl backdrop-blur-xl relative overflow-hidden"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
               >
-                <span className="w-16 h-16 rounded-full bg-violet-500/15 border border-violet-400/30 flex items-center justify-center text-violet-300 mb-4 shadow-[0_0_20px_rgba(124,58,237,0.25)]">
+                <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 bg-violet-600/15 rounded-full blur-3xl uiverse-ambient-orb" />
+                <span className="w-16 h-16 rounded-2xl bg-violet-500/15 border border-violet-400/30 flex items-center justify-center text-violet-300 mb-4 shadow-[0_0_24px_rgba(124,58,237,0.3)] uiverse-floating-icon">
                   <BookOpen size={28} strokeWidth={1.6} aria-hidden="true" />
                 </span>
-                <h2 className="text-xl font-bold text-white mb-2">{emptyState.title}</h2>
+                <h2 className="text-xl font-bold text-white mb-2 tracking-tight">{emptyState.title}</h2>
                 <p className="text-sm text-slate-300 max-w-md leading-relaxed">{emptyState.description}</p>
                 {enrolledCourses.length === 0 ? (
                   <Link
-                    className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold shadow-md hover:brightness-110 transition-all"
+                    className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 text-white text-xs font-bold shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:brightness-110 transition-all uiverse-beam-btn"
                     to="/courses"
                   >
                     <span>Khám phá khóa học</span>
@@ -601,7 +618,7 @@ export function MyCourses() {
                 ) : tab !== "all" && (
                   <button
                     type="button"
-                    className="mt-6 px-4 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-200 transition-all"
+                    className="mt-6 px-5 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 text-xs font-bold text-slate-200 hover:text-white transition-all shadow-sm active:scale-95"
                     onClick={() => {
                       setTab("all");
                       document.getElementById("my-courses-tab-all")?.focus();

@@ -81,6 +81,8 @@ export function apiBookingToLocal(b) {
     paymentStatus: b.paymentStatus || "pending",
     paymentRef: ref,
     cancelledBy: b.cancelledBy || "",
+    cancelReason: b.cancelReason || "",
+    cancelledAt: b.cancelledAt || null,
     mentorCancelResolution: b.mentorCancelResolution || "",
     rebookCreditRemainderVnd: b.rebookCreditRemainderVnd ?? null,
     cancelRefundAmountVnd: b.cancelRefundAmountVnd ?? null,

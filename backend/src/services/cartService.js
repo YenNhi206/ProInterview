@@ -71,6 +71,36 @@ export async function getCartOrder(userId, id) {
   return serializeCartOrder(order);
 }
 
+export async function cancelCartOrder(userId, orderId = null) {
+  const query = { userId, active: true, status: { $in: ["preparing", "pending"] } };
+  if (orderId) {
+    validId(orderId);
+    query._id = orderId;
+  }
+  const order = await CartOrder.findOne(query);
+  if (!order) return false;
+
+  const orderCourseIds = (order.items || []).map((i) => i.courseId);
+  if (orderCourseIds.length) {
+    await Cart.updateOne(
+      { userId },
+      { $addToSet: { courseIds: { $each: orderCourseIds } } },
+      { upsert: true }
+    );
+  }
+
+  await CartOrder.updateOne(
+    { _id: order._id },
+    { $set: { status: "expired", active: false } }
+  );
+  await Payment.updateMany(
+    { referenceId: { $in: order.items.map((i) => i.enrollmentId) }, provider: "transfer", status: "pending" },
+    { $set: { status: "cancelled", failureReason: "order_cancelled" } }
+  );
+  await Enrollment.deleteMany({ cartOrderId: order._id, paymentStatus: "pending" });
+  return true;
+}
+
 async function activeOrder(userId) {
   const order = await CartOrder.findOne({ userId, active: true });
   if (order && await expireCartOrder(order)) return null;
@@ -110,6 +140,7 @@ export async function addCartCourse(userId, courseId) {
   if (!course || course.status !== "published" || course.mentorId?.isActive === false) fail("Khóa học hiện không mở bán.", 404);
   if (String(course.mentorId?.userId) === String(userId)) fail("Không thể tự mua khóa học của chính mình.");
   if (await Enrollment.exists({ userId, courseId, paymentStatus: "paid" })) fail("Bạn đã sở hữu khóa học này.");
+
   try {
     await Cart.updateOne({ userId }, { $setOnInsert: { userId, courseIds: [] } }, { upsert: true });
   } catch (error) { if (error.code !== 11000) throw error; }

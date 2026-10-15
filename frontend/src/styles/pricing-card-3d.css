@@ -1,0 +1,109 @@
+/* ─── Rotating Border Beam Card (Uiverse rotBGimg Effect - Enhanced Standout Hover) ─── */
+
+.pricing-cards-grid {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Base Card Container */
+.pricing-plan-card {
+  position: relative;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Border Beam Wrapper: clips the rotating light bar */
+.pricing-border-beam-wrap {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ::before: The Rotating Light Beam Bar */
+.pricing-border-beam-wrap::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 900px;
+  left: calc(50% - 75px);
+  top: calc(50% - 450px);
+  background-image: var(--card-beam-gradient, linear-gradient(180deg, rgb(0, 183, 255), rgb(255, 48, 255)));
+  transform-origin: center center;
+  animation: rotBGimg 4s linear infinite;
+  opacity: 0.45;
+  transition: opacity 0.35s ease, width 0.35s ease, left 0.35s ease, filter 0.35s ease;
+}
+
+@keyframes rotBGimg {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ::after: Inner Solid Card Surface covering center, revealing only the animated border */
+.pricing-border-beam-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 2.5px;
+  border-radius: 21.5px;
+  background: var(--card-inner-bg, #0b061a);
+  transition: background 0.4s ease;
+}
+
+/* ═══════════ HOVER STATE: NỔI BẬT RÕ RỆT, ÁNH SÁNG LAN TỎA, TĂNG TỐC ═══════════ */
+@media (hover: hover) and (pointer: fine) {
+  .pricing-plan-card:hover {
+    z-index: 30;
+    box-shadow: 0 0 32px -4px var(--card-beam-glow, rgba(168, 85, 247, 0.6)),
+                0 25px 60px -12px var(--card-hover-shadow, rgba(128, 55, 244, 0.45)) !important;
+  }
+
+  /* Dải sáng xoay rộng hơn, sáng rực rỡ và phát quang viền */
+  .pricing-plan-card:hover .pricing-border-beam-wrap::before {
+    opacity: 1;
+    width: 250px;
+    left: calc(50% - 125px);
+    filter: drop-shadow(0 0 14px var(--card-beam-glow, rgba(168, 85, 247, 0.8)));
+    animation-duration: 2.2s;
+  }
+
+  /* Lòng thẻ ánh sáng dịu phía trên */
+  .pricing-plan-card:hover .pricing-border-beam-wrap::after {
+    background: radial-gradient(circle at 50% 0%, var(--card-top-glow, rgba(168, 85, 247, 0.16)), transparent 75%), var(--card-inner-bg, #0b061a);
+  }
+}
+
+/* Tier-specific custom palettes */
+/* Elite: Exact Uiverse colors (#00b7ff -> #ff30ff) */
+.pricing-card--elite {
+  --card-beam-gradient: linear-gradient(180deg, #00b7ff, #ff30ff);
+  --card-inner-bg: #0d0722;
+  --card-beam-glow: rgba(255, 48, 255, 0.7);
+  --card-hover-shadow: rgba(0, 183, 255, 0.4);
+  --card-top-glow: rgba(255, 48, 255, 0.22);
+}
+
+/* Pro: System Royal Violet & Electric Cyan */
+.pricing-card--pro {
+  --card-beam-gradient: linear-gradient(180deg, #a855f7, #06b6d4);
+  --card-inner-bg: #0c071d;
+  --card-beam-glow: rgba(168, 85, 247, 0.7);
+  --card-hover-shadow: rgba(168, 85, 247, 0.4);
+  --card-top-glow: rgba(168, 85, 247, 0.2);
+}
+
+/* Basic: System Sky Cyan & Indigo */
+.pricing-card--basic {
+  --card-beam-gradient: linear-gradient(180deg, #38bdf8, #818cf8);
+  --card-inner-bg: #090818;
+  --card-beam-glow: rgba(56, 189, 248, 0.7);
+  --card-hover-shadow: rgba(56, 189, 248, 0.35);
+  --card-top-glow: rgba(56, 189, 248, 0.2);
+}

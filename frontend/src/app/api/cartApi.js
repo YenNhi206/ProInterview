@@ -14,4 +14,5 @@ export const cartApi = {
   remove: (courseId) => request(`/items/${encodeURIComponent(courseId)}`, { method: "DELETE" }),
   checkout: (couponCode) => request("/checkout", { method: "POST", body: JSON.stringify({ couponCode }) }),
   order: (id) => request(`/orders/${encodeURIComponent(id)}`),
+  cancelOrder: (id) => request(`/orders/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

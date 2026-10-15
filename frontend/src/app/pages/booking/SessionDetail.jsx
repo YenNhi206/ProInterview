@@ -27,6 +27,7 @@ import {
   CircleDollarSign,
   Eye,
   Target,
+  ArrowLeft,
 } from "lucide-react";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
@@ -51,21 +52,10 @@ import {
   MEETING_PROVIDER_LABELS,
 } from "../../utils/shared/meetingLinks.js";
 import { MentorCancelSessionPanel } from "./MentorCancelSessionPanel";
-import {
-  BRAND_LIME,
-  BRAND_LIME_BORDER,
-  BRAND_LIME_SOFT,
-  BRAND_PURPLE,
-  BRAND_PURPLE_BORDER,
-  BRAND_PURPLE_HOVER,
-  BRAND_PURPLE_SOFT,
-  BRAND_PURPLE_SOFT_LIGHT,
-} from "../../constants/brandColors";
 import { getUserCancelPolicyFromHours, userCancelWarningMessage } from "../../constants/bookingPolicy";
 import { UserCancelPolicyBrief } from "../../components/booking/UserCancelPolicyBrief";
 import { RefundBankFields } from "../../components/booking/RefundBankFields.jsx";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
-import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { BANK_OTHER, effectiveBankName, refundBankValidationMessage, resolveBankFields } from "../../constants/vietnamBanks.js";
 
 function toBookingDateFormat(input) {
@@ -94,15 +84,45 @@ function CopyBtn({ text, label = "Sao chép" }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
-      className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all flex-shrink-0"
-      style={{
-        background: copied ? "rgba(180,240,0,0.12)" : "#F3F4F6",
-        color: copied ? "#4A7A00" : "#6B7280",
-      }}
+      className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex-shrink-0 cursor-pointer"
     >
-      {copied ? <Check className="w-3 h-3" strokeWidth={3} /> : <Copy className="w-3 h-3" strokeWidth={2} />}
-      {copied ? "Đã sao chép!" : label}
+      {copied ? <Check className="size-3.5 text-emerald-400" strokeWidth={2.5} /> : <Copy className="size-3.5 text-violet-300" strokeWidth={2} />}
+      <span className={copied ? "text-emerald-300 font-bold" : ""}>{copied ? "Đã sao chép!" : label}</span>
     </button>
+  );
+}
+
+function MentorAvatarSafe({ src, name, size = "size-14", textClass = "text-base" }) {
+  const [err, setErr] = useState(!src);
+  const initials = useMemo(() => {
+    if (!name) return "M";
+    const parts = name.trim().split(/\s+/);
+    return parts.length >= 2
+      ? (parts[parts.length - 2][0] + parts[parts.length - 1][0]).toUpperCase()
+      : name.slice(0, 2).toUpperCase();
+  }, [name]);
+
+  useEffect(() => {
+    setErr(!src);
+  }, [src]);
+
+  if (!src || err) {
+    return (
+      <div
+        className={`${size} rounded-2xl bg-gradient-to-br from-violet-600 via-indigo-700 to-slate-800 flex items-center justify-center font-bold text-white ${textClass} shadow-inner border border-white/20 shrink-0`}
+      >
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt=""
+      onError={() => setErr(true)}
+      className={`${size} rounded-2xl object-cover ring-1 ring-white/15 shrink-0`}
+    />
   );
 }
 
@@ -160,6 +180,15 @@ function getPaymentMeta(paymentStatus) {
       note: "Hoàn tiền 100% nếu mentor không tham gia đúng giờ.",
       noteClass: "text-gray-400",
       iconClass: "",
+    };
+  }
+  if (paymentStatus === "failed") {
+    return {
+      title: "Chưa thanh toán",
+      titleClass: "text-rose-400",
+      note: "Đơn đặt lịch đã quá hạn thanh toán chuyển khoản (15 phút). Không có khoản tiền nào bị trừ.",
+      noteClass: "text-rose-300/80",
+      iconClass: "text-rose-400",
     };
   }
   return {
@@ -269,41 +298,29 @@ function sessionCalendarPayload(sessionData) {
 function SessionMeetingLinkCard({ sessionData }) {
   const platform = meetingPlatformLabel(sessionData.meetLink);
   const isJitsi = getMeetingProvider(sessionData.meetLink) === "jitsi";
-  const accent = isJitsi ? BRAND_PURPLE : "#4285F4";
-  const openLabel = isJitsi ? "Vào phòng" : `Mở ${platform}`;
+  const accent = isJitsi ? "from-violet-600 to-indigo-600" : "from-blue-600 to-sky-600";
+  const openLabel = isJitsi ? "Vào phòng phỏng vấn" : `Mở ${platform}`;
   const googleCalUrl = buildGoogleCalendarEventUrl(sessionCalendarPayload(sessionData));
 
   return (
-    <div className="card-premium overflow-hidden">
-      <div
-        className="flex items-center gap-2 border-b border-gray-100 px-5 py-4"
-        style={{ background: BRAND_PURPLE_SOFT_LIGHT }}
-      >
-        <Video className="h-4 w-4" style={{ color: BRAND_PURPLE }} />
-        <span className="text-sm font-semibold text-gray-800">Phòng họp & lịch hẹn</span>
+    <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 shadow-[0_20px_50px_rgba(5,3,20,0.5)] backdrop-blur-2xl overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 bg-white/[0.03]">
+        <Video className="size-4 text-violet-300" />
+        <span className="text-sm font-bold text-white">Phòng họp & link phỏng vấn trực tuyến</span>
       </div>
-      <div className="min-w-0 p-5">
-        <div
-          className="mb-4 flex min-w-0 flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center"
-          style={{
-            background: isJitsi ? BRAND_PURPLE_SOFT_LIGHT : "rgba(66,133,244,0.05)",
-            border: `1.5px solid ${isJitsi ? BRAND_PURPLE_BORDER : "rgba(66,133,244,0.2)"}`,
-          }}
-        >
+      <div className="min-w-0 p-5 sm:p-6 space-y-4">
+        <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-white/10 bg-[#0a061c]/80 p-4 sm:flex-row sm:items-center">
           <div className="flex min-w-0 items-start gap-4 sm:flex-1">
-            <div
-              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
-              style={{ background: accent }}
-            >
+            <div className={`size-12 flex-shrink-0 flex items-center justify-center rounded-2xl bg-gradient-to-tr ${accent} shadow-lg shadow-violet-600/30`}>
               {isJitsi ? (
-                <Video className="h-6 w-6 text-white" />
+                <Video className="size-6 text-white" />
               ) : (
-                <GoogleLogo className="h-6 w-6 text-white" />
+                <GoogleLogo className="size-6 text-white" />
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-gray-900">{platform}</p>
-              <p className="mt-0.5 break-all text-xs sm:truncate sm:font-mono" style={{ color: accent }}>
+              <p className="text-sm font-bold text-white">{platform}</p>
+              <p className="mt-0.5 break-all text-xs text-violet-300 sm:truncate sm:font-mono">
                 {sessionData.meetLink}
               </p>
             </div>
@@ -313,10 +330,10 @@ function SessionMeetingLinkCard({ sessionData }) {
               href={sessionData.meetLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold text-white transition-all hover:opacity-90 sm:py-2"
-              style={{ background: accent }}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.45),inset_0_1px_1px_rgba(255,255,255,0.35)] backdrop-blur-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
             >
-              {openLabel} <ExternalLink className="h-3.5 w-3.5" />
+              <span>{openLabel}</span>
+              <ExternalLink className="size-3.5" />
             </a>
             <CopyBtn text={sessionData.meetLink} label="Sao chép liên kết" />
           </div>
@@ -327,16 +344,16 @@ function SessionMeetingLinkCard({ sessionData }) {
             href={googleCalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-violet-200 hover:bg-violet-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-violet-400/30 py-3 text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition-all cursor-pointer"
           >
-            <Calendar className="h-4 w-4 shrink-0" style={{ color: BRAND_PURPLE }} />
+            <Calendar className="size-4 shrink-0 text-violet-300" />
             Thêm vào Google Calendar
           </a>
         ) : null}
 
-        <p className="flex items-center gap-1.5 text-xs text-gray-500">
-          <ShieldCheck className="h-3.5 w-3.5 shrink-0" style={{ color: BRAND_PURPLE }} />
-          Vào phòng đúng giờ hẹn. Email xác nhận đã được gửi.
+        <p className="flex items-center gap-1.5 text-xs text-slate-400">
+          <ShieldCheck className="size-3.5 shrink-0 text-violet-400" />
+          Vào phòng đúng giờ hẹn. Email xác nhận đã được gửi tới hòm thư của bạn.
         </p>
       </div>
     </div>
@@ -440,9 +457,23 @@ export function SessionDetail() {
     return null;
   }, [sessionData]);
 
+  const isPaymentExpired = useMemo(() => {
+    if (!sessionData) return false;
+    const reason = String(sessionData.cancelReason || "").toLowerCase();
+    const paySt = String(sessionData.paymentStatus || "").toLowerCase();
+    const by = String(sessionData.cancelledBy || "").toLowerCase();
+    return (
+      reason.includes("thanh toán") ||
+      reason.includes("quá hạn") ||
+      paySt === "failed" ||
+      (by === "system" && paySt !== "paid")
+    );
+  }, [sessionData]);
+
   const state = useMemo(() => {
     if (mentorActionMode) return "mentor_action";
     const st = String(sessionData?.status || "").toLowerCase();
+    if (st === "cancelled") return "cancelled";
     if (st === "completed" || st === "done") return "done";
     if (st === "no_show") return "mentor_action";
     return autoState;
@@ -781,32 +812,35 @@ export function SessionDetail() {
 
   if (sessionLoading) {
     return (
-      <MentorPageShell bottomPad="pb-20">
-        <div
-          className={`relative z-10 flex min-h-[40vh] items-center justify-center pb-10 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}
-        >
-          <div className={`${CUSTOMER_SHELL_MAX} w-full text-center text-sm font-medium text-slate-500 antialiased`}>
-            Đang tải thông tin buổi phỏng vấn…
-          </div>
+      <div className={`relative min-h-screen text-slate-100 ${CUSTOMER_SHELL_GUTTER} pb-24 pt-12`}>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-violet-600/15 blur-[120px]" />
         </div>
-      </MentorPageShell>
+        <div className={`relative z-10 flex min-h-[50vh] flex-col items-center justify-center ${CUSTOMER_SHELL_MAX} mx-auto text-center`}>
+          <div className="size-12 rounded-2xl border border-violet-400/30 bg-violet-500/10 flex items-center justify-center animate-spin mb-4 shadow-[0_0_24px_rgba(124,58,237,0.3)]">
+            <div className="size-5 rounded-full border-2 border-violet-400 border-t-transparent" />
+          </div>
+          <p className="text-sm font-semibold text-slate-300">Đang tải thông tin buổi phỏng vấn…</p>
+        </div>
+      </div>
     );
   }
 
   if (!sessionData) {
     return (
-      <MentorPageShell bottomPad="pb-20">
-        <div
-          className={`relative z-10 flex min-h-[40vh] flex-col items-center justify-center pb-10 pt-8 text-center sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}
-        >
-          <div className={`${CUSTOMER_SHELL_MAX} w-full text-slate-500 antialiased`}>
-            <WarningCircle className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-            <p>{loadError || "Không tìm thấy thông tin buổi phỏng vấn."}</p>
+      <div className={`relative min-h-screen text-slate-100 ${CUSTOMER_SHELL_GUTTER} pb-24 pt-12`}>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-violet-600/15 blur-[120px]" />
+        </div>
+        <div className={`relative z-10 flex min-h-[50vh] flex-col items-center justify-center ${CUSTOMER_SHELL_MAX} mx-auto text-center`}>
+          <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-8 max-w-md w-full shadow-[0_20px_50px_rgba(5,3,20,0.5)] backdrop-blur-2xl">
+            <WarningCircle className="mx-auto mb-4 h-12 w-12 text-rose-400/80" />
+            <p className="text-sm font-medium text-slate-300">{loadError || "Không tìm thấy thông tin buổi phỏng vấn."}</p>
             {!isLoggedIn() ? (
               <button
                 type="button"
                 onClick={() => navigate(buildLoginPath(id ? `/session/${id}` : "/"))}
-                className="mt-4 rounded-xl bg-[#a3e635] px-4 py-2 text-sm font-medium text-slate-900 hover:bg-[#84cc16]"
+                className="mt-6 w-full rounded-xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(124,58,237,0.45)] backdrop-blur-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer"
               >
                 Đăng nhập để xem buổi hẹn
               </button>
@@ -814,39 +848,47 @@ export function SessionDetail() {
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="mt-4 rounded-xl bg-[#a3e635] px-4 py-2 text-sm font-medium text-slate-900 hover:bg-[#84cc16]"
+                className="mt-6 w-full rounded-xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 py-3 text-sm font-bold text-white shadow-[0_4px_20px_rgba(124,58,237,0.45)] backdrop-blur-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer"
               >
                 Về trang chủ
               </button>
             )}
           </div>
         </div>
-      </MentorPageShell>
+      </div>
     );
   }
 
   return (
-    <MentorPageShell bottomPad="pb-20">
-      <div className={`relative z-10 pb-10 pt-8 sm:pt-10 ${CUSTOMER_SHELL_GUTTER}`}>
-        <div
-          className={`${CUSTOMER_SHELL_MAX} w-full min-w-0 max-w-full antialiased selection:bg-[rgba(122,35,229,0.18)] selection:text-slate-900`}
-        >
-      {canReportNoShow && !mentorActionMode ? (
-        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50/90 p-4">
-          <p className="text-sm font-bold text-red-900">Mentor không tham gia?</p>
-          <p className="mt-1 text-xs text-red-900/80">
-            Nếu mentor không vào buổi sau 15 phút kể từ giờ hẹn, bạn có thể báo no-show để được hoàn ưu tiên 100%.
-          </p>
-          <button
-            type="button"
-            disabled={reportNoShowBusy}
-            onClick={() => void handleReportNoShow()}
-            className="mt-3 rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
-          >
-            {reportNoShowBusy ? "Đang gửi…" : "Báo mentor no-show"}
-          </button>
-        </div>
-      ) : null}
+    <div className={`relative min-h-screen text-slate-100 ${CUSTOMER_SHELL_GUTTER} pb-24 pt-6 sm:pt-10`}>
+      {/* Ambient background glows */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/4 h-[550px] w-[550px] rounded-full bg-violet-600/15 blur-[130px]" />
+        <div className="absolute top-1/3 -right-20 h-[450px] w-[450px] rounded-full bg-indigo-600/12 blur-[110px]" />
+        <div className="absolute bottom-10 left-10 h-[400px] w-[400px] rounded-full bg-fuchsia-600/10 blur-[120px]" />
+      </div>
+
+      <div className={`relative z-10 ${CUSTOMER_SHELL_MAX} mx-auto min-w-0 max-w-full antialiased`}>
+        {canReportNoShow && !mentorActionMode ? (
+          <div className="mb-6 rounded-3xl border border-rose-500/30 bg-gradient-to-r from-rose-500/15 via-[#23122c]/85 to-[#160c1e]/90 p-5 shadow-[0_12px_36px_rgba(225,29,72,0.2)] backdrop-blur-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-rose-300">Mentor không tham gia?</p>
+                <p className="mt-1 text-xs text-rose-200/80">
+                  Nếu mentor không vào buổi sau 15 phút kể từ giờ hẹn, bạn có thể báo no-show để được hoàn ưu tiên 100%.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={reportNoShowBusy}
+                onClick={() => void handleReportNoShow()}
+                className="shrink-0 rounded-xl border border-rose-400/40 border-t-white/40 bg-gradient-to-b from-rose-500/80 via-rose-600/80 to-rose-700/80 px-4 py-2.5 text-xs font-bold text-white shadow-[0_4px_16px_rgba(225,29,72,0.4)] backdrop-blur-xl hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
+              >
+                {reportNoShowBusy ? "Đang gửi…" : "Báo mentor no-show"}
+              </button>
+            </div>
+          </div>
+        ) : null}
 
       {state === "mentor_action" && sessionData ? (
         <MentorCancelSessionPanel
@@ -887,201 +929,233 @@ export function SessionDetail() {
       ) : null}
 
       {/* ══════════════════════════════════════════════ */}
-      {/*              STATE: UPCOMING                  */}
+      {/*              STATE: CANCELLED                 */}
       {/* ══════════════════════════════════════════════ */}
-      {state === "upcoming" && (
-        <div className="flex min-w-0 flex-col gap-5 lg:grid lg:grid-cols-3 lg:items-start lg:gap-5">
-            {/* 1 — Trạng thái xác nhận */}
-            <div className="order-1 lg:col-span-3">
-            <div
-              className="flex flex-col gap-3 rounded-2xl border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-              style={{
-                background: BRAND_LIME_SOFT,
-                borderColor: BRAND_LIME_BORDER,
-              }}
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-                  style={{ background: "rgba(128, 55, 244, 0.1)" }}
-                >
-                  <CheckCircle className="h-6 w-6" style={{ color: BRAND_PURPLE }} />
+      {state === "cancelled" && sessionData && (
+        <div className="w-full space-y-6">
+          {/* 1. Header Banner - Trải dài toàn bộ chiều rộng mép trái sang mép phải */}
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-[#1e1338]/90 via-[#160f2e]/95 to-[#0f0a22]/98 p-6 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                      isPaymentExpired
+                        ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                        : "bg-rose-500/15 text-rose-300 border border-rose-500/30"
+                    }`}
+                  >
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        isPaymentExpired ? "bg-amber-400" : "bg-rose-400"
+                      }`}
+                    />
+                    {isPaymentExpired ? "Quá hạn thanh toán" : "Đã hủy"}
+                  </span>
+                  <span className="text-xs text-slate-500">·</span>
+                  <span className="text-xs text-slate-400 font-medium">Không phát sinh chi phí</span>
                 </div>
-                <p className="text-base font-bold text-slate-900 sm:text-[1.05rem]">
-                  Buổi phỏng vấn đã được xác nhận
+
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
+                  {isPaymentExpired
+                    ? "Cuộc hẹn đã bị hủy do chưa hoàn tất thanh toán"
+                    : sessionData.cancelledBy === "user"
+                    ? "Cuộc hẹn đã được hủy theo yêu cầu của bạn"
+                    : "Cuộc hẹn phỏng vấn đã bị hủy"}
+                </h1>
+
+                <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed max-w-3xl">
+                  {isPaymentExpired
+                    ? "Đơn đặt lịch đã tự động đóng vì không ghi nhận chuyển khoản trong 15 phút. Khung giờ này đã được giải phóng để mở lại cho người khác và bạn chưa bị trừ bất kỳ khoản tiền nào."
+                    : sessionData.cancelReason
+                    ? `Lý do: ${sessionData.cancelReason}`
+                    : "Cuộc hẹn này không còn hiệu lực trên hệ thống."}
                 </p>
               </div>
-              <div className="shrink-0 sm:text-right">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+
+              <div className="shrink-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 self-start sm:self-auto sm:text-right">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Mã đặt lịch
                 </p>
-                <p className="text-sm font-bold text-slate-900">#{sessionData.orderNum}</p>
+                <p className="text-base font-black text-white font-mono mt-0.5">
+                  #{sessionData.orderNum}
+                </p>
               </div>
             </div>
-            </div>
+          </div>
 
-            {/* Cột trái desktop — mobile: children tách ra flex parent (contents) */}
-            <div className="max-lg:contents lg:col-span-2 lg:row-start-2 lg:space-y-5">
-            <div className="order-3 lg:order-none">
-            <SessionMeetingLinkCard sessionData={sessionData} />
-            </div>
+          {/* 2. Grid 2 Cột Lớn Liền Mạch (Cột Trái 2 span, Cột Phải 1 span) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {/* Cột Trái: Bảng Chi Tiết Buổi Hẹn & Thao Tác (1 Card duy nhất, chia hairline) */}
+            <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-[#140e28]/90 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-2xl divide-y divide-white/[0.08] overflow-hidden">
+              {/* Phần thông tin Mentor */}
+              <div className="p-6 sm:p-7 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  <MentorAvatarSafe
+                    src={sessionData.mentorAvatar}
+                    name={sessionData.mentorName}
+                    size="size-14"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      Chuyên gia hướng dẫn
+                    </p>
+                    <p className="text-lg font-bold text-white truncate mt-0.5">
+                      {sessionData.mentorName}
+                    </p>
+                    <p className="text-xs text-slate-400 truncate">
+                      {sessionData.mentorTitle}
+                      {sessionData.mentorCompany ? ` · ${sessionData.mentorCompany}` : ""}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="order-6 lg:order-none">
-            <div className="card-premium p-5">
-              <div className="mb-4 flex items-center gap-2">
-                <div
-                  className="flex h-8 w-8 items-center justify-center rounded-lg"
-                  style={{ background: BRAND_LIME_SOFT }}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/mentors/${sessionData.mentorId}`)}
+                  className="shrink-0 text-xs font-bold text-slate-200 hover:text-white px-4 py-2.5 rounded-xl border border-white/12 hover:border-violet-400/40 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
                 >
-                  <Zap className="h-4 w-4" style={{ color: BRAND_PURPLE }} />
-                </div>
-                <span className="text-sm font-semibold text-gray-800">Tips từ mentor cho buổi phỏng vấn</span>
+                  Xem hồ sơ
+                </button>
               </div>
-              <div className="space-y-2.5">
-                {MENTOR_INTERVIEW_TIPS.map(({ Icon, tip }) => (
-                  <div
-                    key={tip}
-                    className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/80 p-3"
+
+              {/* Phần thông tin lịch hẹn */}
+              <div className="p-6 sm:p-7 space-y-5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Thông tin lịch hẹn
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                  <div>
+                    <span className="text-xs text-slate-400 block mb-1">Thời gian đã đặt</span>
+                    <span className="font-semibold text-slate-200">
+                      {sessionData.date} · {sessionData.time} – {sessionData.endTime}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-xs text-slate-400 block mb-1">Thời lượng</span>
+                    <span className="font-semibold text-slate-200">60 phút</span>
+                  </div>
+
+                  <div>
+                    <span className="text-xs text-slate-400 block mb-1">Vị trí ứng tuyển</span>
+                    <span className="font-semibold text-slate-200">
+                      {sessionData.position || "—"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-xs text-slate-400 block mb-1">Phòng phỏng vấn trực tuyến</span>
+                    <span className="font-semibold text-slate-400 flex items-center gap-1.5">
+                      <span className="size-1.5 rounded-full bg-slate-500" />
+                      Đã vô hiệu hóa
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tài liệu đính kèm (nếu có) */}
+                {(sessionData.cvFile || sessionData.jdFile) && (
+                  <div className="pt-4 border-t border-white/[0.06] flex flex-wrap items-center gap-3">
+                    <span className="text-xs text-slate-400">Tài liệu đã đính kèm:</span>
+                    {sessionData.cvFile && (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-xs text-slate-300">
+                        <FileText className="size-3.5 text-violet-400" />
+                        <span className="max-w-[180px] truncate">{sessionData.cvFile}</span>
+                        {sessionData.cvFileUrl && (
+                          <a
+                            href={sessionData.cvFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-violet-300 hover:text-violet-200 ml-1"
+                          >
+                            Mở
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {sessionData.jdFile && (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-xs text-slate-300">
+                        <FileText className="size-3.5 text-amber-400" />
+                        <span className="max-w-[180px] truncate">{sessionData.jdFile}</span>
+                        {sessionData.jdFileUrl && (
+                          <a
+                            href={sessionData.jdFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-violet-300 hover:text-violet-200 ml-1"
+                          >
+                            Mở
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Phần hành động đặt lại lịch */}
+              <div className="p-6 sm:p-7 bg-white/[0.015]">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/booking/${sessionData.mentorId}`)}
+                    className="flex-1 flex items-center justify-center gap-2.5 rounded-2xl border border-violet-400/40 border-t-white/40 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 px-6 py-3.5 text-sm font-extrabold text-white shadow-[0_4px_20px_rgba(124,58,237,0.45)] backdrop-blur-xl hover:brightness-110 active:scale-95 transition cursor-pointer"
                   >
-                    <div
-                      className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-                      style={{ background: "rgba(128, 55, 244, 0.08)" }}
-                    >
-                      <Icon className="h-3.5 w-3.5" style={{ color: BRAND_PURPLE }} />
-                    </div>
-                    <p className="min-w-0 text-sm leading-relaxed text-slate-600">{tip}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            </div>
-            </div>
-
-            {/* Cột phải desktop — xếp dọc độc lập, không bị kéo theo chiều cao cột trái */}
-            <div className="max-lg:contents lg:col-start-3 lg:row-start-2 lg:space-y-4">
-            <div className="order-4 lg:order-none">
-            <div className="card-premium p-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Mentor của bạn</p>
-              <div className="flex items-center gap-3 mb-4">
-                <img
-                  src={sessionData.mentorAvatar}
-                  alt={sessionData.mentorName}
-                  className="w-14 h-14 rounded-2xl object-cover flex-shrink-0"
-                />
-                <div>
-                  <p className="text-gray-900 font-bold">{sessionData.mentorName}</p>
-                  <p className="text-gray-500 text-xs">{sessionData.mentorTitle}</p>
-                  <p className="text-xs font-semibold mt-0.5" style={{ color: "#8037f4" }}>{sessionData.mentorCompany}</p>
+                    <Calendar className="size-4" />
+                    <span>Đặt lại lịch với {sessionData.mentorName}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/mentors")}
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-5 py-3.5 text-sm font-bold text-slate-200 hover:bg-white/10 hover:border-violet-400/40 hover:text-white active:scale-95 transition cursor-pointer"
+                  >
+                    <User className="size-4" />
+                    <span>Tìm chuyên gia khác</span>
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => navigate(`/mentors/${sessionData.mentorId}`)}
-                className="w-full py-2.5 rounded-xl text-sm font-medium text-gray-600 transition-all border border-gray-200 hover:border-[#8037f4]/40 hover:text-[#8037f4]"
-              >
-                Xem hồ sơ mentor
-              </button>
-            </div>
             </div>
 
-            <div className="order-2 lg:order-none">
-            <div className="card-premium p-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Chi tiết buổi hẹn</p>
-              <div className="space-y-3">
-                {[
-                  { icon: Calendar, label: "Ngày", value: sessionData.date },
-                  { icon: Clock, label: "Thời gian", value: `${sessionData.time} – ${sessionData.endTime}` },
-                  { icon: Timer, label: "Thời lượng", value: "60 phút" },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(128, 55, 244,0.07)" }}>
-                      <row.icon className="w-3.5 h-3.5" style={{ color: "#8037f4" }} />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400">{row.label}</p>
-                      <p className="text-sm font-medium text-gray-800">{row.value}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            </div>
+            {/* Cột Phải: Tóm tắt thanh toán & Lối tắt (1 Card duy nhất) */}
+            <div className="rounded-3xl border border-white/10 bg-[#140e28]/90 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-2xl p-6 sm:p-7 space-y-6">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+                  Chi tiết thanh toán
+                </p>
 
-            <div className="order-5 lg:order-none">
-            <div className="card-premium p-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Tài liệu đã gửi mentor</p>
-              <div className="space-y-2">
-                {sessionData.cvFile && (
-                  <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#F9FAFB" }}>
-                    <FileText className="w-4 h-4 flex-shrink-0" style={{ color: "#8037f4" }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-700 truncate">{sessionData.cvFile}</p>
-                      <p className="text-xs text-gray-400">CV đính kèm</p>
-                    </div>
-                    {sessionData.cvFileUrl ? (
-                      <a
-                        href={sessionData.cvFileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-semibold shrink-0"
-                        style={{ color: "#8037f4" }}
-                      >
-                        Mở
-                      </a>
-                    ) : (
-                      <Check className="w-4 h-4 flex-shrink-0" style={{ color: "#4A7A00" }} />
-                    )}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-400">Giá niêm yết</span>
+                    <span className="font-semibold text-slate-200">{formatVnd(sessionData.price)}</span>
                   </div>
-                )}
-                {sessionData.jdFile && (
-                  <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#F9FAFB" }}>
-                    <FileText className="w-4 h-4 flex-shrink-0" style={{ color: "#FF8C42" }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-700 truncate">{sessionData.jdFile}</p>
-                      <p className="text-xs text-gray-400">JD đính kèm</p>
-                    </div>
-                    {sessionData.jdFileUrl ? (
-                      <a
-                        href={sessionData.jdFileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-semibold shrink-0"
-                        style={{ color: "#8037f4" }}
-                      >
-                        Mở
-                      </a>
-                    ) : (
-                      <Check className="w-4 h-4 flex-shrink-0" style={{ color: "#4A7A00" }} />
-                    )}
-                  </div>
-                )}
-                {!sessionData.jdFile && (
-                  <p className="text-xs text-gray-400 italic">Không có JD kèm theo.</p>
-                )}
-              </div>
-            </div>
-            </div>
 
-            <div className="order-7 lg:order-none">
-            <div className="card-premium p-5">
-              <div className="flex justify-between items-center mb-3">
-                <span className={`text-sm font-semibold ${paymentMeta.titleClass}`}>{paymentMeta.title}</span>
-                <span className="font-bold text-gray-900">{formatVnd(sessionData.price)}</span>
-              </div>
-              <div className="flex items-start gap-2 pt-3 border-t border-gray-100 mb-4">
-                <ShieldCheck
-                  className={`w-4 h-4 flex-shrink-0 mt-0.5 ${paymentMeta.iconClass}`}
-                  style={paymentMeta.iconClass ? undefined : { color: "#8037f4" }}
-                />
-                <p className={`text-xs ${paymentMeta.noteClass}`}>{paymentMeta.note}</p>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-400">Số tiền đã trừ</span>
+                    <span className="font-semibold text-emerald-400">0 VNĐ</span>
+                  </div>
+
+                  <div className="pt-3 border-t border-white/10 flex justify-between items-baseline">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Trạng thái</span>
+                    <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      {isPaymentExpired ? "Chưa thanh toán" : paymentMeta.title}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-start gap-2.5 text-xs text-slate-400 leading-relaxed">
+                  <ShieldCheck className="size-4 text-violet-400 shrink-0 mt-0.5" />
+                  <span>Đơn đặt lịch đã quá hạn thanh toán 15 phút. Bạn chưa bị trừ tiền và không có khoản phí phát sinh.</span>
+                </div>
               </div>
 
               {needsRefundBankForm ? (
-                <div className="mb-4 rounded-2xl border border-amber-200/90 bg-amber-50/60 p-4">
-                  <p className="mb-3 text-sm font-bold text-slate-900">{refundBankFormTitle}</p>
+                <div className="rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4">
+                  <p className="mb-3 text-sm font-bold text-amber-200">{refundBankFormTitle}</p>
                   {Number(sessionData?.cancelRefundAmountVnd) > 0 ? (
-                    <p className="mb-3 text-sm text-slate-600">
+                    <p className="mb-3 text-sm text-slate-300">
                       Hoàn dự kiến:{" "}
-                      <strong className="text-slate-900">
+                      <strong className="text-white">
                         {formatVnd(
                           Math.round(
                             sessionData.rebookCreditRemainderVnd ?? sessionData.cancelRefundAmountVnd,
@@ -1104,36 +1178,258 @@ export function SessionDetail() {
                     type="button"
                     disabled={refundDestBusy}
                     onClick={() => void handleSubmitRefundDestination()}
-                    className="mt-4 w-full rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-                    style={{ background: "#8037f4" }}
+                    className="mt-4 w-full rounded-xl border border-violet-400/40 border-t-white/40 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 py-2.5 text-xs sm:text-sm font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.4)] backdrop-blur-xl hover:brightness-110 active:scale-95 disabled:opacity-50 transition cursor-pointer"
                   >
                     {refundDestBusy ? "Đang lưu…" : "Lưu STK nhận hoàn"}
                   </button>
                 </div>
               ) : null}
 
-              <div className="space-y-3">
-                {canCancelOnServer ? (
-                  <button
-                    type="button"
-                    onClick={() => setCancelModalOpen(true)}
-                    className="card-premium animate-fade-in flex w-full items-center justify-center gap-2 rounded-xl border border-violet-200 bg-white py-3 text-sm font-semibold text-violet-800 transition hover:border-violet-300 hover:bg-violet-50"
-                  >
-                    <X className="h-4 w-4" />
-                    Hủy buổi phỏng vấn
-                  </button>
-                ) : (
-                  <p className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-3 py-2 text-center text-xs text-gray-500">
-                    {isLoggedIn()
-                      ? "Chỉ lịch đặt trên tài khoản (từ trang cố vấn) mới hủy được tự động qua hệ thống."
-                      : "Đăng nhập và mở lịch từ mục Đặt lịch để hủy online."}
-                  </p>
-                )}
-
-                <UserCancelPolicyBrief variant="icons" hoursLeft={hoursLeft} />
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/my-bookings")}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition-all cursor-pointer"
+                >
+                  <ArrowLeft className="size-4" />
+                  <span>Quay lại danh sách lịch hẹn</span>
+                </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════ */}
+      {/*              STATE: UPCOMING                  */}
+      {/* ══════════════════════════════════════════════ */}
+      {state === "upcoming" && (
+        <div className="flex min-w-0 flex-col gap-6 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+            {/* 1 — Trạng thái xác nhận */}
+            <div className="order-1 lg:col-span-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-[#1a143d]/85 to-[#120e2e]/95 p-5 sm:p-6 shadow-[0_16px_40px_rgba(5,3,20,0.4)] backdrop-blur-2xl">
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                    <CheckCircle className="size-6" />
+                  </div>
+                  <div>
+                    <p className="text-base font-bold text-white sm:text-[1.05rem]">
+                      Buổi phỏng vấn đã được xác nhận
+                    </p>
+                    <p className="text-xs text-slate-300 mt-0.5">Sẵn sàng tham gia theo lịch hẹn bên dưới</p>
+                  </div>
+                </div>
+                <div className="shrink-0 sm:text-right rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Mã đặt lịch
+                  </p>
+                  <p className="text-sm font-black text-white">#{sessionData.orderNum}</p>
+                </div>
+              </div>
             </div>
+
+            {/* Cột trái desktop — mobile: children tách ra flex parent (contents) */}
+            <div className="max-lg:contents lg:col-span-2 lg:row-start-2 lg:space-y-6">
+              <div className="order-3 lg:order-none">
+                <SessionMeetingLinkCard sessionData={sessionData} />
+              </div>
+
+              <div className="order-6 lg:order-none">
+                <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#1c1745]/90 via-[#141035]/92 to-[#0c0824]/96 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+                  <div className="mb-4 flex items-center gap-2.5">
+                    <div className="flex size-8 items-center justify-center rounded-xl bg-violet-500/20 border border-violet-400/30 text-violet-300">
+                      <Zap className="size-4 text-violet-300" />
+                    </div>
+                    <span className="text-sm font-bold text-white">Tips từ mentor cho buổi phỏng vấn</span>
+                  </div>
+                  <div className="space-y-3">
+                    {MENTOR_INTERVIEW_TIPS.map(({ Icon, tip }) => (
+                      <div
+                        key={tip}
+                        className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-3.5 hover:border-violet-500/30 hover:bg-violet-500/[0.04] transition-all"
+                      >
+                        <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-violet-500/20 text-violet-300 border border-violet-400/25">
+                          <Icon className="size-3.5" />
+                        </div>
+                        <p className="min-w-0 text-xs sm:text-sm leading-relaxed text-slate-300">{tip}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cột phải desktop — xếp dọc độc lập, không bị kéo theo chiều cao cột trái */}
+            <div className="max-lg:contents lg:col-start-3 lg:row-start-2 lg:space-y-6">
+              <div className="order-4 lg:order-none">
+                <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Mentor của bạn</p>
+                  <div className="flex items-center gap-3.5 mb-5">
+                    <img
+                      src={sessionData.mentorAvatar}
+                      alt={sessionData.mentorName}
+                      className="size-14 rounded-2xl object-cover ring-2 ring-violet-500/40 shadow-md shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-white font-bold text-base truncate">{sessionData.mentorName}</p>
+                      <p className="text-slate-400 text-xs truncate">{sessionData.mentorTitle}</p>
+                      <p className="text-xs font-bold text-violet-300 mt-1 truncate">{sessionData.mentorCompany}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate(`/mentors/${sessionData.mentorId}`)}
+                    className="w-full py-2.5 rounded-xl text-xs font-bold text-slate-200 transition-all border border-white/15 bg-white/5 hover:bg-white/10 hover:border-violet-400/40 hover:text-white cursor-pointer"
+                  >
+                    Xem hồ sơ mentor
+                  </button>
+                </div>
+              </div>
+
+              <div className="order-2 lg:order-none">
+                <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Chi tiết buổi hẹn</p>
+                  <div className="space-y-3.5">
+                    {[
+                      { icon: Calendar, label: "Ngày", value: sessionData.date },
+                      { icon: Clock, label: "Thời gian", value: `${sessionData.time} – ${sessionData.endTime}` },
+                      { icon: Timer, label: "Thời lượng", value: "60 phút" },
+                    ].map((row) => (
+                      <div key={row.label} className="flex items-start gap-3">
+                        <div className="size-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 bg-violet-500/15 border border-violet-400/20 text-violet-300">
+                          <row.icon className="size-4" />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{row.label}</p>
+                          <p className="text-sm font-bold text-white">{row.value}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-5 lg:order-none">
+                <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Tài liệu đã gửi mentor</p>
+                  <div className="space-y-2.5">
+                    {sessionData.cvFile && (
+                      <div className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/[0.04]">
+                        <FileText className="size-4 shrink-0 text-violet-300" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-200 truncate">{sessionData.cvFile}</p>
+                          <p className="text-[10px] text-slate-400">CV đính kèm</p>
+                        </div>
+                        {sessionData.cvFileUrl ? (
+                          <a
+                            href={sessionData.cvFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold text-violet-300 hover:text-violet-200 shrink-0"
+                          >
+                            Mở
+                          </a>
+                        ) : (
+                          <Check className="size-4 shrink-0 text-emerald-400" />
+                        )}
+                      </div>
+                    )}
+                    {sessionData.jdFile && (
+                      <div className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/[0.04]">
+                        <FileText className="size-4 shrink-0 text-amber-300" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-200 truncate">{sessionData.jdFile}</p>
+                          <p className="text-[10px] text-slate-400">JD đính kèm</p>
+                        </div>
+                        {sessionData.jdFileUrl ? (
+                          <a
+                            href={sessionData.jdFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold text-violet-300 hover:text-violet-200 shrink-0"
+                          >
+                            Mở
+                          </a>
+                        ) : (
+                          <Check className="size-4 shrink-0 text-emerald-400" />
+                        )}
+                      </div>
+                    )}
+                    {!sessionData.jdFile && (
+                      <p className="text-xs text-slate-400 italic">Không có JD kèm theo.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-7 lg:order-none">
+                <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-semibold text-slate-300">{paymentMeta.title}</span>
+                    <span className="font-black text-white text-base">{formatVnd(sessionData.price)}</span>
+                  </div>
+                  <div className="flex items-start gap-2 pt-3 border-t border-white/10 mb-4">
+                    <ShieldCheck className="size-4 shrink-0 mt-0.5 text-violet-400" />
+                    <p className="text-xs text-slate-400 leading-relaxed">{paymentMeta.note}</p>
+                  </div>
+
+                  {needsRefundBankForm ? (
+                    <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4">
+                      <p className="mb-3 text-sm font-bold text-amber-200">{refundBankFormTitle}</p>
+                      {Number(sessionData?.cancelRefundAmountVnd) > 0 ? (
+                        <p className="mb-3 text-sm text-slate-300">
+                          Hoàn dự kiến:{" "}
+                          <strong className="text-white">
+                            {formatVnd(
+                              Math.round(
+                                sessionData.rebookCreditRemainderVnd ?? sessionData.cancelRefundAmountVnd,
+                              ),
+                            )}
+                          </strong>
+                        </p>
+                      ) : null}
+                      <RefundBankFields
+                        bankSelect={refundBankSelect}
+                        onBankSelectChange={handleRefundBankSelectChange}
+                        customBankName={refundCustomBankName}
+                        onCustomBankNameChange={setRefundCustomBankName}
+                        accountNumber={refundAccountNumber}
+                        onAccountNumberChange={setRefundAccountNumber}
+                        accountHolder={refundAccountHolder}
+                        onAccountHolderChange={setRefundAccountHolder}
+                      />
+                      <button
+                        type="button"
+                        disabled={refundDestBusy}
+                        onClick={() => void handleSubmitRefundDestination()}
+                        className="mt-4 w-full rounded-xl border border-violet-400/40 border-t-white/40 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 py-2.5 text-xs sm:text-sm font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.4)] backdrop-blur-xl hover:brightness-110 active:scale-95 disabled:opacity-50 transition cursor-pointer"
+                      >
+                        {refundDestBusy ? "Đang lưu…" : "Lưu STK nhận hoàn"}
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <div className="space-y-3">
+                    {canCancelOnServer ? (
+                      <button
+                        type="button"
+                        onClick={() => setCancelModalOpen(true)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-3 text-xs font-bold text-slate-300 hover:border-rose-400/40 hover:bg-rose-500/10 hover:text-rose-200 transition-all cursor-pointer"
+                      >
+                        <X className="size-4" />
+                        Hủy buổi phỏng vấn
+                      </button>
+                    ) : (
+                      <p className="rounded-xl border border-dashed border-white/15 bg-white/[0.03] px-3 py-2 text-center text-xs text-slate-400">
+                        {isLoggedIn()
+                          ? "Chỉ lịch đặt trên tài khoản (từ trang cố vấn) mới hủy được tự động qua hệ thống."
+                          : "Đăng nhập và mở lịch từ mục Đặt lịch để hủy online."}
+                      </p>
+                    )}
+
+                    <UserCancelPolicyBrief variant="icons" hoursLeft={hoursLeft} />
+                  </div>
+                </div>
+              </div>
             </div>
         </div>
       )}
@@ -1142,25 +1438,19 @@ export function SessionDetail() {
       {/*                STATE: LIVE                    */}
       {/* ══════════════════════════════════════════════ */}
       {state === "live" && (
-        <div className="grid min-w-0 gap-5 lg:grid-cols-3">
-          <div className="min-w-0 space-y-5 lg:col-span-2">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-3">
+          <div className="min-w-0 space-y-6 lg:col-span-2">
             {/* Live banner */}
-            <div
-              className="rounded-2xl p-5 flex items-center gap-4"
-              style={{ background: "linear-gradient(135deg, #1F1B2E, #2D2640)", border: "1px solid rgba(180,240,0,0.2)" }}
-            >
-              <div className="relative">
-                <div className="w-4 h-4 rounded-full" style={{ background: "#B4F000" }} />
-                <div
-                  className="absolute inset-0 w-4 h-4 rounded-full animate-ping"
-                  style={{ background: "rgba(180,240,0,0.4)" }}
-                />
+            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-[#1a143d]/85 to-[#120e2e]/95 p-5 sm:p-6 flex items-center gap-4 shadow-[0_16px_40px_rgba(5,3,20,0.5)] backdrop-blur-2xl">
+              <div className="relative flex size-4 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex size-3.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
               </div>
-              <div className="flex-1">
-                <p className="text-white font-bold" style={{ fontSize: "1.05rem" }}>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-black text-base sm:text-lg tracking-tight">
                   Buổi phỏng vấn đang diễn ra
                 </p>
-                <p className="text-white/50 text-sm">
+                <p className="text-slate-300 text-xs sm:text-sm mt-0.5">
                   Với {sessionData.mentorName} · {sessionData.time} – {sessionData.endTime}
                 </p>
               </div>
@@ -1170,68 +1460,62 @@ export function SessionDetail() {
             {meetingEntry.ok ? (
               <div className="space-y-3">
                 {!inLiveWindow && minutesUntilStart > 0 && (
-                  <div className="rounded-2xl border border-violet-200 bg-violet-50 px-5 py-4 text-sm text-violet-900">
+                  <div className="rounded-2xl border border-violet-400/25 bg-violet-500/10 px-5 py-4 text-xs sm:text-sm text-violet-200">
                     Còn khoảng <strong>{minutesUntilStart} phút</strong> đến giờ hẹn. Bạn có thể vào
                     thử phòng sớm, trạng thái buổi học chỉ chuyển sang &quot;đang diễn ra&quot; khi
                     đến khung giờ cho phép.
                   </div>
                 )}
-              <button
-                type="button"
-                onClick={() => navigate(`/meeting/${id}`)}
-                className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-white font-bold transition-all hover:opacity-95 active:scale-[0.98]"
-                style={{
-                  background: "#8037f4",
-                  boxShadow: "0 8px 32px rgba(128, 55, 244, 0.35)",
-                  fontSize: "1.1rem",
-                }}
-              >
-                <Video className="w-6 h-6" />
-                {inLiveWindow ? "Vào phòng phỏng vấn ngay" : "Vào thử phòng sớm"}
-              </button>
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="button"
+                  onClick={() => navigate(`/meeting/${id}`)}
+                  className="w-full flex items-center justify-center gap-3 py-4 sm:py-5 rounded-2xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/90 via-violet-600/80 to-indigo-700/90 text-white font-extrabold text-base sm:text-lg shadow-[0_8px_32px_rgba(124,58,237,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] backdrop-blur-xl hover:brightness-110 transition-all cursor-pointer"
+                >
+                  <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                    <Video className="size-5" />
+                  </div>
+                  <span>{inLiveWindow ? "Vào phòng phỏng vấn ngay" : "Vào thử phòng sớm"}</span>
+                </motion.button>
               </div>
             ) : (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+              <div className="rounded-2xl border border-amber-400/25 bg-amber-500/10 px-5 py-4 text-xs sm:text-sm text-amber-200">
                 {meetingEntry.message ||
                   "Chưa thể vào phòng. Buổi hẹn cần được xác nhận và thanh toán trước."}
               </div>
             )}
 
-
-            <div className="flex items-center gap-3 py-2 text-sm text-gray-500">
-              <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex items-center gap-3 py-2 text-xs font-semibold text-slate-400">
+              <div className="flex-1 h-px bg-white/10" />
               <span>hoặc sao chép liên kết dưới đây</span>
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-white/10" />
             </div>
 
             {/* Link copy */}
-            <div
-              className="flex min-w-0 items-center gap-3 rounded-2xl border p-4"
-              style={{ borderColor: "rgba(66,133,244,0.25)", background: "rgba(66,133,244,0.04)" }}
-            >
-              <p className="min-w-0 flex-1 break-all text-sm text-gray-700 sm:truncate sm:font-mono">{sessionData.meetLink}</p>
+            <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/12 bg-white/5 p-4 backdrop-blur-xl">
+              <p className="min-w-0 flex-1 break-all text-xs sm:text-sm text-slate-300 sm:truncate sm:font-mono">{sessionData.meetLink}</p>
               <CopyBtn text={sessionData.meetLink} label="Copy" />
             </div>
 
             {/* Notes area */}
-            <div className="card-premium overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2" style={{ background: "rgba(128, 55, 244,0.03)" }}>
-                <Notebook className="w-4 h-4" style={{ color: "#8037f4" }} />
-                <span className="font-semibold text-gray-800 text-sm">Ghi chú trong buổi phỏng vấn</span>
+            <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#1c1745]/90 via-[#141035]/92 to-[#0c0824]/96 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/10 flex items-center gap-2.5 bg-white/[0.02]">
+                <Notebook className="size-4 text-violet-300" />
+                <span className="font-bold text-white text-sm">Ghi chú trong buổi phỏng vấn</span>
               </div>
               <div className="p-5">
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full text-sm text-gray-700 resize-none focus:outline-none leading-relaxed"
-                  style={{ minHeight: "200px", background: "transparent" }}
+                  className="w-full text-sm text-slate-200 resize-none focus:outline-none leading-relaxed placeholder-slate-500"
+                  style={{ minHeight: "180px", background: "transparent" }}
                   placeholder="Ghi lại những điểm quan trọng, feedback của mentor, những gì cần cải thiện...&#10;&#10;Ví dụ:&#10;- Câu trả lời về system design cần bổ sung phần scalability&#10;- Nên dùng số liệu cụ thể hơn khi kể về kinh nghiệm&#10;- Mentor gợi ý học thêm về distributed systems"
                 />
-                <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
-                  <p className="text-xs text-gray-400">{notes.length} ký tự</p>
+                <div className="flex justify-between items-center pt-3 border-t border-white/10 mt-2">
+                  <p className="text-xs text-slate-400">{notes.length} ký tự</p>
                   <button
-                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all"
-                    style={{ background: "rgba(128, 55, 244,0.08)", color: "#8037f4" }}
+                    className="text-xs font-bold px-3.5 py-2 rounded-xl border border-violet-400/30 bg-violet-500/20 text-violet-200 hover:bg-violet-500/30 transition-all cursor-pointer"
                   >
                     Lưu ghi chú
                   </button>
@@ -1240,47 +1524,41 @@ export function SessionDetail() {
             </div>
 
             {/* Quick tips live */}
-            <div
-              className="rounded-2xl p-4 flex items-start gap-3"
-              style={{ background: "rgba(255,214,0,0.07)", border: "1px solid rgba(255,214,0,0.2)" }}
-            >
-              <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#997F00" }} />
-              <div className="text-sm" style={{ color: "#7A6200" }}>
-                <p className="font-semibold mb-1">Nhớ trong lúc phỏng vấn:</p>
-                <p>Lắng nghe kỹ câu hỏi trước khi trả lời · Hỏi lại nếu không rõ · Ghi chú feedback để xem lại sau</p>
+            <div className="rounded-2xl p-4 flex items-start gap-3 border border-amber-400/25 bg-amber-500/10">
+              <Zap className="size-4 shrink-0 mt-0.5 text-amber-300" />
+              <div className="text-xs sm:text-sm text-amber-200">
+                <p className="font-bold mb-1">Nhớ trong lúc phỏng vấn:</p>
+                <p className="text-amber-200/90 leading-relaxed">Lắng nghe kỹ câu hỏi trước khi trả lời · Hỏi lại nếu không rõ · Ghi chú feedback để xem lại sau</p>
               </div>
             </div>
           </div>
 
           {/* Right col, mentor + session info */}
-          <div className="min-w-0 space-y-4">
-            <div className="card-premium p-5">
+          <div className="min-w-0 space-y-5">
+            <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
               <img
                 src={sessionData.mentorAvatar}
                 alt={sessionData.mentorName}
-                className="w-16 h-16 rounded-2xl object-cover mb-3"
+                className="size-16 rounded-2xl object-cover mb-3.5 ring-2 ring-violet-500/40 shadow-md"
               />
-              <p className="text-gray-900 font-bold">{sessionData.mentorName}</p>
-              <p className="text-gray-500 text-xs">{sessionData.mentorTitle}</p>
-              <p className="text-xs font-semibold mt-1" style={{ color: "#8037f4" }}>{sessionData.mentorCompany}</p>
-              <div
-                className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-xs"
-                style={{ color: "#4A7A00" }}
-              >
-                <div className="w-2 h-2 rounded-full" style={{ background: "#B4F000" }} />
+              <p className="text-white font-bold text-base">{sessionData.mentorName}</p>
+              <p className="text-slate-400 text-xs">{sessionData.mentorTitle}</p>
+              <p className="text-xs font-bold mt-1 text-violet-300">{sessionData.mentorCompany}</p>
+              <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2 text-xs font-bold text-emerald-400">
+                <div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                 Đang trong phòng họp
               </div>
             </div>
 
-            <div className="card-premium p-5 space-y-3">
+            <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl space-y-3.5">
               {[
                 { label: "Ngày", value: sessionData.date },
                 { label: "Thời gian", value: `${sessionData.time} – ${sessionData.endTime}` },
                 { label: "Vị trí", value: sessionData.position },
               ].map((r) => (
                 <div key={r.label}>
-                  <p className="text-xs text-gray-400">{r.label}</p>
-                  <p className="text-sm font-medium text-gray-800">{r.value}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{r.label}</p>
+                  <p className="text-sm font-bold text-white mt-0.5">{r.value}</p>
                 </div>
               ))}
             </div>
@@ -1288,7 +1566,7 @@ export function SessionDetail() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="w-full py-3 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:border-[#8037f4]/40 hover:text-[#8037f4] transition-all"
+              className="w-full py-3 rounded-xl text-xs sm:text-sm font-bold border border-white/15 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
             >
               Về trang chủ →
             </button>
@@ -1300,106 +1578,146 @@ export function SessionDetail() {
       {/*               STATE: DONE                     */}
       {/* ══════════════════════════════════════════════ */}
       {state === "done" && (
-        <div className="grid min-w-0 gap-5 lg:grid-cols-3">
-          <div className="min-w-0 space-y-5 lg:col-span-2">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-3">
+          <div className="min-w-0 space-y-6 lg:col-span-2">
 
-            {/* Done header */}
-            <div className="flex items-center gap-4 rounded-md border border-violet-200/80 bg-white p-5 shadow-sm">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-violet-100">
-                <Trophy className="h-6 w-6" style={{ color: BRAND_PURPLE }} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-bold text-violet-950">Buổi phỏng vấn đã hoàn thành</p>
-                <p className="mt-0.5 text-sm text-violet-600">
-                  {sessionData.date} · {sessionData.time} – {sessionData.endTime} · với {sessionData.mentorName}
-                </p>
-              </div>
-            </div>
-
-            {/* Review CTA */}
-            {sessionData?.isReviewed ? (
-              <div className="rounded-md border border-violet-200/80 bg-white p-8 text-center shadow-sm sm:p-10">
-                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-md bg-violet-100">
-                  <CheckCircle className="h-8 w-8" style={{ color: BRAND_PURPLE }} />
+            {/* Done header banner */}
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-[#1a143d]/85 to-[#120e2e]/95 p-5 sm:p-6 shadow-[0_16px_40px_rgba(5,3,20,0.5)] backdrop-blur-2xl relative overflow-hidden"
+            >
+              <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-emerald-500/10 blur-2xl" />
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="size-13 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(16,185,129,0.35)]">
+                  <Trophy className="size-7" />
                 </div>
-                <h3 className="mb-2 text-xl font-bold text-violet-950">Cảm ơn bạn đã đóng góp</h3>
-                <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-violet-600">
-                  Đánh giá của bạn đã được gửi thành công. Những chia sẻ này giúp cộng đồng ngày càng phát triển hơn.
-                </p>
-                <div className="mx-auto inline-flex items-center gap-2 rounded-md border border-violet-200/80 bg-violet-50/60 px-4 py-2.5">
-                  <Star className="h-4 w-4" style={{ color: BRAND_LIME }} fill="currentColor" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-violet-700">Đã hoàn thành đánh giá</span>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-md border border-violet-200/80 bg-white p-8 shadow-sm sm:p-10">
-                <div className="flex flex-col items-center text-center">
-                  <div
-                    className="mb-5 flex h-14 w-14 items-center justify-center rounded-md border"
-                    style={{ borderColor: BRAND_LIME_BORDER, backgroundColor: BRAND_LIME_SOFT }}
-                  >
-                    <Star className="h-7 w-7" style={{ color: BRAND_LIME }} fill="currentColor" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                      Buổi phỏng vấn đã hoàn thành
+                    </h2>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wide bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                      <CheckCircle className="size-3" />
+                      Hoàn tất
+                    </span>
                   </div>
-                  <h3 className="mb-2 text-xl font-bold text-violet-950">Bạn thấy buổi phỏng vấn thế nào?</h3>
-                  <p className="mb-8 max-w-md text-sm leading-relaxed text-violet-600">
-                    Chia sẻ trải nghiệm giúp{" "}
-                    <span className="font-bold" style={{ color: BRAND_PURPLE }}>
-                      {sessionData.mentorName}
-                    </span>{" "}
-                    và cộng đồng.
+                  <p className="mt-1 text-xs sm:text-sm text-slate-300/80 font-medium leading-relaxed">
+                    {sessionData.date} · {sessionData.time} – {sessionData.endTime} · với <strong className="text-white font-bold">{sessionData.mentorName}</strong>
                   </p>
+                </div>
+              </div>
+            </motion.div>
 
-                  <div className="mb-8 flex gap-2 sm:gap-3">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() =>
-                          navigate(`/review/${sessionData.sessionId}`, { state: { initialRating: i } })
-                        }
-                        className="rounded-md p-1 transition hover:scale-105 active:scale-95"
-                        aria-label={`Đánh giá ${i} sao`}
-                      >
-                        <Star
-                          className="h-10 w-10 text-violet-200 transition-colors sm:h-11 sm:w-11"
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.color = BRAND_LIME;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.color = "";
-                          }}
-                        />
-                      </button>
-                    ))}
-                  </div>
+            {/* Review CTA Card */}
+            {sessionData?.isReviewed ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#1b1540]/90 via-[#130f32]/92 to-[#0c0822]/96 p-8 sm:p-12 text-center shadow-[0_20px_50px_rgba(5,3,20,0.55)] backdrop-blur-2xl relative overflow-hidden"
+              >
+                <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 size-48 rounded-full bg-emerald-500/15 blur-3xl" />
+                <div className="mx-auto mb-5 size-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shadow-[0_0_24px_rgba(16,185,129,0.3)]">
+                  <CheckCircle className="size-8" />
+                </div>
+                <h3 className="mb-2 text-xl sm:text-2xl font-black text-white tracking-tight">
+                  Cảm ơn bạn đã gửi đánh giá
+                </h3>
+                <p className="mx-auto mb-6 max-w-md text-xs sm:text-sm leading-relaxed text-slate-300/80">
+                  Đánh giá của bạn đã được ghi nhận thành công. Những chia sẻ thực tế này giúp cộng đồng và mentor ngày càng hoàn thiện chất lượng hơn.
+                </p>
+                <div className="mx-auto inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-2 text-xs font-bold text-emerald-300">
+                  <Star className="size-4 fill-emerald-400 text-emerald-400" />
+                  <span>Đã hoàn tất đánh giá</span>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#1c1745]/90 via-[#141035]/92 to-[#0c0824]/96 p-8 sm:p-12 text-center shadow-[0_20px_50px_rgba(5,3,20,0.55)] backdrop-blur-2xl relative overflow-hidden"
+              >
+                <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 size-56 rounded-full bg-violet-600/20 blur-3xl" />
+                
+                {/* Glowing Star Icon Badge */}
+                <div className="mx-auto mb-5 size-16 rounded-2xl bg-gradient-to-b from-amber-400/25 to-amber-500/10 border border-amber-400/40 text-amber-300 flex items-center justify-center shadow-[0_0_30px_rgba(251,191,36,0.35)]">
+                  <Star className="size-8 fill-amber-400 text-amber-400" />
+                </div>
 
-                  <button
+                <h3 className="mb-2 text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  Bạn thấy buổi phỏng vấn thế nào?
+                </h3>
+                <p className="mx-auto mb-8 max-w-md text-xs sm:text-sm leading-relaxed text-slate-300">
+                  Chia sẻ trải nghiệm giúp <span className="font-bold text-violet-300">{sessionData.mentorName}</span> và cộng đồng ProInterview.
+                </p>
+
+                {/* Star Row with Micro-bounce & Glow */}
+                <div className="mb-8 flex justify-center gap-2.5 sm:gap-3.5">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <motion.button
+                      key={i}
+                      whileHover={{ scale: 1.15, y: -2 }}
+                      whileTap={{ scale: 0.9 }}
+                      type="button"
+                      onClick={() =>
+                        navigate(`/review/${sessionData.sessionId}`, { state: { initialRating: i } })
+                      }
+                      className="group rounded-2xl p-2 sm:p-2.5 transition-all bg-white/[0.04] hover:bg-amber-400/15 border border-white/10 hover:border-amber-400/50 cursor-pointer"
+                      aria-label={`Đánh giá ${i} sao`}
+                    >
+                      <Star
+                        className="size-9 sm:size-11 text-slate-500 group-hover:text-amber-400 group-hover:fill-amber-400 transition-colors drop-shadow-[0_0_12px_rgba(251,191,36,0)] group-hover:drop-shadow-[0_0_14px_rgba(251,191,36,0.5)]"
+                      />
+                    </motion.button>
+                  ))}
+                </div>
+
+                {/* Primary CTA Liquid Glass Button with nested icon circle */}
+                <div className="flex flex-col items-center">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={() => navigate(`/review/${sessionData.sessionId}`)}
-                    className="flex w-full items-center justify-center gap-2 rounded-md py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-                    style={{ backgroundColor: BRAND_PURPLE }}
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-3 rounded-2xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 px-8 py-4 text-sm sm:text-base font-bold text-white shadow-[0_6px_28px_rgba(124,58,237,0.5),inset_0_1px_1px_rgba(255,255,255,0.35)] backdrop-blur-xl hover:brightness-110 transition-all cursor-pointer group"
                   >
-                    Viết đánh giá ngay <CaretRight className="h-4 w-4" />
-                  </button>
-                  <p className="mt-4 text-xs font-medium text-violet-500">Chỉ mất 1 phút · Đánh giá của bạn rất quan trọng</p>
+                    <span>Viết đánh giá ngay</span>
+                    <span className="size-6 rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                      <CaretRight className="size-4" />
+                    </span>
+                  </motion.button>
+                  <p className="mt-4 text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                    <Clock className="size-3.5 text-violet-400" />
+                    Chỉ mất 1 phút · Đánh giá của bạn rất quan trọng
+                  </p>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Mentor feedback */}
-            <div className="rounded-md border border-violet-200/80 bg-white p-6 shadow-sm sm:p-8">
-              <p className="mb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: BRAND_PURPLE }}>
+            <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 sm:p-8 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wider text-violet-400 flex items-center gap-1.5">
+                <Sparkles className="size-3.5" />
                 Kết quả đánh giá
               </p>
-              <h2 className="mb-6 text-lg font-bold text-violet-950">Nhận xét từ chuyên gia</h2>
-              <div className="space-y-1">
+              <h2 className="mb-6 text-lg sm:text-xl font-black text-white tracking-tight">
+                Nhận xét từ chuyên gia
+              </h2>
+              <div className="space-y-3">
                 {(() => {
                   const raw = sessionData.mentorNotes || "";
                   if (!raw) {
                     return (
-                      <div className="rounded-md border border-dashed border-violet-200 bg-violet-50/40 py-8 text-center">
-                        <p className="text-sm font-medium text-violet-600">
+                      <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] py-10 px-6 text-center">
+                        <ChatText className="size-8 mx-auto text-violet-400 mb-2.5 opacity-60" />
+                        <p className="text-sm font-semibold text-slate-300">
                           Mentor đang hoàn thiện bản đánh giá chuyên sâu cho bạn...
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Hệ thống sẽ gửi thông báo email ngay khi mentor cập nhật nhận xét và thang điểm.
                         </p>
                       </div>
                     );
@@ -1418,18 +1736,17 @@ export function SessionDetail() {
                       return (
                         <div
                           key={idx}
-                          className="border-b border-violet-100 py-4 first:pt-0 last:border-0 last:pb-0"
+                          className="rounded-2xl border border-white/10 bg-white/[0.03] p-4.5 sm:p-5 transition-all hover:border-violet-500/25"
                         >
-                          <div className="flex items-baseline gap-3">
-                            <div
-                              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                              style={{ backgroundColor: BRAND_PURPLE }}
-                            />
+                          <div className="flex items-start gap-3">
+                            <div className="mt-1 size-2 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.8)] shrink-0" />
                             <div className="min-w-0 flex-1">
-                              <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-neutral-600">
+                              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-violet-300">
                                 {title}
                               </p>
-                              <p className="text-sm font-semibold leading-relaxed text-neutral-900">{content}</p>
+                              <p className="text-sm font-medium leading-relaxed text-slate-100">
+                                {content}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -1437,8 +1754,8 @@ export function SessionDetail() {
                     }
 
                     return (
-                      <div key={idx} className="py-3 first:pt-0 last:pb-0">
-                        <p className="text-sm leading-relaxed text-neutral-900">{cleanLine}</p>
+                      <div key={idx} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                        <p className="text-sm leading-relaxed text-slate-200">{cleanLine}</p>
                       </div>
                     );
                   });
@@ -1447,39 +1764,33 @@ export function SessionDetail() {
             </div>
 
             {/* Next steps */}
-            <div className="rounded-md border border-violet-200/80 bg-white p-5 shadow-sm">
-              <p className="mb-4 text-sm font-semibold text-violet-950">Tiếp theo sau buổi phỏng vấn</p>
-              <div className="space-y-2">
+            <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 sm:p-7 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+              <p className="mb-4 text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <Target className="size-4 text-violet-400" />
+                Tiếp theo sau buổi phỏng vấn
+              </p>
+              <div className="space-y-3">
                 {[
                   {
                     icon: Sparkles,
-                    iconColor: BRAND_PURPLE,
-                    labelColor: BRAND_PURPLE,
-                    bg: BRAND_PURPLE_SOFT_LIGHT,
                     title: "Luyện tập với AI Interview",
-                    desc: "Áp dụng feedback vào mock interview AI",
+                    desc: "Áp dụng feedback từ mentor vào các vòng mock interview với Pio AI.",
                     action: () => navigate("/interview"),
-                    label: "Bắt đầu →",
+                    label: "Bắt đầu ngay",
                   },
                   {
                     icon: FileText,
-                    iconColor: BRAND_PURPLE,
-                    labelColor: BRAND_PURPLE,
-                    bg: BRAND_PURPLE_SOFT,
-                    title: "Tối ưu lại CV",
-                    desc: "Phân tích CV với keyword mentor vừa đề xuất",
+                    title: "Tối ưu lại CV & JD",
+                    desc: "Phân tích và cập nhật từ khóa chuyên môn theo góp ý của mentor.",
                     action: () => navigate("/cv-analysis"),
-                    label: "Phân tích →",
+                    label: "Phân tích CV",
                   },
                   {
                     icon: CheckCircle,
-                    iconColor: BRAND_LIME,
-                    labelColor: BRAND_PURPLE,
-                    bg: BRAND_LIME_SOFT,
-                    title: "Khóa học gợi ý",
-                    desc: "Bổ sung kỹ năng sau buổi phỏng vấn với mentor",
+                    title: "Khóa học nâng cao kỹ năng",
+                    desc: "Bổ sung kiến thức phỏng vấn hành vi và kỹ thuật chuyên sâu.",
                     action: () => navigate("/courses"),
-                    label: "Khóa học →",
+                    label: "Khám phá khóa học",
                   },
                 ].map((item) => (
                   <div
@@ -1490,20 +1801,23 @@ export function SessionDetail() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") item.action();
                     }}
-                    className="flex cursor-pointer items-center gap-4 rounded-md border border-violet-100 p-4 transition hover:border-violet-200 hover:bg-violet-50/40"
+                    className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#0c0822]/60 hover:bg-[#120d2e]/80 hover:border-violet-500/35 p-4 transition-all duration-200 group"
                   >
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
-                      style={{ background: item.bg }}
-                    >
-                      <item.icon className="h-5 w-5" style={{ color: item.iconColor }} />
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="size-10 rounded-xl bg-violet-500/20 border border-violet-400/30 text-violet-300 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(124,58,237,0.2)]">
+                        <item.icon className="size-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white group-hover:text-violet-200 transition-colors">
+                          {item.title}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+                          {item.desc}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-violet-950">{item.title}</p>
-                      <p className="text-xs text-neutral-900">{item.desc}</p>
-                    </div>
-                    <span className="shrink-0 text-xs font-bold" style={{ color: item.labelColor }}>
-                      {item.label}
+                    <span className="shrink-0 text-xs font-bold text-violet-300 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      {item.label} →
                     </span>
                   </div>
                 ))}
@@ -1512,64 +1826,86 @@ export function SessionDetail() {
           </div>
 
           {/* Right col */}
-          <div className="min-w-0 space-y-4">
-            <div className="rounded-md border border-violet-200/80 bg-white p-5 shadow-sm">
-              <p className="mb-4 text-xs font-bold uppercase tracking-wider text-violet-500">
+          <div className="min-w-0 space-y-5">
+            {/* Tóm tắt buổi phỏng vấn */}
+            <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+              <p className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <Calendar className="size-3.5 text-violet-400" />
                 Tóm tắt buổi phỏng vấn
               </p>
-              <div className="mb-4 flex items-center gap-3">
+              
+              <div className="mb-4 flex items-center gap-3.5 p-3 rounded-2xl bg-white/[0.03] border border-white/8">
                 <img
                   src={sessionData.mentorAvatar}
                   alt={sessionData.mentorName}
-                  className="h-12 w-12 rounded-md object-cover"
+                  className="size-13 rounded-xl object-cover border border-violet-400/30 shadow-md shrink-0"
                 />
-                <div>
-                  <p className="text-sm font-bold text-violet-950">{sessionData.mentorName}</p>
-                  <p className="text-xs text-violet-600">{sessionData.mentorTitle}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-white truncate">{sessionData.mentorName}</p>
+                  <p className="text-xs text-slate-300/80 truncate mt-0.5">{sessionData.mentorTitle}</p>
+                  {sessionData.mentorCompany && (
+                    <p className="text-xs font-semibold text-violet-300 truncate mt-0.5">{sessionData.mentorCompany}</p>
+                  )}
                 </div>
               </div>
-              <div className="space-y-2.5 border-t border-violet-100 pt-3">
+
+              <div className="space-y-3 border-t border-white/10 pt-4 text-xs">
                 {[
                   { label: "Ngày", value: sessionData.date },
                   { label: "Giờ", value: `${sessionData.time} – ${sessionData.endTime}` },
                   { label: "Thời lượng", value: "60 phút" },
                   { label: "Vị trí", value: sessionData.position },
-                  { label: "Phí", value: formatVnd(sessionData.price) },
+                  { label: "Phí", value: formatVnd(sessionData.price), highlight: true },
                 ].map((r) => (
-                  <div key={r.label} className="flex justify-between gap-3 text-sm">
-                    <span className="text-violet-500">{r.label}</span>
-                    <span className="max-w-[140px] text-right font-medium text-violet-900">{r.value}</span>
+                  <div key={r.label} className="flex justify-between items-center gap-3 py-1">
+                    <span className="text-slate-400 font-medium">{r.label}</span>
+                    <span className={`font-bold tabular-nums text-right ${r.highlight ? "text-violet-300 text-sm font-black" : "text-slate-100"}`}>
+                      {r.value}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-md border border-violet-200/80 bg-white p-5 shadow-sm">
-              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-violet-500">Trạng thái đánh giá</p>
+            {/* Trạng thái đánh giá */}
+            <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0c24]/95 p-6 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <Star className="size-3.5 text-amber-400" />
+                Trạng thái đánh giá
+              </p>
               {sessionData.isReviewed ? (
                 <div>
-                  <div className="mb-2 flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_LIME }} />
-                    <span className="text-xs font-semibold text-neutral-900">Đã đánh giá mentor</span>
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                    <span className="text-xs font-bold text-emerald-300">Đã đánh giá mentor</span>
                   </div>
-                  <p className="text-xs text-violet-600">Cảm ơn bạn đã gửi nhận xét sau buổi phỏng vấn.</p>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Cảm ơn bạn đã gửi nhận xét sau buổi phỏng vấn.
+                  </p>
                 </div>
               ) : (
-                <div>
-                  <div className="mb-3 flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: BRAND_PURPLE }} />
-                    <span className="text-xs font-semibold" style={{ color: BRAND_PURPLE_HOVER }}>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex size-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex size-2.5 rounded-full bg-amber-400" />
+                    </span>
+                    <span className="text-xs font-bold text-amber-300">
                       Chờ đánh giá
                     </span>
                   </div>
-                  <button
+                  
+                  {/* Liquid glass button matching reference */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={() => navigate(`/review/${sessionData.sessionId}`)}
-                    className="w-full rounded-md py-2.5 text-sm font-bold text-white transition hover:brightness-110"
-                    style={{ backgroundColor: BRAND_PURPLE }}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-violet-400/40 border-t-white/50 bg-gradient-to-b from-violet-500/85 via-violet-600/75 to-indigo-700/85 py-3 text-xs sm:text-sm font-bold text-white shadow-[0_4px_16px_rgba(124,58,237,0.45),inset_0_1px_1px_rgba(255,255,255,0.35)] backdrop-blur-xl hover:brightness-110 transition-all cursor-pointer"
                   >
-                    Đánh giá ngay
-                  </button>
+                    <Star className="size-4 fill-amber-300 text-amber-300" />
+                    <span>Đánh giá ngay</span>
+                  </motion.button>
                 </div>
               )}
             </div>
@@ -1583,7 +1919,7 @@ export function SessionDetail() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 overflow-y-auto overscroll-y-contain bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-50 overflow-y-auto overscroll-y-contain bg-black/75 backdrop-blur-md"
             onClick={() => {
               if (!cancelBusy) setCancelModalOpen(false);
             }}
@@ -1593,12 +1929,12 @@ export function SessionDetail() {
                 initial={{ scale: 0.96, y: 16, opacity: 0 }}
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 exit={{ scale: 0.96, y: 16, opacity: 0 }}
-                className="grid w-full max-w-lg max-h-[min(85dvh,calc(100vh-3rem))] grid-rows-[minmax(0,1fr)_auto] overflow-hidden rounded-3xl border border-violet-200/80 bg-white shadow-xl shadow-violet-500/10"
+                className="grid w-full max-w-lg max-h-[min(85dvh,calc(100vh-3rem))] grid-rows-[minmax(0,1fr)_auto] overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-b from-[#1c1745] via-[#141033] to-[#0d0922] shadow-[0_25px_70px_rgba(0,0,0,0.85)] text-slate-100 backdrop-blur-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-2 pt-5 sm:px-6 sm:pt-6">
-                  <h4 className="text-xl font-black text-slate-900">Hủy lịch phỏng vấn?</h4>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-4 pt-6 sm:px-6">
+                  <h4 className="text-xl font-black text-white tracking-tight">Hủy lịch phỏng vấn?</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">
                     {userCancelWarningMessage(getUserCancelPolicyFromHours(hoursLeft))}
                     {String(sessionData?.paymentStatus || "").toLowerCase() !== "paid"
                       ? " Buổi chưa thanh toán sẽ được hủy, không thu phí."
@@ -1607,12 +1943,12 @@ export function SessionDetail() {
                   <textarea
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
-                    className="mt-4 min-h-[4.5rem] w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none focus:border-[#8037f4] focus:bg-white focus:ring-2 focus:ring-[#8037f4]/10"
+                    className="mt-4 min-h-[4.5rem] w-full rounded-xl border border-white/15 bg-white/5 p-3 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-violet-400 focus:bg-white/10 transition-colors"
                     placeholder="Lý do hủy (tuỳ chọn)"
                   />
                   {needsRefundBankDetails ? (
-                    <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/40 p-4">
-                      <p className="mb-3 text-sm font-semibold text-slate-900">STK nhận hoàn</p>
+                    <div className="mt-4 rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4">
+                      <p className="mb-3 text-sm font-bold text-violet-200">STK nhận hoàn</p>
                       <RefundBankFields
                         bankSelect={refundBankSelect}
                         onBankSelectChange={handleRefundBankSelectChange}
@@ -1626,7 +1962,7 @@ export function SessionDetail() {
                     </div>
                   ) : null}
                 </div>
-                <div className="border-t border-slate-100 bg-white px-5 py-4 sm:px-6">
+                <div className="border-t border-white/10 bg-white/[0.02] px-5 py-4 sm:px-6">
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
@@ -1636,7 +1972,7 @@ export function SessionDetail() {
                         setCancelReason("");
                         resetRefundBankFields();
                       }}
-                      className="rounded-xl border border-violet-200 bg-white py-3 text-xs font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50"
+                      className="rounded-xl border border-white/15 bg-white/5 py-3 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white transition disabled:opacity-50 cursor-pointer"
                     >
                       Giữ lịch
                     </button>
@@ -1644,7 +1980,7 @@ export function SessionDetail() {
                       type="button"
                       disabled={cancelBusy}
                       onClick={() => void handleConfirmCancelBooking()}
-                      className="rounded-xl bg-[#8037f4] py-3 text-xs font-bold text-white shadow-sm transition hover:bg-[#630ed4] disabled:opacity-50"
+                      className="rounded-xl border border-rose-400/40 border-t-white/40 bg-gradient-to-b from-rose-500/85 via-rose-600/80 to-rose-700/85 py-3 text-xs font-bold text-white shadow-[0_4px_16px_rgba(225,29,72,0.4)] backdrop-blur-xl hover:brightness-110 active:scale-95 transition disabled:opacity-50 cursor-pointer"
                     >
                       {cancelBusy ? "Đang xử lý…" : "Xác nhận hủy"}
                     </button>
@@ -1655,8 +1991,7 @@ export function SessionDetail() {
           </motion.div>
         )}
       </AnimatePresence>
-        </div>
       </div>
-    </MentorPageShell>
+    </div>
   );
 }
