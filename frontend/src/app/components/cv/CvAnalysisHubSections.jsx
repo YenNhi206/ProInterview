@@ -18,7 +18,7 @@ const HUB_STYLES = `
     to { opacity: 1; transform: translateY(0); }
   }
   .cv-hub-cta {
-    transition: transform 0.28s cubic-bezier(0.34, 1.45, 0.64, 1), box-shadow 0.28s ease, filter 0.2s ease;
+    transition: transform 0.28s cubic-bezier(0.34, 1.45, 0.64, 1), box-shadow 0.28s ease, filter 0.2s ease, color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   }
   .cv-hub-cta:hover {
     transform: scale(1.045) translateY(-2px);
@@ -184,20 +184,20 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
                   className="hidden flex-col gap-[0.25rem] font-extrabold leading-[1.06] lg:flex"
                   style={{ fontSize: HOME_SECTION_TITLE_CLAMP }}
                 >
-                  <span className="block text-pretty text-[#630ed4]">
+                  <span className="block text-pretty text-[#c7f36b]">
                     {CV_HUB_HERO_COPY.titleAccent}
                   </span>
-                  <span className="block text-[#1a1b23] lg:whitespace-nowrap">
+                  <span className="block text-white lg:whitespace-nowrap">
                     {CV_HUB_HERO_COPY.titleRest}
                   </span>
                 </span>
 
                 {/* Mobile, giữ cỡ hub riêng */}
                 <span className="block text-[clamp(1.5rem,3.5vw,3.25rem)] font-extrabold leading-[1.12] lg:hidden">
-                  <span className="block text-[#630ed4]">Làm sao để CV ấn tượng</span>
-                  <span className="mt-0.5 block text-[#1a1b23] sm:whitespace-nowrap">trong mắt nhà tuyển dụng?</span>
+                  <span className="block text-[#c7f36b]">Làm sao để CV ấn tượng</span>
+                  <span className="mt-0.5 block text-white sm:whitespace-nowrap">trong mắt nhà tuyển dụng?</span>
                 </span>
-                <p className="mt-2 min-w-0 max-w-full text-sm font-medium leading-relaxed text-violet-700/90 sm:text-lg">
+                <p className="mt-2 min-w-0 max-w-full text-sm font-medium leading-relaxed text-slate-300 sm:text-lg">
                   ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà
                   <br className="hidden lg:block" />
                   tuyển dụng.
@@ -208,14 +208,14 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
                 <button
                   type="button"
                   onClick={onJd}
-                  className="cv-hub-cta inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-2xl bg-gradient-to-br from-[#630ed4] to-[#7c3aed] px-4 py-2 text-sm font-bold text-white shadow-lg shadow-violet-500/25 hover:brightness-105 hover:shadow-xl hover:shadow-violet-500/30 sm:px-5 sm:py-2.5 sm:text-base"
+                  className="cv-hub-cta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c7f36b] inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-2xl border border-white/20 bg-violet-300/10 px-4 py-2 text-sm font-bold text-white shadow-sm backdrop-blur-sm hover:border-[#93f72b] hover:text-[#93f72b] sm:px-5 sm:py-2.5 sm:text-base"
                 >
                   {CV_HUB_HERO_COPY.ctaJd}
                 </button>
                 <button
                   type="button"
                   onClick={onField}
-                  className="cv-hub-cta inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border-2 border-violet-200/80 bg-white/90 px-4 py-2 text-sm font-bold text-[#630ed4] shadow-sm backdrop-blur-sm hover:border-violet-300 hover:bg-white hover:shadow-md sm:px-5 sm:py-2.5 sm:text-base"
+                  className="cv-hub-cta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c7f36b] inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-violet-300/30 bg-violet-300/10 px-4 py-2 text-sm font-bold text-violet-100 shadow-sm backdrop-blur-sm hover:border-violet-300/60 hover:bg-violet-300/20 hover:shadow-md sm:px-5 sm:py-2.5 sm:text-base"
                 >
                   {CV_HUB_HERO_COPY.ctaField}
                 </button>
@@ -228,8 +228,8 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
             {/* Demo KQ: banner + 2 ô + bảng — căn trái trong cột */}
             <div className="cv-hub-demo-stack -mt-0.5 flex w-full min-w-0 max-w-full flex-col gap-2.5 sm:gap-3 lg:mt-0 lg:gap-4 lg:pt-0">
               <div
-                className="w-full shrink-0 overflow-hidden rounded-xl sm:rounded-[1.15rem]"
-                style={{ background: "linear-gradient(135deg,#6E35E8 0%,#9B6DFF 55%,#B794FF 100%)" }}
+                className="liquid-glass-strong w-full shrink-0 overflow-hidden rounded-xl sm:rounded-[1.15rem]"
+                style={{ background: "linear-gradient(135deg,#35205e 0%,#452976 55%,#5b3891 100%)" }}
               >
                 <div className="relative px-3.5 py-4 text-white sm:px-4 sm:py-5 lg:px-4 lg:py-7">
                   <div
@@ -240,7 +240,7 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
                     Mức độ phù hợp CV
                   </p>
                   <div className="relative flex flex-wrap items-end gap-2.5">
-                    <span className="font-headline text-[1.65rem] font-extrabold leading-none tracking-tight sm:text-[2rem]">
+                    <span className="font-headline text-[1.65rem] text-[#c7f36b] font-extrabold leading-none tracking-tight sm:text-[2rem]">
                       {percent}%
                     </span>
                     <div className="mb-1 flex flex-col gap-1">
@@ -268,36 +268,36 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
               </div>
 
               <div className="relative z-10 grid w-full shrink-0 grid-cols-10 gap-1.5 sm:gap-2">
-                <div className="col-span-6 rounded-md border border-emerald-100/90 bg-white/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+                <div className="liquid-glass-strong col-span-6 rounded-md border-0 !bg-[#201938]/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
                   <div className="mb-1 flex items-center gap-1.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-100 sm:h-7 sm:w-7">
-                      <FileText className="h-3.5 w-3.5 text-emerald-700 sm:h-4 sm:w-4" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#93f72b]/15 sm:h-7 sm:w-7">
+                      <FileText className="h-3.5 w-3.5 text-[#c7f36b] sm:h-4 sm:w-4" />
                     </div>
-                    <h3 className="text-[11px] font-semibold text-slate-900 sm:text-xs">Từ khóa khớp</h3>
+                    <h3 className="text-[11px] font-semibold text-white sm:text-xs">Từ khóa khớp</h3>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {matched.map((kw) => (
                       <span
                         key={kw}
-                        className="rounded-md border border-emerald-400/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 sm:text-[11px]"
+                        className="rounded-md border border-[#93f72b]/30 bg-[#93f72b]/10 px-2 py-0.5 text-[10px] font-semibold text-[#c7f36b] sm:text-[11px]"
                       >
                         {kw} ✓
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="col-span-4 rounded-md border border-orange-100/90 bg-white/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+                <div className="liquid-glass-strong col-span-4 rounded-md border-0 !bg-[#201938]/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
                   <div className="mb-1 flex items-center gap-1.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-orange-100 sm:h-7 sm:w-7">
-                      <Briefcase className="h-3.5 w-3.5 text-orange-700 sm:h-4 sm:w-4" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-violet-300/15 sm:h-7 sm:w-7">
+                      <Briefcase className="h-3.5 w-3.5 text-violet-200 sm:h-4 sm:w-4" />
                     </div>
-                    <h3 className="text-[11px] font-semibold text-slate-900 sm:text-xs">Cần bổ sung</h3>
+                    <h3 className="text-[11px] font-semibold text-white sm:text-xs">Cần bổ sung</h3>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {missing.map((kw) => (
                       <span
                         key={kw}
-                        className="rounded-md border border-orange-300/70 bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-900 sm:text-[11px]"
+                        className="rounded-md border border-violet-300/30 bg-violet-300/10 px-2 py-0.5 text-[10px] font-semibold text-violet-200 sm:text-[11px]"
                       >
                         {kw}
                       </span>
@@ -326,7 +326,7 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
                   compact
                   hubPreview
                   showHeader={false}
-                  className="relative z-10 w-full min-w-0 overflow-hidden !rounded-md border-violet-100/60 bg-white/95 p-0 shadow-sm backdrop-blur-sm"
+                  className="relative z-10 w-full min-w-0 overflow-hidden !rounded-md liquid-glass-strong !border-0 !bg-[#201938]/95 p-0 shadow-sm backdrop-blur-sm"
                 />
               </div>
 
@@ -337,7 +337,7 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
                   compact
                   hubPreview
                   showHeader={false}
-                  className="w-full !rounded-md border-violet-100/60 bg-white/95 shadow-sm backdrop-blur-sm"
+                  className="w-full !rounded-md liquid-glass-strong !border-0 !bg-[#201938]/95 shadow-sm backdrop-blur-sm"
                 />
               </div>
             </div>

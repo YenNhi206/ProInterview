@@ -171,7 +171,7 @@ export function Register() {
         <div
           className="relative z-10 flex h-20 flex-shrink-0 items-center justify-between px-10"
         >
-          <button onClick={() => navigate(getBrandClickPath())} className="flex items-center gap-2.5 group">
+          <button data-button-surface="none" onClick={() => navigate(getBrandClickPath())} className="flex items-center gap-2.5 group">
             <BrandLogo size="auth" />
           </button>
         </div>

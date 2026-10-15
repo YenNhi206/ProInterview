@@ -1,0 +1,17 @@
+# Hero product image
+
+Current asset: `frontend/src/assets/images/home-hero-product-curved-v2.webp`
+
+Curved version: built-in image generation edit, transparent exterior, opaque application surface.
+
+## Curved edit prompt
+
+Edit this ProInterview product screenshot. Change ONLY the physical surface geometry: transform the flat rectangular application window into a noticeably but tastefully CURVED concave panoramic screen, viewed straight-on, like a wide gently bent sheet. The LEFT and RIGHT edges project toward the viewer; the CENTER recedes. The TOP edge must draw a smooth shallow U-shaped curve with center about 5% of image height LOWER than both upper corners. Bottom edge must mirror subtle cylindrical perspective. Vertical edges remain nearly vertical. UI columns follow the cylindrical curve naturally, side columns slightly foreshortened, center still readable. Preserve all Vietnamese text, content, four column layout, colors, logo, scores, icons and waveform from the original. This is a spatial curved-screen bend, NOT merely corner rounding, NOT a tilt of an otherwise flat plane. Window remains full width and all four corners and bottom visible with comfortable narrow margins. Remove the opaque outer rectangular dark backdrop OUTSIDE the curved window: genuinely TRANSPARENT background outside the screen, retain fully opaque dark panels INSIDE. Thin muted purple border around curved screen, subtle edge illumination, no laptop hardware or added objects. Wide landscape approximately 2:1. The curved silhouette should be clearly visible.
+
+Asset: `frontend/public/home-hero-product-v1.webp`
+
+Generated with the built-in image generation tool, then exported to WebP.
+
+## Prompt
+
+Use case: ui-mockup. Asset type: wide website hero product image for ProInterview. Generate only the product application window, NO landing headline or CTA outside the window. Landscape 2:1 composition, straight-on with very subtle wide curved monitor perspective, window nearly fills canvas with narrow dark #0c0d16 margin. Premium crisp dark desktop app UI in Vietnamese, legible sans serif typography, black charcoal opaque panels, restrained purple #9658fa and lime #c7f36b. Single polished browser window with thin purple edge, small red/yellow/green traffic lights at upper left. App logo 'ProInterview'. Narrow left sidebar: 'Luyện phỏng vấn' active in lime, 'Phân tích CV', 'Mentor', 'Khóa học'. Main content has three columns. Left 'Phân tích CV / JD', Frontend Developer / VNG Corporation, React / TypeScript / Next.js tags, circular lime score 78%, 'Mức độ phù hợp', 'Điểm mạnh', two check rows 'Có kinh nghiệm với React', 'Kỹ năng TypeScript tốt', 'Gợi ý cải thiện' with red rows 'Bổ sung kinh nghiệm Next.js', 'Làm rõ các dự án cá nhân'. Middle main column 'Phỏng vấn AI', 'Vòng kỹ thuật · Frontend', timer 00:42, large question surface 'Giải thích cách React cập nhật giao diện.', beautiful purple audio waveform and glowing microphone button, small 'Đang ghi âm...', bottom bordered control 'Kết thúc' with red square. Right column tabs 'Phản hồi', 'Transcript', 'Gợi ý học thêm', circular lime overall 8.0 labeled 'Tổng quan', four score rows and thin lime/purple horizontal bars labeled 'Kiến thức chuyên môn' 8.5, 'Tư duy & phân tích' 7.5, 'Cách diễn đạt' 8.0, 'Độ tự tin' 8.0, bottom 'Nhận xét chi tiết' paragraph about React reconciliation. No people, no photos, no laptop keyboard, no outer headline, no watermarks. Match a refined realistic dark SaaS application screenshot, every panel readable, generous spacing, clean geometry.
