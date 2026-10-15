@@ -7,14 +7,13 @@ export function FeatureShowcaseStack({ children, heading }) {
   return (
     <div className="feature-showcase-stage">
       {heading}
-      <div className="feature-window-grid">
+      <div className="feature-window-grid feature-window-grid--horizontal">
         {React.Children.toArray(children).map((child, index) => (
-          <article key={index} className="feature-window" tabIndex={0} aria-label={LABELS[index]}>
-            <div className="feature-window__lights" aria-hidden="true">
-              <span /><span /><span />
-            </div>
+          <div key={index} className="feature-window-slot">
+          <article className="feature-window liquid-glass-strong" tabIndex={0} aria-label={LABELS[index]}>
             {child}
           </article>
+          </div>
         ))}
       </div>
     </div>

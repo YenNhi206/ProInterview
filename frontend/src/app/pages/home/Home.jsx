@@ -3,6 +3,7 @@ import "../../../styles/home.css";
 import { useNavigate } from "react-router";
 import {
   Star,
+  CheckCircle2,
   Award as Medal,
   ArrowRight,
   TrendingUp,
@@ -10,7 +11,14 @@ import {
   Mic,
   CalendarCheck,
   BookOpen,
+  Video,
+  MessageCircle,
 } from "lucide-react";
+import mentorFeaturePreview from "../../../assets/images/feature-mentor-v1.webp?url";
+import coursesFeaturePreview from "../../../assets/images/feature-courses-v1.webp?url";
+import interviewFeaturePreview from "../../../assets/images/feature-interview-ai.jpg?url";
+import cvFeaturePreview from "../../../assets/images/feature-cv-preview-v1.webp?url";
+import { HomeHero } from "../../components/home/HomeHero";
 import { FeatureShowcaseStack } from "../../components/home/FeatureShowcaseStack";
 import { CvAnalysisFeatureShowcase } from "../../components/home/CvAnalysisFeatureShowcase";
 import { InterviewFeatureShowcase } from "../../components/home/InterviewFeatureShowcase";
@@ -29,9 +37,8 @@ const HOME_MENTOR_MASCOTS = {
 import { HomeSectionHeader } from "../../components/home/HomeSectionHeader";
 import { SparkleGlyph } from "../../components/decor/SparkleGlyph.jsx";
 import { HOME_SECTION_INNER } from "../../components/layout/customerShellLayout";
-import { HOME_COPY, HOME_SECTION_COPY } from "../../constants/brandVoice";
+import { HOME_SECTION_COPY } from "../../constants/brandVoice";
 import {
-  HOME_HERO_TITLE_CLAMP,
   HOME_SECTION_TITLE_SIZE,
   homeSectionClasses as homeTy,
 } from "../../constants/homeTypography";
@@ -136,155 +143,68 @@ export function Home() {
     >
       <EventPromoModal />
 
-      {/* ═══ HERO (chỉ copy + CTA, clip bling ~1 màn; video section riêng bên dưới) ═══ */}
-      <section
-        id="home-hero-section"
-        className="home-hero-section relative z-10 flex min-h-[100svh] flex-col justify-start overflow-x-hidden pb-12 pt-16 sm:pt-24 lg:pt-28"
-      >
-        <div
-          id="home-hero-sparkle-zone"
-          className={`home-hero-sparkle-zone relative z-10 mx-auto flex w-full flex-col items-center py-6 text-center sm:py-10 ${HOME_SECTION_INNER}`}
-        >
-          <div className="hero-intro-badge animate-intro-reveal mb-6">
-            <div className="liquid-glass inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-bold uppercase tracking-[0.03em] text-white sm:text-sm">
-              <SparkleGlyph className="h-5 w-5 shrink-0" tone="white" />
-              {HOME_COPY.badge}
-            </div>
-          </div>
-
-          <div className="hero-intro-copy max-w-5xl">
-            <h1
-              className="home-hero-title hero-title-stack mx-auto mb-6 text-white font-serif-intel"
-              style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)", lineHeight: 1.1, letterSpacing: "-0.03em" }}
-            >
-              {/* Line 1: "Phỏng vấn" + chip */}
-              <span className="hero-title-line animate-headline-reveal animate-headline-reveal-1 flex flex-wrap items-center justify-center gap-x-[0.2em] gap-y-2">
-                <span className="opacity-90">{HOME_COPY.titleLine1}</span>
-                <span
-                  className="hero-title-highlight px-4 py-1.5 rounded-2xl border border-white/10"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.05)",
-                    color: "#c7f36b",
-                    backdropFilter: "blur(12px)",
-                    fontWeight: 400,
-                  }}
-                >
-                  {HOME_COPY.titleHighlight}
-                </span>
-              </span>
-              <span className="hero-title-line animate-headline-reveal animate-headline-reveal-2 block opacity-90">qua mô phỏng hội thoại</span>
-              <span className="hero-title-line animate-headline-reveal animate-headline-reveal-2 block opacity-90">thông minh</span>
-            </h1>
-
-            <p className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg animate-intro-reveal">
-              Câu hỏi cá nhân hoá theo CV & JD, phản hồi chi tiết sau mỗi buổi.
-            </p>
-
-            <div className="hero-intro-cta animate-intro-reveal mb-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
-              <button
-                type="button"
-                onClick={() => navigate("/interview")}
-                className="liquid-glass-strong group inline-flex items-center gap-3 rounded-full py-3 pl-6 pr-3 text-[15px] font-bold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.03] hover:text-[#93f72b] hover:border-[#93f72b]/50 active:scale-[0.98] sm:text-base"
-              >
-                {HOME_COPY.cta}
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:bg-[#93f72b] group-hover:text-slate-900 group-hover:shadow-[0_0_15px_rgba(147,247,43,0.3)]">
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-      </section>
+      <HomeHero />
 
       {/* ═══ FEATURE CARDS SECTION — Full Screen ═══ */}
       <section className="feature-summary-section w-full flex flex-col items-center px-6 sm:px-10 py-20">
         <FeatureShowcaseStack heading={
         <div className="feature-summary-heading text-center">
-          <span className="text-xs font-bold uppercase tracking-[0.3em] text-white/30">Nền tảng toàn diện</span>
-          <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">Mọi thứ bạn cần để <span className="text-[#c7f36b]">chinh phục</span> nhà tuyển dụng</h2>
+          <span className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">Lộ trình học tập</span>
+          <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">Chuẩn bị từng bước, <span className="text-[#a366ff]">tiến bộ mỗi ngày</span></h2>
         </div>
         }>
 
-            {/* Card 1: CV Match — Lime border */}
-            <div className="relative group h-full">
-              <div className="home-feature-outline home-feature-outline--lime relative p-1 rounded-2xl h-full">
-                <div className="bg-transparent rounded-[14px] p-6 flex flex-col justify-between h-full min-h-[290px]">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <FileSearch className="w-5 h-5 text-[#c7f36b]" />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[#c7f36b]/50 text-xl font-black tracking-tight">01</span>
-                      <span className="text-xl font-black text-white tracking-tight">Phân tích CV</span>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Upload CV và nhận phân tích tức thì. AI đối chiếu kỹ năng với JD, chấm điểm phù hợp và gợi ý từ khóa cho ATS. Biết điểm mạnh, phần còn thiếu và cách chỉnh CV trước khi ứng tuyển.
-                    </p>
-                  </div>
-                </div>
+            {/* Card 1: CV Match */}
+            <div className="feature-cv-card relative group h-full">
+              <div className="feature-cv-heading">
+                <span className="feature-cv-icon"><FileSearch size={20} aria-hidden="true" /></span>
+                <div><span className="feature-cv-number">01</span><h3>Phân tích CV / JD</h3></div>
+              </div>
+              <p>Hiểu rõ mức độ phù hợp, nhận gợi ý cải thiện và tối ưu CV theo từng vị trí IT.</p>
+              <div className="feature-cv-visual">
+                <img className="feature-cv-preview" src={cvFeaturePreview} alt="CV minh họa với mức độ phù hợp 78% và các kỹ năng React, TypeScript, Next.js." width="1086" height="1448" loading="lazy" />
               </div>
             </div>
 
-            {/* Card 2: Phỏng vấn AI — Tri-color border */}
-            <div className="relative group h-full">
-              <div className="home-feature-outline home-feature-outline--mixed relative p-1 rounded-2xl h-full">
-                <div className="bg-transparent rounded-[14px] p-6 flex flex-col justify-between h-full min-h-[290px]">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <Mic className="w-5 h-5 text-[#a855f7]" />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[#a855f7]/50 text-xl font-black tracking-tight">02</span>
-                      <span className="text-xl font-black text-white tracking-tight">Phỏng vấn AI</span>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Luyện phỏng vấn 1:1 cùng AI theo vị trí ứng tuyển. Câu hỏi cá nhân hóa theo CV, phản hồi ngay sau buổi luyện. Rèn cách trình bày, cải thiện câu trả lời và tự tin hơn khi gặp nhà tuyển dụng.
-                    </p>
-                  </div>
+            {/* Card 2: Video interview with AI */}
+            <div className="feature-interview-card relative group h-full">
+              <div className="feature-cv-heading">
+                <span className="feature-cv-icon feature-interview-icon"><Mic size={20} aria-hidden="true" /></span>
+                <div><span className="feature-cv-number feature-interview-number">02</span><h3>Phỏng vấn AI</h3></div>
+              </div>
+              <p>Luyện phỏng vấn qua video cùng AI, câu hỏi theo CV và phản hồi chi tiết sau mỗi buổi.</p>
+              <div className="feature-interview-preview">
+                <div className="feature-interview-picture">
+                  <div className="feature-interview-video-bar"><span />Phỏng vấn AI<span>01:24</span></div>
+                  <img src={interviewFeaturePreview} alt="Nhân vật AI đóng vai người phỏng vấn trong cuộc gọi video." width="1280" height="720" loading="lazy" />
+                  <span>Người phỏng vấn AI</span>
                 </div>
+                <span className="feature-interview-mic" aria-hidden="true"><Mic size={21} /></span>
+                <div className="feature-interview-feedback"><CheckCircle2 size={14} aria-hidden="true" />Phản hồi chi tiết</div>
               </div>
             </div>
 
-             {/* Card 3: Mentor — Purple border */}
-            <div className="relative group h-full">
-              <div className="home-feature-outline home-feature-outline--purple relative p-1 rounded-2xl h-full">
-                <div className="bg-transparent rounded-[14px] p-6 flex flex-col justify-between h-full min-h-[290px]">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <CalendarCheck className="w-5 h-5 text-[#a855f7]" />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[#a855f7]/50 text-xl font-black tracking-tight">03</span>
-                      <span className="text-xl font-black text-white tracking-tight">Lịch hẹn Mentor</span>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Kết nối 1:1 với Senior, Tech Lead để nhận lời khuyên từ người trong nghề. Đặt lịch linh hoạt, trao đổi về CV, kỹ năng phỏng vấn và những bước cần chuẩn bị cho mục tiêu nghề nghiệp của bạn.
-                    </p>
-                  </div>
-                </div>
+            {/* Card 3: Mentor call */}
+            <div className="feature-mentor-card relative group h-full">
+              <div className="feature-cv-heading">
+                <span className="feature-cv-icon feature-interview-icon"><CalendarCheck size={20} aria-hidden="true" /></span>
+                <div><span className="feature-cv-number feature-interview-number">03</span><h3>Lịch hẹn Mentor</h3></div>
+              </div>
+              <p>Trao đổi 1:1 cùng mentor, nhận góp ý CV và luyện phỏng vấn từ kinh nghiệm thực tế.</p>
+              <div className="feature-mentor-preview">
+                <div className="feature-mentor-picture"><img src={mentorFeaturePreview} alt="Minh họa mentor trao đổi và hướng dẫn trong cuộc gọi video 1:1." width="1448" height="1086" loading="lazy" /></div>
+                <div className="feature-mentor-actions" aria-hidden="true"><span><Video size={20} /></span><span><MessageCircle size={16} /></span><span><MessageCircle size={16} /></span></div>
               </div>
             </div>
 
-            {/* Card 4: Khóa học — White border */}
-            <div className="relative group h-full">
-              <div className="home-feature-outline home-feature-outline--white relative p-1 rounded-2xl h-full">
-                <div className="bg-transparent rounded-[14px] p-6 flex flex-col justify-between h-full min-h-[290px]">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-white/80" />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-white/40 text-xl font-black tracking-tight">04</span>
-                      <span className="text-xl font-black text-white tracking-tight">Khóa học</span>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Học từ kinh nghiệm của Mentor với nội dung sát yêu cầu tuyển dụng thực tế. Chọn chủ đề cần cải thiện, xem video theo từng bài và theo dõi tiến độ để chủ động nâng cấp kỹ năng mỗi ngày.
-                    </p>
-                  </div>
-                </div>
+            {/* Card 4: Video courses */}
+            <div className="feature-course-card relative group h-full">
+              <div className="feature-cv-heading">
+                <span className="feature-cv-icon feature-course-icon"><BookOpen size={20} aria-hidden="true" /></span>
+                <div><span className="feature-cv-number feature-interview-number">04</span><h3>Khóa học</h3></div>
               </div>
+              <p>Học từ nền tảng đến nâng cao với các khóa học chuyên sâu, bám sát thực tế phỏng vấn.</p>
+              <div className="feature-course-preview"><img src={coursesFeaturePreview} alt="Minh họa các bài học React, video và kiến thức lập trình trong thư viện khóa học." width="1448" height="1086" loading="lazy" /></div>
             </div>
 
         </FeatureShowcaseStack>
