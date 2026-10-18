@@ -15,6 +15,8 @@ import {
   GraduationCap,
   RotateCcw,
   BookOpen,
+  Users,
+  Bot,
 } from "lucide-react";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { useCart } from "../../hooks/useCart.jsx";
@@ -238,17 +240,203 @@ export function Cart() {
         ) : loading && !items.length ? (
           <p className="cart-loading" role="status">Đang cập nhật giỏ hàng…</p>
         ) : !items.length && !cart.pendingOrder ? (
-          <section className="cart-empty" aria-labelledby="cart-empty-title">
-            <div className="cart-empty-icon-wrap">
-              <ShoppingCart size={42} strokeWidth={1.75} aria-hidden="true" />
+          <div className="cart-empty-canvas">
+            {/* Ambient Background Glows */}
+            <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-violet-600/20 blur-[130px]" aria-hidden="true" />
+            <div className="pointer-events-none absolute top-1/3 left-1/4 h-72 w-72 rounded-full bg-indigo-600/15 blur-[110px]" aria-hidden="true" />
+            <div className="pointer-events-none absolute bottom-10 right-1/4 h-72 w-72 rounded-full bg-emerald-500/10 blur-[120px]" aria-hidden="true" />
+
+            {/* Transparent Seamless Hero Section (No dark enclosing box) */}
+            <div className="cart-empty-hero">
+              {/* Floating Cosmic 3D Icon Graphic */}
+              <div className="cart-empty-graphic-wrap">
+                <div className="cart-empty-orbit-ring" aria-hidden="true" />
+                <div className="cart-empty-sphere">
+                  <ShoppingCart size={36} strokeWidth={2} className="text-[#93f72b] drop-shadow-[0_0_14px_rgba(147,247,43,0.7)]" aria-hidden="true" />
+                </div>
+                <div className="cart-empty-sparkle-pill" aria-hidden="true">
+                  <Sparkles size={13} className="text-amber-300" />
+                </div>
+              </div>
+
+              {/* Eyebrow badge */}
+              <div className="cart-empty-eyebrow">
+                <span className="cart-empty-eyebrow-dot" aria-hidden="true" />
+                <span>GIỎ HÀNG ĐANG TRỐNG</span>
+              </div>
+
+              {/* Typography */}
+              <h2 className="cart-empty-title">
+                Chưa có khóa học nào được chọn
+              </h2>
+              <p className="cart-empty-subtitle">
+                Bắt đầu hành trình nâng cấp bản thân và sẵn sàng chinh phục các vòng phỏng vấn công nghệ với các lộ trình thực chiến, mock interview 1:1 cùng Mentor hoặc luyện thi cùng AI.
+              </p>
+
+              {/* Button-in-Button Island CTAs */}
+              <div className="cart-empty-actions">
+                <Link
+                  to="/courses"
+                  className="cart-btn-primary group"
+                >
+                  <span>Khám phá khóa học ngay</span>
+                  <span className="cart-btn-icon-bubble">
+                    <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+
+                <Link
+                  to="/pricing"
+                  className="cart-btn-secondary"
+                >
+                  <Sparkles size={16} className="text-violet-400" />
+                  <span>Xem các gói Pro &amp; Elite</span>
+                </Link>
+              </div>
             </div>
-            <h2 id="cart-empty-title">Giỏ hàng của bạn đang trống</h2>
-            <p>Khám phá các khóa học phỏng vấn, thực chiến kỹ năng cùng chuyên gia hàng đầu ngay hôm nay.</p>
-            <Link to="/courses" className="cart-checkout-btn" style={{ width: "auto", padding: "0.85rem 2.25rem", textDecoration: "none" }}>
-              <span>Xem danh sách khóa học</span>
-              <ArrowRight size={16} />
-            </Link>
-          </section>
+
+            {/* Bento Pathways: 3 Pillars of ProInterview */}
+            <div className="cart-bento-section">
+              <div className="cart-bento-header">
+                <span className="cart-bento-tag">LỘ TRÌNH ĐỀ XUẤT</span>
+                <h3 className="cart-bento-heading">Chọn hình thức luyện thi phù hợp với bạn</h3>
+              </div>
+
+              <div className="cart-bento-grid">
+                {/* Pillar 1: Courses */}
+                <Link
+                  to="/courses"
+                  className="cart-bento-card cart-bento-card--violet group"
+                >
+                  <div className="cart-bento-top">
+                    <div className="cart-bento-icon-box cart-bento-icon-box--violet">
+                      <BookOpen size={20} />
+                    </div>
+                    <span className="cart-bento-pill cart-bento-pill--violet">THỰC CHIẾN</span>
+                  </div>
+
+                  <div className="cart-bento-body">
+                    <h4 className="cart-bento-card-title group-hover:text-violet-200 transition-colors">
+                      Khóa học Phỏng vấn Chuyên sâu
+                    </h4>
+                    <p className="cart-bento-card-desc">
+                      Tổng hợp câu hỏi, mẹo trả lời theo cấu trúc STAR và case study thực tế từ các kỳ thi Big Tech.
+                    </p>
+                    <ul className="cart-bento-features">
+                      <li>• Bài giảng video &amp; tài liệu trọn đời</li>
+                      <li>• Kèm bài tập và đề thi thử mẫu</li>
+                    </ul>
+                  </div>
+
+                  <div className="cart-bento-footer">
+                    <span className="cart-bento-link-text text-violet-300 group-hover:text-white">Xem danh sách khóa học</span>
+                    <ArrowRight size={14} className="text-violet-300 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </Link>
+
+                {/* Pillar 2: Mentors */}
+                <Link
+                  to="/mentors"
+                  className="cart-bento-card cart-bento-card--emerald group"
+                >
+                  <div className="cart-bento-top">
+                    <div className="cart-bento-icon-box cart-bento-icon-box--emerald">
+                      <Users size={20} />
+                    </div>
+                    <span className="cart-bento-pill cart-bento-pill--emerald">CHUYÊN GIA 1:1</span>
+                  </div>
+
+                  <div className="cart-bento-body">
+                    <h4 className="cart-bento-card-title group-hover:text-emerald-200 transition-colors">
+                      Đặt lịch Mentor 1:1
+                    </h4>
+                    <p className="cart-bento-card-desc">
+                      Mock interview trực tiếp, sửa lỗi CV và nhận góp ý thẳng thắn từ Tech Lead &amp; Senior Engineer.
+                    </p>
+                    <ul className="cart-bento-features">
+                      <li>• Mô phỏng đúng format công ty ứng tuyển</li>
+                      <li>• Đánh giá chi tiết điểm mạnh &amp; lỗ hổng</li>
+                    </ul>
+                  </div>
+
+                  <div className="cart-bento-footer">
+                    <span className="cart-bento-link-text text-[#93f72b] group-hover:brightness-110">Tìm Mentor phù hợp</span>
+                    <ArrowRight size={14} className="text-[#93f72b] transition-transform group-hover:translate-x-1" />
+                  </div>
+                </Link>
+
+                {/* Pillar 3: AI Interview */}
+                <Link
+                  to="/interview"
+                  className="cart-bento-card cart-bento-card--amber group"
+                >
+                  <div className="cart-bento-top">
+                    <div className="cart-bento-icon-box cart-bento-icon-box--amber">
+                      <Bot size={20} />
+                    </div>
+                    <span className="cart-bento-pill cart-bento-pill--amber">AI REAL-TIME</span>
+                  </div>
+
+                  <div className="cart-bento-body">
+                    <h4 className="cart-bento-card-title group-hover:text-amber-200 transition-colors">
+                      Luyện phỏng vấn AI
+                    </h4>
+                    <p className="cart-bento-card-desc">
+                      Giả lập áp lực thi cử qua giọng nói thời gian thực, AI chấm điểm câu trả lời và độ tự tin.
+                    </p>
+                    <ul className="cart-bento-features">
+                      <li>• Luyện tập chủ động 24/7 mọi lúc mọi nơi</li>
+                      <li>• Nhận báo cáo chi tiết từng câu hỏi</li>
+                    </ul>
+                  </div>
+
+                  <div className="cart-bento-footer">
+                    <span className="cart-bento-link-text text-amber-300 group-hover:text-amber-100">Bắt đầu luyện tập ngay</span>
+                    <ArrowRight size={14} className="text-amber-300 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            {/* Popular Topics Quick Tags */}
+            <div className="cart-topics-strip">
+              <span className="cart-topics-label">Chủ đề thịnh hành:</span>
+              <div className="cart-topics-list">
+                {[
+                  "Frontend & React",
+                  "Backend & System Design",
+                  "Cấu trúc dữ liệu & LeetCode",
+                  "Kỹ năng trả lời STAR",
+                  "Đàm phán offer lương",
+                  "DevOps & Cloud",
+                ].map((topic) => (
+                  <Link
+                    key={topic}
+                    to="/courses"
+                    className="cart-topic-chip"
+                  >
+                    <span>{topic}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Reassuring Trust Assurances */}
+            <div className="cart-empty-assurances">
+              <div className="cart-assurance-item">
+                <ShieldCheck size={18} className="text-violet-400" />
+                <span>Kích hoạt quyền truy cập ngay sau thanh toán</span>
+              </div>
+              <div className="cart-assurance-item">
+                <Sparkles size={18} className="text-[#93f72b]" />
+                <span>Tài liệu &amp; đề thi tuyển dụng cập nhật liên tục</span>
+              </div>
+              <div className="cart-assurance-item">
+                <GraduationCap size={18} className="text-cyan-400" />
+                <span>Đồng hành &amp; hỏi đáp cùng giảng viên trong suốt khóa học</span>
+              </div>
+            </div>
+          </div>
         ) : order ? (
           /* ─── ENHANCED UIVERSE ANIMATED PAYMENT VIEW ─── */
           <div className="cart-checkout-layout">

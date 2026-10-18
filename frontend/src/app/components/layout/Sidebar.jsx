@@ -420,53 +420,57 @@ export function AppSidebar() {
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent side="top" align="end" className="w-56 mb-1">
+              <DropdownMenuContent side="top" align="end" className="w-60 mb-1 nav-user-dropdown-menu" data-ui-theme="dark">
                 {!isMentor && user?.role !== "admin" && (
                   <>
-                    <div className="px-3 py-2.5 border-b border-border">
-                      <p className="text-sm font-semibold text-foreground truncate">{displayName}</p>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">
-                        {user?.email || ""}
-                      </p>
+                    <div className="mb-1 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-2.5">
+                      <NavUserAvatar avatar={user?.avatar} initials={initials} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-white">{displayName}</p>
+                        <p className="truncate text-xs text-slate-400">{user?.email || ""}</p>
+                      </div>
                     </div>
 
                     <DropdownMenuItem asChild>
                       <Link to="/profile" className="flex items-center gap-2.5 cursor-pointer">
-                        <User className="size-4" />
+                        <User className="size-4 text-violet-400" />
                         Hồ sơ cá nhân
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/cv-analysis/history" className="flex items-center gap-2.5 cursor-pointer">
-                        <FileText className="size-4" />
-                        Lịch sử phân tích CV
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/my-courses" className="flex items-center gap-2.5 cursor-pointer">
-                        <BookOpen className="size-4" />
-                        Khóa học của tôi
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
                       <Link to="/my-bookings" className="flex items-center gap-2.5 cursor-pointer">
-                        <Calendar className="size-4" />
+                        <Calendar className="size-4 text-violet-400" />
                         Lịch hẹn của tôi
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/my-courses" className="flex items-center gap-2.5 cursor-pointer">
+                        <BookOpen className="size-4 text-violet-400" />
+                        Khóa học của tôi
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/cv-analysis/history" className="flex items-center gap-2.5 cursor-pointer">
+                        <FileText className="size-4 text-violet-400" />
+                        Lịch sử phân tích CV
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem asChild>
                       <Link to="/settings" className="flex items-center gap-2.5 cursor-pointer">
-                        <Settings className="size-4" />
-                        Cài đặt
+                        <Settings className="size-4 text-violet-400" />
+                        Cài đặt tài khoản
                       </Link>
                     </DropdownMenuItem>
                     {!isElite && (
                       <DropdownMenuItem
                         onClick={() => navigate("/pricing")}
                         className="flex items-center gap-2.5 cursor-pointer"
-                        style={{ color: "#8037f4", fontWeight: 600 }}
+                        style={{ color: "#93f72b", fontWeight: 600 }}
                       >
-                        <Zap className="size-4" />
+                        <Zap className="size-4 text-[#93f72b]" />
                         {upgradeTitle} ↗
                       </DropdownMenuItem>
                     )}
@@ -479,7 +483,7 @@ export function AppSidebar() {
                   onClick={handleLogout}
                   variant="destructive"
                 >
-                  <LogOut className="size-4" />
+                  <LogOut className="size-4 text-rose-400" />
                   Đăng xuất
                 </DropdownMenuItem>
               </DropdownMenuContent>

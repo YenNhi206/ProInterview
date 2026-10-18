@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router";
 import {
   BookOpen,
   Calendar,
+  CreditCard,
   FileText,
   LogIn,
   LogOut,
@@ -248,42 +249,48 @@ function CustomerNavbar() {
                     </span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuContent align="end" className="w-56 nav-user-dropdown-menu" data-ui-theme="dark">
                   <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    <User className="mr-2 size-4" />
-                    Hồ sơ
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/cv-analysis/history")}>
-                    <FileText className="mr-2 size-4" />
-                    Lịch sử phân tích CV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/my-courses")}>
-                    <BookOpen className="mr-2 size-4" />
-                    Khóa học của tôi
+                    <User className="mr-2.5 size-4 text-violet-400" />
+                    Hồ sơ cá nhân
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/my-bookings")}>
-                    <Calendar className="mr-2 size-4" />
+                    <Calendar className="mr-2.5 size-4 text-violet-400" />
                     Lịch hẹn của tôi
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
-                    <Settings className="mr-2 size-4" />
-                    Cài đặt
+                  <DropdownMenuItem onClick={() => navigate("/my-courses")}>
+                    <BookOpen className="mr-2.5 size-4 text-violet-400" />
+                    Khóa học của tôi
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/cv-analysis/history")}>
+                    <FileText className="mr-2.5 size-4 text-violet-400" />
+                    Lịch sử phân tích CV
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
                   <DropdownMenuItem onClick={() => navigate("/payment-history")}>
-                    <ShoppingCart className="mr-2 size-4" /> Lịch sử thanh toán
+                    <CreditCard className="mr-2.5 size-4 text-violet-400" />
+                    Lịch sử thanh toán
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <Settings className="mr-2.5 size-4 text-violet-400" />
+                    Cài đặt tài khoản
                   </DropdownMenuItem>
                   {user?.role === "admin" ? (
                     <DropdownMenuItem onClick={() => navigate("/admin")}>
-                      <Shield className="mr-2 size-4" />
-                      Quản trị
+                      <Shield className="mr-2.5 size-4 text-emerald-400" />
+                      Quản trị hệ thống
                     </DropdownMenuItem>
                   ) : null}
+
                   <DropdownMenuSeparator />
+
                   <DropdownMenuItem
                     onClick={handleLogout}
                     variant="destructive"
                   >
-                    <LogOut className="mr-2 size-4" />
+                    <LogOut className="mr-2.5 size-4 text-rose-400" />
                     Đăng xuất
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -445,32 +452,31 @@ function MentorNavbar() {
                 </span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="border-b border-border px-3 py-2.5">
-                <p className="truncate text-sm font-semibold text-slate-900">{displayName}</p>
-                <p className="truncate text-xs text-slate-500">{user?.email || ""}</p>
-              </div>
+            <DropdownMenuContent align="end" className="w-56 nav-user-dropdown-menu" data-ui-theme="dark">
               <DropdownMenuItem asChild>
                 <Link to="/profile" className="flex cursor-pointer items-center gap-2">
-                  <User className="size-4" />
-                  Hồ sơ
+                  <User className="size-4 text-violet-400" />
+                  Hồ sơ cá nhân
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="flex cursor-pointer items-center gap-2">
-                  <Settings className="size-4" />
-                  Cài đặt
+                  <Settings className="size-4 text-violet-400" />
+                  Cài đặt tài khoản
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/payment-history" className="flex cursor-pointer items-center gap-2"><ShoppingCart className="size-4" />Lịch sử thanh toán</Link>
+                <Link to="/payment-history" className="flex cursor-pointer items-center gap-2">
+                  <CreditCard className="size-4 text-violet-400" />
+                  Lịch sử thanh toán
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={handleLogout}
                 variant="destructive"
               >
-                <LogOut className="size-4" />
+                <LogOut className="size-4 text-rose-400" />
                 Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuContent>

@@ -798,6 +798,477 @@
   line-height: 1.45;
 }
 
+/* ─── Ultra-Refined Empty Cart Experience (Agency / Linear-tier) ─── */
+.cart-empty-canvas {
+  position: relative;
+  width: 100%;
+  margin-top: 0.5rem;
+  margin-bottom: 3.5rem;
+  animation: cartFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cartFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Seamless Transparent Hero (No heavy enclosing box) ─── */
+.cart-empty-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+@media (min-width: 640px) {
+  .cart-empty-hero {
+    padding: 3.5rem 1.5rem 2.5rem;
+  }
+}
+
+/* Floating Cosmic 3D Icon Graphic */
+.cart-empty-graphic-wrap {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-empty-orbit-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(168, 85, 247, 0.45);
+  animation: cartOrbitSpin 24s linear infinite;
+}
+
+@keyframes cartOrbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.cart-empty-sphere {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 24px;
+  background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.28) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 35px rgba(139, 92, 246, 0.35);
+  animation: cartFloatMotion 3.6s ease-in-out infinite;
+}
+
+@keyframes cartFloatMotion {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7px) scale(1.02); }
+}
+
+.cart-empty-sparkle-pill {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.18);
+  border: 1.5px solid rgba(251, 191, 36, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.5);
+  animation: cartSparklePulse 2.2s ease-in-out infinite;
+}
+
+@keyframes cartSparklePulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+/* Eyebrow badge */
+.cart-empty-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(139, 92, 246, 0.14);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 1rem;
+}
+
+.cart-empty-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 10px #c084fc;
+}
+
+/* Typography */
+.cart-empty-title {
+  font-size: clamp(1.65rem, 3.2vw, 2.25rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+}
+
+.cart-empty-subtitle {
+  font-size: clamp(0.88rem, 1.4vw, 1rem);
+  color: #94a3b8;
+  max-width: 620px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* Island Button Architecture */
+.cart-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.cart-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem 0.65rem 1.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #93f72b 0%, #7ee022 100%);
+  color: #0b1303;
+  font-size: 0.88rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  box-shadow: 0 8px 24px -4px rgba(147, 247, 43, 0.4),
+              inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cart-btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 32px -4px rgba(147, 247, 43, 0.55),
+              inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  filter: brightness(1.05);
+}
+
+.cart-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.cart-btn-icon-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.14);
+  color: #0b1303;
+}
+
+.cart-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.35rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  color: #e2e8f0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cart-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  transform: translateY(-1.5px);
+}
+
+/* ─── Bento Pathways Section ─── */
+.cart-bento-section {
+  margin-top: 3.5rem;
+}
+
+.cart-bento-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.cart-bento-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #a855f7;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.cart-bento-heading {
+  font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.cart-bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .cart-bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cart-bento-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.6rem 1.5rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.cart-bento-card:hover {
+  background: rgba(255, 255, 255, 0.065);
+  transform: translateY(-4px);
+}
+
+.cart-bento-card--violet:hover {
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 18px 40px -8px rgba(124, 58, 237, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.cart-bento-card--emerald:hover {
+  border-color: rgba(147, 247, 43, 0.45);
+  box-shadow: 0 18px 40px -8px rgba(147, 247, 43, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.cart-bento-card--amber:hover {
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 18px 40px -8px rgba(245, 158, 11, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.cart-bento-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.cart-bento-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cart-bento-card:hover .cart-bento-icon-box {
+  transform: scale(1.1);
+}
+
+.cart-bento-icon-box--violet {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #c4b5fd;
+}
+
+.cart-bento-icon-box--emerald {
+  background: rgba(147, 247, 43, 0.16);
+  border: 1px solid rgba(147, 247, 43, 0.4);
+  color: #93f72b;
+}
+
+.cart-bento-icon-box--amber {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.cart-bento-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.cart-bento-pill--violet {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
+}
+
+.cart-bento-pill--emerald {
+  background: rgba(147, 247, 43, 0.14);
+  border: 1px solid rgba(147, 247, 43, 0.35);
+  color: #93f72b;
+}
+
+.cart-bento-pill--amber {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fde68a;
+}
+
+.cart-bento-body {
+  margin-bottom: 1.5rem;
+}
+
+.cart-bento-card-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  line-height: 1.35;
+}
+
+.cart-bento-card-desc {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.55;
+  margin-bottom: 0.85rem;
+}
+
+.cart-bento-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cart-bento-features li {
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.cart-bento-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cart-bento-link-text {
+  transition: color 0.2s ease;
+}
+
+/* ─── Popular Topics Strip ─── */
+.cart-topics-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 2.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cart-topics-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.cart-topics-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cart-topic-chip {
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.cart-topic-chip:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(168, 85, 247, 0.45);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* ─── Assurances Strip ─── */
+.cart-empty-assurances {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  margin-top: 2.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.cart-assurance-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
 .cart-loading {
   font-size: 0.9rem;
   color: #94a3b8;
