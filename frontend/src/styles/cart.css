@@ -904,46 +904,22 @@
   50% { transform: scale(1.15); opacity: 1; }
 }
 
-/* Eyebrow badge */
-.cart-empty-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.3rem 0.85rem;
-  border-radius: 9999px;
-  background: rgba(139, 92, 246, 0.14);
-  border: 1px solid rgba(139, 92, 246, 0.35);
-  color: #c4b5fd;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  margin-bottom: 1rem;
-}
-
-.cart-empty-eyebrow-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #a855f7;
-  box-shadow: 0 0 10px #c084fc;
-}
-
 /* Typography */
 .cart-empty-title {
-  font-size: clamp(1.65rem, 3.2vw, 2.25rem);
+  font-size: clamp(1.75rem, 3.5vw, 2.35rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   color: #ffffff;
   line-height: 1.25;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .cart-empty-subtitle {
-  font-size: clamp(0.88rem, 1.4vw, 1rem);
+  font-size: 0.95rem;
   color: #94a3b8;
-  max-width: 620px;
-  line-height: 1.6;
-  margin-bottom: 2rem;
+  max-width: 440px;
+  line-height: 1.5;
+  margin-bottom: 1.75rem;
 }
 
 /* Island Button Architecture */

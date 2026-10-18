@@ -259,27 +259,21 @@ export function Cart() {
                 </div>
               </div>
 
-              {/* Eyebrow badge */}
-              <div className="cart-empty-eyebrow">
-                <span className="cart-empty-eyebrow-dot" aria-hidden="true" />
-                <span>GIỎ HÀNG ĐANG TRỐNG</span>
-              </div>
-
               {/* Typography */}
               <h2 className="cart-empty-title">
-                Chưa có khóa học nào được chọn
+                Giỏ hàng của bạn đang trống
               </h2>
               <p className="cart-empty-subtitle">
-                Bắt đầu hành trình nâng cấp bản thân và sẵn sàng chinh phục các vòng phỏng vấn công nghệ với các lộ trình thực chiến, mock interview 1:1 cùng Mentor hoặc luyện thi cùng AI.
+                Khám phá các khóa học phỏng vấn để bắt đầu học ngay.
               </p>
 
-              {/* Button-in-Button Island CTAs */}
+              {/* Action Buttons */}
               <div className="cart-empty-actions">
                 <Link
                   to="/courses"
                   className="cart-btn-primary group"
                 >
-                  <span>Khám phá khóa học ngay</span>
+                  <span>Khám phá khóa học</span>
                   <span className="cart-btn-icon-bubble">
                     <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
                   </span>
@@ -289,8 +283,7 @@ export function Cart() {
                   to="/pricing"
                   className="cart-btn-secondary"
                 >
-                  <Sparkles size={16} className="text-violet-400" />
-                  <span>Xem các gói Pro &amp; Elite</span>
+                  <span>Bảng giá &amp; Gói Pro</span>
                 </Link>
               </div>
             </div>
