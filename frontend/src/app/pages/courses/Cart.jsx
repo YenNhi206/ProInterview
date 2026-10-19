@@ -263,27 +263,16 @@ export function Cart() {
               <h2 className="cart-empty-title">
                 Giỏ hàng của bạn đang trống
               </h2>
-              <p className="cart-empty-subtitle">
-                Khám phá các khóa học phỏng vấn để bắt đầu học ngay.
-              </p>
 
-              {/* Action Buttons */}
+              {/* Action Button: Apple Shimmer Gradient */}
               <div className="cart-empty-actions">
                 <Link
                   to="/courses"
-                  className="cart-btn-primary group"
+                  className="cart-checkout-btn"
+                  style={{ width: "auto", padding: "0.85rem 2.25rem", textDecoration: "none" }}
                 >
                   <span>Khám phá khóa học</span>
-                  <span className="cart-btn-icon-bubble">
-                    <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
-                  </span>
-                </Link>
-
-                <Link
-                  to="/pricing"
-                  className="cart-btn-secondary"
-                >
-                  <span>Bảng giá &amp; Gói Pro</span>
+                  <ArrowRight size={16} />
                 </Link>
               </div>
             </div>

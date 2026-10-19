@@ -911,86 +911,14 @@
   letter-spacing: -0.03em;
   color: #ffffff;
   line-height: 1.25;
-  margin-bottom: 0.5rem;
-}
-
-.cart-empty-subtitle {
-  font-size: 0.95rem;
-  color: #94a3b8;
-  max-width: 440px;
-  line-height: 1.5;
   margin-bottom: 1.75rem;
 }
 
-/* Island Button Architecture */
+/* Action Button Container */
 .cart-empty-actions {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
-}
-
-.cart-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.75rem 0.65rem 1.4rem;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, #93f72b 0%, #7ee022 100%);
-  color: #0b1303;
-  font-size: 0.88rem;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  text-decoration: none;
-  box-shadow: 0 8px 24px -4px rgba(147, 247, 43, 0.4),
-              inset 0 1px 1px rgba(255, 255, 255, 0.6);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.cart-btn-primary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 14px 32px -4px rgba(147, 247, 43, 0.55),
-              inset 0 1px 1px rgba(255, 255, 255, 0.8);
-  filter: brightness(1.05);
-}
-
-.cart-btn-primary:active {
-  transform: scale(0.98);
-}
-
-.cart-btn-icon-bubble {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.14);
-  color: #0b1303;
-}
-
-.cart-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.35rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(12px);
-  color: #e2e8f0;
-  font-size: 0.86rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.cart-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #ffffff;
-  transform: translateY(-1.5px);
 }
 
 .cart-loading {
