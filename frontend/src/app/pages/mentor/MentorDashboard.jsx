@@ -316,12 +316,7 @@ function pickFeaturedTestimonial(bookings) {
       rating: Number(featured.overallScore) || 5,
     };
   }
-  return {
-    quote:
-      "Tư vấn CV chi tiết, chỉ ra điểm yếu và cách sửa cụ thể trên từng mục.",
-    author: "Khách hàng Dev",
-    rating: 5,
-  };
+  return null;
 }
 
 
@@ -525,7 +520,7 @@ export function MentorDashboard() {
   const upcomingCount = upcomingMeetings.length;
 
   return (
-    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="!bg-[#f8f9fc]">
+    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent">
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
 
         {/* Hero */}
@@ -533,7 +528,7 @@ export function MentorDashboard() {
           initial={{ opacity: 0, y: -14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 flex flex-col gap-6 pt-2 lg:flex-row lg:items-start lg:justify-between lg:gap-8"
+          className="mb-7 flex flex-col gap-5 pt-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8"
         >
           <div className="contents lg:block lg:max-w-2xl lg:flex-1">
             <div className="order-1">
@@ -542,19 +537,20 @@ export function MentorDashboard() {
                 <span className="text-[#8037f4]">{displayName}</span>
               </h1>
               <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-[15px]">
-                Theo dõi lịch tư vấn, dòng thu nhập và đánh giá chéo khóa học.
+                Theo dõi buổi hẹn, kết nối mentee và quản lý công việc của bạn.
               </p>
             </div>
             <div className="order-3 mt-6 flex flex-wrap gap-3 lg:order-none">
               <motion.button
                 type="button"
-                onClick={() => navigate("/mentor/schedule")}
+                onClick={() => navigate("/mentor/requests")}
+                data-mentor-primary
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center justify-center gap-2.5 rounded-lg bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a0d35]"
               >
                 <span className="size-2 shrink-0 rounded-full bg-[#93f72b]" aria-hidden />
-                Tạo lịch mới
+                Tìm mentee phù hợp
               </motion.button>
               <button
                 type="button"
@@ -571,9 +567,9 @@ export function MentorDashboard() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.1 }}
-            className="order-2 mx-auto flex shrink-0 flex-col items-center text-center lg:order-none lg:mx-0 lg:items-end lg:text-right"
+            className="order-2 hidden shrink-0 flex-col items-end text-right lg:order-none lg:flex"
           >
-            <div className="relative flex h-[188px] w-[188px] items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-white shadow-sm sm:h-[200px] sm:w-[200px]">
+            <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-violet-300/20 bg-white sm:h-20 sm:w-20">
               {mentorAvatar ? (
                 <img
                   src={mentorAvatar}
@@ -581,7 +577,7 @@ export function MentorDashboard() {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <User size={56} className="text-slate-300" strokeWidth={1.5} />
+                <User size={32} className="text-slate-300" strokeWidth={1.5} />
               )}
             </div>
             <p className="mt-3 font-headline text-base font-black text-slate-900">{displayName}</p>
@@ -672,15 +668,15 @@ export function MentorDashboard() {
         </motion.div>
 
         {/* Testimonial */}
-        <motion.div
+        {featuredReview && <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 rounded-2xl bg-[#93f72b] px-6 py-6 sm:px-8 sm:py-7"
+          className="mb-6 rounded-2xl border border-violet-300/15 bg-white px-5 py-5"
         >
           <Quote
             size={28}
-            className="mb-3 text-slate-900/35"
+            className="mb-3 text-[#93f72b]"
             fill="currentColor"
             strokeWidth={0}
           />
@@ -690,7 +686,7 @@ export function MentorDashboard() {
           <p className="mt-4 text-[11px] font-bold uppercase tracking-wider text-slate-800/75">
             {featuredReview.author} · Đánh giá {featuredReview.rating} / 5 sao
           </p>
-        </motion.div>
+        </motion.div>}
 
         {/* Main grid */}        <motion.div
           variants={dashboardStagger}

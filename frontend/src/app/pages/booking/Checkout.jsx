@@ -1166,6 +1166,7 @@ export function Checkout() {
   /* ── Read all booking params from URL ── */
   const bookingPosition = searchParams.get("position") ?? "";
   const bookingNote = searchParams.get("note") ?? "";
+  const mentorshipRequestId = searchParams.get("mentorshipRequestId") || "";
   const bookingCvFile = searchParams.get("cvFile") || null;
   const bookingCvFileUrl = searchParams.get("cvFileUrl") || "";
   const bookingJdFile = searchParams.get("jdFile") || null;
@@ -1465,7 +1466,7 @@ export function Checkout() {
       return { ok: false };
     }
 
-    const MAX_SLOTS = 5;
+    const MAX_SLOTS = mentorshipRequestId ? 1 : 5;
     const slotsToBook = bookingSlots ?? [{ dateKey: bookingDate, time: bookingTime }];
     if (!slotsToBook.length || slotsToBook.some((s) => !s.dateKey || !s.time)) {
       setCardError("Thiếu thông tin ngày/giờ. Hãy quay lại chọn lịch.");
@@ -1503,6 +1504,7 @@ export function Checkout() {
       if (canUseRebookCredit && rebookFrom) {
         const slot = slotsToBook[0];
         const apiRes = await createBooking({
+          mentorshipRequestId: mentorshipRequestId || undefined,
           mentorId: bookingMentor.id,
           date: slot.dateKey,
           timeSlot: slot.time,
@@ -1544,6 +1546,7 @@ export function Checkout() {
       let runningTotal = 0;
       for (const slot of slotsToBook) {
         const apiRes = await createBooking({
+          mentorshipRequestId: mentorshipRequestId || undefined,
           mentorId: bookingMentor.id,
           date: slot.dateKey,
           time: slot.time,

@@ -3,7 +3,7 @@ import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 
 const ACCENT = {
   purple: {
-    frame: "bg-gradient-to-br from-[#8037f4]/[0.07] via-white to-white",
+    frame: "bg-gradient-to-br from-[#a56af0]/[0.1] via-[#21182f] to-[#21182f]",
     bar: "bg-[#8037f4]",
     value: "text-[#8037f4]",
     title: "text-slate-900",
@@ -13,7 +13,7 @@ const ACCENT = {
     hover: "hover:shadow-[0_8px_24px_rgba(128,55,244,0.1)]",
   },
   lime: {
-    frame: "bg-gradient-to-br from-[#93f72b]/[0.12] via-white to-white",
+    frame: "bg-gradient-to-br from-[#93f72b]/[0.08] via-[#21182f] to-[#21182f]",
     bar: "bg-[#93f72b]",
     value: "text-slate-900",
     title: "text-slate-900",

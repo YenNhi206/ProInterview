@@ -22,7 +22,7 @@ export function FlowStepBar({
           aria-hidden
           className={`mx-1 mt-[1.125rem] h-0.5 w-10 shrink-0 rounded-full sm:mx-2 sm:w-16 transition-all ${
             lineDone
-              ? "bg-gradient-to-r from-violet-500 to-indigo-500 shadow-[0_0_10px_rgba(139,92,246,0.6)]"
+              ? "bg-[#93f72b]/70"
               : "bg-white/15"
           }`}
         />,
@@ -34,35 +34,33 @@ export function FlowStepBar({
     const isClickable = done && typeof onStepClick === "function";
 
     items.push(
-      <li key={s.n} className="flex shrink-0 flex-col items-center gap-2">
+      <li key={s.n} aria-current={active ? "step" : undefined} className="flex min-w-0 flex-col items-center gap-2.5">
         <button
+          data-button-surface="none"
           type="button"
           disabled={!isClickable}
           onClick={() => isClickable && onStepClick(s.n)}
-          className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-all ${
+          className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#93f72b] ${
             active
-              ? "bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.6)] border border-violet-400/50 scale-105"
+              ? "bg-[#93f72b] text-[#1b2410] border border-[#d9ff97]"
               : done
-                ? "bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)] hover:brightness-110 cursor-pointer active:scale-95"
+                ? "bg-[#263324] text-[#93f72b] border border-[#93f72b]/40 hover:brightness-110 cursor-pointer active:scale-95"
                 : "border border-white/20 bg-white/[0.05] text-slate-400 cursor-default"
           }`}
         >
           {done ? <Check className="h-4 w-4" strokeWidth={3} /> : s.n}
         </button>
-        <button
-          type="button"
-          disabled={!isClickable}
-          onClick={() => isClickable && onStepClick(s.n)}
-          className={`border-none bg-transparent outline-none max-w-[8rem] text-center text-xs font-bold uppercase leading-tight tracking-wider transition-colors sm:max-w-none ${
+        <span
+          className={`max-w-[6rem] text-center text-xs font-medium leading-snug sm:max-w-none sm:text-sm ${
             active
-              ? "text-white"
+              ? "text-[#93f72b]"
               : done
-                ? "text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                ? "text-[#93f72b]"
                 : "text-slate-400 cursor-default"
           }`}
         >
           {s.label}
-        </button>
+        </span>
       </li>,
     );
   });

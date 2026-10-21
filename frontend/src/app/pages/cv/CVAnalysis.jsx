@@ -140,7 +140,7 @@ const FIELD_OPTIONS = [
 const FILE_FORMAT_HINT = "Hỗ trợ .pdf, .doc, .docx, .txt · tối đa 10MB";
 
 const UPLOAD_PICK_BTN =
-  "mt-2.5 inline-flex items-center justify-center rounded-lg border border-violet-200 bg-white px-4 py-1.5 text-sm font-semibold text-violet-800 shadow-sm ring-1 ring-violet-100/80 transition hover:border-violet-300 hover:bg-violet-50";
+  "mt-2.5 inline-flex items-center justify-center rounded-lg border border-white/20 bg-[#332747] px-4 py-1.5 text-sm font-semibold text-[#e2d5ff] shadow-none transition hover:border-violet-400 hover:bg-[#41315c]";
 
 function preventDragDefaults(e) {
   e.preventDefault();
@@ -149,7 +149,7 @@ function preventDragDefaults(e) {
 
 /** Chiều cao cố định, CV và JD luôn bằng nhau (chưa chọn / đã chọn) */
 const UPLOAD_ZONE_HEIGHT =
-  "flex h-[14rem] w-full min-w-0 overflow-hidden flex-col items-center justify-between rounded-2xl border-2 border-dashed border-violet-200/90 bg-violet-50/25 px-5 py-6 text-center transition sm:h-[15.5rem] sm:px-6 sm:py-7";
+  "flex h-[14rem] w-full min-w-0 overflow-hidden flex-col items-center justify-between rounded-2xl border-2 border-dashed border-[#786293]/60 bg-[#171226] px-5 py-6 text-center transition sm:h-[15.5rem] sm:px-6 sm:py-7";
 
 function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear, onFile }) {
   const isCv = kind === "cv";
@@ -169,11 +169,11 @@ function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear
 
   const shellClass = hasFile
     ? UPLOAD_ZONE_HEIGHT
-    : `${UPLOAD_ZONE_HEIGHT} cursor-pointer hover:border-violet-300 hover:bg-violet-50/55`;
+    : `${UPLOAD_ZONE_HEIGHT} cursor-pointer hover:border-[#b99aff] hover:bg-[#1d162f]`;
 
   return (
     <div className="flex h-full min-w-0 flex-col px-6 pt-6 sm:px-8 sm:pt-7">
-      <p className="mb-1.5 shrink-0 text-xs font-bold uppercase tracking-wide text-violet-600">
+      <p className="mb-1.5 shrink-0 text-xs font-bold uppercase tracking-wide text-[#b99aff]">
         {zoneLabel}
       </p>
       <div
@@ -195,7 +195,7 @@ function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear
       >
         <div className="flex w-full min-w-0 max-w-sm items-center justify-center gap-2">
           <CloudUpload className="h-6 w-6 shrink-0 text-violet-400" strokeWidth={1.5} />
-          <p className="min-w-0 text-left text-xs font-bold leading-snug text-violet-950 sm:text-sm">{headline}</p>
+          <p className="min-w-0 text-left text-xs font-bold leading-snug text-[#f5f2ff] sm:text-sm">{headline}</p>
         </div>
 
         {/* Khối giữa cố định 2 dòng, tránh lệch chiều cao CV vs JD */}
@@ -203,18 +203,18 @@ function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear
           {hasFile ? (
             <>
               <p
-                className="w-full break-all text-sm font-semibold leading-snug text-emerald-700"
+                className="w-full break-all text-sm font-semibold leading-snug text-emerald-300"
                 title={fileName}
               >
                 {fileName || "—"}
               </p>
-              <p className="text-[11px] font-medium leading-none text-emerald-600/90">
+              <p className="text-[11px] font-medium leading-none text-emerald-300/80">
                 {fileSizeKb != null ? `${fileSizeKb} KB` : "\u00a0"}
               </p>
             </>
           ) : (
             <>
-              <p className="text-center text-[11px] font-medium leading-snug text-violet-500">
+              <p className="text-center text-[11px] font-medium leading-snug text-[#b8a8d0]">
                 {FILE_FORMAT_HINT}
               </p>
               <p className="text-[11px] leading-none text-transparent select-none" aria-hidden>
@@ -232,7 +232,7 @@ function CvUploadDropZone({ kind, hasFile, fileName, fileSizeKb, onPick, onClear
           }}
           className={
             hasFile
-              ? `${UPLOAD_PICK_BTN} mt-0 shrink-0 text-emerald-800 hover:border-emerald-200 hover:bg-emerald-50`
+              ? `${UPLOAD_PICK_BTN} mt-0 shrink-0 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-400/10`
               : `${UPLOAD_PICK_BTN} mt-0 shrink-0`
           }
         >
@@ -913,7 +913,7 @@ export function CVAnalysis() {
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold sm:text-[11px] ${
               cvRemaining === 0
                 ? "bg-amber-100 text-amber-800 ring-1 ring-amber-200/80"
-                : "bg-violet-100 text-violet-800 ring-1 ring-violet-200/70"
+                : "bg-[#40305d] text-[#e2d5ff] ring-1 ring-white/10"
             }`}
           >
             {cvRemaining === 0 ? <Lock className="h-3 w-3" /> : <SealPercent className="h-3 w-3" />}
@@ -930,7 +930,7 @@ export function CVAnalysis() {
       {pageView === "history" && (
         <div className="px-4 py-5 sm:px-5 sm:py-6">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-slate-600">Các phân tích đã lưu trên cloud, file gốc có thể tải lại</p>
+            <p className="text-sm text-[#c7bfdc]">Các phân tích đã lưu trên cloud, file gốc có thể tải lại</p>
             <button onClick={loadHistory} className="flex items-center gap-1.5 text-xs font-medium text-[#8037f4] hover:underline">
               <RefreshCw className="w-3.5 h-3.5" /> Làm mới
             </button>
@@ -1135,7 +1135,7 @@ export function CVAnalysis() {
               </div>
 
               {routeMode === "field" && enableField && (
-                <div className="border-t border-violet-100 px-4 py-4 pb-6 sm:px-5 sm:pb-8">
+                <div className="border-t border-white/10 px-4 py-4 pb-6 sm:px-5 sm:pb-8">
                   <p className="mb-2 text-xs font-bold uppercase tracking-wide text-violet-700">Ngành nghề</p>
                   <AppSelect
                     size="md"
@@ -1143,7 +1143,7 @@ export function CVAnalysis() {
                     onValueChange={setSelectedField}
                     placeholder="Chọn ngành nghề..."
                     aria-label="Ngành nghề"
-                    triggerClassName="rounded-2xl border-violet-200 bg-white focus:border-[#8037f4]"
+                    triggerClassName="rounded-2xl border-white/20 bg-[#171226] text-white focus:border-[#b99aff]"
                     options={FIELD_OPTIONS.map((opt) => ({
                       value: opt.label,
                       label: opt.available ? opt.label : `${opt.label} · Sắp ra mắt`,
@@ -1153,16 +1153,13 @@ export function CVAnalysis() {
                 </div>
               )}
 
-              <div className="border-t border-violet-100 bg-gradient-to-b from-violet-50/40 to-violet-50/70 px-6 py-6 sm:px-8 sm:py-8">
+              <div className="border-t border-white/10 bg-[#1b152d] px-6 py-6 sm:px-8 sm:py-8">
                 <button
                   type="button"
                   onClick={handleAnalyze}
                   disabled={!canAnalyze || !readyToAnalyze}
-                  className={`flex w-full max-w-2xl mx-auto items-center justify-center gap-2 rounded-2xl py-4 text-base font-extrabold transition-all sm:py-4 sm:text-lg ${
-                    canAnalyze && readyToAnalyze
-                      ? "bg-gradient-to-r from-[#93f72b] via-[#93f72b] to-[#93f72b] text-violet-950 shadow-[0_8px_28px_rgba(196,255,71,0.35)] hover:brightness-105 active:scale-[0.99]"
-                      : "cursor-not-allowed bg-violet-200/60 text-violet-500"
-                  }`}
+                  data-button-surface="none"
+                  className="cv-analyze-cta flex w-full max-w-2xl mx-auto items-center justify-center gap-2 rounded-full px-6 py-4 text-base font-extrabold transition-all sm:text-lg"
                 >
                   <Zap className="h-5 w-5 shrink-0" strokeWidth={2.25} />
                   {primaryCtaLabel}
@@ -1174,17 +1171,19 @@ export function CVAnalysis() {
 
           {/* ── LOADING ─────────────────────────────────────────────────── */}
           {step === "loading" && (
-            <div className="flex flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16 max-w-md mx-auto text-center">
-              <MascotVideo className="mb-4 mx-auto h-32 aspect-[766/720] overflow-hidden rounded-md sm:h-40" />
-              <h2 className="mb-3 text-xl font-semibold text-slate-900">Đang xử lý...</h2>
-              <p className="mb-8 text-sm text-slate-600">Hệ thống đang đọc file PDF và phân tích, vui lòng đợi.</p>
-              <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
-                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${progress}%`, background: "#8037f4" }} />
+            <div className="flex w-full min-w-0 max-w-lg flex-col items-center justify-center mx-auto px-6 py-10 text-center sm:px-8 sm:py-12">
+              <div className="mb-6 overflow-hidden rounded-[2rem] border border-white/15 bg-white p-2 shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+                <MascotVideo className="mx-auto h-24 aspect-[766/720] overflow-hidden sm:h-28" />
               </div>
-              <p className="text-[#8037f4] text-sm font-medium mb-6">{Math.round(progress)}%</p>
+              <h2 className="mb-2 text-xl font-semibold tracking-tight text-[#f5f2ff]">Đang xử lý...</h2>
+              <p className="mb-6 max-w-xs text-sm leading-relaxed text-[#c7bfdc]">Đang đối chiếu CV với yêu cầu của bạn. Vui lòng đợi trong giây lát.</p>
+              <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-white/15">
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${progress}%`, background: "#b99aff" }} />
+              </div>
+              <p className="text-[#c7adff] text-sm font-medium mb-6">{Math.round(progress)}%</p>
               <div
                 className="w-full rounded-md px-3 py-2.5 text-center text-xs"
-                style={{ background: "rgba(128, 55, 244, 0.07)", color: "#8037f4" }}
+                style={{ background: "rgba(185, 154, 255, 0.08)", color: "#d5c2ff" }}
               >
                 {loadingTip}
               </div>

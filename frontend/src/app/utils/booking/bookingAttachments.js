@@ -12,5 +12,5 @@ export function getBookingAttachments(booking) {
   const noteMatch = String(booking?.notes || "").match(/^Ghi chú:\s*(.+)$/im);
   const note = noteMatch ? noteMatch[1].trim() : "";
 
-  return { position, note, cvFileName, jdFileName, cvFileUrl, jdFileUrl };
+  return { mentorshipRequestId: booking?.mentorshipRequestId || "", position, note, cvFileName, jdFileName, cvFileUrl, jdFileUrl };
 }
