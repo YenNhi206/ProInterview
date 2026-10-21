@@ -489,7 +489,7 @@ export function MentorPeerReview() {
     <MentorPageShell
       bottomPad="pb-20"
       showAmbient={false}
-      className="!bg-[#f8f9fc]"
+      className="bg-transparent"
       extraStyles={PEER_ROW_STYLES}
     >
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">

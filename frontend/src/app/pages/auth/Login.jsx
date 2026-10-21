@@ -29,12 +29,12 @@ const AUTH_PAGE_BG = "bg-transparent";
 
 /** Ô form đăng nhập/đăng ký, tím brand */
 const AUTH_CARD_CLS =
-  "rounded-3xl border border-white/15 bg-[#8037f4] p-6 shadow-[0_16px_48px_rgba(15,23,42,0.18)] sm:p-10";
+  "rounded-3xl border border-[#a998d0]/25 bg-[#211a36] p-6 shadow-[0_24px_64px_rgba(5,3,18,0.35)] sm:p-10";
 
 const INPUT_CLS =
-  "w-full px-3 py-2 sm:px-4 sm:py-3.5 rounded-xl border border-white/25 text-sm sm:text-base outline-none transition-all " +
-  "focus:border-[#93f72b] focus:ring-2 focus:ring-[#93f72b]/25 text-gray-900 placeholder-gray-400 " +
-  "bg-white hover:bg-gray-50";
+  "w-full px-3 py-2 sm:px-4 sm:py-3.5 rounded-xl border border-white/15 text-sm sm:text-base outline-none transition-all " +
+  "focus:border-[#b79ae8] focus:ring-2 focus:ring-[#b79ae8]/20 text-white placeholder:text-[#a59bb8] " +
+  "bg-[#171226] hover:bg-[#1b152d]";
 
 const AUTH_CTA_STYLE = {
   background: BRAND_LIME,
@@ -226,8 +226,8 @@ export function Login() {
                     value={password} onChange={handleFieldChange(setPassword)}
                     required className={`${INPUT_CLS} pr-12`}
                   />
-                  <button type="button" onClick={() => setShowPass(!showPass)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  <button data-button-surface="none" type="button" onClick={() => setShowPass(!showPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md border-0 bg-transparent p-1 text-[#b8accd] shadow-none hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b79ae8] transition-colors"
                     aria-label={showPass ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
                     {showPass ? <EyeSlash className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>

@@ -12,6 +12,7 @@ import {
 
 export const MENTOR_MAIN_NAV = [
   { title: "Bảng điều khiển", url: "/mentor/dashboard", icon: LayoutGrid },
+  { title: "Nhu cầu mentee", url: "/mentor/requests", icon: ClipboardList },
   { title: "Lịch họp", url: "/mentor/schedule", icon: Calendar },
   { title: "Khóa học", url: "/mentor/courses", icon: GraduationCap },
   { title: "Đánh giá chéo", url: "/mentor/peer-review", icon: ClipboardList },

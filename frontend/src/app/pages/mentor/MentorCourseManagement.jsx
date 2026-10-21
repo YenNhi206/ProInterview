@@ -587,7 +587,7 @@ export function MentorCourseManagement() {
   const avgRatingDisplay = hasAvgRating ? avgRatingValue.toFixed(1) : "—";
 
   return (
-    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="!bg-[#f8f9fc]" extraStyles={COURSE_ROW_STYLES}>
+    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent" extraStyles={COURSE_ROW_STYLES}>
       <div className="relative z-10 mx-auto max-w-[1280px] px-3 pb-12 sm:px-6 lg:px-10">
         {/* Header */}
         <motion.header

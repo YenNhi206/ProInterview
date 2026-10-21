@@ -18,6 +18,7 @@ import InterviewRoom from "./pages/interview/InterviewRoom";
 import { InterviewFeedback } from "./pages/interview/InterviewFeedback";
 import { InterviewTrial } from "./pages/interview/InterviewTrial";
 import { InterviewTrialDone } from "./pages/interview/InterviewTrialDone";
+import { MentorshipRequests } from "./pages/mentorship/MentorshipRequests";
 import { Mentors } from "./pages/mentors/Mentors";
 import { MentorProfile } from "./pages/mentors/MentorProfile";
 import { Booking } from "./pages/booking/Booking";
@@ -143,6 +144,8 @@ export const router = createBrowserRouter([
             Component: Dashboard,
           },
           { path: "my-bookings", Component: MyBookings },
+          { path: "mentor-requests", loader: requireCustomerAuthLoader, Component: MentorshipRequests },
+          { path: "mentor-requests/:requestId", loader: requireCustomerAuthLoader, Component: MentorshipRequests },
           { path: "my-courses", Component: MyCourses },
           { path: "payment-history", loader: requireAuthLoader, Component: PaymentHistory },
       { path: "cart", loader: requireCustomerAuthLoader, Component: Cart },
@@ -158,6 +161,8 @@ export const router = createBrowserRouter([
             children: [
               { path: "dashboard", Component: MentorDashboard },
               { path: "schedule", Component: MentorSchedule },
+              { path: "requests", Component: MentorshipRequests },
+              { path: "requests/:requestId", Component: MentorshipRequests },
               { path: "finance", Component: MentorFinance },
               { path: "analytics", Component: MentorAnalytics },
               { path: "reviews", Component: MentorReviews },

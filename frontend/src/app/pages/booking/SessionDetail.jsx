@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router";
+import { Link, useParams, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Calendar,
@@ -1062,6 +1062,7 @@ export function SessionDetail() {
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-xs text-slate-300">
                         <FileText className="size-3.5 text-violet-400" />
                         <span className="max-w-[180px] truncate">{sessionData.cvFile}</span>
+                        {sessionData.mentorshipRequestId && <Link to={`/mentor-requests/${sessionData.mentorshipRequestId}`} className="mb-3 inline-block text-sm font-semibold text-[#93f72b]">Xem yêu cầu và CV/JD đính kèm →</Link>}
                         {sessionData.cvFileUrl && (
                           <a
                             href={sessionData.cvFileUrl}

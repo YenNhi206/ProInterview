@@ -53,6 +53,7 @@ const PAGE_TITLES = {
   "/cv-analysis/jd": { label: "Phân tích CV + JD", sub: "Phân tích CV với Job Description" },
   "/cv-analysis/field": { label: "Phân tích theo ngành", sub: "Đánh giá CV theo chuẩn ngành nghề" },
   "/interview": { label: "Phỏng vấn AI", sub: "Thiết lập buổi luyện, Pio hỏi, bạn trả lời" },
+  "/mentor-requests": { label: "Yêu cầu Mentor", sub: "Nhu cầu và đề nghị hỗ trợ" },
   "/mentors": { label: "Tìm Mentor", sub: "Đặt lịch 1:1 với anh/chị mentor" },
   "/profile": { label: "Hồ sơ cá nhân", sub: "Thông tin và thành tích của bạn" },
   "/settings": { label: "Cài đặt", sub: "Tuỳ chỉnh tài khoản" },
@@ -258,6 +259,10 @@ function CustomerNavbar() {
                     <Calendar className="mr-2.5 size-4 text-violet-400" />
                     Lịch hẹn của tôi
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/mentor-requests")}>
+                    <FileText className="mr-2.5 size-4 text-violet-400" />
+                    Yêu cầu Mentor của tôi
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/my-courses")}>
                     <BookOpen className="mr-2.5 size-4 text-violet-400" />
                     Khóa học của tôi
@@ -416,7 +421,7 @@ function MentorNavbar() {
 
   return (
     <>
-      <TopNavShell variant="light" alignTop={false}>
+      <TopNavShell variant="dark" alignTop={false}>
         <Link
           to="/mentor/dashboard"
           className="flex shrink-0 items-center leading-none"
@@ -429,12 +434,7 @@ function MentorNavbar() {
           />
         </Link>
 
-        <ShellNavLinks
-          items={MENTOR_MAIN_NAV}
-          pathname={location.pathname}
-          isActive={(p, item) => isMentorNavActive(p, item.url)}
-          className="hidden min-w-0 flex-1 items-center justify-center gap-2 px-1 md:flex md:gap-3 lg:gap-4 xl:gap-5"
-        />
+        <div className="hidden min-w-0 flex-1 items-center gap-3 pl-7 lg:flex"><span className="h-5 w-px bg-white/15" /><span className="text-xs font-medium text-violet-200/65">Không gian làm việc Mentor</span></div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <NotificationCenter active={Boolean(user)} onSelect={handleRead} />
@@ -484,7 +484,7 @@ function MentorNavbar() {
 
           <button
             type="button"
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-violet-200 transition-colors hover:bg-white/10 lg:hidden"
             aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((o) => !o)}
@@ -498,12 +498,12 @@ function MentorNavbar() {
         <>
           <button
             type="button"
-            className="fixed inset-0 z-[98] bg-slate-900/25 md:hidden"
+            className="fixed inset-0 z-[98] bg-slate-900/25 lg:hidden"
             aria-label="Đóng menu"
             onClick={() => setMobileOpen(false)}
           />
-        <div className="top-nav-shell-outer fixed right-3 top-[3.8rem] z-[99] w-[min(100vw-1.5rem,18rem)] sm:right-6 sm:top-[4.2rem] md:hidden">
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="top-nav-shell-outer fixed right-3 top-[3.8rem] z-[99] w-[min(100vw-1.5rem,18rem)] sm:right-6 sm:top-[4.2rem] lg:hidden">
+          <div className="overflow-hidden rounded-2xl border border-white/15 bg-[#1b142b] shadow-2xl">
             <MentorMobileNavPanel
               pathname={location.pathname}
               onNavigate={() => setMobileOpen(false)}
@@ -532,17 +532,17 @@ function MentorMobileNavPanel({ pathname, onNavigate }) {
               to={item.url}
               onClick={onNavigate}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                active ? "bg-[#8037f4] text-white shadow-[0_4px_14px_rgba(128,55,244,0.28)]" : "text-slate-700 hover:bg-slate-50"
+                active ? "bg-[#93f72b] text-[#17210b]" : "text-violet-200 hover:bg-white/5"
               }`}
             >
-              <Icon className={`size-[18px] shrink-0 ${active ? "text-white" : "text-slate-500"}`} />
+              <Icon className={`size-[18px] shrink-0 ${active ? "text-[#17210b]" : "text-violet-300"}`} />
               <span className="flex-1">{item.title}</span>
               {active ? <span className="size-1.5 rounded-full bg-[#93f72b]" /> : null}
             </Link>
           );
         })}
       </div>
-      <div className="mx-4 my-3 h-px bg-slate-200" />
+      <div className="mx-4 my-3 h-px bg-white/10" />
       <p className="px-4 pb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
         Khác
       </p>
@@ -556,10 +556,10 @@ function MentorMobileNavPanel({ pathname, onNavigate }) {
               to={item.url}
               onClick={onNavigate}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                active ? "bg-[#8037f4] text-white" : "text-slate-700 hover:bg-slate-50"
+                active ? "bg-[#8037f4] text-white" : "text-violet-200 hover:bg-white/5"
               }`}
             >
-              <Icon className={`size-[18px] shrink-0 ${active ? "text-white" : "text-slate-500"}`} />
+              <Icon className={`size-[18px] shrink-0 ${active ? "text-[#17210b]" : "text-violet-300"}`} />
               {item.title}
             </Link>
           );

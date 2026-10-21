@@ -296,7 +296,7 @@ export function MentorAnalytics() {
   }));
 
   return (
-    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="!bg-[#f8f9fc]">
+    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent">
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
         <motion.header
           initial={{ opacity: 0, y: -12 }}
@@ -381,12 +381,12 @@ export function MentorAnalytics() {
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} />
                   <Tooltip
                     contentStyle={{
-                      background: "#ffffff",
+                      background: "#21182f",
                       border: "1px solid rgba(226,232,240,0.9)",
                       borderRadius: "14px",
                       fontWeight: 700,
                     }}
-                    itemStyle={{ color: "#0f172a", fontSize: "12px" }}
+                    itemStyle={{ color: "#eee6f7", fontSize: "12px" }}
                   />
                   <Area type="monotone" dataKey="Số buổi" stroke="#8037f4" strokeWidth={3} fill="url(#mentorAnalyticsPurple)" />
                 </AreaChart>
@@ -641,7 +641,7 @@ export function MentorAnalytics() {
                               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
                               <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }} />
                               <YAxis domain={[0, 5]} tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }} width={24} />
-                              <Tooltip contentStyle={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", fontWeight: 600 }} />
+                              <Tooltip contentStyle={{ background: "#21182f", borderRadius: "12px", border: "1px solid #665076", fontWeight: 600 }} />
                               <Legend wrapperStyle={{ fontSize: 11, fontWeight: 700 }} />
                               <Line type="monotone" dataKey="situation" name="Tình huống" stroke="#8037f4" strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
                               <Line type="monotone" dataKey="task" name="Nhiệm vụ" stroke="#93f72b" strokeWidth={2.5} dot={{ r: 3 }} connectNulls />

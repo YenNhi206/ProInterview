@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { Link } from "react-router";
 import { Heart, Mail, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "../brand/BrandLogo";
 import { FOOTER_TAGLINE } from "../../constants/brandVoice";
-import { HOME_SECTION_INNER } from "./customerShellLayout";
 
-const FOOTER_SHELL_DEFAULT = "mx-auto w-full max-w-7xl px-6";
 
 /* ── Social icon SVGs ── */
 function FacebookIcon({ className, style }) {
@@ -65,29 +63,28 @@ const FOOTER_MAIN_GRID =
 
 const CONTACT_EMAIL = "prointerview.ai@gmail.com";
 
-function FooterNavColumn({ section, links, navigate, variant = "light" }) {
+function FooterNavColumn({ section, links, variant = "light" }) {
   const headingClass =
     variant === "dark"
       ? "mb-4 text-center sm:text-left text-[0.9375rem] font-bold tracking-tight text-white/90"
       : "mb-4 text-center sm:text-left text-[0.9375rem] font-bold tracking-tight text-slate-900";
   const linkClass =
     variant === "dark"
-      ? "text-center sm:text-left text-sm text-white/55 transition-colors hover:text-white"
-      : "text-center sm:text-left text-sm text-slate-600 transition-colors hover:text-[#8037f4]";
+      ? "text-white/75 hover:text-white decoration-white/40 focus-visible:outline-white/80"
+      : "text-slate-600 hover:text-[#8037f4] decoration-violet-300 focus-visible:outline-violet-600";
 
   return (
     <nav className="flex flex-col items-center sm:items-start text-center sm:text-left" aria-label={section}>
       <h4 className={headingClass}>{section}</h4>
-      <ul className="flex flex-col items-center sm:items-start space-y-2.5">
+      <ul className="flex flex-col items-center sm:items-start gap-2">
         {links.map((link) => (
           <li key={link.label}>
-            <button
-              type="button"
-              onClick={() => link.path !== "#" && navigate(link.path)}
-              className={linkClass}
+            <Link
+              to={link.path}
+              className={`inline-block rounded-sm border-0 bg-transparent py-1 text-center text-sm font-medium leading-relaxed no-underline shadow-none transition-colors duration-200 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-left ${linkClass}`}
             >
               {link.label}
-            </button>
+            </Link>
           </li>
         ))}
       </ul>
@@ -106,14 +103,13 @@ const SOCIAL_LINKS = [
    DARK variant, trang nền tối (tùy chọn)
 ══════════════════════════════════════════════════════════════ */
 function FooterDark() {
-  const navigate = useNavigate();
   const [hoveredSocial, setHoveredSocial] = useState(null);
 
   return (
     <footer
       className="relative overflow-hidden"
       style={{
-        background: "rgba(255, 255, 255, 0.01)",
+        background: "linear-gradient(115deg, #291344 0%, #17132f 48%, #1d2455 100%)",
         backgroundBlendMode: "luminosity",
         borderTop: "1.5px solid rgba(255, 255, 255, 0.45)",
         boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.1)",
@@ -195,7 +191,6 @@ function FooterDark() {
               key={section}
               section={section}
               links={links}
-              navigate={navigate}
               variant="dark"
             />
           ))}
@@ -228,132 +223,7 @@ function FooterDark() {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════
-   LIGHT variant, cùng nền / chữ với trang home (#f3f0f9)
-══════════════════════════════════════════════════════════════ */
-function FooterLight({ shellInner = FOOTER_SHELL_DEFAULT }) {
-  const navigate = useNavigate();
-  const [hoveredSocial, setHoveredSocial] = useState(null);
-
-  return (
-    <footer className="relative overflow-hidden border-t border-violet-200/50 bg-[#f3f0f9]">
-      <div
-        className="pointer-events-none absolute z-0 h-[min(72vw,520px)] w-[min(72vw,520px)] rounded-full bg-[#8037f4]/10 blur-[100px] sm:h-[520px] sm:w-[520px] sm:blur-[110px]"
-        style={{ left: "-14%", top: "38%" }}
-        aria-hidden
-      />
-
-      <div className={`relative z-[1] ${shellInner} py-16`}>
-        <div className={FOOTER_MAIN_GRID}>
-          <div className="sm:col-span-2 lg:col-span-1 flex flex-col items-center sm:items-start text-center sm:text-left">
-            <div className="-mt-1 mb-1 flex items-center justify-center sm:justify-start gap-3">
-              <BrandLogo size="footer" />
-            </div>
-            <p className="mb-6 max-w-[320px] text-sm leading-relaxed text-slate-600">
-              {FOOTER_TAGLINE}
-            </p>
-
-            <div className="mb-6 flex flex-col items-center sm:items-start">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Liên hệ</p>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="inline-flex max-w-[min(100%,320px)] items-center sm:items-start justify-center sm:justify-start gap-2 break-all text-sm font-semibold text-[#8037f4] underline-offset-2 transition-colors hover:text-[#630ed4] hover:underline"
-              >
-                <Mail className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                {CONTACT_EMAIL}
-              </a>
-            </div>
-
-            <div className="mb-6 flex flex-col items-center sm:items-start">
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
-                Kết nối với ProInterview
-              </p>
-              <div className="flex justify-center sm:justify-start gap-[20px]">
-                {SOCIAL_LINKS.map((s) => {
-                  const Icon = s.icon;
-                  const isHovered = hoveredSocial === s.name;
-                  return (
-                    <a
-                      key={s.name}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={s.name}
-                      onMouseEnter={() => setHoveredSocial(s.name)}
-                      onMouseLeave={() => setHoveredSocial(null)}
-                      className="w-[56px] h-[56px] rounded-full flex items-center justify-center text-[#475569]"
-                      style={{
-                        background: isHovered 
-                          ? "linear-gradient(135deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.02) 100%)" 
-                          : "linear-gradient(135deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.01) 100%)",
-                        borderTop: `1px solid ${isHovered ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.6)"}`,
-                        borderLeft: `1px solid ${isHovered ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.6)"}`,
-                        borderBottom: `1px solid ${isHovered ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.05)"}`,
-                        borderRight: `1px solid ${isHovered ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.05)"}`,
-                        backdropFilter: "blur(12px)",
-                        WebkitBackdropFilter: "blur(12px)",
-                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                        transform: isHovered ? "translateY(-3px)" : "none",
-                        boxShadow: isHovered 
-                          ? "0 10px 30px rgba(0, 0, 0, 0.08), inset 0 1px 3px rgba(255, 255, 255, 1)" 
-                          : "0 4px 20px rgba(0, 0, 0, 0.04), inset 0 1px 2px rgba(255, 255, 255, 0.8)",
-                        textDecoration: "none"
-                      }}
-                    >
-                      <Icon
-                        style={{
-                          width: 22,
-                          height: 22,
-                          fill: "currentColor",
-                          transition: "transform 0.3s ease",
-                          transform: isHovered ? "scale(1.1)" : "none"
-                        }}
-                      />
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {Object.entries(NAV_LINKS).map(([section, links]) => (
-            <FooterNavColumn
-              key={section}
-              section={section}
-              links={links}
-              navigate={navigate}
-              variant="light"
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-[1] border-t border-slate-200/90 bg-white/85">
-        <div className={`${shellInner} flex flex-col items-center justify-between gap-3 py-5 sm:flex-row`}>
-          <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} ProInterview. All rights reserved.
-          </p>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-            <span>Made with</span>
-            <Heart className="h-3.5 w-3.5 animate-pulse text-red-500" />
-            <span>in Vietnam</span>
-            <span className="ml-1">🇻🇳</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#93f72b]" />
-            <span>24/7 Support Available</span>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-/* ── Public export ── */
-export function Footer({ variant = "light" }) {
-  const location = useLocation();
-  const isHome = location.pathname === "/" || location.pathname === "";
-  const shellInner = isHome ? HOME_SECTION_INNER : FOOTER_SHELL_DEFAULT;
-
-  return variant === "dark" ? <FooterDark /> : <FooterLight shellInner={shellInner} />;
+/* Shared footer for all public pages. */
+export function Footer() {
+  return <FooterDark />;
 }
