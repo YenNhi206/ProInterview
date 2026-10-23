@@ -79,7 +79,8 @@ export function createTrace({ name, userId, sessionId, metadata = {}, tags = [] 
   }]);
 
   traceContext.set(traceId, { userId, tags });
-  setTimeout(() => traceContext.delete(traceId), TRACE_CONTEXT_TTL_MS);
+  // unref: timer dọn map không được giữ process sống (test runner / graceful shutdown).
+  setTimeout(() => traceContext.delete(traceId), TRACE_CONTEXT_TTL_MS).unref();
 
   return traceId;
 }
