@@ -222,7 +222,8 @@ export async function resolveItem(id, { action, note = "", payload = {} }, moder
       type: "feedback",
       title: action === "override_score" ? "Kết quả phỏng vấn đã được kiểm định" : "Báo cáo của bạn đã được xử lý",
       body: RESOLVED_MESSAGE[action],
-      metadata: { actionUrl: sessionId ? `/interview/feedback?sessionId=${sessionId}` : "/interview", sessionId },
+      // Notification.metadata chỉ lưu actionUrl (schema) — sessionId đi kèm trong link.
+      metadata: { actionUrl: sessionId ? `/interview/feedback?sessionId=${sessionId}` : "/interview" },
     }).catch((err) => logger.warn("moderation_notify_failed", { itemId: String(item._id), error: err?.message }));
   }
 

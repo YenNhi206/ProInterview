@@ -61,20 +61,27 @@ async function queueStats(range) {
       { createdAt: 1, "resolution.at": 1 },
     ).lean(),
   ]);
-  const hours = resolvedRows.map((r) => (new Date(r.resolution.at) - new Date(r.createdAt)) / 3_600_000);
+  // Kẹp ≥ 0: lệch đồng hồ / dữ liệu nhập tay không được ra thời gian xử lý âm.
+  const hours = resolvedRows.map((r) => Math.max(0, (new Date(r.resolution.at) - new Date(r.createdAt)) / 3_600_000));
   const med = median(hours);
   return { open, inReview, resolvedInPeriod: resolvedRows.length, medianTimeToResolveHours: med === null ? null : Math.round(med * 100) / 100 };
 }
+
+/**
+ * Chỉ tính quyết định trên câu do AI sinh: câu moderator tự tạo / bộ dự phòng tĩnh được duyệt sẵn,
+ * tính vào sẽ đẩy approvalRate lên giả (vd. sync 40 câu fallback → ~98%).
+ */
+const AI_GENERATED_SOURCES = ["llm_followup", "ai_generated"];
 
 /** approved / deprecated trong kỳ, nhóm theo khoá (promptVersion hoặc tuần). */
 async function decisionsInRange(range) {
   const [approved, deprecated] = await Promise.all([
     QuestionBank.find(
-      { orgId: null, status: "approved", "review.at": { $gte: range.from, $lte: range.to } },
+      { orgId: null, source: { $in: AI_GENERATED_SOURCES }, status: "approved", "review.at": { $gte: range.from, $lte: range.to } },
       { "review.at": 1, revisions: { $slice: 1 }, "generatedBy.promptVersion": 1 },
     ).lean(),
     QuestionBank.find(
-      { orgId: null, status: "deprecated", "deprecation.at": { $gte: range.from, $lte: range.to } },
+      { orgId: null, source: { $in: AI_GENERATED_SOURCES }, status: "deprecated", "deprecation.at": { $gte: range.from, $lte: range.to } },
       { "deprecation.at": 1, "generatedBy.promptVersion": 1 },
     ).lean(),
   ]);

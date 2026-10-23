@@ -55,6 +55,8 @@ before(async () => {
   });
   await qb("Deprecated 1 về làm việc nhóm", { status: "deprecated", competencyId: "teamwork", deprecation: { at: daysAgo(1) }, flagCount: 3 });
   await qb("Approved cũ ngoài kỳ thống kê", { status: "approved", competencyId: "teamwork", review: { at: daysAgo(60) } });
+  // Câu moderator tự tạo (được duyệt sẵn) KHÔNG được tính vào approvalRate / editRate.
+  await qb("Câu moderator tạo tay về làm việc nhóm", { source: "moderator", status: "approved", competencyId: "teamwork", review: { at: daysAgo(1) } });
   await qb("Pending mới về giao tiếp", { status: "pending_review", competencyId: "communication" });
   const oldPending = await qb("Pending quá 7 ngày về giao tiếp", { status: "pending_review", competencyId: "communication" });
   await QuestionBank.collection.updateOne({ _id: oldPending._id }, { $set: { createdAt: daysAgo(10) } });
@@ -102,7 +104,7 @@ describe("quality/stats", () => {
     // "now" thời điểm gọi (sau khi seed) — report/item vừa tạo phải nằm trong kỳ.
     const { stats } = await getQualityStats({}, { now: new Date(), useCache: false });
 
-    assert.deepEqual(stats.bank.byStatus, { pending_review: 2, approved: 4, deprecated: 1 });
+    assert.deepEqual(stats.bank.byStatus, { pending_review: 2, approved: 5, deprecated: 1 });
     assert.equal(stats.bank.pendingOver7d, 1);
 
     assert.equal(stats.queue.open, 1);
@@ -110,7 +112,7 @@ describe("quality/stats", () => {
     assert.equal(stats.queue.resolvedInPeriod, 3);
     assert.equal(stats.queue.medianTimeToResolveHours, 4);
 
-    assert.equal(stats.approvalRate, 0.75, "3 approved / (3 + 1 deprecated) trong kỳ");
+    assert.equal(stats.approvalRate, 0.75, "3 approved / (3 + 1 deprecated) trong kỳ — bỏ câu moderator tạo tay");
     assert.equal(stats.editRate, 0.3333, "1 / 3 câu duyệt có sửa");
     assert.equal(stats.flagRate, 0.5, "2 report / 4 session hoàn thành");
     assert.equal(stats.incompleteEvalRate, 0.2, "1 / 5 câu được chấm");
