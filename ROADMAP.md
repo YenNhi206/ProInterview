@@ -77,6 +77,7 @@ Khi merge xong một route: cập nhật **Phần A** trong `API_INDEX`, đổi 
 | GET | `/api/mentors/:id` | Public |
 | GET | `/api/health` | |
 | GET | `/api/users/dashboard-stats` | `[AUTH]` |
+| PUT | `/api/users/me/consent/camera` | `[AUTH]` — đồng ý/rút lại camera phỏng vấn AI |
 | PATCH | `/api/users/:id/role` | `[ADMIN]` — gán role (vd. mentor) |
 | GET | `/api/admin/stats` | `[ADMIN]` |
 | GET | `/api/admin/users` | `[ADMIN]` |
@@ -117,8 +118,8 @@ Các nhóm endpoint theo phase (bookings, payments, plans, courses, enrollments,
 | ✅ | DELETE | `/api/bookings/:id` | `[AUTH]` | Hủy — cập nhật `status` (vd. `cancelled`), giữ bản ghi nếu cần lịch sử |
 | ✅ | PATCH | `/api/bookings/:id/reschedule` | `[AUTH]` | Dời lịch — body khớp reschedule trong schema `Booking` |
 | ✅ | POST | `/api/payments/initiate` | `[AUTH]` | Tạo đơn MoMo/ZaloPay sandbox → trả `qr` / `payUrl` cho `Checkout.jsx` |
-| ✅ | POST | `/api/payments/webhook/momo` | *(server secret / IP whitelist)* | Xác nhận thanh toán |
-| ✅ | POST | `/api/payments/webhook/zalopay` | *(tương tự)* | |
+| ✅ | POST | `/api/payments/webhook/momo` | *(server secret / IP whitelist)* | Xác nhận thanh toán — **stub, trả 400 ở production** |
+| ✅ | POST | `/api/payments/webhook/zalopay` | *(tương tự)* | Stub, trả 400 ở production |
 | ✅ | POST | `/api/payments/webhook/sepay` | `Authorization: Apikey SEPAY_WEBHOOK_API_KEY` | Webhook tiền vào TPBank — tự xác nhận đơn `PI…` |
 | ✅ | GET | `/api/payments/transfer-status` | Bearer JWT | Poll trạng thái CK (checkout SePay) |
 | ✅ | GET | `/api/payments/history` | `[AUTH]` | *(tuỳ chọn)* Lịch sử giao dịch |
@@ -547,3 +548,16 @@ Chi tiết response lỗi / thành công: tham chiếu `API_INDEX.md` (phần đ
 - ✅ Tự đóng tài khoản dùng cùng cổng kiểm tra; giữ chứng từ và vô hiệu phiên.
 
 Chi tiết triển khai, tương thích dữ liệu cũ và cấu hình PDF: [FINANCE_OPERATIONS_PORT.md](docs/FINANCE_OPERATIONS_PORT.md).
+
+## S0 — Hardening production (2026-10-23)
+
+| # | Hạng mục | Trạng thái | Ghi chú |
+|:--|:--|:--|:--|
+| 0.1 | Chặn seed ở production | ✅ | Mọi `scripts/seed*.js` + `forceSeedDev.js` import `_devOnlyGuard.js` → exit(1); `server.js` không gọi `seedDemoData()` khi `NODE_ENV=production` |
+| 0.2 | Env bắt buộc ở production | ✅ | `JWT_SECRET`, `REFRESH_TOKEN_PEPPER` (`config/validateEnv.js`); pepper không còn fallback `"dev"` ở prod |
+| 0.3 | `/api/mock` | ✅ | Chỉ mount ngoài production |
+| 0.4 | Thanh toán mock | ✅ | `POST /api/payments/initiate` trả 400 "Phương thức thanh toán chưa hỗ trợ" cho cổng chưa cấu hình (MoMo/ZaloPay/card luôn; VNPay khi thiếu `VNP_*`); webhook MoMo/ZaloPay stub trả 400 ở prod |
+| 0.5 | Sentry | ✅ | `beforeSend` xoá `request.data` cho `/analyze-face`, `/extract-cv-text`, `/cv/analyze`, `/auth/` |
+| 0.6 | Consent camera | ✅ | `PUT /api/users/me/consent/camera`; `/interview` hỏi trước khi vào room; room không gọi `getUserMedia({video})` khi chưa đồng ý; BE `analyze-face` bỏ qua Vision |
+| 0.7 | Booking trả phí thiếu JaaS | ✅ | `createBooking` trả 503 ở production khi thiếu `JAAS_*` |
+| 0.8 | Body limit `analyze-face` | ✅ | `express.json` 1.5mb riêng cho route này |
