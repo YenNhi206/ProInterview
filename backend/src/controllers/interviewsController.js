@@ -11,6 +11,14 @@ import { resolveTopCompetencies } from "../services/competencyFramework.js";
 import { BASELINE_QUESTIONS } from "../config/baselineQuestions.js";
 import { logger } from "../config/logger.js";
 import { syncPlanExpiry } from "../services/plansService.js";
+import { harvest as harvestQuestions, applyDeprecationPolicy } from "../services/questionBankService.js";
+import { Sentry, isSentryEnabled } from "../config/sentry.js";
+
+/** Lỗi ngân hàng câu hỏi chỉ log + Sentry, không bao giờ chặn luồng phỏng vấn. */
+function reportBankError(event, err, sessionId) {
+  logger.error(event, { sessionId, error: err?.message });
+  if (isSentryEnabled()) Sentry.captureException(err);
+}
 import { mergeInterviewAnswersForEval } from "../utils/mergeInterviewAnswers.js";
 
 // ── Accumulation helper ───────────────────────────────────────────────────────
@@ -459,14 +467,42 @@ export const InterviewsController = {
 
       logger.info("generate_followup_start", { userId: req.userId, sessionId: id });
 
-      const result = await generateQuestionsFromText({
+      const genArgs = {
         cvText, jdText, position, field, level, fewShotExamples, priorQA,
-        questionCount: 2,
         userId: req.userId,
         sessionId: id,
-      });
+      };
+      const result = await generateQuestionsFromText({ ...genArgs, questionCount: 2 });
+      let followUps = result.questions.map((q) => ({ ...q, promptVersion: result.promptVersion }));
 
-      session.questions.push(...result.questions);
+      // Chính sách #2 (spec S1): câu deprecated không được phục vụ lại. Lỗi bank → giữ câu LLM.
+      try {
+        const policy = await applyDeprecationPolicy(followUps, {
+          excludeTexts: session.questions.map((q) => q.question),
+          regenerate: async (count) => {
+            const again = await generateQuestionsFromText({ ...genArgs, questionCount: count });
+            return again.questions.map((q) => ({ ...q, promptVersion: again.promptVersion }));
+          },
+        });
+        followUps = policy.questions;
+        if (policy.replaced || policy.regenerated || policy.dropped) {
+          logger.info("followup_deprecated_replaced", { sessionId: id, ...policy, questions: undefined });
+        }
+      } catch (err) {
+        reportBankError("question_bank_policy_failed", err, id);
+      }
+
+      // Harvest vào QuestionBank (pending_review) — post-hoc, KHÔNG được làm hỏng phỏng vấn.
+      try {
+        const bankIds = await harvestQuestions(followUps, {
+          sessionId: id, model: result.model, promptVersion: result.promptVersion,
+        });
+        followUps = followUps.map((q, i) => ({ ...q, questionBankId: q.questionBankId ?? bankIds[i] ?? null }));
+      } catch (err) {
+        reportBankError("question_bank_harvest_failed", err, id);
+      }
+
+      session.questions.push(...followUps);
       if (!session.competencyProfile?.competencyIds?.length) {
         session.competencyProfile = result.competencyProfile;
       }
@@ -475,9 +511,9 @@ export const InterviewsController = {
       }
       await session.save();
 
-      logger.info("generate_followup_ok", { userId: req.userId, sessionId: id, questionCount: result.questions.length });
+      logger.info("generate_followup_ok", { userId: req.userId, sessionId: id, questionCount: followUps.length });
 
-      res.json({ success: true, questions: result.questions });
+      res.json({ success: true, questions: session.questions.slice(3) });
     } catch (error) {
       logger.error("generate_followup_failed", { userId: req.userId, sessionId: req.params.id, error: error.message });
 
