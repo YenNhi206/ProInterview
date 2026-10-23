@@ -67,6 +67,18 @@ const userSchema = new Schema(
       notificationPrefs: { type: Schema.Types.Mixed, default: () => ({}) },
     },
 
+    /**
+     * Đồng ý dùng camera/mic trong phỏng vấn AI (phân tích hành vi + 1 ảnh/câu gửi Google Vision).
+     * `version` khớp CAMERA_CONSENT_VERSION — đổi nội dung thông báo thì tăng version để hỏi lại.
+     * acceptedAt null = chưa đồng ý / đã rút lại.
+     */
+    consent: {
+      camera: {
+        acceptedAt: { type: Date, default: null },
+        version: { type: String, default: null },
+      },
+    },
+
     integrations: {
       googleCalendar: {
         connected: { type: Boolean, default: false },
@@ -226,6 +238,11 @@ export function toPublicUser(doc) {
       plain.role,
       plain.settings?.notificationPrefs,
     ),
+    consent: {
+      camera: plain.consent?.camera?.acceptedAt
+        ? { acceptedAt: plain.consent.camera.acceptedAt, version: plain.consent.camera.version }
+        : null,
+    },
   };
   return out;
 }

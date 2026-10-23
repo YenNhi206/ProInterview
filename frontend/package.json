@@ -10,7 +10,7 @@
     "dev:backend": "npm --prefix ../backend run dev",
     "dev:ai": "npm --prefix ../cv_jd_matching run dev",
     "dev:full": "concurrently -n frontend,backend,ai -c cyan,green,yellow npm:dev npm:dev:backend npm:dev:ai",
-    "test": "node --test src/app/utils/cv/cvMappers.test.js src/app/utils/shared/apiToast.test.js src/app/utils/plans/planSync.test.js src/app/utils/booking/bookingSchedule.test.js"
+    "test": "node --test src/app/utils/cv/cvMappers.test.js src/app/utils/shared/apiToast.test.js src/app/utils/plans/planSync.test.js src/app/utils/booking/bookingSchedule.test.js src/app/utils/interview/cameraConsent.test.js"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

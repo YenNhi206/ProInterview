@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import * as dashboardStatsService from "../services/dashboardStatsService.js";
 import * as userRoleService from "../services/userRoleService.js";
+import * as userConsentService from "../services/userConsentService.js";
+import { validateCameraConsent } from "../dto/consent.dto.js";
 
 export class UsersController {
   static async dashboardStats(req, res, next) {
@@ -10,6 +12,23 @@ export class UsersController {
         return res.status(result.status).json({ success: false, error: result.error });
       }
       res.json({ success: true, stats: result.stats });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /** PUT /api/users/me/consent/camera — body { accepted, version } */
+  static async setCameraConsent(req, res, next) {
+    try {
+      const { error, value } = validateCameraConsent(req.body);
+      if (error) {
+        return res.status(400).json({ success: false, error: error.details.map((d) => d.message).join("; ") });
+      }
+      const result = await userConsentService.setCameraConsent(req.userId, value);
+      if (!result.ok) {
+        return res.status(result.status).json({ success: false, error: result.error });
+      }
+      res.json({ success: true, user: result.user });
     } catch (err) {
       next(err);
     }

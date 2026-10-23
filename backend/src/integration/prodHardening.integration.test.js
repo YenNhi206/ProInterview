@@ -137,6 +137,41 @@ describe("S0.7 — booking trả phí bị chặn khi thiếu JAAS_* ở product
   });
 });
 
+describe("S0.6 — consent camera", () => {
+  it("PUT /api/users/me/consent/camera lưu/rút lại; analyze-face không gọi Vision khi chưa đồng ý", async () => {
+    const http = await startHttpServer(createApp());
+    const prevVision = process.env.GOOGLE_VISION_API_KEY;
+    process.env.GOOGLE_VISION_API_KEY = "dummy-not-called";
+    try {
+      const user = await User.create({ name: "Consent", email: `consent-${Date.now()}@test.local` });
+      const auth = { "Content-Type": "application/json", Authorization: `Bearer ${mintAccessToken(user._id)}` };
+      const put = (body) =>
+        fetch(`${http.baseUrl}/api/users/me/consent/camera`, { method: "PUT", headers: auth, body: JSON.stringify(body) });
+
+      const bad = await put({ accepted: true, version: "camera-v0" });
+      assert.equal(bad.status, 400);
+
+      const face = await fetch(`${http.baseUrl}/api/interviews/sessions/000000000000000000000000/analyze-face`, {
+        method: "POST", headers: auth, body: JSON.stringify({ imageBase64: "AAAA", questionIndex: 0 }),
+      }).then((r) => r.json());
+      assert.equal(face.emotion, null);
+      assert.equal(face.reason, "no_camera_consent");
+
+      const ok = await put({ accepted: true, version: "camera-v1" }).then((r) => r.json());
+      assert.equal(ok.success, true);
+      assert.equal(ok.user.consent.camera.version, "camera-v1");
+      assert.ok(ok.user.consent.camera.acceptedAt);
+
+      const declined = await put({ accepted: false, version: "camera-v1" }).then((r) => r.json());
+      assert.equal(declined.user.consent.camera, null);
+    } finally {
+      if (prevVision === undefined) delete process.env.GOOGLE_VISION_API_KEY;
+      else process.env.GOOGLE_VISION_API_KEY = prevVision;
+      await stopHttpServer(http.server);
+    }
+  });
+});
+
 describe("S0.8 — analyze-face nhận body > 1mb", () => {
   it("ảnh ~1.2MB không còn 413 ở tầng body parser", async () => {
     const http = await startHttpServer(createApp());
