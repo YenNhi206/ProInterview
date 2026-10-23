@@ -27,6 +27,7 @@ import { mentorRouter } from "./routes/mentor.js";
 import { coursesRouter } from "./routes/courses.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { adminRouter } from "./routes/admin.js";
+import { moderatorRouter } from "./routes/moderator.js";
 import { enrollmentsRouter } from "./routes/enrollments.js";
 import { cvRouter } from "./routes/cv.js";
 import { cvMatchRouter } from "./routes/cvMatch.js";
@@ -209,6 +210,7 @@ export function createApp() {
   app.use("/api/mentor", mentorRouter);
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/admin", adminRouter);
+  app.use("/api/moderator", moderatorRouter);
   app.use("/api/enrollments", enrollmentsRouter);
   app.use("/api/cv", cvRouter);
   app.use("/api/cv", cvMatchRouter);

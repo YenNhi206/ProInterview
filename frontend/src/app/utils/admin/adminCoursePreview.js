@@ -11,7 +11,7 @@ export function courseStudentPageUrl(courseId, { adminPreview = false } = {}) {
 }
 
 /** Ghi nhớ đường quay lại admin (gọi trước khi mở link tab mới). */
-export function markAdminCoursePreviewReturn(returnPath = "/admin/content/courses") {
+export function markAdminCoursePreviewReturn(returnPath = "/moderator/courses") {
   if (typeof window === "undefined") return;
   sessionStorage.setItem(STORAGE_KEY, returnPath);
 }
@@ -19,14 +19,14 @@ export function markAdminCoursePreviewReturn(returnPath = "/admin/content/course
 /**
  * Fallback khi trình duyệt chặn tab mới — mở cùng tab kèm banner quay lại admin.
  */
-export function openCourseStudentPreviewSameTab(courseId, returnPath = "/admin/content/courses") {
+export function openCourseStudentPreviewSameTab(courseId, returnPath = "/moderator/courses") {
   if (typeof window === "undefined") return;
   markAdminCoursePreviewReturn(returnPath);
   window.location.href = courseStudentPageUrl(courseId, { adminPreview: true });
 }
 
 export function getAdminCourseReturnPath() {
-  return sessionStorage.getItem(STORAGE_KEY) || "/admin/content/courses";
+  return sessionStorage.getItem(STORAGE_KEY) || "/moderator/courses";
 }
 
 export function clearAdminCourseReturnPath() {

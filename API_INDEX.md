@@ -2,6 +2,30 @@
 
 File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc đổi provider (Supabase / thanh toán).
 
+## Role và phân quyền
+
+5 role: `customer`, `mentor`, `admin`, `moderator`, `enterprise` (enum trong `models/User.js`).
+
+| Cổng | Middleware | Ghi chú |
+|:--|:--|:--|
+| `[AUTH]` | `authJwt` | Bearer access JWT, claim `tv` khớp `User.tokenVersion` |
+| `[MENTOR]` | `requireMentor` | Thêm điều kiện `Mentor.isActive && isVerified` |
+| `[ADMIN]` | `requireAdmin` | |
+| `[MODERATOR]` | `requireModerator` | **Admin KHÔNG đi vòng được** — kiểm định nội dung tách khỏi vận hành |
+| `[ENTERPRISE]` | `requireEnterprise` | Credit tổ chức là trục riêng, không phải giá trị của `plan` |
+
+`requireRole(...roles)` trong `middleware/requireRole.js` là cổng dùng chung; nó gắn `req.userRole`
+để handler phía sau khỏi query lại `User`.
+
+**Duyệt khóa học đã chuyển sang moderator:** `/api/admin/courses/*` không còn tồn tại (trả 404),
+thay bằng `/api/moderator/courses/*`. Router moderator vẫn gắn `adminAuditLog` nên mọi thao tác
+duyệt vẫn ghi vào `SecurityLog` (`type: admin_action`) và hiện ở trang `/admin/audit-log`.
+
+Gán role: `PATCH /api/users/:id/role` — `ASSIGNABLE_ROLES` = `customer | mentor | moderator | enterprise`.
+Không nâng `admin` qua API (phải sửa trực tiếp DB).
+
+---
+
 ## Giỏ hàng và thanh toán nhiều khóa học — đã tích hợp
 
 | Method | Path | Quyền | Contract |
@@ -332,11 +356,12 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/admin/content/stats` | Thống kê phiên AI, CV, khóa + `interviewOps` (7 ngày, few-shot) |
 | GET | `/api/admin/content/interview-sessions` | Phiên phỏng vấn AI gần đây + câu hỏi đã lưu (`?limit=30`) |
 | GET | `/api/admin/content/course-media` | Danh sách khóa + số bài video (`?scope=all\|published\|pending`) |
-| GET | `/api/admin/courses/pending` | Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) |
-| GET | `/api/admin/courses/published` | Khóa đã xuất bản (`?limit=50`, tối đa 100) + `stats` |
-| PATCH | `/api/admin/courses/:id/approve` | Duyệt → `status: published`, xóa `adminReview` |
-| PATCH | `/api/admin/courses/:id/reject` | Từ chối — body `{ reason }` (bắt buộc) → `draft`, lưu `adminReview`, thông báo mentor |
-| PATCH | `/api/admin/courses/:id/archive` | Gỡ marketplace — body `{ reason? }` → `archived`, lưu `adminReview`, thông báo mentor |
+| GET | `/api/moderator/content/stats` | `[MODERATOR]` Bản dùng cho hàng đợi duyệt (cùng handler với `/api/admin/content/stats`) |
+| GET | `/api/moderator/courses/pending` | `[MODERATOR]` Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) |
+| GET | `/api/moderator/courses/published` | `[MODERATOR]` Khóa đã xuất bản (`?limit=50`, tối đa 100) + `stats` |
+| PATCH | `/api/moderator/courses/:id/approve` | `[MODERATOR]` Duyệt → `status: published`, xóa `adminReview` |
+| PATCH | `/api/moderator/courses/:id/reject` | `[MODERATOR]` Từ chối — body `{ reason }` (bắt buộc) → `draft`, lưu `adminReview`, thông báo mentor |
+| PATCH | `/api/moderator/courses/:id/archive` | `[MODERATOR]` Gỡ marketplace — body `{ reason? }` → `archived`, lưu `adminReview`, thông báo mentor |
 | PATCH | `/api/admin/bookings/:id/confirm-transfer-payment` | Xác nhận CK booking |
 | PATCH | `/api/admin/bookings/:id/confirm-refund` | Xác nhận hoàn tiền |
 | PATCH | `/api/admin/bookings/:id/status` | Cập nhật trạng thái booking |
@@ -726,11 +751,12 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | GET | `/api/admin/payments/subscription-pending` |
 | PATCH | `/api/admin/payments/:id/confirm-subscription-transfer` |
 | POST | `/api/admin/payments/normalize-transfer-refs` |
-| GET | `/api/admin/courses/pending` |
-| GET | `/api/admin/courses/published` |
-| PATCH | `/api/admin/courses/:id/approve` |
-| PATCH | `/api/admin/courses/:id/reject` |
-| PATCH | `/api/admin/courses/:id/archive` |
+| GET | `/api/moderator/courses/pending` |
+| GET | `/api/moderator/courses/published` |
+| PATCH | `/api/moderator/courses/:id/approve` |
+| PATCH | `/api/moderator/courses/:id/reject` |
+| PATCH | `/api/moderator/courses/:id/archive` |
+| GET | `/api/moderator/content/stats` |
 | GET | `/api/admin/content/stats` |
 | GET | `/api/admin/content/interview-sessions` |
 | GET | `/api/admin/content/course-media` |

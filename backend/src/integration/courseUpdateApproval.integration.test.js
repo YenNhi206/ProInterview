@@ -1,6 +1,6 @@
 /**
  * Integration: PUT /api/courses/:id không được ghi đè trực tiếp khóa học đang published —
- * phải qua pendingUpdate + admin duyệt (xem AdminController.approveCourse).
+ * phải qua pendingUpdate + moderator duyệt (routes/moderator.js → AdminController.approveCourse).
  */
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -84,7 +84,7 @@ async function createPublishedCourse(mentorId) {
   });
 }
 
-describe("Mentor sửa khóa học đã published phải qua admin duyệt", () => {
+describe("Mentor sửa khóa học đã published phải qua moderator duyệt", () => {
   it("PUT /api/courses/:id không ghi đè trực tiếp — chuyển sang pending_update", async () => {
     const { mentorUser, mentor } = await createVerifiedMentor(`pending-${Date.now()}`);
     const course = await createPublishedCourse(mentor._id);
@@ -113,12 +113,12 @@ describe("Mentor sửa khóa học đã published phải qua admin duyệt", () 
     assert.equal(stored.pendingUpdate.price, 1);
   });
 
-  it("Admin approve thì áp pendingUpdate vào khóa học live", async () => {
+  it("Moderator approve thì áp pendingUpdate vào khóa học live", async () => {
     const { mentorUser, mentor } = await createVerifiedMentor(`approve-${Date.now()}`);
-    const admin = await User.create({
-      name: "Admin Course Update",
-      email: `admin-course-update-${Date.now()}@test.local`,
-      role: "admin",
+    const moderator = await User.create({
+      name: "Moderator Course Update",
+      email: `moderator-course-update-${Date.now()}@test.local`,
+      role: "moderator",
     });
     const course = await createPublishedCourse(mentor._id);
 
@@ -133,9 +133,9 @@ describe("Mentor sửa khóa học đã published phải qua admin duyệt", () 
       }),
     });
 
-    const approveRes = await fetch(`${http.baseUrl}/api/admin/courses/${course._id}/approve`, {
+    const approveRes = await fetch(`${http.baseUrl}/api/moderator/courses/${course._id}/approve`, {
       method: "PATCH",
-      headers: bearer(admin._id),
+      headers: bearer(moderator._id),
     });
     assert.equal(approveRes.status, 200);
 
@@ -144,6 +144,38 @@ describe("Mentor sửa khóa học đã published phải qua admin duyệt", () 
     assert.equal(stored.title, "Tiêu đề mới chờ duyệt");
     assert.equal(stored.price, 599000);
     assert.equal(stored.pendingUpdate, null);
+  });
+
+  it("Admin KHÔNG còn duyệt được khóa học — quyền đã chuyển sang moderator", async () => {
+    const { mentorUser, mentor } = await createVerifiedMentor(`admin-denied-${Date.now()}`);
+    const admin = await User.create({
+      name: "Admin Course Update Denied",
+      email: `admin-denied-course-${Date.now()}@test.local`,
+      role: "admin",
+    });
+    const course = await createPublishedCourse(mentor._id);
+
+    await fetch(`${http.baseUrl}/api/courses/${course._id}`, {
+      method: "PUT",
+      headers: bearer(mentorUser._id),
+      body: JSON.stringify({
+        title: "Bản cập nhật admin không được duyệt",
+        price: 599000,
+        level: "basic",
+        chapters: [{ title: "Chương 1", lessons: [{ title: "Bài 1" }] }],
+      }),
+    });
+
+    const res = await fetch(`${http.baseUrl}/api/moderator/courses/${course._id}/approve`, {
+      method: "PATCH",
+      headers: bearer(admin._id),
+    });
+    assert.equal(res.status, 403);
+
+    // Khóa học giữ nguyên pending_update — không có side effect nào xảy ra.
+    const stored = await Course.findById(course._id).lean();
+    assert.equal(stored.status, "pending_update");
+    assert.equal(stored.title, "Khóa học gốc đã duyệt");
   });
 
   it("Khóa học còn draft vẫn sửa trực tiếp được (chưa public, không cần duyệt)", async () => {
