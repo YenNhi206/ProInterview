@@ -96,6 +96,9 @@ export function createApp() {
     }),
   );
 
+  // Snapshot khuôn mặt (base64) có thể > 1mb — limit riêng, khớp validateFaceImage (1.4M ký tự)
+  // trong routes/interviews.js. Phải mount TRƯỚC parser chung: body đã parse thì parser 1mb bỏ qua.
+  app.use("/api/interviews/sessions/:id/analyze-face", express.json({ limit: "1.5mb" }));
   // Fix lỗi "Cross-Origin-Opener-Policy" cho Google Login trên Render
   app.use(express.json({ limit: "1mb" }));
   app.use("/public", cors({ origin: staticCorsOrigin }), express.static("public"));
