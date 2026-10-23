@@ -27,7 +27,8 @@ import {
 import { newPaymentExpiresAt, isTransferPaymentExpired, TRANSFER_PAYMENT_TIMEOUT_MS } from "../utils/transferPaymentExpiry.js";
 import { expireBookingTransferIfNeeded } from "./transferPaymentExpiryService.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
-import { buildJaasMeetingLaunch } from "./jaasService.js";
+import { buildJaasMeetingLaunch, isJaasConfigured } from "./jaasService.js";
+import { isProduction } from "../utils/prodGuard.js";
 import { enforceExpiry } from "../utils/planGuard.js";
 import { resolvePlanPerkDiscountRate } from "../constants/planCatalog.js";
 import { validateCoupon, claimCouponUsage, claimCouponUsageByCode } from "./couponService.js";
@@ -735,6 +736,17 @@ export async function createBooking(userId, body) {
   // Coupon cũng do nền tảng gánh (giống discountAmount của gói Pro/Elite) — trừ luôn vào
   // platformFee để mentorNet = totalAmount - platformFee không đổi bất kể có coupon hay không.
   const platformFee = Math.max(0, standardPlatformFee - discountAmount - couponDiscountAmount);
+
+  // Thiếu JaaS → phòng họp rơi về meet.jit.si (giới hạn ~5 phút embed): không nhận tiền cho buổi
+  // mentor 60 phút mà phòng họp không chạy được.
+  if (isProduction() && payableAmount > 0 && !isJaasConfigured()) {
+    console.warn("[createBooking] Chặn booking trả phí: JAAS_* chưa cấu hình ở production.");
+    return {
+      ok: false,
+      status: 503,
+      error: "Hệ thống phòng họp đang bảo trì nên tạm chưa nhận đặt lịch có phí. Vui lòng thử lại sau.",
+    };
+  }
 
   const dup = await Booking.findOne({
     mentorId: mentor._id,
