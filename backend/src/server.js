@@ -9,6 +9,7 @@ import { connectDatabase } from "./db/connect.js";
 import "./models/index.js";
 import { createApp } from "./app.js";
 import { isJaasConfigured, getJaasPublicStatus } from "./services/jaasService.js";
+import { findMissingEnv } from "./config/validateEnv.js";
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
@@ -27,23 +28,8 @@ if (sentryEnabled) {
 }
 
 // ── Env validation ────────────────────────────────────────────────────────────
-const REQUIRED_ENV = {
-  MONGO_URI:       { critical: true,  feature: "Database" },
-  LLM_API_KEY:     { critical: true,  feature: "AI question generation + evaluation" },
-  LLM_BASE_URL:    { critical: true,  feature: "LLM API endpoint" },
-  CV_ANALYZER_URL: { critical: false, feature: "CV text extraction (Python service)" },
-  DID_API_KEY:     { critical: false, feature: "D-ID avatar (fallback Cloudinary)" },
-};
-
 function validateEnv() {
-  const critical = [];
-  const warnings = [];
-
-  for (const [key, config] of Object.entries(REQUIRED_ENV)) {
-    if (!process.env[key]) {
-      (config.critical ? critical : warnings).push({ key, feature: config.feature });
-    }
-  }
+  const { critical, warnings } = findMissingEnv(process.env, { isProd });
 
   if (critical.length > 0) {
     console.error("❌ CRITICAL: Missing required env vars — server cannot start:");
