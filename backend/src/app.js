@@ -214,7 +214,8 @@ export function createApp() {
   app.use("/api/cv", cvMatchRouter);
   app.use("/api/interviews", interviewsRouter);
   app.use("/api/upload", uploadRouter);
-  app.use("/api/mock", mockCoursesRouter);
+  // Dữ liệu khóa học giả (MOCK_COURSES) — chỉ cho dev/test, không mount ở production.
+  if (!isProd) app.use("/api/mock", mockCoursesRouter);
   app.use("/api/ai", aiProvidersRouter);
   app.use("/api/achievements", achievementsRouter);
   app.use("/api/analytics", analyticsRouter);
