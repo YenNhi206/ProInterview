@@ -631,6 +631,7 @@ export const InterviewsController = {
           overall5:      q.overall,
         })),
         isLockedForFree: false,
+        promptVersion:   evalResult.promptVersion ?? "",
       };
       session.feedbackGeneratedAt = new Date();
       if (!session.questions?.length && questionsToUse?.length) {

@@ -24,6 +24,12 @@ import { logger } from "../config/logger.js";
 import { SecurityLog } from "../models/SecurityLog.js";
 import { createTrace, logGeneration, finalizeTrace } from "./langfuseService.js";
 
+// ── Prompt version ────────────────────────────────────────────────────────────
+// Ghi vào QuestionBank.generatedBy.promptVersion / session.feedback.promptVersion để đo prompt
+// drift (quality/stats byPromptVersion). Sửa nội dung prompt sinh câu / chấm điểm thì TĂNG version.
+export const FOLLOWUP_PROMPT_VERSION = "followup-v1";
+export const EVAL_PROMPT_VERSION     = "eval-v1";
+
 // ── Env config (đọc động để hỗ trợ multi-provider) ───────────────────────────
 function cfg() {
   return {
@@ -71,6 +77,13 @@ function geminiReasoningEffort(baseUrl, model) {
  * Ưu tiên: LLM_PROVIDER env > detect từ URL > fallback openai_compat
  * @returns {"anthropic"|"openai_compat"}
  */
+/** Tên model thực sự được gọi cho loại tác vụ — ghi vào generatedBy.model. */
+export function activeLLMModel(kind = "qgen") {
+  const c = cfg();
+  if (getLLMProvider() === "anthropic") return kind === "eval" ? c.anthropicEval : c.anthropicQgen;
+  return c.model;
+}
+
 function getLLMProvider() {
   const explicit = process.env.LLM_PROVIDER?.toLowerCase();
   const { anthropicKey, baseUrl } = cfg();
@@ -725,6 +738,8 @@ export async function generateQuestionsFromText({
     inferredRole:      parsed.inferred_role      || position || "",
     inferredSeniority: parsed.inferred_seniority || "junior",
     competencyProfile,
+    model:             activeLLMModel("qgen"),
+    promptVersion:     FOLLOWUP_PROMPT_VERSION,
   };
 }
 
@@ -849,7 +864,7 @@ Trả về JSON hợp lệ (không markdown, không giải thích thêm):
   }));
 
   finalizeTrace(traceId, "success");
-  return { overallComment: parsed.overall_comment ?? "", perQuestion };
+  return { overallComment: parsed.overall_comment ?? "", perQuestion, promptVersion: EVAL_PROMPT_VERSION };
 }
 
 function clamp(v, min = 0, max = 5) {

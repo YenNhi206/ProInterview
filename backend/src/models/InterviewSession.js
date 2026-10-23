@@ -30,6 +30,9 @@ const interviewSessionSchema = new Schema(
         },
         expectedKeywords: [{ type: String }],
         deepDive:         [{ type: String }],
+        // Câu trong QuestionBank (harvest follow-up) — null với câu chưa thu hoạch
+        questionBankId: { type: Schema.Types.ObjectId, ref: "QuestionBank", default: null },
+        promptVersion:  { type: String, default: "" },
       },
     ],
     inferredRole:      { type: String, default: "" },
@@ -56,6 +59,30 @@ const interviewSessionSchema = new Schema(
         wordCount: { type: Number, default: 0 },
         durationSeconds: { type: Number, default: 0 },
         recordedAt: { type: Date },
+        questionBankId: { type: Schema.Types.ObjectId, ref: "QuestionBank", default: null },
+        // LLM chấm thiếu tiêu chí (sau retry) → điểm fallback 3 + vào hàng đợi moderator
+        evaluationIncomplete: { type: Boolean, default: false },
+        incompleteFields:     [{ type: String }],
+        // Moderator chấm lại — KHÔNG ghi đè điểm AI gốc (feedback.perQuestion), lưu song song
+        moderatorOverride: {
+          type: new Schema(
+            {
+              scores: {
+                clarity:     { type: Number, min: 0, max: 5 },
+                structure:   { type: Number, min: 0, max: 5 },
+                relevance:   { type: Number, min: 0, max: 5 },
+                credibility: { type: Number, min: 0, max: 5 },
+              },
+              overall:   { type: Number, min: 0, max: 5 },
+              shrmLevel: { type: String, enum: ["excellent", "proficient", "developing"] },
+              note:      { type: String, default: "" },
+              by:        { type: Schema.Types.ObjectId, ref: "User" },
+              at:        { type: Date },
+            },
+            { _id: false },
+          ),
+          default: null,
+        },
         // Red flag phát hiện real-time trên client (redFlagDetector.js) — nói xấu công ty cũ,
         // đổ lỗi/thiếu trách nhiệm, ngôn từ không chuyên nghiệp/phân biệt đối xử. Lưu lại để
         // hiện cho ứng viên xem lại ở InterviewFeedback.jsx.
@@ -138,6 +165,8 @@ const interviewSessionSchema = new Schema(
         },
       ],
       isLockedForFree: { type: Boolean, default: false },
+      // Phiên bản prompt chấm điểm (EVAL_PROMPT_VERSION) — đo drift theo version
+      promptVersion: { type: String, default: "" },
     },
 
     status: {
