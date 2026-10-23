@@ -183,34 +183,45 @@ export const InterviewsController = {
       const { id } = req.params;
       const { questionIndex, questionText, transcript, durationSeconds, behavioralData, redFlags } = req.body;
 
-      const entry = {
-        questionIndex, questionText, transcript, durationSeconds,
-        recordedAt: new Date(),
-        ...(behavioralData && { behavioralData }),
+      // Chỉ $set các field updateAnswer quản lý. KHÔNG ghi đè cả phần tử answers[i] — field do
+      // luồng khác ghi (behavioralData.emotion từ analyzeFace, evaluationIncomplete,
+      // moderatorOverride, …) phải được giữ nguyên. behavioralData set theo từng key con vì lý do đó.
+      const managed = {
+        ...(questionText !== undefined && { questionText }),
+        ...(transcript !== undefined && { transcript }),
+        ...(durationSeconds !== undefined && { durationSeconds }),
         ...(Array.isArray(redFlags) && redFlags.length > 0 && { redFlags }),
+        recordedAt: new Date(),
       };
+      const behavioral = behavioralData && typeof behavioralData === "object" ? behavioralData : {};
 
-      // Upsert: cập nhật answer đã có cho questionIndex, hoặc push mới nếu chưa có.
-      // Dùng findOneAndUpdate thay vì load-modify-save để tránh race condition với analyzeFace.
+      const setPositional = {};
+      for (const [k, v] of Object.entries(managed)) setPositional[`answers.$.${k}`] = v;
+      for (const [k, v] of Object.entries(behavioral)) setPositional[`answers.$.behavioralData.${k}`] = v;
+
       let session = await InterviewSession.findOneAndUpdate(
         { _id: id, userId: req.userId, status: "in_progress", "answers.questionIndex": questionIndex },
-        { $set: { "answers.$": entry } },
-        { new: true },
+        { $set: setPositional },
+        { returnDocument: "after" },
       );
 
       if (!session) {
         // Chưa có answer cho questionIndex này — push mới.
         // Filter status: "in_progress" xử lý đồng thời 404 và "đã kết thúc".
         session = await InterviewSession.findOneAndUpdate(
-          { _id: id, userId: req.userId, status: "in_progress" },
-          { $push: { answers: entry } },
-          { new: true },
+          { _id: id, userId: req.userId, status: "in_progress", "answers.questionIndex": { $ne: questionIndex } },
+          { $push: { answers: { questionIndex, ...managed, ...(Object.keys(behavioral).length && { behavioralData: behavioral }) } } },
+          { returnDocument: "after" },
         );
 
         if (!session) {
-          const exists = await InterviewSession.exists({ _id: id, userId: req.userId });
-          if (!exists) return res.status(404).json({ success: false, error: "Phiên phỏng vấn không tồn tại" });
-          return res.status(400).json({ success: false, error: "Phiên phỏng vấn này đã kết thúc" });
+          const existing = await InterviewSession.findOne({ _id: id, userId: req.userId }).select("status").lean();
+          if (!existing) return res.status(404).json({ success: false, error: "Phiên phỏng vấn không tồn tại" });
+          if (existing.status === "in_progress") {
+            // Request đồng thời vừa push answer cho câu này → thử lại sẽ đi nhánh $set.
+            return res.status(409).json({ success: false, error: "Câu trả lời đang được lưu, vui lòng thử lại." });
+          }
+          return res.status(409).json({ success: false, error: "Phiên phỏng vấn này đã kết thúc" });
         }
       }
 
