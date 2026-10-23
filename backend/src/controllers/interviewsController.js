@@ -496,7 +496,7 @@ export const InterviewsController = {
           },
         });
         followUps = policy.questions;
-        if (policy.replaced || policy.regenerated || policy.dropped) {
+        if (policy.replaced || policy.regenerated || policy.fallback) {
           logger.info("followup_deprecated_replaced", { sessionId: id, ...policy, questions: undefined });
         }
       } catch (err) {
