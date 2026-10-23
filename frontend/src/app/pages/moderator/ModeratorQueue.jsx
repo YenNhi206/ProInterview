@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { moderatorApi } from "../../api/moderatorApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
+import { ModeratorPageHeader } from "./ModeratorPageHeader.jsx";
 import { AdminFilterSelect, AdminListFilterBar } from "../../components/admin/AdminListFilters.jsx";
 import { QUEUE_PRIORITY, QUEUE_STATUS, QUEUE_TYPE, formatDateTime } from "../../utils/moderator/moderationLabels.js";
 
@@ -50,10 +51,10 @@ export function ModeratorQueue() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-extrabold text-slate-900">Hàng đợi kiểm định</h2>
-        <p className="text-sm text-slate-500">Báo cáo của người dùng về câu hỏi / điểm chấm AI và các lần chấm thiếu tiêu chí. Ưu tiên cao xếp trước.</p>
-      </div>
+      <ModeratorPageHeader
+        title="Hàng đợi kiểm định"
+        subtitle="Báo cáo của người dùng về câu hỏi / điểm chấm AI và các lần chấm thiếu tiêu chí. Ưu tiên cao xếp trước."
+      />
 
       <AdminListFilterBar
         countText={pagination ? `${pagination.total} mục` : ""}

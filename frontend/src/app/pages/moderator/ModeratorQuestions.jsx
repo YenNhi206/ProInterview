@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Flag, Pencil, Plus, Search, XCircle } from "lucide-react";
 import { moderatorApi } from "../../api/moderatorApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
+import { ModeratorPageHeader } from "./ModeratorPageHeader.jsx";
 import { AdminFilterSelect, AdminListFilterBar } from "../../components/admin/AdminListFilters.jsx";
 import { AppSelect } from "../../components/ui/AppSelect";
 import {
@@ -292,13 +293,11 @@ export function ModeratorQuestions() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-extrabold text-slate-900">Ngân hàng câu hỏi</h2>
-          <p className="text-sm text-slate-500">Câu follow-up do AI sinh được thu vào đây để kiểm định sau buổi phỏng vấn.</p>
-        </div>
-        <button type="button" className={btnPrimary} onClick={() => setCreating((v) => !v)}><Plus className="size-4" /> Thêm câu hỏi</button>
-      </div>
+      <ModeratorPageHeader
+        title="Ngân hàng câu hỏi"
+        subtitle="Câu follow-up do AI sinh được thu vào đây để kiểm định sau buổi phỏng vấn."
+        actions={<button type="button" className={btnPrimary} onClick={() => setCreating((v) => !v)}><Plus className="size-4" /> Thêm câu hỏi</button>}
+      />
 
       {creating ? <CreateQuestionForm onCancel={() => setCreating(false)} onCreated={(q) => { setCreating(false); setSelectedId(q._id); load(); }} /> : null}
 

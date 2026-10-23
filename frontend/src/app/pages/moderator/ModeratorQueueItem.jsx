@@ -10,6 +10,7 @@ import { PriorityBadge } from "./ModeratorQueue.jsx";
 import {
   COMPETENCIES,
   QUEUE_STATUS,
+  QUESTION_STATUS,
   QUEUE_TYPE,
   REASON_CODE,
   SCORE_DIMENSIONS,
@@ -191,21 +192,21 @@ export function ModeratorQueueItem() {
     load();
   }, [load]);
 
-  if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!data) return <p className="text-sm text-slate-500">Đang tải…</p>;
+  if (error) return <p className="text-sm text-red-300">{error}</p>;
+  if (!data) return <p className="text-sm text-slate-300">Đang tải…</p>;
 
   const { item, report, question } = data;
   const ai = item.snapshot?.aiEvaluation;
 
   return (
     <div className="space-y-4">
-      <Link to="/moderator/queue" className="inline-flex items-center gap-1 text-sm font-semibold text-[#6E35E8] hover:underline">
+      <Link to="/moderator/queue" className="inline-flex items-center gap-1 text-sm font-semibold text-violet-300 hover:underline">
         <ArrowLeft className="size-4" /> Hàng đợi
       </Link>
       <div className="flex flex-wrap items-center gap-2">
         <PriorityBadge priority={item.priority} />
-        <h2 className="text-xl font-extrabold text-slate-900">{QUEUE_TYPE[item.type] ?? item.type}</h2>
-        <span className="text-sm text-slate-500">· {QUEUE_STATUS[item.status]} · tạo {formatDateTime(item.createdAt)}</span>
+        <h2 className="text-xl font-extrabold text-white">{QUEUE_TYPE[item.type] ?? item.type}</h2>
+        <span className="text-sm text-slate-300">· {QUEUE_STATUS[item.status]} · tạo {formatDateTime(item.createdAt)}</span>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
@@ -215,7 +216,7 @@ export function ModeratorQueueItem() {
             <p className="mt-2 text-[15px] font-semibold text-slate-900">{item.snapshot?.questionText || "—"}</p>
             {question ? (
               <p className="mt-1 text-xs text-slate-500">
-                {competencyLabel(question.competencyId)} · trong ngân hàng: {question.status} · bị báo {question.flagCount ?? 0} lần
+                {competencyLabel(question.competencyId)} · trong ngân hàng: {QUESTION_STATUS[question.status]?.label ?? question.status} · bị báo {question.flagCount ?? 0} lần
               </p>
             ) : null}
           </section>

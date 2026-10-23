@@ -7,11 +7,14 @@ import { useUserPresence } from "../../hooks/useUserPresence.js";
 /**
  * Khu vực kiểm duyệt viên.
  *
- * Cố ý dùng thanh tab đơn giản thay vì sidebar: hiện mới có một mục (duyệt khóa học).
- * Khi package Moderator bổ sung ngân hàng câu hỏi, hàng đợi review và quality dashboard
- * thì nâng lên sidebar giống AdminLayout.
+ * Thanh tab (4 mục) — đủ gọn để chưa cần sidebar như AdminLayout.
  */
-const NAV = [{ to: "/moderator/courses", label: "Duyệt khóa học" }];
+const NAV = [
+  { to: "/moderator/queue", label: "Hàng đợi kiểm định" },
+  { to: "/moderator/questions", label: "Ngân hàng câu hỏi" },
+  { to: "/moderator/quality", label: "Chất lượng AI" },
+  { to: "/moderator/courses", label: "Duyệt khóa học" },
+];
 
 function tabClass({ isActive }) {
   const base =
