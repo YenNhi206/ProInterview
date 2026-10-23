@@ -346,7 +346,7 @@ export function MentorReviews() {
       : 0;
 
   return (
-    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="!bg-[#f8f9fc]">
+    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent">
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
         <motion.header
           initial={{ opacity: 0, y: -12 }}

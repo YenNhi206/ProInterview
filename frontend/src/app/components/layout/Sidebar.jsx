@@ -444,6 +444,12 @@ export function AppSidebar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/mentor-requests" className="flex items-center gap-2.5 cursor-pointer">
+                        <FileText className="size-4 text-violet-400" />
+                        Yêu cầu Mentor của tôi
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/my-courses" className="flex items-center gap-2.5 cursor-pointer">
                         <BookOpen className="size-4 text-violet-400" />
                         Khóa học của tôi

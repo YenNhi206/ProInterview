@@ -28,6 +28,7 @@ import { fetchMentor, fetchMentorAvailability } from "../../api/mentorApi.js";
 import { isBookingSlotInFuture } from "../../utils/booking/bookingSchedule.js";
 import { fetchBookedSlots, fetchRebookCredit } from "../../api/bookingsApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
+import { getMentorshipRequest } from "../../api/mentorshipRequestsApi.js";
 import { uploadFile } from "../../api/uploadApi.js";
 import { getSuggestedBookingDataAsync, saveUploadedCV, saveUploadedJD } from "../../utils/shared/history.js";
 import { BookingStepBar } from "../../components/booking/BookingStepBar";
@@ -155,7 +156,9 @@ export function Booking() {
     })();
   }, [id]);
 
-  const MAX_SLOTS = 5;
+  const mentorshipRequestId = searchParams.get("mentorshipRequestId") || "";
+  const [matchedRequest, setMatchedRequest] = useState(null);
+  const MAX_SLOTS = mentorshipRequestId ? 1 : 5;
 
   const [step, setStep] = useState(1);
   const [selectedDay, setSelectedDay]     = useState(null);
@@ -165,8 +168,8 @@ export function Booking() {
   const [sessionType, setSessionType] = useState("mock_interview");
 
   const sessionTypeOptions = useMemo(
-    () => (mentor ? resolveMentorSessionTypeOptions(mentor) : []),
-    [mentor],
+    () => (mentor ? resolveMentorSessionTypeOptions(mentor).filter(option => !matchedRequest || option.value === matchedRequest.sessionType) : []),
+    [mentor, matchedRequest],
   );
 
   const sessionPrice = useMemo(() => {
@@ -191,6 +194,26 @@ export function Booking() {
   const [jdUploading, setJdUploading] = useState(false);
   const cvInputRef = useRef(null);
   const jdInputRef = useRef(null);
+  useEffect(() => {
+    setMatchedRequest(null);
+    if (!mentorshipRequestId || !mentor) return;
+    let active = true;
+    getMentorshipRequest(mentorshipRequestId).then(({ request }) => {
+      const offer = request.offers.find(item => item.id === request.selectedOfferId);
+      if (request.status !== "selected" || !offer || String(offer.mentorPublicId) !== String(mentor.id)) throw new Error("Yêu cầu chưa chọn Mentor này.");
+      if (request.bookingId) { navigate(`/session/${request.bookingId}`, { replace: true }); return; }
+      if (!active) return;
+      setMatchedRequest(request);
+      setSessionType(request.sessionType);
+      setForm({ position: request.position, note: request.description, cv: true, jd: true });
+      setSelectedCvFile(request.cvName); setSelectedJdFile(request.jdName);
+      setSelectedCvUrl(`/api/mentorship-requests/${request.id}/files/cv`);
+      setSelectedJdUrl(`/api/mentorship-requests/${request.id}/files/jd`);
+      setShowSmartBanner(false);
+    }).catch(error => { if (active) toastApiError(error.message); });
+    return () => { active = false; };
+  }, [mentorshipRequestId, mentor, navigate]);
+
   const calendarWeeks = useMemo(() => {
     const now = new Date();
     const thisWeekStart = startOfIsoWeek(now);
@@ -201,7 +224,7 @@ export function Booking() {
   useEffect(() => {
     void getSuggestedBookingDataAsync().then((suggested) => {
       setSuggestedData(suggested);
-      if (suggested?.position) setShowSmartBanner(true);
+      if (suggested?.position && !mentorshipRequestId) setShowSmartBanner(true);
     });
   }, []);
 
@@ -272,6 +295,7 @@ export function Booking() {
   };
 
   const handleProceed = () => {
+    if (mentorshipRequestId && matchedRequest?.id !== mentorshipRequestId) { toastApiError("Chưa tải được yêu cầu đã chọn. Vui lòng quay lại Yêu cầu của tôi."); return; }
     if (!selectedCvFile || !selectedCvUrl) {
       toastApiError("Vui lòng tải CV lên server (chọn file và đợi tải xong).");
       return;
@@ -294,6 +318,7 @@ export function Booking() {
       jdFileUrl: form.jd && selectedJdUrl ? selectedJdUrl : "",
     });
     if (rebookFrom) params.set("rebookFrom", rebookFrom);
+    if (mentorshipRequestId) params.set("mentorshipRequestId", mentorshipRequestId);
     navigate(`/checkout?${params.toString()}`);
   };
 
@@ -472,6 +497,7 @@ export function Booking() {
         </nav>
 
         <div className="mb-8">
+          {matchedRequest && <div className="mb-5 rounded-xl border border-[#93f72b]/30 bg-[#211a36] p-4 text-sm text-white"><p className="font-semibold text-[#93f72b]">Đặt lịch từ nhu cầu: {matchedRequest.title}</p><p className="mt-1 text-xs text-white/65">CV/JD đã được đính kèm riêng tư. Một đề nghị tương ứng một buổi 60 phút; phí và ưu đãi được xác nhận tại checkout.</p><Link className="mt-2 inline-block text-xs text-[#93f72b]" to={`/mentor-requests/${matchedRequest.id}`}>Xem yêu cầu và tài liệu →</Link></div>}
           <BookingStepBar current={step} onStepClick={setStep} />
         </div>
 
@@ -884,10 +910,14 @@ export function Booking() {
                     className={fieldClass}
                     placeholder="Ví dụ: Frontend Developer tại Shopee"
                     value={form.position}
+                    readOnly={!!matchedRequest}
                     onChange={(e) => setForm({ ...form, position: e.target.value })}
                   />
                 </div>
 
+                {matchedRequest ? (
+                  <div className="rounded-xl border border-[#93f72b]/25 bg-[#93f72b]/5 p-4 text-sm text-white"><p className="font-semibold text-[#93f72b]">CV/JD đã có trong yêu cầu</p><p className="mt-2 text-xs text-white/65">{matchedRequest.cvName}<br />{matchedRequest.jdName}</p><Link to={`/mentor-requests/${matchedRequest.id}`} className="mt-3 inline-block text-xs text-[#93f72b]">Xem tài liệu riêng tư →</Link></div>
+                ) : (<>
                 <div>
                   <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-400">
                     Tải lên CV <span className="font-normal normal-case text-slate-400">(bắt buộc)</span>
@@ -1002,6 +1032,8 @@ export function Booking() {
                   </div>
                 </div>
 
+                </>)}
+
                 <div>
                   <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Ghi chú (nếu có)</label>
                   <textarea
@@ -1009,6 +1041,7 @@ export function Booking() {
                     rows={2}
                     placeholder="Yêu cầu đặc biệt, tập trung kỹ năng nào, ngôn ngữ phỏng vấn..."
                     value={form.note}
+                    readOnly={!!matchedRequest}
                     onChange={(e) => setForm({ ...form, note: e.target.value })}
                   />
                 </div>

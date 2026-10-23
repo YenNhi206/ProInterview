@@ -8,11 +8,11 @@ import { CvJdAnalysisTabs } from "./CvJdAnalysisTabs";
 import { CustomerPageHeader } from "../layout/CustomerPageHeader";
 
 export const CV_JD_CARD_CLASS =
-  "w-full overflow-hidden rounded-[1.75rem] border border-violet-200/80 bg-white shadow-[0_16px_40px_rgba(99,14,212,0.1)]";
+  "w-full overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#211a36] text-[#f5f2ff] shadow-[0_20px_60px_rgba(5,3,18,0.3)]";
 
 /** Field upload + dropdown ngành, cần overflow visible để list không bị cắt */
 export const CV_JD_CARD_FIELD_CLASS =
-  "w-full overflow-visible rounded-[1.75rem] border border-violet-200/80 bg-white shadow-[0_16px_40px_rgba(99,14,212,0.1)]";
+  "w-full overflow-visible rounded-[1.75rem] border border-white/15 bg-[#211a36] text-[#f5f2ff] shadow-[0_20px_60px_rgba(5,3,18,0.3)]";
 
 const JD_SUBTITLE =
   "Tải CV và Job Description, phân tích khớp từ khóa, chấm điểm và gợi ý chỉnh sửa theo đúng vị trí tuyển dụng.";
@@ -21,7 +21,7 @@ const FIELD_SUBTITLE =
   "Tải CV, chọn nhóm ngành nghề. AI đánh giá cấu trúc, nội dung và gợi ý cải thiện theo chuẩn ngành.";
 
 const FIELD_SUBTITLE_CLASS =
-  "mt-2 max-w-2xl text-sm font-medium leading-relaxed text-slate-600 sm:text-base";
+  "mt-2 max-w-2xl text-sm font-medium leading-relaxed text-[#c7bfdc] sm:text-base";
 
 /** Header cố định theo tính năng, tab Phân tích / Lịch sử dùng chung, không đổi tiêu đề khi chuyển tab */
 export function cvAnalysisPageHeader(mode) {
@@ -29,7 +29,7 @@ export function cvAnalysisPageHeader(mode) {
     return {
       title: (
         <>
-          Phân tích CV <span className="text-[#630ed4]">theo ngành</span>
+          Phân tích CV <span className="text-[#b99aff]">theo ngành</span>
         </>
       ),
       subtitle: FIELD_SUBTITLE,
@@ -39,11 +39,11 @@ export function cvAnalysisPageHeader(mode) {
   return {
     title: (
       <>
-        Tối ưu CV theo vị trí <span className="text-[#630ed4]">ứng tuyển</span>
+        Tối ưu CV theo vị trí <span className="text-[#b99aff]">ứng tuyển</span>
       </>
     ),
     subtitle: JD_SUBTITLE,
-    subtitleClassName: "mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-600 sm:text-base",
+    subtitleClassName: "mt-3 max-w-3xl text-sm font-medium leading-relaxed text-[#c7bfdc] sm:text-base",
   };
 }
 
@@ -60,11 +60,11 @@ export function CvJdAnalysisPage({
   badge = null,
   title = (
     <>
-      Tối ưu CV theo vị trí <span className="text-[#630ed4]">ứng tuyển</span>
+      Tối ưu CV theo vị trí <span className="text-[#b99aff]">ứng tuyển</span>
     </>
   ),
   subtitle = JD_SUBTITLE,
-  subtitleClassName = "mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-600 sm:text-base",
+  subtitleClassName = "mt-3 max-w-3xl text-sm font-medium leading-relaxed text-[#c7bfdc] sm:text-base",
   showTabs = true,
   showHeader = true,
   cardVariant = "default",
@@ -80,6 +80,7 @@ export function CvJdAnalysisPage({
               <CustomerPageHeader
                 badge={badge}
                 title={title}
+                titleClassName="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-black leading-[1.12] tracking-tight text-[#f5f2ff]"
                 subtitle={subtitle}
                 subtitleClassName={subtitleClassName}
                 className="w-full"
@@ -95,7 +96,7 @@ export function CvJdAnalysisPage({
                   historyPath={tabHistoryPath}
                 />
               ) : tabTrailing ? (
-                <div className="flex justify-end border-b border-violet-100 px-4 py-3 sm:px-6">
+                <div className="flex justify-end border-b border-white/10 px-4 py-3 sm:px-6">
                   {tabTrailing}
                 </div>
               ) : null}

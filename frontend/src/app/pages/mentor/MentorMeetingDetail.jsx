@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { Link, useParams, useNavigate } from "react-router";
 import { 
   Video, 
   Calendar, 
@@ -173,6 +173,7 @@ export function MentorMeetingDetail() {
         meetingType: b.sessionType || "custom",
         rescheduleCount: Array.isArray(b.rescheduleHistory) ? b.rescheduleHistory.length : 0,
         notes: b.notes || "",
+        mentorshipRequestId: b.mentorshipRequestId || "",
         cvFileName: b.cvFileName || "",
         jdFileName: b.jdFileName || "",
         cvFileUrl: b.cvFileUrl || "",
@@ -731,6 +732,7 @@ export function MentorMeetingDetail() {
                             <span className="font-semibold text-slate-800">Ghi chú:</span> {att.note}
                           </p>
                         ) : null}
+                        {att.mentorshipRequestId && <Link to={`/mentor/requests/${att.mentorshipRequestId}`} className="mb-3 inline-block text-sm font-semibold text-[#93f72b]">Mở nhu cầu và tải CV/JD riêng tư →</Link>}
                         <DocRow label="CV học viên" name={att.cvFileName} url={att.cvFileUrl} />
                         {att.jdFileName ? (
                           <DocRow label="JD" name={att.jdFileName} url={att.jdFileUrl} />
@@ -927,6 +929,7 @@ export function MentorMeetingDetail() {
                     Chọn thời gian mới <span className="text-red-500">*</span>
                   </label>
                   <AppSelect
+                    theme="dark"
                     id="reschedule-new-slot"
                     size="md"
                     value={`${rescheduleForm.newDate}|${rescheduleForm.newTimeSlot}`}

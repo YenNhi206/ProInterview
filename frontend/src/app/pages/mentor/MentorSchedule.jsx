@@ -318,6 +318,7 @@ function AvailabilityModal({ onClose, availability, onSaved }) {
                         <div className="space-y-1.5">
                            <p className="ml-3 text-xs font-normal text-violet-700">Ngày trong tuần</p>
                            <AppSelect
+                    theme="dark"
                               size="default"
                               value={newSlotDay}
                               onValueChange={(v) => setNewSlotDay(Number(v))}
@@ -327,6 +328,7 @@ function AvailabilityModal({ onClose, availability, onSaved }) {
                         <div className="space-y-1.5">
                            <p className="ml-3 text-xs font-normal text-violet-700">Bắt đầu từ</p>
                            <AppSelect
+                    theme="dark"
                               size="default"
                               value={newSlotRange}
                               onValueChange={setNewSlotRange}
@@ -463,7 +465,7 @@ export function MentorSchedule() {
         <div className="mb-4 flex shrink-0 flex-col gap-3 overflow-visible pt-1 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 overflow-visible">
             <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-slate-900">
-              Lịch trình <span className="text-[#8037f4]">hệ thống</span>
+              Lịch họp <span className="text-[#8037f4]">của bạn</span>
             </h1>
             <p className="mt-2 max-w-xl text-sm text-slate-500">
               Lịch rảnh và quản lý các buổi hẹn mentor.
@@ -474,7 +476,7 @@ export function MentorSchedule() {
             onClick={() => setShowAvailability(true)}
             className="flex shrink-0 items-center gap-2 self-start rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-[#120B2E] shadow-[0_6px_18px_rgba(147,247,43,0.32)] transition-all hover:brightness-105 sm:px-6 sm:py-3"
           >
-            <Clock size={15} /> Cài đặt làm việc
+            <Clock size={15} /> Cập nhật lịch rảnh
           </button>
         </div>
 

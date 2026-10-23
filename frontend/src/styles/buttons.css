@@ -67,3 +67,24 @@
 @media (forced-colors: active) {
   :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"]) { border: 1px solid ButtonText; box-shadow: none !important; }
 }
+
+
+/* Primary CV actions share the bright lime booking button treatment. */
+.cv-analyze-cta {
+  color: #101707;
+  background-color: #93f72b;
+  background-image: linear-gradient(180deg, #ffffff18, transparent 65%);
+  border: 1px solid #bcff79;
+  box-shadow: inset 0 1px 2px #ffffff80, 0 0 0 3px #93f72b12, 0 4px 14px #08061440;
+}
+.cv-analyze-cta:not(:disabled):hover { background-color: #a6ff4d; transform: translateY(-1px); }
+.cv-analyze-cta:not(:disabled):active { transform: translateY(0); }
+.cv-analyze-cta:focus-visible { outline: 2px solid #93f72b; outline-offset: 5px; }
+.cv-analyze-cta:disabled {
+  color: #c9bfd9;
+  background-color: #292136;
+  background-image: linear-gradient(180deg, #c8a0ff18, #15111f40);
+  border-color: #88709f;
+  box-shadow: inset 0 1px 1px #ffffff30 !important;
+}
+@media (prefers-reduced-motion: reduce) { .cv-analyze-cta { transition: none; } }

@@ -1,17 +1,16 @@
+import { Link } from "react-router";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorHeroAtmosphere } from "../../components/mentor/MentorHeroAtmosphere";
 import "../../../styles/mentor-search.css";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "motion/react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import {
   Search as MagnifyingGlass,
   Star,
   X,
   Loader2 as CircleNotch,
   AlertCircle,
-  ChevronDown,
-  Filter,
   SlidersHorizontal,
 } from "lucide-react";
 import { MentorListCard } from "../../components/mentor/MentorListCard";
@@ -27,32 +26,6 @@ import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layo
 import { ListPagination } from "../../components/shared/ListPagination";
 import { AppSelect } from "../../components/ui/AppSelect";
 
-const EXPERIENCE_OPTIONS = [
-  { label: "1-3 năm", value: "1-3" },
-  { label: "4-6 năm", value: "4-6" },
-  { label: "7+ năm", value: "7+" },
-];
-
-const PRICE_OPTIONS = [
-  { label: "Dưới 280k", min: 0, max: 280000 },
-  { label: "280k - 320k", min: 280000, max: 320000 },
-  { label: "Trên 320k", min: 320000, max: Infinity },
-];
-
-const RATING_OPTIONS = [
-  { label: "4.5+", min: 4.5 },
-  { label: "4.0+", min: 4.0 },
-  { label: "3.5+", min: 3.5 },
-];
-
-const TOPIC_OPTIONS = [
-  { label: "CV Review", value: "cv_review" },
-  { label: "Mock Interview", value: "mock_interview" },
-  { label: "Career Advisory", value: "career_advisory" },
-  { label: "Tech Stack Sharing", value: "tech_sharing" },
-  { label: "Coding Practice", value: "coding_practice" }
-];
-
 const MENTORS_PAGE_SIZE = 8;
 
 export function Mentors() {
@@ -61,6 +34,7 @@ export function Mentors() {
   const glow1Y = useTransform(scrollYProgress, [0, 1], [0, -70]);
   const glow2Y = useTransform(scrollYProgress, [0, 1], [0, -45]);
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const rebookFrom =
     searchParams.get("rebookFrom") ||
@@ -69,22 +43,8 @@ export function Mentors() {
   const [rebookCredit, setRebookCredit] = useState(null);
   const [search, setSearch] = useState("");
   
-  // Custom filter states matching screenshot requirements
-  const [selectedTopic, setSelectedTopic] = useState("");
-  const [companySearch, setCompanySearch] = useState("");
-  const [titleSearch, setTitleSearch] = useState("");
-  const [selectedSchedule, setSelectedSchedule] = useState("");
-  
-  // Advanced filters state
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  
-  // Original filters state
   const [selectedField, setSelectedField] = useState(null);
-  const [selectedExp, setSelectedExp] = useState(null);
-  const [selectedPriceIndex, setSelectedPriceIndex] = useState(null);
-  const [selectedRating, setSelectedRating] = useState(null);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -150,69 +110,9 @@ export function Mentors() {
         m.field.toLowerCase().includes(q) ||
         m.tags.some((t) => t.toLowerCase().includes(q));
 
-      // Company specific filter
-      const matchCompany =
-        !companySearch ||
-        (m.company || "").toLowerCase().includes(companySearch.toLowerCase());
-
-      // Position/Title specific filter
-      const matchTitle =
-        !titleSearch ||
-        (m.title || "").toLowerCase().includes(titleSearch.toLowerCase());
-
-      // Topic selector (matches tags or fields)
-      const matchTopic =
-        !selectedTopic ||
-        m.tags.some((t) => t.toLowerCase().includes(selectedTopic.toLowerCase())) ||
-        m.field.toLowerCase().includes(selectedTopic.toLowerCase());
-
-      // Schedule selector
-      const matchSchedule =
-        !selectedSchedule ||
-        selectedSchedule === "all" ||
-        (selectedSchedule === "today" && m.isOnline) ||
-        (selectedSchedule === "week"); // "week" is the default calendar availability for all
-
-      const matchField = mentorMatchesFilterField(m, selectedField);
-
-      const matchExp =
-        !selectedExp ||
-        (selectedExp === "1-3" && m.experience <= 3) ||
-        (selectedExp === "4-6" && m.experience >= 4 && m.experience <= 6) ||
-        (selectedExp === "7+" && m.experience >= 7);
-
-      const priceRange =
-        selectedPriceIndex != null ? PRICE_OPTIONS[selectedPriceIndex] : null;
-      const matchPrice =
-        !priceRange || (m.price >= priceRange.min && m.price <= priceRange.max);
-
-      const ratingMin = RATING_OPTIONS.find((r) => r.label === selectedRating)?.min;
-      const matchRating = !ratingMin || m.rating >= ratingMin;
-
-      return (
-        matchSearch &&
-        matchCompany &&
-        matchTitle &&
-        matchTopic &&
-        matchSchedule &&
-        matchField &&
-        matchExp &&
-        matchPrice &&
-        matchRating
-      );
+      return matchSearch && mentorMatchesFilterField(m, selectedField);
     });
-  }, [
-    search,
-    companySearch,
-    titleSearch,
-    selectedTopic,
-    selectedSchedule,
-    selectedField,
-    selectedExp,
-    selectedPriceIndex,
-    selectedRating,
-    mentors,
-  ]);
+  }, [search, selectedField, mentors]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMentors.length / MENTORS_PAGE_SIZE));
 
@@ -221,42 +121,14 @@ export function Mentors() {
     return filteredMentors.slice(start, start + MENTORS_PAGE_SIZE);
   }, [filteredMentors, currentPage]);
 
-  const hasFilter =
-    Boolean(search) ||
-    Boolean(companySearch) ||
-    Boolean(titleSearch) ||
-    Boolean(selectedTopic) ||
-    Boolean(selectedSchedule) ||
-    Boolean(selectedField) ||
-    Boolean(selectedExp) ||
-    selectedPriceIndex != null ||
-    Boolean(selectedRating);
-
+  const hasFilter = Boolean(search) || Boolean(selectedField);
   const clearFilters = () => {
     setSearch("");
-    setCompanySearch("");
-    setTitleSearch("");
-    setSelectedTopic("");
-    setSelectedSchedule("");
     setSelectedField(null);
-    setSelectedExp(null);
-    setSelectedPriceIndex(null);
-    setSelectedRating(null);
   };
-
   useEffect(() => {
     setCurrentPage(1);
-  }, [
-    search,
-    companySearch,
-    titleSearch,
-    selectedTopic,
-    selectedSchedule,
-    selectedField,
-    selectedExp,
-    selectedPriceIndex,
-    selectedRating,
-  ]);
+  }, [search, selectedField]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -377,6 +249,7 @@ export function Mentors() {
               </button>
             </div>
           </motion.div>
+
         </div>
       </div>
 
@@ -386,7 +259,7 @@ export function Mentors() {
           
           {/* Results count indicator and Toggle Button */}
           <motion.div
-            className="mb-6 flex items-center justify-between px-1 border-b border-white/10 pb-4"
+            className="mb-6 flex flex-wrap items-center justify-between gap-4 px-1 border-b border-white/10 pb-4"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
@@ -394,185 +267,20 @@ export function Mentors() {
             <p className="text-sm font-semibold text-slate-300">
               Tìm thấy <span className="text-base font-black text-[#93f72b]">{filteredMentors.length}</span> Mentor cho bạn!
             </p>
-            <button
-              type="button"
-              onClick={() => setFiltersOpen(!filtersOpen)}
-              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white transition-all cursor-pointer bg-[#18113c]/90 hover:bg-[#221752] px-4.5 py-2.5 rounded-full border border-white/12 hover:border-violet-500/40 shadow-sm backdrop-blur-md"
-            >
-              <Filter className="size-3.5 text-[#93f72b]" />
-              <span>Lọc kết quả</span>
-              <ChevronDown className={`size-3.5 text-slate-400 transition-transform duration-200 ${filtersOpen ? "rotate-180" : ""}`} />
-            </button>
-          </motion.div>
-
-          {/* Collapsible Filter Bar */}
-          {filtersOpen && (
-            <div className="mb-8 rounded-3xl bg-[#1a132f] p-5.5 shadow-xl border border-violet-950/20 transition-all duration-300 animate-in fade-in slide-in-from-top-3">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 items-end">
-                {/* Chọn Chủ đề */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="mentor-selectedtopic" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Chọn Chủ đề</label>
-                  <AppSelect
-                    id="mentor-selectedtopic"
-                    value={selectedTopic}
-                    onValueChange={setSelectedTopic}
-                    options={[
-                      { value: "", label: "Tất cả chủ đề" },
-                      ...TOPIC_OPTIONS
-                    ]}
-                    theme="dark"
-                    size="compact"
-                  />
-                </div>
-
-                {/* Tên công ty */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Tên công ty</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Nhập tên công ty..."
-                      value={companySearch}
-                      onChange={(e) => setCompanySearch(e.target.value)}
-                      className="w-full rounded-2xl border border-violet-850 bg-violet-950/40 px-4 py-2.5 text-xs font-bold text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#8037f4] focus:ring-2 focus:ring-violet-500/20"
-                    />
-                    {companySearch && (
-                      <button
-                        type="button"
-                        onClick={() => setCompanySearch("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Vị trí */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Vị trí</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Nhập vị trí..."
-                      value={titleSearch}
-                      onChange={(e) => setTitleSearch(e.target.value)}
-                      className="w-full rounded-2xl border border-violet-850 bg-violet-950/40 px-4 py-2.5 text-xs font-bold text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#8037f4] focus:ring-2 focus:ring-violet-500/20"
-                    />
-                    {titleSearch && (
-                      <button
-                        type="button"
-                        onClick={() => setTitleSearch("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Lịch rảnh */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="mentor-selectedschedule" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Lịch rảnh</label>
-                  <AppSelect
-                    id="mentor-selectedschedule"
-                    value={selectedSchedule}
-                    onValueChange={setSelectedSchedule}
-                    options={[
-                      { value: "", label: "Tất cả thời gian" },
-                      { value: "today", label: "Hôm nay" },
-                      { value: "week", label: "Có sẵn tuần này" }
-                    ]}
-                    theme="dark"
-                    size="compact"
-                  />
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-end gap-2">
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    disabled={!hasFilter && !selectedTopic && !selectedSchedule}
-                    className="flex-1 rounded-2xl border border-violet-850 bg-violet-950/30 py-2.5 text-xs font-extrabold text-slate-300 transition-all hover:bg-violet-900/20 disabled:cursor-not-allowed disabled:opacity-30 cursor-pointer"
-                  >
-                    Xóa lọc
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFiltersOpen(false)}
-                    className="flex-1 rounded-2xl bg-lime-400 py-2.5 text-xs font-black text-violet-950 shadow-sm transition-all hover:bg-lime-300 hover:shadow-md active:scale-98 cursor-pointer"
-                  >
-                    ÁP DỤNG
-                  </button>
-                </div>
+            <div className="flex max-w-full flex-wrap items-center gap-x-4 gap-y-3">
+              <div className="text-left sm:text-right">
+                <p className="text-xs font-semibold text-slate-200">Muốn Mentor chủ động tìm đến bạn?</p>
+                <p id="mentor-request-action-description" className="mt-1 text-[11px] leading-relaxed text-slate-400">Gửi CV, JD và mục tiêu để nhận đề nghị hỗ trợ.</p>
               </div>
-
-              {/* Advanced Filters Toggle */}
-              <div className="mt-4 pt-4 border-t border-violet-900/40">
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="text-xs font-bold text-violet-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <SlidersHorizontal className="size-3.5" />
-                  <span>{showAdvanced ? "Ẩn bộ lọc nâng cao" : "Hiện bộ lọc nâng cao"}</span>
-                </button>
-
-                {showAdvanced && (
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 animate-in fade-in duration-200">
-                    {/* Kinh nghiệm */}
-                    <div className="flex flex-col gap-1.5">
-                      <label htmlFor="mentor-selectedexp" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Kinh nghiệm</label>
-                      <AppSelect
-                        id="mentor-selectedexp"
-                        value={selectedExp || ""}
-                        onValueChange={(val) => setSelectedExp(val || null)}
-                        options={[
-                          { value: "", label: "Tất cả kinh nghiệm" },
-                          ...EXPERIENCE_OPTIONS
-                        ]}
-                        theme="dark"
-                        size="compact"
-                      />
-                    </div>
-
-                    {/* Mức giá */}
-                    <div className="flex flex-col gap-1.5">
-                      <label htmlFor="mentor-selectedpriceindex" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Mức giá</label>
-                      <AppSelect
-                        id="mentor-selectedpriceindex"
-                        value={selectedPriceIndex ?? ""}
-                        onValueChange={(val) => setSelectedPriceIndex(val === "" ? null : Number(val))}
-                        options={[
-                          { value: "", label: "Tất cả mức giá" },
-                          ...PRICE_OPTIONS.map((opt, i) => ({ value: i, label: opt.label }))
-                        ]}
-                        theme="dark"
-                        size="compact"
-                      />
-                    </div>
-
-                    {/* Đánh giá */}
-                    <div className="flex flex-col gap-1.5">
-                      <label htmlFor="mentor-selectedrating" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Đánh giá</label>
-                      <AppSelect
-                        id="mentor-selectedrating"
-                        value={selectedRating || ""}
-                        onValueChange={(val) => setSelectedRating(val || null)}
-                        options={[
-                          { value: "", label: "Tất cả đánh giá" },
-                          ...RATING_OPTIONS.map((opt) => ({ value: opt.label, label: opt.label }))
-                        ]}
-                        theme="dark"
-                        size="compact"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Link
+                to="/mentor-requests/new"
+                state={{ returnTo: `${location.pathname}${location.search}` }}
+                aria-describedby="mentor-request-action-description"
+                data-button-surface="none"
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[#c2ff86] bg-[#93f72b] px-5 py-2 text-xs font-bold text-[#142008] no-underline transition-colors hover:bg-[#aaff4d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#93f72b]"
+              >Nhờ Mentor đề xuất hỗ trợ <span aria-hidden>→</span></Link>
             </div>
-          )}
+          </motion.div>
 
           {/* Results Grid Area */}
           {loading ? (
