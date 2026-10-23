@@ -6,7 +6,10 @@ import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layo
 import { CV_JD_CARD_CLASS } from "../../components/cv/CvJdAnalysisFrame";
 import { Check, Mars, Venus, Mic, AlertCircle } from "lucide-react";
 import { apiUrl } from "../../api/http";
-import { getBaselineQuestions, pregenerateBaselineVideos } from "../../api/interviewsApi";
+import { getBaselineQuestions, pregenerateBaselineVideos, saveCameraConsent } from "../../api/interviewsApi";
+import { getUser } from "../../utils/auth/auth.js";
+import { hasCameraConsent } from "../../utils/interview/cameraConsent.js";
+import { CameraConsentDialog } from "../../components/interview/CameraConsentDialog";
 
 const CTA_LIME =
   "bg-gradient-to-r from-[#93f72b] to-[#93f72b] text-violet-950 shadow-[0_8px_28px_rgba(196,255,71,0.25)] hover:brightness-110";
@@ -80,8 +83,31 @@ export function InterviewTrial() {
   const [hrGender, setHrGender] = useState(null);
   const [loadingStep, setLoadingStep] = useState(null); // null | "loading_questions" | "pregenerating_videos"
   const [error, setError] = useState("");
+  /* Bước xác nhận camera trước khi vào room — đã đồng ý (đúng version) thì bỏ qua. */
+  const [showCameraConsent, setShowCameraConsent] = useState(false);
+  const [savingCameraConsent, setSavingCameraConsent] = useState(false);
 
-  const handleStart = async () => {
+  const handleStart = () => {
+    if (!hrGender || loadingStep) return;
+    if (!hasCameraConsent(getUser())) {
+      setShowCameraConsent(true);
+      return;
+    }
+    startTrial();
+  };
+
+  const handleCameraConsentChoice = async (accepted) => {
+    setSavingCameraConsent(true);
+    const res = await saveCameraConsent(accepted);
+    setSavingCameraConsent(false);
+    setShowCameraConsent(false);
+    if (accepted && !res.success) {
+      setError("Không lưu được lựa chọn camera — buổi phỏng vấn sẽ chạy không dùng camera.");
+    }
+    startTrial();
+  };
+
+  const startTrial = async () => {
     if (!hrGender || loadingStep) return;
     setError("");
 
@@ -237,6 +263,13 @@ export function InterviewTrial() {
           </div>
         </div>
       </div>
+      <CameraConsentDialog
+        open={showCameraConsent}
+        saving={savingCameraConsent}
+        onAccept={() => handleCameraConsentChoice(true)}
+        onDecline={() => handleCameraConsentChoice(false)}
+        onOpenChange={(open) => { if (!open && !savingCameraConsent) setShowCameraConsent(false); }}
+      />
     </MentorPageShell>
   );
 }
