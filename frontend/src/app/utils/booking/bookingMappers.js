@@ -60,6 +60,7 @@ export function apiBookingToLocal(b) {
   return {
     orderNum,
     sessionId: b.id,
+    mentorshipRequestId: b.mentorshipRequestId || "",
     backendId: b.id,
     mentorId: b.mentorId,
     mentorName: b.mentorName || "",

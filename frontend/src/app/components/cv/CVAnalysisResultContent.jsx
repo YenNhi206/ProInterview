@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import {
   Check,
@@ -279,7 +279,7 @@ export function CVAnalysisResultContent({
   const resultTabs = useMemo(() => [
     {
       id: "overview",
-      label: "Gợi ý sửa CV (STAR)",
+      label: "Cần cải thiện",
       icon: <Sparkles className="w-4 h-4" />,
       badge: suggestionsData.length || undefined,
     },
@@ -287,14 +287,14 @@ export function CVAnalysisResultContent({
       ? [
           {
             id: "preview",
-            label: "Xem tài liệu PDF",
+            label: "CV & mô tả công việc",
             icon: <FileText className="w-4 h-4" />,
           },
         ]
       : []),
     {
       id: "keywords",
-      label: "Ma trận từ khóa",
+      label: "Đối chiếu yêu cầu",
       icon: <Target className="w-4 h-4" />,
       badge: totalKeywords,
     },
@@ -329,40 +329,25 @@ export function CVAnalysisResultContent({
     <div className="flex flex-col gap-6 pb-16 w-full animate-in fade-in duration-500">
       {/* ─── Top Bar: Navigation & Action CTAs ─────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10 animate-in fade-in slide-in-from-top-2 duration-500">
-        <div className="flex items-center gap-3 flex-wrap">
-          <nav className="flex items-center gap-2 text-sm font-medium text-slate-300">
-            <button
-              type="button"
-              onClick={() => navigate("/cv-analysis")}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Phân tích CV
-            </button>
-            <span className="text-slate-500">›</span>
-            <button
-              type="button"
-              onClick={() => navigate(resolvedHistoryPath)}
-              className="hover:text-white transition-colors cursor-pointer text-slate-400"
-            >
-              Lịch sử
-            </button>
-            <span className="text-slate-500">›</span>
-            <span className="text-slate-100 font-semibold truncate max-w-xs">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-3">
+          <nav aria-label="Đường dẫn kết quả phân tích" className="flex min-w-0 max-w-full items-center gap-2 text-xs font-medium text-[#bfb5cf] sm:text-sm">
+            <Link to="/cv-analysis" className="shrink-0 rounded-sm no-underline transition-colors hover:text-[#93f72b] hover:underline underline-offset-4 focus-visible:text-[#93f72b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#93f72b]">Phân tích CV</Link>
+            <span aria-hidden className="text-white/35">/</span>
+            <Link to={resolvedHistoryPath} className="shrink-0 rounded-sm no-underline transition-colors hover:text-[#93f72b] hover:underline underline-offset-4 focus-visible:text-[#93f72b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#93f72b]">Lịch sử</Link>
+            <span aria-hidden className="text-white/35">/</span>
+            <span aria-current="page" className="min-w-0 max-w-[12rem] truncate font-medium text-[#eee8f7] sm:max-w-[20rem]" title={[R?.position, R?.company].filter(Boolean).join(" · ") || cvFileName || "Kết quả chi tiết"}>
               {[R?.position, R?.company].filter(Boolean).join(" · ") || cvFileName || "Kết quả chi tiết"}
             </span>
           </nav>
-
-          <div className="h-4 w-px bg-white/15 hidden sm:block" />
-
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-violet-300/90">
-            <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[#cdb8f1]">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
             {derivedMode === "field" ? "Theo ngành nghề" : "Khớp CV & JD"}
           </span>
         </div>
 
         <div className="flex items-center gap-2.5 self-end sm:self-auto">
           <button
-            type="button"
+            data-button-surface="none" type="button"
             onClick={() => navigate(resolvedAnalysisPath)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] text-slate-200 hover:text-white text-xs sm:text-sm font-bold transition-all active:scale-95 group"
           >
@@ -371,7 +356,7 @@ export function CVAnalysisResultContent({
           </button>
 
           <button
-            type="button"
+            data-button-surface="none" type="button"
             onClick={() => navigate("/interview")}
             className="relative overflow-hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:shadow-[0_6px_24px_rgba(124,58,237,0.55)] hover:brightness-110 text-xs sm:text-sm font-bold transition-all active:scale-95 group before:absolute before:inset-0 before:-translate-x-full hover:before:translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:transition-transform before:duration-700"
           >
@@ -394,173 +379,35 @@ export function CVAnalysisResultContent({
         </div>
       )}
 
-      {/* ─── Hero Bento Scoreboard (Gọn gàng - Đúng trọng tâm) ────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
-        {/* Left Card: Radial Score Gauge (Radiant Cyber-Glass Highlight) */}
-        <div className="lg:col-span-4 rounded-3xl border border-violet-500/30 bg-gradient-to-b from-white/[0.08] via-white/[0.03] to-transparent shadow-[0_16px_50px_rgba(124,58,237,0.22)] backdrop-blur-2xl p-6 sm:p-7 flex flex-col items-center justify-between relative overflow-hidden group/score hover:-translate-y-1.5 hover:border-violet-400/70 hover:shadow-[0_22px_60px_rgba(124,58,237,0.38)] transition-all duration-500">
-          {/* Top laser beam sweep */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-400 to-transparent opacity-60 group-hover/score:opacity-100 transition-opacity duration-700" />
-          
-          {/* Ambient luminous glow orbs */}
-          <div className="pointer-events-none absolute -right-10 -top-10 w-48 h-48 bg-violet-500/25 rounded-full blur-3xl animate-pulse group-hover/score:scale-125 transition-transform duration-700" />
-          <div className="pointer-events-none absolute -left-10 -bottom-10 w-40 h-40 bg-fuchsia-500/15 rounded-full blur-2xl" />
-
-          {/* Header Row: Title with icon */}
-          <div className="w-full flex items-center gap-2 mb-3 relative z-10">
-            <div className="w-7 h-7 rounded-lg bg-violet-500/20 border border-violet-400/30 flex items-center justify-center text-violet-300 shadow-xs">
-              <Target className="w-3.5 h-3.5 text-violet-300" />
-            </div>
-            <span className="text-xs font-black uppercase tracking-wider text-slate-200">
-              Độ khớp tổng thể
-            </span>
+      <section className="overflow-hidden rounded-3xl border border-white/15 bg-[#1d182d]" aria-labelledby="cv-result-heading">
+        <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[14rem_1fr] lg:gap-10">
+          <div className="lg:border-r lg:border-white/10 lg:pr-8">
+            <p className="text-sm font-medium text-[#c6bbd7]">Mức độ phù hợp với {derivedMode === "field" ? "ngành nghề" : "công việc"}</p>
+            <p className="mt-4 flex items-baseline gap-2 tabular-nums">
+              <span className={`text-7xl font-bold leading-none tracking-tight sm:text-8xl ${scoreTier === "high" ? "text-[#93f72b]" : scoreTier === "mid" ? "text-[#c8a5ff]" : "text-[#ffb087]"}`}>{displayScore}</span>
+              <span className="text-xl font-medium text-[#d1c5e0]">/100</span>
+            </p>
+            <p className={`mt-4 inline-flex rounded-lg border px-3 py-1.5 text-sm font-semibold ${scoreTier === "high" ? "border-[#93f72b]/25 bg-[#93f72b]/10 text-[#93f72b]" : scoreTier === "mid" ? "border-[#c8a5ff]/25 bg-[#c8a5ff]/10 text-[#d5baff]" : "border-[#ffb087]/25 bg-[#ffb087]/10 text-[#ffbd9c]"}`}>{scoreTier === "high" ? "Phù hợp cao" : scoreTier === "mid" ? "Phù hợp một phần" : "Mức phù hợp còn thấp"}</p>
+            <p className="mt-4 text-xs leading-relaxed text-[#b4a7c9]">Điểm thể hiện độ khớp với yêu cầu đã chọn, không đánh giá toàn bộ năng lực của bạn.</p>
           </div>
-
-          {/* SVG Radial Gauge with Vibrant Glowing Multi-layer Ring */}
-          <div className="relative my-4 flex items-center justify-center z-10">
-            <div className="relative w-40 h-40 sm:w-44 sm:h-44">
-              <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id="scoreEmeraldDark" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="50%" stopColor="#06b6d4" />
-                    <stop offset="100%" stopColor="#34d399" />
-                  </linearGradient>
-                  <linearGradient id="scoreVioletDark" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="50%" stopColor="#a855f7" />
-                    <stop offset="100%" stopColor="#c084fc" />
-                  </linearGradient>
-                  <linearGradient id="scoreAmberDark" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#f59e0b" />
-                    <stop offset="50%" stopColor="#fb923c" />
-                    <stop offset="100%" stopColor="#f43f5e" />
-                  </linearGradient>
-                </defs>
-
-                {/* Subtle outer track */}
-                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="1" strokeDasharray="2 3" />
-
-                {/* Main track */}
-                <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="9" />
-
-                {/* Soft ambient glow halo (vector geometry, completely round with zero rectangular clipping) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="41"
-                  fill="none"
-                  stroke={scoreTier === "high" ? "url(#scoreEmeraldDark)" : scoreTier === "mid" ? "url(#scoreVioletDark)" : "url(#scoreAmberDark)"}
-                  strokeWidth="13"
-                  strokeDasharray={`${strokeDash} 263.89`}
-                  strokeLinecap="round"
-                  className="opacity-30 transition-all duration-300 ease-out"
-                />
-
-                {/* Sharp main progress stroke */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="41"
-                  fill="none"
-                  stroke={scoreTier === "high" ? "url(#scoreEmeraldDark)" : scoreTier === "mid" ? "url(#scoreVioletDark)" : "url(#scoreAmberDark)"}
-                  strokeWidth="9"
-                  strokeDasharray={`${strokeDash} 263.89`}
-                  strokeLinecap="round"
-                  className="transition-all duration-300 ease-out"
-                />
-              </svg>
-
-              {/* Center Counter with 3D Gradient Typography */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center select-none">
-                <span className="text-5xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-violet-200 leading-none tracking-tight tabular-nums transition-transform duration-300 group-hover/score:scale-105 drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]">
-                  {displayScore}
-                </span>
-                <span className="text-[11px] font-black text-violet-300/80 mt-1 uppercase tracking-widest">
-                  / 100 điểm
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Micro Keyword Coverage Footer Dock */}
-          <div className="w-full mt-2 p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md relative z-10 flex flex-col gap-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                Độ phủ từ khóa yêu cầu
-              </span>
-              <span className="text-violet-300 font-extrabold tabular-nums">
-                {cvDisplayKWs.length}/{totalKeywords} ({keywordMatchPct}%)
-              </span>
-            </div>
-            <div className="h-2.5 w-full rounded-full bg-slate-900 border border-white/10 overflow-hidden p-0.5 relative">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-emerald-400 shadow-[0_0_10px_rgba(124,58,237,0.5)] transition-all duration-1000 ease-out relative overflow-hidden"
-                style={{ width: `${keywordMatchPct}%` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite]" />
-              </div>
+          <div className="min-w-0">
+            <h1 id="cv-result-heading" className="text-xl font-semibold text-white">Kết quả phân tích CV</h1>
+            {cleanSummary && <p className="mt-3 max-w-3xl text-sm leading-7 text-[#d1c8df]">{cleanSummary}</p>}
+            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-4 text-sm">
+              <span className="text-emerald-300">{cvDisplayKWs.length} yêu cầu đã khớp</span>
+              <span className="text-rose-300">{missingKws.length} yêu cầu chưa thể hiện</span>
             </div>
           </div>
         </div>
-
-        {/* Right Card: AI Assessment & Key Skill Pills (8 cols on lg) */}
-        <div className="lg:col-span-8 rounded-3xl border border-white/10 bg-gradient-to-b from-[#181538]/70 via-[#13112b]/75 to-[#0d0b21]/80 shadow-[0_12px_40px_rgba(0,0,0,0.4)] backdrop-blur-2xl p-6 sm:p-7 flex flex-col justify-between group/ai hover:-translate-y-1 hover:border-violet-500/40 hover:shadow-[0_16px_45px_rgba(124,58,237,0.22)] transition-all duration-500">
-          <div>
-            {/* AI Summary - Trực diện, tinh gọn */}
-            {cleanSummary && (
-              <p className="text-sm sm:text-base leading-relaxed text-slate-200 font-normal">
-                {cleanSummary}
-              </p>
-            )}
-          </div>
-
-          {/* 2 Clean Skill Tag Rows: Matched vs Missing */}
-          <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-white/10">
-            {/* Row 1: Matched Skills */}
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-xs font-bold text-emerald-300 shrink-0 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Đã khớp ({cvDisplayKWs.length}):
-              </span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {cvDisplayKWs.map((kw, i) => (
-                  <span
-                    key={`m-${i}`}
-                    className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-200 text-xs font-medium hover:scale-105 hover:bg-emerald-500/20 hover:border-emerald-500/40 active:scale-95 transition-all duration-200 cursor-default select-none shadow-xs"
-                  >
-                    {kw}
-                  </span>
-                ))}
-                {cvDisplayKWs.length === 0 && (
-                  <span className="text-xs text-slate-400 italic">Chưa khớp từ khóa</span>
-                )}
-              </div>
-            </div>
-
-            {/* Row 2: Missing Skills */}
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-xs font-bold text-rose-300 shrink-0 flex items-center gap-1.5">
-                <Warning className="w-4 h-4 text-rose-400" />
-                Còn thiếu ({missingKws.length}):
-              </span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {missingKws.map((kw, i) => (
-                  <span
-                    key={`mis-${i}`}
-                    className="px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-200 text-xs font-medium hover:scale-105 hover:bg-rose-500/20 hover:border-rose-500/40 active:scale-95 transition-all duration-200 cursor-default select-none shadow-xs"
-                  >
-                    {kw}
-                  </span>
-                ))}
-                {missingKws.length === 0 && (
-                  <span className="text-xs text-emerald-300 font-medium">Đã phủ kín toàn bộ từ khóa!</span>
-                )}
-              </div>
-            </div>
-          </div>
+        <div className="border-t border-white/10 bg-white/[0.03] px-6 py-4 sm:px-8">
+          <h2 className="text-sm font-semibold text-white">Bạn nên làm gì tiếp theo?</h2>
+          <p className="mt-1 text-sm leading-relaxed text-[#c6bbd7]">
+            {matchScore < 30
+              ? "Kiểm tra lại CV và mô tả công việc có đúng vị trí muốn ứng tuyển không. Nếu đã đúng, xem từng yêu cầu bên dưới; chỉ bổ sung kinh nghiệm hoặc kỹ năng bạn thực sự có."
+              : "Xem các gợi ý bên dưới, ưu tiên kinh nghiệm liên quan và chỉ đưa vào CV những thông tin đúng với bạn. Sau khi chỉnh sửa, tải CV mới lên để kiểm tra lại."}
+          </p>
         </div>
-      </div>
+      </section>
 
       {/* ─── Apple-style Floating Glass Segmented Dock (Identical to Course Page) ─── */}
       <div className="flex items-center justify-center sm:justify-start animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
@@ -574,14 +421,14 @@ export function CVAnalysisResultContent({
             return (
               <button
                 key={item.id}
-                type="button"
+                data-button-surface="none" type="button"
                 role="tab"
                 aria-selected={isSelected}
                 tabIndex={isSelected ? 0 : -1}
                 onClick={() => setActiveTab(item.id)}
                 className={`relative flex-1 sm:flex-initial px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 sm:gap-2.5 select-none outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
                   isSelected
-                    ? "text-white font-bold"
+                    ? "text-[#93f72b] font-bold"
                     : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
                 }`}
               >
@@ -625,65 +472,17 @@ export function CVAnalysisResultContent({
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                    Đề xuất chỉnh sửa & Bổ sung kỹ năng
+                    Những điểm cần cải thiện
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    AI tóm tắt hành động trọng tâm và lộ trình khóa học. Bấm "Chi tiết" để mở rộng giải trình.
+                    Mở từng gợi ý để xem lý do và cách cải thiện. Không thêm kỹ năng chưa có vào CV.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
-                {/* View mode toggle: Compact vs Full (Identical Floating Glass Dock) */}
-                <div
-                  className="relative flex items-center p-1 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_4px_16px_rgba(5,3,20,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl"
-                  role="tablist"
-                  aria-label="Chế độ xem"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSuggestionViewMode("compact")}
-                    className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 select-none outline-none ${
-                      suggestionViewMode === "compact"
-                        ? "text-white font-bold"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
-                    }`}
-                    title="Hiển thị dạng thẻ tóm lược dễ đọc"
-                  >
-                    {suggestionViewMode === "compact" && (
-                      <motion.div
-                        layoutId="cv-view-mode-dock"
-                        className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_2px_8px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                      />
-                    )}
-                    <LayoutList className="w-3.5 h-3.5 relative z-10" />
-                    <span className="relative z-10">Gọn gàng</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSuggestionViewMode("full")}
-                    className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 select-none outline-none ${
-                      suggestionViewMode === "full"
-                        ? "text-white font-bold"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
-                    }`}
-                    title="Mở rộng toàn bộ chi tiết giải trình"
-                  >
-                    {suggestionViewMode === "full" && (
-                      <motion.div
-                        layoutId="cv-view-mode-dock"
-                        className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_2px_8px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                      />
-                    )}
-                    <BookOpen className="w-3.5 h-3.5 relative z-10" />
-                    <span className="relative z-10">Chi tiết</span>
-                  </button>
-                </div>
-
                 {/* Filter pills (Identical Floating Glass Dock) */}
-                {suggestionsData.length > 0 && (
+                {starCount > 0 && addCount > 0 && (
                   <div
                     className="relative flex items-center p-1 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_4px_16px_rgba(5,3,20,0.4),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl"
                     role="tablist"
@@ -691,18 +490,18 @@ export function CVAnalysisResultContent({
                   >
                     {[
                       { id: "all", label: "Tất cả", count: suggestionsData.length },
-                      ...(starCount > 0 ? [{ id: "fix", label: "Viết lại STAR", count: starCount }] : []),
+                      ...(starCount > 0 ? [{ id: "fix", label: "Viết lại kinh nghiệm", count: starCount }] : []),
                       ...(addCount > 0 ? [{ id: "add", label: "Bổ sung kỹ năng", count: addCount }] : []),
                     ].map((item) => {
                       const isSelected = suggestionFilter === item.id;
                       return (
                         <button
                           key={item.id}
-                          type="button"
+                          data-button-surface="none" type="button"
                           onClick={() => setSuggestionFilter(item.id)}
                           className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 select-none outline-none ${
                             isSelected
-                              ? "text-white font-bold"
+                              ? "text-[#93f72b] font-bold"
                               : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
                           }`}
                         >
@@ -799,7 +598,7 @@ export function CVAnalysisResultContent({
                             {/* Quick action buttons */}
                             <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-start">
                               <button
-                                type="button"
+                                data-button-surface="none" type="button"
                                 onClick={() => handleCopyText(copyContent, uniqueId)}
                                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
                                   isCopied
@@ -822,7 +621,7 @@ export function CVAnalysisResultContent({
                               </button>
 
                               <button
-                                type="button"
+                                data-button-surface="none" type="button"
                                 onClick={() => toggleCardExpansion(uniqueId)}
                                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition"
                               >
@@ -857,7 +656,7 @@ export function CVAnalysisResultContent({
                               {/* Ưu tiên 1: Khóa học của ProInterview nếu có */}
                               {matchedInternalCourse ? (
                                 <button
-                                  type="button"
+                                  data-button-surface="none" type="button"
                                   onClick={() => navigate(`/courses/${matchedInternalCourse.id}`)}
                                   className="group/chip inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-600/30 via-indigo-600/25 to-violet-600/20 border border-violet-400/50 text-xs text-violet-100 font-medium hover:border-violet-300 hover:shadow-[0_0_16px_rgba(124,58,237,0.35)] transition-all duration-200 cursor-pointer active:scale-95"
                                   title="Khóa học có sẵn trên ProInterview — Bấm để xem chi tiết"
@@ -970,7 +769,7 @@ export function CVAnalysisResultContent({
                           <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-start">
                             {item.after && (
                               <button
-                                type="button"
+                                data-button-surface="none" type="button"
                                 onClick={() => handleCopyText(copyContent, uniqueId)}
                                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
                                   isCopied
@@ -995,7 +794,7 @@ export function CVAnalysisResultContent({
 
                             {item.reason && (
                               <button
-                                type="button"
+                                data-button-surface="none" type="button"
                                 onClick={() => toggleCardExpansion(uniqueId)}
                                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition"
                               >
@@ -1051,7 +850,7 @@ export function CVAnalysisResultContent({
 
                 {filteredSuggestions.length > 6 && (
                   <button
-                    type="button"
+                    data-button-surface="none" type="button"
                     onClick={() => setShowAllSuggestions(!showAllSuggestions)}
                     className="mt-2 self-center inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.1] text-violet-300 text-xs font-bold transition active:scale-95"
                   >
@@ -1070,7 +869,8 @@ export function CVAnalysisResultContent({
           {(strengthsData.length > 0 || weaknessesData.length > 0) && (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-5 sm:p-6 transition-all duration-300 shadow-sm hover:border-white/20">
               <button
-                type="button"
+                data-button-surface="none" type="button"
+                aria-expanded={showDetailedInsights}
                 onClick={() => setShowDetailedInsights(!showDetailedInsights)}
                 className="w-full flex items-center justify-between text-xs sm:text-sm font-bold text-slate-200 hover:text-white transition group"
               >
@@ -1180,7 +980,7 @@ export function CVAnalysisResultContent({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-6 border-b border-white/10">
             <div>
               <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                Ma trận từ khóa kỹ thuật & Năng lực
+                Đối chiếu yêu cầu kỹ thuật & Năng lực
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
                 Toàn bộ từ khóa trong JD đối chiếu với nội dung xuất hiện trong hồ sơ
@@ -1214,11 +1014,11 @@ export function CVAnalysisResultContent({
                   return (
                     <button
                       key={item.id}
-                      type="button"
+                      data-button-surface="none" type="button"
                       onClick={() => setKeywordFilter(item.id)}
                       className={`relative px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 select-none outline-none ${
                         isSelected
-                          ? "text-white font-bold"
+                          ? "text-[#93f72b] font-bold"
                           : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
                       }`}
                     >
@@ -1301,79 +1101,28 @@ export function CVAnalysisResultContent({
         </div>
       )}
 
-      {/* ─── High-Conversion Next Steps CTAs (Concise, Ultra-Polished & Animated) ─── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-1">
-        {/* Card 1: Mock Interview */}
-        <div className="relative overflow-hidden flex flex-col justify-between p-6 sm:p-7 rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] via-white/[0.03] to-transparent backdrop-blur-2xl shadow-[0_10px_35px_rgba(124,58,237,0.15)] hover:border-violet-400/70 hover:shadow-[0_20px_50px_rgba(124,58,237,0.35)] hover:-translate-y-1.5 transition-all duration-500 group">
-          {/* Top animated light beam sweep */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-400 to-transparent opacity-40 group-hover:opacity-100 group-hover:scale-x-110 transition-all duration-700" />
-          
-          {/* Ambient breathing glow orbs */}
-          <div className="pointer-events-none absolute -right-12 -top-12 w-48 h-48 bg-violet-500/20 rounded-full blur-3xl animate-pulse group-hover:scale-135 group-hover:bg-violet-500/35 transition-all duration-700" />
-          <div className="pointer-events-none absolute -left-12 -bottom-12 w-40 h-40 bg-fuchsia-500/15 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700" />
-
-          <div className="relative z-10">
-            <div className="mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 via-indigo-600 to-fuchsia-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/35 ring-1 ring-white/25 group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] transition-all duration-300">
-                <Mic className="w-6 h-6 text-white" />
-              </div>
-            </div>
-
-            <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-violet-200 transition-colors tracking-tight">
-              Luyện phỏng vấn AI theo JD này
-            </h4>
-            <p className="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed font-normal">
-              Tự động tạo câu hỏi phỏng vấn thử dựa trên CV và JD để bạn luyện phản xạ.
-            </p>
+      <section className="grid grid-cols-1 gap-0 overflow-hidden rounded-3xl border border-white/15 bg-[#1d182d] md:grid-cols-2" aria-label="Bước tiếp theo">
+        {[
+          { icon: Mic, title: "Luyện phỏng vấn với AI", description: "Luyện trả lời câu hỏi dựa trên CV và vị trí bạn ứng tuyển.", label: "Vào phòng phỏng vấn AI", path: "/interview", primary: true },
+          { icon: Users, title: "Review CV cùng Mentor", description: "Nhận góp ý trực tiếp để hoàn thiện hồ sơ và cách trình bày kinh nghiệm.", label: "Tìm Mentor phù hợp", path: "/mentors", primary: false },
+        ].map(({ icon: Icon, title, description, label, path, primary }) => (
+          <div key={path} className="flex flex-col p-6 sm:p-8 [&+div]:border-t [&+div]:border-white/10 md:[&+div]:border-l md:[&+div]:border-t-0">
+            <Icon className="mb-5 h-6 w-6 text-[#c5aff0]" strokeWidth={1.6} aria-hidden />
+            <h3 className="text-lg font-semibold tracking-tight text-white">{title}</h3>
+            <p className="mb-7 mt-2 max-w-md text-sm leading-relaxed text-[#bfb5cf]">{description}</p>
+            <button data-button-surface="none" type="button" onClick={() => navigate(path)}
+              className={primary
+                ? "cv-analyze-cta mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-all"
+                : "mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#b799dc] bg-[#2b213b] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#382b4b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b799dc]"}
+            >
+              {label}<ArrowUpRight className="h-4 w-4" aria-hidden />
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => navigate("/interview")}
-            className="mt-6 relative z-10 overflow-hidden inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-500 text-white text-xs sm:text-sm font-bold shadow-[0_6px_24px_rgba(124,58,237,0.45)] hover:shadow-[0_10px_35px_rgba(124,58,237,0.7)] hover:brightness-110 active:scale-[0.98] transition-all duration-300 cursor-pointer group/btn before:absolute before:inset-0 before:-translate-x-full hover:before:translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/25 before:to-transparent before:transition-transform before:duration-700"
-          >
-            <span className="relative z-10">Vào phòng phỏng vấn AI</span>
-            <ArrowUpRight className="w-4 h-4 relative z-10 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform duration-300" />
-          </button>
-        </div>
-
-        {/* Card 2: Mentor 1-on-1 */}
-        <div className="relative overflow-hidden flex flex-col justify-between p-6 sm:p-7 rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] via-white/[0.03] to-transparent backdrop-blur-2xl shadow-[0_10px_35px_rgba(99,102,241,0.15)] hover:border-indigo-400/70 hover:shadow-[0_20px_50px_rgba(99,102,241,0.35)] hover:-translate-y-1.5 transition-all duration-500 group">
-          {/* Top animated light beam sweep */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-40 group-hover:opacity-100 group-hover:scale-x-110 transition-all duration-700" />
-          
-          {/* Ambient breathing glow orbs */}
-          <div className="pointer-events-none absolute -right-12 -top-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl animate-pulse group-hover:scale-135 group-hover:bg-indigo-500/35 transition-all duration-700" />
-          <div className="pointer-events-none absolute -left-12 -bottom-12 w-40 h-40 bg-sky-500/15 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700" />
-
-          <div className="relative z-10">
-            <div className="mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/35 ring-1 ring-white/25 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] transition-all duration-300">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-            </div>
-
-            <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-indigo-200 transition-colors tracking-tight">
-              Gặp Mentor review CV 1:1
-            </h4>
-            <p className="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed font-normal">
-              Nhận góp ý trực tiếp từ các Tech Lead và Hiring Manager để nâng cấp CV.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => navigate("/mentors")}
-            className="mt-6 relative z-10 overflow-hidden inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-[0_6px_24px_rgba(99,102,241,0.45)] hover:shadow-[0_10px_35px_rgba(99,102,241,0.7)] hover:brightness-110 active:scale-[0.98] transition-all duration-300 cursor-pointer group/btn before:absolute before:inset-0 before:-translate-x-full hover:before:translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/25 before:to-transparent before:transition-transform before:duration-700"
-          >
-            <span className="relative z-10">Tìm Mentor phù hợp</span>
-            <ArrowUpRight className="w-4 h-4 relative z-10 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform duration-300" />
-          </button>
-        </div>
-      </div>
+        ))}
+      </section>
 
       {/* ─── Helpful Feedback Dock (Translucent Glass exactly as in user's image) ─── */}
-      <div className="flex items-center justify-center gap-3 p-3.5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-sm max-w-lg mx-auto w-full">
+      <div className="flex flex-wrap items-center justify-center gap-3 px-4 py-5 max-w-xl mx-auto w-full">
         {feedbackSent ? (
           <p className="text-xs sm:text-sm font-bold text-violet-300 flex items-center gap-1.5 animate-in fade-in">
             <Check className="w-4 h-4 text-emerald-400" />
@@ -1386,14 +1135,14 @@ export function CVAnalysisResultContent({
             <span className="text-xs text-slate-300 font-medium">Báo cáo phân tích này có hữu ích không?</span>
             <div className="flex items-center gap-2">
               <button
-                type="button"
+                data-button-surface="none" type="button"
                 onClick={() => handleFeedback("helpful")}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/15 bg-white/[0.05] hover:border-emerald-400/50 hover:bg-emerald-500/15 hover:text-emerald-300 text-xs font-bold text-slate-200 transition active:scale-95"
               >
                 <ThumbsUp className="w-3.5 h-3.5" /> Hữu ích
               </button>
               <button
-                type="button"
+                data-button-surface="none" type="button"
                 onClick={() => handleFeedback("not_helpful")}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/15 bg-white/[0.05] hover:border-rose-400/50 hover:bg-rose-500/15 hover:text-rose-300 text-xs font-bold text-slate-400 transition active:scale-95"
               >

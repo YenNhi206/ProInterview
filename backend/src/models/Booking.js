@@ -19,6 +19,7 @@ const bookingSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     mentorId: { type: Schema.Types.ObjectId, ref: "Mentor", required: true },
+    mentorshipRequestId: { type: Schema.Types.ObjectId, ref: "MentorshipRequest" },
 
     date: { type: String, required: true },
     timeSlot: { type: String, required: true },
@@ -148,6 +149,7 @@ const bookingSchema = new Schema(
 );
 
 bookingSchema.index({ userId: 1, status: 1 });
+bookingSchema.index({ mentorshipRequestId: 1 }, { unique: true, partialFilterExpression: { mentorshipRequestId: { $type: "objectId" }, status: { $in: ["pending", "confirmed", "in_progress", "completed", "rescheduled"] } } });
 bookingSchema.index({ mentorId: 1, date: 1 });
 bookingSchema.index({ status: 1 });
 // Ngăn double-booking cùng mentor/ngày/giờ khi có race condition

@@ -14,7 +14,6 @@ import { toastApiError } from "../../utils/shared/apiToast.js";
 import { GoogleSignInBlock } from "../../components/auth/GoogleSignInBlock";
 import { BrandLogo } from "../../components/brand/BrandLogo";
 import { SparkleGlyph } from "../../components/decor/SparkleGlyph.jsx";
-import { StickerLimeSparkle } from "../../components/decor/StickerLimeSparkle.jsx";
 import { AUTH_COPY } from "../../constants/brandVoice";
 import { AuthPurpleBackdrop } from "../../components/auth/AuthPurpleBackdrop";
 
@@ -36,18 +35,18 @@ const AUTH_PAGE_BG = "bg-transparent";
 
 /** Ô form, tím brand (cùng Login) */
 const AUTH_CARD_CLS =
-  "rounded-3xl border border-white/15 bg-[#8037f4] p-6 shadow-[0_16px_48px_rgba(15,23,42,0.18)] sm:p-10";
+  "rounded-3xl border border-[#a998d0]/25 bg-[#211a36] p-6 shadow-[0_24px_64px_rgba(5,3,18,0.35)] sm:p-10";
 
 /** Cùng style ô nhập với Login */
 const INPUT_REG_CLS =
-  "w-full px-3 py-2 sm:px-4 sm:py-3.5 rounded-xl border border-white/25 text-sm sm:text-base outline-none transition-all " +
-  "focus:border-[#93f72b] focus:ring-2 focus:ring-[#93f72b]/25 text-gray-900 placeholder-gray-400 " +
-  "bg-white hover:bg-gray-50";
+  "w-full px-3 py-2 sm:px-4 sm:py-3.5 rounded-xl border border-white/15 text-sm sm:text-base outline-none transition-all " +
+  "focus:border-[#b79ae8] focus:ring-2 focus:ring-[#b79ae8]/20 text-white placeholder:text-[#a59bb8] " +
+  "bg-[#171226] hover:bg-[#1b152d]";
 
 const AUTH_CTA_STYLE = {
   background: BRAND_LIME,
   color: "#0f172a",
-  boxShadow: "0 8px 22px rgba(147, 247, 43, 0.35)",
+  boxShadow: "0 4px 14px rgba(147, 247, 43, 0.12)",
 };
 /** % = tâm sticker; kích thước lệch, nằm trong vùng inset của lớp nền */
 const AUTH_STICKS = [
@@ -178,7 +177,7 @@ export function Register() {
 
         {/* Form + mascot, mép trên thẻ căn với /login (items-start + slot giống login) */}
         <div className="relative z-10 flex flex-1 items-start justify-center overflow-x-visible px-6 pb-8 pt-[5.8rem] sm:px-10 sm:pt-[6.3rem]">
-          <div className="relative mx-auto w-full max-w-md shrink-0 overflow-visible -mt-[3rem] sm:-mt-[7.5rem]">
+          <div className="relative mx-auto w-full max-w-md shrink-0 overflow-visible -mt-[4.5rem] sm:-mt-[9rem]">
             <div
               className="pointer-events-none relative z-[5] mb-[-0.25rem] h-[11.85rem] w-full shrink-0 translate-y-[1rem] sm:h-[17.35rem] sm:translate-y-[2.5rem]"
               aria-hidden
@@ -228,8 +227,8 @@ export function Register() {
                     placeholder="Tối thiểu 6 ký tự"
                     value={form.password} onChange={(e) => handleChange("password", e.target.value)}
                     required minLength={6} className={`${INPUT_REG_CLS} pr-12`} />
-                  <button type="button" onClick={() => setShowPass(!showPass)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  <button data-button-surface="none" type="button" onClick={() => setShowPass(!showPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md border-0 bg-transparent p-1 text-[#b8accd] shadow-none hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b79ae8] transition-colors"
                     aria-label={showPass ? "Ẩn" : "Hiện"}>
                     {showPass ? <EyeSlash className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -328,25 +327,7 @@ export function Register() {
 
             </div>
 
-            {/* Mascot + sparkle, giữ vị trí cũ; pointer-events-none để không chặn ô mật khẩu */}
-            <div
-              className="pointer-events-none absolute bottom-0 right-0 z-20 w-full overflow-visible -translate-y-[35.05rem] max-md:-translate-y-[27.55rem] sm:-translate-y-[34.9rem]"
-              aria-hidden
-            >
-              <img
-                src="/mascot-auth-register.png?v=6"
-                alt=""
-                width={280}
-                height={280}
-                className="pointer-events-none absolute bottom-0 right-[-2.35rem] z-10 h-[17rem] w-[17rem] max-h-none max-w-none origin-bottom-right -rotate-[2deg] object-contain object-bottom max-md:right-[-1.45rem] max-md:h-[14rem] max-md:w-[14rem] sm:right-[-2.85rem] sm:h-[18.25rem] sm:w-[18.25rem] md:right-[-3.25rem]"
-              />
-              <StickerLimeSparkle
-                className="absolute bottom-[2.6rem] right-[0.2rem] z-30 h-[4.5rem] w-[4.5rem] rotate-[15deg] max-md:bottom-[1.5rem] max-md:right-[-0.4rem] sm:bottom-[3.6rem] sm:right-[-1.8rem]"
-              />
-              <StickerLimeSparkle
-                className="absolute bottom-[5.9rem] right-[12.2rem] z-30 h-11 w-11 -rotate-[10deg] max-md:bottom-[3.9rem] max-md:right-[8.2rem] sm:bottom-[7.9rem] sm:right-[10.2rem]"
-              />
-            </div>
+
           </div>
         </div>
       </div>

@@ -20,5 +20,6 @@ export function isCustomerNavActive(pathname, url) {
     if (pathname === "/cv-analysis/history") return false;
     return pathname === "/cv-analysis" || pathname.startsWith("/cv-analysis/");
   }
+  if (url === "/mentors" && pathname.startsWith("/mentor-requests")) return true;
   return pathname === url || pathname.startsWith(`${url}/`);
 }

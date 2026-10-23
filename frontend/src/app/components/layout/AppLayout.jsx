@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { SidebarProvider, SidebarInset } from "../ui/sidebar";
 import { AppSidebar } from "./Sidebar";
+import { MentorWorkspaceNav } from "./MentorWorkspaceNav";
+import "../../../styles/mentor-workspace.css";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { PromoBanner } from "./PromoBanner";
@@ -27,6 +29,7 @@ export function AppLayout() {
     ["cart", "checkout", "payment-history", "settings", "profile", "my-bookings", "my-courses"].includes(pathNorm) ||
     pathNorm.startsWith("courses/") ||
     pathNorm.startsWith("mentors/") ||
+    pathNorm.startsWith("mentor-requests") ||
     pathNorm.startsWith("booking/") ||
     pathNorm.includes("cv-analysis/history") ||
     pathNorm.includes("cv-analysis/jd/result") ||
@@ -128,12 +131,11 @@ export function AppLayout() {
   if (isMentor) {
     return (
       <div
-        className={`pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 text-slate-900 antialiased selection:bg-violet-100 selection:text-violet-900 ${usesDarkPalette ? "commerce-theme bg-transparent" : "bg-[#f8f9fc]"}`}
+        className="mentor-workspace pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 antialiased"
         style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
-        {usesDarkPalette && pageAmbient}
-        <Navbar variant="mentor" />
-        <main className="relative z-[1] min-h-0 flex-1 pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem]">
+        <MentorWorkspaceNav />
+        <main className="mentor-workspace-main relative z-[1] min-h-0 flex-1">
           <Outlet />
         </main>
       </div>
@@ -159,7 +161,7 @@ export function AppLayout() {
           {showPromoBanner && <div style={{ height: PROMO_BANNER_HEIGHT }} aria-hidden />}
           <Outlet />
         </main>
-        {showSiteFooter ? <Footer variant={usesDarkPalette || isHome ? "dark" : "light"} /> : null}
+        {showSiteFooter ? <Footer /> : null}
       </div>
       <DiscountPromoModal
         open={promoModalOpen}

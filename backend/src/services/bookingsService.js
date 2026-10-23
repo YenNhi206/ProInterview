@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { resolveRequestBooking } from "./mentorshipRequestsService.js";
 import {
   sendMentorFeedbackEmail,
   sendBookingConfirmedEmailToMentee,
@@ -659,6 +660,19 @@ export async function createBooking(userId, body) {
     mentor = { ...mentor, available: true };
   }
 
+  let mentorshipRequest = null;
+  if (body.mentorshipRequestId) {
+    try {
+      mentorshipRequest = await resolveRequestBooking(uid, body.mentorshipRequestId, mentor);
+    } catch (error) {
+      return { ok: false, status: error.status || 400, error: error.message };
+    }
+    body = { ...body, sessionType: mentorshipRequest.sessionType, durationMinutes: 60,
+      position: mentorshipRequest.position,
+      notes: `Vị trí ứng tuyển: ${mentorshipRequest.position}\nNhu cầu: ${mentorshipRequest.title}\n${mentorshipRequest.description}\nTài liệu riêng tư: /mentor/requests/${mentorshipRequest._id}`,
+      cvFile: mentorshipRequest.cvName, jdFile: mentorshipRequest.jdName, cvFileUrl: "", jdFileUrl: "" };
+  }
+
   const timeSlot = String(body.timeSlot ?? body.time ?? "").trim();
   if (!timeSlot || !/^\d{1,2}:\d{2}$/.test(timeSlot)) {
     return { ok: false, status: 400, error: "Thiếu hoặc sai định dạng timeSlot (vd. 09:00)." };
@@ -756,6 +770,9 @@ export async function createBooking(userId, body) {
   });
 
   if (dup) {
+    if (mentorshipRequest && String(dup.mentorshipRequestId || "") !== String(mentorshipRequest._id)) {
+      return { ok: false, status: 409, error: "Bạn đã có một lịch hẹn khác ở khung giờ này. Chọn giờ khác hoặc xem Lịch hẹn của tôi." };
+    }
     const isDupExpiredTransfer =
       dup.status === "pending" &&
       dup.paymentStatus === "pending" &&
@@ -907,6 +924,7 @@ export async function createBooking(userId, body) {
     doc = await Booking.create({
       userId: uid,
       mentorId: mentor._id,
+      mentorshipRequestId: mentorshipRequest?._id,
       date: dateNormalized,
       timeSlot: timeNormalized,
       durationMinutes,
@@ -938,6 +956,7 @@ export async function createBooking(userId, body) {
   } catch (createErr) {
     if (createErr?.code === 11000) {
       const dupField = Object.keys(createErr?.keyPattern || {})[0];
+      if (dupField === "mentorshipRequestId") return { ok: false, status: 409, error: "Yêu cầu này đã có lịch hẹn. Xem Lịch hẹn của tôi để tiếp tục thanh toán." };
       if (dupField === "paymentRef") {
         return {
           ok: false,
@@ -1116,6 +1135,7 @@ export function toPublicBooking(doc, mentorLean) {
   return {
     id: String(b._id),
     userId: cust?._id ? String(cust._id) : String(b.userId || ""),
+    mentorshipRequestId: b.mentorshipRequestId ? String(b.mentorshipRequestId) : "",
     customerName: cust?.name || "",
     customerEmail: cust?.email || "",
     customerAvatar: resolveStoredUploadUrl(cust?.avatar || ""),
