@@ -62,6 +62,8 @@ Mật khẩu mặc định tất cả: **`Dev123456`**
 | `customer@dev.local` | customer, plan: free |
 | `mentor@dev.local` | mentor |
 | `admin@dev.local` | admin |
+| `moderator@dev.local` | moderator (→ `/moderator/courses`) |
+| `enterprise@dev.local` | enterprise (chưa có khu vực FE) |
 
 ---
 
@@ -134,7 +136,8 @@ Thực tế: auth, bookings, payments, plans, mentor dashboard, reviews, reports
 | `/api/reports` | `reports.js` | |
 | `/api/mentor` | `mentor.js` | Dashboard/finance/analytics mentor |
 | `/api/notifications` | `notifications.js` | |
-| `/api/admin` | `admin.js` | |
+| `/api/admin` | `admin.js` | Không còn route duyệt khóa học (đã chuyển sang `/api/moderator`) |
+| `/api/moderator` | `moderator.js` | `requireModerator` + `adminAuditLog`; duyệt khóa học + content stats |
 | `/api/enrollments` | `enrollments.js` | |
 | `/api/cv` | `cv.js` + `cvMatch.js` | cv.js: CRUD/quota; cvMatch.js: proxy sang Python |
 | `/api/interviews` | `interviews.js` | |
@@ -154,7 +157,9 @@ Thực tế: auth, bookings, payments, plans, mentor dashboard, reviews, reports
 
 ### Models (`models/`) — 21 Mongoose schemas
 
-`User`, `Mentor`, `Booking`, `Payment`, `Course`, `Enrollment`, `Review`, `Notification`, `CVAnalysis`, `InterviewSession`, `Report`, `Subscription`, `Activity`, `CourseQA`, `MentorPeerReview`, `PayoutRequest`, `MentorKnowledge`, `SecurityLog`, `SepayWebhookEvent`, `CostEvent`, `Achievement`, `UserEvent`, `index.js`
+`User`, `Mentor`, `Booking`, `Payment`, `Course`, `Enrollment`, `Review`, `Notification`, `CVAnalysis`, `InterviewSession`, `Report`, `Subscription`, `Activity`, `CourseQA`, `MentorPeerReview`, `PayoutRequest`, `MentorKnowledge`, `SecurityLog`, `SepayWebhookEvent`, `CostEvent`, `Achievement`, `UserEvent`, `QuestionBank`, `index.js`
+
+`QuestionBank` (collection `question_bank`) — kho câu hỏi kiểm duyệt dùng chung cho Moderator (câu AI sinh → `pending_review` → duyệt) và Enterprise template (`orgId`). Model đã có, **chưa có API** đọc/ghi.
 
 Plan và quota được lưu trực tiếp trên **`User`** (field `plan`, `planExpiresAt`, `cvAnalysisUsed`, `interviewUsed`, v.v.).
 
@@ -163,6 +168,8 @@ Plan và quota được lưu trực tiếp trên **`User`** (field `plan`, `plan
 - `authJwt` — verify Bearer JWT, set `req.user` / `req.userId`
 - `requireMentor` — `role === "mentor"`
 - `requireAdmin` — `role === "admin"`
+- `requireRole(...roles)` / `requireModerator` / `requireEnterprise` (`requireRole.js`) — gắn `req.userRole`; **admin KHÔNG đi vòng cổng moderator** (cố ý tách vận hành khỏi kiểm định nội dung)
+- Role `User.role`: `customer | mentor | admin | moderator | enterprise`. Admin gán qua `PATCH /api/users/:id/role` (`ASSIGNABLE_ROLES` không có `admin`)
 - `rateLimiters.js` — rate limit login, register, …
 
 ### Response shape
@@ -260,7 +267,8 @@ utils/
 | `/payment-return`, `/payment-success`, `/payment-failure` | Payment pages |
 | `/avatar-demo` | AvatarDemo |
 | `/courses/:id/learn` | CourseLearning (full-screen) |
-| `/admin/*` | Admin section (AdminLayout) |
+| `/admin/*` | Admin section (AdminLayout) — `/admin/content/courses` giờ redirect sang `/moderator/courses` |
+| `/moderator`, `/moderator/courses` | ModeratorLayout (`createRoleLoader("moderator")`, xác minh role qua `/api/auth/me`) |
 | `/dashboard` | Dashboard |
 | `/cv-analysis`, `/cv-analysis/history` | CVAnalysis, AnalysisHistory |
 | `/interview`, `/interview/gender`, `/interview/room`, `/interview/feedback` | Interview flow |

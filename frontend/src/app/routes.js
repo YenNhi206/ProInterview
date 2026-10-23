@@ -86,12 +86,17 @@ import { AdminMentorDetail } from "./pages/admin/AdminMentorDetail.jsx";
 import { AdminBookingDetail } from "./pages/admin/AdminBookingDetail.jsx";
 import { AdminBookingCheckIns } from "./pages/admin/AdminBookingCheckIns.jsx";
 import { AdminAchievements } from "./pages/admin/AdminAchievements.jsx";
+import { ModeratorLayout } from "./pages/moderator/ModeratorLayout.jsx";
+import { createRoleLoader } from "./utils/auth/roleLoader.js";
 
-/** Đã đăng nhập mentor/admin → hub riêng, không xem landing customer. */
+const moderatorLoader = createRoleLoader("moderator", "/moderator");
+
+/** Đã đăng nhập mentor/admin/moderator → hub riêng, không xem landing customer. */
 function roleHomeLoader() {
   const user = getUser();
   if (user?.role === "mentor") throw redirect("/mentor/dashboard");
   if (user?.role === "admin") throw redirect("/admin");
+  if (user?.role === "moderator") throw redirect("/moderator");
   return null;
 }
 
@@ -209,16 +214,26 @@ export const router = createBrowserRouter([
       { path: "course-payments", Component: AdminCoursePayments },
       { path: "subscription-payments", Component: AdminSubscriptionPayments },
       { path: "content/questions", Component: AdminContentQuestions },
+      // Duyệt khóa học đã chuyển sang khu vực kiểm duyệt viên — admin không còn quyền.
       {
         path: "content/videos",
-        loader: () => redirect("/admin/content/courses?view=incomplete"),
+        loader: () => redirect("/moderator/courses?view=incomplete"),
       },
-      { path: "content/courses", Component: AdminContentCourses },
+      { path: "content/courses", loader: () => redirect("/moderator/courses") },
       { path: "settings", Component: AdminSystemSettings },
       { path: "reviews", Component: AdminReviews },
       { path: "support", Component: AdminSupport },
       { path: "achievements", Component: AdminAchievements },
       { path: "interview-metrics", loader: () => redirect("/admin/content/questions") },
+    ],
+  },
+  {
+    path: "/moderator",
+    Component: ModeratorLayout,
+    loader: moderatorLoader,
+    children: [
+      { index: true, loader: () => redirect("/moderator/courses") },
+      { path: "courses", Component: AdminContentCourses },
     ],
   },
   { path: "*", loader: () => redirect("/") },

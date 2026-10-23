@@ -40,7 +40,7 @@ const TILES = [
   { to: "/admin/payouts", label: "Rút tiền cố vấn", icon: Banknote, desc: "Duyệt và chi trả mentor" },
   { to: "/admin/users", label: "Người dùng", icon: Users, desc: "Danh sách và chi tiết user" },
   { to: "/admin/mentors", label: "Cố vấn", icon: GraduationCap, desc: "Danh sách cố vấn" },
-  { to: "/admin/content/courses", label: "Khóa học", icon: BookOpen, desc: "Duyệt và quản lý khóa" },
+  // Duyệt khóa học đã chuyển sang /moderator/courses — admin không còn quyền kiểm duyệt.
   { to: "/admin/reviews", label: "Đánh giá", icon: Star, desc: "Review mentor & khóa học" },
   { to: "/admin/analytics", label: "Phân tích", icon: LineChart, desc: "Báo cáo và biểu đồ" },
 ];

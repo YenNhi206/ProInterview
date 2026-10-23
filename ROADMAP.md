@@ -2,6 +2,20 @@
 
 **Base URL API:** `/api` · **Auth:** `Authorization: Bearer <jwt>` (JWT Express), trừ route ghi rõ public/webhook.
 
+## Nền RBAC — role `moderator` và `enterprise` (đã có)
+
+- ✅ BE: `User.role` mở rộng thành `customer | mentor | admin | moderator | enterprise`; middleware `requireRole(...roles)` + `requireModerator` / `requireEnterprise` trong `backend/src/middleware/requireRole.js`.
+- ✅ BE: router `/api/moderator` (`routes/moderator.js`), gắn `adminAuditLog` nên thao tác moderator vẫn hiện ở `/admin/audit-log`.
+- ✅ BE: **duyệt khóa học chuyển từ admin sang moderator** — `/api/admin/courses/*` đã bỏ, thay bằng `/api/moderator/courses/*`. Cổng moderator cố ý KHÔNG cho admin đi vòng.
+- ✅ BE: model `QuestionBank` (`models/QuestionBank.js`) — substrate dùng chung cho kiểm duyệt ngân hàng câu hỏi (Moderator) và interview template của tổ chức (Enterprise, qua `orgId`).
+- ✅ BE: `setRoleByAdmin` gán được `moderator` / `enterprise` (`ASSIGNABLE_ROLES`); không gán được `admin` qua API.
+- ✅ FE: khu vực `/moderator` (`pages/moderator/ModeratorLayout.jsx`) + `createRoleLoader` trong `utils/auth/roleLoader.js`; `/admin/content/courses` redirect sang `/moderator/courses`.
+- ✅ Test: `src/integration/rbacRoles.integration.test.js` khóa ma trận quyền; `courseUpdateApproval` xác nhận admin nhận 403.
+- 📋 Còn lại cho package Moderator: `ModerationFlag` (review queue), API ngân hàng câu hỏi, audit CV–JD matching, quality dashboard.
+- 📋 Còn lại cho package Enterprise: model `Organization` + `CreditWallet` (credit là **trục riêng**, không phải giá trị của `plan`), cohort, candidate pipeline, talent pool.
+
+---
+
 ## Tích hợp BookingMentorPlatform — giỏ hàng và rà soát booking
 
 - ✅ BE + FE: giỏ khóa học lưu MongoDB, thêm/xóa từ trang khóa học, huy hiệu trên navbar và trang `/cart`.
@@ -38,6 +52,8 @@ Khi merge xong một route: cập nhật **Phần A** trong `API_INDEX`, đổi 
 | `[AUTH]` | Cần đăng nhập |
 | `[MENTOR]` | `role === "mentor"` |
 | `[ADMIN]` | `role === "admin"` |
+| `[MODERATOR]` | `role === "moderator"` — admin KHÔNG đi vòng được |
+| `[ENTERPRISE]` | `role === "enterprise"` |
 
 **Lưu ý:** Cột **Trạng thái** trong Phase 1–4 = **backend**. Tiến độ tích hợp FE: xem [Trạng thái Frontend](#trạng-thái-frontend-theo-domain).
 

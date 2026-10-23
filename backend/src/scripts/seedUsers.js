@@ -12,6 +12,9 @@ import { createMentorProfileForUser } from "../services/mentorProfileService.js"
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SALT_ROUNDS = 10;
 
+/** Phải khớp enum `role` trong models/User.js — thiếu role nào thì seed âm thầm tụt về customer. */
+const SEEDABLE_ROLES = ["customer", "mentor", "admin", "moderator", "enterprise"];
+
 async function main() {
   const uri = process.env.MONGO_URI;
   if (!uri) {
@@ -36,7 +39,7 @@ async function main() {
     const email = String(row.email || "").trim().toLowerCase();
     const password = String(row.password || "");
     const name = String(row.name || "").trim();
-    const role = ["customer", "mentor", "admin"].includes(row.role) ? row.role : "customer";
+    const role = SEEDABLE_ROLES.includes(row.role) ? row.role : "customer";
 
     if (!email || !password || !name) {
       console.warn("Bỏ qua dòng seed thiếu email/password/name:", row);

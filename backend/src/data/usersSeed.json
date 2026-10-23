@@ -16,5 +16,17 @@
     "name": "Admin Dev",
     "role": "admin",
     "password": "Dev123456"
+  },
+  {
+    "email": "moderator@dev.local",
+    "name": "Kiểm duyệt Dev",
+    "role": "moderator",
+    "password": "Dev123456"
+  },
+  {
+    "email": "enterprise@dev.local",
+    "name": "Tổ chức Dev",
+    "role": "enterprise",
+    "password": "Dev123456"
   }
 ]

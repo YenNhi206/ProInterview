@@ -83,11 +83,8 @@ adminRouter.get("/payouts", asyncHandler(AdminController.getPayoutRequests));
 adminRouter.patch("/payouts/:id/approve", asyncHandler(AdminAccountController.approve));
 adminRouter.patch("/payouts/:id/mark-paid", asyncHandler(AdminAccountController.paid));
 adminRouter.patch("/payouts/:id/reject", asyncHandler(AdminAccountController.reject));
-adminRouter.get("/courses/pending", asyncHandler(AdminController.getPendingCourses));
-adminRouter.get("/courses/published", asyncHandler(AdminController.getPublishedCourses));
-adminRouter.patch("/courses/:id/approve", asyncHandler(AdminController.approveCourse));
-adminRouter.patch("/courses/:id/reject", asyncHandler(AdminController.rejectCourse));
-adminRouter.patch("/courses/:id/archive", asyncHandler(AdminController.archiveCourse));
+// Duyệt khóa học đã chuyển sang `/api/moderator/courses/*` (routes/moderator.js) —
+// kiểm định nội dung thuộc moderator, không còn là quyền của admin.
 adminRouter.get("/interview-metrics", asyncHandler(AdminController.getInterviewMetrics));
 adminRouter.get("/analytics/user-behavior", asyncHandler(AdminController.getPlatformBehavior));
 adminRouter.get("/analytics/users/:id/journey", asyncHandler(AdminController.getUserJourney));

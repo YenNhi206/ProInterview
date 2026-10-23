@@ -16,7 +16,16 @@ const userSchema = new Schema(
     passwordHash: { type: String, select: false },
     avatar: { type: String, default: "" },
 
-    role: { type: String, enum: ["customer", "mentor", "admin"], default: "customer" },
+    /**
+     * moderator  — kiểm duyệt chất lượng AI (ngân hàng câu hỏi, review queue) + duyệt khóa học.
+     * enterprise — đại diện tổ chức (trường/agency): quản lý cohort, credit, talent pool.
+     *              Credit tổ chức là trục riêng, KHÔNG phải một giá trị của `plan`.
+     */
+    role: {
+      type: String,
+      enum: ["customer", "mentor", "admin", "moderator", "enterprise"],
+      default: "customer",
+    },
     plan: { type: String, enum: ["free", "starter_pro", "elite_pro", "professional", "pro", "basic", "premium"], default: "free" },
     planExpiresAt: { type: Date, default: null },
 

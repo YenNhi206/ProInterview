@@ -3,16 +3,22 @@ import { Mentor } from "../models/Mentor.js";
 import { activateMentorCommissionPolicy } from "./mentorCommissionService.js";
 
 /**
- * Admin đặt role `customer` | `mentor` cho user khác (không đụng tài khoản admin).
+ * Role admin được phép gán cho user khác. Cố ý KHÔNG có `admin` — nâng quyền quản trị
+ * phải làm thủ công ở DB, tránh một admin bị chiếm tài khoản tự nhân bản quyền.
+ */
+export const ASSIGNABLE_ROLES = ["customer", "mentor", "moderator", "enterprise"];
+
+/**
+ * Admin đặt role cho user khác (không đụng tài khoản admin).
  * Bỏ qua mã mời mentor — dùng khi vận hành / duyệt tay.
  */
 export async function setRoleByAdmin(adminId, targetUserId, newRole) {
   const r = typeof newRole === "string" ? newRole.trim().toLowerCase() : "";
-  if (r !== "customer" && r !== "mentor") {
+  if (!ASSIGNABLE_ROLES.includes(r)) {
     return {
       ok: false,
       status: 400,
-      error: "Chỉ được đặt role `customer` hoặc `mentor` (không đổi admin qua API này).",
+      error: `Chỉ được đặt role ${ASSIGNABLE_ROLES.map((x) => `\`${x}\``).join(", ")} (không đổi admin qua API này).`,
     };
   }
 
@@ -40,13 +46,14 @@ export async function setRoleByAdmin(adminId, targetUserId, newRole) {
   target.role = r;
   await target.save();
 
-  if (r === "customer" && previousRole === "mentor") {
+  // Rời khỏi role mentor sang BẤT KỲ role nào khác → ngừng nhận booking.
+  if (r !== "mentor" && previousRole === "mentor") {
     await Mentor.updateMany(
       { userId: target._id },
       { $set: { isActive: false, available: false } },
     ).catch(() => {});
   }
-  if (r === "mentor" && previousRole === "customer") {
+  if (r === "mentor" && previousRole !== "mentor") {
     await Mentor.updateMany(
       { userId: target._id },
       {

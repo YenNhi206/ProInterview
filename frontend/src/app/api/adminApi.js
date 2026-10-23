@@ -1,37 +1,5 @@
 import { authFetch, hasAuthCredentials } from "../utils/auth/auth.js";
-
-const jsonHeaders = {
-  Accept: "application/json",
-  "Content-Type": "application/json",
-};
-
-const ERROR_MESSAGES = {
-  UNAUTHENTICATED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
-  NETWORK: "Không thể kết nối máy chủ. Vui lòng thử lại.",
-};
-
-function normalizeApiError(body, status) {
-  const raw = String(body?.error || "").trim();
-  if (raw) return raw;
-  if (status === 401 || status === 403) return ERROR_MESSAGES.UNAUTHENTICATED;
-  return `Yêu cầu thất bại (mã ${status}). Vui lòng thử lại.`;
-}
-
-function authedFetch(path, options = {}) {
-  if (!hasAuthCredentials()) {
-    return Promise.resolve({ success: false, error: ERROR_MESSAGES.UNAUTHENTICATED });
-  }
-  return authFetch(path, {
-    ...options,
-    headers: { ...jsonHeaders, ...options.headers },
-  })
-    .then(async (res) => {
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) return { success: false, error: normalizeApiError(body, res.status) };
-      return { success: true, ...body };
-    })
-    .catch(() => ({ success: false, error: ERROR_MESSAGES.NETWORK }));
-}
+import { authedFetch, ERROR_MESSAGES, normalizeApiError } from "./authedJson.js";
 
 export const adminApi = {
   getStats: () => authedFetch("/api/admin/stats"),
@@ -165,23 +133,8 @@ export const adminApi = {
       method: "PATCH",
       body: JSON.stringify(body ?? {}),
     }),
-  getPendingCourses: () => authedFetch("/api/admin/courses/pending"),
-  getPublishedCourses: (limit = 50) =>
-    authedFetch(`/api/admin/courses/published?limit=${encodeURIComponent(limit)}`),
-  approveCourse: (id) =>
-    authedFetch(`/api/admin/courses/${id}/approve`, {
-      method: "PATCH",
-    }),
-  rejectCourse: (id, reason) =>
-    authedFetch(`/api/admin/courses/${id}/reject`, {
-      method: "PATCH",
-      body: JSON.stringify({ reason }),
-    }),
-  archiveCourse: (id, reason = "") =>
-    authedFetch(`/api/admin/courses/${id}/archive`, {
-      method: "PATCH",
-      body: JSON.stringify({ reason }),
-    }),
+  // Duyệt khóa học đã chuyển sang moderatorApi.js (`/api/moderator/courses/*`) —
+  // admin không còn quyền kiểm duyệt nội dung.
   getReports: (params = {}) => {
     const q = new URLSearchParams();
     if (params.status) q.set("status", params.status);

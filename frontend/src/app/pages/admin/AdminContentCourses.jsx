@@ -30,7 +30,7 @@ import {
   adminTdCell,
   adminThCell,
 } from "../../components/admin/AdminPageShell.jsx";
-import { adminApi } from "../../api/adminApi.js";
+import { moderatorApi } from "../../api/moderatorApi.js";
 import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiToast.js";
 import { markAdminCoursePreviewReturn } from "../../utils/admin/adminCoursePreview.js";
 import { mediaSrc, DEFAULT_COURSE_THUMB, avatarSrc } from "../../utils/shared/mediaUrl.js";
@@ -793,7 +793,7 @@ export function AdminContentCourses() {
 
   const goStudentPreview = useCallback(
     (courseId) => {
-      markAdminCoursePreviewReturn("/admin/content/courses");
+      markAdminCoursePreviewReturn("/moderator/courses");
       navigate(`/courses/${courseId}?adminPreview=1`);
     },
     [navigate],
@@ -842,14 +842,14 @@ export function AdminContentCourses() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     const [pendingRes, publishedRes, statsRes] = await Promise.all([
-      tryApi(() => adminApi.getPendingCourses(), {
+      tryApi(() => moderatorApi.getPendingCourses(), {
         fallback: "Không tải được khóa học chờ duyệt.",
         silent: true,
       }),
-      tryApi(() => adminApi.getPublishedCourses(100), {
+      tryApi(() => moderatorApi.getPublishedCourses(100), {
         fallback: "Không tải được khóa đã xuất bản.",
       }),
-      tryApi(() => adminApi.getContentStats(), {
+      tryApi(() => moderatorApi.getContentStats(), {
         fallback: "",
         silent: true,
       }),
@@ -882,7 +882,7 @@ export function AdminContentCourses() {
   const handleApprove = async (id) => {
     if (!window.confirm("Duyệt khóa học này và xuất bản (hoặc áp dụng bản cập nhật)?")) return;
     setBusyId(id);
-    const res = await tryApi(() => adminApi.approveCourse(id), {
+    const res = await tryApi(() => moderatorApi.approveCourse(id), {
       fallback: "Không duyệt được khóa học.",
       successMessage: "Đã duyệt khóa học.",
     });
@@ -906,7 +906,7 @@ export function AdminContentCourses() {
     if (!course?._id) return;
     const isUpdate = course.status === "pending_update";
     setBusyId(course._id);
-    const res = await tryApi(() => adminApi.rejectCourse(course._id, reason), {
+    const res = await tryApi(() => moderatorApi.rejectCourse(course._id, reason), {
       fallback: "Không từ chối được khóa học.",
       successMessage: isUpdate ? "Đã bỏ bản cập nhật." : "Đã từ chối, trả về nháp.",
     });
@@ -922,7 +922,7 @@ export function AdminContentCourses() {
     const course = archiveModal.course;
     if (!course?._id) return;
     setBusyId(course._id);
-    const res = await tryApi(() => adminApi.archiveCourse(course._id, reason), {
+    const res = await tryApi(() => moderatorApi.archiveCourse(course._id, reason), {
       fallback: "Không gỡ được khóa khỏi marketplace.",
       successMessage: "Đã gỡ khóa khỏi marketplace.",
     });
