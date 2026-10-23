@@ -8,6 +8,7 @@
  */
 import mongoose from "mongoose";
 import { QuestionBank, hashQuestionText } from "../models/QuestionBank.js";
+import { InterviewSession } from "../models/InterviewSession.js";
 import { logger } from "../config/logger.js";
 import { listFallbackQuestions } from "../config/fallbackQuestions.js";
 import { COMPETENCY_LIBRARY } from "./competencyFramework.js";
@@ -256,4 +257,165 @@ export async function applyDeprecationPolicy(questions, { regenerate, excludeTex
 
   if (stats.fallback > 0) logger.warn("question_bank_static_fallback_used", stats);
   return { questions: list, ...stats };
+}
+
+// ── Moderator: thao tác trên ngân hàng câu hỏi (/api/moderator/questions*) ─────────────────────
+
+const LIST_SORT = { flagCount: { flagCount: -1, updatedAt: -1 }, usageCount: { usageCount: -1, updatedAt: -1 }, updatedAt: { updatedAt: -1 } };
+
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Chỉ pool chung (orgId null) — template Enterprise ngoài phạm vi S1. */
+export async function listQuestions({ status, competencyId, source, q, sort = "updatedAt", page = 1, limit = 20 }) {
+  const filter = { orgId: null };
+  if (status) filter.status = status;
+  if (competencyId) filter.competencyId = competencyId;
+  if (source) filter.source = source;
+  if (q) filter.text = { $regex: escapeRegex(q), $options: "i" };
+  const [items, total] = await Promise.all([
+    QuestionBank.find(filter)
+      .select("-history -moderation -provenance -stats -sampleSessionIds -starGuidance")
+      .sort(LIST_SORT[sort] ?? LIST_SORT.updatedAt)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    QuestionBank.countDocuments(filter),
+  ]);
+  return { ok: true, questions: items, pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) } };
+}
+
+/** Chi tiết + revisions + tối đa 5 session mẫu gần nhất (câu trả lời + điểm AI + điểm moderator). */
+export async function getQuestionDetail(id) {
+  const question = await QuestionBank.findById(id).lean();
+  if (!question) return { ok: false, status: 404, error: "Không tìm thấy câu hỏi." };
+
+  const sampleIds = [...(question.sampleSessionIds ?? [])].reverse().slice(0, 5);
+  const sessions = sampleIds.length
+    ? await InterviewSession.find({ _id: { $in: sampleIds } }).select("questions answers feedback createdAt").lean()
+    : [];
+  const byId = new Map(sessions.map((s) => [String(s._id), s]));
+  const samples = sampleIds
+    .map((sid) => byId.get(String(sid)))
+    .filter(Boolean)
+    .map((s) => {
+      const qi = (s.questions ?? []).findIndex(
+        (x) => String(x.questionBankId ?? "") === String(question._id) || hashQuestionText(x.question) === question.textHash,
+      );
+      const answer = (s.answers ?? []).find((a) => a.questionIndex === qi);
+      const evaluation = (s.feedback?.perQuestion ?? []).find((p) => p.questionIndex === qi);
+      return {
+        sessionId: s._id,
+        createdAt: s.createdAt,
+        questionIndex: qi,
+        transcript: answer?.transcript ?? "",
+        aiEvaluation: evaluation
+          ? { scores: evaluation.scores, overall: evaluation.overall5, shrmLevel: evaluation.shrmLevel }
+          : null,
+        moderatorOverride: answer?.moderatorOverride ?? null,
+      };
+    });
+  return { ok: true, question, samples };
+}
+
+export async function createQuestion({ text, competencyId, layer, language }, moderatorId) {
+  const textHash = hashQuestionText(text);
+  if (await QuestionBank.exists({ textHash, orgId: null })) {
+    return { ok: false, status: 409, error: "Câu hỏi này đã có trong ngân hàng." };
+  }
+  try {
+    const doc = await QuestionBank.create({
+      text,
+      originalText: text,
+      competencyId,
+      competencyName: COMPETENCY_LIBRARY[competencyId]?.nameVi ?? "",
+      layer,
+      language,
+      source: "moderator",
+      status: "approved",
+      textHash,
+      createdBy: moderatorId,
+      review: { by: moderatorId, at: new Date(), note: "Moderator tạo" },
+      history: [{ action: "create", actorId: moderatorId, reason: "moderator" }],
+    });
+    return { ok: true, question: doc.toObject() };
+  } catch (err) {
+    if (err?.code === 11000) return { ok: false, status: 409, error: "Câu hỏi này đã có trong ngân hàng." };
+    throw err;
+  }
+}
+
+/** Sửa text/competency (bắt buộc lý do) → revisions; textHash mới trùng câu khác → 409. */
+export async function editQuestion(id, { text, competencyId, reason }, moderatorId) {
+  const doc = await QuestionBank.findById(id);
+  if (!doc) return { ok: false, status: 404, error: "Không tìm thấy câu hỏi." };
+
+  const nextText = text ?? doc.text;
+  const nextCompetency = competencyId ?? doc.competencyId;
+  const nextHash = hashQuestionText(nextText);
+  if (nextHash !== doc.textHash && (await QuestionBank.exists({ _id: { $ne: doc._id }, textHash: nextHash, orgId: doc.orgId ?? null }))) {
+    return { ok: false, status: 409, error: "Nội dung mới trùng với một câu hỏi khác trong ngân hàng." };
+  }
+
+  const previousText = doc.text;
+  doc.text = nextText;
+  doc.textHash = nextHash;
+  doc.competencyId = nextCompetency;
+  if (competencyId) doc.competencyName = COMPETENCY_LIBRARY[competencyId]?.nameVi ?? doc.competencyName;
+  if (!doc.originalText) doc.originalText = previousText;
+  doc.revisions.push({ text: nextText, competencyId: nextCompetency, editedBy: moderatorId, editedAt: new Date(), reason });
+  doc.history.push({ action: "edit", actorId: moderatorId, reason, previousQuestion: previousText });
+  try {
+    await doc.save();
+  } catch (err) {
+    if (err?.code === 11000) return { ok: false, status: 409, error: "Nội dung mới trùng với một câu hỏi khác trong ngân hàng." };
+    throw err;
+  }
+  return { ok: true, question: doc.toObject() };
+}
+
+export async function approveQuestion(id, { note = "" } = {}, moderatorId) {
+  const doc = await QuestionBank.findByIdAndUpdate(
+    id,
+    {
+      $set: { status: "approved", review: { by: moderatorId, at: new Date(), note } },
+      $push: { history: { action: "approve", actorId: moderatorId, reason: note } },
+    },
+    { returnDocument: "after" },
+  ).lean();
+  if (!doc) return { ok: false, status: 404, error: "Không tìm thấy câu hỏi." };
+  return { ok: true, question: doc };
+}
+
+export async function deprecateQuestion(id, { reason }, moderatorId) {
+  const doc = await QuestionBank.findByIdAndUpdate(
+    id,
+    {
+      $set: { status: "deprecated", deprecation: { by: moderatorId, at: new Date(), reason } },
+      $push: { history: { action: "deprecate", actorId: moderatorId, reason } },
+    },
+    { returnDocument: "after" },
+  ).lean();
+  if (!doc) return { ok: false, status: 404, error: "Không tìm thấy câu hỏi." };
+  return { ok: true, question: doc };
+}
+
+/** Tối đa 100 id (validate ở DTO). Trả số câu đã cập nhật + id không tồn tại. */
+export async function bulkUpdateQuestions({ ids, action, reason = "" }, moderatorId) {
+  const now = new Date();
+  const update =
+    action === "approve"
+      ? {
+          $set: { status: "approved", review: { by: moderatorId, at: now, note: reason || "" } },
+          $push: { history: { action: "approve", actorId: moderatorId, reason: reason || "bulk" } },
+        }
+      : {
+          $set: { status: "deprecated", deprecation: { by: moderatorId, at: now, reason } },
+          $push: { history: { action: "deprecate", actorId: moderatorId, reason } },
+        };
+  const res = await QuestionBank.updateMany({ _id: { $in: ids } }, update);
+  const found = await QuestionBank.find({ _id: { $in: ids } }, { _id: 1 }).lean();
+  const foundSet = new Set(found.map((d) => String(d._id)));
+  return { ok: true, updated: res.modifiedCount, notFound: ids.filter((i) => !foundSet.has(String(i))) };
 }
