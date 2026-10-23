@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Seed báo cáo / khiếu nại cho trang admin Hỗ trợ.
  * Chạy: npm run seed:reports (từ thư mục backend)

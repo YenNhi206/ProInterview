@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Seed đánh giá + ghi danh paid cho khóa học của mentor dev — để xem UI "Khóa học của tôi".
  * Chạy (từ backend/):

@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Thêm 5 mentor mẫu (user + hồ sơ đầy đủ) và chỉ giữ dịch vụ mock interview.
  * Chạy: npm run seed:mentor-samples (từ thư mục backend)

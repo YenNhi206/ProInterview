@@ -103,8 +103,9 @@ export async function startServer() {
           );
         }
 
-        // Tự động thêm dữ liệu mẫu nếu DB hoàn toàn chưa có lượt đánh giá nào
-        const reviewCount = await mongoose.model("Review").countDocuments();
+        // Tự động thêm dữ liệu mẫu nếu DB hoàn toàn chưa có lượt đánh giá nào — chỉ ở dev/staging,
+        // production không bao giờ tự seed mentor/review giả.
+        const reviewCount = isProd ? -1 : await mongoose.model("Review").countDocuments();
         if (reviewCount === 0) {
           console.log("[startup] DB chưa có đánh giá nào. Tự động thêm Mentor mẫu và đánh giá thực tế...");
           try {
