@@ -45,3 +45,6 @@ backend/public/uploads/*
 # JaaS private keys (never commit)
 backend/keys/
 *.pk
+
+# Repo riêng (NguyenTrongNguyen04/ProInterviewAIDemo) — không đưa vào repo này
+ProInterviewAIDemo/
