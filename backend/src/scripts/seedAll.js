@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Seed user dev (nếu collection users trống); hồ sơ mentor chỉ tạo từ user role mentor (không seed mentor giả).
  */

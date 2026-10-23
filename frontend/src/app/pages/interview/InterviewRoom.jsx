@@ -22,7 +22,8 @@ import {
   MessageCircle as ChatCircle,
   Star,
 } from "lucide-react";
-import { getPlans, hasAuthCredentials } from "../../utils/auth/auth.js";
+import { getPlans, getUser, hasAuthCredentials } from "../../utils/auth/auth.js";
+import { hasCameraConsent } from "../../utils/interview/cameraConsent.js";
 import {
   saveAnswer,
   completeInterviewSession,
@@ -341,16 +342,31 @@ function HRVideoPanel({ questionVideoUrl, hrPhase, onAskingDone, isListening, mu
    onAudioTrack: passes audio MediaStreamTrack so InterviewRoom can build its
    AudioContext without a second getUserMedia call (avoids double permission).
  */
-const UserCameraTile = forwardRef(function UserCameraTile({ isRecording, onAudioTrack }, faceVideoRef) {
+const UserCameraTile = forwardRef(function UserCameraTile({ isRecording, onAudioTrack, cameraEnabled }, faceVideoRef) {
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
-  const [camState, setCamState] = useState("loading");
-  const [camError, setCamError] = useState("Camera không khả dụng");
+  const [camState, setCamState] = useState(cameraEnabled ? "loading" : "off");
+  const [camError, setCamError] = useState(
+    cameraEnabled ? "Camera không khả dụng" : "Camera đã tắt — bạn chưa đồng ý dùng camera",
+  );
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       let stream = null;
+      // Chưa đồng ý camera (consent.camera) → chỉ xin mic, KHÔNG gọi getUserMedia({ video }).
+      if (!cameraEnabled) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        } catch (_) {
+          return;
+        }
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        const audioTrack = stream.getAudioTracks()[0];
+        if (audioTrack && onAudioTrack) onAudioTrack(audioTrack);
+        return;
+      }
       try {
         // Request camera + audio together, single permission dialog
         stream = await navigator.mediaDevices.getUserMedia({
@@ -497,6 +513,8 @@ export default function InterviewRoom() {
   const location = useLocation();
   const plans = getPlans();
   const isPro = plans.starterPro || plans.elitePro;
+  // Chỉ bật camera + phân tích khuôn mặt khi user đã đồng ý ở trang /interview (đúng version).
+  const [cameraEnabled] = useState(() => hasCameraConsent(getUser()));
 
   const hrGender =
     location.state?.hrGender ||
@@ -668,7 +686,7 @@ export default function InterviewRoom() {
   /* ── Face analysis hook ───────────────────────────────── */
   const { resetMetrics: resetFace, getMetrics: getFaceMetrics } = useFaceAnalysis({
     videoRef: cameraVideoRef,
-    isActive: isListening && phase === "question",
+    isActive: cameraEnabled && isListening && phase === "question",
   });
 
   /* ── Guards: sessionStorage recovery ──────────────────── */
@@ -1067,7 +1085,7 @@ export default function InterviewRoom() {
   /* ── Capture frame & call Google Vision (fire-and-forget) ─ */
   const captureAndAnalyzeFace = (qIndex) => {
     const sessionId = resolvedSessionId;
-    if (!sessionId || !hasAuthCredentials()) return;
+    if (!cameraEnabled || !sessionId || !hasAuthCredentials()) return;
     const video = cameraVideoRef.current;
     if (!video || video.videoWidth === 0) return;
 
@@ -1773,7 +1791,7 @@ export default function InterviewRoom() {
           <div className={`liquid-glass relative min-h-0 h-full overflow-hidden rounded-xl ${
             isListening ? "shadow-[0_0_20px_rgba(110,53,232,0.15)] ring-2 ring-violet-400" : "shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
           }`}>
-            <UserCameraTile ref={cameraVideoRef} isRecording={isListening} onAudioTrack={handleAudioTrack} />
+            <UserCameraTile ref={cameraVideoRef} isRecording={isListening} onAudioTrack={handleAudioTrack} cameraEnabled={cameraEnabled} />
             {isListening && (
               <div className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-inset ring-violet-400/50" />
             )}

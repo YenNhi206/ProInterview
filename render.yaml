@@ -24,6 +24,10 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      # Bắt buộc ở production (server exit 1 nếu thiếu). Đặt = giá trị JWT_SECRET hiện tại để không
+      # làm mất các phiên refresh đang có (trước đây pepper fallback về JWT_SECRET).
+      - key: REFRESH_TOKEN_PEPPER
+        sync: false
       - key: CORS_ORIGIN
         sync: false
       - key: GOOGLE_CLIENT_ID

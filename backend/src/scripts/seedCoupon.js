@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Tạo/cập nhật 1 mã giảm giá.
  * Chạy: npm run seed:coupon (mặc định LAUNCH50, giảm 50%, hết hạn 2026-08-22)

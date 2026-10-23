@@ -685,6 +685,11 @@ export const InterviewsController = {
     if (!imageBase64) {
       return res.status(400).json({ success: false, error: "imageBase64 required" });
     }
+    // Không gửi ảnh khuôn mặt sang Google Vision khi user chưa đồng ý camera (xem consent.camera).
+    const consentUser = await User.findById(req.userId).select("consent").lean();
+    if (!consentUser?.consent?.camera?.acceptedAt) {
+      return res.json({ success: true, emotion: null, reason: "no_camera_consent" });
+    }
 
     try {
       const visionRes = await fetch(

@@ -122,7 +122,7 @@ Chi tiết triển khai và kiểm thử: [`docs/CART_BOOKING_PORT.md`](./docs/C
 ## Phần A — Backend Express (đã có trong repo)
 
 **Entrypoint:** `backend/src/server.js`  
-Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock`, `/api/coupons`.
+Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock` *(chỉ ngoài production)*, `/api/coupons`.
 
 ### A.1. `GET /`
 
@@ -308,7 +308,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/interviews/sessions/:id` | Bearer | Cập nhật câu trả lời |
 | POST | `/api/interviews/sessions/:id/complete` | Bearer | Hoàn thành và nhận feedback |
 | POST | `/api/interviews/sessions/:id/evaluate` | Bearer | Chấm điểm / feedback bổ sung |
-| POST | `/api/interviews/sessions/:id/analyze-face` | Bearer | Vision — cảm xúc khuôn mặt (body `imageBase64`) |
+| POST | `/api/interviews/sessions/:id/analyze-face` | Bearer | Vision — cảm xúc khuôn mặt (body `imageBase64`, JSON limit riêng 1.5mb). Chưa có `consent.camera` → trả `emotion: null, reason: "no_camera_consent"`, không gọi Vision |
 | POST | `/api/interviews/generate-questions` | Bearer | Sinh câu hỏi (LLM) |
 | POST | `/api/interviews/extract-cv-text` | Bearer | Trích text từ CV upload |
 | GET | `/api/interviews/sessions` | Bearer | Lịch sử phỏng vấn |
@@ -704,6 +704,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | Method | Path |
 |:-------|:-----|
 | GET | `/api/users/dashboard-stats` |
+| PUT | `/api/users/me/consent/camera` — JSON `{ "accepted": true, "version": "camera-v1" }`; trả `user.consent.camera` |
 | PATCH | `/api/users/:id/role` `[ADMIN]` — JSON `{ "role": "mentor" }` hoặc `"customer"` |
 | GET | `/api/mentor/dashboard` |
 | GET | `/api/mentor/finance` |

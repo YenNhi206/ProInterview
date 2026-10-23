@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import { isAllowedMediaUrl } from "../utils/resolveStoredUploadUrl.js";
+import { isProduction } from "../utils/prodGuard.js";
 import { User, toPublicUser } from "../models/User.js";
 import { sanitizeNotificationPrefsPatch } from "../constants/notificationPrefs.js";
 import * as emailService from "./emailService.js";
@@ -31,9 +32,18 @@ function accessExpiresIn() {
   return process.env.JWT_ACCESS_EXPIRES_IN || process.env.JWT_EXPIRES_IN || "15m";
 }
 
+/** Production bắt buộc REFRESH_TOKEN_PEPPER riêng (server.js fail-fast); dev mới được fallback. */
+export function resolveRefreshPepper(env = process.env) {
+  if (isProduction(env)) {
+    const pepper = env.REFRESH_TOKEN_PEPPER;
+    if (!pepper) throw new Error("REFRESH_TOKEN_PEPPER chưa cấu hình ở production.");
+    return pepper;
+  }
+  return env.REFRESH_TOKEN_PEPPER || env.JWT_SECRET || "dev";
+}
+
 function hashRefreshSecret(secret) {
-  const pepper = process.env.REFRESH_TOKEN_PEPPER || process.env.JWT_SECRET || "dev";
-  return crypto.createHmac("sha256", pepper).update(secret).digest("hex");
+  return crypto.createHmac("sha256", resolveRefreshPepper()).update(secret).digest("hex");
 }
 
 function safeEqualStrings(a, b) {
