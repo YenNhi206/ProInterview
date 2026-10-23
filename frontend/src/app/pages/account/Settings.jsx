@@ -28,6 +28,7 @@ import {
   Smartphone,
   Mail,
   Zap,
+  Camera,
 } from "lucide-react";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { logout, getUser, getDisplayName, updateUser, refreshUserProfile, resendVerification } from "../../utils/auth/auth.js";
@@ -35,6 +36,8 @@ import { avatarSrc, DEFAULT_AVATAR } from "../../utils/shared/mediaUrl.js";
 import { LoginSessionsSection } from "../../components/account/LoginSessionsSection";
 import { AccountDangerZone } from "../../components/account/AccountDangerZone";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
+import { saveCameraConsent } from "../../api/interviewsApi.js";
+import { hasCameraConsent } from "../../utils/interview/cameraConsent.js";
 import "../../../styles/settings.css";
 import "../../../styles/commerce-theme.css";
 
@@ -485,10 +488,57 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
 
       {/* Column 2: Phiên đăng nhập & Đóng tài khoản */}
       <div className="space-y-6">
+        <CameraConsentSection sessionUser={sessionUser} onProfileSynced={onProfileSynced} />
         <LoginSessionsSection SectionCard={SectionCard} />
         <AccountDangerZone SectionCard={SectionCard} />
       </div>
     </div>
+  );
+}
+
+/* ─── Quyền riêng tư: consent camera phỏng vấn AI ─────────── */
+function CameraConsentSection({ sessionUser, onProfileSynced }) {
+  const [enabled, setEnabled] = useState(() => hasCameraConsent(sessionUser));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setEnabled(hasCameraConsent(sessionUser)); }, [sessionUser]);
+
+  // Tắt = rút consent (BE xoá acceptedAt); bật = cấp lại theo version hiện tại.
+  const handleChange = async (next) => {
+    if (saving) return;
+    setSaving(true);
+    const res = await saveCameraConsent(next);
+    setSaving(false);
+    if (!res.success) {
+      toastApiError(res.error, "Không lưu được lựa chọn camera.");
+      return;
+    }
+    setEnabled(hasCameraConsent(res.user));
+    onProfileSynced?.({ ...(sessionUser ?? {}), ...res.user });
+    toastApiSuccess(next ? "Đã cho phép phân tích qua camera." : "Đã tắt phân tích qua camera.");
+  };
+
+  return (
+    <SectionCard title="Quyền riêng tư" subtitle="Camera trong phỏng vấn AI" icon={Camera}>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p id="settings-camera-consent-label" className="text-sm font-semibold text-white">
+            Cho phép phân tích qua camera
+          </p>
+          <p id="settings-camera-consent-desc" className="mt-1 text-xs leading-relaxed text-slate-300/80">
+            Phân tích giao tiếp bằng mắt, độ ổn định và biểu cảm. Không lưu video; mỗi câu gửi 1 ảnh tới Google Cloud
+            Vision rồi bỏ, chỉ lưu chỉ số. Tắt thì phỏng vấn vẫn chạy nhưng không bật camera.
+          </p>
+        </div>
+        <ToggleSwitch
+          enabled={enabled}
+          onChange={handleChange}
+          disabled={saving}
+          labelledBy="settings-camera-consent-label"
+          describedBy="settings-camera-consent-desc"
+        />
+      </div>
+    </SectionCard>
   );
 }
 
