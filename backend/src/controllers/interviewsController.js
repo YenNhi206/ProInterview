@@ -12,7 +12,18 @@ import { BASELINE_QUESTIONS } from "../config/baselineQuestions.js";
 import { logger } from "../config/logger.js";
 import { syncPlanExpiry } from "../services/plansService.js";
 import { harvest as harvestQuestions, applyDeprecationPolicy } from "../services/questionBankService.js";
+import { upsertIncompleteEvaluationItem } from "../services/moderationQueueService.js";
 import { Sentry, isSentryEnabled } from "../config/sentry.js";
+
+/** Trạng thái kiểm định của 1 câu (trang Feedback): chờ kiểm định / đã có điểm moderator. */
+function moderationFieldsFor(session, questionIndex) {
+  const answer = (session.answers ?? []).find((a) => a.questionIndex === questionIndex);
+  return {
+    evaluationIncomplete: Boolean(answer?.evaluationIncomplete),
+    incompleteFields:     answer?.incompleteFields ?? [],
+    moderatorOverride:    answer?.moderatorOverride ?? null,
+  };
+}
 
 /** Lỗi ngân hàng câu hỏi chỉ log + Sentry, không bao giờ chặn luồng phỏng vấn. */
 function reportBankError(event, err, sessionId) {
@@ -602,6 +613,7 @@ export const InterviewsController = {
               strengths:     q.strengths ?? [],
               improvements:  q.improvements ?? [],
               suggestion:    q.suggestion ?? "",
+              ...moderationFieldsFor(session, q.questionIndex),
             })),
           },
           overallScore:   session.feedback.overallScore,
@@ -684,7 +696,27 @@ export const InterviewsController = {
       if (!session.questions?.length && questionsToUse?.length) {
         session.questions = questionsToUse;
       }
+      // Cờ "chấm thiếu tiêu chí" lưu trên answers[i] (spec S1 §1.4); câu không có answer thì thêm entry.
+      for (const q of evalResult.perQuestion) {
+        let answer = session.answers.find((a) => a.questionIndex === q.questionIndex);
+        if (!answer && q.evaluationIncomplete) {
+          session.answers.push({ questionIndex: q.questionIndex, transcript: "" });
+          answer = session.answers[session.answers.length - 1];
+        }
+        if (!answer) continue;
+        answer.evaluationIncomplete = Boolean(q.evaluationIncomplete);
+        answer.incompleteFields = q.incompleteFields ?? [];
+      }
       await session.save();
+
+      // Vẫn thiếu sau retry → hàng đợi moderator (priority high), idempotent theo (session, câu).
+      for (const q of evalResult.perQuestion.filter((x) => x.evaluationIncomplete)) {
+        try {
+          await upsertIncompleteEvaluationItem({ session, questionIndex: q.questionIndex });
+        } catch (err) {
+          reportBankError("evaluation_incomplete_item_failed", err, id);
+        }
+      }
 
       logger.info("evaluate_session_ok", { userId: req.userId, sessionId: id, overallScore: session.feedback.overallScore });
 
@@ -697,7 +729,10 @@ export const InterviewsController = {
 
       res.json({
         success:        true,
-        evaluation:     evalResult,
+        evaluation:     {
+          ...evalResult,
+          perQuestion: evalResult.perQuestion.map((q) => ({ ...q, ...moderationFieldsFor(session, q.questionIndex) })),
+        },
         overallScore:   session.feedback.overallScore,
         generalComment: evalResult.overallComment,
         inferredRole:   session.inferredRole,

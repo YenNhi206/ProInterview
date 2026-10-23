@@ -23,6 +23,12 @@ import { validateQuestionSet } from "../utils/outputValidator.js";
 import { logger } from "../config/logger.js";
 import { SecurityLog } from "../models/SecurityLog.js";
 import { createTrace, logGeneration, finalizeTrace } from "./langfuseService.js";
+import {
+  indexEvaluations,
+  findIncomplete,
+  mergeRetry,
+  isScoreValue,
+} from "../utils/evaluationCompleteness.js";
 
 // ── Prompt version ────────────────────────────────────────────────────────────
 // Ghi vào QuestionBank.generatedBy.promptVersion / session.feedback.promptVersion để đo prompt
@@ -761,7 +767,7 @@ export async function evaluateTranscripts({ questions, answers, userId, sessionI
   });
 
   // Build Q&A blocks — inject SHRM rubric per question
-  const qaBlocks = questions.map((q, i) => {
+  const buildQaBlock = (q, i) => {
     const ans = answers.find(a => a.questionIndex === i) ?? answers[i] ?? {};
     const transcriptText = ans.transcript?.trim()
       ? `"${ans.transcript.trim()}"`
@@ -772,8 +778,10 @@ export async function evaluateTranscripts({ questions, answers, userId, sessionI
       q.ddiKeyActionTargeted ? `DDI Key Action cần kiểm tra: ${q.ddiKeyActionTargeted}` : "",
       q.shrmRubricExcellent  ? `SHRM Rubric Excellent: ${q.shrmRubricExcellent}` : "",
       `Câu trả lời: ${transcriptText}`,
+      `(question_index = ${i})`,
     ].filter(Boolean).join("\n");
-  }).join("\n\n---\n\n");
+  };
+  const qaBlocks = questions.map(buildQaBlock).join("\n\n---\n\n");
 
   const systemPrompt = `Bạn là chuyên gia đánh giá phỏng vấn được đào tạo theo chuẩn SHRM và DDI Targeted Selection®.
 Nhiệm vụ: Đánh giá transcript câu trả lời của ứng viên theo framework SHRM/DDI — KHÔNG dựa trên cảm tính, PHẢI dựa trên evidence trong transcript.
@@ -847,21 +855,52 @@ Trả về JSON hợp lệ (không markdown, không giải thích thêm):
     parsed = JSON.parse(extractJson(fixed));
   }
 
-  const perQuestion = (parsed.questions ?? []).map(q => ({
-    questionIndex: q.question_index ?? 0,
-    scores: {
-      clarity:     clamp(q.scores?.clarity     ?? 3),
-      structure:   clamp(q.scores?.structure   ?? 3),
-      relevance:   clamp(q.scores?.relevance   ?? 3),
-      credibility: clamp(q.scores?.credibility ?? 3),
-    },
-    overall:     clamp(q.overall ?? 3),
-    shrmLevel:   ["excellent", "proficient", "developing"].includes(q.shrm_level)
-                   ? q.shrm_level : "proficient",
-    strengths:    Array.isArray(q.strengths)    ? q.strengths    : [],
-    improvements: Array.isArray(q.improvements) ? q.improvements : [],
-    suggestion:   q.suggestion ?? "",
-  }));
+  // Câu thiếu tiêu chí (hoặc LLM bỏ sót cả câu) → retry LLM CHỈ cho các câu đó, tối đa 1 lần.
+  const expectedIndexes = questions.map((_, i) => i);
+  const byIndex = indexEvaluations(parsed.questions, expectedIndexes);
+  let incomplete = findIncomplete(byIndex, expectedIndexes);
+  if (incomplete.size > 0) {
+    logger.warn("evaluation_incomplete_retry", { sessionId, questionIndexes: [...incomplete.keys()] });
+    try {
+      const retryBlocks = [...incomplete.keys()].map((i) => buildQaBlock(questions[i], i)).join("\n\n---\n\n");
+      const retryRaw = await callLLM({ static: systemPrompt, dynamic: "" }, retryBlocks, {
+        maxTokens: 2500, temp: 0, retries: 1,
+        traceId, traceName: "evaluation_incomplete_retry",
+        anthropicModel: evalAnthropicModel,
+      });
+      const retryParsed = JSON.parse(extractJson(retryRaw));
+      const retryByIndex = indexEvaluations(retryParsed.questions, [...incomplete.keys()]);
+      for (const idx of incomplete.keys()) byIndex.set(idx, mergeRetry(byIndex.get(idx), retryByIndex.get(idx)));
+    } catch (err) {
+      logger.warn("evaluation_incomplete_retry_failed", { sessionId, error: err?.message });
+    }
+    incomplete = findIncomplete(byIndex, expectedIndexes);
+  }
+
+  // Vẫn thiếu sau retry: giữ fallback 3 như cũ nhưng đánh dấu để vào hàng đợi moderator.
+  const perQuestion = expectedIndexes.map((idx) => {
+    const q = byIndex.get(idx) ?? {};
+    const incompleteFields = incomplete.get(idx) ?? [];
+    const scores = {
+      clarity:     clamp(isScoreValue(q.scores?.clarity)     ? q.scores.clarity     : 3),
+      structure:   clamp(isScoreValue(q.scores?.structure)   ? q.scores.structure   : 3),
+      relevance:   clamp(isScoreValue(q.scores?.relevance)   ? q.scores.relevance   : 3),
+      credibility: clamp(isScoreValue(q.scores?.credibility) ? q.scores.credibility : 3),
+    };
+    const meanScore = (scores.clarity + scores.structure + scores.relevance + scores.credibility) / 4;
+    return {
+      questionIndex: idx,
+      scores,
+      overall:     clamp(isScoreValue(q.overall) ? q.overall : meanScore),
+      shrmLevel:   ["excellent", "proficient", "developing"].includes(q.shrm_level)
+                     ? q.shrm_level : "proficient",
+      strengths:    Array.isArray(q.strengths)    ? q.strengths    : [],
+      improvements: Array.isArray(q.improvements) ? q.improvements : [],
+      suggestion:   q.suggestion ?? "",
+      evaluationIncomplete: incompleteFields.length > 0,
+      incompleteFields,
+    };
+  });
 
   finalizeTrace(traceId, "success");
   return { overallComment: parsed.overall_comment ?? "", perQuestion, promptVersion: EVAL_PROMPT_VERSION };
