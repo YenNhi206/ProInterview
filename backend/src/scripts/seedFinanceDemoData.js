@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * seedFinanceDemoData.js
  * Seed dữ liệu DEMO (khách hàng, ghi danh khóa học, gói Pro/Elite, booking) để trang admin

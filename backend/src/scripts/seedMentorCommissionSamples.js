@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import "../config/loadEnv.js";

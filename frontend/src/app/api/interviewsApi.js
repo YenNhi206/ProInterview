@@ -1,4 +1,5 @@
-import { authFetch, hasAuthCredentials } from "../utils/auth/auth.js";
+import { authFetch, hasAuthCredentials, getUser, setLoggedIn } from "../utils/auth/auth.js";
+import { CAMERA_CONSENT_VERSION } from "../utils/interview/cameraConsent.js";
 import { apiUrl } from "./http.js";
 
 const jsonHeaders = {
@@ -268,6 +269,27 @@ export async function analyzeFaceSnapshot(sessionId, imageBase64, questionIndex)
     return res.ok ? body : { success: false };
   } catch {
     return { success: false };
+  }
+}
+
+/**
+ * PUT /api/users/me/consent/camera — lưu lựa chọn camera, cập nhật user trong localStorage.
+ * @returns {{ success: boolean, user?, error? }}
+ */
+export async function saveCameraConsent(accepted) {
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
+  try {
+    const res = await authFetch("/api/users/me/consent/camera", {
+      method: "PUT",
+      headers: { ...jsonHeaders },
+      body: JSON.stringify({ accepted: Boolean(accepted), version: CAMERA_CONSENT_VERSION }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || !body.success) return { success: false, error: body.error || "Không lưu được lựa chọn camera." };
+    setLoggedIn({ ...getUser(), ...body.user });
+    return { success: true, user: body.user };
+  } catch {
+    return { success: false, error: "Không kết nối được server." };
   }
 }
 

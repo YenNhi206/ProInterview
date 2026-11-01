@@ -2,8 +2,13 @@ import mongoose from "mongoose";
 import { User } from "../models/User.js";
 import { Mentor } from "../models/Mentor.js";
 import { Review } from "../models/Review.js";
+import { isProduction } from "../utils/prodGuard.js";
 
 export async function seedDemoData() {
+  // Tạo mentor/review giả với passwordHash dummy — tuyệt đối không ghi vào DB production.
+  if (isProduction()) {
+    throw new Error("seedDemoData bị chặn: NODE_ENV=production.");
+  }
   try {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://127.0.0.1:27017/prointerview");

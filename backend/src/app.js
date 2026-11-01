@@ -97,6 +97,9 @@ export function createApp() {
     }),
   );
 
+  // Snapshot khuôn mặt (base64) có thể > 1mb — limit riêng, khớp validateFaceImage (1.4M ký tự)
+  // trong routes/interviews.js. Phải mount TRƯỚC parser chung: body đã parse thì parser 1mb bỏ qua.
+  app.use("/api/interviews/sessions/:id/analyze-face", express.json({ limit: "1.5mb" }));
   // Fix lỗi "Cross-Origin-Opener-Policy" cho Google Login trên Render
   app.use(express.json({ limit: "1mb" }));
   app.use("/public", cors({ origin: staticCorsOrigin }), express.static("public"));
@@ -216,7 +219,8 @@ export function createApp() {
   app.use("/api/cv", cvMatchRouter);
   app.use("/api/interviews", interviewsRouter);
   app.use("/api/upload", uploadRouter);
-  app.use("/api/mock", mockCoursesRouter);
+  // Dữ liệu khóa học giả (MOCK_COURSES) — chỉ cho dev/test, không mount ở production.
+  if (!isProd) app.use("/api/mock", mockCoursesRouter);
   app.use("/api/ai", aiProvidersRouter);
   app.use("/api/achievements", achievementsRouter);
   app.use("/api/analytics", analyticsRouter);

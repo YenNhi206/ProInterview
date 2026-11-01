@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Điền mô tả ngắn (bio) cho mentor chưa có bio — dùng profileWorkExperience hoặc tạo từ title/công ty.
  * Chạy: npm run seed:mentor-bios (từ thư mục backend)

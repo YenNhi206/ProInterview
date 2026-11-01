@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

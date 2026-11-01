@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import { Report } from "../models/Report.js";
+import { Report, AI_REPORT_TARGET_TYPES } from "../models/Report.js";
+import { InterviewSession } from "../models/InterviewSession.js";
+import { QuestionBank } from "../models/QuestionBank.js";
+import { validateAiReport, formatJoiError } from "../dto/aiReport.dto.js";
+import { createItemForReport } from "./moderationQueueService.js";
 import { Mentor } from "../models/Mentor.js";
 import { Booking } from "../models/Booking.js";
 import { Review } from "../models/Review.js";
@@ -17,6 +21,7 @@ export async function createReport(userId, body) {
   if (!mongoose.isValidObjectId(uid)) return { ok: false, status: 401, error: "Phiên đăng nhập không hợp lệ." };
 
   const targetType = String(body?.targetType ?? "mentor").trim();
+  if (AI_REPORT_TARGET_TYPES.includes(targetType)) return createAiReport(uid, body);
   if (!["mentor", "booking", "review", "course"].includes(targetType)) {
     return { ok: false, status: 400, error: "targetType không hợp lệ." };
   }
@@ -86,6 +91,62 @@ export async function createReport(userId, body) {
   return { ok: true, reportId: String(doc._id) };
 }
 
+/**
+ * Báo sai câu hỏi / kết quả chấm AI từ trang Feedback (spec S1 §2.3).
+ * Không hiện ở trang support admin — sinh ModerationItem cho moderator.
+ */
+async function createAiReport(uid, body) {
+  const { error, value } = validateAiReport(body);
+  if (error) return { ok: false, status: 400, error: formatJoiError(error) };
+  const { targetType, targetId, questionIndex, reasonCode, note } = value;
+
+  const session = await InterviewSession.findById(targetId).lean();
+  if (!session) return { ok: false, status: 404, error: "Không tìm thấy phiên phỏng vấn." };
+  if (String(session.userId) !== uid) {
+    return { ok: false, status: 403, error: "Chỉ báo cáo phiên phỏng vấn của chính bạn." };
+  }
+  if (questionIndex >= (session.questions?.length ?? 0)) {
+    return { ok: false, status: 400, error: "questionIndex không hợp lệ." };
+  }
+  if (targetType === "interview_evaluation") {
+    const evaluated = (session.feedback?.perQuestion ?? []).some((q) => q.questionIndex === questionIndex);
+    if (!evaluated) return { ok: false, status: 400, error: "Câu này chưa có kết quả chấm điểm." };
+  }
+
+  let report;
+  try {
+    report = await Report.create({
+      reportedBy: uid,
+      targetType,
+      targetId,
+      questionIndex,
+      reasonCode,
+      description: note,
+    });
+  } catch (err) {
+    if (err?.code === 11000) {
+      return { ok: false, status: 409, error: "Bạn đã báo cáo câu này rồi." };
+    }
+    throw err;
+  }
+
+  let item;
+  try {
+    item = await createItemForReport({ report, session });
+  } catch (err) {
+    // Không để report "mồ côi" (không có item → moderator không bao giờ thấy) — xoá để user gửi lại.
+    await Report.deleteOne({ _id: report._id }).catch(() => {});
+    throw err;
+  }
+
+  const questionBankId = session.questions[questionIndex]?.questionBankId;
+  if (targetType === "interview_question" && questionBankId) {
+    await QuestionBank.updateOne({ _id: questionBankId }, { $inc: { flagCount: 1 } });
+  }
+
+  return { ok: true, reportId: String(report._id), moderationItemId: String(item._id) };
+}
+
 async function notifyReporterOnReportClosed(report, status, resolution) {
   try {
     const reporterId = report.reportedBy?._id ?? report.reportedBy;
@@ -111,7 +172,8 @@ export async function listReportsForAdmin(query = {}) {
   const page = Math.max(Number(query?.page) || 1, 1);
   const limit = Math.min(Math.max(Number(query?.limit) || 50, 1), 100);
   const skip = (page - 1) * limit;
-  const filter = {};
+  // Report AI (interview_*) thuộc hàng đợi moderator, không hiện ở trang support admin.
+  const filter = { targetType: { $nin: AI_REPORT_TARGET_TYPES } };
 
   const status = String(query?.status ?? "").trim();
   const openOnly = ["true", "1", "yes"].includes(String(query?.open ?? "").trim().toLowerCase());
@@ -212,7 +274,9 @@ export async function updateReportStatusForAdmin(adminUserId, reportId, body = {
 
   const resolution = String(body?.resolution || "").trim().slice(0, 2000);
   const doc = await Report.findById(reportId);
-  if (!doc) return { ok: false, status: 404, error: "Không tìm thấy báo cáo." };
+  if (!doc || AI_REPORT_TARGET_TYPES.includes(doc.targetType)) {
+    return { ok: false, status: 404, error: "Không tìm thấy báo cáo." };
+  }
 
   doc.status = status;
   if (status === "resolved" || status === "dismissed") {

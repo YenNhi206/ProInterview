@@ -27,3 +27,4 @@ export { SecurityLog } from "./SecurityLog.js";
 export { SepayWebhookEvent } from "./SepayWebhookEvent.js";
 export { CostEvent } from "./CostEvent.js";
 export { QuestionBank, hashQuestionText } from "./QuestionBank.js";
+export { ModerationItem } from "./ModerationItem.js";

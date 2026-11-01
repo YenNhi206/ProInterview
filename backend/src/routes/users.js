@@ -8,4 +8,5 @@ import { UsersController } from "../controllers/usersController.js";
 export const usersRouter = Router();
 
 usersRouter.get("/dashboard-stats", authJwt, asyncHandler(UsersController.dashboardStats));
+usersRouter.put("/me/consent/camera", authJwt, asyncHandler(UsersController.setCameraConsent));
 usersRouter.patch("/:id/role", authJwt, requireAdmin, adminAuditLog, asyncHandler(UsersController.patchUserRole));

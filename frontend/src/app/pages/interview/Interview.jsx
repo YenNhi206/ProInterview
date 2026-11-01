@@ -21,10 +21,12 @@ import {
   FileText,
 } from "lucide-react";
 import { getLatestCVAnalysisAsync, getUploadedCV, saveUploadedCV } from "../../utils/shared/history.js";
-import { hasAuthCredentials, isLoggedIn } from "../../utils/auth/auth.js";
+import { getUser, hasAuthCredentials, isLoggedIn } from "../../utils/auth/auth.js";
+import { hasCameraConsent } from "../../utils/interview/cameraConsent.js";
+import { CameraConsentDialog } from "../../components/interview/CameraConsentDialog";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
-import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos } from "../../api/interviewsApi.js";
+import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos, saveCameraConsent } from "../../api/interviewsApi.js";
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { InterviewHistoryPanel } from "../../components/interview/InterviewHistoryPanel";
 import { InterviewPageTabs } from "../../components/interview/InterviewPageTabs";
@@ -349,7 +351,35 @@ export function Interview() {
     setFlowStep(2);
   };
 
-  const handleStart = async () => {
+  /* Bước xác nhận camera trước khi vào room — đã đồng ý (đúng version) thì bỏ qua. */
+  const [showCameraConsent, setShowCameraConsent] = useState(false);
+  const [savingCameraConsent, setSavingCameraConsent] = useState(false);
+
+  const handleStart = () => {
+    if (!canStart || loadingStep) return;
+    if (!isLoggedIn()) {
+      navigate(buildLoginPath("/interview"));
+      return;
+    }
+    if (!hasCameraConsent(getUser())) {
+      setShowCameraConsent(true);
+      return;
+    }
+    startInterview();
+  };
+
+  const handleCameraConsentChoice = async (accepted) => {
+    setSavingCameraConsent(true);
+    const res = await saveCameraConsent(accepted);
+    setSavingCameraConsent(false);
+    setShowCameraConsent(false);
+    if (accepted && !res.success) {
+      setExtractWarning("Không lưu được lựa chọn camera — buổi phỏng vấn sẽ chạy không dùng camera.");
+    }
+    startInterview();
+  };
+
+  const startInterview = async () => {
     if (!canStart || loadingStep) return;
     if (!isLoggedIn()) {
       navigate(buildLoginPath("/interview"));
@@ -845,6 +875,13 @@ export function Interview() {
           </div>
         </div>
       </div>
+      <CameraConsentDialog
+        open={showCameraConsent}
+        saving={savingCameraConsent}
+        onAccept={() => handleCameraConsentChoice(true)}
+        onDecline={() => handleCameraConsentChoice(false)}
+        onOpenChange={(open) => { if (!open && !savingCameraConsent) setShowCameraConsent(false); }}
+      />
     </MentorPageShell>
   );
 }
