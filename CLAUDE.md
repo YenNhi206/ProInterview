@@ -489,3 +489,8 @@ Plan tối ưu hóa 8 sprint / 16 tuần, 4 quyết định đã chốt (chi ti�
 | `API_INDEX.md` | Contract đầy đủ: Phần A (đang chạy), B (Supabase/D-ID), C (roadmap) |
 | `backend/DATABASE.md` | Schema MongoDB chi tiết từng field |
 | `POSTMAN_TESTING.md` | Hướng dẫn test API với Postman |
+| `docs/SYSTEM_OVERVIEW.md` | Sơ đồ kiến trúc tổng quan + bảng tiến độ theo module |
+| `docs/LOGICAL_ERD.md` | Logical ERD 28 collection (4 miền) + bảng ràng buộc/unique index |
+| `docs/database/prointerview_schema.mongodb.js` | Script mongosh tạo collection + validator + index (idempotent) |
+| `docs/STATE_MACHINES.md` | State machine các field `status` + hàm/endpoint gây chuyển trạng thái |
+| `docs/ACTIVITY_DIAGRAMS.md` | Activity diagram 9 luồng nghiệp vụ chính |
