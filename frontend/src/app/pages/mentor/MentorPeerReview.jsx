@@ -564,11 +564,11 @@ export function MentorPeerReview() {
                 {FILTER_TABS.map((tab) => {
                   const active = filter === tab.id;
                   return (
-                    <button
+                    <button data-button-surface="none"
                       key={tab.id}
                       type="button"
                       onClick={() => setFilter(tab.id)}
-                      className={`relative shrink-0 snap-start whitespace-nowrap px-3.5 py-2.5 text-sm sm:px-4 ${
+                      className={`mw-tab relative shrink-0 snap-start whitespace-nowrap px-3.5 py-2.5 text-sm sm:px-4 ${
                         active
                           ? "font-bold text-slate-900"
                           : "font-medium text-slate-500 hover:text-slate-700"
@@ -594,11 +594,12 @@ export function MentorPeerReview() {
                     <button
                       key={cat}
                       type="button"
+                      data-button-surface={active ? undefined : "none"}
                       onClick={() => setCategory(cat)}
                       className={`rounded-full px-3.5 py-2.5 text-sm font-bold transition sm:px-4 ${
                         active
                           ? "bg-slate-900 text-white shadow-sm"
-                          : "border border-slate-200 bg-white text-slate-600 hover:border-[#8037f4]/30 hover:text-[#8037f4]"
+                          : "mw-chip border border-slate-200 bg-white text-slate-600"
                       }`}
                     >
                       {formatCategory(cat)}

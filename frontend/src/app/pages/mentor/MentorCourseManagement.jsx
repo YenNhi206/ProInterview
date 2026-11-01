@@ -30,8 +30,14 @@ const STATUS_LABELS = {
   pending_review: "Chờ duyệt mới",
   pending_update: "Chờ duyệt cập nhật",
   draft: "Bản nháp",
-  archived: "Đã lưu trữ",
+  archived: "Đã gỡ",
 };
+
+/** Khóa đã gỡ mà còn học viên là "Ngừng bán" (học viên cũ vẫn học); không còn ai thì là "Đã xóa". */
+function courseStatusLabel(course) {
+  if (course.status === "archived") return Number(course.students || 0) > 0 ? "Ngừng bán" : "Đã xóa";
+  return STATUS_LABELS[course.status] || "Bản nháp";
+}
 
 const LEVEL_LABELS = {
   basic: "Cơ bản",
@@ -204,7 +210,7 @@ function pickFeaturedCourse(courses) {
 }
 
 function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
-  const statusLabel = STATUS_LABELS[course.status] || "Bản nháp";
+  const statusLabel = courseStatusLabel(course);
   const badgeCls = statusBadgeStyle[course.status] || statusBadgeStyle.draft;
   const canEdit = course.status !== "archived";
 
@@ -273,7 +279,7 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
               onClick={() => onOpen(course)}
               className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-base font-bold text-white transition hover:bg-[#8037f4] sm:w-auto sm:text-sm"
             >
-              Mở khóa học
+              Xem trang khóa học
             </button>
             <button
               type="button"
@@ -291,7 +297,7 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
 }
 
 const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit, onArchive }, ref) {
-  const statusLabel = STATUS_LABELS[course.status] || "Bản nháp";
+  const statusLabel = courseStatusLabel(course);
   const badgeCls = statusBadgeStyle[course.status] || statusBadgeStyle.draft;
   const gradient = THUMB_GRADIENTS[index % THUMB_GRADIENTS.length];
   const thumbLabel = getThumbLabel(course);
@@ -560,14 +566,14 @@ export function MentorCourseManagement() {
     try {
       const res = await archiveCourse(idToArchive);
       if (!res.success) {
-        toastApiError(res.error, "Không thể lưu trữ khóa học.");
+        toastApiError(res.error, "Không thể gỡ khóa học.");
         return;
       }
-      toastApiSuccess(res.message || "Đã lưu trữ khóa học.");
+      toastApiSuccess(res.message || "Đã gỡ khóa học.");
       setArchiveTarget(null);
       loadCourses();
     } catch {
-      toastApiError("Lỗi kết nối khi lưu trữ khóa học.");
+      toastApiError("Lỗi kết nối khi gỡ khóa học.");
     } finally {
       setArchiving(false);
     }
@@ -710,11 +716,11 @@ export function MentorCourseManagement() {
               {FILTER_TABS.map((t) => {
                 const active = activeTab === t;
                 return (
-                  <button
+                  <button data-button-surface="none"
                     key={t}
                     type="button"
                     onClick={() => setActiveTab(t)}
-                    className={`relative shrink-0 snap-start whitespace-nowrap px-3.5 py-2.5 text-sm sm:px-4 sm:text-sm ${
+                    className={`mw-tab relative shrink-0 snap-start whitespace-nowrap px-3.5 py-2.5 text-sm sm:px-4 sm:text-sm ${
                       active
                         ? "font-bold text-slate-900"
                         : "font-medium text-slate-500 hover:text-slate-700"
@@ -821,6 +827,7 @@ export function MentorCourseManagement() {
 
       <ArchiveCourseDialog
         open={Boolean(archiveTarget)}
+        courseId={archiveTarget?.id}
         courseTitle={archiveTarget?.title}
         archiving={archiving}
         onOpenChange={(open) => {

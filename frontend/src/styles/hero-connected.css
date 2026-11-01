@@ -63,50 +63,58 @@
   -webkit-mask-image: radial-gradient(ellipse 520px 220px at 50% 50%, rgba(0, 0, 0, 0.06) 20%, rgba(0, 0, 0, 0.6) 70%, black 100%);
 }
 
-/* Sóng 1 (Tím neon - Luồng kiến thức) chạy từ phải sang trái mượt mà */
+/* Sóng 1 (Tím neon - Luồng kiến thức) trôi từ phải sang trái liên tục & nhấp nhô mượt mà */
 .hero-cwave-track-1 {
-  animation: cwaveScrollLeft 24s linear infinite;
+  animation: cwaveFlowLeft 18s linear infinite;
 }
 
-/* Sóng 2 (Xanh lime - Đồng bộ màu badge & nút Tìm kiếm) trôi ngược chiều */
+/* Sóng 2 (Xanh lime) trôi ngược chiều từ trái sang phải */
 .hero-cwave-track-2 {
-  animation: cwaveScrollRight 30s linear infinite;
+  animation: cwaveFlowRight 22s linear infinite;
   opacity: 0.92;
 }
 
 /* Sóng 3 (Deep Indigo) trôi nhẹ tầng sâu */
 .hero-cwave-track-3 {
-  animation: cwaveScrollLeft 36s linear infinite;
+  animation: cwaveFlowLeft 28s linear infinite;
   opacity: 0.65;
 }
 
-@keyframes cwaveScrollLeft {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+/* Luồng trôi ngang vô tận kết hợp sóng nhấp nhô nhẹ */
+@keyframes cwaveFlowLeft {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(-12.5%) translateY(-6px);
+  }
+  50% {
+    transform: translateX(-25%) translateY(5px);
+  }
+  75% {
+    transform: translateX(-37.5%) translateY(-4px);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
-@keyframes cwaveScrollRight {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
-}
-
-/* Dao động nhấp nhô nhẹ theo trục Y */
-.hero-cwave-bob-1 {
-  animation: cwaveBob1 8s ease-in-out infinite alternate;
-}
-
-.hero-cwave-bob-2 {
-  animation: cwaveBob2 11s ease-in-out infinite alternate;
-}
-
-@keyframes cwaveBob1 {
-  0% { transform: translateY(-7px) scaleY(0.96); }
-  100% { transform: translateY(7px) scaleY(1.04); }
-}
-
-@keyframes cwaveBob2 {
-  0% { transform: translateY(6px) scaleY(1.03); }
-  100% { transform: translateY(-6px) scaleY(0.97); }
+@keyframes cwaveFlowRight {
+  0% {
+    transform: translateX(-50%) translateY(0);
+  }
+  25% {
+    transform: translateX(-37.5%) translateY(6px);
+  }
+  50% {
+    transform: translateX(-25%) translateY(-5px);
+  }
+  75% {
+    transform: translateX(-12.5%) translateY(4px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
 }
 
 /* ── 4. Điểm nút tri thức (Micro Knowledge Nodes) ── */

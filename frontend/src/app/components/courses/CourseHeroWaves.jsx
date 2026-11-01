@@ -74,9 +74,9 @@ export function CourseHeroWaves() {
               <stop offset="100%" stopColor="rgba(128, 55, 244, 0)" />
             </linearGradient>
 
-            {/* Neon Glow Filter */}
+            {/* Neon Subtle Glow Filter */}
             <filter id="wave-glow-purple" x="-10%" y="-30%" width="120%" height="160%">
-              <feGaussianBlur stdDeviation="4.5" result="blur" />
+              <feGaussianBlur stdDeviation="1.8" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -84,22 +84,7 @@ export function CourseHeroWaves() {
             </filter>
           </defs>
 
-          {/* Translucent ribbon body */}
-          <path
-            d="M 0 115 
-               C 240 50, 480 180, 720 115 
-               C 960 50, 1200 180, 1440 115 
-               C 1680 50, 1920 180, 2160 115 
-               C 2400 50, 2640 180, 2880 115 
-               L 2880 160 
-               C 2640 225, 2400 95, 2160 160 
-               C 1920 225, 1680 95, 1440 160 
-               C 1200 225, 960 95, 720 160 
-               C 480 225, 240 95, 0 160 Z"
-            fill="url(#wave-fill-purple)"
-          />
-
-          {/* Main top neon glowing line */}
+          {/* Delicate purple neon glowing wireframe wave */}
           <path
             d="M 0 115 
                C 240 50, 480 180, 720 115 
@@ -107,21 +92,21 @@ export function CourseHeroWaves() {
                C 1680 50, 1920 180, 2160 115 
                C 2400 50, 2640 180, 2880 115"
             stroke="url(#wave-stroke-purple)"
-            strokeWidth="3"
+            strokeWidth="1.3"
             filter="url(#wave-glow-purple)"
             strokeLinecap="round"
           />
 
-          {/* Secondary lower border line */}
+          {/* Secondary subtle lower dashed harmonic line */}
           <path
             d="M 0 160 
                C 240 95, 480 225, 720 160 
                C 960 95, 1200 225, 1440 160 
                C 1680 95, 1920 225, 2160 160 
                C 2400 95, 2640 225, 2880 160"
-            stroke="rgba(192, 132, 252, 0.45)"
-            strokeWidth="1.5"
-            strokeDasharray="8 6"
+            stroke="rgba(192, 132, 252, 0.35)"
+            strokeWidth="1"
+            strokeDasharray="6 6"
             strokeLinecap="round"
           />
         </svg>
@@ -144,14 +129,8 @@ export function CourseHeroWaves() {
               <stop offset="100%" stopColor="#93f72b" />
             </linearGradient>
 
-            <linearGradient id="wave-fill-lime" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(147, 247, 43, 0.12)" />
-              <stop offset="70%" stopColor="rgba(74, 222, 128, 0.04)" />
-              <stop offset="100%" stopColor="transparent" />
-            </linearGradient>
-
             <filter id="wave-glow-lime" x="-10%" y="-30%" width="120%" height="160%">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -159,22 +138,7 @@ export function CourseHeroWaves() {
             </filter>
           </defs>
 
-          {/* Translucent lime ribbon body */}
-          <path
-            d="M 0 155 
-               C 280 215, 520 85, 720 145 
-               C 920 205, 1160 85, 1440 155 
-               C 1720 215, 1960 85, 2160 145 
-               C 2360 205, 2600 85, 2880 155 
-               L 2880 185 
-               C 2600 115, 2360 235, 2160 175 
-               C 1960 115, 1720 245, 1440 185 
-               C 1160 115, 920 235, 720 175 
-               C 520 115, 280 245, 0 185 Z"
-            fill="url(#wave-fill-lime)"
-          />
-
-          {/* Sharp lime glowing line */}
+          {/* Delicate lime glowing wireframe line */}
           <path
             d="M 0 155 
                C 280 215, 520 85, 720 145 
@@ -182,8 +146,21 @@ export function CourseHeroWaves() {
                C 1720 215, 1960 85, 2160 145 
                C 2360 205, 2600 85, 2880 155"
             stroke="url(#wave-stroke-lime)"
-            strokeWidth="2"
+            strokeWidth="1.2"
             filter="url(#wave-glow-lime)"
+            strokeLinecap="round"
+          />
+
+          {/* Secondary subtle lime dashed line */}
+          <path
+            d="M 0 180 
+               C 280 120, 520 240, 720 180 
+               C 920 120, 1160 240, 1440 180 
+               C 1720 120, 1960 240, 2160 180 
+               C 2360 120, 2600 240, 2880 180"
+            stroke="rgba(147, 247, 43, 0.3)"
+            strokeWidth="0.9"
+            strokeDasharray="5 5"
             strokeLinecap="round"
           />
         </svg>
@@ -214,7 +191,7 @@ export function CourseHeroWaves() {
                C 1800 195, 2160 65, 2520 145 
                C 2700 185, 2790 85, 2880 135"
             stroke="url(#wave-stroke-cyan)"
-            strokeWidth="1.5"
+            strokeWidth="1"
             strokeLinecap="round"
           />
         </svg>
