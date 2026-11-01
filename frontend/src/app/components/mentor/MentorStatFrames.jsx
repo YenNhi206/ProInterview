@@ -3,36 +3,30 @@ import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 
 const ACCENT = {
   purple: {
-    frame: "bg-gradient-to-br from-[#a56af0]/[0.1] via-[#21182f] to-[#21182f]",
-    bar: "bg-[#8037f4]",
-    value: "text-[#8037f4]",
-    title: "text-slate-900",
-    subtitle: "text-violet-500/80",
-    icon: "text-[#8037f4]",
-    iconBg: "bg-[#8037f4]/12 ring-1 ring-[#8037f4]/15",
-    hover: "hover:shadow-[0_8px_24px_rgba(128,55,244,0.1)]",
+    frame: "bg-[#0d0f15] border border-white/[0.08] hover:border-white/20 transition-all duration-200",
+    value: "text-white font-bold tracking-tight",
+    title: "text-slate-300 font-medium",
+    subtitle: "text-slate-500 font-normal",
+    icon: "text-slate-300",
+    iconBg: "bg-white/5 border border-white/10",
   },
   lime: {
-    frame: "bg-gradient-to-br from-[#93f72b]/[0.08] via-[#21182f] to-[#21182f]",
-    bar: "bg-[#93f72b]",
-    value: "text-slate-900",
-    title: "text-slate-900",
-    subtitle: "text-slate-500",
-    icon: "text-slate-900",
-    iconBg: "bg-[#93f72b]/30 ring-1 ring-[#93f72b]/35",
-    hover: "hover:shadow-[0_8px_24px_rgba(147,247,43,0.14)]",
+    frame: "bg-[#0d0f15] border border-white/[0.08] hover:border-white/20 transition-all duration-200",
+    value: "text-white font-bold tracking-tight",
+    title: "text-slate-300 font-medium",
+    subtitle: "text-slate-500 font-normal",
+    icon: "text-slate-300",
+    iconBg: "bg-white/5 border border-white/10",
   },
 };
 
-/** Khối 3 cột thống kê mentor — tím + lime brand */
+/** Khối 3 cột thống kê mentor — 3 cards bento sang trọng */
 export function MentorStatPanel({ children, className = "" }) {
   return (
     <div
-      className={`mb-6 overflow-hidden rounded-2xl border border-[#8037f4]/15 bg-white shadow-[0_4px_20px_rgba(128,55,244,0.07)] ${className}`.trim()}
+      className={`mb-6 grid gap-4 sm:grid-cols-3 ${className}`.trim()}
     >
-      <div className="grid divide-y divide-violet-100/80 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -82,18 +76,14 @@ export function MentorStatFrame({
       : "text-[clamp(2.5rem,5vw,4rem)]";
 
   const shellCls = compact
-    ? `rounded-2xl border border-[#8037f4]/12 shadow-[0_2px_12px_rgba(128,55,244,0.06)] ${theme.frame} ${theme.hover} flex min-h-[6.75rem] flex-col justify-center`
-    : `${theme.frame} ${theme.hover}`;
+    ? `rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.2)] backdrop-blur-xl ${theme.frame} flex min-h-[6.75rem] flex-col justify-center`
+    : `rounded-3xl shadow-[0_12px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl ${theme.frame}`;
 
   return (
     <Wrapper
       {...motionProps}
-      className={`relative px-4 py-4 transition-shadow duration-200 sm:px-5 sm:py-5 ${shellCls}`}
+      className={`relative overflow-hidden px-5 py-5 transition-all duration-200 sm:px-6 sm:py-6 ${shellCls}`}
     >
-      <div
-        className={`absolute bottom-4 left-0 top-4 w-1 rounded-full ${theme.bar}`}
-        aria-hidden
-      />
       {CornerIcon ? (
         <span
           className={`absolute right-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-lg ${theme.iconBg}`}
@@ -125,19 +115,21 @@ export function MentorStatFrame({
   );
 }
 
-/** Thanh hoạt động tím — ô 1 dashboard */
 export function MentorSessionActivityBlocks({ activeCount = 0, total = 5 }) {
   const filled = Math.max(0, Math.min(total - 1, activeCount));
   return (
-    <div className="mt-6 flex items-center gap-1.5" aria-hidden>
+    <div className="mt-4 flex items-center gap-1.5" aria-hidden>
       {Array.from({ length: total }, (_, i) => {
         const isAccent = i === total - 1;
         const isFilled = !isAccent && i < filled;
+        const active = isAccent || isFilled;
         return (
           <div
             key={i}
-            className={`h-2 w-2 rounded-[3px] transition-colors ${
-              isAccent || isFilled ? "bg-[#8037f4]" : "bg-[#8037f4]/18"
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              active
+                ? "w-4 bg-[#c7f36b] shadow-[0_0_8px_rgba(199,243,107,0.7)]"
+                : "w-1.5 bg-white/20"
             }`}
           />
         );

@@ -42,7 +42,7 @@ import {
    Share as Export,
    Medal,
    AlertCircle as WarningCircle,
-   Sparkles as Sparkle,
+   Sparkles,
    ThumbsUp,
    Target,
    ChevronRight
@@ -81,17 +81,17 @@ import { mediaSrc, DEFAULT_COURSE_THUMB, avatarSrc, normalizeStoredUploadUrl } f
 import { getVideoDurationMinutes } from "../../utils/shared/videoDuration.js";
 
 const COURSE_STATUS_META = {
-   published: { label: "Đã đăng", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-   pending_review: { label: "Chờ duyệt mới", className: "bg-amber-50 text-amber-800 border-amber-200" },
-   pending_update: { label: "Chờ duyệt cập nhật", className: "bg-sky-50 text-sky-800 border-sky-200" },
-   draft: { label: "Bản nháp", className: "bg-slate-100 text-slate-600 border-slate-200" },
-   archived: { label: "Đã lưu trữ", className: "bg-red-50 text-red-700 border-red-200" },
+   published: { label: "Đã xuất bản", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" },
+   pending_review: { label: "Chờ duyệt mới", className: "border-amber-500/30 bg-amber-500/10 text-amber-300" },
+   pending_update: { label: "Chờ duyệt cập nhật", className: "border-sky-500/30 bg-sky-500/10 text-sky-300" },
+   draft: { label: "Bản nháp", className: "border-white/20 bg-white/5 text-slate-300" },
+   archived: { label: "Đã lưu trữ", className: "border-rose-500/30 bg-rose-500/10 text-rose-400" },
 };
 
 const MENTOR_COURSE_EDIT_EXTRA_CSS = `
         .mentor-course-edit .app-page-subtitle {
-          font-weight: 600;
-          color: #475569;
+          font-weight: 500;
+          color: #a994bd;
         }
 `;
 
@@ -106,17 +106,21 @@ const formatPrice = (price) => formatVnd(price);
 function TabPanelState({ loading, error, empty, emptyMessage, children }) {
    if (loading) {
       return (
-         <div className="glass-card flex min-h-[200px] items-center justify-center p-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-600 border-t-transparent" />
+         <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-white/10 bg-[#160f26]/80 p-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#93f72b] border-t-transparent" />
          </div>
       );
    }
    if (error) {
-      return <div className="glass-card p-8 text-center text-sm text-red-600">{error}</div>;
+      return (
+         <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 p-8 text-center text-sm font-medium text-rose-300">
+            {error}
+         </div>
+      );
    }
    if (empty) {
       return (
-         <div className="glass-card p-12 text-center text-sm text-slate-500">
+         <div className="rounded-2xl border border-white/10 bg-[#160f26]/60 p-12 text-center text-sm text-slate-400">
             {emptyMessage || "Chưa có dữ liệu."}
          </div>
       );
@@ -128,12 +132,12 @@ function TabPanelState({ loading, error, empty, emptyMessage, children }) {
 
 function MiniBar({ value, max = 100, color }) {
    return (
-      <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden flex-1">
+      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden flex-1">
          <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${(value / max) * 100}%` }}
+            animate={{ width: `${Math.min(100, Math.max(0, (value / max) * 100))}%` }}
             className="h-full rounded-full"
-            style={{ background: color, boxShadow: `0 0 10px ${color}40` }}
+            style={{ background: color || "#93f72b", boxShadow: `0 0 10px ${color || "#93f72b"}60` }}
          />
       </div>
    );
@@ -143,47 +147,49 @@ function MiniBar({ value, max = 100, color }) {
 
 function ReviewsTab({ reviews, summary }) {
    const stats = [
-      { label: "Rating TB", value: summary?.avgRating ?? "0.0" },
+      { label: "Rating trung bình", value: summary?.avgRating ?? "0.0" },
       { label: "Tổng đánh giá", value: summary?.total ?? reviews.length },
       { label: "Chờ phản hồi", value: summary?.pendingReply ?? 0 },
       { label: "Đã xác minh", value: reviews.filter((r) => r.verified).length },
    ];
    return (
-      <motion.div className="space-y-8">
-         <motion.div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <motion.div className="space-y-6">
+         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
             {stats.map((s, i) => (
-               <motion.div key={i} className="glass-card p-6">
-                  <h3 className="mentor-stat-num mentor-stat-num--card text-slate-900 mb-1">{s.value}</h3>
-                  <p className="mentor-label">{s.label}</p>
-               </motion.div>
+               <div key={i} className="rounded-2xl border border-white/10 bg-[#160f26]/80 backdrop-blur-xl p-5 shadow-lg">
+                  <h3 className="text-2xl font-black text-white">{s.value}</h3>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{s.label}</p>
+               </div>
             ))}
-         </motion.div>
-         <motion.div className="space-y-4">
+         </div>
+         <div className="space-y-4">
             {reviews.map((review) => (
-               <motion.div key={review.id} className="glass-card p-8">
-                  <motion.div className="mb-4 flex items-start gap-4">
-                     <img src={avatarSrc(review.avatar)} alt="" className="h-12 w-12 rounded-xl object-cover" />
-                     <motion.div>
-                        <h5 className="text-base font-bold text-slate-900">{review.name}</h5>
-                        <p className="text-xs text-slate-500">
+               <div key={review.id} className="rounded-2xl border border-white/10 bg-[#160f26]/80 backdrop-blur-xl p-6 sm:p-7 shadow-lg">
+                  <div className="mb-4 flex items-start gap-4">
+                     <img src={avatarSrc(review.avatar)} alt="" className="h-11 w-11 rounded-xl object-cover border border-white/15" />
+                     <div>
+                        <h5 className="text-base font-bold text-white">{review.name}</h5>
+                        <p className="mt-0.5 text-xs text-slate-400">
                            {review.role ? `${review.role} · ` : ""}
                            {review.date}
                            {" · "}
-                           {"★".repeat(review.rating)}
-                           {"☆".repeat(Math.max(0, 5 - review.rating))}
+                           <span className="text-[#93f72b]">
+                              {"★".repeat(review.rating)}
+                              {"☆".repeat(Math.max(0, 5 - review.rating))}
+                           </span>
                         </p>
-                     </motion.div>
-                  </motion.div>
-                  <p className="text-sm leading-relaxed text-slate-700 italic">"{review.comment}"</p>
+                     </div>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-200 italic">"{review.comment}"</p>
                   {review.response ? (
-                     <motion.div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/50 p-4 text-sm text-slate-700">
-                        <span className="font-semibold text-violet-700">Phản hồi của bạn: </span>
+                     <div className="mt-4 rounded-xl border border-[#93f72b]/20 bg-[#93f72b]/5 p-4 text-sm text-slate-200">
+                        <span className="font-semibold text-[#93f72b]">Phản hồi của bạn: </span>
                         {review.response}
-                     </motion.div>
+                     </div>
                   ) : null}
-               </motion.div>
+               </div>
             ))}
-         </motion.div>
+         </div>
       </motion.div>
    );
 }
@@ -209,7 +215,6 @@ function LessonsTab({ lessons, onLessonsChange }) {
       setEditList(next);
       onLessonsChange?.(next);
    };
-
 
    const handleAddLesson = () => {
       const nextIndex = editList.length + 1;
@@ -255,18 +260,18 @@ function LessonsTab({ lessons, onLessonsChange }) {
 
    const setLessonVideo = async (lessonId, file) => {
       if (!file) return;
-      const loadingToast = toast.loading(`Đang upload video: ${file.name}...`);
+      const loadingToast = toast.loading(`Đang tải video lên: ${file.name}...`);
       try {
          const durationMinutes = await getVideoDurationMinutes(file);
          const res = shouldUseDirectUpload(file)
             ? await uploadVideoDirectly(file, (pct) =>
-                 toast.loading(`Đang upload video: ${pct}%`, { id: loadingToast }),
+                 toast.loading(`Đang tải video: ${pct}%`, { id: loadingToast }),
               )
             : await uploadFile(file, "course-video");
          if (res.success) {
             toastApiSuccess(
                durationMinutes > 0
-                  ? `Upload thành công · ${durationMinutes} phút`
+                  ? `Upload video thành công · ${durationMinutes} phút`
                   : "Upload video thành công!",
             );
             commit((prev) =>
@@ -292,40 +297,40 @@ function LessonsTab({ lessons, onLessonsChange }) {
    };
 
    return (
-      <div className="glass-card overflow-hidden">
-         <div className="flex flex-col gap-4 border-b border-slate-200/80 bg-slate-50/80 px-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+      <div className="rounded-2xl border border-white/10 bg-[#160f26]/85 backdrop-blur-xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.4)]">
+         <div className="flex flex-col gap-4 border-b border-white/10 bg-white/[0.02] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
             <div>
-               <h3 className="app-page-title">Nội dung bài giảng</h3>
-               <p className="app-page-subtitle mt-1">{editList.length} bài học</p>
+               <h3 className="text-base font-bold text-white tracking-tight">Danh sách bài giảng & Video</h3>
+               <p className="mt-1 text-xs font-semibold text-slate-400">Tổng cộng {editList.length} bài học</p>
             </div>
             <button
                type="button"
                onClick={handleAddLesson}
-               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#a3e635] px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-900 shadow-md shadow-[#a3e635]/30 hover:bg-[#84cc16]"
+               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.3)] transition hover:bg-[#a8ff4e]"
             >
-               <Plus size={16} /> Thêm bài học
+               <Plus size={16} /> Thêm bài học mới
             </button>
          </div>
-         <ul className="divide-y divide-slate-100">
+         <ul className="divide-y divide-white/5">
             {editList.map((lesson, idx) => (
-               <li key={lesson.id} className="overflow-hidden px-3 py-4 transition-colors hover:bg-violet-50/30 sm:px-6 sm:py-5">
+               <li key={lesson.id} className="overflow-hidden px-4 py-4 transition-colors hover:bg-white/[0.02] sm:px-6 sm:py-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                     <div className="flex min-w-0 items-start gap-3 sm:gap-6">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-sm font-black text-violet-700">
+                     <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sm font-bold text-[#93f72b]">
                         {idx + 1}
                         </span>
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 space-y-2.5">
                            {editingId === lesson.id ? (
                               <input
                                  value={draftTitle}
                                  onChange={(e) => setDraftTitle(e.target.value)}
-                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 outline-none focus:border-primary-fixed"
+                                 className="w-full bg-[#10091e] border border-white/20 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-[#93f72b]"
                               />
                            ) : (
-                              <h4 className="break-words text-sm font-black text-slate-900 transition-colors group-hover:text-violet-700">{lesson.title}</h4>
+                              <h4 className="break-words text-sm font-bold text-white">{lesson.title}</h4>
                            )}
-                           <div className="mt-2 flex flex-wrap items-center gap-2">
-                              <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                           <div className="flex flex-wrap items-center gap-2.5">
+                              <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
                                  {lesson.videoFileName && lesson.duration > 0
                                     ? `${lesson.duration} phút (từ video)`
                                     : "Thời lượng: upload video để tự lấy"}
@@ -333,16 +338,16 @@ function LessonsTab({ lessons, onLessonsChange }) {
                               <button
                                  type="button"
                                  onClick={() => toggleLessonPreview(lesson.id)}
-                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest ${
+                                 className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
                                     lesson.isPreview
-                                       ? "bg-primary-fixed/20 text-violet-700 border border-primary-fixed/30"
-                                       : "bg-slate-50 border border-slate-200 text-zinc-400"
+                                       ? "border border-[#93f72b]/40 bg-[#93f72b]/15 text-[#93f72b]"
+                                       : "border border-white/10 bg-white/5 text-slate-400"
                                  }`}
                               >
-                                 {lesson.isPreview ? "Preview" : "Ẩn"}
+                                 {lesson.isPreview ? "Xem thử miễn phí" : "Khóa học viên"}
                               </button>
-                              <label className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-700 hover:border-violet-300 hover:text-violet-800">
-                                 Tải video
+                              <label className="cursor-pointer rounded-lg border border-[#93f72b]/40 bg-[#93f72b]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#93f72b] transition hover:bg-[#93f72b]/20">
+                                 {lesson.videoFileName ? "Đổi video khác" : "Tải video bài giảng lên"}
                                  <input
                                     type="file"
                                     accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
@@ -350,23 +355,23 @@ function LessonsTab({ lessons, onLessonsChange }) {
                                     onChange={(e) => {
                                        const file = e.target.files?.[0];
                                        if (file) setLessonVideo(lesson.id, file);
-
                                     }}
                                  />
                               </label>
-                              <span className="min-w-0 max-w-full truncate text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
-                                 {lesson.videoFileName || "Chưa chọn video"}
+                              <span className="min-w-0 max-w-full truncate text-xs text-slate-400 font-medium">
+                                 {lesson.videoFileName || "Chưa tải video"}
                               </span>
                            </div>
                         </div>
                      </div>
-                     <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0 sm:gap-3">
+                     <div className="flex shrink-0 items-center justify-end gap-2 border-t border-white/5 pt-3 sm:border-0 sm:pt-0 sm:gap-2">
                         {editingId === lesson.id ? (
                            <>
                               <button
                                  type="button"
                                  onClick={() => saveEdit(lesson.id)}
-                                 className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-emerald-300 sm:p-3"
+                                 className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-400 transition hover:bg-emerald-500/20"
+                                 title="Lưu tên bài"
                               >
                                  <Check size={16} />
                               </button>
@@ -376,7 +381,8 @@ function LessonsTab({ lessons, onLessonsChange }) {
                                     setEditingId(null);
                                     setDraftTitle("");
                                  }}
-                                 className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-orange-300 sm:p-3"
+                                 className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:text-white"
+                                 title="Hủy"
                               >
                                  <X size={16} />
                               </button>
@@ -385,7 +391,8 @@ function LessonsTab({ lessons, onLessonsChange }) {
                         <button
                            type="button"
                            onClick={() => startEdit(lesson)}
-                           className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-slate-900 sm:p-3"
+                           className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:border-white/20 hover:text-white"
+                           title="Sửa tên bài"
                         >
                            <PencilSimple size={16} />
                         </button>
@@ -393,7 +400,8 @@ function LessonsTab({ lessons, onLessonsChange }) {
                         <button
                            type="button"
                            onClick={() => removeLessonItem(lesson.id)}
-                           className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-zinc-500 transition-all hover:text-red-500 sm:p-3"
+                           className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-400"
+                           title="Xóa bài học"
                         >
                            <Trash size={16} />
                         </button>
@@ -411,78 +419,78 @@ function StudentsTab({ students, summary }) {
       useMentorListExpand(students, String(students.length));
    const statCards = [
       { label: "Đang hoạt động", value: summary?.active ?? students.filter((s) => s.status === "active").length },
-      { label: "Hoàn thành", value: summary?.completed ?? students.filter((s) => s.status === "completed").length },
-      { label: "Tiến độ TB", value: summary?.avgProgress ?? "0%" },
-      { label: "Drop-off", value: summary?.dropoffRate ?? "0%" },
+      { label: "Đã hoàn thành", value: summary?.completed ?? students.filter((s) => s.status === "completed").length },
+      { label: "Tiến độ trung bình", value: summary?.avgProgress ?? "0%" },
+      { label: "Tỷ lệ Drop-off", value: summary?.dropoffRate ?? "0%" },
    ];
    return (
-      <div className="space-y-8">
-         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="space-y-6">
+         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
             {statCards.map((s, i) => (
-               <div key={i} className="glass-card p-6">
-                  <h3 className="mentor-stat-num mentor-stat-num--card text-slate-900 mb-1">{s.value}</h3>
-                  <p className="mentor-label">{s.label}</p>
+               <div key={i} className="rounded-2xl border border-white/10 bg-[#160f26]/80 backdrop-blur-xl p-5 shadow-lg">
+                  <h3 className="text-2xl font-black text-white">{s.value}</h3>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{s.label}</p>
                </div>
             ))}
          </div>
-         <div className="glass-card overflow-hidden">
+         <div className="rounded-2xl border border-white/10 bg-[#160f26]/85 backdrop-blur-xl overflow-hidden shadow-lg">
             <div className="space-y-3 p-4 lg:hidden">
                {visibleStudents.map((s) => (
                   <div
                      key={s.id}
-                     className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_2px_12px_rgba(15,23,42,0.05)]"
+                     className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
                   >
                      <div className="flex items-center gap-3">
-                        <img src={avatarSrc(s.avatar)} alt="" className="h-11 w-11 rounded-xl object-cover" />
+                        <img src={avatarSrc(s.avatar)} alt="" className="h-11 w-11 rounded-xl object-cover border border-white/10" />
                         <div className="min-w-0 flex-1">
-                           <p className="truncate text-base font-bold text-slate-900">{s.name}</p>
+                           <p className="truncate text-sm font-bold text-white">{s.name}</p>
                            {!s.hasAccess ? (
-                              <p className="text-xs text-amber-600">Chờ thanh toán</p>
+                              <p className="text-xs text-amber-400">Chờ thanh toán</p>
                            ) : (
-                              <p className="text-xs text-slate-500">Lần cuối: {s.lastActive}</p>
+                              <p className="text-xs text-slate-400">Lần cuối: {s.lastActive}</p>
                            )}
                         </div>
                      </div>
-                     <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3">
-                        <MiniBar value={s.progress} color={s.progress === 100 ? "#10b981" : "#8037f4"} />
-                        <span className="text-sm font-bold text-slate-900">{s.progress}%</span>
+                     <div className="mt-3 flex items-center gap-3 border-t border-white/5 pt-3">
+                        <MiniBar value={s.progress} color={s.progress === 100 ? "#93f72b" : "#a78bfa"} />
+                        <span className="text-xs font-bold text-white">{s.progress}%</span>
                      </div>
                   </div>
                ))}
                {!students.length && (
-                  <p className="py-8 text-center text-sm text-slate-500">Chưa có học viên.</p>
+                  <p className="py-8 text-center text-sm text-slate-400">Chưa có học viên nào tham gia khóa này.</p>
                )}
             </div>
             <div className="hidden lg:block">
             <table className="w-full text-left">
                <thead>
-                  <tr className="border-b border-slate-200 text-[10px] font-bold text-zinc-600 uppercase tracking-wide">
+                  <tr className="border-b border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-white/[0.02]">
                      <th className="px-6 py-4">Học viên</th>
-                     <th className="px-6 py-4">Tiến độ</th>
-                     <th className="px-6 py-4 text-right">Lần cuối</th>
+                     <th className="px-6 py-4">Tiến độ bài giảng</th>
+                     <th className="px-6 py-4 text-right">Hoạt động gần nhất</th>
                   </tr>
                </thead>
-               <tbody className="divide-y divide-slate-100">
+               <tbody className="divide-y divide-white/5">
                   {visibleStudents.map((s) => (
-                     <tr key={s.id} className="hover:bg-violet-50/30 transition-colors">
+                     <tr key={s.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="px-6 py-4">
                            <div className="flex items-center gap-3">
-                              <img src={avatarSrc(s.avatar)} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                              <img src={avatarSrc(s.avatar)} alt="" className="h-10 w-10 rounded-xl object-cover border border-white/10" />
                               <div>
-                                 <span className="text-sm font-bold text-slate-900">{s.name}</span>
+                                 <span className="text-sm font-bold text-white">{s.name}</span>
                                  {!s.hasAccess ? (
-                                    <p className="text-[10px] text-amber-600">Chờ thanh toán</p>
+                                    <p className="text-[10px] font-semibold text-amber-400">Chờ thanh toán</p>
                                  ) : null}
                               </div>
                            </div>
                         </td>
                         <td className="px-6 py-4">
-                           <div className="flex w-40 items-center gap-3">
-                              <MiniBar value={s.progress} color={s.progress === 100 ? "#10b981" : "#8037f4"} />
-                              <span className="text-xs font-bold text-slate-900">{s.progress}%</span>
+                           <div className="flex w-44 items-center gap-3">
+                              <MiniBar value={s.progress} color={s.progress === 100 ? "#93f72b" : "#a78bfa"} />
+                              <span className="text-xs font-bold text-white">{s.progress}%</span>
                            </div>
                         </td>
-                        <td className="px-6 py-4 text-right text-xs font-semibold text-slate-600">{s.lastActive}</td>
+                        <td className="px-6 py-4 text-right text-xs font-medium text-slate-400">{s.lastActive}</td>
                      </tr>
                   ))}
                </tbody>
@@ -523,53 +531,53 @@ function QATab({ courseId, items, onAnswered }) {
    return (
       <div className="space-y-4">
          {items.map((item) => (
-            <motion.div key={item.id} className="glass-card p-6 sm:p-8">
-               <motion.div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                  <motion.div className="flex min-w-0 items-center gap-3">
-                     <img src={avatarSrc(item.avatar)} alt="" className="h-10 w-10 shrink-0 rounded-xl object-cover" />
-                     <motion.div>
-                        <p className="text-sm font-bold text-slate-900">{item.student}</p>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-violet-600">
+            <div key={item.id} className="rounded-2xl border border-white/10 bg-[#160f26]/80 backdrop-blur-xl p-6 sm:p-7 shadow-lg">
+               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                     <img src={avatarSrc(item.avatar)} alt="" className="h-10 w-10 shrink-0 rounded-xl object-cover border border-white/10" />
+                     <div>
+                        <p className="text-sm font-bold text-white">{item.student}</p>
+                        <p className="text-xs font-semibold text-[#93f72b]">
                            {item.lessonTitle || `Bài ${(item.lessonIdx ?? 0) + 1}`} · {item.time}
                         </p>
-                     </motion.div>
-                  </motion.div>
+                     </div>
+                  </div>
                   {item.isAnswered ? (
-                     <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase text-emerald-700">
+                     <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
                         Đã trả lời
                      </span>
                   ) : (
-                     <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[10px] font-bold uppercase text-amber-700">
+                     <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300">
                         Chờ trả lời
                      </span>
                   )}
-               </motion.div>
-               <p className="text-sm leading-relaxed text-slate-800">{item.question}</p>
+               </div>
+               <p className="text-sm leading-relaxed text-slate-200">{item.question}</p>
                {item.answer ? (
-                  <motion.div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/50 p-4 text-sm text-slate-700">
-                     <span className="font-semibold text-violet-700">Câu trả lời của bạn: </span>
+                  <div className="mt-4 rounded-xl border border-[#93f72b]/20 bg-[#93f72b]/5 p-4 text-sm text-slate-200">
+                     <span className="font-semibold text-[#93f72b]">Câu trả lời của bạn: </span>
                      {item.answer}
-                  </motion.div>
+                  </div>
                ) : (
-                  <motion.div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
                      <textarea
                         value={drafts[item.id] || ""}
                         onChange={(e) => setDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
                         placeholder="Nhập câu trả lời cho học viên..."
                         rows={3}
-                        className="min-h-[80px] flex-1 resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+                        className="min-h-[80px] flex-1 resize-y rounded-xl border border-white/15 bg-[#10091e] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#93f72b] focus:outline-none focus:ring-2 focus:ring-[#93f72b]/20"
                      />
                      <button
                         type="button"
                         onClick={() => handleSend(item.id)}
                         disabled={sending === item.id || !String(drafts[item.id] || "").trim()}
-                        className="shrink-0 rounded-xl bg-[#a3e635] px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-900 hover:bg-[#84cc16] disabled:opacity-50"
+                        className="shrink-0 rounded-xl bg-[#93f72b] px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-950 transition hover:bg-[#a8ff4e] disabled:opacity-40"
                      >
                         {sending === item.id ? "Đang gửi..." : "Gửi trả lời"}
                      </button>
-                  </motion.div>
+                  </div>
                )}
-            </motion.div>
+            </div>
          ))}
       </div>
    );
@@ -577,35 +585,35 @@ function QATab({ courseId, items, onAnswered }) {
 
 function AnalyticsTab({ lessonStats }) {
    return (
-      <div className="space-y-8">
-         <div className="glass-card overflow-hidden">
+      <div className="space-y-6">
+         <div className="rounded-2xl border border-white/10 bg-[#160f26]/85 backdrop-blur-xl overflow-hidden shadow-lg">
             <table className="w-full text-left">
-               <thead className="border-b border-slate-200 text-[10px] font-bold text-zinc-600 uppercase tracking-wide">
+               <thead className="border-b border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-white/[0.02]">
                   <tr>
                      <th className="px-6 py-4">Bài học</th>
-                     <th className="px-6 py-4">Đã hoàn thành</th>
-                     <th className="px-6 py-4">Tỷ lệ hoàn thành</th>
-                     <th className="px-6 py-4 text-right">Câu hỏi</th>
+                     <th className="px-6 py-4">Lượt hoàn thành</th>
+                     <th className="px-6 py-4">Tỷ lệ xem trọn vẹn</th>
+                     <th className="px-6 py-4 text-right">Câu hỏi Q&A</th>
                   </tr>
                </thead>
-               <tbody className="divide-y divide-slate-100">
+               <tbody className="divide-y divide-white/5">
                   {lessonStats.map((s) => (
-                     <tr key={s.lessonIndex} className="hover:bg-violet-50/30 transition-colors">
-                        <td className="px-6 py-4 text-sm font-semibold text-slate-900">
+                     <tr key={s.lessonIndex} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="px-6 py-4 text-sm font-semibold text-white">
                            {s.title || `Bài ${s.lessonIndex}`}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600">{s.views}</td>
+                        <td className="px-6 py-4 text-sm text-slate-300">{s.views}</td>
                         <td className="px-6 py-4">
-                           <span className="text-sm font-bold text-violet-700">{s.completionRate}%</span>
+                           <span className="text-sm font-bold text-[#93f72b]">{s.completionRate}%</span>
                         </td>
-                        <td className="px-6 py-4 text-right text-sm text-slate-500">{s.questions}</td>
+                        <td className="px-6 py-4 text-right text-sm text-slate-400">{s.questions}</td>
                      </tr>
                   ))}
                </tbody>
             </table>
          </div>
-         <p className="text-xs text-slate-500">
-            Phân tích dựa trên tiến độ mua khóa đã thanh toán và câu hỏi Q&amp;A thực tế trên hệ thống.
+         <p className="text-xs text-slate-400">
+            Dữ liệu phân tích dựa trên lịch sử xem video và câu hỏi Q&amp;A thực tế của học viên trên nền tảng.
          </p>
       </div>
    );
@@ -634,7 +642,6 @@ function buildCoursePayloadFromForm(form, chapters, thumbnailUrl) {
    };
 }
 
-
 function mapTopicToCategory(topics = []) {
    const first = String(Array.isArray(topics) ? topics[0] || "" : "").toLowerCase();
    if (first === "behavioral") return "behavioral-interview";
@@ -648,20 +655,20 @@ function CourseAdminModerationBanner({ note, className = "mb-8" }) {
    return (
       <div
          className={`${className} rounded-2xl border p-5 ${
-            isAmber ? "border-amber-200 bg-amber-50" : "border-orange-400/30 bg-orange-500/10"
+            isAmber ? "border-amber-500/30 bg-amber-950/40 text-amber-200" : "border-rose-500/30 bg-rose-950/40 text-rose-200"
          }`}
       >
          <div className="flex items-start gap-3">
-            <WarningCircle size={18} className={`mt-0.5 shrink-0 ${isAmber ? "text-amber-700" : "text-orange-300"}`} />
+            <WarningCircle size={18} className={`mt-0.5 shrink-0 ${isAmber ? "text-amber-400" : "text-rose-400"}`} />
             <div>
                <p
                   className={`text-[10px] font-black uppercase tracking-widest ${
-                     isAmber ? "text-amber-900" : "text-orange-200"
+                     isAmber ? "text-amber-300" : "text-rose-300"
                   }`}
                >
                   {note.title}
                </p>
-               <p className={`mt-2 text-sm whitespace-pre-wrap leading-relaxed ${isAmber ? "text-amber-950" : "text-slate-800"}`}>
+               <p className={`mt-2 text-sm whitespace-pre-wrap leading-relaxed ${isAmber ? "text-amber-100" : "text-rose-100"}`}>
                   {note.reason}
                </p>
             </div>
@@ -741,18 +748,18 @@ function CreateCourseForm({ navigate }) {
       );
    const updateLessonVideo = async (chapterId, lessonId, file) => {
       if (!file) return;
-      const loadingToast = toast.loading(`Đang upload video: ${file.name}...`);
+      const loadingToast = toast.loading(`Đang tải video lên: ${file.name}...`);
       try {
          const durationMinutes = await getVideoDurationMinutes(file);
          const res = shouldUseDirectUpload(file)
             ? await uploadVideoDirectly(file, (pct) =>
-                 toast.loading(`Đang upload video: ${pct}%`, { id: loadingToast }),
+                 toast.loading(`Đang tải video: ${pct}%`, { id: loadingToast }),
               )
             : await uploadFile(file, "course-video");
          if (res.success) {
             toastApiSuccess(
                durationMinutes > 0
-                  ? `Upload thành công · ${durationMinutes} phút`
+                  ? `Upload video thành công · ${durationMinutes} phút`
                   : "Upload video thành công!",
             );
             setChapters((prev) =>
@@ -808,9 +815,12 @@ function CreateCourseForm({ navigate }) {
          <style>{mentorValidationKeyframes}</style>
          <div className="relative z-10 mx-auto max-w-4xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
             <header className="mb-8">
-               <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Tạo khóa học mới</h1>
-               <p className="mt-2 max-w-xl text-base text-slate-500 sm:text-sm">
-                  Điền thông tin, thêm nội dung video, sau đó gửi admin duyệt trước khi hiển thị công khai.
+               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-3.5 py-1 text-xs font-bold text-[#93f72b] tracking-wider uppercase">
+                  <Sparkles size={13} /> Studio Khóa Học & Video
+               </div>
+               <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Tạo khóa học & Tải video mới</h1>
+               <p className="mt-2 max-w-2xl text-sm text-violet-200/70">
+                  Điền thông tin khóa học, tổ chức hệ thống bài giảng và tải video lên. Khóa học sẽ được gửi kiểm duyệt trước khi phát hành công khai.
                </p>
             </header>
 
@@ -853,20 +863,20 @@ function CreateCourseForm({ navigate }) {
                {step === 3 && (
                   <div className="space-y-6">
                      <div className={mentorSectionCardClass}>
-                        <h3 className="mb-4 text-xl font-bold text-slate-900 sm:text-lg">Xem trước trước khi gửi</h3>
+                        <h3 className="mb-4 text-lg font-bold text-white tracking-tight">Xác nhận thông tin trước khi gửi duyệt</h3>
                         <dl className="grid gap-3 sm:grid-cols-2">
                            {[
                               ["Tiêu đề", form.title || "(chưa nhập)"],
                               ["Danh mục", form.category || "(chưa chọn)"],
                               ["Cấp độ", form.level],
-                              ["Giá", formatPrice(Number(form.price || 0))],
+                              ["Giá khóa học", formatPrice(Number(form.price || 0))],
                               ["Số chương", String(chapters.length)],
-                              ["Số bài học", String(totalLessons)],
+                              ["Tổng số bài học", String(totalLessons)],
                               ["Video đã upload", String(lessonsWithVideo)],
                            ].map(([label, value]) => (
-                              <div key={label} className="rounded-xl bg-slate-50 px-4 py-3">
-                                 <dt className="text-sm font-bold uppercase tracking-wide text-slate-600 sm:text-xs">{label}</dt>
-                                 <dd className="mt-1 text-base font-semibold text-slate-900 sm:text-sm">{value}</dd>
+                              <div key={label} className="rounded-xl border border-white/10 bg-[#10091e] px-4 py-3">
+                                 <dt className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</dt>
+                                 <dd className="mt-1 text-sm font-semibold text-white">{value}</dd>
                               </div>
                            ))}
                         </dl>
@@ -916,7 +926,7 @@ function CreateCourseForm({ navigate }) {
                               toastApiError("Lỗi kết nối khi gửi khóa học duyệt.");
                            }
                         }}
-                        primaryLabel="Gửi admin duyệt"
+                        primaryLabel="Gửi admin phê duyệt xuất bản"
                      />
                   </div>
                )}
@@ -1083,19 +1093,22 @@ export function MentorCourseEdit() {
 
    if (loading) {
       return (
-         <div className="min-h-screen bg-[#f8f4ff] flex items-center justify-center text-slate-900">
-            <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary-fixed border-t-transparent" />
+         <div className="min-h-screen bg-[#0b0813] flex items-center justify-center text-white">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#93f72b] border-t-transparent" />
          </div>
       );
    }
 
    if (!course) {
       return (
-         <div className="min-h-screen bg-[#f8f4ff] flex items-center justify-center text-slate-900">
-            <div className="text-center">
-               <BookOpen size={64} className="mx-auto mb-6 text-violet-700 opacity-20" />
-               <h2 className="mb-8 text-xl font-black tracking-tight sm:text-2xl">Không tìm thấy khóa học</h2>
-               <button onClick={() => navigate("/mentor/courses")} className="px-10 py-4 rounded-3xl bg-primary-fixed text-black text-xs font-black uppercase tracking-widest shadow-xl">Về quản lý khóa học</button>
+         <div className="min-h-screen bg-[#0b0813] flex items-center justify-center text-white">
+            <div className="text-center px-4">
+               <BookOpen size={64} className="mx-auto mb-6 text-[#93f72b]/30" />
+               <h2 className="mb-3 text-2xl font-bold tracking-tight text-white">Không tìm thấy khóa học</h2>
+               <p className="mb-8 text-sm text-slate-400">Khóa học có thể đã bị xóa hoặc bạn không có quyền truy cập.</p>
+               <button onClick={() => navigate("/mentor/courses")} className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-8 py-3 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]">
+                  Về quản lý khóa học
+               </button>
             </div>
          </div>
       );
@@ -1105,11 +1118,11 @@ export function MentorCourseEdit() {
    const coverSrc = mediaSrc(thumbnailUrl || course.thumbnail, DEFAULT_COURSE_THUMB);
 
    const TABS = [
-      { key: "lessons", label: "Bài học", icon: Layout },
+      { key: "lessons", label: "Bài giảng & Video", icon: Layout },
       { key: "students", label: "Học viên", icon: Users },
-      { key: "qa", label: "Hỏi & Đáp", icon: ChatCircle },
-      { key: "reviews", label: "Đánh giá", icon: Star },
-      { key: "analytics", label: "Phân tích", icon: ChartBar },
+      { key: "qa", label: "Hỏi & Đáp Q&A", icon: ChatCircle },
+      { key: "reviews", label: "Đánh giá học viên", icon: Star },
+      { key: "analytics", label: "Phân tích học tập", icon: ChartBar },
    ];
 
    return (
@@ -1117,26 +1130,26 @@ export function MentorCourseEdit() {
          <div className="relative z-10 mx-auto max-w-6xl overflow-x-hidden px-4 pb-8 sm:px-6 lg:px-8 mentor-course-edit">
             <CourseAdminModerationBanner note={courseAdminNote} />
             {isArchived && !courseAdminNote ? (
-               <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
-                  Khóa học này đã được lưu trữ và không còn hiển thị trên trang Khám phá.
+               <div className="mb-8 rounded-2xl border border-rose-500/30 bg-rose-950/40 p-5 text-sm text-rose-300">
+                  Khóa học này đã được lưu trữ và không còn hiển thị trên sàn công khai.
                </div>
             ) : null}
-            <div className="glass-card mb-8 overflow-hidden">
-               <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-start">
+            <div className="mb-8 rounded-2xl border border-white/10 bg-[#160f26]/85 backdrop-blur-xl p-6 sm:p-8 shadow-[0_16px_48px_rgba(0,0,0,0.4)]">
+               <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                   <div className="group/thumb relative mx-auto shrink-0 lg:mx-0">
                      <img
                         src={coverSrc}
                         alt=""
-                        className="h-36 w-full max-w-[220px] rounded-2xl object-cover shadow-md ring-1 ring-slate-200/80 sm:h-40"
+                        className="h-36 w-full max-w-[220px] rounded-xl border border-white/15 object-cover shadow-lg sm:h-40"
                      />
-                     <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-2xl bg-black/40 opacity-100 transition-opacity lg:bg-black/50 lg:opacity-0 lg:group-hover/thumb:opacity-100">
+                     <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-xl bg-black/60 opacity-100 transition-opacity lg:opacity-0 lg:group-hover/thumb:opacity-100">
                         <div className="text-center">
                            {isUploadingThumbnail ? (
-                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mx-auto" />
+                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#93f72b] border-t-transparent mx-auto" />
                            ) : (
                               <>
-                                 <Upload size={20} className="text-white mx-auto mb-1" />
-                                 <span className="text-xs font-bold text-white uppercase tracking-wide sm:text-[8px]">Đổi ảnh</span>
+                                 <Upload size={20} className="text-[#93f72b] mx-auto mb-1" />
+                                 <span className="text-xs font-bold text-white uppercase tracking-wider">Đổi ảnh bìa</span>
                               </>
                            )}
                         </div>
@@ -1168,28 +1181,28 @@ export function MentorCourseEdit() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                     <span className={`inline-flex rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${statusMeta.className}`}>
+                     <span className={`inline-flex rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${statusMeta.className}`}>
                         {statusMeta.label}
                      </span>
-                     <h1 className="app-page-title mt-3">{course.title}</h1>
-                     <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-slate-700">
-                        <span className="inline-flex items-center gap-1.5">
-                           <Users size={15} className="text-violet-600" />
-                           <strong className="mentor-stat-num mentor-stat-num--card text-slate-900">{course.studentsCount}</strong> học viên
+                     <h1 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl">{course.title}</h1>
+                     <div className="mt-4 flex flex-wrap gap-4 text-sm font-medium text-slate-300">
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs">
+                           <Users size={14} className="text-[#93f72b]" />
+                           <strong className="text-white font-bold">{course.studentsCount}</strong> học viên
                         </span>
-                        <span className="inline-flex items-center gap-1.5">
-                           <Star size={15} className="text-amber-500" />
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs">
+                           <Star size={14} className="text-amber-400 fill-amber-400" />
                            {course.rating > 0 ? (
                               <>
-                                 <strong className="mentor-stat-num mentor-stat-num--card text-slate-900">{course.rating}</strong> đánh giá
+                                 <strong className="text-white font-bold">{course.rating}</strong> sao
                               </>
                            ) : (
                               "Chưa có đánh giá"
                            )}
                         </span>
-                        <span className="inline-flex items-center gap-1.5">
-                           <Layout size={15} className="text-violet-600" />
-                           <strong className="mentor-stat-num mentor-stat-num--card text-slate-900">{lessons.length}</strong> bài học
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs">
+                           <Layout size={14} className="text-violet-400" />
+                           <strong className="text-white font-bold">{lessons.length}</strong> bài học
                         </span>
                      </div>
                      <div className="mt-6 flex flex-wrap gap-3">
@@ -1197,7 +1210,7 @@ export function MentorCourseEdit() {
                            <button
                               type="button"
                               onClick={() => navigate(`/courses/${id}`)}
-                              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-700 hover:bg-slate-50"
+                              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/10 hover:text-white"
                            >
                               <Eye size={15} /> Xem trang công khai
                            </button>
@@ -1206,9 +1219,9 @@ export function MentorCourseEdit() {
                            <button
                               type="button"
                               onClick={() => setShowArchiveDialog(true)}
-                              className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-red-700 hover:bg-red-100"
+                              className="inline-flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-rose-400 transition hover:bg-rose-500/20"
                            >
-                              <Trash size={15} /> Xóa khóa học
+                              <Trash size={15} /> Lưu trữ / Ngừng bán
                            </button>
                         ) : null}
                      </div>
@@ -1217,19 +1230,19 @@ export function MentorCourseEdit() {
             </div>
 
             <MentorScrollFadeRow
-               className="mb-6 rounded-2xl border border-slate-200 bg-slate-50/90 p-1.5"
+               className="mb-8 rounded-2xl border border-white/10 bg-[#160f26]/60 backdrop-blur-md p-1.5"
                innerClassName="flex gap-2"
-               fadeFrom="from-slate-50"
+               fadeFrom="from-[#110c1e]"
             >
                {TABS.map((tab) => (
                   <button
                      key={tab.key}
                      type="button"
                      onClick={() => setActiveTab(tab.key)}
-                     className={`flex shrink-0 snap-start items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-bold uppercase tracking-wide transition sm:px-4 sm:text-xs ${
+                     className={`flex shrink-0 snap-start items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
                         activeTab === tab.key
-                           ? "bg-violet-600 text-white shadow-md shadow-violet-600/25"
-                           : "font-semibold text-slate-700 hover:bg-white hover:text-slate-900"
+                           ? "bg-[#93f72b] text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.35)]"
+                           : "text-slate-300 hover:bg-white/5 hover:text-white"
                      }`}
                   >
                      <tab.icon size={15} />
@@ -1242,10 +1255,10 @@ export function MentorCourseEdit() {
             <AnimatePresence mode="wait">
                <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.4 }}
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.3 }}
                >
                   {activeTab === "lessons" && <LessonsTab lessons={lessons} onLessonsChange={setEditableLessons} />}
                   {activeTab === "students" && (
@@ -1253,7 +1266,7 @@ export function MentorCourseEdit() {
                         loading={tabLoading}
                         error={tabError}
                         empty={!students.length}
-                        emptyMessage="Chưa có học viên mua khóa."
+                        emptyMessage="Chưa có học viên nào tham gia khóa này."
                      >
                         <StudentsTab students={students} summary={studentsSummary} />
                      </TabPanelState>
@@ -1263,7 +1276,7 @@ export function MentorCourseEdit() {
                         loading={tabLoading}
                         error={tabError}
                         empty={!qaItems.length}
-                        emptyMessage="Chưa có câu hỏi từ học viên."
+                        emptyMessage="Chưa có câu hỏi nào từ học viên."
                      >
                         <QATab courseId={id} items={qaItems} onAnswered={refreshQA} />
                      </TabPanelState>
@@ -1273,7 +1286,7 @@ export function MentorCourseEdit() {
                         loading={tabLoading}
                         error={tabError}
                         empty={!reviews.length}
-                        emptyMessage="Chưa có đánh giá nào."
+                        emptyMessage="Chưa có đánh giá nào cho khóa này."
                      >
                         <ReviewsTab reviews={reviews} summary={reviewsSummary} />
                      </TabPanelState>
@@ -1294,15 +1307,15 @@ export function MentorCourseEdit() {
 
          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-4 sm:pb-6">
             <div className="pointer-events-auto w-full max-w-2xl">
-            <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-4 shadow-xl shadow-violet-900/10 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-6">
-               <p className="text-center text-xs font-semibold text-slate-600 sm:text-left">
-                  Lưu thay đổi trước khi gửi admin duyệt
+            <div className="flex flex-col gap-3 rounded-2xl border border-white/15 bg-[#140c24]/90 px-5 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-6">
+               <p className="text-center text-xs font-semibold text-slate-300 sm:text-left">
+                  Lưu cập nhật bài học và video trước khi gửi ban quản trị duyệt.
                </p>
-               <div className="flex flex-col gap-2 sm:flex-row">
+               <div className="flex flex-col gap-2.5 sm:flex-row">
                   <button
                      type="button"
                      onClick={() => window.location.reload()}
-                     className="min-h-[44px] rounded-xl border border-slate-200 px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-700 hover:bg-slate-50"
+                     className="min-h-[42px] rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-300 transition hover:bg-white/10 hover:text-white"
                   >
                      Hủy thay đổi
                   </button>
@@ -1369,7 +1382,7 @@ export function MentorCourseEdit() {
                            toastApiError("Lỗi kết nối khi gửi bản cập nhật.");
                         }
                      }}
-                     className="min-h-[44px] rounded-xl bg-[#a3e635] px-6 py-3 text-xs font-bold uppercase tracking-wide text-slate-900 shadow-md shadow-[#a3e635]/30 hover:bg-[#84cc16]"
+                     className="min-h-[42px] rounded-xl bg-[#93f72b] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.3)] transition hover:bg-[#a8ff4e]"
                   >
                      Lưu & gửi duyệt
                   </button>

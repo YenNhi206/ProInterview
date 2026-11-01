@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Calendar as CalendarIcon,
+  Calendar as CalendarBlank,
   Clock,
   Plus,
   ArrowLeft,
@@ -95,44 +96,36 @@ function isSameCalendarDay(a, b) {
 }
 
 const MENTOR_SCHEDULE_EXTRA_CSS = `
-        .schedule-panel.glass-card:hover {
-           transform: none;
-           box-shadow: 0 8px 18px rgba(128, 55, 244, 0.07);
-        }
-        .calendar-cell {
-           aspect-ratio: 1;
-           min-height: 2.25rem;
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           justify-content: center;
-           border-radius: 12px;
-           transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-           cursor: pointer;
-           position: relative;
-        }
-        .calendar-cell:hover { background: rgba(15, 23, 42, 0.04); }
-        .calendar-cell.active {
-           background: #93f72b;
-           color: #0a0814;
-           box-shadow: 0 6px 18px rgba(180, 245, 0, 0.28);
-           font-weight: 700;
-        }
-        .calendar-cell.today:not(.active) {
-           box-shadow: inset 0 0 0 2px rgba(147, 247, 43, 0.85);
-        }
-        .calendar-cell.dot::after {
-           content: '';
-           position: absolute;
-           bottom: 5px;
-           width: 5px;
-           height: 5px;
-           border-radius: 50%;
-           background: #8037f4;
-        }
-        .calendar-cell.active.dot::after {
-           background: #630ed4;
-        }
+  /* Linear / Vercel style schedule */
+  .schedule-container {
+    color: #ededed;
+  }
+  .linear-card {
+    background: #0d0f15;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+  .linear-btn-primary {
+    background: #ffffff;
+    color: #090a0f;
+    font-weight: 600;
+    transition: all 0.15s ease;
+  }
+  .linear-btn-primary:hover {
+    background: #e2e8f0;
+  }
+  .linear-btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #d1d5db;
+    transition: all 0.15s ease;
+  }
+  .linear-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.18);
+  }
 `;
 
 /* ── Manage Availability Modal ────────────────────────────────────────── */
@@ -253,113 +246,127 @@ function AvailabilityModal({ onClose, availability, onSaved }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-sm bg-slate-900/50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-black/70"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 30 }}
+        initial={{ scale: 0.98, opacity: 0, y: 14 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 30 }}
-        className="glass-card w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        exit={{ scale: 0.98, opacity: 0, y: 14 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="w-full max-w-xl overflow-hidden flex flex-col max-h-[85vh] rounded-2xl border border-white/10 bg-[#0d0f15] text-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-8 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-           <div>
-              <h2 className="text-2xl font-bold text-slate-900">Cài đặt thời gian rảnh</h2>
-              <p className="mt-1 text-sm text-violet-700">Quản lý lịch làm việc định kỳ hàng tuần</p>
-           </div>
-           <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-zinc-500 hover:text-slate-900 transition-all">
-              <X size={18} />
-           </button>
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-white/[0.08] flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-white">Cài đặt lịch rảnh cố định</h2>
+            <p className="mt-0.5 text-xs text-slate-400">Khung giờ bạn có thể nhận hẹn định kỳ mỗi tuần</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+          >
+            <X size={15} />
+          </button>
         </div>
 
-        <div className="p-8 overflow-y-auto space-y-8 custom-scrollbar">
-           <div className="p-6 rounded-3xl bg-primary-fixed/5 border border-primary-fixed/10 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary-fixed/20 flex items-center justify-center text-violet-700">
-                 <Globe size={20} />
-              </div>
-              <div>
-                 <p className="text-sm font-normal text-slate-900">Múi giờ hệ thống</p>
-                 <p className="text-xs font-normal text-zinc-500">(GMT+07:00) Asia/Ho_Chi_Minh</p>
-              </div>
-           </div>
+        {/* Body */}
+        <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar">
+          <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] border border-white/[0.06] p-3 text-xs text-slate-400">
+            <Globe size={15} className="text-slate-300" />
+            <span>Múi giờ hệ thống: <strong className="text-slate-200">GMT+07:00 (Asia/Ho_Chi_Minh)</strong></span>
+          </div>
 
-           <div className="space-y-4">
-              {workingHours.map((row, idx) => (
-                <div key={idx} className="p-6 rounded-[32px] bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-6 group">
-                   <div className="w-24 shrink-0">
-                      <p className="text-sm font-semibold text-slate-900 group-hover:text-violet-700 transition-colors">{row.day}</p>
-                   </div>
-                    <div className="flex-1 flex flex-wrap gap-2">
-                       {row.slots.map((s, i) => (
-                         <div key={i} className="group/item relative flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-normal text-zinc-600 transition-all hover:border-red-200 hover:bg-red-50/30">
-                            <span className="group-hover/item:text-slate-900 transition-colors">{s}</span>
-                            <button 
-                               onClick={() => removeSlot(row.dayOfWeek, s)}
-                               className="p-1 rounded-md hover:bg-red-500/10 text-zinc-400 hover:text-red-600 transition-all flex items-center justify-center"
-                               title="Xóa khung giờ này"
-                            >
-                               <X size={14} />
-                            </button>
-                         </div>
-                       ))}
-                       {row.slots.length === 0 && (
-                          <p className="text-[10px] italic text-zinc-400 font-normal py-2">Chưa có khung giờ nào cho ngày này.</p>
-                       )}
-                    </div>
+          <div className="space-y-2.5">
+            {workingHours.map((row, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.015]"
+              >
+                <div className="w-20 shrink-0">
+                  <span className="text-xs font-semibold text-slate-200">{row.day}</span>
                 </div>
-              ))}
+                <div className="flex-1 flex flex-wrap gap-1.5">
+                  {row.slots.map((s, i) => (
+                    <div
+                      key={i}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300"
+                    >
+                      <span>{s}</span>
+                      <button
+                        onClick={() => removeSlot(row.dayOfWeek, s)}
+                        className="text-slate-400 hover:text-rose-400 p-0.5"
+                        title="Xóa"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  {row.slots.length === 0 && (
+                    <span className="text-xs text-slate-500 italic">Chưa có giờ</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
 
-               <div className="mt-8 p-6 rounded-[32px] bg-slate-50/50 border-2 border-dashed border-slate-200">
-                  <p className="mb-4 text-center text-sm font-normal text-slate-500">Thêm khung giờ mới</p>
-                  <div className="flex flex-col md:flex-row items-center gap-4">
-                     <div className="flex-1 w-full grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                           <p className="ml-3 text-xs font-normal text-violet-700">Ngày trong tuần</p>
-                           <AppSelect
-                    theme="dark"
-                              size="default"
-                              value={newSlotDay}
-                              onValueChange={(v) => setNewSlotDay(Number(v))}
-                              options={DAY_ROWS.map((d) => ({ value: d.key, label: d.label }))}
-                           />
-                        </div>
-                        <div className="space-y-1.5">
-                           <p className="ml-3 text-xs font-normal text-violet-700">Bắt đầu từ</p>
-                           <AppSelect
-                    theme="dark"
-                              size="default"
-                              value={newSlotRange}
-                              onValueChange={setNewSlotRange}
-                              options={SLOT_OPTIONS.map((start) => {
-                                 const range = toOneHourRange(start);
-                                 return { value: range, label: range };
-                              })}
-                           />
-                        </div>
-                     </div>
-                     <div className="md:pt-5 w-full md:w-auto">
-                        <button
-                           onClick={() => addSlot(newSlotDay, String(newSlotRange).split("-")[0].trim())}
-                           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8037f4] px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#8037f4]/25 transition-all hover:scale-[1.02] hover:bg-[#6d2fd6] active:scale-[0.98] md:w-auto"
-                        >
-                           <Plus size={14} /> Thêm vào lịch
-                        </button>
-                     </div>
-                  </div>
-               </div>
-           </div>
+          {/* Add slot section */}
+          <div className="pt-2">
+            <p className="text-xs font-medium text-slate-400 mb-2">Thêm khung giờ mới</p>
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+              <div className="sm:col-span-5">
+                <AppSelect
+                  size="default"
+                  value={newSlotDay}
+                  onValueChange={(v) => setNewSlotDay(Number(v))}
+                  options={DAY_ROWS.map((d) => ({ value: d.key, label: d.label }))}
+                />
+              </div>
+              <div className="sm:col-span-4">
+                <AppSelect
+                  size="default"
+                  value={newSlotRange}
+                  onValueChange={setNewSlotRange}
+                  options={SLOT_OPTIONS.map((start) => {
+                    const range = toOneHourRange(start);
+                    return { value: range, label: range };
+                  })}
+                />
+              </div>
+              <div className="sm:col-span-3">
+                <button
+                  onClick={() => addSlot(newSlotDay, String(newSlotRange).split("-")[0].trim())}
+                  className="w-full h-full min-h-[38px] linear-btn-secondary rounded-xl text-xs font-medium flex items-center justify-center gap-1.5"
+                >
+                  <Plus size={14} /> Thêm
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="p-6 border-t border-slate-200 bg-slate-100 flex items-center justify-between">
-           <p className="px-4 text-xs text-zinc-600">Lưu ý: Thay đổi sẽ áp dụng từ tuần kế tiếp</p>
-           <div className="flex gap-4">
-              <button onClick={onClose} className="rounded-2xl border border-slate-200 bg-slate-50 px-8 py-3 text-sm font-normal text-zinc-600 transition-all hover:text-slate-900">Hủy</button>
-              <button disabled={saving} onClick={handleSave} className="rounded-2xl bg-[#93f72b] px-8 py-3 text-sm font-semibold text-[#120B2E] shadow-xl shadow-[#93f72b]/25 disabled:opacity-60">
-                {saving ? "Đang lưu..." : "Lưu cấu hình"}
-              </button>
-           </div>
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-white/[0.08] bg-white/[0.01] flex items-center justify-between gap-3">
+          <p className="text-[11px] text-slate-500">Áp dụng từ tuần tiếp theo</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="linear-btn-secondary px-4 py-2 rounded-xl text-xs font-medium"
+            >
+              Hủy
+            </button>
+            <button
+              disabled={saving}
+              onClick={handleSave}
+              className="linear-btn-primary px-5 py-2 rounded-xl text-xs font-semibold disabled:opacity-50"
+            >
+              {saving ? "Đang lưu..." : "Lưu thay đổi"}
+            </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -449,171 +456,235 @@ export function MentorSchedule() {
   });
 
   const finalDays = [...calendarDays, ...paddingDays];
-  const activeStatuses = new Set(["pending", "confirmed", "in_progress"]);
   const sourceMeetings = mentorMeetings;
   const selectedDayMeetings = sourceMeetings.filter((m) => bookingOnDate(m.date, selectedDate) || bookingOnDate(m.scheduledDate, selectedDate));
 
   return (
     <MentorPageShell
-      bottomPad="pb-4"
-      fillHeight
-      className="!min-h-0 !pb-4"
+      bottomPad="pb-8"
+      fillHeight={false}
+      className="schedule-container bg-transparent"
       extraStyles={MENTOR_SCHEDULE_EXTRA_CSS}
     >
-      <div className="relative z-10 mx-auto flex max-lg:min-h-0 max-lg:h-auto max-lg:max-h-none min-h-0 max-w-7xl flex-col overflow-visible px-4 pt-2 sm:px-6 lg:h-[calc(100svh-7.5rem)] lg:max-h-[calc(100svh-7.5rem)] lg:px-8">
-        {/* Header — compact */}
-        <div className="mb-4 flex shrink-0 flex-col gap-3 overflow-visible pt-1 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0 overflow-visible">
-            <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-slate-900">
-              Lịch họp <span className="text-[#8037f4]">của bạn</span>
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
+        {/* Clean Header */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/[0.08] pb-5">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              Lịch làm việc
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-500">
-              Lịch rảnh và quản lý các buổi hẹn mentor.
+            <p className="mt-1 text-xs sm:text-sm text-slate-400">
+              Quản lý ca tư vấn trực tiếp và cấu hình khung giờ rảnh hàng tuần.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAvailability(true)}
-            className="flex shrink-0 items-center gap-2 self-start rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-[#120B2E] shadow-[0_6px_18px_rgba(147,247,43,0.32)] transition-all hover:brightness-105 sm:px-6 sm:py-3"
-          >
-            <Clock size={15} /> Cập nhật lịch rảnh
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setShowAvailability(true)}
+              className="linear-btn-secondary flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold"
+            >
+              <Clock size={14} />
+              <span>Cài đặt giờ rảnh</span>
+            </button>
+          </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-5">
-           {/* Calendar */}
-           <div className="schedule-panel glass-card flex min-h-0 flex-col p-4 sm:p-5 lg:col-span-7">
-              <div className="mb-3 flex shrink-0 items-center justify-between">
-                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-violet-700">
-                       <CalendarIcon size={18} />
-                    </div>
-                    <div>
-                       <h3 className="text-lg font-bold text-slate-900 sm:text-xl">
-                          {formatMonthYear(currentDate)}
-                       </h3>
-                       <p className="text-sm text-slate-500">Lịch rảnh trong tháng</p>
-                    </div>
-                 </div>
-                 <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={goToToday}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-violet-700 transition-colors hover:bg-violet-50"
-                    >
-                      Hôm nay
-                    </button>
-                    <button type="button" onClick={() => setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-zinc-500 transition-all hover:text-slate-900" aria-label="Tháng trước"><ChevronLeft size={16} /></button>
-                    <button type="button" onClick={() => setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-zinc-500 transition-all hover:text-slate-900" aria-label="Tháng sau"><ChevronRight size={16} /></button>
-                 </div>
+        {/* 2-Column Clean Workspace */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Calendar (Col 7) */}
+          <div className="linear-card p-6 lg:col-span-7">
+            {/* Calendar Controls */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-base font-semibold text-white">
+                  {formatMonthYear(currentDate)}
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {mentorMeetings.length} lịch hẹn trong tháng
+                </p>
               </div>
-
-              <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-[auto_repeat(6,minmax(0,1fr))] gap-1 sm:gap-1.5">
-                 {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map(d => (
-                   <div key={d} className="py-1 text-center text-xs font-normal text-zinc-600">{d}</div>
-                 ))}
-                 {finalDays.map((cell, i) => {
-                   const isSelected = isSameCalendarDay(selectedDate, cell.date);
-                   const isToday = isSameCalendarDay(new Date(), cell.date);
-                   const hasMeetings = sourceMeetings.some((m) => bookingOnDate(m.date, cell.date) || bookingOnDate(m.scheduledDate, cell.date));
-                   return (
-                     <div 
-                        key={i} 
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setSelectedDate(cell.date)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setSelectedDate(cell.date);
-                          }
-                        }}
-                        className={`calendar-cell ${isSelected ? "active" : ""} ${isToday ? "today" : ""} ${cell.currentMonth ? "text-slate-900" : "text-zinc-500 opacity-40"} ${hasMeetings ? "dot" : ""}`}
-                     >
-                        <span className="text-[11px] font-semibold sm:text-xs">{cell.date.getDate()}</span>
-                     </div>
-                   );
-                 })}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={goToToday}
+                  className="linear-btn-secondary px-3 py-1.5 rounded-lg text-xs font-medium"
+                >
+                  Hôm nay
+                </button>
+                <div className="flex items-center rounded-lg border border-white/10 bg-white/5 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                    className="p-1.5 text-slate-400 hover:text-white rounded transition"
+                    aria-label="Tháng trước"
+                  >
+                    <ChevronLeft size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                    className="p-1.5 text-slate-400 hover:text-white rounded transition"
+                    aria-label="Tháng sau"
+                  >
+                    <ChevronRight size={15} />
+                  </button>
+                </div>
               </div>
-              <div className="mt-3 flex shrink-0 items-center gap-5 border-t border-slate-200 pt-3">
-                 <div className="flex items-center gap-1.5 text-xs font-normal text-zinc-500">
-                    <div className="h-2.5 w-2.5 rounded-sm bg-white ring-2 ring-[#93f72b]" /> Hôm nay
-                 </div>
-                 <div className="flex items-center gap-1.5 text-xs font-normal text-zinc-500">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#8037f4]" /> Có lịch hẹn
-                 </div>
-              </div>
-           </div>
+            </div>
 
-           {/* Daily schedule */}
-           <div className="flex min-h-0 flex-col lg:col-span-5">
-              <div className="schedule-panel glass-card flex h-full min-h-0 flex-col p-4 sm:p-5">
-                 <div className="mb-3 flex shrink-0 items-center justify-between">
-                    <h4 className="text-base font-bold text-slate-900 sm:text-lg">
-                      {formatSelectedDayLabel(selectedDate)}
-                    </h4>
-                    <button
-                      type="button"
-                      onClick={() => setShowAvailability(true)}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-violet-700 transition-all hover:bg-slate-100"
-                    >
-                      <Plus size={16} />
-                    </button>
-                 </div>
+            {/* Days of Week */}
+            <div className="grid grid-cols-7 mb-2 text-center text-xs font-medium text-slate-400">
+              {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((day) => (
+                <div key={day} className="py-1">
+                  {day}
+                </div>
+              ))}
+            </div>
 
-                 <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-0.5 custom-scrollbar">
-                    {selectedDayMeetings.map((meeting, i) => (
-                      <div
-                         key={meeting.id || i}
-                         onClick={() => meeting.id && navigate(`/mentor/meeting-detail/${meeting.id}`)}
-                         className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all hover:bg-slate-100"
-                      >
-                         <div className="absolute left-0 top-0 h-full w-1 scale-y-0 bg-primary-fixed transition-transform origin-top group-hover:scale-y-100" />
-                         <div className="mb-2.5 flex items-center gap-3">
-                            <img src={meeting.mentee.avatar} alt="" className="h-9 w-9 rounded-xl object-cover ring-2 ring-white/5" />
-                            <div className="min-w-0">
-                               <p className="truncate text-sm font-black text-slate-900">{meeting.mentee.name}</p>
-                               <p className="truncate text-xs font-normal text-zinc-600">{meeting.position}</p>
-                            </div>
-                         </div>
-                         <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-violet-700">
-                               <Clock3 size={13} /> {meeting.scheduledTime}
-                            </div>
-                            <span
-                              className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold ${
-                                String(meeting.status || "").toLowerCase() === "confirmed"
-                                  ? "border-[#93f72b] bg-[#93f72b]/15 text-[#5a9a12]"
-                                  : String(meeting.status || "").toLowerCase() === "pending"
-                                    ? "border-[#8037f4]/35 bg-[#8037f4]/10 text-[#8037f4]"
-                                    : String(meeting.status || "").toLowerCase() === "completed"
-                                      ? "border-[#93f72b] bg-[#93f72b]/12 text-[#93f72b]"
-                                      : String(meeting.status || "").toLowerCase() === "cancelled"
-                                        ? "border-red-300 bg-red-100 text-red-900"
-                                        : "border-slate-200 bg-slate-100 text-slate-700"
-                              }`}
-                            >
-                              {meeting.statusLabel}
-                            </span>
-                         </div>
-                      </div>
-                    ))}
-                    {selectedDayMeetings.length === 0 && (
-                      <div className="flex min-h-[72px] flex-col items-center justify-center rounded-2xl border border-slate-200 p-4 text-zinc-500">
-                        <p className="text-sm text-zinc-500">Không có lịch hẹn trong ngày này</p>
-                      </div>
+            {/* Dates Grid */}
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+              {finalDays.map((cell, idx) => {
+                const isSelected = isSameCalendarDay(selectedDate, cell.date);
+                const isToday = isSameCalendarDay(new Date(), cell.date);
+                const hasMeetings = sourceMeetings.some(
+                  (m) => bookingOnDate(m.date, cell.date) || bookingOnDate(m.scheduledDate, cell.date)
+                );
+
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedDate(cell.date)}
+                    className={`relative flex flex-col items-center justify-center h-11 sm:h-12 rounded-xl text-xs transition-all ${
+                      isSelected
+                        ? "bg-white text-slate-950 font-bold shadow-md"
+                        : isToday
+                          ? "border border-white/30 text-white font-semibold bg-white/5"
+                          : cell.currentMonth
+                            ? "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                            : "text-slate-600 opacity-40 hover:opacity-80"
+                    }`}
+                  >
+                    <span>{cell.date.getDate()}</span>
+                    {hasMeetings && (
+                      <span
+                        className={`mt-1 h-1 w-1 rounded-full ${
+                          isSelected ? "bg-slate-950" : "bg-indigo-400"
+                        }`}
+                      />
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setShowAvailability(true)}
-                      className="flex min-h-[72px] w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 text-zinc-700 transition-all hover:border-violet-200 hover:text-violet-700"
-                    >
-                       <PlusCircle size={24} className="mb-1 opacity-25" />
-                       <p className="text-sm font-normal text-zinc-600">Thêm khung giờ trống mới</p>
-                    </button>
-                 </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-5 pt-4 border-t border-white/[0.08] flex items-center gap-5 text-xs text-slate-400">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded border border-white/40" />
+                <span>Hôm nay</span>
               </div>
-           </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded bg-white" />
+                <span>Đang xem</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                <span>Có cuộc hẹn</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Daily Agenda (Col 5) */}
+          <div className="linear-card p-6 lg:col-span-5">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/[0.08]">
+              <div>
+                <h3 className="text-base font-semibold text-white">
+                  {formatSelectedDayLabel(selectedDate)}
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {selectedDayMeetings.length} lịch hẹn được xếp
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAvailability(true)}
+                className="linear-btn-secondary p-2 rounded-lg text-slate-300 hover:text-white"
+                title="Thêm khung giờ rảnh"
+              >
+                <Plus size={15} />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="space-y-3">
+              {selectedDayMeetings.map((meeting, i) => (
+                <div
+                  key={meeting.id || i}
+                  onClick={() => meeting.id && navigate(`/mentor/meeting-detail/${meeting.id}`)}
+                  className="group cursor-pointer rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.05] hover:border-white/20"
+                >
+                  <div className="flex items-center justify-between gap-3 mb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={meeting.mentee.avatar}
+                        alt=""
+                        className="w-8 h-8 rounded-full object-cover border border-white/10"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-white truncate">
+                          {meeting.mentee.name}
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate">
+                          {meeting.position || "Học viên"}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${
+                        String(meeting.status || "").toLowerCase() === "confirmed"
+                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                          : String(meeting.status || "").toLowerCase() === "pending"
+                            ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                            : String(meeting.status || "").toLowerCase() === "completed"
+                              ? "bg-blue-500/10 border-blue-500/20 text-blue-400"
+                              : "bg-white/5 border-white/10 text-slate-400"
+                      }`}
+                    >
+                      {meeting.statusLabel}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/[0.04] text-xs text-slate-400">
+                    <div className="flex items-center gap-1.5 text-slate-300 font-medium">
+                      <Clock3 size={13} className="text-slate-400" />
+                      <span>{meeting.scheduledTime}</span>
+                    </div>
+                    <span className="text-[11px] text-slate-400 group-hover:text-slate-200 transition">
+                      Chi tiết →
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {selectedDayMeetings.length === 0 && (
+                <div className="py-12 px-4 rounded-xl border border-dashed border-white/[0.08] text-center">
+                  <p className="text-xs font-medium text-slate-300">Không có lịch hẹn</p>
+                  <p className="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto">
+                    Chưa có học viên nào đặt lịch trong ngày này.
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowAvailability(true)}
+                className="w-full py-3 rounded-xl border border-dashed border-white/15 bg-white/[0.01] hover:bg-white/[0.04] text-xs font-medium text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5 mt-2"
+              >
+                <Plus size={14} /> Thêm ca làm việc
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

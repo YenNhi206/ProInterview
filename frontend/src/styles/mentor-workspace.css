@@ -38,6 +38,7 @@
 .mentor-workspace .glass-card,
 .mentor-workspace .withdraw-modal-card,
 .mentor-workspace :is(.bg-white,.bg-slate-50,.bg-slate-100,.bg-gray-50,.bg-gray-100),
+.mentor-workspace :is(.lg\:bg-white,.md\:bg-white,.sm\:bg-white),
 .mentor-workspace [class~="bg-white/90"],
 .mentor-workspace [class~="bg-white/95"],
 .mentor-workspace [class~="bg-slate-50/50"] {

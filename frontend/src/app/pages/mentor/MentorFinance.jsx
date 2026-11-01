@@ -261,7 +261,6 @@ function WithdrawalModal({
                     <div>
                       <label className={withdrawFieldLabel}>Ngân hàng</label>
                       <AppSelect
-                    theme="dark"
                         size="md"
                         value={bankSelect || undefined}
                         onValueChange={(v) => {
@@ -512,7 +511,7 @@ export function MentorFinance() {
     <MentorPageShell
       bottomPad="pb-20"
       showAmbient={false}
-      className="bg-transparent"
+      className="bg-transparent text-white"
       extraStyles={MENTOR_FINANCE_EXTRA_CSS}
     >
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
