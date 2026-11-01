@@ -258,6 +258,21 @@ export async function fetchCourseMentorAnalytics(courseId) {
 }
 
 /** Lưu trữ khóa học (xóa mềm — DELETE /api/courses/:id). */
+/** Checklist điều kiện xóa khóa học — `GET /api/courses/:id/archive-eligibility`. */
+export async function fetchCourseArchiveEligibility(id) {
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
+  try {
+    const res = await authFetch(`/api/courses/${encodeURIComponent(id)}/archive-eligibility`, {
+      headers: { ...jsonHeaders },
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: body.error || `Lỗi ${res.status}` };
+    return { success: true, eligibility: body.eligibility };
+  } catch {
+    return { success: false, error: "Không kết nối được backend." };
+  }
+}
+
 export async function archiveCourse(id) {
   if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {

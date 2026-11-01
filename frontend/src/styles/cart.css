@@ -889,13 +889,13 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: rgba(251, 191, 36, 0.18);
-  border: 1.5px solid rgba(251, 191, 36, 0.55);
+  background: rgba(147, 247, 43, 0.18);
+  border: 1.5px solid rgba(147, 247, 43, 0.55);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 16px rgba(147, 247, 43, 0.45);
   animation: cartSparklePulse 2.2s ease-in-out infinite;
 }
 

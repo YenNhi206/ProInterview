@@ -424,12 +424,12 @@ export function MentorReviews() {
                         ? replyCounts.replied
                         : reviewedMeetings.length;
                   return (
-                    <button
+                    <button data-button-surface="none"
                       key={value}
                       type="button"
                       onClick={() => setReplyFilter(value)}
                       aria-pressed={active}
-                      className={`relative shrink-0 snap-start whitespace-nowrap px-3 py-2 text-sm sm:px-4 ${
+                      className={`mw-tab relative shrink-0 snap-start whitespace-nowrap px-3 py-2 text-sm sm:px-4 ${
                         active
                           ? "font-bold text-slate-900"
                           : "font-medium text-slate-500 hover:text-slate-700"

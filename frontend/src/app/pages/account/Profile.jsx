@@ -589,7 +589,9 @@ export function Profile() {
                 </span>
               </h1>
               <p className="text-slate-300/80 text-xs sm:text-sm mt-1.5 font-medium leading-relaxed max-w-2xl">
-                Cập nhật thông tin học vấn, kinh nghiệm và kỹ năng để tối ưu hóa lộ trình luyện phỏng vấn AI và kết nối Mentor.
+                {isMentor
+                  ? "Cập nhật kinh nghiệm, chuyên môn và kỹ năng để mentee hiểu rõ bạn và đặt lịch cùng bạn."
+                  : "Cập nhật thông tin học vấn, kinh nghiệm và kỹ năng để tối ưu hóa lộ trình luyện phỏng vấn AI và kết nối Mentor."}
               </p>
             </div>
 
@@ -721,10 +723,13 @@ export function Profile() {
                     {isMentor ? "Mentor" : "Học viên"}
                   </span>
 
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
-                    <planInfo.nameIcon size={13} />
-                    {planInfo.name}
-                  </span>
+                  {/* Gói Pro/Elite là quyền lợi của học viên; mentor không mua gói. */}
+                  {!isMentor && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
+                      <planInfo.nameIcon size={13} />
+                      {planInfo.name}
+                    </span>
+                  )}
                 </div>
 
                 {/* Profile Strength Card with Checklist */}
@@ -775,13 +780,18 @@ export function Profile() {
                   </div>
 
                   <p className="text-[11px] text-slate-400 leading-relaxed border-t border-white/5 pt-2">
-                    {completionPercentage >= 100
-                      ? "🎉 Tuyệt vời! Hồ sơ đã đầy đủ 100% để tối ưu hóa phỏng vấn AI."
-                      : "Điền thêm thông tin giúp AI cá nhân hóa câu hỏi phỏng vấn chuẩn xác nhất."}
+                    {isMentor
+                      ? completionPercentage >= 100
+                        ? "🎉 Tuyệt vời! Hồ sơ mentor đã đầy đủ 100%, giúp mentee tin tưởng và chọn bạn."
+                        : "Điền thêm thông tin giúp mentee hiểu rõ chuyên môn và kinh nghiệm của bạn."
+                      : completionPercentage >= 100
+                        ? "🎉 Tuyệt vời! Hồ sơ đã đầy đủ 100% để tối ưu hóa phỏng vấn AI."
+                        : "Điền thêm thông tin giúp AI cá nhân hóa câu hỏi phỏng vấn chuẩn xác nhất."}
                   </p>
                 </div>
 
                 {/* Account Plan Details Card */}
+                {!isMentor && (
                 <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-300">Gói dịch vụ</span>
@@ -798,6 +808,7 @@ export function Profile() {
                     </Link>
                   )}
                 </div>
+                )}
 
               </div>
             </motion.aside>

@@ -47,7 +47,7 @@ export function CourseHeroConnected() {
       ))}
 
       {/* 4. TRACK 1: Dải sóng tri thức tím neon (Knowledge & Mentorship Wave) */}
-      <div className="hero-cwave-track hero-cwave-track-1 hero-cwave-bob-1">
+      <div className="hero-cwave-track hero-cwave-track-1">
         <svg
           className="w-full h-full block"
           viewBox="0 0 2880 260"
@@ -71,7 +71,7 @@ export function CourseHeroConnected() {
             </linearGradient>
 
             <filter id="cwave-glow-purple" x="-10%" y="-30%" width="120%" height="160%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feGaussianBlur stdDeviation="1.8" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -79,22 +79,7 @@ export function CourseHeroConnected() {
             </filter>
           </defs>
 
-          {/* Dải ribbon chuyển sắc mờ ảo */}
-          <path
-            d="M 0 120 
-               C 240 55, 480 185, 720 120 
-               C 960 55, 1200 185, 1440 120 
-               C 1680 55, 1920 185, 2160 120 
-               C 2400 55, 2640 185, 2880 120 
-               L 2880 165 
-               C 2640 230, 2400 100, 2160 165 
-               C 1920 230, 1680 100, 1440 165 
-               C 1200 230, 960 100, 720 165 
-               C 480 230, 240 100, 0 165 Z"
-            fill="url(#cwave-ribbon-purple)"
-          />
-
-          {/* Đường sóng neon tím sắc nét */}
+          {/* Đường sóng neon tím thanh mảnh tinh tế */}
           <path
             d="M 0 120 
                C 240 55, 480 185, 720 120 
@@ -102,15 +87,28 @@ export function CourseHeroConnected() {
                C 1680 55, 1920 185, 2160 120 
                C 2400 55, 2640 185, 2880 120"
             stroke="url(#cwave-grad-purple)"
-            strokeWidth="2.5"
+            strokeWidth="1.2"
             filter="url(#cwave-glow-purple)"
+            strokeLinecap="round"
+          />
+
+          {/* Đường sóng phụ nét đứt tím siêu mảnh */}
+          <path
+            d="M 0 155 
+               C 240 90, 480 220, 720 155 
+               C 960 90, 1200 220, 1440 155 
+               C 1680 90, 1920 220, 2160 155 
+               C 2400 90, 2640 220, 2880 155"
+            stroke="rgba(192, 132, 252, 0.35)"
+            strokeWidth="0.9"
+            strokeDasharray="6 6"
             strokeLinecap="round"
           />
         </svg>
       </div>
 
-      {/* 5. TRACK 2: Dải sóng xanh lime (Đồng bộ với nút Tìm kiếm & Badge Intermediate các khóa học) */}
-      <div className="hero-cwave-track hero-cwave-track-2 hero-cwave-bob-2">
+      {/* 5. TRACK 2: Dải sóng xanh lime (Mảnh và sắc nét như bên Mentor) */}
+      <div className="hero-cwave-track hero-cwave-track-2">
         <svg
           className="w-full h-full block"
           viewBox="0 0 2880 260"
@@ -127,7 +125,7 @@ export function CourseHeroConnected() {
             </linearGradient>
 
             <filter id="cwave-glow-lime" x="-10%" y="-30%" width="120%" height="160%">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -135,7 +133,7 @@ export function CourseHeroConnected() {
             </filter>
           </defs>
 
-          {/* Đường sóng xanh neon giao thoa với sóng tím */}
+          {/* Đường sóng xanh neon giao thoa thanh mảnh */}
           <path
             d="M 0 150 
                C 280 210, 520 80, 720 140 
@@ -143,10 +141,23 @@ export function CourseHeroConnected() {
                C 1720 210, 1960 80, 2160 140 
                C 2360 200, 2600 80, 2880 150"
             stroke="url(#cwave-grad-lime)"
-            strokeWidth="2"
+            strokeWidth="1.2"
             filter="url(#cwave-glow-lime)"
             strokeLinecap="round"
             opacity="0.85"
+          />
+
+          {/* Đường sóng phụ xanh nét đứt mảnh */}
+          <path
+            d="M 0 175 
+               C 280 115, 520 235, 720 175 
+               C 920 115, 1160 235, 1440 175 
+               C 1720 115, 1960 235, 2160 175 
+               C 2360 115, 2600 235, 2880 175"
+            stroke="rgba(147, 247, 43, 0.28)"
+            strokeWidth="0.8"
+            strokeDasharray="5 5"
+            strokeLinecap="round"
           />
         </svg>
       </div>
@@ -166,9 +177,9 @@ export function CourseHeroConnected() {
                C 1260 185, 1350 85, 1440 135 
                C 1800 195, 2160 65, 2520 145 
                C 2700 185, 2790 85, 2880 135"
-            stroke="rgba(168, 85, 247, 0.4)"
-            strokeWidth="1.2"
-            strokeDasharray="6 8"
+            stroke="rgba(168, 85, 247, 0.3)"
+            strokeWidth="0.9"
+            strokeDasharray="5 7"
             strokeLinecap="round"
           />
         </svg>

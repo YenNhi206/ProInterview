@@ -131,9 +131,16 @@ export function AppLayout() {
   if (isMentor) {
     return (
       <div
-        className="mentor-workspace pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 antialiased"
+        className="mentor-workspace commerce-theme pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 antialiased"
         style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
+        {/* Same ambient background as the customer dark pages. */}
+        <div className="app-shell-ambient app-shell-ambient--commerce" aria-hidden>
+          <span className="commerce-glow commerce-glow--top-left" />
+          <span className="commerce-glow commerce-glow--top-right" />
+          <span className="commerce-glow commerce-glow--bottom-left" />
+          <span className="commerce-glow commerce-glow--bottom-right" />
+        </div>
         <MentorWorkspaceNav />
         <main className="mentor-workspace-main relative z-[1] min-h-0 flex-1">
           <Outlet />

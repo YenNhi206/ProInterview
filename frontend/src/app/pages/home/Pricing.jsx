@@ -339,20 +339,21 @@ export function Pricing() {
                     {/* CTA */}
                     <div className="mt-auto w-full shrink-0 pt-6">
                       <motion.button
+                        data-button-surface="none"
                         type="button"
                         disabled={isCurrent || isLowerTier}
                         onClick={() => handleCta(plan)}
                         whileHover={!(isCurrent || isLowerTier) ? { scale: 1.02 } : undefined}
                         whileTap={!(isCurrent || isLowerTier) ? { scale: 0.98 } : undefined}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className={`group relative flex w-full items-center justify-center overflow-hidden rounded-2xl py-3.5 px-4 text-center text-sm font-bold transition-all ${
+                        className={`group relative flex w-full items-center justify-center overflow-hidden rounded-2xl py-3.5 px-4 text-center text-sm transition-all ${
                           isCurrent || isLowerTier
-                            ? "cursor-not-allowed border border-white/10 bg-white/5 text-slate-400"
+                            ? "cursor-not-allowed border border-white/15 bg-white/[0.08] text-slate-300 font-semibold"
                             : variant === "outline"
-                            ? "border border-violet-500/30 bg-violet-500/10 text-violet-200 hover:bg-violet-500/20 hover:border-violet-400/50 shadow-sm cursor-pointer"
+                            ? "border border-violet-400/40 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30 hover:border-violet-300/60 font-bold shadow-sm cursor-pointer"
                             : variant === "lime"
-                            ? "bg-violet-600 hover:bg-violet-500 text-white font-bold shadow-[0_0_20px_rgba(128,55,244,0.35)] cursor-pointer"
-                            : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold shadow-[0_0_25px_rgba(139,92,246,0.45)] cursor-pointer"
+                            ? "bg-[#93f72b] hover:bg-[#85ea22] text-[#0a0a0c] font-black shadow-[0_0_25px_rgba(147,247,43,0.4)] cursor-pointer"
+                            : "bg-gradient-to-r from-[#93f72b] via-[#a8f946] to-[#7fe015] hover:brightness-105 text-[#0a0a0c] font-black shadow-[0_0_30px_rgba(147,247,43,0.5)] ring-1 ring-lime-300/50 cursor-pointer"
                         }`}
                       >
                         <span>{isCurrent ? "Đang dùng" : plan.cta}</span>
