@@ -3,20 +3,20 @@ import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 
 const ACCENT = {
   purple: {
-    frame: "bg-[#0d0f15] border border-white/[0.08] hover:border-white/20 transition-all duration-200",
-    value: "text-white font-bold tracking-tight",
-    title: "text-slate-300 font-medium",
-    subtitle: "text-slate-500 font-normal",
-    icon: "text-slate-300",
-    iconBg: "bg-white/5 border border-white/10",
+    frame: "border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 hover:border-violet-500/40 hover:shadow-[0_0_24px_rgba(130,60,240,0.18)] transition-all duration-300",
+    value: "text-white font-black tracking-tight",
+    title: "text-violet-200/90 font-bold uppercase tracking-wider text-[11px]",
+    subtitle: "text-slate-400 font-medium text-xs",
+    icon: "text-violet-300",
+    iconBg: "bg-violet-500/15 border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.2)]",
   },
   lime: {
-    frame: "bg-[#0d0f15] border border-white/[0.08] hover:border-white/20 transition-all duration-200",
-    value: "text-white font-bold tracking-tight",
-    title: "text-slate-300 font-medium",
-    subtitle: "text-slate-500 font-normal",
-    icon: "text-slate-300",
-    iconBg: "bg-white/5 border border-white/10",
+    frame: "border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 hover:border-[#93f72b]/40 hover:shadow-[0_0_24px_rgba(147,247,43,0.18)] transition-all duration-300",
+    value: "text-white font-black tracking-tight",
+    title: "text-[#93f72b] font-bold uppercase tracking-wider text-[11px]",
+    subtitle: "text-slate-400 font-medium text-xs",
+    icon: "text-[#93f72b]",
+    iconBg: "bg-[#93f72b]/15 border border-[#93f72b]/30 shadow-[0_0_12px_rgba(147,247,43,0.25)]",
   },
 };
 
@@ -24,7 +24,7 @@ const ACCENT = {
 export function MentorStatPanel({ children, className = "" }) {
   return (
     <div
-      className={`mb-6 grid gap-4 sm:grid-cols-3 ${className}`.trim()}
+      className={`mb-8 grid gap-5 sm:grid-cols-3 ${className}`.trim()}
     >
       {children}
     </div>
@@ -34,7 +34,7 @@ export function MentorStatPanel({ children, className = "" }) {
 /** Lưới 4 ô thống kê (đánh giá chéo, v.v.) */
 export function MentorStatMiniGrid({ children, className = "" }) {
   return (
-    <div className={`mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 ${className}`.trim()}>
+    <div className={`mb-6 grid grid-cols-2 gap-3.5 lg:grid-cols-4 ${className}`.trim()}>
       {children}
     </div>
   );
@@ -57,59 +57,75 @@ export function MentorStatFrame({
   const Wrapper = animate ? motion.div : "div";
   const motionProps = animate
     ? {
-        initial: { opacity: 0, y: 12 },
+        initial: { opacity: 0, y: 14 },
         animate: { opacity: 1, y: 0 },
         transition: {
           delay: 0.06 + (index - 1) * 0.08,
-          duration: 0.4,
+          duration: 0.45,
           ease: [0.22, 1, 0.36, 1],
         },
         whileHover: { y: -2 },
-        whileTap: { scale: 0.98, y: 0 },
+        whileTap: { scale: 0.985, y: 0 },
       }
     : {};
 
+  const valStr = String(value ?? "");
+  const isLong = valStr.length > 5;
+  const isMedium = valStr.length > 3;
+
   const valueCls = compact
-    ? "text-[clamp(1.75rem,3.5vw,2.5rem)]"
+    ? isLong
+      ? "text-sm sm:text-base font-bold"
+      : isMedium
+        ? "text-base sm:text-lg font-extrabold"
+        : "text-2xl sm:text-[1.75rem] font-black"
     : moneyAmount != null
-      ? "text-[clamp(2rem,4vw,3.25rem)]"
-      : "text-[clamp(2.5rem,5vw,4rem)]";
+      ? "text-[clamp(1.75rem,3.2vw,2.5rem)]"
+      : isLong
+        ? "text-base sm:text-lg font-bold"
+        : isMedium
+          ? "text-xl sm:text-2xl font-extrabold"
+          : "text-[clamp(2rem,3.5vw,2.75rem)]";
 
   const shellCls = compact
-    ? `rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.2)] backdrop-blur-xl ${theme.frame} flex min-h-[6.75rem] flex-col justify-center`
-    : `rounded-3xl shadow-[0_12px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl ${theme.frame}`;
+    ? `rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] backdrop-blur-xl ${theme.frame} flex min-h-[5.25rem] flex-col justify-center px-4 py-3.5 sm:px-5 sm:py-4`
+    : `rounded-2xl shadow-[0_16px_44px_rgba(0,0,0,0.4)] backdrop-blur-xl ${theme.frame} px-6 py-6`;
 
   return (
     <Wrapper
       {...motionProps}
-      className={`relative overflow-hidden px-5 py-5 transition-all duration-200 sm:px-6 sm:py-6 ${shellCls}`}
+      className={`relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${shellCls}`}
     >
+      {/* Top Hairline Glow */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+
       {CornerIcon ? (
         <span
-          className={`absolute right-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-lg ${theme.iconBg}`}
+          className={`absolute ${compact ? "right-3.5 top-3.5 h-7 w-7 rounded-lg" : "right-5 top-5 h-8 w-8 rounded-xl"} inline-flex items-center justify-center ${theme.iconBg}`}
           aria-hidden
         >
-          <CornerIcon size={14} className={theme.icon} strokeWidth={2.1} />
+          <CornerIcon size={compact ? 14 : 16} className={theme.icon} strokeWidth={2.2} />
         </span>
       ) : cornerLabel ? (
         <span
-          className="absolute right-4 top-4 text-[11px] font-bold tabular-nums tracking-wide text-slate-400"
+          className={`absolute ${compact ? "right-3.5 top-3.5" : "right-5 top-5"} text-[10px] font-bold tabular-nums tracking-wide text-slate-400`}
           aria-hidden
         >
           {cornerLabel}
         </span>
       ) : null}
-      <div className={compact || CornerIcon ? "pr-8" : undefined}>
-      <p
-        className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
-      >
-        {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
-      </p>
-      <p className={`${compact ? "mt-1.5" : "mt-2"} text-sm font-bold ${theme.title}`}>{title}</p>
-      {subtitle ? (
-        <p className={`mt-1 text-xs leading-relaxed ${theme.subtitle}`}>{subtitle}</p>
-      ) : null}
-      {footer}
+
+      <div className={compact || CornerIcon ? (compact ? "pr-6" : "pr-8") : undefined}>
+        <p
+          className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
+        >
+          {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
+        </p>
+        <p className={`${compact ? "mt-1.5 text-[10px]" : "mt-2.5 text-[11px]"} ${theme.title}`}>{title}</p>
+        {subtitle ? (
+          <p className={`${compact ? "mt-1 text-[11px]" : "mt-1.5 text-xs"} leading-snug ${theme.subtitle}`}>{subtitle}</p>
+        ) : null}
+        {footer}
       </div>
     </Wrapper>
   );
@@ -118,7 +134,7 @@ export function MentorStatFrame({
 export function MentorSessionActivityBlocks({ activeCount = 0, total = 5 }) {
   const filled = Math.max(0, Math.min(total - 1, activeCount));
   return (
-    <div className="mt-4 flex items-center gap-1.5" aria-hidden>
+    <div className="mt-4 flex items-center gap-2" aria-hidden>
       {Array.from({ length: total }, (_, i) => {
         const isAccent = i === total - 1;
         const isFilled = !isAccent && i < filled;
@@ -128,8 +144,8 @@ export function MentorSessionActivityBlocks({ activeCount = 0, total = 5 }) {
             key={i}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               active
-                ? "w-4 bg-[#c7f36b] shadow-[0_0_8px_rgba(199,243,107,0.7)]"
-                : "w-1.5 bg-white/20"
+                ? "w-5 bg-[#93f72b] shadow-[0_0_10px_rgba(147,247,43,0.8)]"
+                : "w-2 bg-white/15"
             }`}
           />
         );
