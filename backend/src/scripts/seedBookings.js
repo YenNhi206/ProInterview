@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Seed booking dev — customer@dev.local + mentor@dev.local
  * Chạy: npm run seed:users && npm run seed:bookings

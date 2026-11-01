@@ -88,6 +88,10 @@ import { AdminBookingDetail } from "./pages/admin/AdminBookingDetail.jsx";
 import { AdminBookingCheckIns } from "./pages/admin/AdminBookingCheckIns.jsx";
 import { AdminAchievements } from "./pages/admin/AdminAchievements.jsx";
 import { ModeratorLayout } from "./pages/moderator/ModeratorLayout.jsx";
+import { ModeratorQuestions } from "./pages/moderator/ModeratorQuestions.jsx";
+import { ModeratorQueue } from "./pages/moderator/ModeratorQueue.jsx";
+import { ModeratorQueueItem } from "./pages/moderator/ModeratorQueueItem.jsx";
+import { ModeratorQuality } from "./pages/moderator/ModeratorQuality.jsx";
 import { createRoleLoader } from "./utils/auth/roleLoader.js";
 
 const moderatorLoader = createRoleLoader("moderator", "/moderator");
@@ -237,8 +241,12 @@ export const router = createBrowserRouter([
     Component: ModeratorLayout,
     loader: moderatorLoader,
     children: [
-      { index: true, loader: () => redirect("/moderator/courses") },
+      { index: true, loader: () => redirect("/moderator/queue") },
       { path: "courses", Component: AdminContentCourses },
+      { path: "questions", Component: ModeratorQuestions },
+      { path: "queue", Component: ModeratorQueue },
+      { path: "queue/:id", Component: ModeratorQueueItem },
+      { path: "quality", Component: ModeratorQuality },
     ],
   },
   { path: "*", loader: () => redirect("/") },

@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 import mongoose from "mongoose";
 import "../config/loadEnv.js";
 import { connectDatabase } from "../db/connect.js";

@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Thêm 5 khóa học mẫu, gắn với 5 mentor từ seedMentorSamples.
  * Chạy: npm run seed:course-samples (từ thư mục backend)

@@ -11,6 +11,25 @@ import { resolveTopCompetencies } from "../services/competencyFramework.js";
 import { BASELINE_QUESTIONS } from "../config/baselineQuestions.js";
 import { logger } from "../config/logger.js";
 import { syncPlanExpiry } from "../services/plansService.js";
+import { harvest as harvestQuestions, applyDeprecationPolicy } from "../services/questionBankService.js";
+import { upsertIncompleteEvaluationItem } from "../services/moderationQueueService.js";
+import { Sentry, isSentryEnabled } from "../config/sentry.js";
+
+/** Trạng thái kiểm định của 1 câu (trang Feedback): chờ kiểm định / đã có điểm moderator. */
+function moderationFieldsFor(session, questionIndex) {
+  const answer = (session.answers ?? []).find((a) => a.questionIndex === questionIndex);
+  return {
+    evaluationIncomplete: Boolean(answer?.evaluationIncomplete),
+    incompleteFields:     answer?.incompleteFields ?? [],
+    moderatorOverride:    answer?.moderatorOverride ?? null,
+  };
+}
+
+/** Lỗi ngân hàng câu hỏi chỉ log + Sentry, không bao giờ chặn luồng phỏng vấn. */
+function reportBankError(event, err, sessionId) {
+  logger.error(event, { sessionId, error: err?.message });
+  if (isSentryEnabled()) Sentry.captureException(err);
+}
 import { mergeInterviewAnswersForEval } from "../utils/mergeInterviewAnswers.js";
 
 // ── Accumulation helper ───────────────────────────────────────────────────────
@@ -175,34 +194,45 @@ export const InterviewsController = {
       const { id } = req.params;
       const { questionIndex, questionText, transcript, durationSeconds, behavioralData, redFlags } = req.body;
 
-      const entry = {
-        questionIndex, questionText, transcript, durationSeconds,
-        recordedAt: new Date(),
-        ...(behavioralData && { behavioralData }),
+      // Chỉ $set các field updateAnswer quản lý. KHÔNG ghi đè cả phần tử answers[i] — field do
+      // luồng khác ghi (behavioralData.emotion từ analyzeFace, evaluationIncomplete,
+      // moderatorOverride, …) phải được giữ nguyên. behavioralData set theo từng key con vì lý do đó.
+      const managed = {
+        ...(questionText !== undefined && { questionText }),
+        ...(transcript !== undefined && { transcript }),
+        ...(durationSeconds !== undefined && { durationSeconds }),
         ...(Array.isArray(redFlags) && redFlags.length > 0 && { redFlags }),
+        recordedAt: new Date(),
       };
+      const behavioral = behavioralData && typeof behavioralData === "object" ? behavioralData : {};
 
-      // Upsert: cập nhật answer đã có cho questionIndex, hoặc push mới nếu chưa có.
-      // Dùng findOneAndUpdate thay vì load-modify-save để tránh race condition với analyzeFace.
+      const setPositional = {};
+      for (const [k, v] of Object.entries(managed)) setPositional[`answers.$.${k}`] = v;
+      for (const [k, v] of Object.entries(behavioral)) setPositional[`answers.$.behavioralData.${k}`] = v;
+
       let session = await InterviewSession.findOneAndUpdate(
         { _id: id, userId: req.userId, status: "in_progress", "answers.questionIndex": questionIndex },
-        { $set: { "answers.$": entry } },
-        { new: true },
+        { $set: setPositional },
+        { returnDocument: "after" },
       );
 
       if (!session) {
         // Chưa có answer cho questionIndex này — push mới.
         // Filter status: "in_progress" xử lý đồng thời 404 và "đã kết thúc".
         session = await InterviewSession.findOneAndUpdate(
-          { _id: id, userId: req.userId, status: "in_progress" },
-          { $push: { answers: entry } },
-          { new: true },
+          { _id: id, userId: req.userId, status: "in_progress", "answers.questionIndex": { $ne: questionIndex } },
+          { $push: { answers: { questionIndex, ...managed, ...(Object.keys(behavioral).length && { behavioralData: behavioral }) } } },
+          { returnDocument: "after" },
         );
 
         if (!session) {
-          const exists = await InterviewSession.exists({ _id: id, userId: req.userId });
-          if (!exists) return res.status(404).json({ success: false, error: "Phiên phỏng vấn không tồn tại" });
-          return res.status(400).json({ success: false, error: "Phiên phỏng vấn này đã kết thúc" });
+          const existing = await InterviewSession.findOne({ _id: id, userId: req.userId }).select("status").lean();
+          if (!existing) return res.status(404).json({ success: false, error: "Phiên phỏng vấn không tồn tại" });
+          if (existing.status === "in_progress") {
+            // Request đồng thời vừa push answer cho câu này → thử lại sẽ đi nhánh $set.
+            return res.status(409).json({ success: false, error: "Câu trả lời đang được lưu, vui lòng thử lại." });
+          }
+          return res.status(409).json({ success: false, error: "Phiên phỏng vấn này đã kết thúc" });
         }
       }
 
@@ -459,14 +489,42 @@ export const InterviewsController = {
 
       logger.info("generate_followup_start", { userId: req.userId, sessionId: id });
 
-      const result = await generateQuestionsFromText({
+      const genArgs = {
         cvText, jdText, position, field, level, fewShotExamples, priorQA,
-        questionCount: 2,
         userId: req.userId,
         sessionId: id,
-      });
+      };
+      const result = await generateQuestionsFromText({ ...genArgs, questionCount: 2 });
+      let followUps = result.questions.map((q) => ({ ...q, promptVersion: result.promptVersion }));
 
-      session.questions.push(...result.questions);
+      // Chính sách #2 (spec S1): câu deprecated không được phục vụ lại. Lỗi bank → giữ câu LLM.
+      try {
+        const policy = await applyDeprecationPolicy(followUps, {
+          excludeTexts: session.questions.map((q) => q.question),
+          regenerate: async (count) => {
+            const again = await generateQuestionsFromText({ ...genArgs, questionCount: count });
+            return again.questions.map((q) => ({ ...q, promptVersion: again.promptVersion }));
+          },
+        });
+        followUps = policy.questions;
+        if (policy.replaced || policy.regenerated || policy.fallback) {
+          logger.info("followup_deprecated_replaced", { sessionId: id, ...policy, questions: undefined });
+        }
+      } catch (err) {
+        reportBankError("question_bank_policy_failed", err, id);
+      }
+
+      // Harvest vào QuestionBank (pending_review) — post-hoc, KHÔNG được làm hỏng phỏng vấn.
+      try {
+        const bankIds = await harvestQuestions(followUps, {
+          sessionId: id, model: result.model, promptVersion: result.promptVersion,
+        });
+        followUps = followUps.map((q, i) => ({ ...q, questionBankId: q.questionBankId ?? bankIds[i] ?? null }));
+      } catch (err) {
+        reportBankError("question_bank_harvest_failed", err, id);
+      }
+
+      session.questions.push(...followUps);
       if (!session.competencyProfile?.competencyIds?.length) {
         session.competencyProfile = result.competencyProfile;
       }
@@ -475,9 +533,9 @@ export const InterviewsController = {
       }
       await session.save();
 
-      logger.info("generate_followup_ok", { userId: req.userId, sessionId: id, questionCount: result.questions.length });
+      logger.info("generate_followup_ok", { userId: req.userId, sessionId: id, questionCount: followUps.length });
 
-      res.json({ success: true, questions: result.questions });
+      res.json({ success: true, questions: session.questions.slice(3) });
     } catch (error) {
       logger.error("generate_followup_failed", { userId: req.userId, sessionId: req.params.id, error: error.message });
 
@@ -555,6 +613,7 @@ export const InterviewsController = {
               strengths:     q.strengths ?? [],
               improvements:  q.improvements ?? [],
               suggestion:    q.suggestion ?? "",
+              ...moderationFieldsFor(session, q.questionIndex),
             })),
           },
           overallScore:   session.feedback.overallScore,
@@ -631,12 +690,33 @@ export const InterviewsController = {
           overall5:      q.overall,
         })),
         isLockedForFree: false,
+        promptVersion:   evalResult.promptVersion ?? "",
       };
       session.feedbackGeneratedAt = new Date();
       if (!session.questions?.length && questionsToUse?.length) {
         session.questions = questionsToUse;
       }
+      // Cờ "chấm thiếu tiêu chí" lưu trên answers[i] (spec S1 §1.4); câu không có answer thì thêm entry.
+      for (const q of evalResult.perQuestion) {
+        let answer = session.answers.find((a) => a.questionIndex === q.questionIndex);
+        if (!answer && q.evaluationIncomplete) {
+          session.answers.push({ questionIndex: q.questionIndex, transcript: "" });
+          answer = session.answers[session.answers.length - 1];
+        }
+        if (!answer) continue;
+        answer.evaluationIncomplete = Boolean(q.evaluationIncomplete);
+        answer.incompleteFields = q.incompleteFields ?? [];
+      }
       await session.save();
+
+      // Vẫn thiếu sau retry → hàng đợi moderator (priority high), idempotent theo (session, câu).
+      for (const q of evalResult.perQuestion.filter((x) => x.evaluationIncomplete)) {
+        try {
+          await upsertIncompleteEvaluationItem({ session, questionIndex: q.questionIndex });
+        } catch (err) {
+          reportBankError("evaluation_incomplete_item_failed", err, id);
+        }
+      }
 
       logger.info("evaluate_session_ok", { userId: req.userId, sessionId: id, overallScore: session.feedback.overallScore });
 
@@ -649,7 +729,10 @@ export const InterviewsController = {
 
       res.json({
         success:        true,
-        evaluation:     evalResult,
+        evaluation:     {
+          ...evalResult,
+          perQuestion: evalResult.perQuestion.map((q) => ({ ...q, ...moderationFieldsFor(session, q.questionIndex) })),
+        },
         overallScore:   session.feedback.overallScore,
         generalComment: evalResult.overallComment,
         inferredRole:   session.inferredRole,
@@ -684,6 +767,11 @@ export const InterviewsController = {
     }
     if (!imageBase64) {
       return res.status(400).json({ success: false, error: "imageBase64 required" });
+    }
+    // Không gửi ảnh khuôn mặt sang Google Vision khi user chưa đồng ý camera (xem consent.camera).
+    const consentUser = await User.findById(req.userId).select("consent").lean();
+    if (!consentUser?.consent?.camera?.acceptedAt) {
+      return res.json({ success: true, emotion: null, reason: "no_camera_consent" });
     }
 
     try {

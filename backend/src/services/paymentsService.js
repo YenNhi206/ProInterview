@@ -19,6 +19,7 @@ import { tryCreditMentorForPaidEnrollment } from "./mentorEarningsService.js";
 import { Mentor } from "../models/Mentor.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { validateCoupon, claimCouponUsageByCode } from "./couponService.js";
+import { isProduction } from "../utils/prodGuard.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 
@@ -28,6 +29,12 @@ function isMongoReady() {
 
 function webhookSecret() {
   return typeof process.env.PAYMENT_WEBHOOK_SECRET === "string" ? process.env.PAYMENT_WEBHOOK_SECRET.trim() : "";
+}
+
+/** Cổng có tích hợp thật + đủ env. MoMo/ZaloPay/card chưa có tích hợp thật → luôn false. */
+export function isGatewayConfigured(provider) {
+  if (provider === "vnpay") return Boolean(process.env.VNP_TMN_CODE && process.env.VNP_HASH_SECRET);
+  return false;
 }
 
 function timingSafeStringEqual(a, b) {
@@ -53,6 +60,11 @@ export async function initiatePayment(userId, body) {
   }
 
   const providerEnum = provider === "zalopay" ? "zalopay" : provider === "vnpay" ? "vnpay" : provider === "card" ? "card" : "momo";
+  // Production: chỉ cho cổng đã cấu hình thật (hiện chỉ VNPay). MoMo/ZaloPay/thẻ là stub — không
+  // tạo Payment "mock" ở prod (kênh chính là chuyển khoản qua recordTransferPending/SePay).
+  if (isProduction() && !isGatewayConfigured(providerEnum)) {
+    return { ok: false, status: 400, error: "Phương thức thanh toán chưa hỗ trợ." };
+  }
 
   let amount = Number(body?.amount);
   let referenceId;
@@ -1020,6 +1032,11 @@ async function finalizePaymentFailure(paymentId, reason = "Thanh toán thất b�
 }
 
 export async function handleWebhookMomo(reqBody, headerSecret) {
+  // Webhook stub: chỉ kiểm shared secret, không xác thực chữ ký của cổng → ở production không được
+  // dùng để kích hoạt quyền (booking/gói) cho Payment tạo từ luồng mock.
+  if (isProduction()) {
+    return { ok: false, status: 400, error: "Phương thức thanh toán chưa hỗ trợ." };
+  }
   const secret = webhookSecret();
   if (!secret) return { ok: false, status: 503, error: "Chưa cấu hình PAYMENT_WEBHOOK_SECRET." };
   if (!timingSafeStringEqual(headerSecret, secret)) return { ok: false, status: 401, error: "Unauthorized" };

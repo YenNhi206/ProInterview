@@ -1,3 +1,4 @@
+import "./_devOnlyGuard.js";
 /**
  * Seed đánh giá mentor + khóa học cho trang admin / demo.
  * Chạy: npm run seed:reviews (từ thư mục backend)
