@@ -7,7 +7,21 @@ import { requireCvAnalysisQuota } from "../utils/planGuard.js";
 
 export const cvMatchRouter = Router();
 
-const upload = multer({ storage: multer.memoryStorage() });
+const MAX_CV_FILE_MB = 10;
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_CV_FILE_MB * 1024 * 1024 },
+});
+
+const parseCvFiles = (fields) => (req, res, next) => {
+  upload.fields(fields)(req, res, (err) => {
+    if (err?.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ success: false, error: `File quá lớn (tối đa ${MAX_CV_FILE_MB}MB)` });
+    }
+    next(err);
+  });
+};
 
 const CV_ANALYZER_URL = process.env.CV_ANALYZER_URL || "http://localhost:8000";
 
@@ -64,7 +78,7 @@ cvMatchRouter.post(
   authJwt,
   cvAnalyzeLimiter,
   requireCvAnalysisQuota,
-  upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
+  parseCvFiles([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
     const jd = req.files?.["jd"]?.[0];
@@ -79,7 +93,7 @@ cvMatchRouter.post(
   authJwt,
   cvAnalyzeLimiter,
   requireCvAnalysisQuota,
-  upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
+  parseCvFiles([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
     const jd = req.files?.["jd"]?.[0];
@@ -94,7 +108,7 @@ cvMatchRouter.post(
   authJwt,
   cvAnalyzeLimiter,
   requireCvAnalysisQuota,
-  upload.fields([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
+  parseCvFiles([{ name: "resume", maxCount: 1 }, { name: "jd", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
     const jd = req.files?.["jd"]?.[0];
@@ -109,7 +123,7 @@ cvMatchRouter.post(
   authJwt,
   cvAnalyzeLimiter,
   requireCvAnalysisQuota,
-  upload.fields([{ name: "resume", maxCount: 1 }]),
+  parseCvFiles([{ name: "resume", maxCount: 1 }]),
   asyncHandler(async (req, res) => {
     const resume = req.files?.["resume"]?.[0];
     const field = req.body?.field || "IT / Công nghệ";

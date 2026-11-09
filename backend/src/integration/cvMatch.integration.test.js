@@ -122,6 +122,32 @@ describe("CV analyze/field proxy", () => {
     assert.equal(body.success, false);
   });
 
+  it("400 khi file vượt 10MB — không gọi sang Python analyzer", async () => {
+    const user = await User.create({
+      name: "Large File",
+      email: `cv-large-${Date.now()}@test.local`,
+    });
+    const token = mintAccessToken(user._id);
+    const form = new FormData();
+    form.append("resume", new Blob([Buffer.alloc(10 * 1024 * 1024 + 1)], { type: "application/pdf" }), "cv.pdf");
+
+    const analyzerOrigin = new URL(process.env.CV_ANALYZER_URL || "http://127.0.0.1:8000").origin;
+    const countAnalyzerCalls = () =>
+      fetchMock.mock.calls.filter((c) => String(c.arguments[0]).startsWith(analyzerOrigin)).length;
+    const callsBefore = countAnalyzerCalls();
+
+    const res = await fetch(`${http.baseUrl}/api/cv/analyze/field`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    assert.equal(res.status, 400);
+    const body = await res.json();
+    assert.equal(body.success, false);
+    assert.match(body.error, /10MB/);
+    assert.equal(countAnalyzerCalls(), callsBefore);
+  });
+
   it("401 khi không có JWT", async () => {
     const res = await fetch(`${http.baseUrl}/api/cv/analyze/field`, { method: "POST" });
     assert.equal(res.status, 401);
