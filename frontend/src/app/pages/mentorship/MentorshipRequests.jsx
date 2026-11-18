@@ -1,13 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
-import { ArrowLeft, ArrowRight, Briefcase, CheckCircle2, Clock, Download, FileText, LockKeyhole, MessageSquare, Plus, RefreshCw, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, Briefcase, CheckCircle2, ClipboardCheck, Clock, Download, FileText, LockKeyhole, MessageSquare, Plus, RefreshCw, Users } from "lucide-react";
 import { mentorshipBackTarget } from "../../utils/mentor/mentorshipNavigation.js";
 import { getUser } from "../../utils/auth/auth.js";
-import { listMentorshipDocuments, listMentorshipRequests, getMentorshipRequest, createMentorshipRequest, sendMentorshipOffer, selectMentorshipOffer, withdrawMentorshipOffer, closeMentorshipRequest, downloadMentorshipFile } from "../../api/mentorshipRequestsApi.js";
+import { listMentorshipDocuments, listMentorshipRequests, getMentorshipRequest, createMentorshipRequest, sendMentorshipOffer, selectMentorshipOffer, withdrawMentorshipOffer, closeMentorshipRequest, downloadMentorshipFile, acceptMentorshipAssessment } from "../../api/mentorshipRequestsApi.js";
 import "../../../styles/mentorship-requests.css";
 
 const TYPES = { mock_interview: "Phỏng vấn thử", cv_review: "Review CV", career_consulting: "Tư vấn nghề nghiệp" };
-const STATUS = { open: "Đang nhận đề nghị", selected: "Đã chọn Mentor", closed: "Đã đóng" };
+const STATUS = { open: "Đang nhận đề nghị", selected: "Đã chọn Mentor", assessing: "Đang đánh giá đầu vào", path_proposed: "Đã đề xuất lộ trình", closed: "Đã đóng" };
+/** Trạng thái sau khi đã chọn Mentor (LP-05): vẫn hiện khung Mentor đã chọn và cho đặt lịch thường. */
+const CHOSEN_STATUSES = ["selected", "assessing", "path_proposed"];
+const ASSESSMENT_STATUS = { pending: "Chờ xác nhận", confirmed: "Đã hẹn", in_progress: "Đang diễn ra", completed: "Đã hoàn thành", cancelled: "Đã hủy", no_show: "Vắng mặt", rescheduled: "Đã dời lịch" };
+/** Buổi 0đ đã kết thúc không thành (hủy / vắng) → Mentor được hẹn lại. */
+const assessmentClosed = assessment => !assessment || ["cancelled", "no_show"].includes(assessment.status);
+/** <input type="date"> trả YYYY-MM-DD; booking dùng DD/MM/YYYY. */
+const toBookingDate = value => { const [y, m, d] = String(value || "").split("-"); return y && m && d ? `${d}/${m}/${y}` : ""; };
 const money = value => `${Number(value || 0).toLocaleString("vi-VN")}₫`;
 const date = value => new Date(value).toLocaleDateString("vi-VN");
 
@@ -81,6 +88,14 @@ export function MentorshipRequests() {
     const data = new FormData(event.currentTarget);
     action(() => sendMentorshipOffer(request.id, Object.fromEntries(data)), "Đã gửi đề nghị. Bạn có thể theo dõi tại mục Đề nghị của tôi.");
   };
+  const submitAssessment = event => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const payload = { date: toBookingDate(data.get("date")), timeSlot: String(data.get("timeSlot") || ""), note: String(data.get("note") || "") };
+    if (!payload.date || !payload.timeSlot) { setError("Chọn ngày và giờ cho buổi đánh giá."); return; }
+    action(() => acceptMentorshipAssessment(request.id, payload), "Đã hẹn buổi đánh giá 0đ. Mentee đã nhận thông báo.");
+  };
+  const canScheduleAssessment = mentor && request && ["selected", "assessing"].includes(request.status) && request.canDownload && assessmentClosed(request.assessment);
   return <div className={`mr-page ${mentor ? "mr-page-mentor" : ""} ${isNew ? "mr-page-new" : requestId ? "mr-page-detail" : ""}`}>
     <header className="mr-heading"><div><Link to={backTarget.to} className="mr-back"><ArrowLeft size={15} />{backTarget.label}</Link><h1>{isNew ? "Đăng nhu cầu tìm Mentor" : requestId ? "Chi tiết yêu cầu" : mentor ? "Nhu cầu từ mentee" : "Yêu cầu của tôi"}</h1><p>{isNew ? "Chia sẻ mục tiêu và CV/JD để nhận đề nghị từ Mentor phù hợp." : requestId ? "Theo dõi đề nghị và chuẩn bị buổi gặp ngay tại đây." : mentor ? "Tìm nhu cầu phù hợp với chuyên môn và chủ động đề xuất hỗ trợ." : "Đăng nhu cầu, nhận đề nghị và chọn Mentor phù hợp với bạn."}</p></div>{!isNew && <button type="button" data-button-surface="none" className="mr-secondary" disabled={busy || loading} onClick={() => setReload(value => value + 1)}><RefreshCw size={15} /> Làm mới</button>}{!requestId && !mentor && <Link className="mr-primary" to={`${base}/new`} state={entryState}><Plus size={17} /> Đăng nhu cầu</Link>}</header>
     {error && <div className="mr-error" role="alert">{error}<button data-button-surface="none" onClick={() => setReload(value => value + 1)} disabled={busy}><RefreshCw size={14} /> Tải lại</button></div>}
@@ -119,13 +134,27 @@ export function MentorshipRequests() {
             <div className="mr-detail-goal"><h3>{mentor ? "Mentee muốn được hỗ trợ" : "Mục tiêu của bạn"}</h3><p className="mr-description">{request.description}</p></div>
           </section>
       <section className="mr-panel mr-detail-offers"><div className="mr-section-heading"><div><span className="mr-eyebrow">{mentor ? "Cách bạn có thể hỗ trợ" : "Chọn người phù hợp với mục tiêu của bạn"}</span><h2>{mentor ? "Đề nghị của bạn" : `Đề nghị từ Mentor (${request.offers.filter(offer => offer.status === "pending").length})`}</h2></div></div>
-      {request.offers.length ? <div className="mr-offers">{request.offers.map(offer => <article className={`mr-offer ${request.selectedOfferId === offer.id ? "selected" : ""}`} key={offer.id}><div className="mr-offer-top"><div className="mr-avatar">{offer.mentorName.charAt(0)}</div><div><Link to={mentor ? "/profile" : `/mentors/${offer.mentorPublicId}`}>{offer.mentorName}</Link><p>{offer.mentorTitle}</p></div><span className="mr-estimate">{money(offer.priceEstimate)}<small>Phí tham khảo / buổi 60 phút</small></span></div><p className="mr-description">{offer.message}</p><div className="mr-offer-time"><Clock size={15} />{offer.availability}</div><div className="mr-offer-bottom"><span>{offer.status === "withdrawn" ? "Đã rút đề nghị" : request.selectedOfferId === offer.id ? "Đề nghị đã được chọn" : request.status === "selected" ? "Mentee đã chọn đề nghị khác" : date(offer.createdAt)}</span>{!mentor && request.status === "open" && offer.status === "pending" && <button data-button-surface="none" className="mr-primary" onClick={() => setConfirmation({ offer })} disabled={busy}>Chọn Mentor này <ArrowRight size={15} /></button>}{mentor && request.status === "open" && offer.status === "pending" && <button data-button-surface="none" className="mr-secondary" onClick={() => action(() => withdrawMentorshipOffer(request.id, offer.id), "Đã rút đề nghị.")} disabled={busy}>Rút đề nghị</button>}</div></article>)}</div> : <div className="mr-empty"><Users size={27} /><h3>{mentor ? "Bạn chưa gửi đề nghị" : "Chưa có đề nghị nào"}</h3><p>{mentor ? "Giới thiệu cách bạn có thể hỗ trợ trong biểu mẫu bên dưới." : "Mentor đã được duyệt có thể xem nhu cầu này và đề xuất hỗ trợ. Bạn có thể quay lại sau hoặc chủ động tìm Mentor."}</p>{!mentor && <Link to="/mentors" className="mr-text-button">Chủ động tìm Mentor →</Link>}</div>}
+      {request.offers.length ? <div className="mr-offers">{request.offers.map(offer => <article className={`mr-offer ${request.selectedOfferId === offer.id ? "selected" : ""}`} key={offer.id}><div className="mr-offer-top"><div className="mr-avatar">{offer.mentorName.charAt(0)}</div><div><Link to={mentor ? "/profile" : `/mentors/${offer.mentorPublicId}`}>{offer.mentorName}</Link><p>{offer.mentorTitle}</p></div><span className="mr-estimate">{money(offer.priceEstimate)}<small>Phí tham khảo / buổi 60 phút</small></span></div><p className="mr-description">{offer.message}</p><div className="mr-offer-time"><Clock size={15} />{offer.availability}</div><div className="mr-offer-bottom"><span>{offer.status === "withdrawn" ? "Đã rút đề nghị" : request.selectedOfferId === offer.id ? "Đề nghị đã được chọn" : CHOSEN_STATUSES.includes(request.status) ? "Mentee đã chọn đề nghị khác" : date(offer.createdAt)}</span>{!mentor && request.status === "open" && offer.status === "pending" && <button data-button-surface="none" className="mr-primary" onClick={() => setConfirmation({ offer })} disabled={busy}>Chọn Mentor này <ArrowRight size={15} /></button>}{mentor && request.status === "open" && offer.status === "pending" && <button data-button-surface="none" className="mr-secondary" onClick={() => action(() => withdrawMentorshipOffer(request.id, offer.id), "Đã rút đề nghị.")} disabled={busy}>Rút đề nghị</button>}</div></article>)}</div> : <div className="mr-empty"><Users size={27} /><h3>{mentor ? "Bạn chưa gửi đề nghị" : "Chưa có đề nghị nào"}</h3><p>{mentor ? "Giới thiệu cách bạn có thể hỗ trợ trong biểu mẫu bên dưới." : "Mentor đã được duyệt có thể xem nhu cầu này và đề xuất hỗ trợ. Bạn có thể quay lại sau hoặc chủ động tìm Mentor."}</p>{!mentor && <Link to="/mentors" className="mr-text-button">Chủ động tìm Mentor →</Link>}</div>}
       {mentor && request.status === "open" && !ownOffer && <form className="mr-offer-form" onSubmit={submitOffer}><label>Bạn có thể hỗ trợ như thế nào?<textarea name="message" required minLength={20} maxLength={3000} rows={4} placeholder="Nêu chuyên môn phù hợp, nội dung dự kiến và kết quả mentee nhận được…" /></label><label>Thời gian bạn có thể gặp<input name="availability" required maxLength={500} placeholder="Ví dụ: Thứ 5, 19:00–20:00 (giờ Việt Nam)" /></label><p className="mr-muted">Mức phí tham khảo lấy từ hồ sơ của bạn cho loại buổi này. Giá cuối cùng và ưu đãi hiển thị tại checkout; thời gian được chốt theo lịch trống. Một đề nghị tương ứng một buổi 60 phút.</p><button data-button-surface="none" className="mr-primary" disabled={busy}>{busy ? "Đang gửi…" : "Gửi đề nghị hỗ trợ"}<ArrowRight size={16} /></button></form>}
       </section>
 
         </div>
         <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu yêu cầu">
-          {request.status === "selected" && chosen && <section className="mr-panel mr-detail-booking">
+          {CHOSEN_STATUSES.includes(request.status) && chosen && (request.assessment || canScheduleAssessment) && <section className="mr-panel mr-detail-assessment">
+            <div className="mr-detail-section-label"><ClipboardCheck size={17} /><h2>Buổi đánh giá 0đ</h2></div>
+            {request.assessment && <div className="mr-assessment-current">
+              <p><strong>{request.assessment.timeSlot} · {request.assessment.date}</strong> <span className="mr-muted">({request.assessment.durationMinutes} phút · {ASSESSMENT_STATUS[request.assessment.status] || request.assessment.status})</span></p>
+              {!assessmentClosed(request.assessment) && <Link className="mr-secondary" to={mentor ? `/mentor/meeting-detail/${request.assessment.bookingId}` : `/session/${request.assessment.bookingId}`}>Xem buổi đánh giá <ArrowRight size={15} /></Link>}
+              {request.assessment.status === "completed" && <p className="mr-muted">{mentor ? "Bước tiếp theo: soạn lộ trình cho mentee." : "Mentor sẽ đề xuất lộ trình dựa trên buổi đánh giá."}</p>}
+            </div>}
+            {canScheduleAssessment ? <form className="mr-assessment-form" onSubmit={submitAssessment}>
+              <p className="mr-muted">{request.assessment ? "Buổi trước không diễn ra. Hẹn lại buổi đánh giá miễn phí cho mentee." : "Hẹn một buổi đánh giá đầu vào miễn phí để hiểu năng lực mentee trước khi đề xuất lộ trình."}</p>
+              <div className="mr-form-grid"><label>Ngày<input name="date" type="date" required /></label><label>Giờ bắt đầu<input name="timeSlot" type="time" required /></label></div>
+              <label>Ghi chú cho mentee<textarea name="note" rows={2} maxLength={1000} placeholder="Ví dụ: Chuẩn bị 1 dự án muốn trình bày" /></label>
+              <button data-button-surface="none" className="mr-primary" disabled={busy}>{busy ? "Đang tạo…" : "Tạo buổi đánh giá 0đ"}<ArrowRight size={16} /></button>
+            </form> : null}
+          </section>}
+          {CHOSEN_STATUSES.includes(request.status) && chosen && <section className="mr-panel mr-detail-booking">
             <div className="mr-detail-section-label"><CheckCircle2 size={17} /><h2>Mentor đã chọn</h2></div>
             <div className="mr-detail-chosen"><div className="mr-avatar">{chosen.mentorName.charAt(0)}</div><div><strong>{chosen.mentorName}</strong><p>{chosen.mentorTitle}</p></div></div>
             {request.bookingId ? <Link className="mr-primary" to={mentor ? `/mentor/meeting-detail/${request.bookingId}` : `/session/${request.bookingId}`}>Xem lịch hẹn <ArrowRight size={16} /></Link> : !mentor ? <><p className="mr-muted">Chọn giờ phù hợp và xác nhận phí để hoàn tất đặt lịch.</p><Link className="mr-primary" to={`/booking/${chosen.mentorPublicId}?mentorshipRequestId=${request.id}`}>Chọn lịch và thanh toán <ArrowRight size={16} /></Link></> : <p className="mr-muted">Đang chờ mentee chọn giờ và hoàn tất đặt lịch.</p>}

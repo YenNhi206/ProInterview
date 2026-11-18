@@ -96,8 +96,10 @@ ensureCollection("mentorship_requests", {
   properties: {
     userId: oid,
     sessionType: en("mock_interview", "cv_review", "career_consulting"),
-    status: en("open", "selected", "closed"),
+    status: en("open", "selected", "assessing", "path_proposed", "closed"),
     selectedMentorId: oid,
+    jobPostId: oidOrNull,
+    assessmentBookingId: oidOrNull,
     cvData: { bsonType: "binData" },
     jdData: { bsonType: "binData" },
   },

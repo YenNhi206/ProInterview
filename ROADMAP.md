@@ -276,6 +276,15 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 
 Áp dụng trực tiếp trong `createBooking`, `EnrollmentController.enroll`, `createSubscriptionTransferPending` qua field `couponCode` trong body — server tự tính lại `totalAmount`/`pricePaid`/`amount` sau giảm giá (không tin số tiền client gửi). Mỗi user dùng 1 lần/mã (`Coupon.usedBy`). Tạo mã: `npm run seed:coupon`. Chi tiết: **API_INDEX.md A.15**.
 
+### Yêu cầu mentor và buổi đánh giá 0đ (LP-05)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | POST | `/api/mentorship-requests` | `[AUTH]` mentee — thêm `jobPostId` tùy chọn |
+| ✅ | POST | `/api/mentorship-requests/:id/accept-assessment` | `[AUTH][MENTOR]` Mentor được chọn — tạo buổi đánh giá 0đ, request → `assessing` |
+
+FE: trang `/mentor/requests/:id` có form "Tạo buổi đánh giá 0đ" cho Mentor được chọn; mentee thấy khối "Buổi đánh giá 0đ" trên `/mentor-requests/:id`. Chi tiết: **API_INDEX.md A.16**.
+
 ### Bookings mở rộng (một số tiêu biểu)
 
 | BE | Method | Endpoint | Auth |

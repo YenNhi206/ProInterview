@@ -25,6 +25,8 @@ mentorshipRequestsRouter.get("/:id", asyncHandler(async (req, res) => result(req
 mentorshipRequestsRouter.post("/:id/offers", mutationLimit, asyncHandler(async (req, res) => result(req, res, await service.sendOffer(req.requestActor, req.params.id, req.body), 201)));
 mentorshipRequestsRouter.post("/:id/offers/:offerId/select", mutationLimit, asyncHandler(async (req, res) => result(req, res, await service.selectOffer(req.requestActor, req.params.id, req.params.offerId))));
 mentorshipRequestsRouter.post("/:id/offers/:offerId/withdraw", mutationLimit, asyncHandler(async (req, res) => result(req, res, await service.withdrawOffer(req.requestActor, req.params.id, req.params.offerId))));
+// LP-05: Mentor được chọn tạo buổi đánh giá 0đ → request "assessing".
+mentorshipRequestsRouter.post("/:id/accept-assessment", mutationLimit, asyncHandler(async (req, res) => result(req, res, await service.acceptAssessment(req.requestActor, req.params.id, req.body), 201)));
 mentorshipRequestsRouter.post("/:id/close", mutationLimit, asyncHandler(async (req, res) => result(req, res, await service.closeRequest(req.requestActor, req.params.id))));
 mentorshipRequestsRouter.get("/:id/files/:kind", asyncHandler(async (req, res) => {
   const file = await service.getRequestFile(req.requestActor, req.params.id, req.params.kind);
