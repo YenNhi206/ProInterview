@@ -5,9 +5,10 @@
  *
  * Chỉ tạo index khai báo trong schema và drop đúng index cũ; KHÔNG dùng syncIndexes để tránh
  * xoá index tạo tay khác trên collection bookings.
- * Chạy: npm run db:sync-booking-indexes [-- --dry-run]
+ * Chạy thử (không ghi DB): npm run db:sync-booking-indexes:dry · Chạy thật: npm run db:sync-booking-indexes
+ * (Windows PowerShell nuốt dấu `--` nên `npm run ... -- --dry-run` vẫn chạy thật; dùng script :dry.)
  * DB khác .env (production): đặt TARGET_MONGO_URI, ví dụ PowerShell:
- *   $env:TARGET_MONGO_URI="mongodb+srv://..."; npm run db:sync-booking-indexes -- --dry-run
+ *   $env:TARGET_MONGO_URI="mongodb+srv://..."; npm run db:sync-booking-indexes:dry
  */
 import "../config/loadEnv.js";
 import { pathToFileURL } from "node:url";
@@ -46,7 +47,9 @@ async function main() {
   }
   const host = uri.replace(/^mongodb(\+srv)?:\/\/([^@/]*@)?/, "").split(/[/?]/)[0];
   console.log(`[Booking] kết nối tới: ${host}${process.env.TARGET_MONGO_URI ? " (TARGET_MONGO_URI)" : " (MONGO_URI trong .env)"}`);
-  const dryRun = process.argv.includes("--dry-run");
+  // npm đặt npm_config_dry_run khi cờ --dry-run rơi vào npm thay vì script (PowerShell nuốt `--`).
+  const dryRun =
+    process.argv.includes("--dry-run") || process.env.DRY_RUN === "1" || process.env.npm_config_dry_run === "true";
   await connectDatabase(uri);
   await syncBookingIndexes({ dryRun });
   console.log(dryRun ? "DRY RUN hoàn tất (không ghi DB)." : "Đã đồng bộ index Booking.");
