@@ -35,6 +35,8 @@ npm run seed:samples           # mentor + khóa học mẫu
 npm run sync:mentor-profiles   # đồng bộ Mentor với User role mentor
 npm run db:prune-fake-mentors  # xóa Mentor không có User tương ứng
 npm run warmup:baseline-videos # làm nóng cache video 3 câu baseline
+npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (không ghi DB)
+npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
 npm test                       # node:test + jest DTO + unittest Python
 ```
 
@@ -295,6 +297,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 
 - **[docs/capstone/TASKS.md](docs/capstone/TASKS.md)**: 107 task, người phụ trách, phụ thuộc, điều kiện "Xong khi", cổng giai đoạn, Definition of Done.
 - **[docs/capstone/DECISIONS.md](docs/capstone/DECISIONS.md)**: 14 quyết định đã chốt, công thức chia tiền lộ trình, state machine mới, ánh xạ tên role.
+- **[docs/capstone/DESIGN.md](docs/capstone/DESIGN.md)**: thiết kế tham khảo — 11 model mới, 12 model cần sửa, API/màn hình, mục 7 "Bẫy trong code" (đọc trước khi sửa vùng liên quan).
 
 ### Quy ước
 
@@ -307,7 +310,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 
 | Chỗ | Bẫy | Cách xử lý |
 |:----|:----|:-----------|
-| `backend/src/models/Booking.js:152` | Index unique `mentorshipRequestId` tính cả booking `completed`: mỗi yêu cầu chỉ có được 1 booking | Partial filter loại `assessment` và booking có `learningPathId`; **phải drop index cũ `mentorshipRequestId_1` rồi sync** (chỉ sửa schema thì MongoDB báo `IndexOptionsConflict`, index cũ vẫn chặn dù test memory-server xanh) |
+| `backend/src/models/Booking.js` (index `mentorshipRequestId_regular_unique`) | Đã sửa ở LP-02: chỉ chặn trùng booking thường (`REQUEST_UNIQUE_SESSION_TYPES`), buổi `assessment` không bị chặn; booking lộ trình không gắn `mentorshipRequestId` | Đổi index trên Booking thì phải chạy `npm run db:sync-booking-indexes` trên DB thật (production đã chạy 18/11/2026). Chạy DB khác `.env` dùng `TARGET_MONGO_URI` (`loadEnv` ghi đè `MONGO_URI`); trên PowerShell dùng lệnh `:dry`, không dùng `-- --dry-run` |
 | `services/mentorEarningsService.js:21` | `mentorNetFromBooking` = `totalAmount − platformFee`, không đọc `platformFeeRate` | Booking nào không qua checkout thường phải ghi sẵn `platformFee`: booking lộ trình / buổi 0đ dùng `learningPathBookingMoney()` / `assessmentBookingMoney()` trong `utils/learningPathBookingMoney.js` (LP-04) |
 | `controllers/adminController.js` `getPlatformFinanceSummary` | Cộng mọi booking `paid` vào doanh thu | Đã loại booking lộ trình và buổi 0đ bằng `EXCLUDE_LEARNING_PATH_BOOKINGS` (LP-04); báo cáo doanh thu booking mới cũng phải loại như vậy |
 | `jobs/bookingStaleSweepJob.js` | Hủy mọi booking `pending` chưa trả tiền đã qua giờ bắt đầu | Booking không cần thanh toán riêng phải tạo với `paymentStatus: "paid"` |
@@ -353,6 +356,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 |:-----|:---------|
 | `docs/capstone/TASKS.md` | Kế hoạch 107 task capstone FA26, phân công, cổng giai đoạn |
 | `docs/capstone/DECISIONS.md` | 14 quyết định thiết kế capstone, chia tiền lộ trình, state machine mới |
+| `docs/capstone/DESIGN.md` | Thiết kế tham khảo capstone: model mới/sửa, API và màn hình, bẫy trong code |
 | `ROADMAP.md` | Endpoint theo phase, trạng thái ✅/📋 |
 | `API_INDEX.md` | Contract đầy đủ: Phần A (đang chạy), B (ngoài Express), C (roadmap) |
 | `backend/DATABASE.md` | Schema MongoDB chi tiết từng field |
