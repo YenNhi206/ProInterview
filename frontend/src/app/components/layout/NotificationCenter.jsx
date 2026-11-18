@@ -1,17 +1,9 @@
 import { useId, useState } from "react";
-import { Bell, BookOpen, CalendarDays, CalendarX2, Check, CheckCheck, ChevronDown, CreditCard, LoaderCircle, MessageSquare, RefreshCw, Trash2, X } from "lucide-react";
+import { Bell, Check, CheckCheck, ChevronDown, LoaderCircle, RefreshCw, Trash2, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useNavbarNotifications } from "../../hooks/useNavbarNotifications.js";
+import { notificationKind } from "../../utils/shared/notificationKind.js";
 import "../../../styles/notifications.css";
-
-function notificationKind(type = "") {
-  if (type === "booking_cancelled") return { icon: CalendarX2, label: "Lịch hẹn", tone: "coral" };
-  if (type.includes("booking")) return { icon: CalendarDays, label: "Lịch hẹn", tone: "violet" };
-  if (type.startsWith("payment")) return { icon: CreditCard, label: "Thanh toán", tone: type === "payment_failed" ? "coral" : "green" };
-  if (type.startsWith("course") || type === "certificate_ready") return { icon: BookOpen, label: "Khóa học", tone: "blue" };
-  if (type === "feedback" || type === "new_review") return { icon: MessageSquare, label: "Nhận xét", tone: "teal" };
-  return { icon: Bell, label: "Cập nhật", tone: "amber" };
-}
 
 function notificationDate(value) {
   const date = new Date(value);

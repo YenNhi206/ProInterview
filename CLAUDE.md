@@ -301,7 +301,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 - **Mã task**: `N` nền tảng · `LP` Learning Path · `CO` Company/Rubric · `PR` Profile/CV · `JB` Job Post/Ứng tuyển · `AI` vòng AI · `QA` · `DOC`. Nhánh `feat/<mã>-<tên-ngắn>`, tên PR mở đầu bằng mã task.
 - **Tên role**: code giữ `customer` và `moderator`; UI hiển thị Candidate, Platform Moderator. Role `enterprise` được đổi thành `company_moderator` (task N-02). Chữ `enterprise` trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role, không đổi.
 - **Tái dùng, không dựng song song**: Booking cho mọi buổi gặp; đường ray chuyển khoản + SePay cho mọi khoản thu; mở rộng router có sẵn (`/api/mentorship-requests`, không tạo `/api/mentor-requests`).
-- Thêm loại thông báo mới thì mở rộng enum `Notification.type` trước, nếu không Mongoose từ chối bản ghi.
+- Thêm loại thông báo mới thì thêm vào `NOTIFICATION_TYPE_GROUPS` (`models/Notification.js`) trước, nếu không Mongoose từ chối bản ghi và `deliverNotification` chỉ log lỗi. Ref mới trong `metadata` cũng phải khai báo (sub-document strict). FE chọn icon theo tiền tố trong `utils/shared/notificationKind.js`.
 
 ### Bẫy trong code (đã kiểm tra 18/11/2026)
 
