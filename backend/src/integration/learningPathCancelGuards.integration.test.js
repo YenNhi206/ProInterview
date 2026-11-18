@@ -58,12 +58,20 @@ async function fixture() {
 }
 
 let slot = 0;
-/** daysFromNow > 0: tương lai; < 0: đã qua. */
+/**
+ * daysFromNow > 0: tương lai; < 0: đã qua. Ngày VÀ giờ lấy từ đúng thời điểm đích (giờ local của
+ * process, giống parseBookingDateTime) — không chọn giờ cố định, nếu không kết quả phụ thuộc múi giờ
+ * máy chạy (CI chạy UTC). Mỗi lần gọi lệch thêm 1 phút để không trùng slot {mentorId, date, timeSlot}.
+ */
 function schedule(daysFromNow) {
   slot += 1;
-  const d = new Date(Date.now() + daysFromNow * 86400000);
-  const date = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-  return { date, timeSlot: `${String(6 + (slot % 14)).padStart(2, "0")}:${String(slot % 60).padStart(2, "0")}`, durationMinutes: 60 };
+  const d = new Date(Date.now() + daysFromNow * 86400000 + slot * 60_000);
+  const pad = (n) => String(n).padStart(2, "0");
+  return {
+    date: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`,
+    timeSlot: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+    durationMinutes: 60,
+  };
 }
 
 async function pathBooking(f, { daysFromNow = 5, shareAmount = 333_333, order = 1 } = {}) {
