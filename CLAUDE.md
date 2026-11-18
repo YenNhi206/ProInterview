@@ -1,108 +1,114 @@
 # CLAUDE.md
 
-Tài liệu hướng dẫn cho Claude Code khi làm việc trong repo này. Viết bằng tiếng Anh để tương thích tối đa, tài liệu sản phẩm (README, ROADMAP, API_INDEX, DATABASE) bằng **tiếng Việt**.
+Hướng dẫn cho Claude Code khi làm việc trong repo này. Tài liệu sản phẩm (README, ROADMAP, API_INDEX, DATABASE) và giao diện người dùng viết bằng **tiếng Việt**.
+
+Cập nhật: 18/11/2026, khớp code nhánh `feat/mentor-workspace-polish-course-archive`. Khi tài liệu và code mâu thuẫn, tin code và sửa lại file này.
 
 ---
 
 ## Tổng quan dự án
 
-**ProInterview** — SaaS luyện phỏng vấn xin việc, kiến trúc monorepo:
+**ProInterview** — nền tảng luyện phỏng vấn xin việc ứng dụng AI (capstone FA26, mã GFA26SE160). Monorepo 3 service:
 
 | Thư mục | Stack | Port dev |
 |:--------|:------|:---------|
-| `frontend/` | Vite + React 18 + Tailwind CSS + shadcn/ui | 5173 |
-| `backend/` | Express 5 + MongoDB (Mongoose 9) + JWT | 5000 |
+| `frontend/` | Vite 6 + React 18 + Tailwind CSS v4 + shadcn/ui, React Router 7 (`createBrowserRouter`) | 5173 |
+| `backend/` | Express 5 (ESM) + MongoDB (Mongoose 9) + JWT, Node 22 | 5000 |
 | `cv_jd_matching/` | Python FastAPI + Uvicorn | 8000 |
 
-**Ngôn ngữ sản phẩm:** Tiếng Việt (giao diện user-facing, tài liệu nội bộ).  
 **Tài liệu contract API:** `ROADMAP.md` + `API_INDEX.md` — cập nhật cả hai khi thêm/sửa route.
+**Công việc đang làm:** xem mục [Capstone FA26](#capstone-fa26-gfa26se160--kế-hoạch-và-quy-ước).
 
 ---
 
 ## Lệnh phát triển
+
+Trên Windows chạy 3 terminal riêng (`npm run dev:full` hard-code đường dẫn macOS, sẽ sửa ở task N-14).
 
 ### Backend (`backend/`)
 
 ```bash
 npm run dev                    # nodemon → src/server.js (port 5000)
 npm start                      # node src/server.js (production)
-npm run seed:users             # Seed users dev (chỉ khi collection rỗng)
-npm run seed:all               # Seed toàn bộ dữ liệu mock
-npm run seed:ui-mock           # Seed mock cho UI
-npm run db:prune-fake-mentors  # Xóa Mentor docs không có User tương ứng
-npm run sync:mentor-profiles   # Đồng bộ Mentor profiles với Users
+npm run seed:all               # users dev (chỉ khi collection rỗng) + hồ sơ mentor
+npm run seed:samples           # mentor + khóa học mẫu
+npm run sync:mentor-profiles   # đồng bộ Mentor với User role mentor
+npm run db:prune-fake-mentors  # xóa Mentor không có User tương ứng
+npm run warmup:baseline-videos # làm nóng cache video 3 câu baseline
+npm test                       # node:test + jest DTO + unittest Python
 ```
 
-**Node:** `>=20` (xem `backend/package.json` → `engines`).
+`test:node` trong `package.json` đang liệt kê từng file test: thêm file test mới vào script này cho tới khi xong task N-05 (đổi sang glob, cần Node ≥ 21). Test integration dùng `mongodb-memory-server` (`src/test_helpers/mongoTestHarness.js`), không cần MongoDB thật.
 
 ### Frontend (`frontend/`)
 
 ```bash
 npm run dev       # Vite dev server (5173); proxy /api → http://localhost:5000
-npm run build     # Production build → dist/
-npm run dev:full  # Chạy cả frontend + backend song song
+npm run build     # production build → dist/
+npm test          # node:test cho utils
 ```
 
 ### CV/JD Matcher (`cv_jd_matching/`)
 
 ```bash
-cd cv_jd_matching
 python -m pip install -r requirements.txt
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000   # docs: /docs
 ```
 
-API docs khi chạy local: `http://127.0.0.1:8000/docs`
+### Tài khoản dev (sau `seed:all`)
 
-### Tài khoản dev (sau `seed:users`)
+Mật khẩu: **`Dev123456`**
 
-Mật khẩu mặc định tất cả: **`Dev123456`**
-
-| Email | Role / Plan |
-|:------|:-----------|
-| `customer@dev.local` | customer, plan: free |
+| Email | Role |
+|:------|:-----|
+| `customer@dev.local` | customer, plan free |
 | `mentor@dev.local` | mentor |
 | `admin@dev.local` | admin |
-| `moderator@dev.local` | moderator (→ `/moderator/courses`) |
-| `enterprise@dev.local` | enterprise (chưa có khu vực FE) |
+| `moderator@dev.local` | moderator (→ `/moderator/queue`) |
+| `enterprise@dev.local` | enterprise — đổi thành `company_moderator` ở task N-02/N-03 |
 
 ---
 
 ## Cấu hình môi trường
 
+Repo không commit file `.env.example`. Biến tối thiểu:
+
 ### Backend `backend/.env`
 
 ```env
+# Bắt buộc — thiếu thì server exit(1)
 MONGO_URI=mongodb://127.0.0.1:27017/prointerview
-JWT_SECRET=<chuỗi dài ngẫu nhiên>
+LLM_API_KEY=<key>
+LLM_BASE_URL=https://api.openai.com/v1      # OpenAI-compatible / Anthropic / Gemini / Ollama, tự nhận diện
+# Nên có
+JWT_SECRET=<chuỗi ngẫu nhiên ≥ 32 ký tự>
 CORS_ORIGIN=http://localhost:5173
-JWT_ACCESS_EXPIRES_IN=15m   # tên cũ JWT_EXPIRES_IN vẫn được đọc làm fallback; mặc định code: 15m
+JWT_ACCESS_EXPIRES_IN=15m
 REFRESH_TOKEN_DAYS=30
 GOOGLE_CLIENT_ID=<từ GCP>
-ADMIN_INVITE_CODE=<optional>
-CV_ANALYZER_URL=https://your-cv-analyzer.example.com   # Python FastAPI URL (prod)
-# LLM — AI question generation (OpenAI-compatible)
-LLM_API_KEY=<your-key>
-LLM_BASE_URL=https://api.openai.com/v1   # hoặc DS2API / GLM / DeepSeek endpoint
 LLM_MODEL=gpt-4o-mini
-# AI avatar stack — xem "D-ID / ElevenLabs / Cloudinary — Avatar phỏng vấn" bên dưới
-ELEVENLABS_API_KEY=<sk_...>
-ELEVENLABS_VOICE_ID_MALE=<voice id>
-ELEVENLABS_VOICE_ID_FEMALE=<voice id>
-D_ID_API_KEY=<base64 key:>
-UPSTASH_REDIS_REST_URL=<https://...upstash.io>   # KHÔNG có dấu "" — xem gotcha Render bên dưới
-UPSTASH_REDIS_REST_TOKEN=<token>
+CV_ANALYZER_URL=http://localhost:8000
+# Tùy chọn — thiếu thì tính năng degrade
+ELEVENLABS_API_KEY=<sk_...>  ELEVENLABS_VOICE_ID_MALE=<id>  ELEVENLABS_VOICE_ID_FEMALE=<id>
+D_ID_API_KEY=<key>
+GOOGLE_VISION_API_KEY=<key>
+CLOUDINARY_URL=<cloudinary://...>           # thiếu → lưu public/uploads
+UPSTASH_REDIS_REST_URL=<https://...>  UPSTASH_REDIS_REST_TOKEN=<token>   # bắt buộc ở production
+JAAS_APP_ID=  JAAS_API_KEY_ID=  JAAS_PRIVATE_KEY=   # thiếu → meet.jit.si
+SEPAY_WEBHOOK_API_KEY=<key>
+SENTRY_DSN=  MAIL_USER=  MAIL_PASS=
 ```
 
-Xem `backend/.env.example` để biết đầy đủ biến.
+Production cần thêm `REFRESH_TOKEN_PEPPER` (server exit nếu thiếu).
 
 ### Frontend `frontend/.env.local`
 
 ```env
 VITE_GOOGLE_CLIENT_ID=<giống backend>
-VITE_API_URL=https://your-api.example.com   # Chỉ cần khi prod SPA ≠ API host
+# VITE_API_URL: để trống ở dev (Vite proxy) và trên Vercel (vercel.json rewrite /api → Render)
 ```
 
-`frontend/src/app/utils/api.js` resolve `API_BASE_URL`: ưu tiên `VITE_API_URL`, fallback `http://localhost:5000` (dev), rồi `""` (same-origin prod).
+`API_BASE_URL` và `apiUrl()` nằm ở `frontend/src/app/api/http.js`.
 
 ---
 
@@ -110,220 +116,130 @@ VITE_API_URL=https://your-api.example.com   # Chỉ cần khi prod SPA ≠ API h
 
 ### Entry points
 
-- **`server.js`** — load env, kết nối MongoDB, gọi `createApp()`, listen `PORT` (default 5000).
-- **`app.js`** — `createApp()`: middleware, `GET /api/health`, mount tất cả routers `/api/*`.
+- **`server.js`** — load env → kiểm tra env bắt buộc → Sentry → kết nối MongoDB → tự seed demo (chỉ dev) → bật 4 job → `listen(PORT)`.
+- **`app.js`** — `createApp()`: helmet, hpp, `sanitizeObjectKeys`, rate limit `/api`, CORS, `GET /api/health`, mount router.
 
-### Pattern chuẩn
+### Pattern
 
 ```
 Route → Controller → Service → Mongoose Model
 ```
 
-Thực tế: auth, bookings, payments, plans, mentor dashboard, reviews, reports, dashboard stats, user role → có Service. Admin, notifications, courses, enrollments, CV CRUD, interviews, upload, mock courses → Controller gọi Model trực tiếp (không qua Service).
+Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor dashboard/earnings/payout, reviews, reports, question bank, moderation queue, AI/avatar). Notifications, courses, enrollments, CV CRUD, upload cho controller gọi model trực tiếp.
 
-### Routers mounted trong `app.js`
+### Router mount trong `app.js`
 
-| Prefix | File (`routes/`) | Ghi chú |
-|:-------|:-----------------|:--------|
-| `/api/auth` | `auth.js` | |
-| `/api/mentors` | `mentors.js` | |
-| `/api/bookings` | `bookings.js` | |
-| `/api/plans` | `plans.js` | |
-| `/api/payments` | `payments.js` | |
-| `/api/users` | `users.js` | |
-| `/api/courses` | `courses.js` | |
-| `/api/reviews` | `reviews.js` | |
-| `/api/reports` | `reports.js` | |
-| `/api/mentor` | `mentor.js` | Dashboard/finance/analytics mentor |
-| `/api/notifications` | `notifications.js` | |
-| `/api/admin` | `admin.js` | Không còn route duyệt khóa học (đã chuyển sang `/api/moderator`) |
-| `/api/moderator` | `moderator.js` | `requireModerator` + `adminAuditLog`; duyệt khóa học + content stats |
-| `/api/enrollments` | `enrollments.js` | |
-| `/api/cv` | `cv.js` + `cvMatch.js` | cv.js: CRUD/quota; cvMatch.js: proxy sang Python |
-| `/api/interviews` | `interviews.js` | |
-| `/api/upload` | `upload.js` | Cloudinary + fallback `/uploads` |
-| `/api/ai` | `aiProviders.js` | STT/TTS/emotion/avatar pregen — xem chi tiết ở "D-ID / ElevenLabs" bên dưới |
-| `/api/mock` | `mockCourses.js` | Mock data cho dev/test |
-| `/api/achievements` | `achievements.js` | Badge/achievement user |
-| `/api/analytics` | `analytics.js` | Tracking event FE (`trackAction()`) |
+| Nhóm | Prefix |
+|:-----|:-------|
+| Tài khoản | `/api/auth`, `/api/users`, `/api/notifications`, `/api/analytics` |
+| Mentor & đặt lịch | `/api/mentors`, `/api/mentor` (khu vực mentor), `/api/bookings`, `/api/mentorship-requests`, `/api/reviews`, `/api/reports` |
+| Khóa học & bán hàng | `/api/courses`, `/api/enrollments`, `/api/cart`, `/api/coupons`, `/api/plans`, `/api/payments` |
+| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai` |
+| Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
+| Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
-### Services (`services/`)
+`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-- **Domain chính:** `authService`, `bookingsService`, `dashboardStatsService`, `mentorDashboardService`, `mentorMeService`, `mentorProfileService`, `mentorsService`, `paymentsService`, `plansService`, `reportsService`, `reviewsService`, `userRoleService`
-- **Mentor analytics/payout:** `mentorCommissionService`, `mentorEarningsService`, `courseMentorInsightsService`, `courseStatsService`, `notificationDeliveryService`
-- **Payment ops:** `sepayWebhookService`, `transferPaymentExpiryService`, `normalizeTransferRefsService`
-- **AI / Avatar / Cost stack** (xem "D-ID / ElevenLabs / Cloudinary" bên dưới): `interviewQuestionService`, `competencyFramework`, `avatarService`, `videoPregenService`, `ttsService`, `sttService`, `emotionService`, `cacheService`, `langfuseService`, `costLedgerService`, `costCalculator`, `alertService`, `errorRateMonitor`
-- **Khác:** `analyticsService`, `emailService`, `jaasService`, `accessTokenBlacklist`
+### Models (`models/`) — 28 schema
 
-### Models (`models/`) — 21 Mongoose schemas
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
-`User`, `Mentor`, `Booking`, `Payment`, `Course`, `Enrollment`, `Review`, `Notification`, `CVAnalysis`, `InterviewSession`, `Report`, `Subscription`, `Activity`, `CourseQA`, `MentorPeerReview`, `PayoutRequest`, `MentorKnowledge`, `SecurityLog`, `SepayWebhookEvent`, `CostEvent`, `Achievement`, `UserEvent`, `QuestionBank`, `index.js`
+Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 
-`QuestionBank` (collection `question_bank`) — kho câu hỏi kiểm duyệt dùng chung cho Moderator (câu AI sinh → `pending_review` → duyệt) và Enterprise template (`orgId`). Model đã có, **chưa có API** đọc/ghi.
+### Jobs (`jobs/`)
 
-Plan và quota được lưu trực tiếp trên **`User`** (field `plan`, `planExpiresAt`, `cvAnalysisUsed`, `interviewUsed`, v.v.).
+`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob`.
 
 ### Middleware
 
-- `authJwt` — verify Bearer JWT, set `req.user` / `req.userId`
-- `requireMentor` — `role === "mentor"`
-- `requireAdmin` — `role === "admin"`
-- `requireRole(...roles)` / `requireModerator` / `requireEnterprise` (`requireRole.js`) — gắn `req.userRole`; **admin KHÔNG đi vòng cổng moderator** (cố ý tách vận hành khỏi kiểm định nội dung)
-- Role `User.role`: `customer | mentor | admin | moderator | enterprise`. Admin gán qua `PATCH /api/users/:id/role` (`ASSIGNABLE_ROLES` không có `admin`)
-- `rateLimiters.js` — rate limit login, register, …
+- `authJwt` — verify Bearer JWT, gắn `req.user` / `req.userId`; `optionalAuth`.
+- `requireRole(...roles)`, `requireModerator`, `requireEnterprise` (`requireRole.js`), `requireMentor`, `requireAdmin`. **Admin không đi vòng cổng moderator** (cố ý tách vận hành khỏi kiểm định nội dung).
+- `rateLimiters`, `injectionRateLimit` (chặn prompt injection), `adminAuditLog`, `asyncHandler`, `errorHandler`, `upload` (multer).
+- `User.role`: `customer | mentor | admin | moderator | enterprise`. Admin gán qua `PATCH /api/users/:id/role` (`ASSIGNABLE_ROLES` không có `admin`).
 
 ### Response shape
 
 ```js
-// Thành công
-{ success: true, user: {...} }      // key: user, mentors, bookings, ...
-// Lỗi
-{ success: false, error: "message" }
+{ success: true, <key>: data }        // key: user, mentors, bookings, ...
+{ success: false, error: "thông báo tiếng Việt" }
 ```
 
 ### Auth & tokens
 
-- **Access JWT:** claim `tv` phải khớp `User.tokenVersion`. Hết hạn theo `JWT_ACCESS_EXPIRES_IN` (fallback `JWT_EXPIRES_IN` cũ), mặc định **15m**.
-- **Refresh token:** dạng `sessionObjectId:secret` (opaque), lưu hash trong `User.authSessions` (tối đa 10 phiên/user), sống `REFRESH_TOKEN_DAYS` (mặc định 30 ngày).
-- Logout → `tokenVersion++`, xóa toàn bộ refresh sessions.
-- Đổi mật khẩu → tương tự logout + trả token mới.
+- Access JWT 15 phút; claim `tv` phải khớp `User.tokenVersion`.
+- Refresh token opaque `sessionObjectId:secret`, lưu hash trong `User.authSessions` (tối đa 10 phiên), sống 30 ngày.
+- Logout / đổi mật khẩu (`PATCH /api/auth/me`) → `tokenVersion++`, xóa mọi refresh session.
+- Sai mật khẩu nhiều lần → `lockUntil`.
 
 ---
 
 ## Kiến trúc Frontend (`frontend/src/app/`)
 
-### Cấu trúc thư mục
-
 ```
-pages/
-  auth/          Login, Register, ForgotPassword, ResetPassword
-  home/          Home, Pricing
-  account/       Dashboard, Profile, Settings
-  booking/       Booking, Checkout, SessionDetail, MentorReview
-  courses/       Courses, CourseDetail, CourseLearning, MyCourses
-  cv/            CVAnalysis, AnalysisHistory
-  interview/     Interview, AIGenderSelection, InterviewRoom,
-                 InterviewFeedback, AvatarDemo
-  mentor/        MentorDashboard, MentorSchedule, MentorAnalytics,
-                 MentorMeetingDetail, MentorReviews, MeetingRoom,
-                 MentorFinance, MentorCourseManagement, MentorCourseEdit,
-                 MentorPeerReview, MentorArea
-  mentors/       Mentors, MentorProfile
-  payment/       PaymentReturn, SuccessPage, FailurePage
-  admin/         AdminLayout, AdminDashboard, AdminMentors, AdminUsers,
-                 AdminBookings, AdminMentorsPending, AdminPlaceholders,
-                 adminLoader
-
-components/
-  ui/            40+ shadcn/ui primitives
-  layout/        AppLayout, AdminSidebar, Navbar, Sidebar, Footer, TopNavShell
-  auth/          AuthShell, GoogleSignInBlock
-  mentor/        MentorPageShell
-  interview/     AILipSyncAvatar, AvatarInterviewer*, BehavioralCamera, HRVideoPlayer
-  cv/            CVDocumentPreview
-  courses/       CourseRecommendations
-  home/          RecommendedJourney
-  modals/        ReportMentorModal, RescheduleModal
-  shared/        HistoryPanel, PageHeader, SupportContact
-  brand/         BrandLogo
-
-hooks/
-  useDIDStream.js   D-ID streaming avatar
-
-utils/
-  api.js            apiUrl(), API_BAS
-  
-  
-  E_URL
-  auth.js           JWT lưu/đọc localStorage
-  authGate.js       Route guard
-  bookingMappers.js
-  bookingsApi.js, courseApi.js, courseStats.js, dashboardApi.js,
-  enrollmentApi.js, interviewsApi.js, mentorApi.js, notificationApi.js,
-  paymentsApi.js, plansApi.js
-  bookings.js, meetings.js, history.js   (local/mock helpers — chưa migrate hết)
-  aiDialogue.js
+routes.js     createBrowserRouter (URL thường, không dùng #)
+api/          http.js (apiUrl, API_BASE_URL) + module *Api.js theo domain (bookingsApi, cvApi,
+              interviewsApi, moderatorApi, adminApi, cartApi, mentorshipRequestsApi, ...)
+pages/        auth, home, account, booking, mentors, courses, cv, interview, mentor,
+              mentorship, payment, admin, moderator
+components/   ui (shadcn), layout, auth, interview, cv, courses, mentor, admin, booking,
+              account, profile, reviews, modals, shared, home, brand, decor, legal
+hooks/        useAuthSession, useCart, useDIDStream, useFaceAnalysis, useMeetingLiveCapture,
+              useNavbarNotifications, usePageAnalytics, useUserPresence, ...
+utils/        theo domain: auth/ (auth.js — authFetch, token; requireAuthLoader; roleLoader),
+              booking/, course/, cv/, interview/, mentor/, moderator/, plans/, shared/, ...
 ```
 
-### Routing (`routes.js`)
+**Auth state:** `localStorage` `prointerview_access_token`, `prointerview_auth`; khôi phục qua `GET /api/auth/me`. `authFetch()` tự gắn Bearer và refresh khi 401.
 
-- **Hash-based** (`createHashRouter`)
-- `AppLayout` bọc hầu hết routes user
-- `AdminLayout` (+ `adminLoader`) bọc `/admin/*`
-- `CourseLearning` full-screen, không có sidebar
-- Wildcard `*` redirect về `/`
+### Routes chính (`routes.js`)
 
-**Auth state:** `localStorage` keys `prointerview_access_token`, `prointerview_auth`. Session khôi phục qua `GET /api/auth/me` khi app load.
+| Nhóm | Đường dẫn | Bảo vệ |
+|:-----|:----------|:-------|
+| Công khai (`AppLayout`) | `/`, `/mentors`, `/mentors/:id`, `/courses`, `/courses/:id`, `/pricing`, `/about`, `/blog`, `/achievements`, `/terms`, `/privacy`, `/cv-analysis/*`, `/interview` | `/` chuyển mentor/admin/moderator về khu vực riêng (`roleHomeLoader`) |
+| Phỏng vấn | `/interview/room`, `/interview/feedback`, `/interview/trial`, `/interview/trial/done` | `requireCustomerAuthLoader` |
+| Ứng viên | `/dashboard`, `/my-bookings`, `/mentor-requests`, `/my-courses`, `/payment-history`, `/cart`, `/booking/:id`, `/session/:id`, `/review/:sessionId`, `/profile`, `/settings` | `requireAuthLoader` + `ProtectedOutlet` |
+| Mentor (`MentorArea`) | `/mentor/dashboard`, `schedule`, `requests`, `finance`, `analytics`, `reviews`, `courses`, `courses/:id/edit`, `peer-review`, `meeting-detail/:id`; `/mentor/session-feedback/:sessionId` | như trên |
+| Toàn màn hình | `/checkout`, `/courses/:id/learn`, `/meeting/:sessionId`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, `/payment-*` | tùy trang |
+| Admin | `/admin`, `users`, `users/import`, `users/:id`, `mentors`, `mentors/pending`, `mentors/:id`, `bookings`, `bookings/check-ins`, `bookings/:id`, `finance`, `finance/operations`, `transactions`, `payouts`, `course-payments`, `subscription-payments`, `audit-log`, `analytics`, `content/questions`, `reviews`, `support`, `achievements`, `settings` | `adminLoader` |
+| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `quality`, `courses` | `createRoleLoader("moderator")` |
 
-### Tất cả routes hiện có
+Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transactions`, `payouts`, `content/questions`, `settings`) đều gọi API thật; tên file là di sản cũ.
 
-| Path | Component |
-|:-----|:---------|
-| `/` | Home |
-| `/login`, `/register` | Login, Register |
-| `/forgot-password`, `/reset-password` | ForgotPassword, ResetPassword |
-| `/pricing` | Pricing |
-| `/checkout` | Checkout |
-| `/payment-return`, `/payment-success`, `/payment-failure` | Payment pages |
-| `/avatar-demo` | AvatarDemo |
-| `/courses/:id/learn` | CourseLearning (full-screen) |
-| `/admin/*` | Admin section (AdminLayout) — `/admin/content/courses` giờ redirect sang `/moderator/courses` |
-| `/moderator`, `/moderator/courses` | ModeratorLayout (`createRoleLoader("moderator")`, xác minh role qua `/api/auth/me`) |
-| `/dashboard` | Dashboard |
-| `/cv-analysis`, `/cv-analysis/history` | CVAnalysis, AnalysisHistory |
-| `/interview`, `/interview/gender`, `/interview/room`, `/interview/feedback` | Interview flow |
-| `/mentors`, `/mentors/:id` | Mentors, MentorProfile |
-| `/booking/:id`, `/booking` | Booking |
-| `/session/:id` | SessionDetail |
-| `/review/:sessionId` | MentorReview |
-| `/profile`, `/settings` | Profile, Settings |
-| `/mentor/dashboard` | MentorDashboard |
-| `/mentor/schedule` | MentorSchedule |
-| `/mentor/finance` | MentorFinance |
-| `/mentor/analytics` | MentorAnalytics |
-| `/mentor/reviews` | MentorReviews |
-| `/mentor/meeting/:sessionId` | MeetingRoom |
-| `/mentor/meeting-detail/:sessionId` | MentorMeetingDetail |
-| `/mentor/courses`, `/mentor/courses/:id/edit` | MentorCourseManagement, MentorCourseEdit |
-| `/mentor/peer-review` | MentorPeerReview |
-| `/courses`, `/courses/:id` | Courses, CourseDetail |
-
-### Admin routes (placeholders — chưa implement đầy đủ)
-
-`/admin/analytics`, `/admin/users/:id`, `/admin/mentors/:id`, `/admin/finance`, `/admin/transactions`, `/admin/payouts`, `/admin/bookings/:id`, `/admin/content/questions`, `/admin/content/courses` (video khóa gộp trong trang này), `/admin/settings`, `/admin/reviews`, `/admin/support`
+⚠️ `/admin/analytics`, `/admin/users`, `/admin/users/:id`, `/admin/content/questions` và `components/admin/UserJourneyPanel.jsx` đang **bơm số liệu giả ở trình duyệt** qua `utils/analytics/mock*.js`. Không dùng các hàm này cho màn mới; gỡ ở task N-09.
 
 ---
 
 ## Tích hợp bên ngoài
 
-### CV Analysis — Express + Python (chính)
+### CV Analysis — Express + Python
 
-- **Lịch sử:** `cvApi.js` → `GET/POST/DELETE /api/cv/analyses`, `GET /api/cv/quota`
-- **Phân tích:** `CVAnalysis.jsx` → `POST /api/cv/analyze`, `/analyze/full`, `/analyze/suggestions`, `/analyze/field` (proxy `cvMatch.js` → Python)
-- Python: `cv_jd_matching/` (port 8000); prod: `CV_ANALYZER_URL` trên backend
-
-### Supabase Edge — CV (fallback, tùy env)
-
-- Chỉ khi có `VITE_SUPABASE_PROJECT_ID` — `CVAnalysis.jsx` vẫn có nhánh Edge legacy
-- **Production khuyến nghị:** không set Supabase env; chỉ Express + Python
+- Lịch sử/quota: `api/cvApi.js` → `GET/POST/DELETE /api/cv/analyses`, `GET /api/cv/quota`.
+- Phân tích: `POST /api/cv/analyze`, `/analyze/full`, `/analyze/suggestions`, `/analyze/field` (`cvMatch.js` proxy sang Python qua `CV_ANALYZER_URL`). Thiếu/sai → `503`.
+- Chế độ "theo lĩnh vực" tự rơi về `data/cvFieldAnalysisMock.js` khi API lỗi (ghi `fallbackTriggered`).
 
 ### D-ID / ElevenLabs / Cloudinary — Avatar phỏng vấn
 
-**Pipeline chính (pre-generated video, không phải live stream):** ElevenLabs TTS (`ttsService.js`, giọng theo gender qua `ELEVENLABS_VOICE_ID_MALE/FEMALE`) → upload audio lên Cloudinary → D-ID `/talks` lipsync với audio đó (`avatarService.js generateVideoForQuestion`) → poll tới `status=done` → trả `result_url`. Nếu ElevenLabs chưa cấu hình, D-ID tự dùng Azure TTS (text script, không qua ElevenLabs).
+Pipeline pre-generated: ElevenLabs TTS (giọng theo gender) → upload audio Cloudinary → D-ID `/talks` lipsync → poll `status=done` → `result_url`. Thiếu ElevenLabs thì D-ID dùng Azure TTS.
 
-- **Baseline (3 câu free, cố định text):** `videoPregenService.pregenerateSync` với `persistVideo: true` — mirror `result_url` về Cloudinary (`prointerview/avatar-videos/`) rồi cache **vĩnh viễn** trong Redis. Cache key dùng chung toàn hệ thống (không theo user) vì text cố định.
-- **Follow-up (2 câu Pro, cá nhân hóa):** `POST /api/ai/interview/pregenerate` — không `persistVideo`, không cache permanent.
-- ⚠️ **Gotcha đã vá (xem `avatarService.js`):** `result_url` của D-ID là presigned S3 URL, tự hết hạn theo `X-Amz-Expires` (~24h). Chỉ link đã mirror sang Cloudinary mới được cache TTL dài (180 ngày). Nếu bước mirror lỗi, link D-ID gốc chỉ cache TTL ngắn (`RAW_DID_URL_FALLBACK_TTL` = 1h) để lần gọi sau tự retry — KHÔNG bao giờ cache link tự-hết-hạn với TTL dài, vì FE sẽ load video chết (403 từ S3) sau khi hết hạn.
-- **Circuit breaker:** `avatarService.js` mở sau 3 lỗi D-ID liên tiếp (`isCircuitOpen()`), tự reset sau 5 phút — `pregenerateVideos` luôn probe câu đầu trước khi chạy song song các câu còn lại, để fail-fast không tốn credit nếu D-ID đang down.
-- **Live WebRTC fallback** (ít dùng): FE `useDIDStream.js` → `https://api.d-id.com` (Basic auth) trực tiếp — chỉ kích hoạt khi không có pregen video VÀ có `VITE_DID_API_KEY` ở FE; nếu không có cả hai, room rơi về Web Speech API (browser TTS, KHÔNG phải ElevenLabs) với ảnh avatar tĩnh (không lipsync).
-- BE status tổng hợp: `GET /api/ai/config` (provider nào đang enabled, circuit breaker, redis mode).
-- Interview flow: `POST /api/interviews/sessions` (tạo + baseline questions) → `POST /api/interviews/sessions/:id/generate-followup-questions` (2 câu cá nhân hóa giữa buổi, chỉ Pro — xem quyết định #3 trong "V5 plan" bên dưới) → `analyze-face`. `POST /api/interviews/generate-questions` còn route nhưng KHÔNG còn được FE gọi (rollback path cũ, giữ lại chưa xoá).
+- **Baseline (3 câu cố định, `config/baselineQuestions.js`):** `persistVideo: true`, mirror về Cloudinary (`prointerview/avatar-videos/`), cache Redis dùng chung toàn hệ thống.
+- **Follow-up (2 câu Pro):** `POST /api/ai/interview/pregenerate`, không cache lâu dài.
+- ⚠️ `result_url` của D-ID là presigned S3 URL hết hạn ~24h. Chỉ link đã mirror Cloudinary mới cache dài (180 ngày); link gốc chỉ cache 1h (`RAW_DID_URL_FALLBACK_TTL`). Không bao giờ cache link tự hết hạn với TTL dài.
+- **Circuit breaker** (`avatarService.js`): mở sau 3 lỗi D-ID liên tiếp, reset sau 5 phút; pregen luôn thử câu đầu trước khi chạy song song.
+- Fallback cuối: Web Speech API (TTS trình duyệt) + ảnh tĩnh.
+- Trạng thái tổng hợp: `GET /api/ai/config`.
+- Luồng phỏng vấn: `POST /api/interviews/sessions` (3 câu baseline) → `PATCH /sessions/:id` mỗi câu + `analyze-face` → `POST /sessions/:id/generate-followup-questions` (chỉ Pro) → `complete` → `evaluate`. Đánh giá thiếu trường sau 1 lần retry → `ModerationItem` `evaluation_incomplete`. Route cũ `POST /api/interviews/generate-questions` còn nhưng FE không gọi.
 
-### Google Identity Services
+### Thanh toán
 
-- ID token → `POST /api/auth/google` (backend verify qua `google-auth-library`)
-- Frontend: `frontend/.env.local` → `VITE_GOOGLE_CLIENT_ID`
-- Vercel header `Cross-Origin-Opener-Policy: same-origin-allow-popups` cần cho FedCM
+Kênh chính thức là **chuyển khoản ngân hàng**: `recordTransferPending` → user `submit-transfer` → SePay webhook (`POST /api/payments/webhook/sepay`) khớp mã `PI…` **hoặc** admin xác nhận → `recordAdminTransferSuccess`. Dùng cho booking, khóa học, giỏ hàng (`CartOrder`, 1 QR cho cả đơn) và gói Pro. MoMo/ZaloPay/VNPay chỉ là stub, trả 400 ở production. Thêm khoản thu mới thì tái dùng đường ray này.
+
+### Google Identity
+
+ID token → `POST /api/auth/google`. Vercel cần header `Cross-Origin-Opener-Policy: same-origin-allow-popups` (đã có trong `vercel.json`).
+
+### Jitsi / JaaS
+
+Phòng họp mentor (`/meeting/:sessionId`). Thiếu `JAAS_*` → `meet.jit.si` (giới hạn ~5 phút).
 
 ---
 
@@ -331,153 +247,102 @@ utils/
 
 ### Plans & Quota
 
-| Plan | |
-|:-----|:-|
-| `free` | Quota cơ bản |
-| `starter_pro` | Quota mở rộng |
-| `elite_pro` | Quota tối đa |
+| Plan key | Tên | Giá | Ưu đãi booking/khóa |
+|:---------|:----|:----|:--------------------|
+| `free` | Free | 0 | — |
+| `starter_pro` | Pro | 99.000đ/tháng | 5% |
+| `elite_pro` | Elite | 199.000đ/tháng | 10% |
 
-Fields trên `User`: `plan`, `planExpiresAt`, `cvAnalysisUsed`, `interviewUsed` (đối chiếu plan limits).
+Nguồn sự thật: `backend/src/constants/planCatalog.js`.
 
 ### Mentor
 
-- User có `role=mentor` phải có document **`Mentor`** (`userId`).
-- Public URL dùng `publicId` (không dùng `_id`).
-- Dùng `npm run sync:mentor-profiles` để đồng bộ nếu lệch.
-- Cấp role mentor: Admin dùng `PATCH /api/users/:id/role` (không tự đổi qua `/me`).
+- User `role=mentor` phải có document `Mentor` (`userId`); hook `User.post("save")` tự tạo. Lệch thì chạy `sync:mentor-profiles`.
+- URL công khai dùng `publicId`, không dùng `_id`.
+- Thu nhập: `clearingBalance` → (`earningsClearanceJob`) → `availableBalance` → payout → `pendingBalance`.
 
 ### Bookings
 
-Fields quan trọng: `price`, `platformFee`, `vat`, `totalAmount`, `paymentStatus`, `status`, `rescheduleHistory`.
-
-Lifecycle status: `pending` → `confirmed` → `completed` / `cancelled`.
-
-Hủy booking: `DELETE /api/bookings/:id` (không dùng `PATCH .../cancel`).
-
-### Payments
-
-- **Phạm vi sản phẩm:** Frontend production dùng **chuyển khoản ngân hàng** (checkout / ghi danh khóa + admin xác nhận qua ledger `payments`). **Không ưu tiên** MoMo, ZaloPay, thẻ làm kênh khách hàng trừ khi được yêu cầu rõ. Backend vẫn có stub initiate/webhook — coi là ngoài phạm vi mặc định.
-- CK: `recordTransferPending` → user `submit-transfer` → admin `confirm-transfer-payment` → `recordAdminTransferSuccess`.
-- MoMo, ZaloPay, VNPay: sandbox/stub trong `paymentsService` — kiểm tra trước khi bật prod.
-
----
-
-## Trạng thái dự án hiện tại
-
-### Backend ✅
-
-Phase 1–4 + **Phase 5 (mở rộng)** đã có route trong Express (100+ endpoint). Chi tiết: `ROADMAP.md` (✅ BE) + `API_INDEX.md` Phần A.
-
-**BE hoàn tất theo roadmap gốc;** còn hardening prod (env, monitoring), không còn endpoint 📋 trong bảng Phase 1–4.
-
-### Frontend — trạng thái từng domain
-
-*(Đồng bộ `ROADMAP.md` → Trạng thái Frontend.)*
-
-| Domain | Trạng thái |
-|:-------|:-----------|
-| Auth (login/register/Google/reset/verify/delete account) | ✅ API thật |
-| Dashboard (`/dashboard`) | ✅ `GET /api/users/dashboard-stats` |
-| Mentors list + profile + booking + checkout CK | ✅ API thật (ưu tiên chuyển khoản / SePay) |
-| Session detail (`/session/:id`) | 🔧 chủ yếu API; một số UI demo |
-| CV Analysis | 🔧 phân tích: Express `/api/cv/analyze*`; lịch sử: `cvApi.js`; Supabase chỉ khi có env |
-| Analysis history | ✅ `/api/cv/analyses` |
-| Interview (AI avatar) | ✅ 3 baseline (free) + 2 follow-up cá nhân hóa (Pro) qua `/api/interviews/*`; avatar qua D-ID pregen video (ElevenLabs audio), TTS browser khi không có pregen |
-| Courses | ✅ list/detail/enrollment API |
-| Mentor dashboard/schedule/finance | ✅ `/api/mentor/*` |
-| Mentor meeting room | 🔧 một phần state local |
-| Admin list pages | ✅ `adminApi.js` |
-| Admin detail placeholders | 📋 routes placeholder (finance, user/:id, …) |
-| Notifications | 🔧 API có; kiểm tra badge trên prod |
-| Upload | 🔧 BE Cloudinary/local; FE gọi `POST /api/upload/*` |
-| Payment return/success/failure | ✅ redirect gateway / poll transfer-status |
-
-### CV/JD Production Checklist
-
-Cần cả hai để hoạt động đúng:
-1. `VITE_API_URL` set đúng host prod (FE gọi đúng `/api`)
-2. `CV_ANALYZER_URL` set URL Python FastAPI reachable từ backend Node
-
-Nếu thiếu → `404` (sai host) hoặc `503` (analyzer unreachable).
+- `status`: `pending → confirmed → in_progress → completed`; ngoài ra `cancelled`, `no_show` (`rescheduled` còn trong enum nhưng không hàm nào ghi).
+- `paymentStatus`: `pending | paid | refund_pending | refunded | partial_refund | failed`.
+- Ứng viên hủy: `DELETE /api/bookings/:id` (không tạo `PATCH .../cancel`); ứng viên không tự dời lịch.
+- Chi tiết mọi chuyển trạng thái: `docs/STATE_MACHINES.md`.
 
 ---
 
 ## Deployment
 
-### Backend (Render)
+| Service | Nơi | Ghi chú |
+|:--------|:----|:--------|
+| Backend | Render (`render.yaml`, region singapore, `rootDir: backend`) | Health check `/api/health` |
+| Frontend | Vercel (`frontend/vercel.json`) | Rewrite `/api/*` và `/uploads/*` → `https://prointerview-backend.onrender.com`; không cần `VITE_API_URL` |
+| CV service | Render/Heroku (`Procfile`, `runtime.txt`) | Set `CV_ANALYZER_URL` cho backend |
 
-```yaml
-# render.yaml
-service: prointerview-backend
-runtime: node
-rootDir: backend/
-buildCommand: npm install
-startCommand: npm start
-healthCheckPath: /api/health
-region: singapore
-```
+⚠️ Nhập biến môi trường trên Render **không kèm dấu ngoặc kép** (Render lưu nguyên văn, không strip như dotenv). Đã gặp: `UPSTASH_REDIS_REST_URL` dính dấu `"` → Redis lỗi → toàn bộ avatar pregen trả `null`.
 
-Env vars cần set trên Render: `NODE_ENV=production`, `MONGO_URI`, `JWT_SECRET`, `CORS_ORIGIN`, `GOOGLE_CLIENT_ID`, `CV_ANALYZER_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `D_ID_API_KEY`, `ELEVENLABS_API_KEY` + voice IDs.
+### Quyết định kiến trúc vận hành (V5, 21/06/2026)
 
-⚠️ Nhập giá trị **không kèm dấu ngoặc kép** dù `.env` local có viết `KEY="value"` — Render lưu nguyên văn, không tự strip quote như `dotenv` (xem gotcha chi tiết ở "V5 plan" → quyết định #4).
-
-### Frontend (Vercel)
-
-```json
-// vercel.json
-{ "headers": [{ "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" }] }
-```
-
-Build: `vite build` → `dist/`. Set `VITE_API_URL` và `VITE_GOOGLE_CLIENT_ID` trong Vercel env.
-
-### Python CV Service
-
-Có `Procfile` + `runtime.txt` — deploy được lên Heroku/Render. Sau deploy set `CV_ANALYZER_URL` vào backend env.
+1. Trial chỉ 3 câu baseline, chấm điểm nhẹ.
+2. MVP chỉ dùng chuyển khoản + SePay, không tích hợp cổng thanh toán.
+3. Câu hỏi: 3 baseline cố định (free) + 2 follow-up sinh giữa buổi từ CV/JD và câu trả lời thật (Pro).
+4. Redis bắt buộc ở production (`cacheService.js` throw, server fail-fast khi thiếu); Sentry + Slack alert + cost ledger (`CostEvent`).
 
 ---
 
-## Quyết định kiến trúc V5 plan (2026-06-21)
+## Capstone FA26 (GFA26SE160) — kế hoạch và quy ước
 
-Plan tối ưu hóa 8 sprint / 16 tuần, 4 quyết định đã chốt (chi tiết: memory `project_v5_roadmap`):
+Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi code một tính năng mới, đọc:
 
-1. **Trial flow có scoring nhẹ** — 3 câu baseline ở free trial hiển thị điểm + nhận xét ngắn (không phải feedback đầy đủ như session thật).
-2. **Bank transfer cho MVP launch** — không tích hợp VNPay/MoMo/Stripe trong giai đoạn này. Flow chuyển khoản + admin xác nhận + auto-confirm qua SePay webhook (`sepayWebhookService.js`) đã có sẵn cho booking/enrollment/subscription — khi thêm gói mới (câu hỏi/phân tích sâu), tái dùng rail này, không build lại từ đầu.
-3. ✅ **Đã merge (PR #109, `main`)** — Refactor sinh câu hỏi: 5 câu liền → 3 baseline cố định (free, `backend/src/config/baselineQuestions.js`) + 2 personalized sinh GIỮA buổi qua `POST /api/interviews/sessions/:id/generate-followup-questions` (chỉ Pro, dùng CV/JD + câu trả lời thật của 3 câu baseline làm context — xem `generateFollowUpQuestions` trong `interviewsController.js`). Route `generate-questions` cũ vẫn còn nhưng không còn được FE gọi.
-4. **Cache/observability fail-fast, không trì hoãn rủi ro vận hành** — Redis bắt buộc ở production (`cacheService.js` throw khi Redis lỗi, không fallback im lặng sang Map, server fail-fast lúc start nếu thiếu cấu hình); Sentry + Slack alert (cost spike, error rate, baseline render bất thường) tích hợp từ Sprint 1 (`config/sentry.js`, `services/alertService.js`, `services/costLedgerService.js`).
-   - ⚠️ **Gotcha Render đã gặp thực tế:** `.env` local dùng cú pháp `KEY="value"` (dotenv tự strip dấu `"`), nhưng Render dashboard lưu **nguyên văn** giá trị paste vào — nếu copy cả dấu `"` từ `.env` dán vào ô Value trên Render, biến sẽ chứa luôn dấu `"` (vd: `UPSTASH_REDIS_REST_URL` thành `"https://...upstash.io"` với dấu ngoặc literal) → `fetch()` lỗi `Failed to parse URL` → mọi request Redis fail-fast → toàn bộ avatar pregen trả `null` (không lipsync, không voice). Khi nhập env var nhạy cảm dạng URL/token lên Render, gõ/paste KHÔNG kèm dấu ngoặc kép.
+- **[docs/capstone/TASKS.md](docs/capstone/TASKS.md)**: 107 task, người phụ trách, phụ thuộc, điều kiện "Xong khi", cổng giai đoạn, Definition of Done.
+- **[docs/capstone/DECISIONS.md](docs/capstone/DECISIONS.md)**: 14 quyết định đã chốt, công thức chia tiền lộ trình, state machine mới, ánh xạ tên role.
+
+### Quy ước
+
+- **Mã task**: `N` nền tảng · `LP` Learning Path · `CO` Company/Rubric · `PR` Profile/CV · `JB` Job Post/Ứng tuyển · `AI` vòng AI · `QA` · `DOC`. Nhánh `feat/<mã>-<tên-ngắn>`, tên PR mở đầu bằng mã task.
+- **Tên role**: code giữ `customer` và `moderator`; UI hiển thị Candidate, Platform Moderator. Role `enterprise` được đổi thành `company_moderator` (task N-02). Chữ `enterprise` trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role, không đổi.
+- **Tái dùng, không dựng song song**: Booking cho mọi buổi gặp; đường ray chuyển khoản + SePay cho mọi khoản thu; mở rộng router có sẵn (`/api/mentorship-requests`, không tạo `/api/mentor-requests`).
+- Thêm loại thông báo mới thì mở rộng enum `Notification.type` trước, nếu không Mongoose từ chối bản ghi.
+
+### Bẫy trong code (đã kiểm tra 18/11/2026)
+
+| Chỗ | Bẫy | Cách xử lý |
+|:----|:----|:-----------|
+| `backend/src/models/Booking.js:152` | Index unique `mentorshipRequestId` tính cả booking `completed`: mỗi yêu cầu chỉ có được 1 booking | Partial filter loại `assessment` và booking có `learningPathId`; **phải drop index cũ `mentorshipRequestId_1` rồi sync** (chỉ sửa schema thì MongoDB báo `IndexOptionsConflict`, index cũ vẫn chặn dù test memory-server xanh) |
+| `services/mentorEarningsService.js:21` | `mentorNetFromBooking` = `totalAmount − platformFee`, không đọc `platformFeeRate` | Booking nào không qua checkout thường phải ghi sẵn `platformFee` |
+| `jobs/bookingStaleSweepJob.js` | Hủy mọi booking `pending` chưa trả tiền đã qua giờ bắt đầu | Booking không cần thanh toán riêng phải tạo với `paymentStatus: "paid"` |
+| `services/bookingsService.js` (`cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking`) | Booking `paid` bị hoàn tiền / sinh rebook credit theo từng buổi | Booking lộ trình và buổi 0đ phải đi nhánh riêng (LP-22) |
+| `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription; `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng và `paymentRef` sinh bằng `utils/orderRef.js` |
+| `services/mentorshipRequestsService.js:125` | Chỉ cho tạo booking khi `request.status === "selected"` | Thêm status mới thì sửa điều kiện này |
+| `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |
+| `services/moderationQueueService.js:39, :83` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report`; danh sách hàng đợi không lọc `type` | Loại mới cần map riêng; hàng đợi HITL chỉ lấy 3 loại phỏng vấn |
+| `models/QuestionBank.js` | `orgId` đang `ref: "Organization"` (model không tồn tại); `status` đã có `draft`, `rejected`; `roleCategory` đã có index | Đổi ref sang `"Company"`; dùng lại field có sẵn, không thêm field mới |
+| `frontend/src/app/utils/analytics/mock*.js` | 4 trang admin + `UserJourneyPanel.jsx` bơm số liệu giả ở trình duyệt | Không dùng cho màn mới; gỡ ở N-09 |
+| `package.json` `test:node` | Liệt kê từng file test; `node --test` chỉ nhận glob từ Node 21 | Cho tới khi xong N-05: thêm file test mới vào script này |
+
+---
 
 ## Quy tắc phát triển
 
 ### Khi thêm API mới
 
-1. Tạo route → controller (→ service nếu có business logic phức tạp) → model
-2. Mount router trong `backend/src/app.js`
-3. Cập nhật **`ROADMAP.md`** (đổi 📋 → ✅) và **`API_INDEX.md`** (thêm vào Phần A hoặc Phần C tương ứng)
+1. Model (export ở `models/index.js`) → service (nếu có logic) → controller → route gắn `authJwt` + `requireRole(...)`.
+2. Mount router trong `backend/src/app.js` nếu là prefix mới; ưu tiên mở rộng router có sẵn.
+3. Test integration trong `backend/src/integration/` (và thêm vào `test:node` cho tới khi xong N-05).
+4. Cập nhật `API_INDEX.md` (Phần A) và `ROADMAP.md`. Model mới → `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`, `docs/database/prointerview_schema.mongodb.js`. Enum `status` mới → `docs/STATE_MACHINES.md`, và kiểm tra các job trong `backend/src/jobs` có lọc theo status đó không.
 
 ### Khi nối FE với API
 
-1. Thêm/sửa function trong `frontend/src/app/utils/*Api.js` tương ứng
-2. Dùng `apiUrl(path)` từ `utils/api.js` (không hardcode URL)
-3. Dùng `authFetch` (Bearer token) cho route cần auth
+1. Thêm/sửa hàm trong `frontend/src/app/api/*Api.js` tương ứng.
+2. Dùng `apiUrl(path)` từ `api/http.js`, không hardcode URL.
+3. Route cần đăng nhập dùng `authFetch()` từ `utils/auth/auth.js`.
+4. Không đưa dữ liệu giả hay state demo vào màn hình.
 
 ### Conventions
 
-- Response: `{ success: true, <key>: data }` / `{ success: false, error: "msg" }`
-- Auth middleware: `authJwt` (Bearer JWT), `requireMentor`, `requireAdmin`
-- Mentor public URL: dùng `publicId`, không dùng `_id` trực tiếp
-- Booking cancel: `DELETE /api/bookings/:id` (không tạo `PATCH .../cancel`)
-- Change password: `PATCH /api/auth/me` (không cần route riêng)
-
-### Tech stack tham chiếu nhanh
-
-| | |
-|:-|:-|
-| Frontend | React 18, Vite, React Router v7 (hash), Tailwind CSS, shadcn/ui, Recharts, @react-three/* |
-| Backend | Express 5 (ESM), Node 20+, Mongoose 9, JWT, bcrypt, multer, google-auth-library |
-| DB | MongoDB (collections: 17 schemas) |
-| CV Analysis | Python FastAPI, pdf parsing, NLP skill extraction |
-| Payments | MoMo, ZaloPay (sandbox), VNPay partial |
-| External | Google Identity Services, D-ID API, Supabase Edge (CV fallback), LLM/CV Python |
+- Response `{ success: true, <key> }` / `{ success: false, error }`, thông báo lỗi tiếng Việt.
+- Mentor public URL dùng `publicId`.
+- Hủy booking: `DELETE /api/bookings/:id`. Đổi mật khẩu: `PATCH /api/auth/me`.
+- Script seed/reset nguy hiểm dùng `scripts/_devOnlyGuard.js` để chặn production.
 
 ---
 
@@ -485,12 +350,15 @@ Plan tối ưu hóa 8 sprint / 16 tuần, 4 quyết định đã chốt (chi ti�
 
 | File | Nội dung |
 |:-----|:---------|
-| `ROADMAP.md` | Endpoint theo Phase 1–4, trạng thái ✅/📋, gợi ý sprint |
-| `API_INDEX.md` | Contract đầy đủ: Phần A (đang chạy), B (Supabase/D-ID), C (roadmap) |
+| `docs/capstone/TASKS.md` | Kế hoạch 107 task capstone FA26, phân công, cổng giai đoạn |
+| `docs/capstone/DECISIONS.md` | 14 quyết định thiết kế capstone, chia tiền lộ trình, state machine mới |
+| `ROADMAP.md` | Endpoint theo phase, trạng thái ✅/📋 |
+| `API_INDEX.md` | Contract đầy đủ: Phần A (đang chạy), B (ngoài Express), C (roadmap) |
 | `backend/DATABASE.md` | Schema MongoDB chi tiết từng field |
-| `POSTMAN_TESTING.md` | Hướng dẫn test API với Postman |
-| `docs/SYSTEM_OVERVIEW.md` | Sơ đồ kiến trúc tổng quan + bảng tiến độ theo module |
-| `docs/LOGICAL_ERD.md` | Logical ERD 28 collection (4 miền) + bảng ràng buộc/unique index |
-| `docs/database/prointerview_schema.mongodb.js` | Script mongosh tạo collection + validator + index (idempotent) |
+| `docs/SYSTEM_OVERVIEW.md` | Sơ đồ kiến trúc tổng quan |
+| `docs/LOGICAL_ERD.md` | Logical ERD các collection + ràng buộc/unique index |
+| `docs/database/prointerview_schema.mongodb.js` | Script mongosh tạo collection + validator + index |
 | `docs/STATE_MACHINES.md` | State machine các field `status` + hàm/endpoint gây chuyển trạng thái |
 | `docs/ACTIVITY_DIAGRAMS.md` | Activity diagram 9 luồng nghiệp vụ chính |
+| `docs/report/` | SRS, SDD, đăng ký capstone, kiểm thử |
+| `POSTMAN_TESTING.md` | Hướng dẫn test API với Postman |

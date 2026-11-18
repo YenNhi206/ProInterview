@@ -1,0 +1,170 @@
+/* ═════════════════════════════════════════════════════════════════
+   Uiverse-inspired Interactive Social Media Buttons
+   Features:
+   - 3D Spring Animated Tooltip on hover
+   - TikTok Signature Chromatic Neon Glitch (Cyan + Magenta dual drop-shadow)
+   - Brand-calibrated luminous glow & smooth tactile lift
+   ═════════════════════════════════════════════════════════════════ */
+
+.uiverse-social-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  z-index: 10;
+}
+
+@media (min-width: 640px) {
+  .uiverse-social-group {
+    justify-content: flex-start;
+  }
+}
+
+.uiverse-social-btn {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none !important;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.uiverse-social-icon {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  pointer-events: none;
+}
+
+/* ── Tooltip popup nảy 3D ── */
+.uiverse-social-tooltip {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0) scale(0.6);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 4px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  color: #ffffff;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  z-index: 30;
+}
+
+/* Mũi tên tam giác Tooltip */
+.uiverse-social-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 7px;
+  height: 7px;
+  background: inherit;
+  border-radius: 1px;
+}
+
+/* ── Hover Lift Chung ── */
+.uiverse-social-btn:hover {
+  transform: translateY(-5px) scale(1.08);
+}
+
+.uiverse-social-btn:hover .uiverse-social-tooltip {
+  top: -38px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.uiverse-social-btn:hover .uiverse-social-icon {
+  transform: scale(1.12);
+}
+
+/* ── 1. TIKTOK: Đặc trưng Chromatic Aberration & Cyber Neon ── */
+.uiverse-social-btn--tiktok .uiverse-social-icon {
+  filter: drop-shadow(-1.5px -1.2px 0px #00f2fe) drop-shadow(1.5px 1.2px 0px #fe2c55);
+}
+
+.uiverse-social-btn--tiktok:hover {
+  background: #050508;
+  border-color: rgba(0, 242, 254, 0.7);
+  box-shadow: 
+    0 0 20px rgba(0, 242, 254, 0.5),
+    0 0 22px rgba(254, 44, 85, 0.5),
+    inset 0 0 10px rgba(0, 242, 254, 0.25);
+  animation: uiverseTiktokPulse 0.6s ease-in-out infinite alternate;
+}
+
+.uiverse-social-btn--tiktok:hover .uiverse-social-icon {
+  filter: drop-shadow(-2.5px -2px 0px #00f2fe) drop-shadow(2.5px 2px 0px #fe2c55);
+  transform: scale(1.18);
+}
+
+.uiverse-social-btn--tiktok .uiverse-social-tooltip {
+  background: #08080c;
+  border: 1px solid rgba(0, 242, 254, 0.6);
+  box-shadow: 0 4px 15px rgba(254, 44, 85, 0.45);
+}
+
+@keyframes uiverseTiktokPulse {
+  0% {
+    transform: translateY(-5px) scale(1.08) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.08) rotate(-1.5deg);
+  }
+  100% {
+    transform: translateY(-5px) scale(1.08) rotate(1.5deg);
+  }
+}
+
+/* ── 2. FACEBOOK ── */
+.uiverse-social-btn--facebook:hover {
+  background: #1877f2;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 25px rgba(24, 119, 242, 0.65), 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.uiverse-social-btn--facebook .uiverse-social-tooltip {
+  background: #1877f2;
+}
+
+/* ── 3. LINKEDIN ── */
+.uiverse-social-btn--linkedin:hover {
+  background: #0a66c2;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 25px rgba(10, 102, 194, 0.65), 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.uiverse-social-btn--linkedin .uiverse-social-tooltip {
+  background: #0a66c2;
+}
+
+/* ── 4. INSTAGRAM ── */
+.uiverse-social-btn--instagram:hover {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 25px rgba(225, 48, 108, 0.65), 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.uiverse-social-btn--instagram .uiverse-social-tooltip {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
