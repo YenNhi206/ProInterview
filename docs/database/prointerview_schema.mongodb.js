@@ -480,6 +480,11 @@ ensureCollection("notifications", {
       "new_review", "new_booking_request", "payment_success", "payment_failed",
       "plan_upgraded", "plan_expiring", "course_enrolled", "course_completed",
       "certificate_ready", "feedback", "system",
+      // N-06 — capstone FA26
+      "learning_path_proposed", "learning_path_accepted", "learning_path_revision_requested",
+      "learning_path_paid", "learning_path_session_result", "learning_path_cancelled",
+      "application_submitted", "application_status_changed", "company_invite",
+      "rubric_approved", "rubric_rejected", "job_post_hidden", "ai_improvement_proposed",
     ),
     isRead: bool,
   },

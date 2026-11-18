@@ -541,11 +541,11 @@ erDiagram
     NOTIFICATION {
         ObjectId _id PK
         ObjectId userId FK "→ USER"
-        enum type "booking_* | payment_* | plan_* | course_* | feedback | system"
+        enum type "booking_* | payment_* | plan_* | course_* | feedback | system | learning_path_* | application_* | company_invite | rubric_* | job_post_hidden | ai_improvement_proposed"
         string title
         string body
         bool isRead
-        object metadata "bookingId, mentorId, courseId, actionUrl"
+        object metadata "bookingId, mentorId, courseId, learningPathId, learningPathSessionId, jobPostId, applicationId, companyId, rubricId, proposalId, actionUrl"
     }
     ACTIVITY {
         ObjectId _id PK
