@@ -20,6 +20,12 @@ const bookingSchema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     mentorId: { type: Schema.Types.ObjectId, ref: "Mentor", required: true },
     mentorshipRequestId: { type: Schema.Types.ObjectId, ref: "MentorshipRequest" },
+    /**
+     * LP-04: buổi thuộc lộ trình (kể cả học lại). Booking này KHÔNG gắn `mentorshipRequestId` (LP-02),
+     * tiền đã thu trọn gói ở LearningPath → ghi sẵn field tiền bằng `utils/learningPathBookingMoney.js`.
+     */
+    learningPathId: { type: Schema.Types.ObjectId, ref: "LearningPath" },
+    learningPathSessionId: { type: Schema.Types.ObjectId, ref: "LearningPathSession" },
 
     date: { type: String, required: true },
     timeSlot: { type: String, required: true },
@@ -28,7 +34,9 @@ const bookingSchema = new Schema(
 
     sessionType: {
       type: String,
-      enum: ["mock_interview", "cv_review", "career_consulting", "custom"],
+      // "assessment": buổi đánh giá 0đ trước khi mentor soạn lộ trình (LP-04/LP-05). Khách không tự chọn được
+      // qua POST /api/bookings (SESSION_TYPES trong bookingsService chỉ có 4 loại thường).
+      enum: ["mock_interview", "cv_review", "career_consulting", "custom", "assessment"],
       required: true,
     },
     notes: { type: String, default: "" },
@@ -62,7 +70,9 @@ const bookingSchema = new Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["momo", "zalopay", "vnpay", "card", "transfer", ""],
+      // "learning_path": buổi lộ trình đã trả trong Payment trọn gói — báo cáo tài chính KHÔNG cộng booking này
+      // (doanh thu lộ trình tính từ Payment ở LP-16) để tránh cộng trùng.
+      enum: ["momo", "zalopay", "vnpay", "card", "transfer", "learning_path", ""],
       default: "",
     },
     paymentRef: { type: String, default: "" },
@@ -149,6 +159,7 @@ const bookingSchema = new Schema(
 );
 
 bookingSchema.index({ userId: 1, status: 1 });
+bookingSchema.index({ learningPathId: 1, createdAt: 1 }, { partialFilterExpression: { learningPathId: { $type: "objectId" } } });
 /**
  * LP-02: mỗi yêu cầu mentor chỉ có 1 booking "thường" đang sống, nhưng buổi đánh giá 0đ
  * (`sessionType: "assessment"`) được gắn thêm cùng request. Buổi lộ trình (kể cả học lại)
