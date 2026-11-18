@@ -1,6 +1,6 @@
 # State Machine Diagrams — ProInterview
 
-> Cập nhật: 2026-11-01 · nguồn: các hàm ghi `status` trong `backend/src/services`, `controllers`, `jobs`.
+> Cập nhật: 2026-11-18 · nguồn: các hàm ghi `status` trong `backend/src/services`, `controllers`, `jobs`.
 > Mỗi sơ đồ kèm bảng "chuyển → hàm/endpoint" để lần ngược về code. Khi thêm giá trị enum mới, cập nhật cả sơ đồ lẫn bảng.
 
 Ký hiệu: `[*]` trạng thái đầu/cuối · nhãn mũi tên = sự kiện `[điều kiện]` / tác nhân.
@@ -303,3 +303,56 @@ stateDiagram-v2
 ```
 
 Đây là trạng thái **suy ra** từ các trường (`isEmailVerified`, `lockUntil`, `isActive`), không có field `status` riêng trên `User`. Tiền chuyển tới sau khi tài khoản đóng → `Payment.held_inactive_account`.
+
+---
+
+## 13. Lộ trình học — `LearningPath.status` (capstone FA26)
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft : Mentor tạo bản nháp<br/>(sau buổi đánh giá 0đ)
+    draft --> proposed : Mentor gửi đề xuất<br/>[≥ 1 buổi, có giá, buổi 0đ completed]
+    proposed --> revision_requested : Ứng viên yêu cầu sửa<br/>(revisionNote)
+    revision_requested --> proposed : Mentor gửi lại<br/>(version + 1)
+    proposed --> pending_payment : Ứng viên chấp nhận<br/>(sinh paymentRef)
+    pending_payment --> active : SePay webhook / admin xác nhận CK
+    active --> completed : Buổi cuối đạt
+    active --> cancelled : Hủy lộ trình<br/>(hoàn T − phần các buổi đã done)
+    completed --> [*]
+    cancelled --> [*]
+```
+
+| Chuyển | Hàm / endpoint | Task |
+|:-------|:---------------|:-----|
+| → `draft` | `POST /api/learning-paths` | LP-07 |
+| `draft` / `revision_requested` → `proposed` | `POST /api/learning-paths/:id/propose` | LP-07, LP-08 |
+| `proposed` → `revision_requested` | `POST /api/learning-paths/:id/request-revision` | LP-08 |
+| `proposed` → `pending_payment` | `POST /api/learning-paths/:id/accept` | LP-08 |
+| `pending_payment` → `active` | SePay webhook / xác nhận tay | LP-10, LP-11 |
+| `active` → `completed` | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` (buổi cuối `passed`) | LP-13 |
+| `active` → `cancelled` | `POST /api/learning-paths/:id/cancel` | LP-15 |
+
+Model và enum đã có (LP-03); các hàm chuyển trạng thái làm ở task ghi trong bảng. Mỗi yêu cầu mentor chỉ có 1 lộ trình chưa `cancelled` (partial unique index).
+
+---
+
+## 14. Buổi trong lộ trình — `LearningPathSession.status` / `outcome`
+
+```mermaid
+stateDiagram-v2
+    [*] --> planned : Mentor thêm buổi vào lộ trình
+    planned --> scheduled : Ứng viên đặt lịch<br/>[buổi trước passed] (tạo Booking)
+    scheduled --> done : Mentor ghi kết quả
+    planned --> cancelled : Lộ trình bị hủy
+    scheduled --> cancelled : Lộ trình bị hủy
+    done --> [*]
+    cancelled --> [*]
+```
+
+`outcome` khi `done`: `passed` → mở buổi `order` kế tiếp; `not_passed` → tạo document mới cùng `order`, `attempt` + 1, `retakeOf` = buổi vừa xong. Lần học lại đầu tiên (`attempt = 2`) miễn phí (`shareAmount = 0`); từ lần sau mentor đề xuất buổi bổ sung có phí (quyết định 2).
+
+| Chuyển | Hàm / endpoint | Task |
+|:-------|:---------------|:-----|
+| `planned` → `scheduled` | `POST /api/learning-paths/:id/sessions/:sid/schedule` | LP-12 |
+| `scheduled` → `done` (+ `outcome`) | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` | LP-13 |
+| → `cancelled` | Hủy lộ trình | LP-15 |

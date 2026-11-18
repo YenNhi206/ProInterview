@@ -137,6 +137,8 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `Activity.js` | `activities` | Feed hoạt động dashboard |
 | `CourseQA.js` | `courseqas` | Q&A theo bài học |
 | `MentorPeerReview.js` | `mentorpeerreviews` | Mentor review khóa (đồng nghiệp) |
+| `LearningPath.js` | `learning_paths` | Lộ trình học mentor soạn sau buổi đánh giá 0đ; giá trọn gói, `paymentRef`, `version` (LP-03) |
+| `LearningPathSession.js` | `learning_path_sessions` | Buổi trong lộ trình: `shrmKeys`, `shareAmount`, `bookingId`, `attempt`/`retakeOf`, `outcome` (LP-03) |
 
 Tên collection chính xác có trong từng file (`collection: "..."` trong `Schema`).
 
