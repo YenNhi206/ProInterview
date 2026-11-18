@@ -40,6 +40,7 @@
     "db:audit-past-bookings": "node src/scripts/auditPastBookings.js",
     "db:sync-moderation-indexes": "node src/scripts/syncModerationIndexes.js",
     "db:sync-booking-indexes": "node src/scripts/syncBookingIndexes.js",
+    "db:sync-booking-indexes:dry": "node src/scripts/syncBookingIndexes.js --dry-run",
     "db:sync-fallback-questions": "node src/scripts/syncFallbackQuestions.js",
     "warmup:baseline-videos": "node src/scripts/warmupBaselineVideos.js",
     "test": "npm run test:node && npm run test:dto && npm run test:python-cv",
