@@ -122,7 +122,7 @@ Chi tiết triển khai và kiểm thử: [`docs/CART_BOOKING_PORT.md`](./docs/C
 ## Phần A — Backend Express (đã có trong repo)
 
 **Entrypoint:** `backend/src/server.js`  
-Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock` *(chỉ ngoài production)*, `/api/coupons`.
+Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock` *(chỉ ngoài production)*, `/api/coupons`, `/api/competencies`.
 
 ### A.1. `GET /`
 
@@ -490,6 +490,18 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/coupons/validate` | Bearer | Kiểm tra mã giảm giá — body `{ code, type: "booking"\|"enrollment"\|"subscription", amount }`, trả `{ coupon, discountAmount }`. Chỉ để preview UI ở Checkout; số tiền cuối cùng luôn tính lại ở server khi tạo đơn (booking/enrollment/subscription transfer-pending nhận thêm `couponCode` trong body). |
 
 **Quy tắc:** mỗi user chỉ dùng được 1 lần/mã (`Coupon.usedBy`, đánh dấu atomic qua `claimCouponUsage` khi đơn được tạo thành công — không rollback khi đơn bị hủy sau đó). Hết hạn theo `expiresAt`, có thể giới hạn `applicableTo` (booking/enrollment/subscription/all). Tạo mã mới: `npm run seed:coupon` (mặc định `LAUNCH50`, 50%, hết hạn 05/08/2026 — tùy chỉnh qua env `COUPON_CODE`, `COUPON_DISCOUNT_VALUE`, `COUPON_EXPIRES_AT`, `COUPON_APPLICABLE_TO`).
+
+---
+
+### A.16. Bộ tiêu chí năng lực SHRM/DDI — `/api/competencies` (LP-01)
+
+**File:** `backend/src/routes/competencies.js` · **Dữ liệu:** `backend/src/config/competencies.json` (nguồn duy nhất) · **Service:** `competencyFramework.js` · **FE:** `frontend/src/app/api/competenciesApi.js`
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| GET | `/api/competencies` | Bearer; role `customer`, `mentor`, `admin`, `moderator`, `enterprise` / `company_moderator` | Trả `{ success, framework }`: `version`, `scale {min, max}`, `passThreshold`, `aiCalibration {offset, maxLevel, status}`, `levels[] {score, label, descriptor}`, `nullLabel`, `competencies[] {key, nameVi, nameEn, shrm, ddi, definition, indicators, anchors {1,3,5}, deprecated, ...}`. Header `Cache-Control: private, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). Không token → 401 |
+
+**Quy tắc:** key năng lực giữ nguyên 20 key cũ; bỏ key thì đặt `deprecated: true` (vẫn hiện tên cho dữ liệu cũ, form mentor/rubric không cho chọn). Mức `null` = "Chưa đủ dữ liệu", khác mức 0. BE dùng `isValidCompetencyKey`, `aiAnswerToLevel`, `suggestOutcome`, `toDisplayLevel` trong `competencyFramework.js`.
 
 ---
 

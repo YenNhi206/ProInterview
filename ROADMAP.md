@@ -336,6 +336,7 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | GET | `/api/ai/tts/voices`, `/api/ai/avatar/presenters`, `/api/ai/avatar/usage` | `[AUTH]` |
 | ✅ | POST | `/api/ai/interview/pregenerate`, `/api/ai/interview/pregen/start` | `[AUTH]` |
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
+| ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
 
 ### Upload, mentor, courses, admin
 
