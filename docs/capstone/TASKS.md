@@ -1,7 +1,7 @@
 # Kế hoạch task — Capstone FA26 (GFA26SE160)
 
 > Nguồn: tab "Kế hoạch task" và "Đánh giá lại & Kế hoạch Capstone" (cập nhật lần 2, 18/11/2026), đã đối chiếu với mã nguồn.
-> Quyết định thiết kế: [DECISIONS.md](DECISIONS.md). Quy ước cho AI agent: mục "Capstone FA26" trong [CLAUDE.md](../../CLAUDE.md).
+> Quyết định thiết kế: [DECISIONS.md](DECISIONS.md). Thiết kế tham khảo và bẫy trong code: [DESIGN.md](DESIGN.md). Quy ước cho AI agent: mục "Capstone FA26" trong [CLAUDE.md](../../CLAUDE.md).
 
 **107 task**, 4 người, 7 giai đoạn, không gắn ngày. Nhận task theo thứ tự trong bảng của mình, miễn là task ở cột "Cần trước" đã xong.
 

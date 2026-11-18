@@ -297,6 +297,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 
 - **[docs/capstone/TASKS.md](docs/capstone/TASKS.md)**: 107 task, người phụ trách, phụ thuộc, điều kiện "Xong khi", cổng giai đoạn, Definition of Done.
 - **[docs/capstone/DECISIONS.md](docs/capstone/DECISIONS.md)**: 14 quyết định đã chốt, công thức chia tiền lộ trình, state machine mới, ánh xạ tên role.
+- **[docs/capstone/DESIGN.md](docs/capstone/DESIGN.md)**: thiết kế tham khảo — 11 model mới, 12 model cần sửa, API/màn hình, mục 7 "Bẫy trong code" (đọc trước khi sửa vùng liên quan).
 
 ### Quy ước
 
@@ -355,6 +356,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 |:-----|:---------|
 | `docs/capstone/TASKS.md` | Kế hoạch 107 task capstone FA26, phân công, cổng giai đoạn |
 | `docs/capstone/DECISIONS.md` | 14 quyết định thiết kế capstone, chia tiền lộ trình, state machine mới |
+| `docs/capstone/DESIGN.md` | Thiết kế tham khảo capstone: model mới/sửa, API và màn hình, bẫy trong code |
 | `ROADMAP.md` | Endpoint theo phase, trạng thái ✅/📋 |
 | `API_INDEX.md` | Contract đầy đủ: Phần A (đang chạy), B (ngoài Express), C (roadmap) |
 | `backend/DATABASE.md` | Schema MongoDB chi tiết từng field |
