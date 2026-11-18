@@ -97,10 +97,12 @@ erDiagram
         ObjectId userId FK "→ USER"
         ObjectId mentorId FK "→ MENTOR"
         ObjectId mentorshipRequestId FK "→ MENTORSHIP_REQUEST"
+        ObjectId learningPathId FK "→ LEARNING_PATH (LP-04)"
+        ObjectId learningPathSessionId FK "→ LEARNING_PATH_SESSION (LP-04)"
         string date "YYYY-MM-DD"
         string timeSlot "HH:mm"
         int durationMinutes
-        enum sessionType "mock_interview|cv_review|career_consulting|custom"
+        enum sessionType "mock_interview|cv_review|career_consulting|custom|assessment"
         enum status "pending|confirmed|in_progress|completed|cancelled|rescheduled|no_show"
         number price
         number platformFee
@@ -108,7 +110,7 @@ erDiagram
         number totalAmount
         string couponCode
         enum paymentStatus "pending|paid|refund_pending|refunded|partial_refund|failed"
-        enum paymentMethod "transfer|momo|zalopay|vnpay|card"
+        enum paymentMethod "transfer|momo|zalopay|vnpay|card|learning_path"
         string paymentRef "UK khi pending"
         date paymentExpiresAt
         ObjectId transferConfirmedBy FK "→ USER (admin)"
@@ -250,7 +252,7 @@ erDiagram
     }
 ```
 
-Booking của buổi lộ trình gắn `learningPathId` (thêm ở LP-04), không gắn `mentorshipRequestId`.
+Booking của buổi lộ trình gắn `learningPathId` + `learningPathSessionId`, không gắn `mentorshipRequestId`, và ghi sẵn field tiền (`paymentStatus: paid`, `price = totalAmount = shareAmount`, `platformFee = round(shareAmount × rate)`, `vat = 0`, `paymentMethod: learning_path`) bằng `utils/learningPathBookingMoney.js`. Buổi đánh giá 0đ là Booking `sessionType: assessment`, mọi field tiền bằng 0. Báo cáo tài chính booking loại cả hai (`EXCLUDE_LEARNING_PATH_BOOKINGS`).
 
 ---
 

@@ -308,7 +308,8 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 | Chỗ | Bẫy | Cách xử lý |
 |:----|:----|:-----------|
 | `backend/src/models/Booking.js:152` | Index unique `mentorshipRequestId` tính cả booking `completed`: mỗi yêu cầu chỉ có được 1 booking | Partial filter loại `assessment` và booking có `learningPathId`; **phải drop index cũ `mentorshipRequestId_1` rồi sync** (chỉ sửa schema thì MongoDB báo `IndexOptionsConflict`, index cũ vẫn chặn dù test memory-server xanh) |
-| `services/mentorEarningsService.js:21` | `mentorNetFromBooking` = `totalAmount − platformFee`, không đọc `platformFeeRate` | Booking nào không qua checkout thường phải ghi sẵn `platformFee` |
+| `services/mentorEarningsService.js:21` | `mentorNetFromBooking` = `totalAmount − platformFee`, không đọc `platformFeeRate` | Booking nào không qua checkout thường phải ghi sẵn `platformFee`: booking lộ trình / buổi 0đ dùng `learningPathBookingMoney()` / `assessmentBookingMoney()` trong `utils/learningPathBookingMoney.js` (LP-04) |
+| `controllers/adminController.js` `getPlatformFinanceSummary` | Cộng mọi booking `paid` vào doanh thu | Đã loại booking lộ trình và buổi 0đ bằng `EXCLUDE_LEARNING_PATH_BOOKINGS` (LP-04); báo cáo doanh thu booking mới cũng phải loại như vậy |
 | `jobs/bookingStaleSweepJob.js` | Hủy mọi booking `pending` chưa trả tiền đã qua giờ bắt đầu | Booking không cần thanh toán riêng phải tạo với `paymentStatus: "paid"` |
 | `services/bookingsService.js` (`cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking`) | Booking `paid` bị hoàn tiền / sinh rebook credit theo từng buổi | Booking lộ trình và buổi 0đ phải đi nhánh riêng (LP-22) |
 | `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription; `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng và `paymentRef` sinh bằng `utils/orderRef.js` |

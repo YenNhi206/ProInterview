@@ -24,6 +24,7 @@ import { getPlatformBehavior, getUserJourney } from "../services/analyticsServic
 import { uploadToCloudinary } from "../utils/cloudinaryUpload.js";
 import { downloadGoogleDriveFile } from "../utils/googleDrive.js";
 import { CVAnalysis } from "../models/CVAnalysis.js";
+import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
 const Booking = mongoose.model("Booking");
@@ -1060,6 +1061,8 @@ export const AdminController = {
 
       const bookingRows = await Booking.find({
         paymentStatus: { $in: ["paid", "partial_refund"] },
+        // LP-04: buổi lộ trình đã thu trong Payment trọn gói, buổi 0đ không thu tiền → không cộng trùng.
+        ...EXCLUDE_LEARNING_PATH_BOOKINGS,
       })
         .select("userId price platformFee platformFeeRate totalAmount status paidAt createdAt cancelRefundAmountVnd")
         .lean();
