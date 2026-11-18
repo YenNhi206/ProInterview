@@ -1,5 +1,5 @@
 // ProInterview — Database script (MongoDB / mongosh)
-// Cập nhật: 2026-11-01 · nguồn: backend/src/models/*.js · ERD: docs/LOGICAL_ERD.md
+// Cập nhật: 2026-11-18 · nguồn: backend/src/models/*.js · ERD: docs/LOGICAL_ERD.md
 //
 // Chạy:
 //   mongosh "mongodb://127.0.0.1:27017/prointerview" docs/database/prointerview_schema.mongodb.js
@@ -149,6 +149,55 @@ ensureCollection("bookings", {
   }],
   // Mã chuyển khoản không trùng khi đang chờ thanh toán
   [{ paymentRef: 1 }, { unique: true, partialFilterExpression: { paymentRef: { $gt: "" }, paymentStatus: "pending" } }],
+]);
+
+// Learning Path (LP-03)
+const LEARNING_PATH_STATUS = ["draft", "proposed", "revision_requested", "pending_payment", "active", "completed", "cancelled"];
+
+ensureCollection("learning_paths", {
+  required: ["candidateId", "mentorId", "mentorshipRequestId", "status"],
+  properties: {
+    candidateId: oid,
+    mentorId: oid,
+    mentorshipRequestId: oid,
+    jobPostId: oidOrNull,
+    assessmentBookingId: oidOrNull,
+    status: en(...LEARNING_PATH_STATUS),
+    version: num,
+    totalAmount: num,
+    platformFeeRate: num,
+    paymentRef: str,
+  },
+}, [
+  [{ candidateId: 1, createdAt: -1 }],
+  [{ mentorId: 1, status: 1, createdAt: -1 }],
+  // Mỗi yêu cầu mentor chỉ có 1 lộ trình chưa hủy
+  [{ mentorshipRequestId: 1 }, {
+    name: "mentorshipRequestId_open_unique",
+    unique: true,
+    partialFilterExpression: { status: { $in: LEARNING_PATH_STATUS.filter((s) => s !== "cancelled") } },
+  }],
+  [{ paymentRef: 1 }, { unique: true, partialFilterExpression: { paymentRef: { $gt: "" }, status: "pending_payment" } }],
+]);
+
+ensureCollection("learning_path_sessions", {
+  required: ["pathId", "order", "title", "status"],
+  properties: {
+    pathId: oid,
+    order: num,
+    title: str,
+    shrmKeys: { bsonType: "array", items: str },
+    shareAmount: num,
+    status: en("planned", "scheduled", "done", "cancelled"),
+    bookingId: oidOrNull,
+    attempt: num,
+    retakeOf: oidOrNull,
+    outcome: { enum: ["passed", "not_passed", null] },
+  },
+}, [
+  [{ pathId: 1, order: 1, attempt: 1 }, { unique: true }],
+  [{ bookingId: 1 }, { unique: true, partialFilterExpression: { bookingId: { $type: "objectId" } } }],
+  [{ retakeOf: 1 }, { partialFilterExpression: { retakeOf: { $type: "objectId" } } }],
 ]);
 
 ensureCollection("mentor_knowledge", {
