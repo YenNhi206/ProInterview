@@ -28,3 +28,5 @@ export { SepayWebhookEvent } from "./SepayWebhookEvent.js";
 export { CostEvent } from "./CostEvent.js";
 export { QuestionBank, hashQuestionText } from "./QuestionBank.js";
 export { ModerationItem } from "./ModerationItem.js";
+export { LearningPath } from "./LearningPath.js";
+export { LearningPathSession } from "./LearningPathSession.js";

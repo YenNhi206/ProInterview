@@ -140,9 +140,9 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 
 `/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-### Models (`models/`) — 28 schema
+### Models (`models/`) — 30 schema
 
-`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
 Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 
@@ -301,16 +301,17 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 - **Mã task**: `N` nền tảng · `LP` Learning Path · `CO` Company/Rubric · `PR` Profile/CV · `JB` Job Post/Ứng tuyển · `AI` vòng AI · `QA` · `DOC`. Nhánh `feat/<mã>-<tên-ngắn>`, tên PR mở đầu bằng mã task.
 - **Tên role**: code giữ `customer` và `moderator`; UI hiển thị Candidate, Platform Moderator. Role `enterprise` được đổi thành `company_moderator` (task N-02). Chữ `enterprise` trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role, không đổi.
 - **Tái dùng, không dựng song song**: Booking cho mọi buổi gặp; đường ray chuyển khoản + SePay cho mọi khoản thu; mở rộng router có sẵn (`/api/mentorship-requests`, không tạo `/api/mentor-requests`).
-- Thêm loại thông báo mới thì mở rộng enum `Notification.type` trước, nếu không Mongoose từ chối bản ghi.
+- Thêm loại thông báo mới thì thêm vào `NOTIFICATION_TYPE_GROUPS` (`models/Notification.js`) trước, nếu không Mongoose từ chối bản ghi và `deliverNotification` chỉ log lỗi. Ref mới trong `metadata` cũng phải khai báo (sub-document strict). FE chọn icon theo tiền tố trong `utils/shared/notificationKind.js`.
 
 ### Bẫy trong code (đã kiểm tra 18/11/2026)
 
 | Chỗ | Bẫy | Cách xử lý |
 |:----|:----|:-----------|
 | `backend/src/models/Booking.js:152` | Index unique `mentorshipRequestId` tính cả booking `completed`: mỗi yêu cầu chỉ có được 1 booking | Partial filter loại `assessment` và booking có `learningPathId`; **phải drop index cũ `mentorshipRequestId_1` rồi sync** (chỉ sửa schema thì MongoDB báo `IndexOptionsConflict`, index cũ vẫn chặn dù test memory-server xanh) |
-| `services/mentorEarningsService.js:21` | `mentorNetFromBooking` = `totalAmount − platformFee`, không đọc `platformFeeRate` | Booking nào không qua checkout thường phải ghi sẵn `platformFee` |
+| `services/mentorEarningsService.js:21` | `mentorNetFromBooking` = `totalAmount − platformFee`, không đọc `platformFeeRate` | Booking nào không qua checkout thường phải ghi sẵn `platformFee`: booking lộ trình / buổi 0đ dùng `learningPathBookingMoney()` / `assessmentBookingMoney()` trong `utils/learningPathBookingMoney.js` (LP-04) |
+| `controllers/adminController.js` `getPlatformFinanceSummary` | Cộng mọi booking `paid` vào doanh thu | Đã loại booking lộ trình và buổi 0đ bằng `EXCLUDE_LEARNING_PATH_BOOKINGS` (LP-04); báo cáo doanh thu booking mới cũng phải loại như vậy |
 | `jobs/bookingStaleSweepJob.js` | Hủy mọi booking `pending` chưa trả tiền đã qua giờ bắt đầu | Booking không cần thanh toán riêng phải tạo với `paymentStatus: "paid"` |
-| `services/bookingsService.js` (`cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking`) | Booking `paid` bị hoàn tiền / sinh rebook credit theo từng buổi | Booking lộ trình và buổi 0đ phải đi nhánh riêng (LP-22) |
+| `services/bookingsService.js` (`cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking`) | Booking `paid` bị hoàn tiền / sinh rebook credit theo từng buổi | Đã chặn ở LP-22: `isLearningPathOrAssessmentBooking()` → `closeLearningPathOrAssessmentBooking()` (không hoàn tiền, không credit, buổi lộ trình quay về `planned`). Luồng hủy/hoàn tiền mới cũng phải kiểm tra hàm này |
 | `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription; `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng và `paymentRef` sinh bằng `utils/orderRef.js` |
 | `services/mentorshipRequestsService.js:125` | Chỉ cho tạo booking khi `request.status === "selected"` | Thêm status mới thì sửa điều kiện này |
 | `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |

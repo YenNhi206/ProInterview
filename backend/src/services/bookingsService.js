@@ -13,6 +13,8 @@ import { Review } from "../models/Review.js";
 import { User } from "../models/User.js";
 import { Notification } from "../models/Notification.js";
 import { Payment } from "../models/Payment.js";
+import { LearningPathSession } from "../models/LearningPathSession.js";
+import { isLearningPathOrAssessmentBooking } from "../utils/learningPathBookingMoney.js";
 import { ensureMentorProfilesForAllMentorUsers } from "./mentorProfileService.js";
 import { recordAdminTransferSuccess, recordTransferPending, recordTransferSubmitted } from "./paymentsService.js";
 import { tryCreditMentorForCompletedBooking } from "./mentorEarningsService.js";
@@ -2099,6 +2101,52 @@ export async function updateMentorNotes(mentorUserId, rawId, body) {
 
 }
 
+/**
+ * LP-22: hủy / no-show cho booking lộ trình và buổi đánh giá 0đ.
+ * Tiền lộ trình đã thu trọn gói (LearningPath) nên KHÔNG hoàn tiền, KHÔNG sinh rebook credit từng buổi;
+ * hoàn tiền chỉ đi qua hủy cả lộ trình (LP-15). Buổi lộ trình bị hủy / mentor vắng → buổi quay về
+ * `planned` để ứng viên đặt lại đúng buổi đó. Buổi 0đ: chỉ ghi `cancelledBy` để LP-06 tính quota
+ * (quyết định 13: ứng viên vắng tính đã dùng, mentor vắng không tính).
+ * Cập nhật có điều kiện trạng thái → hai request hủy song song chỉ một cái thắng.
+ * @returns {Promise<{ booking: object, sessionReopened: boolean } | null>} null nếu booking vừa đổi trạng thái.
+ */
+async function closeLearningPathOrAssessmentBooking(booking, { cancelledBy, reason, noShow = false }) {
+  const now = new Date();
+  const set = {
+    status: noShow ? "no_show" : "cancelled",
+    cancelledBy,
+    cancelReason: reason,
+    cancelledAt: booking.cancelledAt || now,
+    mentorCancelResolution: "",
+    cancelRefundPercent: 0,
+    cancelRefundAmountVnd: 0,
+    cancelRetainedAmountVnd: 0,
+  };
+  if (cancelledBy === "mentor") set.mentorCancelResolutionAt = now;
+  const updated = await Booking.findOneAndUpdate(
+    { _id: booking._id, status: { $nin: ["cancelled", "completed", "no_show"] } },
+    { $set: set },
+    { returnDocument: "after" },
+  );
+  if (!updated) return null;
+
+  let sessionReopened = false;
+  if (updated.learningPathSessionId) {
+    const reopened = await LearningPathSession.updateOne(
+      { _id: updated.learningPathSessionId, bookingId: updated._id, status: "scheduled" },
+      { $set: { status: "planned", bookingId: null } },
+    );
+    sessionReopened = reopened.modifiedCount === 1;
+  }
+  return { booking: updated, sessionReopened };
+}
+
+function learningPathCancelNotice(booking) {
+  return booking.sessionType === "assessment"
+    ? "Buổi đánh giá 0đ không thu phí nên không có khoản hoàn."
+    : "Học phí lộ trình đã thanh toán trọn gói nên buổi này không hoàn tiền riêng — bạn đặt lại buổi này trên trang lộ trình.";
+}
+
 export async function cancelMyBooking(userId, rawId, body) {
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
   const uid = String(userId).trim();
@@ -2130,6 +2178,44 @@ export async function cancelMyBooking(userId, rawId, body) {
       ok: false,
       status: 400,
       error: "Yêu cầu hoàn tiền chỉ được gửi một lần cho mỗi lịch hẹn.",
+    };
+  }
+
+  if (isLearningPathOrAssessmentBooking(booking)) {
+    const closed = await closeLearningPathOrAssessmentBooking(booking, {
+      cancelledBy: "user",
+      reason: reason || "Người dùng hủy",
+    });
+    if (!closed) return { ok: false, status: 409, error: "Lịch hẹn vừa đổi trạng thái. Vui lòng tải lại trang." };
+    await notifyBookingOwner(closed.booking.userId, {
+      type: "booking_cancelled",
+      title: "Đã hủy lịch hẹn",
+      body: learningPathCancelNotice(closed.booking),
+      metadata: { bookingId: closed.booking._id },
+    });
+    const mentorLean = await Mentor.findById(closed.booking.mentorId).lean();
+    if (mentorLean?.userId) {
+      const student = await User.findById(closed.booking.userId).select("name").lean();
+      await notifyMentorBooking(mentorLean.userId, "booking_change", {
+        type: "booking_cancelled",
+        title: "Học viên đã hủy buổi",
+        body: `${student?.name || "Học viên"} hủy lịch ${closed.booking.date} ${closed.booking.timeSlot}.`,
+        metadata: { bookingId: closed.booking._id, actionUrl: "/mentor/schedule" },
+      });
+    }
+    return {
+      ok: true,
+      booking: toPublicBooking(closed.booking, mentorLean),
+      learningPathSessionReopened: closed.sessionReopened,
+      cancellationPolicy: {
+        hoursUntilStart: null,
+        feePercent: 0,
+        refundPercent: 0,
+        refundAmountVnd: 0,
+        retainedAmountVnd: 0,
+        paidTotalVnd: 0,
+        ledger: "learning_path_no_refund",
+      },
     };
   }
 
@@ -2317,6 +2403,28 @@ export async function cancelMentorBooking(mentorUserId, rawId, body) {
     return { ok: false, status: 400, error: "Booking đã được xử lý hoàn tiền." };
   }
 
+  if (isLearningPathOrAssessmentBooking(booking)) {
+    const closed = await closeLearningPathOrAssessmentBooking(booking, { cancelledBy: "mentor", reason });
+    if (!closed) return { ok: false, status: 409, error: "Lịch hẹn vừa đổi trạng thái. Vui lòng tải lại trang." };
+    const rebookHint =
+      closed.booking.sessionType === "assessment"
+        ? "Bạn có thể đặt lại buổi đánh giá 0đ — lượt này không bị tính."
+        : "Bạn đặt lại buổi này trên trang lộ trình, không mất phí.";
+    await notifyBookingOwner(closed.booking.userId, {
+      type: "booking_cancelled",
+      title: "Mentor đã hủy lịch hẹn",
+      body: `Buổi ${closed.booking.date} lúc ${closed.booking.timeSlot} đã bị mentor hủy. Lý do: ${reason}. ${rebookHint}`,
+      metadata: { bookingId: closed.booking._id, mentorId: closed.booking.mentorId, actionUrl: `/session/${closed.booking._id}` },
+    });
+    return {
+      ok: true,
+      booking: toPublicBooking(closed.booking, mentor),
+      lateCancel: false,
+      refundPending: false,
+      learningPathSessionReopened: closed.sessionReopened,
+    };
+  }
+
   const paidBooking = payStatusBefore === "paid";
   const paidTotal = Math.round(Number(booking.totalAmount ?? booking.price ?? 0));
   const isLateCancel =
@@ -2450,9 +2558,46 @@ export async function processBookingNoShow(rawId, body = {}, { markedBy = "admin
     }
   }
 
+  const note = typeof body?.note === "string" ? body.note.trim().slice(0, 2000) : "";
+
+  if (isLearningPathOrAssessmentBooking(booking)) {
+    const closed = await closeLearningPathOrAssessmentBooking(booking, {
+      cancelledBy: "mentor",
+      reason: note || "Mentor không tham gia buổi hẹn (no-show).",
+      noShow: true,
+    });
+    if (!closed) {
+      const fresh = await Booking.findById(booking._id);
+      const mentorLean = await Mentor.findById(booking.mentorId).lean();
+      if (fresh?.status === "no_show") return { ok: true, booking: toPublicBooking(fresh, mentorLean), idempotent: true };
+      return { ok: false, status: 409, error: "Lịch hẹn vừa đổi trạng thái. Vui lòng tải lại trang." };
+    }
+    await incrementMentorNoShowViolation(
+      closed.booking.mentorId,
+      closed.booking._id,
+      `No-show buổi ${closed.booking.date} ${closed.booking.timeSlot}${markedBy === "user" ? " (HV báo)" : ""}.`,
+    );
+    await notifyBookingOwner(closed.booking.userId, {
+      type: "booking_cancelled",
+      title: "Mentor không tham gia (no-show)",
+      body:
+        closed.booking.sessionType === "assessment"
+          ? "Buổi đánh giá 0đ được ghi nhận mentor vắng mặt — lượt này không bị tính, bạn có thể đặt lại."
+          : "Buổi lộ trình được ghi nhận mentor vắng mặt — bạn đặt lại buổi này trên trang lộ trình, không mất phí.",
+      metadata: { bookingId: closed.booking._id, actionUrl: `/session/${closed.booking._id}` },
+    });
+    const mentor = await Mentor.findById(closed.booking.mentorId).select("stats.noShowCount").lean();
+    return {
+      ok: true,
+      booking: toPublicBooking(closed.booking, mentor),
+      refundAmountVnd: 0,
+      mentorNoShowCount: mentor?.stats?.noShowCount ?? null,
+      learningPathSessionReopened: closed.sessionReopened,
+    };
+  }
+
   const payStatusBefore = String(booking.paymentStatus || "").toLowerCase();
   const paidBooking = payStatusBefore === "paid";
-  const note = typeof body?.note === "string" ? body.note.trim().slice(0, 2000) : "";
 
   booking.status = "no_show";
   booking.cancelledBy = "mentor";
@@ -2525,6 +2670,13 @@ export async function resolveMentorCancelBooking(userId, rawId, body) {
   const booking = await Booking.findOne({ userId: uid, ...q });
   if (!booking) return { ok: false, status: 404, error: "Không tìm thấy booking." };
 
+  if (isLearningPathOrAssessmentBooking(booking)) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Buổi lộ trình và buổi đánh giá 0đ không đổi mentor hay hoàn tiền theo từng buổi. Vui lòng đặt lại buổi trên trang lộ trình.",
+    };
+  }
   if (String(booking.cancelledBy || "") !== "mentor" || booking.status !== "cancelled") {
     return { ok: false, status: 400, error: "Booking không ở trạng thái chờ xử lý sau mentor hủy." };
   }
