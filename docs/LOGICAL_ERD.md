@@ -1,6 +1,6 @@
 # Logical ERD — ProInterview
 
-> Cập nhật: 2026-11-01 · nguồn: `backend/src/models/*.js` (28 model).
+> Cập nhật: 2026-11-18 · nguồn: `backend/src/models/*.js` (30 model).
 > Script tạo DB tương ứng: [database/prointerview_schema.mongodb.js](database/prointerview_schema.mongodb.js).
 > Mức khái niệm (chỉ tên thực thể): [CONCEPTUAL_DIAGRAM_GUIDE.md](CONCEPTUAL_DIAGRAM_GUIDE.md).
 
@@ -97,10 +97,12 @@ erDiagram
         ObjectId userId FK "→ USER"
         ObjectId mentorId FK "→ MENTOR"
         ObjectId mentorshipRequestId FK "→ MENTORSHIP_REQUEST"
+        ObjectId learningPathId FK "→ LEARNING_PATH (LP-04)"
+        ObjectId learningPathSessionId FK "→ LEARNING_PATH_SESSION (LP-04)"
         string date "YYYY-MM-DD"
         string timeSlot "HH:mm"
         int durationMinutes
-        enum sessionType "mock_interview|cv_review|career_consulting|custom"
+        enum sessionType "mock_interview|cv_review|career_consulting|custom|assessment"
         enum status "pending|confirmed|in_progress|completed|cancelled|rescheduled|no_show"
         number price
         number platformFee
@@ -108,7 +110,7 @@ erDiagram
         number totalAmount
         string couponCode
         enum paymentStatus "pending|paid|refund_pending|refunded|partial_refund|failed"
-        enum paymentMethod "transfer|momo|zalopay|vnpay|card"
+        enum paymentMethod "transfer|momo|zalopay|vnpay|card|learning_path"
         string paymentRef "UK khi pending"
         date paymentExpiresAt
         ObjectId transferConfirmedBy FK "→ USER (admin)"
@@ -198,6 +200,59 @@ erDiagram
         date usedAt
     }
 ```
+
+---
+
+## A2. Learning Path (capstone FA26, LP-03)
+
+```mermaid
+erDiagram
+    USER ||--o{ LEARNING_PATH : "học (candidateId)"
+    MENTOR ||--o{ LEARNING_PATH : "soạn"
+    MENTORSHIP_REQUEST ||--o| LEARNING_PATH : "dẫn tới (1 lộ trình chưa hủy)"
+    BOOKING |o--o| LEARNING_PATH : "buổi đánh giá 0đ"
+    LEARNING_PATH ||--|{ LEARNING_PATH_SESSION : "gồm"
+    LEARNING_PATH_SESSION |o--o| BOOKING : "đặt lịch"
+    LEARNING_PATH_SESSION |o--o{ LEARNING_PATH_SESSION : "học lại (retakeOf)"
+    LEARNING_PATH {
+        ObjectId _id PK
+        ObjectId candidateId FK "→ USER"
+        ObjectId mentorId FK "→ MENTOR"
+        ObjectId mentorshipRequestId FK "→ MENTORSHIP_REQUEST, UK khi chưa hủy"
+        ObjectId jobPostId FK "→ JOB_POST (tùy chọn)"
+        ObjectId assessmentBookingId FK "→ BOOKING"
+        string goal
+        enum status "draft|proposed|revision_requested|pending_payment|active|completed|cancelled"
+        int version
+        string revisionNote
+        int totalAmount "VND, trọn gói"
+        number platformFeeRate "0..1"
+        string paymentRef "UK khi pending_payment"
+        date proposedAt
+        date acceptedAt
+        date paidAt
+        date completedAt
+        date cancelledAt
+    }
+    LEARNING_PATH_SESSION {
+        ObjectId _id PK
+        ObjectId pathId FK "→ LEARNING_PATH"
+        int order "UK cùng pathId, attempt"
+        string title
+        array objectives
+        array shrmKeys "key SHRM/DDI (LP-01)"
+        int shareAmount "VND; học lại miễn phí = 0"
+        enum status "planned|scheduled|done|cancelled"
+        ObjectId bookingId FK,UK "→ BOOKING"
+        int attempt "1 = lần đầu"
+        ObjectId retakeOf FK "→ LEARNING_PATH_SESSION"
+        enum outcome "passed|not_passed|null"
+        object feedback "summary, strengths[], improvements[]"
+        date doneAt
+    }
+```
+
+Booking của buổi lộ trình gắn `learningPathId` + `learningPathSessionId`, không gắn `mentorshipRequestId`, và ghi sẵn field tiền (`paymentStatus: paid`, `price = totalAmount = shareAmount`, `platformFee = round(shareAmount × rate)`, `vat = 0`, `paymentMethod: learning_path`) bằng `utils/learningPathBookingMoney.js`. Buổi đánh giá 0đ là Booking `sessionType: assessment`, mọi field tiền bằng 0. Báo cáo tài chính booking loại cả hai (`EXCLUDE_LEARNING_PATH_BOOKINGS`).
 
 ---
 
@@ -488,11 +543,11 @@ erDiagram
     NOTIFICATION {
         ObjectId _id PK
         ObjectId userId FK "→ USER"
-        enum type "booking_* | payment_* | plan_* | course_* | feedback | system"
+        enum type "booking_* | payment_* | plan_* | course_* | feedback | system | learning_path_* | application_* | company_invite | rubric_* | job_post_hidden | ai_improvement_proposed"
         string title
         string body
         bool isRead
-        object metadata "bookingId, mentorId, courseId, actionUrl"
+        object metadata "bookingId, mentorId, courseId, learningPathId, learningPathSessionId, jobPostId, applicationId, companyId, rubricId, proposalId, actionUrl"
     }
     ACTIVITY {
         ObjectId _id PK
@@ -557,7 +612,11 @@ erDiagram
 | USER – CART | 1 – 0..1 | `Cart.userId` unique |
 | USER – CART_ORDER (đang mở) | 1 – 0..1 | Partial unique `{userId}` khi `active: true` |
 | MENTOR – BOOKING theo slot | — | Partial unique `{mentorId, date, timeSlot}` khi status ∈ pending/confirmed/in_progress → chống đặt trùng |
-| MENTORSHIP_REQUEST – BOOKING | 0..1 – 0..1 | Partial unique `{mentorshipRequestId}` khi booking còn hiệu lực |
+| MENTORSHIP_REQUEST – BOOKING | 0..1 – 0..n | Partial unique `{mentorshipRequestId}` (tên `mentorshipRequestId_regular_unique`) khi booking còn hiệu lực và `sessionType` ∈ mock_interview/cv_review/career_consulting/custom: tối đa 1 booking thường, buổi đánh giá 0đ (`assessment`) không bị chặn. Buổi lộ trình không gắn `mentorshipRequestId` (LP-02) |
+| MENTORSHIP_REQUEST – LEARNING_PATH | 1 – 0..1 (chưa hủy) | Partial unique `{mentorshipRequestId}` (tên `mentorshipRequestId_open_unique`) khi `status` ≠ `cancelled` |
+| LEARNING_PATH – LEARNING_PATH_SESSION | 1 – 1..n | Unique `{pathId, order, attempt}`: buổi học lại cùng `order`, `attempt` + 1 |
+| LEARNING_PATH_SESSION – BOOKING | 0..1 – 0..1 | Partial unique `{bookingId}` khi có `bookingId` |
+| Mã CK lộ trình đang chờ | — | Partial unique `LearningPath.paymentRef` khi `status=pending_payment` |
 | BOOKING – MENTOR_KNOWLEDGE | 1 – 0..1 | `MentorKnowledge.bookingId` unique |
 | USER – COURSE (ENROLLMENT) | n – n | Unique `{userId, courseId}` |
 | USER – REVIEW – target | — | Unique `{userId, targetType, targetId}`: mỗi người đánh giá một mentor/khóa một lần |
@@ -575,7 +634,7 @@ erDiagram
 Conceptual ERD (`PROINTERVIEW_CONCEPTUAL.drawio`) có 17 thực thể và ghi "chưa có role kiểm duyệt viên". Từ đó đến nay đã thêm:
 
 - `User.role` có thêm `moderator`, `enterprise`.
-- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`.
+- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`, `LearningPath`, `LearningPathSession` (capstone FA26, LP-03).
 - `Report` mở rộng `targetType` cho câu hỏi/đánh giá AI (`reasonCode` riêng).
 - `InterviewSession.answers` có `evaluationIncomplete`, `moderatorOverride`; `questions`/`answers` trỏ `questionBankId`.
 - `Course.adminReview.reviewedBy` giờ là moderator (route chuyển từ `/api/admin` sang `/api/moderator`).

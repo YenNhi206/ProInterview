@@ -16,6 +16,25 @@ import {
 } from "../utils/resolveStoredUploadUrl.js";
 import * as courseMentorInsights from "../services/courseMentorInsightsService.js";
 import * as reviewsService from "../services/reviewsService.js";
+import {
+  getCourseArchiveEligibility,
+  removeArchivedCourseFromCarts,
+} from "../services/courseArchivePolicy.js";
+
+/** Khóa học thuộc mentor đang đăng nhập; null kèm response lỗi nếu không. */
+async function loadOwnedCourse(req, res) {
+  const course = await Course.findById(req.params.id);
+  if (!course) {
+    res.status(404).json({ success: false, error: "Không tìm thấy khóa học" });
+    return null;
+  }
+  const mentor = await Mentor.findOne({ userId: req.userId });
+  if (!mentor || course.mentorId.toString() !== mentor._id.toString()) {
+    res.status(403).json({ success: false, error: "Bạn không có quyền thực hiện thao tác này" });
+    return null;
+  }
+  return course;
+}
 
 function normalizeCoursePayload(body = {}) {
   const chapters = Array.isArray(body.chapters) ? body.chapters : [];
@@ -331,33 +350,46 @@ export const CoursesController = {
     }
   },
 
-  /** Lưu trữ / Xóa mềm */
+  /** Checklist điều kiện xóa — UI hiển thị trước khi mentor xác nhận. */
+  archiveEligibility: async (req, res, next) => {
+    try {
+      const course = await loadOwnedCourse(req, res);
+      if (!course) return;
+      const eligibility = await getCourseArchiveEligibility(course);
+      res.json({ success: true, eligibility });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /** Lưu trữ / Xóa mềm — chỉ khi đạt mọi điều kiện ở courseArchivePolicy. */
   archive: async (req, res, next) => {
     try {
-      const { id } = req.params;
-      const course = await Course.findById(id);
-      if (!course) return res.status(404).json({ success: false, error: "Không tìm thấy khóa học" });
+      const course = await loadOwnedCourse(req, res);
+      if (!course) return;
 
-      const mentor = await Mentor.findOne({ userId: req.userId });
-      if (!mentor || course.mentorId.toString() !== mentor._id.toString()) {
-        return res.status(403).json({ success: false, error: "Bạn không có quyền thực hiện thao tác này" });
-      }
-
-      const activeEnrollments = await Enrollment.countDocuments({
-        courseId: id,
-        paymentStatus: "paid",
-      });
-      if (activeEnrollments > 0) {
-        return res.status(400).json({
+      const eligibility = await getCourseArchiveEligibility(course);
+      if (!eligibility.canArchive) {
+        const failed = eligibility.checks.find((c) => !c.ok);
+        return res.status(409).json({
           success: false,
-          error: `Không thể lưu trữ: khóa học đang có ${activeEnrollments} học viên đã thanh toán.`,
+          error: `Không thể gỡ khóa học: ${failed.detail || failed.label}`,
+          eligibility,
         });
       }
 
       course.status = "archived";
       await course.save();
+      await removeArchivedCourseFromCarts(course._id);
 
-      res.json({ success: true, message: "Đã lưu trữ khóa học" });
+      res.json({
+        success: true,
+        mode: eligibility.mode,
+        message:
+          eligibility.mode === "stop_selling"
+            ? "Đã ngừng bán khóa học. Học viên cũ vẫn học tiếp bình thường."
+            : "Đã xóa khóa học",
+      });
     } catch (error) {
       next(error);
     }

@@ -38,6 +38,10 @@ export const EnrollmentController = {
 
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ success: false, error: "Không tìm thấy khóa học" });
+      // Chỉ khóa đang mở bán mới nhận ghi danh mới (khóa "Ngừng bán"/nháp/chờ duyệt thì không).
+      if (!["published", "pending_update"].includes(course.status)) {
+        return res.status(409).json({ success: false, error: "Khóa học đã ngừng bán." });
+      }
 
       const price = Number(course.price || 0);
       const courseMentor = course?.mentorId

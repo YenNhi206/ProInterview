@@ -54,11 +54,17 @@ const STATUS_CONFIG = {
     dot: "bg-slate-400",
   },
   archived: {
-    label: "Đã lưu trữ",
+    label: "Đã gỡ",
     style: "bg-zinc-800 text-zinc-400 border border-zinc-700",
     dot: "bg-zinc-500",
   },
 };
+
+/** Khóa đã gỡ mà còn học viên là "Ngừng bán" (học viên cũ vẫn học); không còn ai thì là "Đã xóa". */
+function courseStatusLabel(course) {
+  if (course.status === "archived") return Number(course.students || 0) > 0 ? "Ngừng bán" : "Đã xóa";
+  return STATUS_CONFIG[course.status]?.label || "Bản nháp";
+}
 
 const LEVEL_LABELS = {
   basic: "Cơ bản",
@@ -143,6 +149,7 @@ function pickFeaturedCourse(courses) {
 /* ── Featured Course Spotlight Banner ────────────────────────────────────── */
 function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
   const cfg = STATUS_CONFIG[course.status] || STATUS_CONFIG.draft;
+  const statusLabel = courseStatusLabel(course);
   const canEdit = course.status !== "archived";
 
   return (
@@ -161,7 +168,7 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
         </span>
         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg.style}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
-          {cfg.label}
+          {statusLabel}
         </span>
       </div>
 
@@ -240,6 +247,25 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
               className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
             >
               <ExternalLink size={14} />
+              <span>Xem trang khóa học</span>
+            </button>
+          </div>
+        </div>
+            <button
+              type="button"
+              onClick={() => onEdit(course)}
+              disabled={!canEdit}
+              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm shadow-violet-600/30 transition hover:bg-violet-500 disabled:opacity-50"
+            >
+              <Video size={15} />
+              <span>Chỉnh sửa &amp; Quản lý Video</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpen(course)}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+            >
+              <ExternalLink size={14} />
               <span>Xem trang công khai</span>
             </button>
           </div>
@@ -252,6 +278,7 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
 /* ── Course List Row Component ───────────────────────────────────────────── */
 const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit, onArchive }, ref) {
   const cfg = STATUS_CONFIG[course.status] || STATUS_CONFIG.draft;
+  const statusLabel = courseStatusLabel(course);
   const gradient = THUMB_GRADIENTS[index % THUMB_GRADIENTS.length];
   const canEdit = course.status !== "archived";
 
@@ -287,7 +314,7 @@ const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit,
             <div className="flex flex-wrap items-center gap-2">
               <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${cfg.style}`}>
                 <span className={`h-1 w-1 rounded-full ${cfg.dot}`} />
-                {cfg.label}
+                {statusLabel}
               </span>
               <span className="text-[11px] text-slate-400 font-medium">
                 {course.level}
@@ -439,14 +466,14 @@ export function MentorCourseManagement() {
     try {
       const res = await archiveCourse(idToArchive);
       if (!res.success) {
-        toastApiError(res.error, "Không thể lưu trữ khóa học.");
+        toastApiError(res.error, "Không thể gỡ khóa học.");
         return;
       }
-      toastApiSuccess(res.message || "Đã lưu trữ khóa học.");
+      toastApiSuccess(res.message || "Đã gỡ khóa học.");
       setArchiveTarget(null);
       loadCourses();
     } catch {
-      toastApiError("Lỗi kết nối khi lưu trữ khóa học.");
+      toastApiError("Lỗi kết nối khi gỡ khóa học.");
     } finally {
       setArchiving(false);
     }
@@ -602,10 +629,11 @@ export function MentorCourseManagement() {
                 const active = activeTab === t.key;
                 return (
                   <button
+                    data-button-surface="none"
                     key={t.key}
                     type="button"
                     onClick={() => setActiveTab(t.key)}
-                    className={`relative rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+                    className={`mw-tab relative rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
                       active
                         ? "bg-violet-600 text-white shadow-sm shadow-violet-600/30"
                         : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -695,6 +723,7 @@ export function MentorCourseManagement() {
       {/* Archive Modal */}
       <ArchiveCourseDialog
         open={Boolean(archiveTarget)}
+        courseId={archiveTarget?.id}
         courseTitle={archiveTarget?.title}
         archiving={archiving}
         onOpenChange={(open) => {

@@ -119,5 +119,12 @@ coursesRouter.put("/:id", authJwt, requireMentor, asyncHandler(CoursesController
 
 coursesRouter.patch("/:id/publish", authJwt, requireMentor, asyncHandler(CoursesController.publish));
 
+coursesRouter.get(
+  "/:id/archive-eligibility",
+  authJwt,
+  requireMentor,
+  asyncHandler(CoursesController.archiveEligibility),
+);
+
 coursesRouter.delete("/:id", authJwt, requireMentor, asyncHandler(CoursesController.archive));
 

@@ -713,11 +713,11 @@ export function MentorFinance() {
                 {TX_FILTER_TABS.map((tab) => {
                   const active = activeTab === tab.id;
                   return (
-                    <button
+                    <button data-button-surface="none"
                       key={tab.id}
                       type="button"
                       onClick={() => setActiveTab(tab.id)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                      className={`mw-tab rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
                         active
                           ? "bg-[#93f72b] text-slate-950 shadow-[0_0_12px_rgba(147,247,43,0.35)]"
                           : "text-slate-400 hover:text-white"

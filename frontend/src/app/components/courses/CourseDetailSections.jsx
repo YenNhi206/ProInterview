@@ -103,6 +103,7 @@ export function CoursePurchaseCard({
   hasPendingPayment,
   canTakeStudentActions,
   isReadOnlyMentorView,
+  isStoppedSelling = false,
   onEnroll,
   onContinueLearn,
   onContinuePayment,
@@ -268,7 +269,9 @@ export function CoursePurchaseCard({
                     ? price === 0
                       ? "Đăng ký miễn phí"
                       : "Mua khóa học"
-                    : "Mentor chỉ xem"}
+                    : isStoppedSelling && !isReadOnlyMentorView
+                      ? "Khóa học đã ngừng bán"
+                      : "Mentor chỉ xem"}
                 </span>
               </span>
             </motion.button>
@@ -506,7 +509,7 @@ export function CourseInstructorBlock({ course, onViewMentor, canNavigate }) {
   );
 }
 
-export function CourseReviewsBlock({ course, enrolled, reviews, onReviewSubmitted }) {
+export function CourseReviewsBlock({ course, enrolled, reviews, onReviewSubmitted, readOnly = false }) {
   const [showAll, setShowAll] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
@@ -565,7 +568,7 @@ export function CourseReviewsBlock({ course, enrolled, reviews, onReviewSubmitte
           )}
         </div>
 
-        <div>
+        <div className={readOnly ? "hidden" : undefined}>
           {enrolled && !submitted ? (
             <button
               type="button"
@@ -585,7 +588,7 @@ export function CourseReviewsBlock({ course, enrolled, reviews, onReviewSubmitte
         </div>
       </div>
 
-      {!enrolled ? (
+      {!enrolled && !readOnly ? (
         <div className="mb-6 flex items-center gap-2.5 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
           <Lock className="size-4 shrink-0 text-amber-400" />
           Bạn cần tham gia khóa học để có thể chia sẻ đánh giá.
@@ -593,7 +596,11 @@ export function CourseReviewsBlock({ course, enrolled, reviews, onReviewSubmitte
       ) : null}
 
       {reviews.length === 0 ? (
-        <p className="py-6 text-center text-sm text-slate-400">Chưa có đánh giá nào. Hãy là người đầu tiên tham gia và để lại nhận xét!</p>
+        <p className="py-6 text-center text-sm text-slate-400">
+          {readOnly
+            ? "Chưa có đánh giá nào."
+            : "Chưa có đánh giá nào. Hãy là người đầu tiên tham gia và để lại nhận xét!"}
+        </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {visible.map((r) => (

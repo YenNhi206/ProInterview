@@ -19,7 +19,7 @@ const parseLinks = (text, keyPrefix) => {
           href={linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#8037f4] hover:text-[#630ed4] underline font-bold transition-colors duration-200"
+          className="text-[#93f72b] hover:underline font-bold transition-colors duration-200"
         >
           {linkText}
         </a>
@@ -37,7 +37,7 @@ const renderFormattedText = (line, lineIndex = 0) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       const innerText = part.slice(2, -2);
       return (
-        <strong key={idx} className="font-black text-slate-900">
+        <strong key={idx} className="font-black text-white">
           {parseLinks(innerText, `line-${lineIndex}-bold-${idx}`)}
         </strong>
       );
@@ -55,7 +55,7 @@ const renderTextWithListsAndHeadings = (text) => {
   const flushList = (key) => {
     if (currentList.length > 0) {
       renderedElements.push(
-        <ul key={key} className="list-disc pl-5 my-3 space-y-1.5 text-sm text-slate-700 sm:text-base">
+        <ul key={key} className="list-disc pl-5 my-3 space-y-1.5 text-sm text-slate-300 sm:text-base">
           {currentList}
         </ul>
       );
@@ -78,19 +78,19 @@ const renderTextWithListsAndHeadings = (text) => {
 
       if (trimmedLine.startsWith("### ")) {
         renderedElements.push(
-          <h4 key={`h3-${index}`} className="text-base font-black text-slate-900 mt-6 mb-2">
+          <h4 key={`h3-${index}`} className="text-base font-black text-white mt-6 mb-2">
             {renderFormattedText(trimmedLine.slice(4), index)}
           </h4>
         );
       } else if (trimmedLine.startsWith("## ")) {
         renderedElements.push(
-          <h3 key={`h2-${index}`} className="text-lg font-black text-slate-900 mt-6 mb-3">
+          <h3 key={`h2-${index}`} className="text-lg font-black text-white mt-6 mb-3">
             {renderFormattedText(trimmedLine.slice(3), index)}
           </h3>
         );
       } else if (trimmedLine.startsWith("# ")) {
         renderedElements.push(
-          <h2 key={`h1-${index}`} className="text-xl font-black text-slate-900 mt-7 mb-4">
+          <h2 key={`h1-${index}`} className="text-xl font-black text-white mt-7 mb-4">
             {renderFormattedText(trimmedLine.slice(2), index)}
           </h2>
         );
@@ -149,14 +149,15 @@ export function AchievementDetail() {
   if (!item) {
     return (
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
-        <h2 className="text-2xl font-black text-slate-900 mb-4">Không tìm thấy bài viết</h2>
-        <p className="text-slate-600 mb-8">Nội dung này có thể đã bị xóa hoặc không tồn tại.</p>
+        <h2 className="font-headline text-2xl font-black text-white mb-4">Không tìm thấy bài viết</h2>
+        <p className="text-slate-400 mb-8">Nội dung này có thể đã bị xóa hoặc không tồn tại.</p>
         <button
-          onClick={() => navigate("/")}
-          className="inline-flex items-center gap-2 rounded-full bg-[#a3e635] px-6 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-[#a3e635]/30 transition-all hover:bg-[#84cc16] active:scale-[0.98]"
+          onClick={() => navigate("/achievements")}
+          data-button-surface="none"
+          className="inline-flex items-center gap-2 rounded-full bg-[#93f72b] px-6 py-3 text-sm font-black text-[#0a0a0c] shadow-[0_0_20px_rgba(147,247,43,0.35)] transition-all hover:bg-[#85ea22] active:scale-[0.98] cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
-          Quay lại Trang chủ
+          Quay lại Tin tức
         </button>
       </div>
     );
@@ -166,7 +167,7 @@ export function AchievementDetail() {
     <div className="min-h-screen bg-transparent pb-24">
       {/* Decorative Blur */}
       <div
-        className="pointer-events-none absolute left-1/2 top-0 z-0 h-[min(60vw,600px)] w-[min(60vw,600px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8037f4]/10 blur-[100px] sm:h-[800px] sm:w-[800px] sm:blur-[140px]"
+        className="pointer-events-none absolute left-1/2 top-0 z-0 h-[min(60vw,600px)] w-[min(60vw,600px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8037f4]/15 blur-[120px] sm:h-[800px] sm:w-[800px] sm:blur-[140px]"
         aria-hidden
       />
 
@@ -174,21 +175,22 @@ export function AchievementDetail() {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="group mb-8 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#8037f4]"
+          data-button-surface="none"
+          className="group mb-8 inline-flex items-center gap-2 text-sm font-bold text-slate-400 transition-colors hover:text-white cursor-pointer"
         >
-          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 text-[#93f72b]" />
           Quay lại
         </button>
 
         <article>
           {/* Header Info */}
           <div className="mb-6 flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-100/80 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#8037f4] border border-violet-200">
-              <Award className="h-3 w-3" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/20 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-violet-300 border border-violet-400/30">
+              <Award className="h-3 w-3 text-[#93f72b]" />
               Câu chuyện thành công
             </span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400">
-              <CalendarDays className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+              <CalendarDays className="h-3.5 w-3.5 text-violet-400" />
               {new Date(item.date).toLocaleDateString("vi-VN", {
                 day: "2-digit",
                 month: "2-digit",
@@ -198,13 +200,13 @@ export function AchievementDetail() {
           </div>
 
           {/* Title */}
-          <h1 className="mb-8 text-3xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+          <h1 className="font-headline mb-8 text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
             {item.title}
           </h1>
 
           {/* Featured Image */}
           {item.imageUrl && (
-            <div className="mx-auto mb-10 max-w-lg overflow-hidden rounded-3xl border border-slate-200/40 shadow-xl shadow-slate-200/30">
+            <div className="mx-auto mb-10 max-w-2xl overflow-hidden rounded-3xl border border-white/10 shadow-2xl bg-white/5">
               <img
                 src={item.imageUrl}
                 alt={item.title}
@@ -214,7 +216,7 @@ export function AchievementDetail() {
           )}
 
           {/* Content Body */}
-          <div className="prose prose-slate max-w-none">
+          <div className="prose prose-invert max-w-none text-slate-200">
             {(() => {
               if (!item.content) return null;
               const images = item.images || [];
@@ -317,7 +319,7 @@ export function AchievementDetail() {
             return (
               <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {galleryImages.map((img, idx) => (
-                  <div key={idx} className="overflow-hidden rounded-2xl border border-slate-200/40 bg-slate-50 shadow-lg shadow-slate-200/30 transition-transform duration-500 hover:-translate-y-1 hover:shadow-violet-200/50 group">
+                  <div key={idx} className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-xl transition-transform duration-500 hover:-translate-y-1 hover:border-violet-500/40 group">
                     <img src={img} alt={`Hình ảnh ${idx + 1}`} className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105" />
                   </div>
                 ))}
@@ -326,8 +328,8 @@ export function AchievementDetail() {
           })()}
 
           {/* Author/Sign-off Card */}
-          <div className="mt-12 flex items-center gap-3 border-t border-slate-100 pt-8">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white p-2 shadow-sm border border-slate-100 shrink-0">
+          <div className="mt-12 flex items-center gap-3 border-t border-white/10 pt-8">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 p-2 shadow-sm border border-white/15 shrink-0">
               <img
                 src="/logo-mark.png?v=9"
                 alt="ProInterview"
@@ -335,7 +337,7 @@ export function AchievementDetail() {
               />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-800 leading-tight">ProInterview Team</p>
+              <p className="text-xs font-bold text-slate-200 leading-tight">ProInterview Team</p>
               <p className="text-[10px] text-slate-400 leading-tight">contact@prointerview.vn</p>
             </div>
           </div>

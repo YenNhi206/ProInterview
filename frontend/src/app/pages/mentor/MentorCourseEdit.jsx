@@ -85,7 +85,7 @@ const COURSE_STATUS_META = {
    pending_review: { label: "Chờ duyệt mới", className: "border-amber-500/30 bg-amber-500/10 text-amber-300" },
    pending_update: { label: "Chờ duyệt cập nhật", className: "border-sky-500/30 bg-sky-500/10 text-sky-300" },
    draft: { label: "Bản nháp", className: "border-white/20 bg-white/5 text-slate-300" },
-   archived: { label: "Đã lưu trữ", className: "border-rose-500/30 bg-rose-500/10 text-rose-400" },
+   archived: { label: "Đã gỡ", className: "border-rose-500/30 bg-rose-500/10 text-rose-400" },
 };
 
 const MENTOR_COURSE_EDIT_EXTRA_CSS = `
@@ -1078,14 +1078,14 @@ export function MentorCourseEdit() {
       try {
          const res = await archiveCourse(id);
          if (!res.success) {
-            toastApiError(res.error, "Không thể lưu trữ khóa học.");
+            toastApiError(res.error, "Không thể gỡ khóa học.");
             return;
          }
-         toastApiSuccess(res.message || "Đã lưu trữ khóa học.");
+         toastApiSuccess(res.message || "Đã gỡ khóa học.");
          setShowArchiveDialog(false);
          navigate("/mentor/courses");
       } catch {
-         toastApiError("Lỗi kết nối khi lưu trữ khóa học.");
+         toastApiError("Lỗi kết nối khi gỡ khóa học.");
       } finally {
          setArchiving(false);
       }
@@ -1236,10 +1236,11 @@ export function MentorCourseEdit() {
             >
                {TABS.map((tab) => (
                   <button
+                     data-button-surface="none"
                      key={tab.key}
                      type="button"
                      onClick={() => setActiveTab(tab.key)}
-                     className={`flex shrink-0 snap-start items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
+                     className={`mw-tab flex shrink-0 snap-start items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
                         activeTab === tab.key
                            ? "bg-[#93f72b] text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.35)]"
                            : "text-slate-300 hover:bg-white/5 hover:text-white"
@@ -1393,6 +1394,7 @@ export function MentorCourseEdit() {
 
          <ArchiveCourseDialog
             open={showArchiveDialog}
+            courseId={id}
             courseTitle={course.title}
             archiving={archiving}
             onOpenChange={(open) => {

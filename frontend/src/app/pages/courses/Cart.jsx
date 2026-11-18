@@ -255,24 +255,20 @@ export function Cart() {
                   <ShoppingCart size={36} strokeWidth={2} className="text-[#93f72b] drop-shadow-[0_0_14px_rgba(147,247,43,0.7)]" aria-hidden="true" />
                 </div>
                 <div className="cart-empty-sparkle-pill" aria-hidden="true">
-                  <Sparkles size={13} className="text-amber-300" />
+                  <Sparkles size={13} className="text-[#93f72b]" />
                 </div>
               </div>
 
-              {/* Typography */}
-              <h2 className="cart-empty-title">
-                Giỏ hàng của bạn đang trống
-              </h2>
-
-              {/* Action Button: Apple Shimmer Gradient */}
-              <div className="cart-empty-actions">
+              {/* Action Button: ProInterview Signature Brand Lime CTA */}
+              <div className="cart-empty-actions mt-3 sm:mt-4">
                 <Link
                   to="/courses"
-                  className="cart-checkout-btn"
-                  style={{ width: "auto", padding: "0.85rem 2.25rem", textDecoration: "none" }}
+                  data-button-surface="none"
+                  className="group inline-flex items-center gap-2 rounded-full bg-[#93f72b] hover:bg-[#85ea22] text-[#0a0a0c] font-black text-sm px-8 py-3.5 shadow-[0_0_24px_rgba(147,247,43,0.4)] hover:shadow-[0_0_36px_rgba(147,247,43,0.6)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  style={{ textDecoration: "none" }}
                 >
                   <span>Khám phá khóa học</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={16} strokeWidth={2.5} className="transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
             </div>

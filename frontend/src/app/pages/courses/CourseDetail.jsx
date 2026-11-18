@@ -73,6 +73,7 @@ function mapApiCourse(c) {
     lessonsCount: c.totalLessons || 0,
     modulesCount: modules.length,
     price: c.price || 0,
+    status: c.status || "",
     learningOutcomes: c.whatYoullLearn?.length ? c.whatYoullLearn : [],
     requirements: c.requirements || [],
     modules,
@@ -144,7 +145,10 @@ export function CourseDetail() {
   const isMentorViewer = currentUser?.role === "mentor";
   const isOwnerMentor =
     isMentorViewer && String(currentUser?.id || "") === String(course?.mentorUserId || "");
-  const canTakeStudentActions = !isMentorViewer || isOwnerMentor;
+  /* Mentor "Ngừng bán": existing learners keep studying, nobody can buy anymore. */
+  const isStoppedSelling = course?.status === "archived";
+  /* Mentors never buy/enroll; the owner manages the course instead. */
+  const canTakeStudentActions = !isMentorViewer && !isStoppedSelling;
   const isReadOnlyMentorView = isMentorViewer && !isOwnerMentor;
   const isAdminViewer = currentUser?.role === "admin";
   const adminPreviewMode = isAdminViewer && isAdminCoursePreviewMode(searchParams);
@@ -231,7 +235,8 @@ export function CourseDetail() {
       hasPaidEnrollment={hasPaidEnrollment}
       hasPendingPayment={hasPendingPayment}
       canTakeStudentActions={canTakeStudentActions}
-      isReadOnlyMentorView={isReadOnlyMentorView}
+      isReadOnlyMentorView={isMentorViewer}
+      isStoppedSelling={isStoppedSelling}
       onEnroll={handleEnroll}
       onContinueLearn={() => navigate(`/courses/${course.id}/learn`)}
       onContinuePayment={async () => {
@@ -304,14 +309,16 @@ export function CourseDetail() {
               transition={{ duration: 0.5 }}
               className="border-b border-white/10 pb-8 pt-2"
             >
-              {/* Breadcrumb */}
-              <nav className="mb-4 flex flex-wrap items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
-                <Link to="/courses" className="hover:text-white transition-colors">
-                  Khóa học
-                </Link>
-                <span className="text-slate-500">›</span>
-                <span className="text-slate-100 font-semibold truncate max-w-lg">{course.title}</span>
-              </nav>
+              {/* Breadcrumb — mentors view this page read-only, so no catalog link */}
+              {!isMentorViewer ? (
+                <nav className="mb-4 flex flex-wrap items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
+                  <Link to="/courses" className="hover:text-white transition-colors">
+                    Khóa học
+                  </Link>
+                  <span className="text-slate-500">›</span>
+                  <span className="text-slate-100 font-semibold truncate max-w-lg">{course.title}</span>
+                </nav>
+              ) : null}
 
               <h1 className="mb-4 text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-[34px] text-white">
                 {course.title}
@@ -416,6 +423,7 @@ export function CourseDetail() {
                 enrolled={hasPaidEnrollment}
                 reviews={reviews}
                 onReviewSubmitted={() => void reloadReviews()}
+                readOnly={isMentorViewer}
               />
             </motion.div>
           </div>
@@ -431,7 +439,7 @@ export function CourseDetail() {
 
             <CourseInstructorBlock
               course={course}
-              canNavigate={canTakeStudentActions}
+              canNavigate={!isMentorViewer}
               onViewMentor={() => navigate(`/mentors/${course.mentorId}`)}
             />
           </motion.aside>

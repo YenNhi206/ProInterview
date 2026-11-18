@@ -565,11 +565,11 @@ export function MentorPeerReview() {
                 {FILTER_TABS.map((tab) => {
                   const active = filter === tab.id;
                   return (
-                    <button
+                    <button data-button-surface="none"
                       key={tab.id}
                       type="button"
                       onClick={() => setFilter(tab.id)}
-                      className={`relative shrink-0 snap-start whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
+                      className={`mw-tab relative shrink-0 snap-start whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
                         active
                           ? "text-[#93f72b]"
                           : "text-slate-400 hover:text-white"
@@ -595,11 +595,12 @@ export function MentorPeerReview() {
                     <button
                       key={cat}
                       type="button"
+                      data-button-surface={active ? undefined : "none"}
                       onClick={() => setCategory(cat)}
                       className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition ${
                         active
                           ? "bg-[#93f72b] text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.35)]"
-                          : "border border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10 hover:text-white"
+                          : "mw-chip border border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10 hover:text-white"
                       }`}
                     >
                       {formatCategory(cat)}
