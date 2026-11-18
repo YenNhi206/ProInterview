@@ -57,6 +57,7 @@ stateDiagram-v2
 - Giá trị `rescheduled` còn trong enum nhưng **không hàm nào ghi** — chỉ được đọc ở `dashboardStatsService`. Có thể dọn khi refactor.
 - Booking đã trả tiền nhưng quá giờ mà chưa kết thúc: job stale sweep **không đổi status**, chỉ gắn `staleFlaggedAt` để admin xử lý.
 - Hai lựa chọn còn lại khi mentor hủy ≥ 24h: `change_mentor` → sinh `rebookCreditStatus=available`; `refund` → `paymentStatus=refund_pending`.
+- **Booking lộ trình (`learningPathId`) và buổi đánh giá 0đ (`sessionType: assessment`)** — LP-22: `cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow` chỉ đổi `status` (`cancelled` / `no_show`) và ghi `cancelledBy`; **không** hoàn tiền, **không** `awaiting_user`, **không** rebook credit, `paymentStatus` giữ `paid`. `LearningPathSession` của buổi quay về `planned` (gỡ `bookingId`) để ứng viên đặt lại. `resolveMentorCancelBooking` trả 400. Hoàn tiền lộ trình chỉ qua hủy cả lộ trình (LP-15). No-show của mentor vẫn tăng `stats.noShowCount`.
 
 ---
 
