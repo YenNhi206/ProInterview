@@ -136,12 +136,15 @@ ensureCollection("bookings", {
   [{ status: 1 }],
   // Chống đặt trùng slot khi booking còn hiệu lực
   [{ mentorId: 1, date: 1, timeSlot: 1 }, { unique: true, partialFilterExpression: { status: { $in: ACTIVE_BOOKING } } }],
-  // Mỗi mentorship request chỉ sinh một booking còn hiệu lực
+  // Mỗi mentorship request chỉ sinh một booking thường còn hiệu lực (LP-02).
+  // Buổi đánh giá 0đ (sessionType "assessment") không bị chặn; buổi lộ trình chỉ gắn learningPathId.
   [{ mentorshipRequestId: 1 }, {
+    name: "mentorshipRequestId_regular_unique",
     unique: true,
     partialFilterExpression: {
       mentorshipRequestId: { $type: "objectId" },
       status: { $in: ["pending", "confirmed", "in_progress", "completed", "rescheduled"] },
+      sessionType: { $in: ["mock_interview", "cv_review", "career_consulting", "custom"] },
     },
   }],
   // Mã chuyển khoản không trùng khi đang chờ thanh toán
