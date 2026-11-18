@@ -149,7 +149,31 @@ const bookingSchema = new Schema(
 );
 
 bookingSchema.index({ userId: 1, status: 1 });
-bookingSchema.index({ mentorshipRequestId: 1 }, { unique: true, partialFilterExpression: { mentorshipRequestId: { $type: "objectId" }, status: { $in: ["pending", "confirmed", "in_progress", "completed", "rescheduled"] } } });
+/**
+ * LP-02: mỗi yêu cầu mentor chỉ có 1 booking "thường" đang sống, nhưng buổi đánh giá 0đ
+ * (`sessionType: "assessment"`) được gắn thêm cùng request. Buổi lộ trình (kể cả học lại)
+ * KHÔNG gắn `mentorshipRequestId`, chỉ gắn `learningPathId`, nên không rơi vào index này.
+ *
+ * partialFilterExpression không hỗ trợ `$ne`/`$nin`, nên liệt kê các loại buổi bị chặn trùng
+ * bằng `$in`. Thêm sessionType mới thì cân nhắc có đưa vào danh sách này không.
+ * Index đổi tên (khác `mentorshipRequestId_1` cũ) → chạy `npm run db:sync-booking-indexes`
+ * để drop index cũ trên DB thật.
+ */
+export const REQUEST_UNIQUE_SESSION_TYPES = ["mock_interview", "cv_review", "career_consulting", "custom"];
+export const REQUEST_UNIQUE_INDEX_NAME = "mentorshipRequestId_regular_unique";
+export const LEGACY_REQUEST_INDEX_NAME = "mentorshipRequestId_1";
+bookingSchema.index(
+  { mentorshipRequestId: 1 },
+  {
+    name: REQUEST_UNIQUE_INDEX_NAME,
+    unique: true,
+    partialFilterExpression: {
+      mentorshipRequestId: { $type: "objectId" },
+      status: { $in: ["pending", "confirmed", "in_progress", "completed", "rescheduled"] },
+      sessionType: { $in: REQUEST_UNIQUE_SESSION_TYPES },
+    },
+  },
+);
 bookingSchema.index({ mentorId: 1, date: 1 });
 bookingSchema.index({ status: 1 });
 // Ngăn double-booking cùng mentor/ngày/giờ khi có race condition

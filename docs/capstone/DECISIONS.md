@@ -93,3 +93,9 @@ Khi code xong mỗi state machine, chép vào `docs/STATE_MACHINES.md` kèm bả
 4. `InterviewSession` vốn đã ghi `promptVersion`; Langfuse trace theo version; Quality Dashboard so tỉ lệ bị sửa giữa các version. Có rollback.
 
 Đây là phần "two-tier HITL" trong đơn: Company Mod duyệt câu theo công ty, Platform Mod duyệt rubric và cải tiến AI.
+
+## Nhật ký quyết định mới
+
+| Ngày | Task | Quyết định | Lý do |
+|:-----|:-----|:-----------|:------|
+| 18/11/2026 | LP-02 | Index unique `mentorshipRequestId` của Booking đổi tên thành `mentorshipRequestId_regular_unique`, partial filter thêm `sessionType: { $in: ["mock_interview", "cv_review", "career_consulting", "custom"] }` (danh sách `REQUEST_UNIQUE_SESSION_TYPES` trong `Booking.js`). Buổi lộ trình và buổi học lại **không gắn** `mentorshipRequestId`, chỉ gắn `learningPathId` (LP-04, LP-12, LP-13 phải tuân theo). Trên DB thật chạy `npm run db:sync-booking-indexes` để drop `mentorshipRequestId_1` | `partialFilterExpression` không hỗ trợ `$ne`/`$nin`/`$exists: false`, nên không loại được `assessment` hay `learningPathId` bằng điều kiện phủ định. Thêm `sessionType` mới thì quyết định có đưa vào danh sách chặn trùng không |

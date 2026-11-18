@@ -557,7 +557,7 @@ erDiagram
 | USER – CART | 1 – 0..1 | `Cart.userId` unique |
 | USER – CART_ORDER (đang mở) | 1 – 0..1 | Partial unique `{userId}` khi `active: true` |
 | MENTOR – BOOKING theo slot | — | Partial unique `{mentorId, date, timeSlot}` khi status ∈ pending/confirmed/in_progress → chống đặt trùng |
-| MENTORSHIP_REQUEST – BOOKING | 0..1 – 0..1 | Partial unique `{mentorshipRequestId}` khi booking còn hiệu lực |
+| MENTORSHIP_REQUEST – BOOKING | 0..1 – 0..n | Partial unique `{mentorshipRequestId}` (tên `mentorshipRequestId_regular_unique`) khi booking còn hiệu lực và `sessionType` ∈ mock_interview/cv_review/career_consulting/custom: tối đa 1 booking thường, buổi đánh giá 0đ (`assessment`) không bị chặn. Buổi lộ trình không gắn `mentorshipRequestId` (LP-02) |
 | BOOKING – MENTOR_KNOWLEDGE | 1 – 0..1 | `MentorKnowledge.bookingId` unique |
 | USER – COURSE (ENROLLMENT) | n – n | Unique `{userId, courseId}` |
 | USER – REVIEW – target | — | Unique `{userId, targetType, targetId}`: mỗi người đánh giá một mentor/khóa một lần |
