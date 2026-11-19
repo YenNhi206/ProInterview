@@ -48,3 +48,12 @@ learningPathsRouter.patch("/:id", mutationLimit, asyncHandler(async (req, res) =
 learningPathsRouter.post("/:id/propose", mutationLimit, asyncHandler(async (req, res) => {
   res.json({ success: true, learningPath: await service.proposeLearningPath(req.pathActor, req.params.id) });
 }));
+
+// LP-08: ứng viên chấp nhận / yêu cầu sửa lộ trình.
+learningPathsRouter.post("/:id/accept", mutationLimit, asyncHandler(async (req, res) => {
+  res.json({ success: true, learningPath: await service.acceptLearningPath(req.pathActor, req.params.id, req.body) });
+}));
+
+learningPathsRouter.post("/:id/request-revision", mutationLimit, asyncHandler(async (req, res) => {
+  res.json({ success: true, learningPath: await service.requestLearningPathRevision(req.pathActor, req.params.id, req.body) });
+}));

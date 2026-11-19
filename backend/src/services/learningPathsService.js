@@ -11,6 +11,7 @@ import { LearningPathSession } from "../models/LearningPathSession.js";
 import { MentorshipRequest } from "../models/MentorshipRequest.js";
 import { Booking } from "../models/Booking.js";
 import { User } from "../models/User.js";
+import { Mentor } from "../models/Mentor.js";
 import { httpError } from "../utils/apiErrors.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
@@ -40,6 +41,9 @@ const createInput = Joi.object({
   sessions: draftFields.sessions.default([]),
 });
 const updateInput = Joi.object(draftFields).min(1);
+/** LP-08: ứng viên chấp nhận đúng phiên bản đang xem (tránh chấp nhận bản cũ). */
+const acceptInput = Joi.object({ version: Joi.number().integer().min(1) });
+const revisionInput = Joi.object({ note: Joi.string().trim().min(5).max(2000).required() });
 
 function validate(schema, value) {
   const result = schema.validate(value ?? {}, { abortEarly: true, stripUnknown: true });
@@ -100,6 +104,7 @@ export async function learningPathDTO(pathOrId) {
     totalAmount: path.totalAmount,
     platformFeeRate: path.platformFeeRate,
     proposedAt: path.proposedAt ?? null,
+    acceptedAt: path.acceptedAt ?? null,
     createdAt: path.createdAt,
     updatedAt: path.updatedAt,
     /** LP-20: bối cảnh để Mentor soạn lộ trình (hồ sơ ứng viên đầy đủ có ở PR-01). */
@@ -250,5 +255,87 @@ export async function proposeLearningPath(actor, pathId) {
     metadata: { learningPathId: path._id, mentorId: path.mentorId, actionUrl: `/learning-paths/${path._id}` },
   });
 
+  return learningPathDTO(updated);
+}
+
+// ---------------------------------------------------------------------------
+// LP-08 — phía ứng viên: chấp nhận / yêu cầu sửa
+// ---------------------------------------------------------------------------
+
+function requireCandidate(actor) {
+  if (actor?.mentor) throw httpError(403, "Chỉ mentee của lộ trình mới thực hiện được thao tác này.");
+}
+
+async function loadPathForCandidate(actor, pathId) {
+  requireCandidate(actor);
+  assertPathId(pathId);
+  const path = await LearningPath.findById(pathId).lean();
+  // Bản nháp coi như không tồn tại với ứng viên (giống GET /:id).
+  if (!path || String(path.candidateId) !== actor.userId || path.status === "draft") throw httpError(404, "Không tìm thấy lộ trình.");
+  return path;
+}
+
+async function notifyMentor(path, payload) {
+  const mentor = await Mentor.findById(path.mentorId).select("userId").lean();
+  if (!mentor?.userId) return;
+  await deliverNotification(mentor.userId, {
+    ...payload,
+    mentorPrefKey: "booking_request",
+    metadata: { learningPathId: path._id, actionUrl: `/mentor/learning-paths/${path._id}/edit` },
+  });
+}
+
+/**
+ * Ứng viên chấp nhận lộ trình: proposed → pending_payment (quyết định 1: trả trọn gói ở LP-10).
+ * Gửi kèm `version` đang xem thì chỉ chấp nhận đúng phiên bản đó (409 nếu mentor đã gửi bản khác).
+ */
+export async function acceptLearningPath(actor, pathId, body) {
+  const path = await loadPathForCandidate(actor, pathId);
+  const input = validate(acceptInput, body);
+  if (path.status !== "proposed") {
+    throw httpError(409, path.status === "revision_requested" ? "Bạn đã yêu cầu sửa, hãy chờ mentor gửi lại lộ trình." : "Lộ trình không còn ở trạng thái chờ bạn chấp nhận.");
+  }
+  if (input.version !== undefined && input.version !== path.version) {
+    throw httpError(409, "Mentor vừa gửi phiên bản mới. Tải lại trang để xem trước khi chấp nhận.");
+  }
+  const updated = await LearningPath.findOneAndUpdate(
+    { _id: path._id, status: "proposed", version: path.version },
+    { $set: { status: "pending_payment", acceptedAt: new Date() } },
+    { returnDocument: "after" },
+  ).lean();
+  if (!updated) throw httpError(409, "Lộ trình vừa đổi trạng thái. Vui lòng tải lại trang.");
+
+  const candidate = await User.findById(path.candidateId).select("name").lean();
+  await notifyMentor(path, {
+    type: "learning_path_accepted",
+    title: "Mentee đã chấp nhận lộ trình",
+    body: `${candidate?.name || "Mentee"} đã chấp nhận lộ trình ${updated.totalAmount.toLocaleString("vi-VN")} VND. Lộ trình bắt đầu khi mentee thanh toán trọn gói.`,
+  });
+  return learningPathDTO(updated);
+}
+
+/**
+ * Ứng viên yêu cầu sửa: proposed → revision_requested, lưu `revisionNote`.
+ * Mentor sửa (PATCH) rồi gửi lại (propose) → version + 1 (LP-07).
+ */
+export async function requestLearningPathRevision(actor, pathId, body) {
+  const path = await loadPathForCandidate(actor, pathId);
+  const input = validate(revisionInput, body);
+  if (path.status !== "proposed") {
+    throw httpError(409, path.status === "revision_requested" ? "Bạn đã gửi yêu cầu sửa, mentor đang chỉnh lại lộ trình." : "Chỉ yêu cầu sửa được khi lộ trình đang chờ bạn phản hồi.");
+  }
+  const updated = await LearningPath.findOneAndUpdate(
+    { _id: path._id, status: "proposed", version: path.version },
+    { $set: { status: "revision_requested", revisionNote: input.note } },
+    { returnDocument: "after" },
+  ).lean();
+  if (!updated) throw httpError(409, "Lộ trình vừa đổi trạng thái. Vui lòng tải lại trang.");
+
+  const candidate = await User.findById(path.candidateId).select("name").lean();
+  await notifyMentor(path, {
+    type: "learning_path_revision_requested",
+    title: "Mentee yêu cầu sửa lộ trình",
+    body: `${candidate?.name || "Mentee"}: "${input.note.slice(0, 160)}${input.note.length > 160 ? "…" : ""}"`,
+  });
   return learningPathDTO(updated);
 }

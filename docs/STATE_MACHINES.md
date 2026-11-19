@@ -345,7 +345,7 @@ stateDiagram-v2
 | `active` → `completed` | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` (buổi cuối `passed`) | LP-13 |
 | `active` → `cancelled` | `POST /api/learning-paths/:id/cancel` | LP-15 |
 
-Model và enum có từ LP-03. **Đã code (LP-07):** `→ draft` (`createLearningPathDraft`), `draft / revision_requested → proposed` (`proposeLearningPath`, cập nhật có điều kiện theo `status` + `version`; gửi lại thì `version + 1`; yêu cầu mentor → `path_proposed`). Các chuyển còn lại làm ở task ghi trong bảng. Mỗi yêu cầu mentor chỉ có 1 lộ trình chưa `cancelled` (partial unique index).
+Model và enum có từ LP-03. **Đã code (LP-07):** `→ draft` (`createLearningPathDraft`), `draft / revision_requested → proposed` (`proposeLearningPath`, cập nhật có điều kiện theo `status` + `version`; gửi lại thì `version + 1`; yêu cầu mentor → `path_proposed`). **LP-08:** `proposed → revision_requested` (`requestLearningPathRevision`, lưu `revisionNote`) và `proposed → pending_payment` (`acceptLearningPath`, ghi `acceptedAt`, chặn chấp nhận phiên bản cũ qua `version`); cả hai cập nhật có điều kiện `status: proposed` + `version`, nên chấp nhận và yêu cầu sửa cùng lúc chỉ một thao tác thắng. Các chuyển còn lại làm ở task ghi trong bảng. Mỗi yêu cầu mentor chỉ có 1 lộ trình chưa `cancelled` (partial unique index).
 
 ---
 

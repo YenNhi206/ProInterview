@@ -518,7 +518,7 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 
 Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (dùng chung `requestActor` với A.16). Response `{ success, learningPath }` hoặc `{ success, learningPaths }`.
 
-**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
+**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, acceptedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
 
 | Method | Path | Ai | Ghi chú |
 |:-------|:-----|:---|:--------|
@@ -527,8 +527,10 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 | POST | `/api/learning-paths` | Mentor được chọn | **LP-07.** Body `{ mentorshipRequestId, goal?, totalAmount? (VND nguyên, 0–100.000.000), sessions?: [{ title, objectives?[], shrmKeys?[] }] (≤ 12) }`. Request phải ở `selected`/`assessing`. **201** bản nháp (`draft`). 409 nếu yêu cầu đã có lộ trình chưa hủy |
 | PATCH | `/api/learning-paths/:id` | Mentor soạn | **LP-07.** Body `{ goal?, totalAmount?, sessions? }`; `sessions` thay **toàn bộ** danh sách buổi. Chỉ khi `draft` hoặc `revision_requested` (khác → 409) |
 | POST | `/api/learning-paths/:id/propose` | Mentor soạn | **LP-07.** `draft`/`revision_requested → proposed`. Chặn (400): chưa có buổi; giá < 10.000₫; buổi đánh giá 0đ chưa `completed`. Chụp `platformFeeRate` theo Mentor (`resolveBookingPlatformFeeRate`); gửi lại sau sửa thì `version + 1`. Yêu cầu mentor → `path_proposed`; thông báo `learning_path_proposed` cho mentee |
+| POST | `/api/learning-paths/:id/accept` | Mentee của lộ trình | **LP-08.** Body `{ version? }`. `proposed → pending_payment`, ghi `acceptedAt`. Gửi `version` đang xem thì 409 nếu mentor đã gửi phiên bản khác. 409 khi không ở `proposed`; mentor gọi → 403; bản nháp / lộ trình của người khác → 404. Thông báo `learning_path_accepted` cho mentor |
+| POST | `/api/learning-paths/:id/request-revision` | Mentee của lộ trình | **LP-08.** Body `{ note }` (5–2000 ký tự, bắt buộc). `proposed → revision_requested`, lưu `revisionNote`. Mentor sửa (`PATCH`) rồi gửi lại (`propose`) → `version + 1`. Thông báo `learning_path_revision_requested` cho mentor |
 
-Sắp có: `accept`, `request-revision` (LP-08), `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi = 0 cho tới LP-09.
+Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi = 0 cho tới LP-09.
 
 ---
 
