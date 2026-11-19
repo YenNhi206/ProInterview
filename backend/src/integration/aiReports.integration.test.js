@@ -175,4 +175,25 @@ describe("POST /api/reports — interview_question / interview_evaluation", () =
     });
     assert.equal(patch.status, 404);
   });
+
+  it("evaluate (đã chấm) trả openReports theo câu; report đã đóng thì không còn (N-10)", async () => {
+    const user = await makeUser();
+    const session = await evaluatedSession(user);
+    await InterviewSession.updateOne({ _id: session._id }, { $set: { feedbackGeneratedAt: new Date() } });
+    const evaluate = async () => (await fetch(`${http.baseUrl}/api/interviews/sessions/${session._id}/evaluate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${mintAccessToken(user._id)}` },
+      body: JSON.stringify({ answers: [] }),
+    })).json();
+
+    assert.deepEqual((await evaluate()).evaluation.perQuestion[0].openReports, []);
+
+    const { reportId } = await (await postReport(user._id, {
+      targetType: "interview_evaluation", targetId: String(session._id), questionIndex: 3, reasonCode: "inaccurate_scoring",
+    })).json();
+    assert.deepEqual((await evaluate()).evaluation.perQuestion[0].openReports, ["interview_evaluation"]);
+
+    await Report.updateOne({ _id: reportId }, { $set: { status: "resolved" } });
+    assert.deepEqual((await evaluate()).evaluation.perQuestion[0].openReports, []);
+  });
 });
