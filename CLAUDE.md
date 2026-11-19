@@ -35,6 +35,13 @@ npm run seed:samples           # mentor + khóa học mẫu
 npm run sync:mentor-profiles   # đồng bộ Mentor với User role mentor
 npm run db:prune-fake-mentors  # xóa Mentor không có User tương ứng
 npm run warmup:baseline-videos # làm nóng cache video 3 câu baseline
+npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (không ghi DB)
+npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
+npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)
+npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần trên production sau khi merge
+npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
+npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1 + chuỗi cũ legacy; chạy lại được
+node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy
 npm test                       # node:test + jest DTO + unittest Python
 ```
 
@@ -132,17 +139,17 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Nhóm | Prefix |
 |:-----|:-------|
 | Tài khoản | `/api/auth`, `/api/users`, `/api/notifications`, `/api/analytics` |
-| Mentor & đặt lịch | `/api/mentors`, `/api/mentor` (khu vực mentor), `/api/bookings`, `/api/mentorship-requests`, `/api/reviews`, `/api/reports` |
+| Mentor & đặt lịch | `/api/mentors`, `/api/mentor` (khu vực mentor), `/api/bookings`, `/api/mentorship-requests`, `/api/learning-paths` (capstone), `/api/reviews`, `/api/reports` |
 | Khóa học & bán hàng | `/api/courses`, `/api/enrollments`, `/api/cart`, `/api/coupons`, `/api/plans`, `/api/payments` |
-| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai` |
+| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01) |
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
 `/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-### Models (`models/`) — 30 schema
+### Models (`models/`) — 31 schema
 
-`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
 Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 
@@ -198,7 +205,7 @@ utils/        theo domain: auth/ (auth.js — authFetch, token; requireAuthLoade
 | Công khai (`AppLayout`) | `/`, `/mentors`, `/mentors/:id`, `/courses`, `/courses/:id`, `/pricing`, `/about`, `/blog`, `/achievements`, `/terms`, `/privacy`, `/cv-analysis/*`, `/interview` | `/` chuyển mentor/admin/moderator về khu vực riêng (`roleHomeLoader`) |
 | Phỏng vấn | `/interview/room`, `/interview/feedback`, `/interview/trial`, `/interview/trial/done` | `requireCustomerAuthLoader` |
 | Ứng viên | `/dashboard`, `/my-bookings`, `/mentor-requests`, `/my-courses`, `/payment-history`, `/cart`, `/booking/:id`, `/session/:id`, `/review/:sessionId`, `/profile`, `/settings` | `requireAuthLoader` + `ProtectedOutlet` |
-| Mentor (`MentorArea`) | `/mentor/dashboard`, `schedule`, `requests`, `finance`, `analytics`, `reviews`, `courses`, `courses/:id/edit`, `peer-review`, `meeting-detail/:id`; `/mentor/session-feedback/:sessionId` | như trên |
+| Mentor (`MentorArea`) | `/mentor/dashboard`, `schedule`, `requests`, `learning-paths`, `learning-paths/new`, `learning-paths/:pathId/edit`, `finance`, `analytics`, `reviews`, `courses`, `courses/:id/edit`, `peer-review`, `meeting-detail/:id`; `/mentor/session-feedback/:sessionId` | như trên |
 | Toàn màn hình | `/checkout`, `/courses/:id/learn`, `/meeting/:sessionId`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, `/payment-*` | tùy trang |
 | Admin | `/admin`, `users`, `users/import`, `users/:id`, `mentors`, `mentors/pending`, `mentors/:id`, `bookings`, `bookings/check-ins`, `bookings/:id`, `finance`, `finance/operations`, `transactions`, `payouts`, `course-payments`, `subscription-payments`, `audit-log`, `analytics`, `content/questions`, `reviews`, `support`, `achievements`, `settings` | `adminLoader` |
 | Moderator | `/moderator/queue`, `queue/:id`, `questions`, `quality`, `courses` | `createRoleLoader("moderator")` |
@@ -295,6 +302,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 
 - **[docs/capstone/TASKS.md](docs/capstone/TASKS.md)**: 107 task, người phụ trách, phụ thuộc, điều kiện "Xong khi", cổng giai đoạn, Definition of Done.
 - **[docs/capstone/DECISIONS.md](docs/capstone/DECISIONS.md)**: 14 quyết định đã chốt, công thức chia tiền lộ trình, state machine mới, ánh xạ tên role.
+- **[docs/capstone/DESIGN.md](docs/capstone/DESIGN.md)**: thiết kế tham khảo — 11 model mới, 12 model cần sửa, API/màn hình, mục 7 "Bẫy trong code" (đọc trước khi sửa vùng liên quan).
 
 ### Quy ước
 
@@ -307,17 +315,21 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 
 | Chỗ | Bẫy | Cách xử lý |
 |:----|:----|:-----------|
-| `backend/src/models/Booking.js:152` | Index unique `mentorshipRequestId` tính cả booking `completed`: mỗi yêu cầu chỉ có được 1 booking | Partial filter loại `assessment` và booking có `learningPathId`; **phải drop index cũ `mentorshipRequestId_1` rồi sync** (chỉ sửa schema thì MongoDB báo `IndexOptionsConflict`, index cũ vẫn chặn dù test memory-server xanh) |
+| `backend/src/models/Booking.js` (index `mentorshipRequestId_regular_unique`) | Đã sửa ở LP-02: chỉ chặn trùng booking thường (`REQUEST_UNIQUE_SESSION_TYPES`), buổi `assessment` không bị chặn; booking lộ trình không gắn `mentorshipRequestId` | Đổi index trên Booking thì phải chạy `npm run db:sync-booking-indexes` trên DB thật (production đã chạy 18/11/2026). Chạy DB khác `.env` dùng `TARGET_MONGO_URI` (`loadEnv` ghi đè `MONGO_URI`); trên PowerShell dùng lệnh `:dry`, không dùng `-- --dry-run` |
 | `services/mentorEarningsService.js:21` | `mentorNetFromBooking` = `totalAmount − platformFee`, không đọc `platformFeeRate` | Booking nào không qua checkout thường phải ghi sẵn `platformFee`: booking lộ trình / buổi 0đ dùng `learningPathBookingMoney()` / `assessmentBookingMoney()` trong `utils/learningPathBookingMoney.js` (LP-04) |
 | `controllers/adminController.js` `getPlatformFinanceSummary` | Cộng mọi booking `paid` vào doanh thu | Đã loại booking lộ trình và buổi 0đ bằng `EXCLUDE_LEARNING_PATH_BOOKINGS` (LP-04); báo cáo doanh thu booking mới cũng phải loại như vậy |
 | `jobs/bookingStaleSweepJob.js` | Hủy mọi booking `pending` chưa trả tiền đã qua giờ bắt đầu | Booking không cần thanh toán riêng phải tạo với `paymentStatus: "paid"` |
 | `services/bookingsService.js` (`cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking`) | Booking `paid` bị hoàn tiền / sinh rebook credit theo từng buổi | Đã chặn ở LP-22: `isLearningPathOrAssessmentBooking()` → `closeLearningPathOrAssessmentBooking()` (không hoàn tiền, không credit, buổi lộ trình quay về `planned`). Luồng hủy/hoàn tiền mới cũng phải kiểm tra hàm này |
 | `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription; `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng và `paymentRef` sinh bằng `utils/orderRef.js` |
-| `services/mentorshipRequestsService.js:125` | Chỉ cho tạo booking khi `request.status === "selected"` | Thêm status mới thì sửa điều kiện này |
+| `services/mentorshipRequestsService.js` `resolveRequestBooking` | Trước LP-05 chỉ cho tạo booking khi `request.status === "selected"` | Đã sửa ở LP-05: dùng `REQUEST_MENTOR_CHOSEN_STATUSES` (`selected`, `assessing`, `path_proposed`). Thêm status mới sau khi chọn mentor thì thêm vào hằng số này |
 | `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |
 | `services/moderationQueueService.js:39, :83` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report`; danh sách hàng đợi không lọc `type` | Loại mới cần map riêng; hàng đợi HITL chỉ lấy 3 loại phỏng vấn |
 | `models/QuestionBank.js` | `orgId` đang `ref: "Organization"` (model không tồn tại); `status` đã có `draft`, `rejected`; `roleCategory` đã có index | Đổi ref sang `"Company"`; dùng lại field có sẵn, không thêm field mới |
 | `frontend/src/app/utils/analytics/mock*.js` | 4 trang admin + `UserJourneyPanel.jsx` bơm số liệu giả ở trình duyệt | Không dùng cho màn mới; gỡ ở N-09 |
+| `config/competencies.json` (LP-01) | Đặt danh sách năng lực riêng, hoặc chỉ kiểm key bằng regex, thì lưu được key không có trong bộ tiêu chí: chấm điểm, `suggestOutcome` và hồ sơ năng lực không tra được | Backend kiểm bằng `isValidCompetencyKey`; frontend đọc `GET /api/competencies`. Quy tắc đầy đủ: DECISIONS.md mục "Bộ tiêu chí năng lực SHRM/DDI (LP-01)" |
+| `InterviewSession` | 3 câu baseline có `competencyId = ""`; `moderatorOverride` và `evaluationIncomplete` nằm trên `answers[i]`, không nằm trên `feedback.perQuestion[i]`; `shrmLevel` có fallback `"proficient"` | Quy đổi điểm AI sang mức bằng `aiAnswerToLevel(item, { answer })`, không đọc `shrmLevel` (AI-13 sẽ bỏ fallback) |
+| `backend/src/prompts/*.js` (AI-02) | Sửa thẳng chữ prompt trong code: production vẫn chạy bản trong DB, Quality Dashboard không tách được version | Tạo `PromptVersion` mới rồi `activate`; `db:sync-prompt-versions` cảnh báo khi template trong DB khác code ở cùng version. Loader lỗi thì dùng bản mặc định, `promptVersion` ghi theo bản thực sự chạy |
+| Script trong `src/scripts/` được test import | `import "../config/loadEnv.js"` ở đầu file nạp `.env` với `override: true`, ghi đè `JWT_SECRET` và biến của môi trường test → test HTTP lỗi 401 | Nạp `loadEnv` trong `main()` (xem `syncPromptVersions.js`) |
 | `package.json` `test:node` | Liệt kê từng file test; `node --test` chỉ nhận glob từ Node 21 | Cho tới khi xong N-05: thêm file test mới vào script này |
 
 ---
@@ -353,6 +365,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 |:-----|:---------|
 | `docs/capstone/TASKS.md` | Kế hoạch 107 task capstone FA26, phân công, cổng giai đoạn |
 | `docs/capstone/DECISIONS.md` | 14 quyết định thiết kế capstone, chia tiền lộ trình, state machine mới |
+| `docs/capstone/DESIGN.md` | Thiết kế tham khảo capstone: model mới/sửa, API và màn hình, bẫy trong code |
 | `ROADMAP.md` | Endpoint theo phase, trạng thái ✅/📋 |
 | `API_INDEX.md` | Contract đầy đủ: Phần A (đang chạy), B (ngoài Express), C (roadmap) |
 | `backend/DATABASE.md` | Schema MongoDB chi tiết từng field |

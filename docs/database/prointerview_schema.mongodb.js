@@ -96,8 +96,10 @@ ensureCollection("mentorship_requests", {
   properties: {
     userId: oid,
     sessionType: en("mock_interview", "cv_review", "career_consulting"),
-    status: en("open", "selected", "closed"),
+    status: en("open", "selected", "assessing", "path_proposed", "closed"),
     selectedMentorId: oid,
+    jobPostId: oidOrNull,
+    assessmentBookingId: oidOrNull,
     cvData: { bsonType: "binData" },
     jdData: { bsonType: "binData" },
   },
@@ -468,6 +470,26 @@ ensureCollection("moderation_items", {
     unique: true,
     partialFilterExpression: { type: "evaluation_incomplete" },
   }],
+]);
+
+// AI-02: bảng đăng ký phiên bản prompt. Chuỗi `version` khớp promptVersion đã ghi ở
+// interview_sessions và question_bank (không FK).
+ensureCollection("prompt_versions", {
+  required: ["key", "version"],
+  properties: {
+    key: str,
+    version: str,
+    template: { bsonType: ["object", "null"] },
+    fewShotExamples: { bsonType: "array" },
+    active: { bsonType: "bool" },
+    legacy: { bsonType: "bool" },
+    activatedAt: { bsonType: ["date", "null"] },
+    activatedBy: oidOrNull,
+  },
+}, [
+  [{ key: 1, version: 1 }, { unique: true }],
+  [{ version: 1 }, { unique: true, name: "version_unique" }],
+  [{ key: 1 }, { unique: true, partialFilterExpression: { active: true }, name: "key_single_active" }],
 ]);
 
 // ─────────────────────────────────────────────────────────────

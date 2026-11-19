@@ -138,7 +138,9 @@ erDiagram
         string position
         enum sessionType
         number budget
-        enum status "open|selected|closed"
+        enum status "open|selected|assessing|path_proposed|closed"
+        ObjectId jobPostId FK "→ JOB_POST (tùy chọn, LP-05)"
+        ObjectId assessmentBookingId FK "→ BOOKING (buổi 0đ, LP-05)"
         ObjectId selectedOfferId
         ObjectId selectedMentorId FK "→ MENTOR"
         binary cvData "select:false"
@@ -413,6 +415,10 @@ erDiagram
     INTERVIEW_SESSION |o--o{ MODERATION_ITEM : "refs.sessionId"
     QUESTION_BANK |o--o{ MODERATION_ITEM : "refs.questionBankId"
     USER |o--o{ MODERATION_ITEM : "assignee (moderator)"
+    PROMPT_VERSION |o..o{ INTERVIEW_QUESTION : "promptVersion (chuỗi)"
+    PROMPT_VERSION |o..o{ FEEDBACK : "promptVersion (chuỗi)"
+    PROMPT_VERSION |o..o{ QUESTION_BANK : "generatedBy/provenance.promptVersion"
+    USER |o--o{ PROMPT_VERSION : "activatedBy"
 
     CV_ANALYSIS {
         ObjectId _id PK
@@ -526,6 +532,18 @@ erDiagram
         ObjectId assignee FK "→ USER (moderator)"
         object resolution "action dismiss|deprecate_question|edit_question|override_score"
     }
+    PROMPT_VERSION {
+        ObjectId _id PK
+        string key "evaluation|question_gen (AI-02)"
+        string version UK "<tiền tố>-vN, duy nhất toàn bảng"
+        object template "phần → chuỗi|mảng chuỗi; null nếu legacy"
+        array fewShotExamples "input, output, note"
+        bool active "tối đa 1 bản mỗi key"
+        bool legacy "chuỗi cũ không còn nội dung"
+        date activatedAt
+        ObjectId activatedBy FK "→ USER"
+        string note
+    }
 ```
 
 ---
@@ -628,13 +646,15 @@ erDiagram
 | Đánh giá chưa đủ – MODERATION_ITEM | — | Partial unique `{type, refs.sessionId, refs.questionIndex}` khi `type=evaluation_incomplete` → upsert không nhân bản |
 | QUESTION_BANK nội dung | — | Unique `{textHash, orgId}`: chuẩn hóa chữ thường, gộp khoảng trắng, bỏ dấu câu cuối |
 | SEPAY_WEBHOOK_EVENT | — | Unique `sepayId` → webhook gửi lại không xử lý hai lần |
+| PROMPT_VERSION – chuỗi `promptVersion` | 1 – 0..n | Không có FK: session và QuestionBank lưu nguyên chuỗi `version`. Unique `{key, version}` và unique `{version}` (`version_unique`, vì Quality Dashboard nhóm theo chuỗi không kèm key) |
+| PROMPT_VERSION bản active | — | Partial unique `{key}` khi `active: true` (`key_single_active`) → mỗi key tối đa 1 bản active (AI-02) |
 
 ## Thay đổi so với Conceptual ERD cũ
 
 Conceptual ERD (`PROINTERVIEW_CONCEPTUAL.drawio`) có 17 thực thể và ghi "chưa có role kiểm duyệt viên". Từ đó đến nay đã thêm:
 
 - `User.role` có thêm `moderator`, `enterprise`.
-- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`, `LearningPath`, `LearningPathSession` (capstone FA26, LP-03).
+- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`, `LearningPath`, `LearningPathSession` (capstone FA26, LP-03), `PromptVersion` (AI-02).
 - `Report` mở rộng `targetType` cho câu hỏi/đánh giá AI (`reasonCode` riêng).
 - `InterviewSession.answers` có `evaluationIncomplete`, `moderatorOverride`; `questions`/`answers` trỏ `questionBankId`.
 - `Course.adminReview.reviewedBy` giờ là moderator (route chuyển từ `/api/admin` sang `/api/moderator`).

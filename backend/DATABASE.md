@@ -37,6 +37,8 @@ Tài liệu mô tả kết nối MongoDB, các collection/model, lệnh seed, te
 | `npm run seed:users` | Nạp **user dev** từ `src/data/usersSeed.json` — **chỉ khi** collection `users` đang trống. |
 | `npm run seed:all` | Seed user dev (không còn seed mentor giả). |
 | `npm run db:prune-fake-mentors` | Xóa trong MongoDB các document `mentors` **không có `userId`** (catalog cũ). |
+| `npm run db:sync-booking-indexes:dry` | Xem trước thay đổi index `bookings` (LP-02), **không ghi DB**. |
+| `npm run db:sync-booking-indexes` | Drop index cũ `mentorshipRequestId_1`, tạo `mentorshipRequestId_regular_unique`; chạy lại không lỗi. DB khác `.env`: đặt `TARGET_MONGO_URI`. |
 
 ### Tài khoản dev mặc định (sau `seed:users`)
 
@@ -139,6 +141,7 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `MentorPeerReview.js` | `mentorpeerreviews` | Mentor review khóa (đồng nghiệp) |
 | `LearningPath.js` | `learning_paths` | Lộ trình học mentor soạn sau buổi đánh giá 0đ; giá trọn gói, `paymentRef`, `version` (LP-03) |
 | `LearningPathSession.js` | `learning_path_sessions` | Buổi trong lộ trình: `shrmKeys`, `shareAmount`, `bookingId`, `attempt`/`retakeOf`, `outcome` (LP-03) |
+| `PromptVersion.js` | `prompt_versions` | Bảng đăng ký phiên bản prompt (AI-02): `key` (`evaluation`, `question_gen`), `version` (`eval-vN`, `followup-vN`, duy nhất toàn bảng), `template` (object phần → chuỗi hoặc mảng chuỗi, biến `{{tên}}`; `null` khi `legacy`), `fewShotExamples[] {input, output, note}`, `active` (tối đa 1 bản mỗi key), `legacy`, `activatedAt`, `activatedBy`, `note`. Đồng bộ bằng `npm run db:sync-prompt-versions`; đổi bản active bằng `node src/scripts/activatePromptVersion.js <key> <version>` |
 
 Tên collection chính xác có trong từng file (`collection: "..."` trong `Schema`).
 

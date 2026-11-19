@@ -14,6 +14,8 @@ export const sendMentorshipOffer = (id, payload) => call(`/${encodeURIComponent(
 export const selectMentorshipOffer = (id, offerId) => call(`/${encodeURIComponent(id)}/offers/${encodeURIComponent(offerId)}/select`, "POST", {});
 export const withdrawMentorshipOffer = (id, offerId) => call(`/${encodeURIComponent(id)}/offers/${encodeURIComponent(offerId)}/withdraw`, "POST", {});
 export const closeMentorshipRequest = id => call(`/${encodeURIComponent(id)}/close`, "POST", {});
+/** LP-05: Mentor được chọn tạo buổi đánh giá 0đ. payload: { date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?, note? } */
+export const acceptMentorshipAssessment = (id, payload) => call(`/${encodeURIComponent(id)}/accept-assessment`, "POST", payload);
 export async function downloadMentorshipFile(id, kind, name) {
   const response = await authFetch(`/api/mentorship-requests/${encodeURIComponent(id)}/files/${kind}`);
   if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.error || "Không tải được tài liệu."); }

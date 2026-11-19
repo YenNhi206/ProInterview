@@ -17,6 +17,7 @@ if (dns.setDefaultResultOrder) {
 import { mentorsRouter } from "./routes/mentors.js";
 import { authRouter } from "./routes/auth.js";
 import { mentorshipRequestsRouter } from "./routes/mentorshipRequests.js";
+import { learningPathsRouter } from "./routes/learningPaths.js";
 import { bookingsRouter } from "./routes/bookings.js";
 import { plansRouter } from "./routes/plans.js";
 import { paymentsRouter } from "./routes/payments.js";
@@ -40,6 +41,7 @@ import { analyticsRouter } from "./routes/analytics.js";
 import { publicRouter } from "./routes/public.js";
 import { couponsRouter } from "./routes/coupons.js";
 import { cartRouter } from "./routes/cart.js";
+import { competenciesRouter } from "./routes/competencies.js";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
@@ -204,6 +206,7 @@ export function createApp() {
   app.use("/api/mentors", mentorsRouter);
   app.use("/api/bookings", bookingsRouter);
   app.use("/api/mentorship-requests", mentorshipRequestsRouter);
+  app.use("/api/learning-paths", learningPathsRouter);
   app.use("/api/plans", plansRouter);
   app.use("/api/payments", paymentsRouter);
   app.use("/api/users", usersRouter);
@@ -227,6 +230,7 @@ export function createApp() {
   app.use("/api/public", publicRouter);
   app.use("/api/coupons", couponsRouter);
   app.use("/api/cart", cartRouter);
+  app.use("/api/competencies", competenciesRouter);
 
   app.use(notFoundHandler);
   app.use(globalErrorHandler);

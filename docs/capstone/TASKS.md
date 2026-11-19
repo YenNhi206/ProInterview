@@ -1,7 +1,7 @@
 # Kế hoạch task — Capstone FA26 (GFA26SE160)
 
 > Nguồn: tab "Kế hoạch task" và "Đánh giá lại & Kế hoạch Capstone" (cập nhật lần 2, 18/11/2026), đã đối chiếu với mã nguồn.
-> Quyết định thiết kế: [DECISIONS.md](DECISIONS.md). Quy ước cho AI agent: mục "Capstone FA26" trong [CLAUDE.md](../../CLAUDE.md).
+> Quyết định thiết kế: [DECISIONS.md](DECISIONS.md). Thiết kế tham khảo và bẫy trong code: [DESIGN.md](DESIGN.md). Quy ước cho AI agent: mục "Capstone FA26" trong [CLAUDE.md](../../CLAUDE.md).
 
 **107 task**, 4 người, 7 giai đoạn, không gắn ngày. Nhận task theo thứ tự trong bảng của mình, miễn là task ở cột "Cần trước" đã xong.
 
@@ -47,8 +47,8 @@ Không có deadline cho từng task, nhưng mỗi cổng gắn với một mốc
 | Trầm | Backend | Index Booking, Learning Path, chặn luồng hủy cũ, chia tiền và đường ray thanh toán lộ trình, enum Notification, doanh thu theo nguồn, trạng thái CVAnalysis, Job Post, Ứng tuyển, đo SePay; FE `/company/jobs`, xác nhận tay lộ trình | 30 | 2 | 0 | 32 |
 | Văn | Backend | Đổi role và migrate, Node 22 + test glob, Company, lời mời, phân quyền, Rubric, Profile, kho CV, xuất PDF, test tải, đo CV/avatar, seed demo; FE admin công ty, `/company` layout + câu hỏi, moderator rubric, báo cáo job, AI improvements | 24 | 4 | 1 | 29 |
 | Nhi | Frontend | Luồng ứng viên và mentor (lộ trình, hồ sơ, CV, job, ứng tuyển), trang nhận lời mời, trình soạn rubric, chi tiết đơn ứng tuyển, gỡ số liệu giả, HITL bước 7, kiểm thử thủ công | 16 | 6 | 0 | 22 |
-| Janet | Lead, AI | Tiêu chí SHRM/DDI, sinh câu và cache video câu công ty, CV validate và best-fit, hồ sơ năng lực, khoảng thiếu, luyện theo job, chấm rubric, vòng cải tiến AI, sàng lọc khóa, gợi ý, SRS/SDD, hồ sơ Review, merge | 17 | 7 | 0 | 24 |
-| **Cộng** | | | **87** | **19** | **1** | **107** |
+| Janet | Lead, AI | Tiêu chí SHRM/DDI, sinh câu và cache video câu công ty, CV validate và best-fit, hồ sơ năng lực, khoảng thiếu, luyện theo job, chấm rubric, vòng cải tiến AI, sàng lọc khóa, gợi ý, SRS/SDD, hồ sơ Review, merge | 17 | 8 | 0 | 25 |
+| **Cộng** | | | **87** | **20** | **1** | **108** |
 
 Dự phòng: nếu Trầm chậm ở GĐ 4, Văn nhận JB-15 sau khi xong Profile. Nếu Janet chậm ở vòng AI, Trầm nhận phần backend của AI-03 và AI-05, Janet giữ phần prompt và backtest.
 
@@ -58,7 +58,7 @@ Dự phòng: nếu Trầm chậm ở GĐ 4, Văn nhận JB-15 sau khi xong Profi
                  GĐ0 Nền tảng (14)
         ┌──────────────┼───────────────┐
 GĐ1 Learning Path   GĐ2 Company+Rubric   GĐ5 Vòng AI (AI-01, 02, 12 làm sớm)
-   (22)                (15)                 (12)
+   (22)                (15)                 (13)
      │  PR-06 cần LP-13  │
      └──────────► GĐ3 Profile + CV (13)
                          │      JB-01 cần CO-03
@@ -100,16 +100,16 @@ Sau GĐ 0, ba luồng chạy song song: Learning Path (Trầm), Company và Rubr
 
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
-| LP-01 | Todo | Bộ tiêu chí SHRM/DDI dùng chung cho buổi 0đ và feedback từng buổi (key năng lực, thang 0–5, mô tả) | Janet | | File cấu hình trong `config/` được BE và FE cùng đọc | P0 |
+| LP-01 | Done | Bộ tiêu chí SHRM/DDI dùng chung cho buổi 0đ và feedback từng buổi: key năng lực (lấy từ `COMPETENCY_LIBRARY` trong `competencyFramework.js`), **thang 6 mức 0–5** có mô tả, ngưỡng đạt, hệ số `aiCalibration`, và hàm quy đổi điểm AI sang mức. Đặc tả ở [mục dưới bảng](#đặc-tả-lp-01-thang-6-mức-và-quy-đổi-điểm-ai). Không sửa prompt chấm AI | Janet | | File cấu hình trong `config/` là nguồn duy nhất; BE đọc trực tiếp, FE đọc qua `GET /api/competencies`; `competencyFramework.js` đọc lại từ file này, luồng phỏng vấn không đổi hành vi; unit test hàm quy đổi đủ các nhánh: `moderatorOverride`, `overall5`, `score / 20`, không trả lời, `evaluationIncomplete`, chặn trên mức 4 | P0 |
 | LP-02 | Done | **Sửa index unique `mentorshipRequestId` (`Booking.js:152`)**: partial filter loại `sessionType: assessment` và booking có `learningPathId`; buổi lộ trình chỉ gắn `learningPathId`. **Kèm script drop index cũ `mentorshipRequestId_1` rồi sync** theo mẫu `scripts/syncModerationIndexes.js` (chỉ sửa schema thì MongoDB báo `IndexOptionsConflict`, index cũ vẫn chặn). Làm đầu tiên | Trầm | | Test: 1 buổi 0đ + 3 buổi + 1 buổi học lại cùng request không lỗi `E11000`; booking thường vẫn bị chặn trùng. Chạy script trên staging, `getIndexes()` đúng partial filter mới | P0 |
-| LP-03 | Todo | Model `LearningPath`, `LearningPathSession` (`shrmKeys: [String]`, `shareAmount`) + index | Trầm | | Export ở `models/index.js`; ERD cập nhật | P0 |
-| LP-04 | Todo | Booking: `sessionType` thêm `assessment`; thêm `learningPathId`, `learningPathSessionId`; thêm `"learning_path"` vào enum `paymentMethod`. Booking lộ trình ghi đủ field bắt buộc: `paymentStatus: "paid"`, `price = totalAmount = shareAmount`, `platformFee = round(shareAmount × rate)`, `vat = 0`, `paymentMethod: "learning_path"`. Buổi 0đ và học lại: mọi field tiền bằng 0 | Trầm | LP-02, LP-03 | Test: `bookingStaleSweepJob` không hủy; `mentorNetFromBooking` ra đúng `share − platformFee`; báo cáo tài chính không cộng trùng | P0 |
-| LP-22 | Todo | **Chặn các luồng có sẵn với booking lộ trình và buổi 0đ**: `cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking` kiểm tra `learningPathId` hoặc `sessionType: assessment`, chặn hoàn tiền/rebook credit từng buổi và chuyển sang logic lộ trình (hủy buổi → đặt lại buổi đó; vắng mặt buổi 0đ → theo quyết định 13) | Trầm | LP-04 | Test từng hàm: không phát sinh refund hay credit cho booking lộ trình; booking thường giữ nguyên hành vi | P0 |
-| LP-05 | Todo | Mở rộng router có sẵn `/api/mentorship-requests`: `jobPostId` tùy chọn, `assessmentBookingId`, status `assessing` / `path_proposed`, `POST /:id/accept-assessment` tạo buổi 0đ. Sửa điều kiện `request.status === "selected"` ở `mentorshipRequestsService.js:125` để status mới không chặn luồng cũ | Trầm | LP-04 | Mentor tạo được buổi 0đ; luồng đặt lịch thường từ yêu cầu không bị 403 | P0 |
+| LP-03 | Done | Model `LearningPath`, `LearningPathSession` (`shrmKeys: [String]`, `shareAmount`) + index | Trầm | | Export ở `models/index.js`; ERD cập nhật | P0 |
+| LP-04 | Done | Booking: `sessionType` thêm `assessment`; thêm `learningPathId`, `learningPathSessionId`; thêm `"learning_path"` vào enum `paymentMethod`. Booking lộ trình ghi đủ field bắt buộc: `paymentStatus: "paid"`, `price = totalAmount = shareAmount`, `platformFee = round(shareAmount × rate)`, `vat = 0`, `paymentMethod: "learning_path"`. Buổi 0đ và học lại: mọi field tiền bằng 0 | Trầm | LP-02, LP-03 | Test: `bookingStaleSweepJob` không hủy; `mentorNetFromBooking` ra đúng `share − platformFee`; báo cáo tài chính không cộng trùng | P0 |
+| LP-22 | Done | **Chặn các luồng có sẵn với booking lộ trình và buổi 0đ**: `cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking` kiểm tra `learningPathId` hoặc `sessionType: assessment`, chặn hoàn tiền/rebook credit từng buổi và chuyển sang logic lộ trình (hủy buổi → đặt lại buổi đó; vắng mặt buổi 0đ → theo quyết định 13) | Trầm | LP-04 | Test từng hàm: không phát sinh refund hay credit cho booking lộ trình; booking thường giữ nguyên hành vi | P0 |
+| LP-05 | Done | Mở rộng router có sẵn `/api/mentorship-requests`: `jobPostId` tùy chọn, `assessmentBookingId`, status `assessing` / `path_proposed`, `POST /:id/accept-assessment` tạo buổi 0đ. Sửa điều kiện `request.status === "selected"` ở `mentorshipRequestsService.js:125` để status mới không chặn luồng cũ | Trầm | LP-04 | Mentor tạo được buổi 0đ; luồng đặt lịch thường từ yêu cầu không bị 403 | P0 |
 | LP-06 | Todo | Giới hạn buổi 0đ theo quyết định 13 (1 buổi chưa xong cùng lúc, 2 buổi/30 ngày; ứng viên vắng tính đã dùng, mentor vắng không tính) | Trầm | LP-05, LP-22 | Test đủ 4 trường hợp | P0 |
-| LP-07 | Todo | API mentor: tạo/sửa bản nháp, `propose` (≥ 1 buổi, có giá, buổi 0đ đã `completed`) | Trầm | LP-05 | `draft → proposed` có test, kể cả trường hợp bị chặn | P0 |
-| LP-08 | Todo | API ứng viên: xem, `accept`, `request-revision` kèm ghi chú; `version` tăng mỗi lần gửi lại | Trầm | LP-07 | Vòng sửa → gửi lại → chấp nhận có test | P0 |
-| LP-09 | Todo | Hàm chia tiền trong `utils/`: T → `shareAmount` từng buổi (chia đều phần nguyên, buổi cuối nhận phần dư), `platformFee` từng buổi, học lại = 0; hàm tính tiền hoàn | Trầm | LP-03 | Unit test: tổng luôn bằng T với T không chia hết | P0 |
+| LP-07 | Done | API mentor: tạo/sửa bản nháp, `propose` (≥ 1 buổi, có giá, buổi 0đ đã `completed`) | Trầm | LP-05 | `draft → proposed` có test, kể cả trường hợp bị chặn | P0 |
+| LP-08 | Done | API ứng viên: xem, `accept`, `request-revision` kèm ghi chú; `version` tăng mỗi lần gửi lại | Trầm | LP-07 | Vòng sửa → gửi lại → chấp nhận có test | P0 |
+| LP-09 | Done | Hàm chia tiền trong `utils/`: T → `shareAmount` từng buổi (chia đều phần nguyên, buổi cuối nhận phần dư), `platformFee` từng buổi, học lại = 0; hàm tính tiền hoàn | Trầm | LP-03 | Unit test: tổng luôn bằng T với T không chia hết | P0 |
 | LP-10 | Todo | Đường ray chuyển khoản cho lộ trình: `Payment.type` `learning_path`; `paymentRef` sinh bằng `utils/orderRef.js` (mã `PI…` để `parsePiOrderFromText` nhận ra); target mới trong `sepayWebhookService.findPendingTargets` + hàm xác nhận; `SepayWebhookEvent.entityType`; hết hạn qua `transferPaymentExpiryService`; path sang `active` | Trầm | LP-08, LP-09 | Test: đúng tiền, sai tiền, webhook gửi lại 2 lần, hết hạn | P0 |
 | LP-11 | Todo | Xác nhận tay chuyển khoản lộ trình: thêm loại `learning_path` vào trang đối soát admin có sẵn (BE + FE) | Trầm | LP-10 | Admin xác nhận được trên UI | P0 |
 | LP-12 | Todo | Đặt lịch từng buổi: tạo Booking gắn session theo LP-04, chỉ mở khi buổi trước `passed` | Trầm | LP-10 | Không đặt được buổi 3 khi buổi 2 chưa đạt | P0 |
@@ -120,8 +120,39 @@ Sau GĐ 0, ba luồng chạy song song: Learning Path (Trầm), Company và Rubr
 | LP-17 | Todo | Test integration trọn luồng từ yêu cầu đến `completed` | Trầm | LP-14 | Một file test chạy cả luồng | P0 |
 | LP-18 | Todo | FE ứng viên: form yêu cầu mentor thêm chọn job (tùy chọn); trang `/learning-paths` | Nhi | LP-05 | Danh sách hiện đúng trạng thái từ API | P0 |
 | LP-19 | Todo | FE ứng viên: `/learning-paths/:id` dạng timeline, chấp nhận / yêu cầu sửa, thanh toán (dùng lại `/checkout`), đặt lịch buổi, xem đạt/học lại và feedback | Nhi | LP-08, LP-10 | Đi hết luồng trên UI không cần Postman | P0 |
-| LP-20 | Todo | FE mentor: `/mentor/learning-paths` và trình soạn (thêm, sắp xếp buổi, mục tiêu, năng lực SHRM, giá trọn gói, xem hồ sơ ứng viên) | Nhi | LP-07 | Soạn và gửi được lộ trình 3 buổi | P0 |
+| LP-20 | Done | FE mentor: `/mentor/learning-paths` và trình soạn (thêm, sắp xếp buổi, mục tiêu, năng lực SHRM, giá trọn gói, xem hồ sơ ứng viên) | Nhi | LP-07 | Soạn và gửi được lộ trình 3 buổi | P0 |
 | LP-21 | Todo | FE mentor: form đánh giá đầu vào (buổi 0đ) và form đạt/không đạt + feedback, gắn vào trang có sẵn `/mentor/session-feedback/:sessionId` | Nhi | LP-01, LP-13 | Ghi kết quả xong thì timeline ứng viên cập nhật | P0 |
+
+### Đặc tả LP-01: thang 6 mức và quy đổi điểm AI
+
+**Bảng 6 mức** là định nghĩa chuẩn, dùng chung cho mentor và AI. Không chỉnh bảng theo prompt AI hiện tại: prompt chỉ mô tả mức 5/3/1 cho 4 tiêu chí và không định nghĩa `overall`.
+
+| Mức | Nhãn | Mô tả |
+|:---:|:-----|:------|
+| 0 | Không thể hiện | Không trả lời, hoặc nội dung không dính tới câu hỏi |
+| 1 | Yếu | Có cố trả lời nhưng ví dụ không thể hiện năng lực được hỏi |
+| 2 | Đang phát triển | Có ý đúng nhưng chung chung ("thường thì em sẽ…"), thiếu ví dụ cụ thể, hoặc thiếu phần Hành động hay Kết quả |
+| 3 | **Đạt** | Ví dụ cụ thể, đủ Tình huống, Nhiệm vụ, Hành động, Kết quả; nói rõ phần việc của bản thân |
+| 4 | Vững | Như mức 3, cộng kết quả đo được, rút ra bài học, xử lý được tình huống khó hoặc có xung đột |
+| 5 | Xuất sắc | Như mức 4, cộng ảnh hưởng vượt phạm vi công việc (dẫn dắt, thay đổi cách làm của nhóm) và nhất quán ở nhiều tình huống. Ý "nhất quán" chỉ xét được qua nhiều câu hoặc nhiều buổi |
+
+**Ngưỡng đạt:** mức 3. Buổi lộ trình gợi ý "đạt" khi mọi key năng lực của buổi ≥ 3; mentor là người quyết định cuối (LP-13). Mentor chấm số nguyên 0–5.
+
+**Quy đổi điểm AI sang mức**
+
+| Bước | Quy tắc |
+|:-----|:--------|
+| Nguồn điểm | `answers[i].moderatorOverride.overall` nếu có; không thì `feedback.perQuestion[i].overall5`; session cũ chỉ có `score` thì `score / 20`. **Không dùng `shrmLevel`**, vì LLM cho chữ này riêng, không suy từ điểm |
+| Không trả lời | Mức 0 |
+| `evaluationIncomplete = true` hoặc không có điểm | `null`: hiển thị "Chưa đủ dữ liệu", không tính vào trung bình |
+| Công thức tạm | `mức = min(4, max(0, overall5 − 1))`, giữ số thập phân. Hệ số lưu ở `aiCalibration` trong file config, chỉnh lại bằng bộ AI-01. AI chấm từng câu không cho ra mức 5 |
+| Gộp và hiển thị | Gộp và so ngưỡng dùng số thập phân; UI làm tròn khi hiển thị. Trước khi AI-01 hiệu chỉnh xong, điểm quy đổi chỉ là ước lượng, không hiển thị như điểm chuẩn |
+
+Lý do trừ 1: đối chiếu prompt hiện tại cho thấy AI chấm dễ hơn bảng khoảng một mức. Điểm 5 của AI (đủ STAR, có số liệu) chỉ tương đương mức 4; câu thiếu phần STAR được AI cho 3, bảng cho 2.
+
+**Ngoài phạm vi LP-01**
+- Bỏ fallback `"proficient"` ở `interviewQuestionService.js:895` và `interviewsController.js:612`: tách thành AI-13.
+- Đưa bảng 6 mức vào prompt chấm (định nghĩa `overall`, kiểm tra "tôi" hay "chúng tôi", bài học, tình huống khó, câu lạc đề về 0), backtest trên AI-01 rồi bỏ công thức tạm: làm trong AI-02 bằng một PromptVersion mới.
 
 ## Giai đoạn 2: Company và Rubric
 
@@ -204,7 +235,7 @@ AI-01 đến AI-06 là P0 vì nằm trong kịch bản demo bước 7. `promptVe
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
 | AI-01 | Todo | Bộ 20 câu trả lời chuẩn: cả nhóm chấm độc lập theo SHRM/DDI, Janet tổng hợp điểm chuẩn | Janet | | File dữ liệu trong repo, có độ lệch giữa người chấm | P0 |
-| AI-02 | Todo | Model `PromptVersion` làm bảng đăng ký cho các chuỗi `promptVersion` đã có; seed version hiện tại; loader đọc prompt theo version `active`; không thêm field mới vào `InterviewSession` | Janet | | Đổi version không cần deploy lại; chuỗi cũ vẫn khớp | P0 |
+| AI-02 | Review · Janet · PR #205 | Model `PromptVersion` làm bảng đăng ký cho các chuỗi `promptVersion` đã có; seed version hiện tại; loader đọc prompt theo version `active`; không thêm field mới vào `InterviewSession` | Janet | | Đổi version không cần deploy lại; chuỗi cũ vẫn khớp; đã chạy `db:sync-prompt-versions` trên staging và production, mỗi key có đúng một bản active | P0 |
 | AI-03 | Todo | Model `AIImprovementProposal`; `aiImprovementMinerJob` gom ModerationItem đã xử lý (`override_score`, sửa hoặc khai tử câu) theo ngưỡng cấu hình (mặc định 5) | Janet | AI-02 | Test: đủ ngưỡng thì tạo đúng 1 đề xuất | P0 |
 | AI-04 | Todo | Backtest: chạy đề xuất trên AI-01 và 10 câu trả lời cũ, lưu điểm trước/sau vào đề xuất | Janet | AI-01, AI-03 | Hiện được độ lệch so với điểm chuẩn | P0 |
 | AI-05 | Todo | API Platform Mod duyệt, từ chối, rollback; duyệt thì bật PromptVersion mới | Janet | AI-04 | Rollback trả về version trước; test | P0 |
@@ -215,6 +246,7 @@ AI-01 đến AI-06 là P0 vì nằm trong kịch bản demo bước 7. `promptVe
 | AI-10 | Todo | API `GET /api/recommendations/me`: khóa học, mentor (chuyên môn khớp năng lực còn thiếu, đánh giá), job (năng lực khớp yêu cầu); chấm theo luật có trọng số | Janet | PR-07, JB-03 | Mỗi gợi ý kèm một dòng lý do | P1 |
 | AI-11 | Todo | FE khối gợi ý trên `/dashboard` (mentor, khóa, job) | Nhi | AI-10 | Bấm vào được trang chi tiết | P1 |
 | AI-12 | Todo | Thêm kind `rubric_scoring`, `course_prescreen` vào `CostEvent`; ngưỡng cảnh báo Slack cho hai loại | Janet | | Lưu được CostEvent mới; làm trước JB-07 và AI-08 | P0 |
+| AI-13 | Todo | Bỏ fallback `shrmLevel = "proficient"` khi LLM trả giá trị lạ hoặc thiếu (`interviewQuestionService.js:895`) và khi đọc lại feedback đã cache (`interviewsController.js:612`); thay bằng `""` và để FE hiện "Chưa đủ dữ liệu" | Janet | | Câu thiếu `shrm_level` không còn hiện nhãn "Tốt"; test cả hai chỗ | P1 |
 
 ## Giai đoạn 6: Kiểm thử, đo NFR, tài liệu, demo
 
@@ -260,3 +292,11 @@ AI-01 đến AI-06 là P0 vì nằm trong kịch bản demo bước 7. `promptVe
 
 | Ngày | Mã | Đề xuất | Trạng thái |
 |:-----|:---|:--------|:-----------|
+| 18/11/2026 | LP-03 | (a) Thêm `feedback.scores[] {shrmKey, score, note}` (mức 0–5 hoặc `null`) và `frameworkVersion` (lấy `version` của `competencies.json`) vào `LearningPathSession`. Model hiện chỉ có `shrmKeys` và `feedback {summary, strengths, improvements}`, nên mentor chưa lưu được điểm từng năng lực để `suggestOutcome` dùng. Đề xuất từ LP-01 | Đề xuất |
+| 18/11/2026 | LP-21 | (b) Chưa rõ kết quả buổi đánh giá 0đ lưu ở đâu (buổi 0đ là Booking `assessment`, không phải `LearningPathSession`). Đề xuất `LearningPath.assessment.scores[] {shrmKey, score, note}` + `frameworkVersion`. Đề xuất từ LP-01 | Đề xuất |
+| 18/11/2026 | AI-01 | (c) Thêm LP-01 vào cột "Cần trước": bộ câu chuẩn chấm theo thang 6 mức và `aiCalibration` trong `competencies.json`; kết quả AI-01 dùng để chỉnh `offset`/`maxLevel` và đổi `status` khỏi `provisional`. Đề xuất từ LP-01 | Đề xuất |
+| 18/11/2026 | AI-13 | (d) Bỏ fallback `"proficient"` ở `interviewQuestionService.js:895` và `interviewsController.js:612`, suy mức từ `overall5` hoặc để rỗng; FE `InterviewFeedback.jsx` hiện "Chưa đủ dữ liệu" khi rỗng. Janet làm, Trầm review. **Đã thêm hàng AI-13 vào bảng Giai đoạn 5** trong phiên lập kế hoạch | Đã thêm vào bảng |
+| 18/11/2026 | PR-06 | (e) Phát hiện khi làm LP-01: 3 câu baseline (`config/baselineQuestions.js`) không có `competencyId`, nên `questions[i].competencyId = ""`; buổi của user free không có câu nào gắn key năng lực, chỉ có `competencyProfile.competencyIds` cả buổi (suy từ từ khóa). Câu follow-up lấy `competency_id` từ LLM mà không kiểm tra với bộ tiêu chí. Câu chấm điểm gắn năng lực qua `perQuestion[i].questionIndex` → `questions[questionIndex].competencyId`; `moderatorOverride` và `evaluationIncomplete` nằm trên `answers[i]`, không nằm trên `perQuestion`. PR-06 cần chốt cách gán key cho câu baseline (gắn key cố định trong config, hoặc bỏ qua) | Đề xuất |
+| 19/11/2026 | LP-07, LP-20 | (f) Danh sách năng lực tạm của LP-20 (`SHRM_COMPETENCIES`, 12 key) có 6 key không nằm trong bộ tiêu chí LP-01, và backend LP-07 chỉ kiểm bằng regex nên vẫn lưu được. Sửa ở **PR #204**: backend kiểm bằng `isValidCompetencyKey`, frontend đọc `GET /api/competencies`, script `db:migrate-lp-shrm-keys` đổi key cũ. Sau khi merge phải chạy script trên production (bản `:dry` trước) | Review · Janet · PR #204 |
+| 19/11/2026 | AI-02 | (g) Chữ do `buildCompetencyPromptBlock` / `buildDistributionGuide` (LP-01, `competencyFramework.js`) sinh ra ("Định nghĩa:", "DDI Key Actions…", "STAR Rubric…") vẫn nằm trong code, chưa vào template PromptVersion. Không chuyển trong AI-02 để không đụng test golden của LP-01. Đề xuất: làm cùng AI-02 phase sau hoặc trong AI-04 nếu backtest cần đổi phần này. Tạm thời nội dung prompt = PromptVersion + `version` của `competencies.json` (xem DECISIONS.md) | Đề xuất |
+| 19/11/2026 | AI-05 | (h) AI-02 chỉ có `activate()`; chưa có hàm tạo version mới. AI-05 (hoặc AI-03 khi tạo đề xuất) cần thêm `createVersion(key, { baseVersion, template, fewShotExamples })` kiểm tên `<tiền tố>-vN` và `validateTemplate` như `activate()` | Đề xuất |
