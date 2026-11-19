@@ -138,7 +138,9 @@ erDiagram
         string position
         enum sessionType
         number budget
-        enum status "open|selected|closed"
+        enum status "open|selected|assessing|path_proposed|closed"
+        ObjectId jobPostId FK "→ JOB_POST (tùy chọn, LP-05)"
+        ObjectId assessmentBookingId FK "→ BOOKING (buổi 0đ, LP-05)"
         ObjectId selectedOfferId
         ObjectId selectedMentorId FK "→ MENTOR"
         binary cvData "select:false"

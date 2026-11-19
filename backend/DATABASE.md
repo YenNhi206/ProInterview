@@ -37,6 +37,8 @@ Tài liệu mô tả kết nối MongoDB, các collection/model, lệnh seed, te
 | `npm run seed:users` | Nạp **user dev** từ `src/data/usersSeed.json` — **chỉ khi** collection `users` đang trống. |
 | `npm run seed:all` | Seed user dev (không còn seed mentor giả). |
 | `npm run db:prune-fake-mentors` | Xóa trong MongoDB các document `mentors` **không có `userId`** (catalog cũ). |
+| `npm run db:sync-booking-indexes:dry` | Xem trước thay đổi index `bookings` (LP-02), **không ghi DB**. |
+| `npm run db:sync-booking-indexes` | Drop index cũ `mentorshipRequestId_1`, tạo `mentorshipRequestId_regular_unique`; chạy lại không lỗi. DB khác `.env`: đặt `TARGET_MONGO_URI`. |
 
 ### Tài khoản dev mặc định (sau `seed:users`)
 
