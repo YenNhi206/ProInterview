@@ -16,6 +16,26 @@ export const REPORT_REASON_MAP = {
 };
 
 /**
+ * POST /api/reports — ứng viên báo sai câu hỏi / điểm AI trên trang Feedback (N-10).
+ * Tạo Report + ModerationItem cho moderator. 409 = đã báo loại này cho câu này rồi.
+ * @param {{ targetType: "interview_question"|"interview_evaluation", sessionId: string, questionIndex: number, reasonCode: string, note?: string }} payload
+ */
+export async function submitAiReport({ targetType, sessionId, questionIndex, reasonCode, note = "" }) {
+  try {
+    const res = await authFetch("/api/reports", {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({ targetType, targetId: sessionId, questionIndex, reasonCode, note: note.trim() }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, status: res.status, error: data.error || `Lỗi ${res.status}` };
+    return { success: true, reportId: data.reportId };
+  } catch {
+    return { success: false, error: "Lỗi kết nối máy chủ" };
+  }
+}
+
+/**
  * POST /api/reports — báo cáo mentor / booking / review / course
  * @param {{ targetType?: string, targetId: string, reason: string, title?: string, description: string, bookingId?: string }} payload
  */

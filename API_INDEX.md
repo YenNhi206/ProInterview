@@ -307,7 +307,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/interviews/sessions` | Bearer | Tạo phiên phỏng vấn thử |
 | PATCH | `/api/interviews/sessions/:id` | Bearer | Cập nhật câu trả lời |
 | POST | `/api/interviews/sessions/:id/complete` | Bearer | Hoàn thành và nhận feedback |
-| POST | `/api/interviews/sessions/:id/evaluate` | Bearer | Chấm điểm / feedback bổ sung |
+| POST | `/api/interviews/sessions/:id/evaluate` | Bearer | Chấm điểm / feedback bổ sung. Mỗi `perQuestion[]` kèm trạng thái kiểm định: `evaluationIncomplete`, `incompleteFields`, `moderatorOverride` (điểm moderator chấm lại, không ghi đè điểm AI) và `openReports` (loại báo cáo AI `interview_question` / `interview_evaluation` của chính user còn chưa xử lý; chỉ có khi phiên đã chấm trước đó). Trang Feedback dùng để hiện "Đang chờ kiểm định" và ưu tiên điểm moderator (N-10) |
 | POST | `/api/interviews/sessions/:id/analyze-face` | Bearer | Vision — cảm xúc khuôn mặt (body `imageBase64`, JSON limit riêng 1.5mb). Chưa có `consent.camera` → trả `emotion: null, reason: "no_camera_consent"`, không gọi Vision |
 | POST | `/api/interviews/generate-questions` | Bearer | Sinh câu hỏi (LLM) |
 | POST | `/api/interviews/extract-cv-text` | Bearer | Trích text từ CV upload |

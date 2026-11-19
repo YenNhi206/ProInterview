@@ -1,4 +1,5 @@
 import { InterviewSession } from "../models/InterviewSession.js";
+import { Report, AI_REPORT_TARGET_TYPES } from "../models/Report.js";
 import { MentorKnowledge } from "../models/MentorKnowledge.js";
 import { User } from "../models/User.js";
 import {
@@ -15,13 +16,34 @@ import { harvest as harvestQuestions, applyDeprecationPolicy } from "../services
 import { upsertIncompleteEvaluationItem } from "../services/moderationQueueService.js";
 import { Sentry, isSentryEnabled } from "../config/sentry.js";
 
+/**
+ * Báo cáo AI còn mở (chưa xử lý) của chủ phiên, theo câu: Map<questionIndex, targetType[]>.
+ * Trang Feedback dùng để giữ nhãn "Đang chờ kiểm định" và ẩn nút "Báo sai" đã gửi sau khi tải lại.
+ */
+async function openReportTypesBySession(session) {
+  const reports = await Report.find({
+    reportedBy: session.userId,
+    targetId: session._id,
+    targetType: { $in: AI_REPORT_TARGET_TYPES },
+    status: { $in: ["pending", "reviewing"] },
+  })
+    .select("targetType questionIndex")
+    .lean();
+  const byQuestion = new Map();
+  for (const r of reports) {
+    byQuestion.set(r.questionIndex, [...(byQuestion.get(r.questionIndex) ?? []), r.targetType]);
+  }
+  return byQuestion;
+}
+
 /** Trạng thái kiểm định của 1 câu (trang Feedback): chờ kiểm định / đã có điểm moderator. */
-function moderationFieldsFor(session, questionIndex) {
+function moderationFieldsFor(session, questionIndex, openReports = new Map()) {
   const answer = (session.answers ?? []).find((a) => a.questionIndex === questionIndex);
   return {
     evaluationIncomplete: Boolean(answer?.evaluationIncomplete),
     incompleteFields:     answer?.incompleteFields ?? [],
     moderatorOverride:    answer?.moderatorOverride ?? null,
+    openReports:          openReports.get(questionIndex) ?? [],
   };
 }
 
@@ -596,6 +618,7 @@ export const InterviewsController = {
 
       // Idempotent: return cached feedback if already evaluated (skip LLM call)
       if (session.feedbackGeneratedAt && session.feedback?.perQuestion?.length > 0) {
+        const openReports = await openReportTypesBySession(session);
         const cachedBehavioralPerQuestion = session.answers.map((a) => ({
           questionIndex: a.questionIndex,
           behavioralData: a.behavioralData ?? null,
@@ -613,7 +636,7 @@ export const InterviewsController = {
               strengths:     q.strengths ?? [],
               improvements:  q.improvements ?? [],
               suggestion:    q.suggestion ?? "",
-              ...moderationFieldsFor(session, q.questionIndex),
+              ...moderationFieldsFor(session, q.questionIndex, openReports),
             })),
           },
           overallScore:   session.feedback.overallScore,
@@ -731,6 +754,7 @@ export const InterviewsController = {
         success:        true,
         evaluation:     {
           ...evalResult,
+          // Phiên vừa chấm lần đầu thì chưa thể có báo cáo nào → không cần truy vấn Report.
           perQuestion: evalResult.perQuestion.map((q) => ({ ...q, ...moderationFieldsFor(session, q.questionIndex) })),
         },
         overallScore:   session.feedback.overallScore,
