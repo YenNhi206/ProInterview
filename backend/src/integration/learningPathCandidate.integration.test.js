@@ -137,6 +137,17 @@ describe("Vòng sửa → gửi lại → chấp nhận (LP-08)", () => {
     assert.equal(shares.reduce((a, b) => a + b, 0), resent.learningPath.totalAmount);
   });
 
+  it("danh sách của mentee có thông tin mentor, không có bản nháp (LP-18)", async () => {
+    const lp = await proposedPath();
+    const list = await api(mentee, "");
+    assert.equal(list.status, 200, list.error);
+    const row = list.learningPaths.find((p) => p.id === lp.id);
+    assert.ok(row, "lộ trình đã gửi phải có trong danh sách của mentee");
+    assert.deepEqual(row.mentor, { name: "Mentor LP08", title: "Data Lead", avatar: "", publicId: "lp08-mentor" });
+    assert.ok(list.learningPaths.every((p) => p.status !== "draft"));
+    assert.equal((await api(otherMentee, "")).learningPaths.some((p) => p.id === lp.id), false);
+  });
+
   it("chấp nhận ngay bản đầu tiên (không gửi version) cũng được", async () => {
     const lp = await proposedPath();
     const accepted = await api(mentee, `/${lp.id}/accept`, "POST", {});

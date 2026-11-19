@@ -8,6 +8,7 @@ import {
   LogIn,
   LogOut,
   Menu,
+  Route,
   Settings,
   Shield,
   ShoppingCart,
@@ -54,6 +55,7 @@ const PAGE_TITLES = {
   "/cv-analysis/field": { label: "Phân tích theo ngành", sub: "Đánh giá CV theo chuẩn ngành nghề" },
   "/interview": { label: "Phỏng vấn AI", sub: "Thiết lập buổi luyện, Pio hỏi, bạn trả lời" },
   "/mentor-requests": { label: "Yêu cầu Mentor", sub: "Nhu cầu và đề nghị hỗ trợ" },
+  "/learning-paths": { label: "Lộ trình học", sub: "Lộ trình mentor soạn riêng cho bạn" },
   "/mentors": { label: "Tìm Mentor", sub: "Đặt lịch 1:1 với anh/chị mentor" },
   "/profile": { label: "Hồ sơ cá nhân", sub: "Thông tin và thành tích của bạn" },
   "/settings": { label: "Cài đặt", sub: "Tuỳ chỉnh tài khoản" },
@@ -262,6 +264,10 @@ function CustomerNavbar() {
                   <DropdownMenuItem onClick={() => navigate("/mentor-requests")}>
                     <FileText className="mr-2.5 size-4 text-violet-400" />
                     Yêu cầu Mentor của tôi
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/learning-paths")}>
+                    <Route className="mr-2.5 size-4 text-violet-400" />
+                    Lộ trình học của tôi
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/my-courses")}>
                     <BookOpen className="mr-2.5 size-4 text-violet-400" />

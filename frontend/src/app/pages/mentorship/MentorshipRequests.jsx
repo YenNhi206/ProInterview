@@ -157,6 +157,8 @@ export function MentorshipRequests() {
             {mentor && request.canDownload && (request.learningPath
               ? <Link className="mr-secondary" to={`/mentor/learning-paths/${request.learningPath.id}/edit`}>Mở lộ trình <ArrowRight size={15} /></Link>
               : ["selected", "assessing"].includes(request.status) && <Link className={request.assessment?.status === "completed" ? "mr-primary" : "mr-secondary"} to={`/mentor/learning-paths/new?requestId=${request.id}`}>Soạn lộ trình <ArrowRight size={15} /></Link>)}
+            {/* LP-18: ứng viên thấy lộ trình mentor đã gửi (backend không trả bản nháp cho ứng viên). */}
+            {!mentor && request.learningPath && <Link className="mr-primary" to="/learning-paths">Xem lộ trình mentor gửi <ArrowRight size={15} /></Link>}
           </section>}
           {CHOSEN_STATUSES.includes(request.status) && chosen && <section className="mr-panel mr-detail-booking">
             <div className="mr-detail-section-label"><CheckCircle2 size={17} /><h2>Mentor đã chọn</h2></div>
