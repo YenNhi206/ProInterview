@@ -321,6 +321,8 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 | `services/moderationQueueService.js:39, :83` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report`; danh sách hàng đợi không lọc `type` | Loại mới cần map riêng; hàng đợi HITL chỉ lấy 3 loại phỏng vấn |
 | `models/QuestionBank.js` | `orgId` đang `ref: "Organization"` (model không tồn tại); `status` đã có `draft`, `rejected`; `roleCategory` đã có index | Đổi ref sang `"Company"`; dùng lại field có sẵn, không thêm field mới |
 | `frontend/src/app/utils/analytics/mock*.js` | 4 trang admin + `UserJourneyPanel.jsx` bơm số liệu giả ở trình duyệt | Không dùng cho màn mới; gỡ ở N-09 |
+| `config/competencies.json` (LP-01) | Đặt danh sách năng lực riêng, hoặc chỉ kiểm key bằng regex, thì lưu được key không có trong bộ tiêu chí: chấm điểm, `suggestOutcome` và hồ sơ năng lực không tra được | Backend kiểm bằng `isValidCompetencyKey`; frontend đọc `GET /api/competencies`. Quy tắc đầy đủ: DECISIONS.md mục "Bộ tiêu chí năng lực SHRM/DDI (LP-01)" |
+| `InterviewSession` | 3 câu baseline có `competencyId = ""`; `moderatorOverride` và `evaluationIncomplete` nằm trên `answers[i]`, không nằm trên `feedback.perQuestion[i]`; `shrmLevel` có fallback `"proficient"` | Quy đổi điểm AI sang mức bằng `aiAnswerToLevel(item, { answer })`, không đọc `shrmLevel` (AI-13 sẽ bỏ fallback) |
 | `package.json` `test:node` | Liệt kê từng file test; `node --test` chỉ nhận glob từ Node 21 | Cho tới khi xong N-05: thêm file test mới vào script này |
 
 ---
