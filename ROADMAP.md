@@ -286,7 +286,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/learning-paths/:id/propose` | `[AUTH][MENTOR]` gửi đề xuất (≥ 1 buổi, có giá, buổi 0đ đã hoàn thành) |
 | 📋 | POST | `/api/learning-paths/:id/accept`, `request-revision` | LP-08 |
 
-FE trình soạn lộ trình: LP-20. Chi tiết: **API_INDEX.md A.17**.
+FE (LP-20): ✅ `/mentor/learning-paths` (danh sách, lọc theo trạng thái, yêu cầu sẵn sàng soạn), ✅ `/mentor/learning-paths/new?requestId=` và `/mentor/learning-paths/:id/edit` (trình soạn: mục tiêu, giá trọn gói, thêm / sắp xếp / xóa buổi, mục tiêu buổi, năng lực SHRM, hồ sơ mentee, checklist và gửi). Lối vào từ trang `/mentor/requests/:id` và mục "Lộ trình học" trên sidebar mentor. Chi tiết: **API_INDEX.md A.17**.
 
 ### Yêu cầu mentor và buổi đánh giá 0đ (LP-05)
 

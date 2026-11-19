@@ -502,7 +502,7 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 | GET | `/api/mentorship-requests?scope=open\|mine` | Mentee / Mentor | Mentee: yêu cầu của mình. Mentor: `open` = đang mở, `mine` = đã gửi đề nghị |
 | POST | `/api/mentorship-requests` | Mentee | multipart: `position`, `description`, `sessionType`, `availability?`, `budget?`, **`jobPostId?`** (LP-05, ObjectId 24 ký tự, bỏ trống = null), `cv`/`jd` (file) hoặc `cvSource`/`jdSource` |
 | GET | `/api/mentorship-requests/documents` | Mentee | CV/JD đã lưu để dùng lại |
-| GET | `/api/mentorship-requests/:id` | Chủ yêu cầu / Mentor liên quan | DTO: `status`, `offers`, `bookingId` (booking thường), **`jobPostId`**, **`assessment`** `{ bookingId, status, date, timeSlot, durationMinutes, cancelledBy }` \| null |
+| GET | `/api/mentorship-requests/:id` | Chủ yêu cầu / Mentor liên quan | DTO: `status`, `offers`, `bookingId` (booking thường), **`jobPostId`**, **`assessment`** `{ bookingId, status, date, timeSlot, durationMinutes, cancelledBy }` \| null, **`learningPath`** `{ id, status }` \| null (LP-20: lộ trình chưa hủy; mentee không thấy khi còn `draft`) |
 | POST | `/api/mentorship-requests/:id/offers` | Mentor | Gửi đề nghị (`message`, `availability`) |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/select` | Mentee | `open → selected` |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/withdraw` | Mentor | Rút đề nghị |
@@ -518,7 +518,7 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 
 Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (dùng chung `requestActor` với A.16). Response `{ success, learningPath }` hoặc `{ success, learningPaths }`.
 
-**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, createdAt, updatedAt, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`.
+**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
 
 | Method | Path | Ai | Ghi chú |
 |:-------|:-----|:---|:--------|

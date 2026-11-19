@@ -120,7 +120,7 @@ Sau GĐ 0, ba luồng chạy song song: Learning Path (Trầm), Company và Rubr
 | LP-17 | Todo | Test integration trọn luồng từ yêu cầu đến `completed` | Trầm | LP-14 | Một file test chạy cả luồng | P0 |
 | LP-18 | Todo | FE ứng viên: form yêu cầu mentor thêm chọn job (tùy chọn); trang `/learning-paths` | Nhi | LP-05 | Danh sách hiện đúng trạng thái từ API | P0 |
 | LP-19 | Todo | FE ứng viên: `/learning-paths/:id` dạng timeline, chấp nhận / yêu cầu sửa, thanh toán (dùng lại `/checkout`), đặt lịch buổi, xem đạt/học lại và feedback | Nhi | LP-08, LP-10 | Đi hết luồng trên UI không cần Postman | P0 |
-| LP-20 | Todo | FE mentor: `/mentor/learning-paths` và trình soạn (thêm, sắp xếp buổi, mục tiêu, năng lực SHRM, giá trọn gói, xem hồ sơ ứng viên) | Nhi | LP-07 | Soạn và gửi được lộ trình 3 buổi | P0 |
+| LP-20 | Doing · Trầm | FE mentor: `/mentor/learning-paths` và trình soạn (thêm, sắp xếp buổi, mục tiêu, năng lực SHRM, giá trọn gói, xem hồ sơ ứng viên) | Nhi | LP-07 | Soạn và gửi được lộ trình 3 buổi | P0 |
 | LP-21 | Todo | FE mentor: form đánh giá đầu vào (buổi 0đ) và form đạt/không đạt + feedback, gắn vào trang có sẵn `/mentor/session-feedback/:sessionId` | Nhi | LP-01, LP-13 | Ghi kết quả xong thì timeline ứng viên cập nhật | P0 |
 
 ## Giai đoạn 2: Company và Rubric

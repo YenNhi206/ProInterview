@@ -1,0 +1,134 @@
+/*
+ * Lộ trình học — khu vực Mentor (LP-20).
+ * Dựng trên bộ khung `mr-*` của trang Nhu cầu mentee (mentorship-requests.css): cùng nền tím đậm,
+ * viền tím mờ, chữ #f5f0fc, điểm nhấn lime #93f72b. Chỉ thêm phần riêng của lộ trình ở đây.
+ */
+.lp-page { --lp-border: rgba(185, 143, 255, .22); --lp-rule: rgba(185, 143, 255, .15); --lp-muted: #a8a6bf; }
+
+/* ---------- Danh sách ---------- */
+.lp-ready { display: flex; flex-direction: column; gap: 14px; margin-bottom: 30px; }
+.lp-ready-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lp-ready-heading h2 { font-size: 16px !important; font-weight: 550 !important; }
+.lp-ready-heading p { font-size: 12px; color: var(--lp-muted); }
+.lp-ready-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.lp-ready-card {
+  display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px;
+  border: 1px solid rgba(147, 247, 43, .3); border-radius: 15px;
+  background: linear-gradient(180deg, rgba(147, 247, 43, .06), transparent 90px), #1a122c;
+}
+.lp-ready-card h3 { font-size: 14px !important; font-weight: 550 !important; color: #f1e8fb; overflow-wrap: anywhere; }
+.lp-ready-card p { font-size: 11px; color: var(--lp-muted); }
+.lp-ready-card .mr-primary { align-self: flex-start; margin-top: 4px; }
+.lp-ready-assess { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #c9b6de; }
+.lp-ready-assess svg { flex-shrink: 0; }
+.lp-ready-assess.is-done { color: #b9ee8c; }
+
+.lp-page .mr-tabs { flex-wrap: wrap; gap: 18px 22px; }
+.lp-page .mr-tabs button span { margin-left: 6px; font-size: 10px; color: #8f86a8; }
+.lp-page .mr-tabs button.active span { color: #93f72b; }
+
+.mr-status.draft { color: #d4bbf2; border-color: #c6a0ec40; background: #c6a0ec08; }
+.mr-status.proposed, .mr-status.pending_payment { color: #f7d27a; border-color: #f7d27a40; background: #f7d27a0a; }
+.mr-status.revision_requested { color: #fda4af; border-color: #fda4af45; background: #fda4af0a; }
+.mr-status.active, .mr-status.completed { color: #b9ee8c; border-color: #93f72b40; background: #93f72b08; }
+.mr-status.cancelled { color: #aaa0bd; border-color: rgba(185, 143, 255, .17); background: rgba(185, 143, 255, .05); }
+.lp-card-facts { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 14px; font-size: 12px; color: #c9b9da; }
+.lp-card-facts span { display: inline-flex; align-items: center; gap: 6px; }
+.lp-card-facts svg { flex-shrink: 0; color: #93f72b; }
+
+/* ---------- Trình soạn ---------- */
+.lp-editor .mr-detail-overview > h2 { font-size: 22px !important; }
+.lp-revision {
+  display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 13px 15px;
+  border: 1px solid #fda4af45; border-radius: 12px; background: #fda4af0a; color: #ffd4d9; font-size: 12px; line-height: 1.8;
+}
+.lp-revision svg { flex-shrink: 0; margin-top: 3px; }
+.lp-revision strong { display: block; font-weight: 600; color: #ffe4e9; }
+
+.lp-block { display: flex; flex-direction: column; gap: 16px; }
+.lp-block-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lp-block-heading h2 { font-size: 16px !important; font-weight: 550 !important; }
+.lp-block-heading .mr-eyebrow { display: block; margin-bottom: 3px; color: #bda1e6; }
+.lp-counter { font-size: 11px; color: var(--lp-muted); }
+.lp-price-row { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 18px; align-items: end; }
+.lp-price-input { position: relative; }
+.lp-price-input input { padding-right: 52px !important; font-variant-numeric: tabular-nums; }
+.lp-price-input span { position: absolute; right: 13px; bottom: 12px; font-size: 11px; color: #a997be; pointer-events: none; }
+.lp-shares { font-size: 11px; color: var(--lp-muted); line-height: 1.8; }
+.lp-shares strong { color: #d2f6b5; font-weight: 550; }
+
+.lp-sessions { display: flex; flex-direction: column; gap: 0; counter-reset: lp-session; }
+.lp-session {
+  display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; padding: 20px 0;
+  border-bottom: 1px solid var(--lp-rule);
+}
+.lp-session:first-child { padding-top: 4px; }
+.lp-session-index {
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid rgba(147, 247, 43, .4); background: rgba(147, 247, 43, .07);
+  color: #93f72b; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.lp-session-body { display: flex; flex-direction: column; gap: 13px; min-width: 0; }
+.lp-session-top { display: flex; gap: 10px; align-items: flex-end; }
+.lp-session-top > label { flex: 1; min-width: 0; }
+.lp-session-tools { display: flex; gap: 6px; flex-shrink: 0; padding-bottom: 4px; }
+.lp-icon-btn {
+  display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  border: 1px solid rgba(185, 143, 255, .25); border-radius: 9px;
+  background: linear-gradient(180deg, rgba(221, 200, 255, .1), transparent), #1b132d; color: #d7c9e8;
+}
+.lp-icon-btn:hover:not(:disabled) { border-color: #b998ed; color: #fff; }
+.lp-icon-btn.is-danger:hover:not(:disabled) { border-color: #fda4af90; color: #fda4af; }
+.lp-session textarea { min-height: 74px; }
+.lp-field-hint { font-size: 10px; font-weight: 400; color: #9f8db3; }
+
+.lp-chip-group { display: flex; flex-direction: column; gap: 8px; }
+.lp-chip-group > span { font-size: 12px; font-weight: 550; color: #e4d7f2; }
+.lp-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.lp-page .lp-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px;
+  border: 1px solid #ffffff1c; border-radius: 999px; background: #ffffff05;
+  color: #cdb9e1; font-size: 11px; line-height: 1.3; transition: color .15s, border-color .15s, background-color .15s;
+}
+.lp-page .lp-chip:hover:not(:disabled) { border-color: #c6a3ec; color: #f3eafa; }
+.lp-page .lp-chip[aria-pressed="true"] { background: #93f72b; border-color: #bcff79; color: #17210b; font-weight: 600; }
+.lp-page .lp-chip.is-static { cursor: default; }
+
+.lp-add-session {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 16px; padding: 13px;
+  border: 1px dashed rgba(147, 247, 43, .45); border-radius: 12px; background: rgba(147, 247, 43, .04);
+  color: #93f72b; font-size: 12px; font-weight: 600;
+}
+.lp-add-session:hover:not(:disabled) { background: rgba(147, 247, 43, .09); }
+.lp-empty-sessions { padding: 22px 4px 6px; font-size: 12px; color: var(--lp-muted); line-height: 1.8; }
+
+.lp-readonly-objectives { margin: 0; padding-left: 18px; color: #d1c2e0; font-size: 12px; line-height: 1.9; }
+.lp-readonly-title { font-size: 14px; font-weight: 550; color: #f1e8fb; overflow-wrap: anywhere; }
+
+/* Sidebar */
+.lp-profile-head { display: flex; gap: 11px; align-items: center; margin: 18px 0 4px; }
+.lp-profile-head strong { font-size: 13px; font-weight: 550; }
+.lp-profile-head p { font-size: 11px; color: var(--lp-muted); margin-top: 2px; }
+.lp-profile-need { margin-top: 12px; font-size: 12px; line-height: 1.85; color: #d1c2e0; white-space: pre-wrap; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.lp-profile-link { margin-top: 12px; }
+
+.lp-send { display: flex; flex-direction: column; gap: 14px; }
+.lp-send .mr-detail-section-label { color: #93f72b; }
+.lp-checklist { display: flex; flex-direction: column; gap: 9px; margin: 4px 0 0; padding: 0; list-style: none; }
+.lp-checklist li { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; line-height: 1.6; color: #c9b9da; }
+.lp-checklist li svg { flex-shrink: 0; margin-top: 2px; color: #8f86a8; }
+.lp-checklist li.is-ok { color: #e4f6d3; }
+.lp-checklist li.is-ok svg { color: #93f72b; }
+.lp-send-actions { display: flex; flex-direction: column; gap: 9px; }
+.lp-page .lp-send-actions :is(.mr-primary, .mr-secondary) { width: 100%; white-space: normal; text-align: center; }
+.lp-dirty { font-size: 11px; color: #f7d27a; }
+.lp-send-note { font-size: 11px; line-height: 1.8; color: var(--lp-muted); }
+
+@media (max-width: 720px) {
+  .lp-price-row { grid-template-columns: 1fr; }
+  .lp-session { grid-template-columns: 1fr; gap: 10px; }
+  .lp-session-top { flex-direction: column; align-items: stretch; }
+  .lp-session-tools { justify-content: flex-end; padding-bottom: 0; }
+  .lp-ready-list { grid-template-columns: 1fr; }
+}
