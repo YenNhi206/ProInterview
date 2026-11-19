@@ -94,6 +94,36 @@ Khi code xong mỗi state machine, chép vào `docs/STATE_MACHINES.md` kèm bả
 
 Đây là phần "two-tier HITL" trong đơn: Company Mod duyệt câu theo công ty, Platform Mod duyệt rubric và cải tiến AI.
 
+### Bộ tiêu chí năng lực SHRM/DDI (LP-01): quy tắc dùng chung
+
+Áp dụng cho mọi task có chọn, lưu, chấm hoặc hiển thị năng lực: LP-13, LP-21 (feedback buổi lộ trình, buổi 0đ), CO-07 (rubric), JB-01 (job post), PR-06 (hồ sơ năng lực), AI-01, AI-02.
+
+**Nguồn duy nhất:** `backend/src/config/competencies.json`. Không đặt danh sách năng lực ở chỗ khác, kể cả danh sách tạm.
+
+| Phía | Đọc thế nào |
+|:-----|:------------|
+| Backend | Import từ `services/competencyFramework.js`: `getFramework()`, `getCompetency(key)`, `isValidCompetencyKey(key, { allowDeprecated })`, `aiAnswerToLevel(item, { answer })`, `suggestOutcome(scoresByKey, sessionKeys)`, `toDisplayLevel(level)` |
+| Frontend | `competenciesApi.getFramework()` → `GET /api/competencies` (mọi role đã đăng nhập). Không import file JSON từ `backend/` |
+
+**Key năng lực**
+- Có 20 key, không đổi tên, không xóa. Muốn bỏ một key thì đặt `deprecated: true`: dữ liệu cũ vẫn hiện tên, nhưng form không cho chọn nữa và `isValidCompetencyKey` từ chối.
+- Thêm key mới thì báo Janet trước, để không có hai key cho cùng một năng lực (hồ sơ năng lực sẽ bị tách đôi).
+- Mọi API nhận key (lộ trình, rubric, job post) đều kiểm bằng `isValidCompetencyKey(key)`. Chỉ khi đọc dữ liệu cũ mới dùng `{ allowDeprecated: true }`.
+- Sửa nội dung file (mô tả, anchors, hệ số) thì tăng `version`. Bản ghi điểm nên lưu kèm `frameworkVersion`.
+
+**Thang điểm**
+- Có 6 mức, 0–5 (xem `levels` trong file); ngưỡng đạt `passThreshold = 3`.
+- Mentor chấm số nguyên 0–5. `null` nghĩa là "Chưa đủ dữ liệu": khác mức 0, không tính vào trung bình. UI hiển thị `nullLabel`.
+- Gợi ý đạt/không đạt của một buổi: `suggestOutcome` trả `passed` khi **mọi** key của buổi ≥ 3 (không lấy trung bình); có key chưa chấm thì trả `null`. Mentor là người quyết định cuối cùng.
+
+**Điểm AI**
+- Quy đổi bằng `aiAnswerToLevel`: đọc điểm moderator chấm lại nếu có, sau đó `overall5`, sau đó `score / 20`; **không đọc `shrmLevel`**. Sau đó áp `aiCalibration` (tạm thời: −1, tối đa mức 4).
+- Kết quả là số thập phân: so ngưỡng và gộp điểm dùng số thập phân, chỉ làm tròn khi hiển thị (`toDisplayLevel`).
+- `aiCalibration.status = "provisional"`: trước khi AI-01 hiệu chỉnh xong, UI ghi rõ đây là ước lượng.
+- `moderatorOverride` và `evaluationIncomplete` nằm trên `session.answers[i]`, không nằm trên `feedback.perQuestion[i]`. Truyền `{ answer }` vào hàm. Thiếu `answer` thì hàm không phân biệt được câu bỏ trống.
+
+**Còn chờ chốt** (mục "Đề xuất thay đổi kế hoạch" trong TASKS.md): chỗ lưu điểm từng năng lực của buổi lộ trình (a) và của buổi 0đ (b); cách gán key cho 3 câu baseline vốn không có `competencyId` (e).
+
 ## Nhật ký quyết định mới
 
 | Ngày | Task | Quyết định | Lý do |
