@@ -86,6 +86,8 @@ describe("Vòng sửa → gửi lại → chấp nhận (LP-08)", () => {
     assert.equal(seen.status, 200, seen.error);
     assert.equal(seen.learningPath.status, "proposed");
     assert.equal(seen.learningPath.sessions.length, 3);
+    // LP-09: mentee thấy phần tiền từng buổi đã chốt khi mentor gửi (900.000 / 3).
+    assert.deepEqual(seen.learningPath.sessions.map((s) => s.shareAmount), [300_000, 300_000, 300_000]);
 
     const revision = await api(mentee, `/${lp.id}/request-revision`, "POST", { note: "Mình muốn bớt 1 buổi và thêm phần dashboard." });
     assert.equal(revision.status, 200, revision.error);
@@ -113,6 +115,8 @@ describe("Vòng sửa → gửi lại → chấp nhận (LP-08)", () => {
     assert.equal(accepted.learningPath.version, 2);
     assert.equal(accepted.learningPath.totalAmount, 800_000);
     assert.equal(accepted.learningPath.sessions.length, 2);
+    // LP-09: gửi lại với giá mới thì phần tiền từng buổi được chia lại theo T mới.
+    assert.deepEqual(accepted.learningPath.sessions.map((s) => s.shareAmount), [400_000, 400_000]);
     assert.ok(accepted.learningPath.acceptedAt);
     assert.equal(await notifCount(mentor.user._id, "learning_path_accepted", lp.id), 1);
 
@@ -120,6 +124,17 @@ describe("Vòng sửa → gửi lại → chấp nhận (LP-08)", () => {
     assert.equal((await api(mentee, `/${lp.id}/accept`, "POST", {})).status, 409);
     assert.equal((await api(mentee, `/${lp.id}/request-revision`, "POST", { note: "Đổi ý muốn sửa" })).status, 409);
     assert.equal((await api(mentor.user, `/${lp.id}`, "PATCH", { goal: "Đổi" })).status, 409);
+  });
+
+  it("giá không chia hết: tổng phần tiền các buổi vẫn bằng T, buổi cuối nhận phần dư (LP-09)", async () => {
+    const lp = await proposedPath();
+    await api(mentee, `/${lp.id}/request-revision`, "POST", { note: "Giảm giá một chút giúp mình" });
+    await api(mentor.user, `/${lp.id}`, "PATCH", { totalAmount: 1_000_000 });
+    const resent = await api(mentor.user, `/${lp.id}/propose`, "POST");
+    assert.equal(resent.status, 200, resent.error);
+    const shares = resent.learningPath.sessions.map((s) => s.shareAmount);
+    assert.deepEqual(shares, [333_333, 333_333, 333_334]);
+    assert.equal(shares.reduce((a, b) => a + b, 0), resent.learningPath.totalAmount);
   });
 
   it("chấp nhận ngay bản đầu tiên (không gửi version) cũng được", async () => {

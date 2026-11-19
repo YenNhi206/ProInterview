@@ -530,7 +530,7 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 | POST | `/api/learning-paths/:id/accept` | Mentee của lộ trình | **LP-08.** Body `{ version? }`. `proposed → pending_payment`, ghi `acceptedAt`. Gửi `version` đang xem thì 409 nếu mentor đã gửi phiên bản khác. 409 khi không ở `proposed`; mentor gọi → 403; bản nháp / lộ trình của người khác → 404. Thông báo `learning_path_accepted` cho mentor |
 | POST | `/api/learning-paths/:id/request-revision` | Mentee của lộ trình | **LP-08.** Body `{ note }` (5–2000 ký tự, bắt buộc). `proposed → revision_requested`, lưu `revisionNote`. Mentor sửa (`PATCH`) rồi gửi lại (`propose`) → `version + 1`. Thông báo `learning_path_revision_requested` cho mentor |
 
-Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi = 0 cho tới LP-09.
+Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
 
 ---
 

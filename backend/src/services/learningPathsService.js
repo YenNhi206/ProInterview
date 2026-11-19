@@ -15,6 +15,7 @@ import { Mentor } from "../models/Mentor.js";
 import { httpError } from "../utils/apiErrors.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
+import { splitLearningPathShares } from "../utils/learningPathMoney.js";
 
 export const LEARNING_PATH_MAX_SESSIONS = 12;
 /** Giá trọn gói tối thiểu khi gửi đề xuất (VND). Bản nháp được để 0. */
@@ -231,6 +232,15 @@ export async function proposeLearningPath(actor, pathId) {
   }
 
   const { rate } = resolveBookingPlatformFeeRate(actor.mentor);
+
+  // LP-09: chốt phần tiền từng buổi gốc theo giá trọn gói lúc gửi (tổng luôn bằng T, buổi cuối nhận phần dư).
+  // Mentor chỉ sửa được ở draft / revision_requested nên mỗi lần gửi lại đều tính lại.
+  const originals = await LearningPathSession.find({ pathId: path._id, attempt: 1 }).sort({ order: 1 }).select("_id").lean();
+  const shares = splitLearningPathShares(path.totalAmount, originals.length);
+  await LearningPathSession.bulkWrite(
+    originals.map((row, i) => ({ updateOne: { filter: { _id: row._id }, update: { $set: { shareAmount: shares[i] } } } })),
+  );
+
   const isResubmit = path.status === "revision_requested";
   const now = new Date();
   const updated = await LearningPath.findOneAndUpdate(

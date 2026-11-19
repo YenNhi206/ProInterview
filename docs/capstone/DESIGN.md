@@ -66,6 +66,7 @@ share_n = T − (n − 1) × floor(T / n)
 - Buổi đánh giá 0đ và buổi học lại miễn phí: mọi field tiền bằng 0, mentor không nhận thêm (`assessmentBookingMoney()`, hoặc `learningPathBookingMoney({ shareAmount: 0 })`).
 - Thu nhập mentor mỗi buổi `done` = `totalAmount − platformFee`, qua `tryCreditMentorForCompletedBooking`.
 - Hủy lộ trình: hoàn cho ứng viên = T − tổng `shareAmount` của các buổi đã `done`. Mentor giữ phần đã nhận. Các hàm hủy/vắng mặt cũ không được hoàn tiền từng buổi (LP-22, đã chặn).
+- ✅ LP-09: hàm trong `backend/src/utils/learningPathMoney.js` — `splitLearningPathShares`, `learningPathSessionFee`, `planLearningPathMoney`, `isFreeRetake` / `retakeShareAmount`, `computeLearningPathRefund` (chỉ tính buổi gốc `attempt = 1`). `shareAmount` được chốt khi Mentor gửi đề xuất.
 
 ## 5. API và màn hình
 
