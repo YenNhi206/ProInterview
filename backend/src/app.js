@@ -41,6 +41,7 @@ import { analyticsRouter } from "./routes/analytics.js";
 import { publicRouter } from "./routes/public.js";
 import { couponsRouter } from "./routes/coupons.js";
 import { cartRouter } from "./routes/cart.js";
+import { competenciesRouter } from "./routes/competencies.js";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
@@ -229,6 +230,7 @@ export function createApp() {
   app.use("/api/public", publicRouter);
   app.use("/api/coupons", couponsRouter);
   app.use("/api/cart", cartRouter);
+  app.use("/api/competencies", competenciesRouter);
 
   app.use(notFoundHandler);
   app.use(globalErrorHandler);

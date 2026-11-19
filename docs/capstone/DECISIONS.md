@@ -94,6 +94,36 @@ Khi code xong mỗi state machine, chép vào `docs/STATE_MACHINES.md` kèm bả
 
 Đây là phần "two-tier HITL" trong đơn: Company Mod duyệt câu theo công ty, Platform Mod duyệt rubric và cải tiến AI.
 
+### Bộ tiêu chí năng lực SHRM/DDI (LP-01): quy tắc dùng chung
+
+Áp dụng cho mọi task có chọn, lưu, chấm hoặc hiển thị năng lực: LP-13, LP-21 (feedback buổi lộ trình, buổi 0đ), CO-07 (rubric), JB-01 (job post), PR-06 (hồ sơ năng lực), AI-01, AI-02.
+
+**Nguồn duy nhất:** `backend/src/config/competencies.json`. Không đặt danh sách năng lực ở chỗ khác, kể cả danh sách tạm.
+
+| Phía | Đọc thế nào |
+|:-----|:------------|
+| Backend | Import từ `services/competencyFramework.js`: `getFramework()`, `getCompetency(key)`, `isValidCompetencyKey(key, { allowDeprecated })`, `aiAnswerToLevel(item, { answer })`, `suggestOutcome(scoresByKey, sessionKeys)`, `toDisplayLevel(level)` |
+| Frontend | `competenciesApi.getFramework()` → `GET /api/competencies` (mọi role đã đăng nhập). Không import file JSON từ `backend/` |
+
+**Key năng lực**
+- Có 20 key, không đổi tên, không xóa. Muốn bỏ một key thì đặt `deprecated: true`: dữ liệu cũ vẫn hiện tên, nhưng form không cho chọn nữa và `isValidCompetencyKey` từ chối.
+- Thêm key mới thì báo Janet trước, để không có hai key cho cùng một năng lực (hồ sơ năng lực sẽ bị tách đôi).
+- Mọi API nhận key (lộ trình, rubric, job post) đều kiểm bằng `isValidCompetencyKey(key)`. Chỉ khi đọc dữ liệu cũ mới dùng `{ allowDeprecated: true }`.
+- Sửa nội dung file (mô tả, anchors, hệ số) thì tăng `version`. Bản ghi điểm nên lưu kèm `frameworkVersion`.
+
+**Thang điểm**
+- Có 6 mức, 0–5 (xem `levels` trong file); ngưỡng đạt `passThreshold = 3`.
+- Mentor chấm số nguyên 0–5. `null` nghĩa là "Chưa đủ dữ liệu": khác mức 0, không tính vào trung bình. UI hiển thị `nullLabel`.
+- Gợi ý đạt/không đạt của một buổi: `suggestOutcome` trả `passed` khi **mọi** key của buổi ≥ 3 (không lấy trung bình); có key chưa chấm thì trả `null`. Mentor là người quyết định cuối cùng.
+
+**Điểm AI**
+- Quy đổi bằng `aiAnswerToLevel`: đọc điểm moderator chấm lại nếu có, sau đó `overall5`, sau đó `score / 20`; **không đọc `shrmLevel`**. Sau đó áp `aiCalibration` (tạm thời: −1, tối đa mức 4).
+- Kết quả là số thập phân: so ngưỡng và gộp điểm dùng số thập phân, chỉ làm tròn khi hiển thị (`toDisplayLevel`).
+- `aiCalibration.status = "provisional"`: trước khi AI-01 hiệu chỉnh xong, UI ghi rõ đây là ước lượng.
+- `moderatorOverride` và `evaluationIncomplete` nằm trên `session.answers[i]`, không nằm trên `feedback.perQuestion[i]`. Truyền `{ answer }` vào hàm. Thiếu `answer` thì hàm không phân biệt được câu bỏ trống.
+
+**Còn chờ chốt** (mục "Đề xuất thay đổi kế hoạch" trong TASKS.md): chỗ lưu điểm từng năng lực của buổi lộ trình (a) và của buổi 0đ (b); cách gán key cho 3 câu baseline vốn không có `competencyId` (e).
+
 ## Nhật ký quyết định mới
 
 | Ngày | Task | Quyết định | Lý do |
@@ -104,6 +134,11 @@ Khi code xong mỗi state machine, chép vào `docs/STATE_MACHINES.md` kèm bả
 | 18/11/2026 | LP-04 | Field tiền của booking lộ trình và buổi 0đ chỉ sinh qua `utils/learningPathBookingMoney.js` (`learningPathBookingMoney`, `assessmentBookingMoney`). Buổi 0đ: `paymentMethod: ""` (không thuộc khoản thu nào), `paymentStatus: "paid"`. Báo cáo tài chính booking loại `paymentMethod: learning_path` **và** `sessionType: assessment` (`EXCLUDE_LEARNING_PATH_BOOKINGS`). `isLearningPathOrAssessmentBooking()` dùng cho LP-22 | Một chỗ duy nhất giữ công thức `platformFee = round(share × rate)`; nếu không loại buổi 0đ thì ứng viên chỉ học thử bị đếm vào `paidCustomerCount` |
 | 18/11/2026 | LP-22 | Booking lộ trình / buổi 0đ bị hủy (ứng viên hoặc mentor, kể cả mentor hủy gấp < 24h) hay mentor no-show: chỉ đổi `status` + `cancelledBy`, `paymentStatus` giữ `paid`, `cancelRefundAmountVnd = 0`, không `awaiting_user`, không rebook credit; `LearningPathSession` quay về `planned` để đặt lại cùng buổi, không mất phí. Ứng viên hủy không bị phí hủy muộn. Mentor no-show vẫn tăng `noShowCount`. `resolveMentorCancelBooking` trả 400 | Tiền đã thu trọn gói ở LearningPath; hoàn từng buổi sẽ cộng trùng với khoản hoàn khi hủy lộ trình (LP-15). Phạt ứng viên hủy muộn / giới hạn buổi 0đ để LP-06 quyết định dựa trên `cancelledBy` |
 | 18/11/2026 | LP-05 | `POST /api/mentorship-requests/:id/accept-assessment` do **Mentor được chọn** gọi, tự chọn ngày giờ; Booking buổi 0đ tạo ở `confirmed` + `paid` (không qua thanh toán) và thông báo `booking_confirmed` cho mentee. Mỗi yêu cầu chỉ có 1 buổi 0đ còn hiệu lực (`assessmentBookingId`); hẹn lại được khi buổi trước `cancelled`/`no_show`, chặn khi đã `completed` hoặc `path_proposed`. `jobPostId` chỉ kiểm định dạng ObjectId (model JobPost có ở JB-01). DTO tách `bookingId` (booking thường) và `assessment` | Đúng "Xong khi: Mentor tạo được buổi 0đ"; mentee hủy được qua luồng LP-22 nếu giờ không hợp. Giới hạn số buổi 0đ của ứng viên để LP-06 xử lý |
+| 18/11/2026 | LP-01 | Bộ tiêu chí ở `backend/src/config/competencies.json`; FE đọc qua `GET /api/competencies`, không import chéo thư mục | Một nguồn duy nhất cho BE, FE và các task CO-07, JB-01, LP-03 |
+| 18/11/2026 | LP-01 | Giữ nguyên 20 key cũ; chỉ thêm key mới hoặc đánh dấu `deprecated` | `InterviewSession`, `QuestionBank`, DTO moderator đã lưu và kiểm tra theo các key này |
+| 18/11/2026 | LP-01 | Thang 0–5 theo bảng 6 mức là định nghĩa chuẩn; `null` = "Chưa đủ dữ liệu"; ngưỡng đạt 3; mentor chấm số nguyên | Mentor và AI dùng chung một thang; `null` không bị tính như mức 0 |
+| 18/11/2026 | LP-01 | Quy đổi điểm AI từ `overall5` (không dùng `shrmLevel`), hệ số tạm `offset -1` và tối đa mức 4, giữ số thập phân; lỗi hệ thống (`evaluationIncomplete`) trả `null`; hiệu chỉnh lại bằng AI-01 | `shrmLevel` do LLM cho riêng và có fallback `"proficient"`; AI chấm dễ hơn bảng khoảng một mức |
+| 18/11/2026 | LP-01 | Buổi lộ trình gợi ý đạt khi mọi key ≥ ngưỡng; mentor quyết định cuối cùng | Không để một năng lực mạnh che năng lực yếu như khi lấy trung bình |
 | 19/11/2026 | LP-07 | API lộ trình mới ở prefix `/api/learning-paths` (theo DESIGN mục 5), quyền dùng chung `requestActor`. Bản nháp: tối đa 12 buổi, `PATCH sessions` thay toàn bộ danh sách, mentee không thấy bản nháp. Gửi đề xuất cần: ≥ 1 buổi, giá trọn gói ≥ 10.000₫ (số nguyên), buổi `assessment` của yêu cầu đã `completed`. `platformFeeRate` chụp lúc gửi bằng `resolveBookingPlatformFeeRate(mentor)` (giống booking, quyết định 4). `shrmKeys` tạm kiểm `^[a-z0-9_]{2,60}$` cho tới khi có bộ tiêu chí LP-01. `shareAmount` = 0 cho tới LP-09 | Prefix mới vì đây là domain mới (không phải mở rộng router có sẵn); ngưỡng giá tối thiểu tránh gửi nhầm lộ trình 0đ; kiểm key SHRM theo LP-01 sẽ thay regex khi Janet xong |
 | 19/11/2026 | LP-20 | Màn Mentor lộ trình dựng trên bộ CSS `mr-*` của trang Nhu cầu mentee (thêm `styles/learning-paths.css`, tiền tố `lp-`) để cùng giao diện khu vực mentor. Danh sách năng lực SHRM để chọn cho từng buổi tạm đặt ở `utils/learningPath/learningPathEditor.js` (`SHRM_COMPETENCIES`, 12 key) cho tới khi LP-01 có bộ tiêu chí chung. "Hồ sơ ứng viên" tạm lấy từ yêu cầu mentor (vị trí, nhu cầu, CV/JD, buổi 0đ) cho tới PR-01. Sắp xếp buổi bằng nút lên/xuống (không kéo-thả) | Khớp giao diện hiện có; nút lên/xuống dùng được bằng bàn phím và trên điện thoại; tránh chờ LP-01, PR-01 |
 | 19/11/2026 | LP-08 | Mentee chấp nhận gửi kèm `version` đang xem (tùy chọn): lệch thì 409 để không chấp nhận nhầm bản cũ sau khi mentor gửi lại. Yêu cầu sửa bắt buộc ghi chú 5–2000 ký tự. Chấp nhận chỉ đổi sang `pending_payment`, chưa sinh `paymentRef` (LP-10 sinh khi checkout). Thông báo cho mentor dùng khóa cài đặt `booking_request` (mentor tắt nhóm này thì không nhận) | Tránh chấp nhận bản cũ; mentor cần biết mentee muốn sửa gì; tách chấp nhận khỏi thanh toán để LP-10 dùng đúng đường ray chuyển khoản |
