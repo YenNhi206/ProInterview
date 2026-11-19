@@ -204,7 +204,7 @@ AI-01 đến AI-06 là P0 vì nằm trong kịch bản demo bước 7. `promptVe
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
 | AI-01 | Todo | Bộ 20 câu trả lời chuẩn: cả nhóm chấm độc lập theo SHRM/DDI, Janet tổng hợp điểm chuẩn | Janet | | File dữ liệu trong repo, có độ lệch giữa người chấm | P0 |
-| AI-02 | Todo | Model `PromptVersion` làm bảng đăng ký cho các chuỗi `promptVersion` đã có; seed version hiện tại; loader đọc prompt theo version `active`; không thêm field mới vào `InterviewSession` | Janet | | Đổi version không cần deploy lại; chuỗi cũ vẫn khớp | P0 |
+| AI-02 | Doing · Janet | Model `PromptVersion` làm bảng đăng ký cho các chuỗi `promptVersion` đã có; seed version hiện tại; loader đọc prompt theo version `active`; không thêm field mới vào `InterviewSession` | Janet | | Đổi version không cần deploy lại; chuỗi cũ vẫn khớp | P0 |
 | AI-03 | Todo | Model `AIImprovementProposal`; `aiImprovementMinerJob` gom ModerationItem đã xử lý (`override_score`, sửa hoặc khai tử câu) theo ngưỡng cấu hình (mặc định 5) | Janet | AI-02 | Test: đủ ngưỡng thì tạo đúng 1 đề xuất | P0 |
 | AI-04 | Todo | Backtest: chạy đề xuất trên AI-01 và 10 câu trả lời cũ, lưu điểm trước/sau vào đề xuất | Janet | AI-01, AI-03 | Hiện được độ lệch so với điểm chuẩn | P0 |
 | AI-05 | Todo | API Platform Mod duyệt, từ chối, rollback; duyệt thì bật PromptVersion mới | Janet | AI-04 | Rollback trả về version trước; test | P0 |
