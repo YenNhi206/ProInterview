@@ -276,6 +276,18 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 
 Áp dụng trực tiếp trong `createBooking`, `EnrollmentController.enroll`, `createSubscriptionTransferPending` qua field `couponCode` trong body — server tự tính lại `totalAmount`/`pricePaid`/`amount` sau giảm giá (không tin số tiền client gửi). Mỗi user dùng 1 lần/mã (`Coupon.usedBy`). Tạo mã: `npm run seed:coupon`. Chi tiết: **API_INDEX.md A.15**.
 
+### Lộ trình học — Mentor soạn và gửi (LP-07)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | GET | `/api/learning-paths` · `/api/learning-paths/:id` | `[AUTH]` Mentor / mentee (mentee không thấy bản nháp) |
+| ✅ | POST | `/api/learning-paths` | `[AUTH][MENTOR]` Mentor được chọn — tạo bản nháp |
+| ✅ | PATCH | `/api/learning-paths/:id` | `[AUTH][MENTOR]` sửa bản nháp / sau yêu cầu sửa |
+| ✅ | POST | `/api/learning-paths/:id/propose` | `[AUTH][MENTOR]` gửi đề xuất (≥ 1 buổi, có giá, buổi 0đ đã hoàn thành) |
+| 📋 | POST | `/api/learning-paths/:id/accept`, `request-revision` | LP-08 |
+
+FE trình soạn lộ trình: LP-20. Chi tiết: **API_INDEX.md A.17**.
+
 ### Yêu cầu mentor và buổi đánh giá 0đ (LP-05)
 
 | BE | Method | Endpoint | Auth |

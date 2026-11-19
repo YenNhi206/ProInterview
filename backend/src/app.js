@@ -17,6 +17,7 @@ if (dns.setDefaultResultOrder) {
 import { mentorsRouter } from "./routes/mentors.js";
 import { authRouter } from "./routes/auth.js";
 import { mentorshipRequestsRouter } from "./routes/mentorshipRequests.js";
+import { learningPathsRouter } from "./routes/learningPaths.js";
 import { bookingsRouter } from "./routes/bookings.js";
 import { plansRouter } from "./routes/plans.js";
 import { paymentsRouter } from "./routes/payments.js";
@@ -204,6 +205,7 @@ export function createApp() {
   app.use("/api/mentors", mentorsRouter);
   app.use("/api/bookings", bookingsRouter);
   app.use("/api/mentorship-requests", mentorshipRequestsRouter);
+  app.use("/api/learning-paths", learningPathsRouter);
   app.use("/api/plans", plansRouter);
   app.use("/api/payments", paymentsRouter);
   app.use("/api/users", usersRouter);
