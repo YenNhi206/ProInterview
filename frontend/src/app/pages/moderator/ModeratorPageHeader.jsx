@@ -6,10 +6,10 @@ import React from "react";
  */
 export function ModeratorPageHeader({ title, subtitle, actions }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h2 className="text-xl font-extrabold text-white">{title}</h2>
-        {subtitle ? <p className="mt-0.5 text-sm text-slate-300">{subtitle}</p> : null}
+        <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-white">{title}</h1>
+        {subtitle ? <p className="mt-2 max-w-2xl text-sm text-slate-300">{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-end gap-3">{actions}</div> : null}
     </div>

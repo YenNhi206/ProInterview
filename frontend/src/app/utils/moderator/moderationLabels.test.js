@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatRate, formatHours, competencyLabel, COMPETENCIES } from "./moderationLabels.js";
+import { formatRate, formatHours, formatWaiting, competencyLabel, COMPETENCIES } from "./moderationLabels.js";
+
+test("formatWaiting: phút → giờ → ngày, làm tròn xuống", () => {
+  const now = Date.parse("2026-11-18T12:00:00Z");
+  assert.equal(formatWaiting("2026-11-18T11:45:00Z", now), "15 phút");
+  assert.equal(formatWaiting("2026-11-18T08:59:00Z", now), "3 giờ");
+  assert.equal(formatWaiting("2026-11-16T11:00:00Z", now), "2 ngày");
+  assert.equal(formatWaiting(null, now), "—");
+});
 
 test("formatRate: tỉ lệ → %, null → —", () => {
   assert.equal(formatRate(0.75), "75%");
