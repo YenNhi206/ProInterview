@@ -13,6 +13,7 @@ import { Booking } from "../models/Booking.js";
 import { User } from "../models/User.js";
 import { Mentor } from "../models/Mentor.js";
 import { httpError } from "../utils/apiErrors.js";
+import { resolveStoredUploadUrl } from "../utils/resolveStoredUploadUrl.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { splitLearningPathShares } from "../utils/learningPathMoney.js";
@@ -88,9 +89,10 @@ export async function learningPathDTO(pathOrId) {
   const isDocument = pathOrId && typeof pathOrId === "object" && !(pathOrId instanceof mongoose.Types.ObjectId) && "status" in pathOrId;
   const path = isDocument ? pathOrId : await LearningPath.findById(pathOrId).lean();
   if (!path) throw httpError(404, "Không tìm thấy lộ trình.");
-  const [sessions, candidate, request, assessment] = await Promise.all([
+  const [sessions, candidate, mentor, request, assessment] = await Promise.all([
     LearningPathSession.find({ pathId: path._id }).sort({ order: 1, attempt: 1 }).lean(),
     User.findById(path.candidateId).select("name").lean(),
+    Mentor.findById(path.mentorId).select("name title avatar publicId").lean(),
     MentorshipRequest.findById(path.mentorshipRequestId).select("title position description sessionType cvName jdName").lean(),
     path.assessmentBookingId ? Booking.findById(path.assessmentBookingId).select("status date timeSlot durationMinutes").lean() : null,
   ]);
@@ -113,6 +115,13 @@ export async function learningPathDTO(pathOrId) {
     updatedAt: path.updatedAt,
     /** LP-20: bối cảnh để Mentor soạn lộ trình (hồ sơ ứng viên đầy đủ có ở PR-01). */
     candidate: { name: candidate?.name || "Ứng viên" },
+    /** LP-18: ứng viên xem lộ trình của mentor nào (link hồ sơ mentor dùng publicId). */
+    mentor: {
+      name: mentor?.name || "Mentor",
+      title: mentor?.title || "",
+      avatar: resolveStoredUploadUrl(mentor?.avatar ?? ""),
+      publicId: mentor?.publicId || "",
+    },
     request: request
       ? { title: request.title, position: request.position, description: request.description, sessionType: request.sessionType, cvName: request.cvName, jdName: request.jdName }
       : null,
