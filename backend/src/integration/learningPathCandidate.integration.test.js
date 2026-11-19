@@ -19,7 +19,7 @@ const files = { cv: [{ originalname: "cv.pdf", buffer: Buffer.from("cv") }], jd:
 const requestFields = { position: "Data Analyst", description: "Muốn có lộ trình luyện phỏng vấn Data Analyst trong 1 tháng.", sessionType: "mock_interview" };
 const offerBody = { message: "Tôi sẽ đánh giá năng lực SQL, phân tích và đề xuất lộ trình phù hợp.", availability: "Tối thứ 4" };
 const SESSIONS = [
-  { title: "SQL và phân tích dữ liệu", objectives: ["Viết truy vấn JOIN"], shrmKeys: ["technical_knowledge"] },
+  { title: "SQL và phân tích dữ liệu", objectives: ["Viết truy vấn JOIN"], shrmKeys: ["technical_learning"] },
   { title: "Trình bày insight", objectives: [], shrmKeys: ["communication"] },
   { title: "Phỏng vấn thử tổng hợp", objectives: [], shrmKeys: [] },
 ];

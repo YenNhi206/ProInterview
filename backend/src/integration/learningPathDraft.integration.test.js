@@ -19,7 +19,7 @@ const requestFields = { position: "Backend Developer", description: "Cần đán
 const offerBody = { message: "Tôi đánh giá năng lực Node.js và đề xuất lộ trình phù hợp.", availability: "Tối thứ 3" };
 const SESSIONS = [
   { title: "Kể chuyện dự án theo STAR", objectives: ["Trình bày 2 dự án"], shrmKeys: ["communication"] },
-  { title: "Thiết kế API REST", objectives: ["Phân tích yêu cầu", "Xử lý lỗi"], shrmKeys: ["problem_solving", "technical_depth"] },
+  { title: "Thiết kế API REST", objectives: ["Phân tích yêu cầu", "Xử lý lỗi"], shrmKeys: ["problem_solving", "technical_learning"] },
   { title: "Phỏng vấn thử tổng hợp", objectives: [], shrmKeys: [] },
 ];
 
@@ -86,7 +86,7 @@ describe("Mentor soạn và gửi lộ trình: draft → proposed (LP-07)", () =
     assert.equal(lp.candidateId, String(mentee._id));
     assert.equal(lp.assessmentBookingId, String(request.assessmentBookingId));
     assert.deepEqual(lp.sessions.map((s) => s.order), [1, 2, 3]);
-    assert.deepEqual(lp.sessions[1].shrmKeys, ["problem_solving", "technical_depth"]);
+    assert.deepEqual(lp.sessions[1].shrmKeys, ["problem_solving", "technical_learning"]);
 
     // Mentee chưa thấy bản nháp.
     assert.equal((await api(mentee, `/${lp.id}`)).status, 404);
@@ -169,6 +169,12 @@ describe("Các trường hợp bị chặn (LP-07)", () => {
     assert.equal(bad.status, 400);
     assert.match(bad.error, /chưa hợp lệ/);
     assert.equal((await api(mentors[0].user, "", "POST", { mentorshipRequestId: id, sessions: [{ title: "Buổi 1", shrmKeys: ["Có dấu cách"] }] })).status, 400);
+    // LP-01: key đúng dạng nhưng không có trong bộ tiêu chí (danh sách tạm cũ của LP-20) → 400
+    for (const k of ["critical_thinking", "technical_knowledge", "decision_making", "planning_organizing", "initiative", "relationship_management"]) {
+      const res = await api(mentors[0].user, "", "POST", { mentorshipRequestId: id, sessions: [{ title: "Buổi 1", shrmKeys: [k] }] });
+      assert.equal(res.status, 400, k);
+      assert.match(res.error, /mã năng lực/);
+    }
     assert.equal((await api(mentors[0].user, "", "POST", { mentorshipRequestId: id, totalAmount: 1000.5 })).status, 400);
 
     assert.equal((await api(mentors[0].user, "", "POST", { mentorshipRequestId: id })).status, 201);
