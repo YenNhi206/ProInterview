@@ -1,5 +1,5 @@
 /**
- * Integration: nền RBAC sau khi thêm role `moderator` và `enterprise`.
+ * Integration: nền RBAC sau khi thêm role `moderator` và `company_moderator`.
  *
  * Khóa lại hai tính chất của middleware requireRole (src/middleware/requireRole.js):
  *   1. Cổng moderator chỉ cho role moderator — admin KHÔNG đi vòng được, vì kiểm
@@ -36,7 +36,7 @@ after(async () => {
   if (harness) await stopMongoHarness(harness);
 });
 
-const ROLES = ["customer", "mentor", "admin", "moderator", "enterprise"];
+const ROLES = ["customer", "mentor", "admin", "moderator", "company_moderator"];
 
 async function userWithRole(role, suffix) {
   return User.create({
@@ -55,7 +55,7 @@ function get(path, userId) {
   });
 }
 
-describe("RBAC: role moderator và enterprise", () => {
+describe("RBAC: role moderator và company_moderator", () => {
   it("User.role nhận cả 5 role (enum đã mở rộng)", async () => {
     const suffix = `enum-${Date.now()}`;
     for (const role of ROLES) {
@@ -70,7 +70,7 @@ describe("RBAC: role moderator và enterprise", () => {
       customer: 403,
       mentor: 403,
       admin: 403,
-      enterprise: 403,
+      company_moderator: 403,
       moderator: 200,
     };
 
@@ -94,7 +94,7 @@ describe("RBAC: role moderator và enterprise", () => {
 
   it("GET /api/admin/stats — role mới KHÔNG được coi là admin", async () => {
     const suffix = `admin-gate-${Date.now()}`;
-    for (const role of ["moderator", "enterprise", "customer", "mentor"]) {
+    for (const role of ["moderator", "company_moderator", "customer", "mentor"]) {
       const u = await userWithRole(role, suffix);
       const res = await get("/api/admin/stats", u._id);
       assert.equal(res.status, 403, `role ${role} không được vào cổng admin`);

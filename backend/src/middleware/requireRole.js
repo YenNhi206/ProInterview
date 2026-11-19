@@ -7,7 +7,7 @@ import { User } from "../models/User.js";
 const DENIED_MESSAGE = {
   admin: "Chỉ quản trị viên mới được thực hiện thao tác này.",
   moderator: "Chỉ kiểm duyệt viên mới được thực hiện thao tác này.",
-  enterprise: "Chỉ tài khoản tổ chức mới được thực hiện thao tác này.",
+  company_moderator: "Chỉ tài khoản kiểm duyệt viên công ty mới được thực hiện thao tác này.",
 };
 
 function deniedMessage(roles) {
@@ -45,5 +45,6 @@ export function requireRole(...roles) {
 /** Kiểm duyệt viên — chất lượng AI + duyệt khóa học. */
 export const requireModerator = requireRole("moderator");
 
-/** Tài khoản tổ chức — cohort, credit, talent pool. */
-export const requireEnterprise = requireRole("enterprise");
+/** Kiểm duyệt viên công ty — câu hỏi, rubric, job post, ứng viên. */
+export const requireCompanyModerator = requireRole("company_moderator");
+export const requireEnterprise = requireCompanyModerator;

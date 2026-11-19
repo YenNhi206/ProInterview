@@ -5,6 +5,7 @@ import { adminAuditLog } from "../middleware/adminAuditLog.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { AdminController } from "../controllers/adminController.js";
 import { ModeratorController } from "../controllers/moderatorController.js";
+import { ModeratorRubricController } from "../controllers/moderatorRubricController.js";
 
 /**
  * Moderator — lớp kiểm định chất lượng, tách khỏi vận hành của admin.
@@ -49,3 +50,9 @@ moderatorRouter.patch("/queue/:id/resolve", asyncHandler(ModeratorController.res
 
 // ── Quality dashboard ────────────────────────────────────────────────────────
 moderatorRouter.get("/quality/stats", asyncHandler(ModeratorController.qualityStats));
+
+// ── CO-08: Phê duyệt Rubric doanh nghiệp ─────────────────────────────────────
+moderatorRouter.get("/rubrics", asyncHandler(ModeratorRubricController.list));
+moderatorRouter.get("/rubrics/:id", asyncHandler(ModeratorRubricController.getById));
+moderatorRouter.post("/rubrics/:id/approve", asyncHandler(ModeratorRubricController.approve));
+moderatorRouter.post("/rubrics/:id/reject", asyncHandler(ModeratorRubricController.reject));

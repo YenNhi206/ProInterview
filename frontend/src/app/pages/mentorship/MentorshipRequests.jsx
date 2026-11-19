@@ -391,17 +391,6 @@ export function MentorshipRequests() {
             </button>
           </motion.div>
         )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setReload((v) => v + 1)}
-              disabled={busy}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-[11px] font-semibold text-rose-300 hover:bg-rose-500/20"
-            >
-              <RefreshCw size={12} /> Tải lại
-            </button>
-          </motion.div>
-        )}
         {notice && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}

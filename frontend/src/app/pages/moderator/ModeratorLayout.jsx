@@ -12,6 +12,7 @@ import { useUserPresence } from "../../hooks/useUserPresence.js";
 const NAV = [
   { to: "/moderator/queue", label: "Hàng đợi kiểm định" },
   { to: "/moderator/questions", label: "Ngân hàng câu hỏi" },
+  { to: "/moderator/rubrics", label: "Duyệt Rubric" },
   { to: "/moderator/quality", label: "Chất lượng AI" },
   { to: "/moderator/courses", label: "Duyệt khóa học" },
 ];
