@@ -177,6 +177,26 @@ describe("Các trường hợp bị chặn (LP-07)", () => {
   });
 });
 
+describe("Dữ liệu cho trình soạn lộ trình (LP-20)", () => {
+  it("DTO lộ trình có tên mentee, thông tin yêu cầu, buổi 0đ; request DTO trỏ tới lộ trình (mentee không thấy bản nháp)", async () => {
+    const request = await requestReady("completed");
+    const lp = (await api(mentors[0].user, "", "POST", { mentorshipRequestId: String(request._id), totalAmount: 700_000, sessions: SESSIONS })).learningPath;
+    assert.equal(lp.candidate.name, "Mentee LP07");
+    assert.equal(lp.request.position, requestFields.position);
+    assert.equal(lp.request.cvName, "cv.pdf");
+    assert.equal(lp.assessment.status, "completed");
+
+    const forMentor = await mrService.requestDTO(await mrService.loadRequest(String(request._id)), await actor(mentors[0].user));
+    assert.deepEqual(forMentor.learningPath, { id: lp.id, status: "draft" });
+    const forMentee = await mrService.requestDTO(await mrService.loadRequest(String(request._id)), await actor(mentee));
+    assert.equal(forMentee.learningPath, null, "mentee không biết có bản nháp");
+
+    await api(mentors[0].user, `/${lp.id}/propose`, "POST");
+    const afterPropose = await mrService.requestDTO(await mrService.loadRequest(String(request._id)), await actor(mentee));
+    assert.deepEqual(afterPropose.learningPath, { id: lp.id, status: "proposed" });
+  });
+});
+
 describe("Gửi lại sau khi ứng viên yêu cầu sửa (LP-07 / chuẩn bị LP-08)", () => {
   it("revision_requested: mentor sửa được, gửi lại thì version + 1 và thông báo 'gửi lại'", async () => {
     const request = await requestReady("completed");

@@ -10,6 +10,7 @@ import { LearningPath } from "../models/LearningPath.js";
 import { LearningPathSession } from "../models/LearningPathSession.js";
 import { MentorshipRequest } from "../models/MentorshipRequest.js";
 import { Booking } from "../models/Booking.js";
+import { User } from "../models/User.js";
 import { httpError } from "../utils/apiErrors.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
@@ -79,7 +80,12 @@ export async function learningPathDTO(pathOrId) {
   const isDocument = pathOrId && typeof pathOrId === "object" && !(pathOrId instanceof mongoose.Types.ObjectId) && "status" in pathOrId;
   const path = isDocument ? pathOrId : await LearningPath.findById(pathOrId).lean();
   if (!path) throw httpError(404, "Không tìm thấy lộ trình.");
-  const sessions = await LearningPathSession.find({ pathId: path._id }).sort({ order: 1, attempt: 1 }).lean();
+  const [sessions, candidate, request, assessment] = await Promise.all([
+    LearningPathSession.find({ pathId: path._id }).sort({ order: 1, attempt: 1 }).lean(),
+    User.findById(path.candidateId).select("name").lean(),
+    MentorshipRequest.findById(path.mentorshipRequestId).select("title position description sessionType cvName jdName").lean(),
+    path.assessmentBookingId ? Booking.findById(path.assessmentBookingId).select("status date timeSlot durationMinutes").lean() : null,
+  ]);
   return {
     id: String(path._id),
     candidateId: String(path.candidateId),
@@ -96,6 +102,14 @@ export async function learningPathDTO(pathOrId) {
     proposedAt: path.proposedAt ?? null,
     createdAt: path.createdAt,
     updatedAt: path.updatedAt,
+    /** LP-20: bối cảnh để Mentor soạn lộ trình (hồ sơ ứng viên đầy đủ có ở PR-01). */
+    candidate: { name: candidate?.name || "Ứng viên" },
+    request: request
+      ? { title: request.title, position: request.position, description: request.description, sessionType: request.sessionType, cvName: request.cvName, jdName: request.jdName }
+      : null,
+    assessment: assessment
+      ? { bookingId: String(assessment._id), status: assessment.status, date: assessment.date, timeSlot: assessment.timeSlot, durationMinutes: assessment.durationMinutes }
+      : null,
     sessions: sessions.map((s) => ({
       id: String(s._id),
       order: s.order,

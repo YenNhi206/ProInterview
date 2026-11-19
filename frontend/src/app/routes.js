@@ -49,6 +49,8 @@ import { MentorCourseEdit } from "./pages/mentor/MentorCourseEdit";
 import { MentorPeerReview } from "./pages/mentor/MentorPeerReview";
 import { MentorArea } from "./pages/mentor/MentorArea";
 import { MentorSessionFeedback } from "./pages/mentor/MentorSessionFeedback";
+import { MentorLearningPaths } from "./pages/mentor/MentorLearningPaths";
+import { MentorLearningPathEditor } from "./pages/mentor/MentorLearningPathEditor";
 import { Pricing } from "./pages/home/Pricing";
 import { Terms } from "./pages/home/Terms";
 import { Privacy } from "./pages/home/Privacy";
@@ -172,6 +174,11 @@ export const router = createBrowserRouter([
               { path: "schedule", Component: MentorSchedule },
               { path: "requests", Component: MentorshipRequests },
               { path: "requests/:requestId", Component: MentorshipRequests },
+              // LP-20: lộ trình học
+              { path: "learning-paths", Component: MentorLearningPaths },
+              { path: "learning-paths/new", Component: MentorLearningPathEditor },
+              { path: "learning-paths/:pathId/edit", Component: MentorLearningPathEditor },
+              { path: "learning-paths/:pathId", loader: ({ params }) => redirect(`/mentor/learning-paths/${params.pathId}/edit`) },
               { path: "finance", Component: MentorFinance },
               { path: "analytics", Component: MentorAnalytics },
               { path: "reviews", Component: MentorReviews },

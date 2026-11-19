@@ -153,6 +153,10 @@ export function MentorshipRequests() {
               <label>Ghi chú cho mentee<textarea name="note" rows={2} maxLength={1000} placeholder="Ví dụ: Chuẩn bị 1 dự án muốn trình bày" /></label>
               <button data-button-surface="none" className="mr-primary" disabled={busy}>{busy ? "Đang tạo…" : "Tạo buổi đánh giá 0đ"}<ArrowRight size={16} /></button>
             </form> : null}
+            {/* LP-20: Mentor được chọn soạn / mở lộ trình của yêu cầu này. */}
+            {mentor && request.canDownload && (request.learningPath
+              ? <Link className="mr-secondary" to={`/mentor/learning-paths/${request.learningPath.id}/edit`}>Mở lộ trình <ArrowRight size={15} /></Link>
+              : ["selected", "assessing"].includes(request.status) && <Link className={request.assessment?.status === "completed" ? "mr-primary" : "mr-secondary"} to={`/mentor/learning-paths/new?requestId=${request.id}`}>Soạn lộ trình <ArrowRight size={15} /></Link>)}
           </section>}
           {CHOSEN_STATUSES.includes(request.status) && chosen && <section className="mr-panel mr-detail-booking">
             <div className="mr-detail-section-label"><CheckCircle2 size={17} /><h2>Mentor đã chọn</h2></div>
