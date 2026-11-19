@@ -18,7 +18,7 @@
 | `LearningPath` ✅ LP-03 | `candidateId`, `mentorId`, `mentorshipRequestId`, `jobPostId`, `assessmentBookingId`, `goal`, `status`, `totalAmount`, `platformFeeRate`, `paymentRef` (sinh bằng `utils/orderRef.js`), `version`. Code có thêm `revisionNote`, các mốc `proposedAt/acceptedAt/paidAt/completedAt/cancelledAt`, `cancelReason` | #6, #7, #12, #13, #16 |
 | `LearningPathSession` ✅ LP-03 | `pathId`, `order`, `title`, `objectives[]`, `shrmKeys: [String]`, `shareAmount`, `bookingId`, `attempt`, `retakeOf`, `outcome`, `feedback` {summary, strengths, improvements}. Code có thêm `status` (planned \| scheduled \| done \| cancelled), `doneAt` | #13, #14 |
 | `AIImprovementProposal` | `target` question_gen \| evaluation, `kind` few_shot \| prompt_change \| calibration, `evidence` {moderationItemIds[], overrideCount, avgScoreDelta}, `before`, `after`, `status` | #25, #37 |
-| `PromptVersion` | Bảng đăng ký cho chuỗi `promptVersion` đã có: `key`, `version`, `template`, `fewShotExamples[]`, `active` | #25, #37 |
+| `PromptVersion` ✅ AI-02 | Bảng đăng ký cho chuỗi `promptVersion` đã có: `key`, `version`, `template`, `fewShotExamples[]`, `active`. Code có thêm `legacy`, `activatedAt`, `activatedBy`, `note`; `template` là object nhiều phần (chuỗi hoặc mảng chuỗi). Loader `getActivePrompt` cache 60 giây, fallback về prompt mặc định trong `backend/src/prompts/` | #25, #37 |
 
 ## 2. Model có sẵn cần sửa (12)
 
@@ -102,6 +102,7 @@ Cột "Task xử lý" ghi ✅ khi task đã merge; các bẫy đó còn giữ l�
 | `bookingStaleSweepJob` hủy booking `pending` chưa trả đã qua giờ | Hủy buổi lộ trình và buổi 0đ | ✅ LP-04 (PR #195) |
 | `sepayWebhookService.findPendingTargets` chỉ nhận 5 loại; `parsePiOrderFromText` chỉ nhận mã `PI…` | Tiền lộ trình về mà không ai xác nhận | LP-10 |
 | `mentorshipRequestsService.js:125` chỉ cho tạo booking khi `status === "selected"` | Thêm status mới làm luồng cũ lỗi 403 | ✅ LP-05 (`REQUEST_MENTOR_CHOSEN_STATUSES`) |
+| `InterviewSession`: 3 câu baseline có `competencyId = ""`; `moderatorOverride`, `evaluationIncomplete` nằm trên `answers[i]` (không nằm trên `feedback.perQuestion[i]`); `shrmLevel` fallback `"proficient"` khi LLM trả giá trị lạ | Hồ sơ năng lực không gán được câu baseline; đọc nhầm chỗ thì bỏ sót điểm moderator; nhãn "Tốt" giả | ✅ LP-01 (`aiAnswerToLevel`) · PR-06 · AI-13 |
 | `Notification.type` là enum | Loại mới bị Mongoose từ chối, không báo lỗi | ✅ N-06 (PR #194) |
 | `interviewsController.js:476` trả `alreadyGenerated` khi ≥ 5 câu; `questionsAllowed` lấy theo quota | Pro không bao giờ nhận câu follow-up ở buổi theo job; buổi kết thúc sớm | JB-06 |
 | `moderationQueueService.js:83` không lọc `type`; `createItemForReport` (dòng 39) map mọi `targetType` khác thành `evaluation_report` | Rubric và báo cáo job lọt vào hàng đợi phỏng vấn, sai loại | JB-04, CO-07 |

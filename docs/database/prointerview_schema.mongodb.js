@@ -472,6 +472,26 @@ ensureCollection("moderation_items", {
   }],
 ]);
 
+// AI-02: bảng đăng ký phiên bản prompt. Chuỗi `version` khớp promptVersion đã ghi ở
+// interview_sessions và question_bank (không FK).
+ensureCollection("prompt_versions", {
+  required: ["key", "version"],
+  properties: {
+    key: str,
+    version: str,
+    template: { bsonType: ["object", "null"] },
+    fewShotExamples: { bsonType: "array" },
+    active: { bsonType: "bool" },
+    legacy: { bsonType: "bool" },
+    activatedAt: { bsonType: ["date", "null"] },
+    activatedBy: oidOrNull,
+  },
+}, [
+  [{ key: 1, version: 1 }, { unique: true }],
+  [{ version: 1 }, { unique: true, name: "version_unique" }],
+  [{ key: 1 }, { unique: true, partialFilterExpression: { active: true }, name: "key_single_active" }],
+]);
+
 // ─────────────────────────────────────────────────────────────
 // D. Thông báo · Nhật ký · Vận hành
 // ─────────────────────────────────────────────────────────────
