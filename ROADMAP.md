@@ -276,6 +276,28 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 
 Áp dụng trực tiếp trong `createBooking`, `EnrollmentController.enroll`, `createSubscriptionTransferPending` qua field `couponCode` trong body — server tự tính lại `totalAmount`/`pricePaid`/`amount` sau giảm giá (không tin số tiền client gửi). Mỗi user dùng 1 lần/mã (`Coupon.usedBy`). Tạo mã: `npm run seed:coupon`. Chi tiết: **API_INDEX.md A.15**.
 
+### Lộ trình học — Mentor soạn và gửi (LP-07)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | GET | `/api/learning-paths` · `/api/learning-paths/:id` | `[AUTH]` Mentor / mentee (mentee không thấy bản nháp) |
+| ✅ | POST | `/api/learning-paths` | `[AUTH][MENTOR]` Mentor được chọn — tạo bản nháp |
+| ✅ | PATCH | `/api/learning-paths/:id` | `[AUTH][MENTOR]` sửa bản nháp / sau yêu cầu sửa |
+| ✅ | POST | `/api/learning-paths/:id/propose` | `[AUTH][MENTOR]` gửi đề xuất (≥ 1 buổi, có giá, buổi 0đ đã hoàn thành) |
+| ✅ | POST | `/api/learning-paths/:id/accept` | `[AUTH]` mentee — `proposed → pending_payment` (LP-08) |
+| ✅ | POST | `/api/learning-paths/:id/request-revision` | `[AUTH]` mentee — kèm ghi chú, `proposed → revision_requested` (LP-08) |
+
+FE (LP-20): ✅ `/mentor/learning-paths` (danh sách, lọc theo trạng thái, yêu cầu sẵn sàng soạn), ✅ `/mentor/learning-paths/new?requestId=` và `/mentor/learning-paths/:id/edit` (trình soạn: mục tiêu, giá trọn gói, thêm / sắp xếp / xóa buổi, mục tiêu buổi, năng lực SHRM, hồ sơ mentee, checklist và gửi). Lối vào từ trang `/mentor/requests/:id` và mục "Lộ trình học" trên sidebar mentor. Chi tiết: **API_INDEX.md A.17**.
+
+### Yêu cầu mentor và buổi đánh giá 0đ (LP-05)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | POST | `/api/mentorship-requests` | `[AUTH]` mentee — thêm `jobPostId` tùy chọn |
+| ✅ | POST | `/api/mentorship-requests/:id/accept-assessment` | `[AUTH][MENTOR]` Mentor được chọn — tạo buổi đánh giá 0đ, request → `assessing` |
+
+FE: trang `/mentor/requests/:id` có form "Tạo buổi đánh giá 0đ" cho Mentor được chọn; mentee thấy khối "Buổi đánh giá 0đ" trên `/mentor-requests/:id`. Chi tiết: **API_INDEX.md A.16**.
+
 ### Bookings mở rộng (một số tiêu biểu)
 
 | BE | Method | Endpoint | Auth |

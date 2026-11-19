@@ -1,14 +1,27 @@
 import mongoose from "mongoose";
 import { readOwnedDocument } from "./mentorshipDocumentsService.js";
 import Joi from "joi";
-import { MentorshipRequest } from "../models/MentorshipRequest.js";
+import { MentorshipRequest, REQUEST_MENTOR_CHOSEN_STATUSES } from "../models/MentorshipRequest.js";
 import { Mentor } from "../models/Mentor.js";
 import { User } from "../models/User.js";
 import { Booking } from "../models/Booking.js";
 import { httpError } from "../utils/apiErrors.js";
+import { assessmentBookingMoney } from "../utils/learningPathBookingMoney.js";
+import { isBookingSlotInFuture } from "../utils/bookingSchedule.js";
+import { deliverNotification } from "./notificationDeliveryService.js";
+import { LearningPath } from "../models/LearningPath.js";
 
 const text = max => Joi.string().trim().max(max).required();
-const requestInput = Joi.object({ title: Joi.string().trim().min(5).max(160).allow(""), position: text(160), description: text(4000).min(20), sessionType: Joi.string().valid("mock_interview", "cv_review", "career_consulting").required(), availability: Joi.string().trim().max(500).allow("").default(""), budget: Joi.number().integer().min(0).max(100000000).empty("").allow(null).default(null), cvSource: Joi.string().max(80).allow(""), jdSource: Joi.string().max(80).allow("") });
+const requestInput = Joi.object({ title: Joi.string().trim().min(5).max(160).allow(""), position: text(160), description: text(4000).min(20), sessionType: Joi.string().valid("mock_interview", "cv_review", "career_consulting").required(), availability: Joi.string().trim().max(500).allow("").default(""), budget: Joi.number().integer().min(0).max(100000000).empty("").allow(null).default(null), cvSource: Joi.string().max(80).allow(""), jdSource: Joi.string().max(80).allow(""), jobPostId: Joi.string().hex().length(24).empty("").allow(null).default(null) });
+/** LP-05: mentor được chọn tạo buổi đánh giá 0đ. Ngày theo định dạng booking hiện có (DD/MM/YYYY). */
+const assessmentInput = Joi.object({
+  date: Joi.string().trim().pattern(/^\d{2}\/\d{2}\/\d{4}$/).required(),
+  timeSlot: Joi.string().trim().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).required(),
+  durationMinutes: Joi.number().integer().min(30).max(120).default(60),
+  note: Joi.string().trim().max(1000).allow("").default(""),
+});
+/** Booking buổi 0đ còn hiệu lực: chưa cho tạo buổi mới trên cùng yêu cầu. */
+const ACTIVE_ASSESSMENT_STATUSES = ["pending", "confirmed", "in_progress", "rescheduled"];
 const offerInput = Joi.object({ message: text(3000).min(20), availability: text(500) });
 function validate(schema, value) {
   const result = schema.validate(value, { abortEarly: true });
@@ -42,7 +55,14 @@ export async function requestDTO(request, actor) {
   const mentors = await Mentor.find({ _id: { $in: offers.map(o => o.mentorId) } }).select("name publicId title pricePerHour").lean();
   const byId = new Map(mentors.map(m => [String(m._id), m]));
   const canDownload = owner || String(request.selectedMentorId) === String(actor.mentor?._id);
-  const bookings = owner || canDownload ? await Booking.find({ mentorshipRequestId: request._id, status: { $nin: ["cancelled", "no_show"] } }).select("_id status").lean() : [];
+  const bookings = owner || canDownload ? await Booking.find({ mentorshipRequestId: request._id, sessionType: { $ne: "assessment" }, status: { $nin: ["cancelled", "no_show"] } }).select("_id status").lean() : [];
+  // Mentor được chọn thấy cả bản nháp; ứng viên chỉ thấy lộ trình đã gửi.
+  const learningPath = owner || canDownload
+    ? await LearningPath.findOne({ mentorshipRequestId: request._id, status: { $nin: owner && !actor.mentor ? ["cancelled", "draft"] : ["cancelled"] } }).select("_id status").lean()
+    : null;
+  const assessment = (owner || canDownload) && request.assessmentBookingId
+    ? await Booking.findById(request.assessmentBookingId).select("_id status date timeSlot durationMinutes cancelledBy").lean()
+    : null;
   return {
     id: String(request._id), title: request.title, position: request.position, description: request.description,
     sessionType: request.sessionType, availability: request.availability, budget: request.budget,
@@ -50,6 +70,10 @@ export async function requestDTO(request, actor) {
     selectedOfferId: request.selectedOfferId ? String(request.selectedOfferId) : "", canDownload,
     cvName: canDownload ? request.cvName : "", jdName: canDownload ? request.jdName : "",
     bookingId: bookings[0]?._id ? String(bookings[0]._id) : "",
+    jobPostId: request.jobPostId ? String(request.jobPostId) : "",
+    /** LP-20: lộ trình chưa hủy của yêu cầu (Mentor mở trình soạn; ứng viên chỉ dùng khi không còn là bản nháp). */
+    learningPath: learningPath ? { id: String(learningPath._id), status: learningPath.status } : null,
+    assessment: assessment ? { bookingId: String(assessment._id), status: assessment.status, date: assessment.date, timeSlot: assessment.timeSlot, durationMinutes: assessment.durationMinutes, cancelledBy: assessment.cancelledBy || "" } : null,
     offers: offers.map(o => { const m = byId.get(String(o.mentorId)); return { id: String(o._id), mentorId: String(o.mentorId), mentorPublicId: m?.publicId || String(o.mentorId), mentorName: m?.name || "Mentor", mentorTitle: m?.title || "", message: o.message, availability: o.availability, priceEstimate: o.priceEstimate, status: o.status, createdAt: o.createdAt }; }),
   };
 }
@@ -122,6 +146,74 @@ export async function getRequestFile(actor, requestId, kind) {
 export async function resolveRequestBooking(userId, requestId, mentor) {
   const row = await loadRequest(requestId);
   const offer = row.offers.find(o => String(o._id) === String(row.selectedOfferId));
-  if (String(row.userId) !== String(userId) || row.status !== "selected" || !offer || String(offer.mentorId) !== String(mentor._id)) throw httpError(403, "Yêu cầu chưa chọn Mentor này hoặc không thuộc về bạn.");
+  if (String(row.userId) !== String(userId) || !REQUEST_MENTOR_CHOSEN_STATUSES.includes(row.status) || !offer || String(offer.mentorId) !== String(mentor._id)) throw httpError(403, "Yêu cầu chưa chọn Mentor này hoặc không thuộc về bạn.");
   return row;
+}
+
+/**
+ * LP-05: Mentor được chọn tạo buổi đánh giá 0đ (Booking `sessionType: "assessment"`, mọi field tiền 0,
+ * `paid`, `confirmed`) cho yêu cầu đã chọn mentor; yêu cầu chuyển sang `assessing`.
+ * Tạo lại được khi buổi trước đã bị hủy / vắng mặt. Giới hạn số buổi 0đ của ứng viên làm ở LP-06.
+ */
+export async function acceptAssessment(actor, requestId, body) {
+  requireMentor(actor);
+  const input = validate(assessmentInput, body ?? {});
+  const request = await loadRequest(requestId);
+  if (String(request.selectedMentorId || "") !== String(actor.mentor._id)) {
+    throw httpError(403, "Chỉ Mentor được mentee chọn mới tạo được buổi đánh giá.");
+  }
+  if (request.status === "path_proposed") throw httpError(409, "Yêu cầu đã có lộ trình đề xuất.");
+  if (!["selected", "assessing"].includes(request.status)) throw httpError(409, "Yêu cầu chưa chọn Mentor hoặc đã đóng.");
+  if (request.assessmentBookingId) {
+    const previous = await Booking.findById(request.assessmentBookingId).select("status").lean();
+    if (previous && ACTIVE_ASSESSMENT_STATUSES.includes(previous.status)) throw httpError(409, "Yêu cầu đang có buổi đánh giá chưa diễn ra.");
+    if (previous?.status === "completed") throw httpError(409, "Buổi đánh giá đã hoàn thành. Bước tiếp theo là soạn lộ trình.");
+  }
+  if (!isBookingSlotInFuture(input.date, input.timeSlot)) throw httpError(400, "Chọn thời gian trong tương lai cho buổi đánh giá.");
+
+  let booking;
+  try {
+    booking = await Booking.create({
+      userId: request.userId,
+      mentorId: actor.mentor._id,
+      mentorshipRequestId: request._id,
+      sessionType: "assessment",
+      status: "confirmed",
+      date: input.date,
+      timeSlot: input.timeSlot,
+      durationMinutes: input.durationMinutes,
+      notes: [`Buổi đánh giá đầu vào 0đ · ${request.position}`, `Nhu cầu: ${request.title}`, input.note, `Tài liệu riêng tư: /mentor/requests/${request._id}`].filter(Boolean).join("\n"),
+      cvFileName: request.cvName,
+      jdFileName: request.jdName,
+      ...assessmentBookingMoney(),
+    });
+  } catch (error) {
+    if (error?.code === 11000) throw httpError(409, "Khung giờ này đã có lịch hẹn. Vui lòng chọn giờ khác.");
+    throw error;
+  }
+
+  const updated = await MentorshipRequest.findOneAndUpdate(
+    {
+      _id: request._id,
+      selectedMentorId: actor.mentor._id,
+      status: { $in: ["selected", "assessing"] },
+      assessmentBookingId: request.assessmentBookingId ?? null,
+    },
+    { $set: { status: "assessing", assessmentBookingId: booking._id } },
+    { returnDocument: "after" },
+  ).lean();
+  if (!updated) {
+    await Booking.deleteOne({ _id: booking._id });
+    throw httpError(409, "Yêu cầu vừa thay đổi. Vui lòng tải lại trang.");
+  }
+
+  await deliverNotification(request.userId, {
+    type: "booking_confirmed",
+    customerPrefKey: "booking_confirmed",
+    title: "Mentor đã hẹn buổi đánh giá 0đ",
+    body: `${actor.mentor.name || "Mentor"} hẹn buổi đánh giá đầu vào miễn phí lúc ${input.timeSlot} ngày ${input.date}. Sau buổi này mentor sẽ đề xuất lộ trình cho bạn.`,
+    metadata: { bookingId: booking._id, mentorId: actor.mentor._id, actionUrl: `/session/${booking._id}` },
+  });
+
+  return loadRequest(String(request._id));
 }

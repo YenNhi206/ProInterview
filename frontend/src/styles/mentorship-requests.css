@@ -33,7 +33,9 @@
   background: linear-gradient(160deg, rgba(139, 80, 218, .15), transparent 65%), #1a122c;
 }
 .mr-page-detail .mr-detail-overview .mr-status.open,
-.mr-page-detail .mr-detail-overview .mr-status.selected {
+.mr-page-detail .mr-detail-overview .mr-status.selected,
+.mr-page-detail .mr-detail-overview .mr-status.assessing,
+.mr-page-detail .mr-detail-overview .mr-status.path_proposed {
   color: #93f72b;
   border-color: rgba(147, 247, 43, .3);
   background: rgba(147, 247, 43, .09);
@@ -167,3 +169,12 @@
   .mr-page-detail .mr-detail-layout { padding: 20px; gap: 24px; }
   .mr-page-detail .mr-detail-sidebar { padding: 24px 0 0; border-left: 0; border-top: 1px solid rgba(185, 143, 255, .15); }
 }
+/* LP-05: trạng thái sau khi chọn Mentor + khối buổi đánh giá 0đ */
+.mr-status.assessing,.mr-status.path_proposed{color:#b9ee8c;border-color:#93f72b40;background:#93f72b08}
+.mr-detail-assessment{display:flex;flex-direction:column;gap:14px}
+.mr-assessment-current{display:flex;flex-direction:column;gap:10px}
+.mr-assessment-current .mr-secondary{align-self:flex-start}
+.mr-assessment-form{display:flex;flex-direction:column;gap:14px}
+.mr-assessment-form .mr-form-grid{gap:12px}
+.mr-assessment-form .mr-primary{align-self:flex-start;white-space:normal}
+@media (max-width: 720px){.mr-assessment-form .mr-form-grid{grid-template-columns:1fr}}

@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Briefcase,
   CheckCircle2,
+  ClipboardCheck,
   Clock,
   Download,
   FileText,
@@ -36,6 +37,7 @@ import {
   withdrawMentorshipOffer,
   closeMentorshipRequest,
   downloadMentorshipFile,
+  acceptMentorshipAssessment,
 } from "../../api/mentorshipRequestsApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
 import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
@@ -50,7 +52,32 @@ const TYPES = {
 const STATUS = {
   open: "Đang nhận đề nghị",
   selected: "Đã chọn Mentor",
+  assessing: "Đang đánh giá đầu vào",
+  path_proposed: "Đã đề xuất lộ trình",
   closed: "Đã đóng",
+};
+
+/** Trạng thái sau khi đã chọn Mentor (LP-05): vẫn hiện khung Mentor đã chọn và cho đặt lịch thường. */
+const CHOSEN_STATUSES = ["selected", "assessing", "path_proposed"];
+
+const ASSESSMENT_STATUS = {
+  pending: "Chờ xác nhận",
+  confirmed: "Đã hẹn",
+  in_progress: "Đang diễn ra",
+  completed: "Đã hoàn thành",
+  cancelled: "Đã hủy",
+  no_show: "Vắng mặt",
+  rescheduled: "Đã dời lịch",
+};
+
+/** Buổi 0đ đã kết thúc không thành (hủy / vắng) → Mentor được hẹn lại. */
+const assessmentClosed = (assessment) =>
+  !assessment || ["cancelled", "no_show"].includes(assessment.status);
+
+/** <input type="date"> trả YYYY-MM-DD; booking dùng DD/MM/YYYY. */
+const toBookingDate = (value) => {
+  const [y, m, d] = String(value || "").split("-");
+  return y && m && d ? `${d}/${m}/${y}` : "";
 };
 
 const money = (value) => `${Number(value || 0).toLocaleString("vi-VN")}₫`;
@@ -213,6 +240,30 @@ export function MentorshipRequests() {
       "Đã gửi đề nghị. Bạn có thể theo dõi tại mục Đề nghị của tôi."
     );
   };
+  const submitAssessment = (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const payload = {
+      date: toBookingDate(data.get("date")),
+      timeSlot: String(data.get("timeSlot") || ""),
+      note: String(data.get("note") || ""),
+    };
+    if (!payload.date || !payload.timeSlot) {
+      setError("Chọn ngày và giờ cho buổi đánh giá.");
+      return;
+    }
+    action(
+      () => acceptMentorshipAssessment(request.id, payload),
+      "Đã hẹn buổi đánh giá 0đ. Mentee đã nhận thông báo."
+    );
+  };
+
+  const canScheduleAssessment =
+    mentor &&
+    request &&
+    ["selected", "assessing"].includes(request.status) &&
+    request.canDownload &&
+    assessmentClosed(request.assessment);
 
   // Filtered rows for list view
   const filteredRows = useMemo(() => {
@@ -291,7 +342,6 @@ export function MentorshipRequests() {
               : "Đăng nhu cầu, nhận đề xuất giải pháp và lựa chọn Mentor phù hợp nhất."}
           </p>
         </div>
-
         <div className="flex flex-wrap items-center gap-3">
           {!isNew && (
             <button
@@ -330,6 +380,17 @@ export function MentorshipRequests() {
             <div className="flex items-center gap-2.5">
               <AlertCircle size={16} className="text-rose-400" />
               <span>{error}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReload((v) => v + 1)}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-[11px] font-semibold text-rose-300 hover:bg-rose-500/20"
+            >
+              <RefreshCw size={12} /> Tải lại
+            </button>
+          </motion.div>
+        )}
             </div>
             <button
               type="button"
@@ -707,7 +768,99 @@ export function MentorshipRequests() {
 
             {/* Sidebar */}
             <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu yêu cầu">
-              {request.status === "selected" && chosen && (
+              {CHOSEN_STATUSES.includes(request.status) && chosen && (request.assessment || canScheduleAssessment) && (
+                <section className="mr-panel mr-detail-assessment">
+                  <div className="mr-detail-section-label">
+                    <ClipboardCheck size={17} className="text-[#93f72b]" />
+                    <h2 className="text-sm font-bold text-white">Buổi đánh giá 0đ</h2>
+                  </div>
+                  {request.assessment && (
+                    <div className="mr-assessment-current">
+                      <p className="text-xs text-slate-300">
+                        <strong className="text-white">{request.assessment.timeSlot} · {request.assessment.date}</strong>{" "}
+                        <span className="mr-muted">
+                          ({request.assessment.durationMinutes} phút · {ASSESSMENT_STATUS[request.assessment.status] || request.assessment.status})
+                        </span>
+                      </p>
+                      {!assessmentClosed(request.assessment) && (
+                        <Link
+                          className="mr-secondary mt-2 inline-flex"
+                          to={
+                            mentor
+                              ? `/mentor/meeting-detail/${request.assessment.bookingId}`
+                              : `/session/${request.assessment.bookingId}`
+                          }
+                        >
+                          Xem buổi đánh giá <ArrowRight size={15} />
+                        </Link>
+                      )}
+                      {request.assessment.status === "completed" && (
+                        <p className="mr-muted text-xs mt-2">
+                          {mentor
+                            ? "Bước tiếp theo: soạn lộ trình cho mentee."
+                            : "Mentor sẽ đề xuất lộ trình dựa trên buổi đánh giá."}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {canScheduleAssessment && (
+                    <form className="mr-assessment-form mt-3" onSubmit={submitAssessment}>
+                      <p className="mr-muted text-xs mb-3">
+                        {request.assessment
+                          ? "Buổi trước không diễn ra. Hẹn lại buổi đánh giá miễn phí cho mentee."
+                          : "Hẹn một buổi đánh giá đầu vào miễn phí để hiểu năng lực mentee trước khi đề xuất lộ trình."}
+                      </p>
+                      <div className="mr-form-grid">
+                        <label>
+                          Ngày
+                          <input name="date" type="date" required />
+                        </label>
+                        <label>
+                          Giờ bắt đầu
+                          <input name="timeSlot" type="time" required />
+                        </label>
+                      </div>
+                      <label>
+                        Ghi chú cho mentee
+                        <textarea
+                          name="note"
+                          rows={2}
+                          maxLength={1000}
+                          placeholder="Ví dụ: Chuẩn bị 1 dự án muốn trình bày"
+                        />
+                      </label>
+                      <button data-button-surface="none" className="mr-primary" disabled={busy}>
+                        {busy ? "Đang tạo…" : "Tạo buổi đánh giá 0đ"}
+                        <ArrowRight size={16} />
+                      </button>
+                    </form>
+                  )}
+                  {/* LP-20: Mentor được chọn soạn / mở lộ trình của yêu cầu này. */}
+                  {mentor && request.canDownload && (
+                    request.learningPath ? (
+                      <Link
+                        className="mr-secondary mt-3 inline-flex"
+                        to={`/mentor/learning-paths/${request.learningPath.id}/edit`}
+                      >
+                        Mở lộ trình <ArrowRight size={15} />
+                      </Link>
+                    ) : (
+                      ["selected", "assessing"].includes(request.status) && (
+                        <Link
+                          className={`${
+                            request.assessment?.status === "completed" ? "mr-primary" : "mr-secondary"
+                          } mt-3 inline-flex`}
+                          to={`/mentor/learning-paths/new?requestId=${request.id}`}
+                        >
+                          Soạn lộ trình <ArrowRight size={15} />
+                        </Link>
+                      )
+                    )
+                  )}
+                </section>
+              )}
+
+              {CHOSEN_STATUSES.includes(request.status) && chosen && (
                 <section className="mr-panel mr-detail-booking">
                   <div className="mr-detail-section-label">
                     <CheckCircle2 size={17} className="text-[#93f72b]" />
