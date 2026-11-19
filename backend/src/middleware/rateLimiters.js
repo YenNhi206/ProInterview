@@ -1,11 +1,13 @@
 import rateLimit from "express-rate-limit";
 
 const isProd = process.env.NODE_ENV === "production";
+const isLoadTest = () => process.env.LOAD_TEST === "true" || process.env.MOCK_AI_SERVICES === "true";
 
 /** Đăng ký / đăng nhập / Google — chống brute-force theo IP. */
 export const authWriteLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProd ? 40 : 200,
+  skip: isLoadTest,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: "Quá nhiều yêu cầu. Thử lại sau ít phút." },
@@ -15,6 +17,7 @@ export const authWriteLimiter = rateLimit({
 export const refreshLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 120,
+  skip: isLoadTest,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: "Quá nhiều yêu cầu làm mới phiên. Thử lại sau." },

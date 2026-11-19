@@ -70,9 +70,11 @@ export function createApp() {
         : defaultDevOrigins;
   const staticCorsOrigin = allowOrigins.length > 0 ? allowOrigins : true;
 
+  const isLoadTest = process.env.LOAD_TEST === "true" || process.env.MOCK_AI_SERVICES === "true";
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: isProd ? 500 : 10_000,
+    max: isLoadTest ? 100_000 : (isProd ? 500 : 10_000),
+    skip: () => isLoadTest,
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => req.path === "/health",

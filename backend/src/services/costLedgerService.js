@@ -36,6 +36,10 @@ export async function recordCostEvent({
   fromCache = false,
   metadata = {},
 }) {
+  // QA-01: Chế độ mock LLM/D-ID/ElevenLabs bằng biến môi trường -> không phát sinh CostEvent
+  if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") {
+    return null;
+  }
   if (!isMongoReady()) return; // dev không có Mongo, hoặc DB tạm mất kết nối — bỏ qua, không throw
   try {
     await CostEvent.create({

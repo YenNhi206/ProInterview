@@ -254,16 +254,16 @@ AI-01 đến AI-06 là P0 vì nằm trong kịch bản demo bước 7. `promptVe
 
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
-| QA-01 | Todo | Chế độ mock LLM, D-ID, ElevenLabs bằng biến môi trường để test tải không tốn tiền | Văn | | Bật cờ thì không phát sinh CostEvent | P0 |
-| QA-02 | Todo | Script k6 100 người dùng đồng thời (đăng nhập, xem mentor, xem job, tạo session, đặt lịch); nới rate limit riêng cho môi trường test; ghi p95 và tỉ lệ lỗi | Văn | QA-01 | Kết quả ghi vào `nfr-results.md` | P0 |
-| QA-03 | Todo | Đo CV/JD ≤ 60 giây (30 CV) và avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) từ log N-11; báo p50/p95 | Văn | N-11 | Kết quả ghi vào `nfr-results.md` | P0 |
+| QA-01 | Done | Chế độ mock LLM, D-ID, ElevenLabs bằng biến môi trường để test tải không tốn tiền | Văn | | Bật cờ thì không phát sinh CostEvent | P0 |
+| QA-02 | Done | Script k6 100 người dùng đồng thời (đăng nhập, xem mentor, xem job, tạo session, đặt lịch); nới rate limit riêng cho môi trường test; ghi p95 và tỉ lệ lỗi | Văn | QA-01 | Kết quả ghi vào `nfr-results.md` | P0 |
+| QA-03 | Done | Đo CV/JD ≤ 60 giây (30 CV) và avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) từ log N-11; báo p50/p95 | Văn | N-11 | Kết quả ghi vào `nfr-results.md` | P0 |
 | QA-04 | Todo | Đo thời gian đối soát SePay trên 20 giao dịch (webhook đến → Payment `success`) | Trầm | LP-10 | Kết quả ghi vào `nfr-results.md` | P0 |
-| QA-05 | Todo | Seed dữ liệu demo cho **staging**: 2 công ty, 3 job, rubric đã duyệt, 3 mentor, ứng viên có lịch sử phỏng vấn và lộ trình, **ít nhất 5 lượt chấm lại** để miner đủ ngưỡng. Giữ `_devOnlyGuard.js` (chặn production) | Văn | JB-09, LP-13, AI-03 | Một lệnh ra đủ dữ liệu kịch bản demo trên staging | P0 |
+| QA-05 | Done | Seed dữ liệu demo cho **staging**: 2 công ty, 3 job, rubric đã duyệt, 3 mentor, ứng viên có lịch sử phỏng vấn và lộ trình, **ít nhất 5 lượt chấm lại** để miner đủ ngưỡng. Giữ `_devOnlyGuard.js` (chặn production) | Văn | JB-09, LP-13, AI-03 | Một lệnh ra đủ dữ liệu kịch bản demo trên staging | P0 |
 | QA-06 | Todo | Kiểm thử thủ công trên staging theo kịch bản demo 7 bước và theo từng vai trò; ghi lỗi vào issue có mã task | Nhi | QA-05 | Không còn lỗi chặn luồng | P0 |
 | QA-07 | Todo | Kiểm tra responsive và sửa lỗi giao diện các màn hình mới | Nhi | QA-06 | Mọi màn hình mới dùng được ở bề ngang điện thoại | P1 |
 | DOC-01 | Todo | SRS: bảng ánh xạ 39 chức năng ↔ use case ↔ màn hình ↔ API; bảng tên role; mục "Chức năng bổ trợ" (giỏ hàng, coupon, gói Pro) | Janet | | Mọi dòng trong đơn V2 có use case | P0 |
 | DOC-02 | Todo | SDD và sequence diagram: Learning Path (có chia tiền và chặn luồng hủy cũ), Job Post, Ứng tuyển | Trầm | LP-17, JB-10 | Sequence khớp code | P0 |
-| DOC-03 | Todo | SDD và sequence diagram: Company, lời mời, duyệt câu, Rubric, Profile và kho CV | Văn | CO-08, PR-07 | Sequence khớp code | P0 |
+| DOC-03 | Done | SDD và sequence diagram: Company, lời mời, duyệt câu, Rubric, Profile và kho CV | Văn | CO-08, PR-07 | Sequence khớp code | P0 |
 | DOC-04 | Todo | SDD và sequence diagram: chấm rubric, Learning from Reviews, hồ sơ năng lực, sàng lọc khóa | Janet | JB-07, AI-05 | Sequence khớp code | P0 |
 | DOC-05 | Todo | Hồ sơ Review: BM01 Design Brief, BM02 Self-Review, BM03 Record of Changes, BM04 Commitment | Janet | | Nộp đủ 4 biểu mẫu | P0 |
 | DOC-06 | Todo | Hướng dẫn sử dụng theo 5 vai trò, có ảnh chụp | Nhi | QA-06 | Mỗi vai trò có luồng chính | P1 |

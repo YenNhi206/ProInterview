@@ -19,6 +19,7 @@
     "seed:finance-demo": "node src/scripts/seedFinanceDemoData.js",
     "cleanup:finance-demo": "node src/scripts/seedFinanceDemoData.js --cleanup",
     "seed:demo": "node src/scripts/seedDemoData.js",
+    "seed:demo-staging": "node src/scripts/seedStagingDemo.js",
     "seed:bookings": "node src/scripts/seedBookings.js",
     "seed:mentor-courses-ui": "node src/scripts/seedMentorCoursesUIDemo.js",
     "db:prune-fake-mentors": "node src/scripts/pruneFakeMentors.js",

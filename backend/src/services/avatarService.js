@@ -340,6 +340,15 @@ async function pollDIDTalk(talkId, timeoutMs = 120_000, signal) {
  * @returns {Promise<{videoUrl: string, fromCache: boolean, talkId?: string}>}
  */
 export async function generateVideoForQuestion(questionText, opts = {}, signal) {
+  // QA-01: Chế độ mock LLM/D-ID/ElevenLabs bằng biến môi trường để test tải không tốn tiền
+  if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") {
+    return {
+      videoUrl: "https://res.cloudinary.com/prointerview/video/upload/mock_avatar_demo.mp4",
+      fromCache: true,
+      talkId: "mock_talk_did_01",
+    };
+  }
+
   if (!isDIDEnabled()) {
     throw new Error("D_ID_API_KEY chưa được cấu hình.");
   }
