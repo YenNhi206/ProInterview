@@ -8,16 +8,6 @@ import { useUserPresence } from "../../hooks/useUserPresence.js";
 /**
  * Khu vực kiểm duyệt viên (Platform Moderator) — cùng khung sidebar tối với khu Mentor và Company.
  */
-import React from "react";
-import { Outlet } from "react-router";
-import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-import { WorkspaceShell } from "../../components/layout/WorkspaceNav.jsx";
-import { ModeratorWorkspaceNav } from "../../components/layout/ModeratorWorkspaceNav.jsx";
-import { useUserPresence } from "../../hooks/useUserPresence.js";
-
-/**
- * Khu vực kiểm duyệt viên (Platform Moderator) — cùng khung sidebar tối với khu Mentor và Company.
- */
 export function ModeratorLayout() {
   useUserPresence();
 

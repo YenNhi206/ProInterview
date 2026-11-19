@@ -30,8 +30,8 @@ export async function getOrCreateCandidateProfile(userId) {
     // Kiểm tra xem user đã có CV nào trong CVDocument chưa
     const defaultCv = await CVDocument.findOne({ userId, isDefault: true }).lean();
 
-    const targetRole = user.field || (Array.isArray(user.expertise) ? user.expertise[0] : "") || "";
-    const targetRoles = user.field ? [user.field] : Array.isArray(user.expertise) ? user.expertise : [];
+    const targetRole = user.desiredPosition || user.position || user.field || (Array.isArray(user.expertise) ? user.expertise[0] : "") || (Array.isArray(user.skills) ? user.skills[0] : "") || "";
+    const targetRoles = targetRole ? [targetRole] : (Array.isArray(user.skills) && user.skills.length > 0 ? user.skills : (Array.isArray(user.expertise) ? user.expertise : []));
 
     // Khởi tạo các competency khung cơ sở
     const initialCompetencies = DEFAULT_COMPETENCY_KEYS.map((k) => ({

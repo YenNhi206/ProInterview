@@ -53,7 +53,7 @@ describe("Giai đoạn 3: Candidate Profile và kho CV (PR-01, PR-02, PR-04, PR-
       email: "candidate.test@dev.local",
       name: "Nguyễn Ứng Viên",
       role: "customer",
-      field: "Frontend Developer",
+      desiredPosition: "Frontend Developer",
     });
 
     otherUser = await User.create({
@@ -340,6 +340,7 @@ describe("Giai đoạn 3: Candidate Profile và kho CV (PR-01, PR-02, PR-04, PR-
     // Tạo 1 buổi phỏng vấn AI completed có overallScore cho candidate
     await InterviewSession.create({
       userId: candidateUser._id,
+      hrGender: "female",
       roleCategory: "frontend",
       status: "completed",
       feedback: {
