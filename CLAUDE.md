@@ -39,6 +39,9 @@ npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (k
 npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
 npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)
 npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần trên production sau khi merge
+npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
+npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1 + chuỗi cũ legacy; chạy lại được
+node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy
 npm test                       # node:test + jest DTO + unittest Python
 ```
 
@@ -144,9 +147,9 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 
 `/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-### Models (`models/`) — 30 schema
+### Models (`models/`) — 31 schema
 
-`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
 Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 
@@ -325,6 +328,8 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 | `frontend/src/app/utils/analytics/mock*.js` | 4 trang admin + `UserJourneyPanel.jsx` bơm số liệu giả ở trình duyệt | Không dùng cho màn mới; gỡ ở N-09 |
 | `config/competencies.json` (LP-01) | Đặt danh sách năng lực riêng, hoặc chỉ kiểm key bằng regex, thì lưu được key không có trong bộ tiêu chí: chấm điểm, `suggestOutcome` và hồ sơ năng lực không tra được | Backend kiểm bằng `isValidCompetencyKey`; frontend đọc `GET /api/competencies`. Quy tắc đầy đủ: DECISIONS.md mục "Bộ tiêu chí năng lực SHRM/DDI (LP-01)" |
 | `InterviewSession` | 3 câu baseline có `competencyId = ""`; `moderatorOverride` và `evaluationIncomplete` nằm trên `answers[i]`, không nằm trên `feedback.perQuestion[i]`; `shrmLevel` có fallback `"proficient"` | Quy đổi điểm AI sang mức bằng `aiAnswerToLevel(item, { answer })`, không đọc `shrmLevel` (AI-13 sẽ bỏ fallback) |
+| `backend/src/prompts/*.js` (AI-02) | Sửa thẳng chữ prompt trong code: production vẫn chạy bản trong DB, Quality Dashboard không tách được version | Tạo `PromptVersion` mới rồi `activate`; `db:sync-prompt-versions` cảnh báo khi template trong DB khác code ở cùng version. Loader lỗi thì dùng bản mặc định, `promptVersion` ghi theo bản thực sự chạy |
+| Script trong `src/scripts/` được test import | `import "../config/loadEnv.js"` ở đầu file nạp `.env` với `override: true`, ghi đè `JWT_SECRET` và biến của môi trường test → test HTTP lỗi 401 | Nạp `loadEnv` trong `main()` (xem `syncPromptVersions.js`) |
 | `package.json` `test:node` | Liệt kê từng file test; `node --test` chỉ nhận glob từ Node 21 | Cho tới khi xong N-05: thêm file test mới vào script này |
 
 ---

@@ -18,7 +18,7 @@
 | `LearningPath` ✅ LP-03 | `candidateId`, `mentorId`, `mentorshipRequestId`, `jobPostId`, `assessmentBookingId`, `goal`, `status`, `totalAmount`, `platformFeeRate`, `paymentRef` (sinh bằng `utils/orderRef.js`), `version`. Code có thêm `revisionNote`, các mốc `proposedAt/acceptedAt/paidAt/completedAt/cancelledAt`, `cancelReason` | #6, #7, #12, #13, #16 |
 | `LearningPathSession` ✅ LP-03 | `pathId`, `order`, `title`, `objectives[]`, `shrmKeys: [String]`, `shareAmount`, `bookingId`, `attempt`, `retakeOf`, `outcome`, `feedback` {summary, strengths, improvements}. Code có thêm `status` (planned \| scheduled \| done \| cancelled), `doneAt` | #13, #14 |
 | `AIImprovementProposal` | `target` question_gen \| evaluation, `kind` few_shot \| prompt_change \| calibration, `evidence` {moderationItemIds[], overrideCount, avgScoreDelta}, `before`, `after`, `status` | #25, #37 |
-| `PromptVersion` | Bảng đăng ký cho chuỗi `promptVersion` đã có: `key`, `version`, `template`, `fewShotExamples[]`, `active` | #25, #37 |
+| `PromptVersion` ✅ AI-02 | Bảng đăng ký cho chuỗi `promptVersion` đã có: `key`, `version`, `template`, `fewShotExamples[]`, `active`. Code có thêm `legacy`, `activatedAt`, `activatedBy`, `note`; `template` là object nhiều phần (chuỗi hoặc mảng chuỗi). Loader `getActivePrompt` cache 60 giây, fallback về prompt mặc định trong `backend/src/prompts/` | #25, #37 |
 
 ## 2. Model có sẵn cần sửa (12)
 

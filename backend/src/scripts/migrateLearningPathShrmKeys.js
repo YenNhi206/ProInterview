@@ -9,7 +9,6 @@
  * DB khác .env (production): đặt TARGET_MONGO_URI, ví dụ PowerShell:
  *   $env:TARGET_MONGO_URI="mongodb+srv://..."; npm run db:migrate-lp-shrm-keys:dry
  */
-import "../config/loadEnv.js";
 import { pathToFileURL } from "node:url";
 import mongoose from "mongoose";
 import { connectDatabase } from "../db/connect.js";
@@ -58,6 +57,8 @@ export async function migrateLearningPathShrmKeys({ dryRun = false, log = consol
 }
 
 async function main() {
+  // Nạp .env chỉ khi chạy từ dòng lệnh: test import module này không bị .env ghi đè biến môi trường.
+  await import("../config/loadEnv.js");
   // loadEnv dùng dotenv override:true → muốn chạy DB khác (production) thì đặt TARGET_MONGO_URI.
   const uri = process.env.TARGET_MONGO_URI?.trim() || process.env.MONGO_URI;
   if (!uri) {
