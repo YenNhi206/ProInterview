@@ -259,11 +259,23 @@ stateDiagram-v2
     open --> open : Mentor gửi / rút offer
     open --> selected : Ứng viên chọn một offer
     open --> closed : Ứng viên đóng yêu cầu
-    selected --> [*] : Mentor được chọn tạo Booking<br/>(mentorshipRequestId)
+    selected --> assessing : Mentor được chọn tạo buổi đánh giá 0đ<br/>(accept-assessment, LP-05)
+    assessing --> assessing : Buổi 0đ bị hủy / vắng → Mentor hẹn lại
+    assessing --> path_proposed : Mentor gửi lộ trình (LP-07)
+    selected --> [*] : Ứng viên đặt Booking thường<br/>(mentorshipRequestId)
     closed --> [*]
 ```
 
 Offer: `pending → withdrawn` (mentor rút). Chọn offer chỉ thành công khi request còn `open` và offer còn `pending` (`findOneAndUpdate` có điều kiện — chống chọn hai lần).
+
+| Chuyển | Hàm / endpoint |
+|:-------|:---------------|
+| `open → selected` | `selectOffer` — `POST /:id/offers/:offerId/select` |
+| `open → closed` | `closeRequest` — `POST /:id/close` |
+| `selected / assessing → assessing` | `acceptAssessment` — `POST /:id/accept-assessment`: tạo Booking `assessment`, ghi `assessmentBookingId` (cập nhật có điều kiện, lỗi thì xóa booking vừa tạo). Chặn khi buổi 0đ hiện tại còn `pending/confirmed/in_progress` hoặc đã `completed` |
+| `assessing → path_proposed` | LP-07 |
+
+Ở `selected`, `assessing`, `path_proposed` ứng viên vẫn đặt được booking thường (`resolveRequestBooking` dùng `REQUEST_MENTOR_CHOSEN_STATUSES`). Giới hạn số buổi 0đ (quyết định 13) làm ở LP-06.
 
 ---
 

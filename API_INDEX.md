@@ -122,7 +122,7 @@ Chi tiết triển khai và kiểm thử: [`docs/CART_BOOKING_PORT.md`](./docs/C
 ## Phần A — Backend Express (đã có trong repo)
 
 **Entrypoint:** `backend/src/server.js`  
-Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock` *(chỉ ngoài production)*, `/api/coupons`.
+Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock` *(chỉ ngoài production)*, `/api/coupons`, `/api/mentorship-requests`.
 
 ### A.1. `GET /`
 
@@ -490,6 +490,27 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/coupons/validate` | Bearer | Kiểm tra mã giảm giá — body `{ code, type: "booking"\|"enrollment"\|"subscription", amount }`, trả `{ coupon, discountAmount }`. Chỉ để preview UI ở Checkout; số tiền cuối cùng luôn tính lại ở server khi tạo đơn (booking/enrollment/subscription transfer-pending nhận thêm `couponCode` trong body). |
 
 **Quy tắc:** mỗi user chỉ dùng được 1 lần/mã (`Coupon.usedBy`, đánh dấu atomic qua `claimCouponUsage` khi đơn được tạo thành công — không rollback khi đơn bị hủy sau đó). Hết hạn theo `expiresAt`, có thể giới hạn `applicableTo` (booking/enrollment/subscription/all). Tạo mã mới: `npm run seed:coupon` (mặc định `LAUNCH50`, 50%, hết hạn 05/08/2026 — tùy chỉnh qua env `COUPON_CODE`, `COUPON_DISCOUNT_VALUE`, `COUPON_EXPIRES_AT`, `COUPON_APPLICABLE_TO`).
+
+### A.16. Module Yêu cầu mentor — `/api/mentorship-requests`
+
+**File:** `backend/src/routes/mentorshipRequests.js` · **Service:** `mentorshipRequestsService.js` · **Model:** `MentorshipRequest`
+
+Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (`isActive`, `isVerified`) được dùng. Response `{ success, request }` hoặc `{ success, requests }`.
+
+| Method | Path | Ai | Ghi chú |
+|:-------|:-----|:---|:--------|
+| GET | `/api/mentorship-requests?scope=open\|mine` | Mentee / Mentor | Mentee: yêu cầu của mình. Mentor: `open` = đang mở, `mine` = đã gửi đề nghị |
+| POST | `/api/mentorship-requests` | Mentee | multipart: `position`, `description`, `sessionType`, `availability?`, `budget?`, **`jobPostId?`** (LP-05, ObjectId 24 ký tự, bỏ trống = null), `cv`/`jd` (file) hoặc `cvSource`/`jdSource` |
+| GET | `/api/mentorship-requests/documents` | Mentee | CV/JD đã lưu để dùng lại |
+| GET | `/api/mentorship-requests/:id` | Chủ yêu cầu / Mentor liên quan | DTO: `status`, `offers`, `bookingId` (booking thường), **`jobPostId`**, **`assessment`** `{ bookingId, status, date, timeSlot, durationMinutes, cancelledBy }` \| null |
+| POST | `/api/mentorship-requests/:id/offers` | Mentor | Gửi đề nghị (`message`, `availability`) |
+| POST | `/api/mentorship-requests/:id/offers/:offerId/select` | Mentee | `open → selected` |
+| POST | `/api/mentorship-requests/:id/offers/:offerId/withdraw` | Mentor | Rút đề nghị |
+| POST | **`/api/mentorship-requests/:id/accept-assessment`** | Mentor được chọn | **LP-05.** Body `{ date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?: 30–120 (mặc định 60), note? }`. Tạo Booking `sessionType: "assessment"` (mọi field tiền 0, `paid`, `confirmed`), request `selected\|assessing → assessing`, thông báo `booking_confirmed` cho mentee. **201** `{ success, request }`. Lỗi: 400 sai định dạng / giờ đã qua; 403 không phải Mentor được chọn; 409 đang có buổi 0đ chưa diễn ra, buổi 0đ đã hoàn thành, đã `path_proposed`, hoặc trùng khung giờ. Hẹn lại được khi buổi trước `cancelled`/`no_show` |
+| POST | `/api/mentorship-requests/:id/close` | Mentee | `open → closed` |
+| GET | `/api/mentorship-requests/:id/files/:kind` | Mentee / Mentor được chọn | Tải CV/JD (`kind` = `cv` \| `jd`) |
+
+**Status:** `open → selected → assessing → path_proposed`; `open → closed`. Đặt booking thường qua `POST /api/bookings` kèm `mentorshipRequestId` được phép ở `selected`, `assessing`, `path_proposed` (`resolveRequestBooking`). `path_proposed` do LP-07 ghi.
 
 ---
 

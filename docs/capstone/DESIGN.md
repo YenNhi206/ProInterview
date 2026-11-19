@@ -26,7 +26,7 @@
 | --- | --- |
 | `User` | Chỉ đổi giá trị role `enterprise` thành `company_moderator` (KHÔNG đụng giá trị gói `enterprise`); thêm `companyId`; script migrate |
 | `Booking` ✅ LP-02, LP-04 | `sessionType` thêm `assessment`; thêm `learningPathId`, `learningPathSessionId`; `paymentMethod` thêm `learning_path`; **sửa index unique `mentorshipRequestId`** (loại `assessment` và booking có `learningPathId`) kèm script drop và sync index trên DB thật. Booking lộ trình: `paymentStatus: "paid"`, `price = totalAmount = shareAmount`, `platformFee = round(shareAmount × rate)`, `vat = 0` (ghi qua `utils/learningPathBookingMoney.js`) |
-| `MentorshipRequest` | Thêm `jobPostId`, `assessmentBookingId`; status thêm `assessing`, `path_proposed`; sửa điều kiện `status === "selected"` ở `mentorshipRequestsService.js:125`. Mở rộng router `/api/mentorship-requests` |
+| `MentorshipRequest` ✅ LP-05 | Thêm `jobPostId`, `assessmentBookingId`; status thêm `assessing`, `path_proposed`; sửa điều kiện `status === "selected"` ở `mentorshipRequestsService.js:125`. Mở rộng router `/api/mentorship-requests` |
 | `Payment` | `type` thêm `learning_path`, `referenceModel` LearningPath |
 | `SepayWebhookEvent` | `entityType` thêm `learning_path` |
 | `Notification` ✅ N-06 | `type` thêm các loại: lộ trình, ứng tuyển, lời mời công ty, rubric, job bị ẩn, cải tiến AI (danh sách gốc: `NOTIFICATION_TYPE_GROUPS`) |
@@ -100,7 +100,7 @@ Cột "Task xử lý" ghi ✅ khi task đã merge; các bẫy đó còn giữ l�
 | `mentorNetFromBooking` tính `totalAmount − platformFee`, không đọc `platformFeeRate` | Thiếu `platformFee` thì mentor nhận 100% | ✅ LP-04 (PR #195) · LP-14 |
 | `bookingStaleSweepJob` hủy booking `pending` chưa trả đã qua giờ | Hủy buổi lộ trình và buổi 0đ | ✅ LP-04 (PR #195) |
 | `sepayWebhookService.findPendingTargets` chỉ nhận 5 loại; `parsePiOrderFromText` chỉ nhận mã `PI…` | Tiền lộ trình về mà không ai xác nhận | LP-10 |
-| `mentorshipRequestsService.js:125` chỉ cho tạo booking khi `status === "selected"` | Thêm status mới làm luồng cũ lỗi 403 | LP-05 |
+| `mentorshipRequestsService.js:125` chỉ cho tạo booking khi `status === "selected"` | Thêm status mới làm luồng cũ lỗi 403 | ✅ LP-05 (`REQUEST_MENTOR_CHOSEN_STATUSES`) |
 | `Notification.type` là enum | Loại mới bị Mongoose từ chối, không báo lỗi | ✅ N-06 (PR #194) |
 | `interviewsController.js:476` trả `alreadyGenerated` khi ≥ 5 câu; `questionsAllowed` lấy theo quota | Pro không bao giờ nhận câu follow-up ở buổi theo job; buổi kết thúc sớm | JB-06 |
 | `moderationQueueService.js:83` không lọc `type`; `createItemForReport` (dòng 39) map mọi `targetType` khác thành `evaluation_report` | Rubric và báo cáo job lọt vào hàng đợi phỏng vấn, sai loại | JB-04, CO-07 |
