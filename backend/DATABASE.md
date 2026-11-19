@@ -141,6 +141,7 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `MentorPeerReview.js` | `mentorpeerreviews` | Mentor review khóa (đồng nghiệp) |
 | `LearningPath.js` | `learning_paths` | Lộ trình học mentor soạn sau buổi đánh giá 0đ; giá trọn gói, `paymentRef`, `version` (LP-03) |
 | `LearningPathSession.js` | `learning_path_sessions` | Buổi trong lộ trình: `shrmKeys`, `shareAmount`, `bookingId`, `attempt`/`retakeOf`, `outcome` (LP-03) |
+| `PromptVersion.js` | `prompt_versions` | Bảng đăng ký phiên bản prompt (AI-02): `key` (`evaluation`, `question_gen`), `version` (`eval-vN`, `followup-vN`, duy nhất toàn bảng), `template` (object phần → chuỗi hoặc mảng chuỗi, biến `{{tên}}`; `null` khi `legacy`), `fewShotExamples[] {input, output, note}`, `active` (tối đa 1 bản mỗi key), `legacy`, `activatedAt`, `activatedBy`, `note`. Đồng bộ bằng `npm run db:sync-prompt-versions`; đổi bản active bằng `node src/scripts/activatePromptVersion.js <key> <version>` |
 
 Tên collection chính xác có trong từng file (`collection: "..."` trong `Schema`).
 
