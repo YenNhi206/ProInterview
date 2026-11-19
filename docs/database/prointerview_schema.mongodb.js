@@ -46,7 +46,7 @@ ensureCollection("users", {
   properties: {
     name: str,
     email: str,
-    role: en("customer", "mentor", "admin", "moderator", "enterprise"),
+    role: en("customer", "mentor", "admin", "moderator", "company_moderator"),
     plan: en("free", "starter_pro", "elite_pro", "professional", "pro", "basic", "premium"),
     gender: en("male", "female", "other", ""),
     tokenVersion: num,
