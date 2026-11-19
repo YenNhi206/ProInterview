@@ -9,28 +9,33 @@ export const MAX_PRICE = 100_000_000;
 export const MAX_OBJECTIVES = 10;
 export const MAX_SHRM_KEYS = 10;
 
-/**
- * Năng lực SHRM/DDI để gắn cho từng buổi. TẠM THỜI cho tới khi bộ tiêu chí dùng chung LP-01
- * (`config/`, Janet) xong — khi đó thay bằng danh sách đọc từ cấu hình chung.
- * Key phải khớp regex backend `^[a-z0-9_]{2,60}$`.
+/*
+ * Năng lực SHRM/DDI gắn cho từng buổi lấy từ bộ tiêu chí dùng chung LP-01
+ * (`GET /api/competencies`, nguồn `backend/src/config/competencies.json`). Không đặt danh sách
+ * cứng ở FE. `framework` dưới đây là object `framework` của API đó.
  */
-export const SHRM_COMPETENCIES = [
-  { key: "communication", label: "Giao tiếp" },
-  { key: "problem_solving", label: "Giải quyết vấn đề" },
-  { key: "critical_thinking", label: "Tư duy phản biện" },
-  { key: "technical_knowledge", label: "Kiến thức chuyên môn" },
-  { key: "teamwork", label: "Làm việc nhóm" },
-  { key: "leadership", label: "Lãnh đạo" },
-  { key: "decision_making", label: "Ra quyết định" },
-  { key: "planning_organizing", label: "Lập kế hoạch" },
-  { key: "adaptability", label: "Thích ứng" },
-  { key: "initiative", label: "Chủ động" },
-  { key: "relationship_management", label: "Quản lý quan hệ" },
-  { key: "customer_focus", label: "Hướng khách hàng" },
-];
 
-export function shrmLabel(key) {
-  return SHRM_COMPETENCIES.find((c) => c.key === key)?.label || key;
+/** Năng lực mentor được chọn: bỏ key `deprecated`, giữ thứ tự trong file cấu hình. */
+export function competencyOptions(framework) {
+  return (framework?.competencies || [])
+    .filter((c) => !c.deprecated)
+    .map((c) => ({ key: c.key, label: c.nameVi || c.key }));
+}
+
+/** Tên hiển thị của key (kể cả key deprecated); chưa tải được bộ tiêu chí hoặc key lạ → chính key. */
+export function shrmLabel(key, framework) {
+  return framework?.competencies?.find((c) => c.key === key)?.nameVi || key;
+}
+
+/**
+ * Key đã gắn nhưng mentor không chọn lại được nữa: không có trong bộ tiêu chí hoặc đã `deprecated`.
+ * Backend từ chối các key này khi lưu, nên editor hiện riêng để mentor bỏ chọn.
+ * Chưa có `framework` thì trả [] (không chặn nhầm khi API chưa tải xong).
+ */
+export function unselectableShrmKeys(keys, framework) {
+  if (!framework?.competencies) return [];
+  const selectable = new Set(competencyOptions(framework).map((c) => c.key));
+  return (keys || []).filter((k) => !selectable.has(k));
 }
 
 export const PATH_STATUS = {
@@ -108,7 +113,7 @@ export function toPayload(state) {
 }
 
 /** Lỗi chặn LƯU (backend sẽ trả 400). Trả mảng thông báo tiếng Việt, rỗng = lưu được. */
-export function saveErrors(state) {
+export function saveErrors(state, framework) {
   const errors = [];
   const amount = parsePrice(state.totalAmount);
   if (!Number.isFinite(amount)) errors.push("Giá trọn gói chỉ gồm chữ số.");
@@ -118,6 +123,10 @@ export function saveErrors(state) {
     const title = String(s.title || "").trim();
     if (title.length < 3) errors.push(`Buổi ${i + 1}: tên buổi cần ít nhất 3 ký tự.`);
     if (title.length > 200) errors.push(`Buổi ${i + 1}: tên buổi tối đa 200 ký tự.`);
+    const stale = unselectableShrmKeys(s.shrmKeys, framework);
+    if (stale.length) {
+      errors.push(`Buổi ${i + 1}: bỏ chọn năng lực không còn dùng (${stale.map((k) => shrmLabel(k, framework)).join(", ")}).`);
+    }
   });
   return errors;
 }
@@ -126,10 +135,10 @@ export function saveErrors(state) {
  * Danh sách điều kiện GỬI cho mentee (khớp `proposeLearningPath`): ≥ 1 buổi, giá ≥ 10.000 VND,
  * buổi đánh giá 0đ đã hoàn thành. Dùng hiển thị checklist + khóa nút gửi.
  */
-export function proposeChecklist(state, assessmentStatus) {
+export function proposeChecklist(state, assessmentStatus, framework) {
   const amount = parsePrice(state.totalAmount);
   return [
-    { key: "sessions", ok: state.sessions.length >= 1 && saveErrors(state).length === 0, label: "Có ít nhất 1 buổi, tên buổi hợp lệ" },
+    { key: "sessions", ok: state.sessions.length >= 1 && saveErrors(state, framework).length === 0, label: "Có ít nhất 1 buổi, tên buổi và năng lực hợp lệ" },
     { key: "price", ok: Number.isFinite(amount) && amount >= MIN_PRICE && amount <= MAX_PRICE, label: `Giá trọn gói từ ${MIN_PRICE.toLocaleString("vi-VN")} VND` },
     { key: "assessment", ok: assessmentStatus === "completed", label: "Đã hoàn thành buổi đánh giá 0đ" },
   ];

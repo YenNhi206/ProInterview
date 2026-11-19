@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  SHRM_COMPETENCIES,
+  competencyOptions,
   draftableRequests,
   fromDTO,
   formatPriceInput,
@@ -12,15 +12,46 @@ import {
   proposeChecklist,
   saveErrors,
   splitObjectives,
+  shrmLabel,
   toPayload,
   toggleShrm,
+  unselectableShrmKeys,
 } from "./learningPathEditor.js";
 
 const session = (title, extra = {}) => ({ uid: title, title, objectivesText: "", shrmKeys: [], ...extra });
 
-test("key năng lực khớp regex backend ^[a-z0-9_]{2,60}$ và không trùng", () => {
-  for (const c of SHRM_COMPETENCIES) assert.match(c.key, /^[a-z0-9_]{2,60}$/);
-  assert.equal(new Set(SHRM_COMPETENCIES.map((c) => c.key)).size, SHRM_COMPETENCIES.length);
+// Dạng rút gọn của `framework` trả về từ GET /api/competencies (LP-01).
+const FRAMEWORK = {
+  competencies: [
+    { key: "communication", nameVi: "Giao tiếp & Trình bày", deprecated: false },
+    { key: "teamwork", nameVi: "Làm việc nhóm & Cộng tác", deprecated: false },
+    { key: "old_skill", nameVi: "Năng lực cũ", deprecated: true },
+  ],
+};
+
+test("competencyOptions lấy từ bộ tiêu chí LP-01, bỏ key deprecated", () => {
+  assert.deepEqual(competencyOptions(FRAMEWORK), [
+    { key: "communication", label: "Giao tiếp & Trình bày" },
+    { key: "teamwork", label: "Làm việc nhóm & Cộng tác" },
+  ]);
+  assert.deepEqual(competencyOptions(null), []);
+});
+
+test("shrmLabel hiện tên cả key deprecated; key lạ hoặc chưa tải bộ tiêu chí → chính key", () => {
+  assert.equal(shrmLabel("old_skill", FRAMEWORK), "Năng lực cũ");
+  assert.equal(shrmLabel("critical_thinking", FRAMEWORK), "critical_thinking");
+  assert.equal(shrmLabel("communication"), "communication");
+});
+
+test("unselectableShrmKeys: key lạ và key deprecated; chưa có bộ tiêu chí thì không chặn", () => {
+  assert.deepEqual(unselectableShrmKeys(["communication", "critical_thinking", "old_skill"], FRAMEWORK), ["critical_thinking", "old_skill"]);
+  assert.deepEqual(unselectableShrmKeys(["critical_thinking"], null), []);
+});
+
+test("saveErrors chặn lưu khi buổi còn năng lực không còn dùng", () => {
+  const state = { totalAmount: "", sessions: [session("Buổi một", { shrmKeys: ["communication", "critical_thinking"] })] };
+  assert.deepEqual(saveErrors(state, FRAMEWORK), ["Buổi 1: bỏ chọn năng lực không còn dùng (critical_thinking)."]);
+  assert.deepEqual(saveErrors(state), []);
 });
 
 test("parsePrice chấp nhận dấu chấm nghìn, từ chối chữ", () => {

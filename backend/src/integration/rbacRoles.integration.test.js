@@ -104,6 +104,33 @@ describe("RBAC: role moderator và company_moderator", () => {
     assert.equal(res.status, 200, "admin vẫn vào được cổng admin");
   });
 
+  it("PATCH /api/users/:id/role — chỉ 1 Platform Moderator (DECISIONS.md #15)", async () => {
+    await User.deleteMany({ role: "moderator" });
+    const suffix = `single-mod-${Date.now()}`;
+    const admin = await userWithRole("admin", suffix);
+    const first = await userWithRole("customer", `${suffix}-1`);
+    const second = await userWithRole("customer", `${suffix}-2`);
+    const setRole = (target, role) =>
+      fetch(`${http.baseUrl}/api/users/${target._id}/role`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${mintAccessToken(admin._id)}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role }),
+      });
+
+    assert.equal((await setRole(first, "moderator")).status, 200, "moderator đầu tiên cấp được");
+    const blocked = await setRole(second, "moderator");
+    assert.equal(blocked.status, 409, "moderator thứ hai bị chặn");
+    assert.match((await blocked.json()).error, /chỉ có 1 Platform Moderator/);
+    assert.equal((await User.findById(second._id)).role, "customer", "role người thứ hai giữ nguyên");
+
+    assert.equal((await setRole(first, "moderator")).status, 200, "cấp lại cho chính moderator hiện tại không lỗi");
+    assert.equal((await setRole(first, "customer")).status, 200);
+    assert.equal((await setRole(second, "moderator")).status, 200, "gỡ người cũ rồi thì cấp được người mới");
+  });
+
   it("Admin không còn route duyệt khóa học — /api/admin/courses/pending đã bỏ", async () => {
     const admin = await userWithRole("admin", `gone-${Date.now()}`);
     const res = await get("/api/admin/courses/pending", admin._id);

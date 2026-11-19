@@ -102,13 +102,14 @@ import { CompanyDashboard } from "./pages/company/CompanyDashboard.jsx";
 import { CompanyQuestions } from "./pages/company/CompanyQuestions.jsx";
 import { CompanyRubrics } from "./pages/company/CompanyRubrics.jsx";
 import {
-  CompanyJobsPlaceholder,
-  CompanyApplicationsPlaceholder,
-} from "./pages/company/CompanyPlaceholders.jsx";
+  CompanyJobs,
+  CompanyApplications,
+} from "./pages/company/CompanyPages.jsx";
+import { COMPANY_ROLES } from "./components/layout/CompanyWorkspaceNav.jsx";
 import { createRoleLoader } from "./utils/auth/roleLoader.js";
 
 const moderatorLoader = createRoleLoader("moderator", "/moderator");
-const companyModeratorLoader = createRoleLoader("company_moderator", "/company");
+const companyLoader = createRoleLoader(COMPANY_ROLES, "/company");
 
 /** Đã đăng nhập mentor/admin/moderator/company_moderator → hub riêng, không xem landing customer. */
 function roleHomeLoader() {
@@ -116,7 +117,7 @@ function roleHomeLoader() {
   if (user?.role === "mentor") throw redirect("/mentor/dashboard");
   if (user?.role === "admin") throw redirect("/admin");
   if (user?.role === "moderator") throw redirect("/moderator");
-  if (user?.role === "company_moderator") throw redirect("/company");
+  if (COMPANY_ROLES.includes(user?.role)) throw redirect("/company");
   return null;
 }
 
@@ -277,13 +278,14 @@ export const router = createBrowserRouter([
   {
     path: "/company",
     Component: CompanyLayout,
-    loader: companyModeratorLoader,
+    loader: companyLoader,
     children: [
-      { index: true, Component: CompanyDashboard },
+      { index: true, loader: () => redirect("/company/overview") },
+      { path: "overview", Component: CompanyDashboard },
       { path: "questions", Component: CompanyQuestions },
       { path: "rubrics", Component: CompanyRubrics },
-      { path: "jobs", Component: CompanyJobsPlaceholder },
-      { path: "applications", Component: CompanyApplicationsPlaceholder },
+      { path: "jobs", Component: CompanyJobs },
+      { path: "applications", Component: CompanyApplications },
     ],
   },
   { path: "*", loader: () => redirect("/") },

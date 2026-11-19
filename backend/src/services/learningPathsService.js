@@ -16,6 +16,7 @@ import { httpError } from "../utils/apiErrors.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { splitLearningPathShares } from "../utils/learningPathMoney.js";
+import { isValidCompetencyKey } from "./competencyFramework.js";
 
 export const LEARNING_PATH_MAX_SESSIONS = 12;
 /** Giá trọn gói tối thiểu khi gửi đề xuất (VND). Bản nháp được để 0. */
@@ -24,7 +25,9 @@ export const LEARNING_PATH_MAX_PRICE = 100_000_000;
 /** Mentor chỉ sửa nội dung khi lộ trình chưa gửi hoặc đang bị yêu cầu sửa. */
 const EDITABLE_STATUSES = ["draft", "revision_requested"];
 
-const shrmKey = Joi.string().trim().lowercase().pattern(/^[a-z0-9_]{2,60}$/);
+// Key năng lực phải có trong bộ tiêu chí LP-01 (config/competencies.json) và chưa deprecated.
+const shrmKey = Joi.string().trim().lowercase().custom((value, helpers) =>
+  isValidCompetencyKey(value) ? value : helpers.error("any.invalid"));
 const sessionInput = Joi.object({
   title: Joi.string().trim().min(3).max(200).required(),
   objectives: Joi.array().items(Joi.string().trim().min(1).max(500)).max(10).default([]),

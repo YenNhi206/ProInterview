@@ -57,11 +57,6 @@ export const QUEUE_STATUS = {
   dismissed: "Bác bỏ",
 };
 
-export const QUEUE_PRIORITY = {
-  high: { label: "Cao", className: "bg-red-50 text-red-700 border-red-200" },
-  normal: { label: "Thường", className: "bg-violet-50 text-violet-700 border-violet-200" },
-  low: { label: "Thấp", className: "bg-slate-100 text-slate-600 border-slate-200" },
-};
 
 export const REASON_CODE = {
   irrelevant: "Không liên quan",
@@ -100,4 +95,14 @@ export function formatHours(hours) {
 export function formatDateTime(value) {
   if (!value) return "—";
   return new Date(value).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
+}
+
+/** Thời gian đã chờ kể từ `value` (hàng đợi xử lý cũ nhất trước): "15 phút", "3 giờ", "2 ngày". */
+export function formatWaiting(value, now = Date.now()) {
+  if (!value) return "—";
+  const minutes = Math.max(0, Math.floor((now - new Date(value).getTime()) / 60_000));
+  if (minutes < 60) return `${minutes} phút`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} giờ`;
+  return `${Math.floor(hours / 24)} ngày`;
 }

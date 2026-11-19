@@ -42,6 +42,21 @@ export async function setRoleByAdmin(adminId, targetUserId, newRole) {
     };
   }
 
+  // Hệ thống chỉ có đúng 1 Platform Moderator (DECISIONS.md #15). Chặn ở đây (đường cấp role
+  // duy nhất qua API); không dùng unique index vì seed/test vẫn tạo nhiều moderator trực tiếp.
+  if (r === "moderator" && target.role !== "moderator") {
+    const existing = await User.findOne({ role: "moderator", _id: { $ne: target._id } })
+      .select("email")
+      .lean();
+    if (existing) {
+      return {
+        ok: false,
+        status: 409,
+        error: `Hệ thống chỉ có 1 Platform Moderator (hiện là ${existing.email}). Đổi role tài khoản đó trước khi cấp cho người khác.`,
+      };
+    }
+  }
+
   const previousRole = target.role;
   target.role = r;
   await target.save();

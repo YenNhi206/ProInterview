@@ -24,7 +24,12 @@ import {
   Smile,
   Focus,
   Wind,
+  Flag,
+  ShieldCheck,
+  Hourglass,
 } from "lucide-react";
+import { ReportAiResultDialog } from "../../components/interview/ReportAiResultDialog";
+import { effectiveEvaluation, reportableTargets } from "../../utils/interview/feedbackModeration.js";
 import { CourseRecommendations } from "../../components/courses/CourseRecommendations";
 import { BehavioralRadarChart, behaviorScoreColor, emotionLabel } from "../../components/interview/BehavioralRadarChart";
 import { getPlans } from "../../utils/auth/auth.js";
@@ -330,10 +335,21 @@ export function InterviewFeedback() {
   const [sessionMeta,          setSessionMeta]          = useState({ position: "", duration: 0, overallComment: "" });
   const [behavioralSummary,    setBehavioralSummary]    = useState(null);
   const [behavioralPerQuestion, setBehavioralPerQuestion] = useState([]);
+  /** Câu đang mở hộp thoại "Báo sai" (index trong realFeedback), null = đóng. */
+  const [reportingIdx,         setReportingIdx]         = useState(null);
+
+  const sessionId = location.state?.sessionId
+    ?? sessionStorage.getItem("prointerview_sessionId");
+
+  /** Gửi báo sai xong → câu đó hiện "Đang chờ kiểm định" ngay, không cần tải lại. */
+  const markReported = (idx, targetType) => {
+    setRealFeedback((prev) => prev?.map((q, i) => {
+      if (i !== idx || q.openReports.includes(targetType)) return q;
+      return { ...q, openReports: [...q.openReports, targetType], pending: true };
+    }) ?? prev);
+  };
 
   useEffect(() => {
-    const sessionId = location.state?.sessionId
-      ?? sessionStorage.getItem("prointerview_sessionId");
     if (!sessionId) {
       setEvalError("Không tìm thấy phiên phỏng vấn. Vui lòng thử lại.");
       return;
@@ -364,15 +380,15 @@ export function InterviewFeedback() {
           setEvalError(res.error || "AI chưa trả về kết quả đánh giá. Vui lòng thử lại.");
           return;
         }
+        // Có điểm moderator chấm lại thì dùng điểm đó (scores/overall/shrmLevel), giữ aiOverall để so sánh.
         const mapped = res.evaluation.perQuestion.map(evalQ => ({
-          q:            questionObjects?.[evalQ.questionIndex]?.question
-                          ?? `Câu ${evalQ.questionIndex + 1}`,
-          scores:       evalQ.scores,
-          overall:      evalQ.overall,
-          shrmLevel:    evalQ.shrmLevel || "proficient",
-          strengths:    evalQ.strengths,
-          improvements: evalQ.improvements,
-          suggestion:   evalQ.suggestion,
+          q:             questionObjects?.[evalQ.questionIndex]?.question
+                           ?? `Câu ${evalQ.questionIndex + 1}`,
+          questionIndex: evalQ.questionIndex,
+          strengths:     evalQ.strengths ?? [],
+          improvements:  evalQ.improvements ?? [],
+          suggestion:    evalQ.suggestion,
+          ...effectiveEvaluation(evalQ),
         }));
         setRealFeedback(mapped);
         setEvalError(null);
@@ -893,11 +909,21 @@ export function InterviewFeedback() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate pr-4 text-sm font-medium leading-relaxed text-violet-950">{item.q}</p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                       {renderStars(item.overall)}
                       <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${scoreBadge(item.overall).cls}`}>
                         {scoreBadge(item.overall).label}
                       </div>
+                      {item.reviewedByModerator ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-lime-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">
+                          <ShieldCheck className="h-3 w-3" aria-hidden /> Đã kiểm định · AI chấm {item.aiOverall.toFixed(1)}
+                        </span>
+                      ) : null}
+                      {item.pending ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                          <Hourglass className="h-3 w-3" aria-hidden /> Đang chờ kiểm định
+                        </span>
+                      ) : null}
                     </div>
                     {/* Preview cải thiện khi chưa mở rộng */}
                     {expandedQ !== i && item.improvements?.[0] && (
@@ -917,6 +943,30 @@ export function InterviewFeedback() {
 
               {expandedQ === i && (
                 <div className="border-t border-violet-100 px-5 pb-5">
+                  {/* HITL bước 7 (N-10): điểm moderator chấm lại / đang chờ kiểm định */}
+                  {item.reviewedByModerator ? (
+                    <div className="mt-4 rounded-md border border-lime-200 bg-lime-50/70 px-4 py-3">
+                      <p className="flex items-center gap-1.5 text-xs font-bold text-green-800">
+                        <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                        Điểm đã được kiểm duyệt viên chấm lại: {item.overall.toFixed(1)}/5 (AI chấm {item.aiOverall.toFixed(1)}/5)
+                      </p>
+                      {item.moderatorNote ? (
+                        <p className="mt-1 text-xs leading-relaxed text-green-900">{item.moderatorNote}</p>
+                      ) : null}
+                    </div>
+                  ) : item.pending ? (
+                    <div className="mt-4 rounded-md border border-amber-200 bg-amber-50/70 px-4 py-3 text-xs leading-relaxed text-amber-900">
+                      <p className="flex items-center gap-1.5 font-bold">
+                        <Hourglass className="h-3.5 w-3.5" aria-hidden /> Đang chờ kiểm định
+                      </p>
+                      <p className="mt-1">
+                        {item.openReports.length > 0
+                          ? "Bạn đã báo sai câu này. Kiểm duyệt viên sẽ xem lại và thông báo kết quả cho bạn."
+                          : "AI chưa chấm đủ tiêu chí cho câu này nên điểm đang là tạm tính. Kiểm duyệt viên sẽ chấm lại."}
+                      </p>
+                    </div>
+                  ) : null}
+
                   {/* Voice transcript */}
                   {transcripts[i] && transcripts[i].trim().length > 0 ? (
                     <div className="mb-4 mt-4 overflow-hidden rounded-md border border-violet-200/80">
@@ -1076,6 +1126,26 @@ export function InterviewFeedback() {
                       </div>
                     </div>
                   )}
+
+                  {/* Báo sai câu hỏi / điểm chấm → hàng đợi kiểm định của Platform Moderator */}
+                  {sessionId ? (
+                    <div className="mt-4 flex flex-wrap items-center justify-end gap-2 text-xs text-violet-500">
+                      {reportableTargets(item.openReports).length === 0 ? (
+                        <span>Bạn đã báo sai cả câu hỏi và điểm chấm của câu này.</span>
+                      ) : (
+                        <>
+                          <span>Câu hỏi hoặc điểm chấm có vấn đề?</span>
+                          <button
+                            type="button"
+                            onClick={() => setReportingIdx(i)}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-orange-200 bg-white px-3 py-1.5 font-semibold text-orange-700 transition-colors hover:bg-orange-50"
+                          >
+                            <Flag className="h-3.5 w-3.5" aria-hidden /> Báo sai
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>
@@ -1227,6 +1297,17 @@ export function InterviewFeedback() {
       </div>
         </div>
       </div>
+      {reportingIdx !== null && allQuestions[reportingIdx] ? (
+        <ReportAiResultDialog
+          open
+          onOpenChange={(open) => { if (!open) setReportingIdx(null); }}
+          sessionId={sessionId}
+          questionIndex={allQuestions[reportingIdx].questionIndex}
+          questionText={allQuestions[reportingIdx].q}
+          targets={reportableTargets(allQuestions[reportingIdx].openReports)}
+          onReported={(targetType) => markReported(reportingIdx, targetType)}
+        />
+      ) : null}
     </MentorPageShell>
   );
 }

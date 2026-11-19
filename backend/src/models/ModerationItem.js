@@ -59,7 +59,9 @@ moderationItemSchema.pre("validate", function syncPriorityRank() {
   this.priorityRank = PRIORITY_RANK[this.priority] ?? PRIORITY_RANK.normal;
 });
 
-// Hàng đợi: item mở, ưu tiên cao trước, cũ nhất trước.
+// Hàng đợi: item mở, cũ nhất trước (DECISIONS.md #16 — không còn xếp theo ưu tiên).
+moderationItemSchema.index({ status: 1, createdAt: 1 });
+// Index cũ (ưu tiên trước) giữ lại cho lọc theo priority; bỏ khi chắc không còn dùng.
 moderationItemSchema.index({ status: 1, priorityRank: -1, createdAt: 1 });
 // Mỗi report chỉ sinh đúng 1 item. Spec ghi "unique sparse"; dùng partial index vì refs.reportId
 // mặc định null (sparse vẫn index giá trị null → item không có report sẽ đụng nhau).

@@ -6,9 +6,10 @@ import {
 } from "lucide-react";
 import { createLearningPath, getLearningPath, proposeLearningPath, updateLearningPath } from "../../api/learningPathsApi.js";
 import { getMentorshipRequest } from "../../api/mentorshipRequestsApi.js";
+import { competenciesApi } from "../../api/competenciesApi.js";
 import {
-  MAX_SESSIONS, PATH_STATUS, formatPriceInput, SHRM_COMPETENCIES, emptySession, fromDTO, isEditable, moveSession,
-  parsePrice, previewShares, proposeChecklist, saveErrors, shrmLabel, toPayload, toggleShrm,
+  MAX_SESSIONS, PATH_STATUS, competencyOptions, formatPriceInput, emptySession, fromDTO, isEditable, moveSession,
+  parsePrice, previewShares, proposeChecklist, saveErrors, shrmLabel, toPayload, toggleShrm, unselectableShrmKeys,
 } from "../../utils/learningPath/learningPathEditor.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import "../../../styles/mentorship-requests.css";
@@ -41,6 +42,20 @@ export function MentorLearningPathEditor() {
   const [notice, setNotice] = useState(location.state?.notice || "");
   const [confirming, setConfirming] = useState(false);
   const dialogRef = useRef(null);
+  // Bộ tiêu chí SHRM/DDI dùng chung (LP-01): danh sách năng lực để chọn cho từng buổi.
+  const [framework, setFramework] = useState(null);
+  const [frameworkError, setFrameworkError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    competenciesApi.getFramework().then((res) => {
+      if (!active) return;
+      if (res.success && res.framework) setFramework(res.framework);
+      else setFrameworkError(res.error || "Không tải được danh sách năng lực.");
+    });
+    return () => { active = false; };
+  }, []);
+  const options = useMemo(() => competencyOptions(framework), [framework]);
 
   useEffect(() => {
     let active = true;
@@ -89,7 +104,7 @@ export function MentorLearningPathEditor() {
 
   const editable = isNew || isEditable(path?.status);
   const dirty = editable && snapshot(state) !== saved;
-  const checklist = useMemo(() => proposeChecklist(state, context?.assessment?.status), [state, context]);
+  const checklist = useMemo(() => proposeChecklist(state, context?.assessment?.status, framework), [state, context, framework]);
   const canPropose = editable && checklist.every((c) => c.ok);
   const shares = useMemo(() => previewShares(state.totalAmount, state.sessions.length), [state.totalAmount, state.sessions.length]);
 
@@ -109,7 +124,7 @@ export function MentorLearningPathEditor() {
 
   /** Lưu (tạo mới hoặc PATCH). Trả id lộ trình sau khi lưu, hoặc null nếu lỗi. */
   async function persist() {
-    const problems = saveErrors(state);
+    const problems = saveErrors(state, framework);
     if (problems.length) {
       setError(problems.join(" "));
       return null;
@@ -258,10 +273,16 @@ export function MentorLearningPathEditor() {
                           </label>
                           <div className="lp-chip-group" role="group" aria-label={`Năng lực rèn ở buổi ${i + 1}`}>
                             <span>Năng lực rèn luyện</span>
+                            {frameworkError && <span className="lp-field-hint">{frameworkError}</span>}
                             <div className="lp-chips">
-                              {SHRM_COMPETENCIES.map((c) => (
+                              {options.map((c) => (
                                 <button key={c.key} type="button" data-button-surface="none" className="lp-chip" aria-pressed={s.shrmKeys.includes(c.key)} onClick={() => patchSession(i, { shrmKeys: toggleShrm(s.shrmKeys, c.key) })}>
                                   {c.label}
+                                </button>
+                              ))}
+                              {unselectableShrmKeys(s.shrmKeys, framework).map((k) => (
+                                <button key={k} type="button" data-button-surface="none" className="lp-chip" aria-pressed="true" title="Năng lực không còn trong bộ tiêu chí, bấm để bỏ chọn" onClick={() => patchSession(i, { shrmKeys: toggleShrm(s.shrmKeys, k) })}>
+                                  {shrmLabel(k, framework)} (không còn dùng)
                                 </button>
                               ))}
                             </div>
@@ -282,7 +303,7 @@ export function MentorLearningPathEditor() {
                       <div className="lp-session-body">
                         <p className="lp-readonly-title">{s.title}</p>
                         {s.objectivesText && <ul className="lp-readonly-objectives">{s.objectivesText.split("\n").map((o) => <li key={o}>{o}</li>)}</ul>}
-                        {s.shrmKeys.length > 0 && <div className="lp-chips">{s.shrmKeys.map((k) => <span key={k} className="lp-chip is-static">{shrmLabel(k)}</span>)}</div>}
+                        {s.shrmKeys.length > 0 && <div className="lp-chips">{s.shrmKeys.map((k) => <span key={k} className="lp-chip is-static">{shrmLabel(k, framework)}</span>)}</div>}
                       </div>
                     </li>
                   ))}

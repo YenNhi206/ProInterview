@@ -6,7 +6,6 @@ import { tryApi } from "../../utils/shared/apiToast.js";
 import { getUser } from "../../utils/auth/auth.js";
 import { AppSelect } from "../../components/ui/AppSelect";
 import { Slider } from "../../components/ui/slider";
-import { PriorityBadge } from "./ModeratorQueue.jsx";
 import {
   COMPETENCIES,
   QUEUE_STATUS,
@@ -17,13 +16,13 @@ import {
   SHRM_LEVELS,
   competencyLabel,
   formatDateTime,
+  formatWaiting,
 } from "../../utils/moderator/moderationLabels.js";
 
 const card = "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm";
 const label = "text-[11px] font-black uppercase tracking-widest text-slate-500";
 const btn = "inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-bold transition-colors disabled:opacity-50";
 const btnPrimary = `${btn} bg-[#6E35E8] text-white hover:bg-[#5b2bc4]`;
-const btnGhost = `${btn} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`;
 const inputClass = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-[#6E35E8] focus:outline-none";
 
 const ACTIONS = [
@@ -116,12 +115,9 @@ function ActionPanel({ data, onResolved }) {
   return (
     <div className={`${card} space-y-4`}>
       <p className={label}>Xử lý</p>
+      {/* Không có bước "Nhận xử lý": chỉ 1 Platform Moderator (DECISIONS.md #15); resolve tự ghi người xử lý. */}
       {assignedToOther ? (
         <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">Mục này đang được {item.assignee?.name || "moderator khác"} xử lý.</p>
-      ) : item.status === "open" ? (
-        <button type="button" className={btnGhost} disabled={busy} onClick={() => run(() => moderatorApi.claimQueueItem(item._id), "Đã nhận xử lý.")}>
-          Nhận xử lý mục này
-        </button>
       ) : null}
 
       <div className="grid grid-cols-2 gap-2">
@@ -204,9 +200,11 @@ export function ModeratorQueueItem() {
         <ArrowLeft className="size-4" /> Hàng đợi
       </Link>
       <div className="flex flex-wrap items-center gap-2">
-        <PriorityBadge priority={item.priority} />
         <h2 className="text-xl font-extrabold text-white">{QUEUE_TYPE[item.type] ?? item.type}</h2>
-        <span className="text-sm text-slate-300">· {QUEUE_STATUS[item.status]} · tạo {formatDateTime(item.createdAt)}</span>
+        <span className="text-sm text-slate-300">
+          · {QUEUE_STATUS[item.status]} · tạo {formatDateTime(item.createdAt)}
+          {item.status === "open" || item.status === "in_review" ? ` · đã chờ ${formatWaiting(item.createdAt)}` : ""}
+        </span>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">

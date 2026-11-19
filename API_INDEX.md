@@ -122,7 +122,7 @@ Chi tiết triển khai và kiểm thử: [`docs/CART_BOOKING_PORT.md`](./docs/C
 ## Phần A — Backend Express (đã có trong repo)
 
 **Entrypoint:** `backend/src/server.js`  
-Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock` *(chỉ ngoài production)*, `/api/coupons`, `/api/mentorship-requests`, `/api/learning-paths`.
+Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api/payments`, `/api/users`, `/api/courses`, `/api/reviews`, `/api/reports`, `/api/mentor`, `/api/notifications`, `/api/admin`, `/api/enrollments`, `/api/cv`, `/api/interviews`, `/api/upload`, `/api/ai`, `/api/achievements`, `/api/analytics`, `/api/mock` *(chỉ ngoài production)*, `/api/coupons`, `/api/competencies`, `/api/mentorship-requests`, `/api/learning-paths`.
 
 ### A.1. `GET /`
 
@@ -307,7 +307,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/interviews/sessions` | Bearer | Tạo phiên phỏng vấn thử |
 | PATCH | `/api/interviews/sessions/:id` | Bearer | Cập nhật câu trả lời |
 | POST | `/api/interviews/sessions/:id/complete` | Bearer | Hoàn thành và nhận feedback |
-| POST | `/api/interviews/sessions/:id/evaluate` | Bearer | Chấm điểm / feedback bổ sung |
+| POST | `/api/interviews/sessions/:id/evaluate` | Bearer | Chấm điểm / feedback bổ sung. Mỗi `perQuestion[]` kèm trạng thái kiểm định: `evaluationIncomplete`, `incompleteFields`, `moderatorOverride` (điểm moderator chấm lại, không ghi đè điểm AI) và `openReports` (loại báo cáo AI `interview_question` / `interview_evaluation` của chính user còn chưa xử lý; chỉ có khi phiên đã chấm trước đó). Trang Feedback dùng để hiện "Đang chờ kiểm định" và ưu tiên điểm moderator (N-10) |
 | POST | `/api/interviews/sessions/:id/analyze-face` | Bearer | Vision — cảm xúc khuôn mặt (body `imageBase64`, JSON limit riêng 1.5mb). Chưa có `consent.camera` → trả `emotion: null, reason: "no_camera_consent"`, không gọi Vision |
 | POST | `/api/interviews/generate-questions` | Bearer | Sinh câu hỏi (LLM) |
 | POST | `/api/interviews/extract-cv-text` | Bearer | Trích text từ CV upload |
@@ -524,13 +524,25 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 |:-------|:-----|:---|:--------|
 | GET | `/api/learning-paths` | Mentor / Mentee | Mentor: lộ trình mình soạn. Mentee: lộ trình đã gửi cho mình (**không thấy bản nháp**) |
 | GET | `/api/learning-paths/:id` | Mentor soạn / Mentee của lộ trình | Mentee gọi bản nháp → 404 |
-| POST | `/api/learning-paths` | Mentor được chọn | **LP-07.** Body `{ mentorshipRequestId, goal?, totalAmount? (VND nguyên, 0–100.000.000), sessions?: [{ title, objectives?[], shrmKeys?[] }] (≤ 12) }`. Request phải ở `selected`/`assessing`. **201** bản nháp (`draft`). 409 nếu yêu cầu đã có lộ trình chưa hủy |
+| POST | `/api/learning-paths` | Mentor được chọn | **LP-07.** Body `{ mentorshipRequestId, goal?, totalAmount? (VND nguyên, 0–100.000.000), sessions?: [{ title, objectives?[], shrmKeys?[] }] (≤ 12) }`. `shrmKeys` phải là key trong bộ tiêu chí LP-01 (`GET /api/competencies`) và không `deprecated`, nếu không trả 400. Request phải ở `selected`/`assessing`. **201** bản nháp (`draft`). 409 nếu yêu cầu đã có lộ trình chưa hủy |
 | PATCH | `/api/learning-paths/:id` | Mentor soạn | **LP-07.** Body `{ goal?, totalAmount?, sessions? }`; `sessions` thay **toàn bộ** danh sách buổi. Chỉ khi `draft` hoặc `revision_requested` (khác → 409) |
 | POST | `/api/learning-paths/:id/propose` | Mentor soạn | **LP-07.** `draft`/`revision_requested → proposed`. Chặn (400): chưa có buổi; giá < 10.000₫; buổi đánh giá 0đ chưa `completed`. Chụp `platformFeeRate` theo Mentor (`resolveBookingPlatformFeeRate`); gửi lại sau sửa thì `version + 1`. Yêu cầu mentor → `path_proposed`; thông báo `learning_path_proposed` cho mentee |
 | POST | `/api/learning-paths/:id/accept` | Mentee của lộ trình | **LP-08.** Body `{ version? }`. `proposed → pending_payment`, ghi `acceptedAt`. Gửi `version` đang xem thì 409 nếu mentor đã gửi phiên bản khác. 409 khi không ở `proposed`; mentor gọi → 403; bản nháp / lộ trình của người khác → 404. Thông báo `learning_path_accepted` cho mentor |
 | POST | `/api/learning-paths/:id/request-revision` | Mentee của lộ trình | **LP-08.** Body `{ note }` (5–2000 ký tự, bắt buộc). `proposed → revision_requested`, lưu `revisionNote`. Mentor sửa (`PATCH`) rồi gửi lại (`propose`) → `version + 1`. Thông báo `learning_path_revision_requested` cho mentor |
 
 Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
+
+---
+
+### A.16. Bộ tiêu chí năng lực SHRM/DDI — `/api/competencies` (LP-01)
+
+**File:** `backend/src/routes/competencies.js` · **Dữ liệu:** `backend/src/config/competencies.json` (nguồn duy nhất) · **Service:** `competencyFramework.js` · **FE:** `frontend/src/app/api/competenciesApi.js`
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| GET | `/api/competencies` | Bearer; role `customer`, `mentor`, `admin`, `moderator`, `enterprise` / `company_moderator` | Trả `{ success, framework }`: `version`, `scale {min, max}`, `passThreshold`, `aiCalibration {offset, maxLevel, status}`, `levels[] {score, label, descriptor}`, `nullLabel`, `competencies[] {key, nameVi, nameEn, shrm, ddi, definition, indicators, anchors {1,3,5}, deprecated, ...}`. Header `Cache-Control: private, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). Không token → 401 |
+
+**Quy tắc:** key năng lực giữ nguyên 20 key cũ; bỏ key thì đặt `deprecated: true` (vẫn hiện tên cho dữ liệu cũ, form mentor/rubric không cho chọn). Mức `null` = "Chưa đủ dữ liệu", khác mức 0. BE dùng `isValidCompetencyKey`, `aiAnswerToLevel`, `suggestOutcome`, `toDisplayLevel` trong `competencyFramework.js`.
 
 ---
 
