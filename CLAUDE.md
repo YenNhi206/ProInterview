@@ -37,6 +37,8 @@ npm run db:prune-fake-mentors  # xóa Mentor không có User tương ứng
 npm run warmup:baseline-videos # làm nóng cache video 3 câu baseline
 npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (không ghi DB)
 npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
+npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)
+npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần trên production sau khi merge
 npm test                       # node:test + jest DTO + unittest Python
 ```
 
