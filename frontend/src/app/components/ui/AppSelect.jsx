@@ -1,5 +1,6 @@
 "use client";
 
+import { createContext, useContext } from "react";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,12 @@ const TRIGGER_SIZE = {
 const EMPTY_OPTION = "__all__";
 const isEmpty = (value) => value === undefined || value === null || value === "";
 
+/**
+ * Theme mặc định cho AppSelect khi không truyền prop `theme` — WorkspaceShell (nền tối) đặt "dark"
+ * để các bộ lọc dùng chung với admin (AdminFilterSelect) tự đổi màu trong khu Mentor/Moderator/Company.
+ */
+export const SelectThemeContext = createContext("light");
+
 /** Shared select for forms and filters; theme also travels with the portal. */
 export function AppSelect({
   value,
@@ -30,7 +37,7 @@ export function AppSelect({
   placeholder = "Chọn…",
   disabled = false,
   size = "md",
-  theme = "light",
+  theme: themeProp,
   icon: Icon,
   id,
   triggerClassName,
@@ -39,6 +46,8 @@ export function AppSelect({
   "aria-label": ariaLabel,
   ...triggerProps
 }) {
+  const contextTheme = useContext(SelectThemeContext);
+  const theme = themeProp ?? contextTheme;
   const hasEmptyOption = options.some((opt) => isEmpty(opt.value));
   const stringValue = isEmpty(value)
     ? (hasEmptyOption ? EMPTY_OPTION : "")

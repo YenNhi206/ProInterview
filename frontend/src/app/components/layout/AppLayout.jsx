@@ -3,7 +3,9 @@ import { Outlet, useLocation } from "react-router";
 import { SidebarProvider, SidebarInset } from "../ui/sidebar";
 import { AppSidebar } from "./Sidebar";
 import { MentorWorkspaceNav } from "./MentorWorkspaceNav";
-import "../../../styles/mentor-workspace.css";
+import { CompanyWorkspaceNav, COMPANY_ROLES } from "./CompanyWorkspaceNav.jsx";
+import { ModeratorWorkspaceNav } from "./ModeratorWorkspaceNav.jsx";
+import { WorkspaceShell } from "./WorkspaceNav.jsx";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { PromoBanner } from "./PromoBanner";
@@ -22,6 +24,8 @@ export function AppLayout() {
   useUserPresence();
   usePageAnalytics();
   const isMentor = user?.role === "mentor";
+  const isCompany = COMPANY_ROLES.includes(user?.role);
+  const isModerator = user?.role === "moderator";
   const isHome = location.pathname === "/" || location.pathname === "";
   const pathNorm = location.pathname.replace(/^\/+/, "");
   const isAbout = pathNorm === "about";
@@ -128,24 +132,12 @@ export function AppLayout() {
     </div>
   );
 
-  if (isMentor) {
+  if (isMentor || isCompany || isModerator) {
+    const nav = isMentor ? <MentorWorkspaceNav /> : isCompany ? <CompanyWorkspaceNav /> : <ModeratorWorkspaceNav />;
     return (
-      <div
-        className="mentor-workspace commerce-theme pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 antialiased"
-        style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
-      >
-        {/* Same ambient background as the customer dark pages. */}
-        <div className="app-shell-ambient app-shell-ambient--commerce" aria-hidden>
-          <span className="commerce-glow commerce-glow--top-left" />
-          <span className="commerce-glow commerce-glow--top-right" />
-          <span className="commerce-glow commerce-glow--bottom-left" />
-          <span className="commerce-glow commerce-glow--bottom-right" />
-        </div>
-        <MentorWorkspaceNav />
-        <main className="mentor-workspace-main relative z-[1] min-h-0 flex-1">
-          <Outlet />
-        </main>
-      </div>
+      <WorkspaceShell nav={nav}>
+        <Outlet />
+      </WorkspaceShell>
     );
   }
 

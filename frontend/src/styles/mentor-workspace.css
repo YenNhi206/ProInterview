@@ -81,8 +81,12 @@
 .mentor-workspace :is(input:not([type=checkbox]):not([type=radio]),textarea,select) { background-color:rgba(22, 13, 54, 0.9); color:var(--mw-text); border-color:#a78bfa35; font-weight:400; }
 .mentor-workspace input::placeholder,.mentor-workspace textarea::placeholder { color:#8e89b0; }
 .mentor-workspace :is(button,input,textarea,select,a):focus-visible { outline-color:#93f72b; outline-offset:3px; }
+/* Màu nhấn tím của khu Moderator (#6E35E8) quá tối trên nền workspace: chữ sáng lên, viền chuyển lime như mục đang chọn. */
+.mentor-workspace [class~="text-[#6E35E8]"] { color:#c9a8f5; }
+.mentor-workspace [class~="border-[#6E35E8]"] { border-color:var(--mw-lime); }
 .mentor-workspace button:is(.bg-violet-600,.bg-purple-600,.bg-slate-900),
 .mentor-workspace [data-mentor-primary],
+.mentor-workspace button[class~="bg-[#6E35E8]"],
 .mentor-workspace button[class~="bg-[#8037f4]"] {
   background-color:#93f72b; color:#17210b; border-color:#bbff79; background-image:none;
 }
@@ -127,6 +131,11 @@
 .mentor-workspace :is([class~="bg-slate-50/40"],[class~="bg-slate-50/90"],[class~="bg-white/70"]) { background-color:var(--mw-raised); border-color:var(--mw-border); }
 .mentor-workspace [class~="bg-violet-50/50"] { background-color:#a779e912; border-color:#a779e930; }
 .mentor-workspace :is([class~="bg-amber-50/80"]) { background-color:#efba6015; }
+.mentor-workspace :is([class~="bg-emerald-50/80"]) { background-color:#62cd9d15; }
+.mentor-workspace :is([class~="bg-orange-50/80"]) { background-color:#f39a5c15; }
+.mentor-workspace :is(.text-emerald-900,.text-emerald-950) { color:#9ee6c2; }
+.mentor-workspace :is(.text-orange-900,.text-orange-950) { color:#f5c39a; }
+.mentor-workspace .border-orange-200 { border-color:#f39a5c40; }
 .mentor-workspace :is([class~="bg-red-50/90"]) { background-color:#ec849d18; }
 .mentor-workspace :is([class~="hover:bg-violet-50/30"],[class~="hover:bg-white"]):hover { background-color:#a779e912; }
 .mentor-workspace :is(.border-amber-200,.border-amber-300) { border-color:#efba6040; }

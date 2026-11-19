@@ -92,16 +92,27 @@ import { ModeratorQuestions } from "./pages/moderator/ModeratorQuestions.jsx";
 import { ModeratorQueue } from "./pages/moderator/ModeratorQueue.jsx";
 import { ModeratorQueueItem } from "./pages/moderator/ModeratorQueueItem.jsx";
 import { ModeratorQuality } from "./pages/moderator/ModeratorQuality.jsx";
+import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
+import {
+  CompanyOverview,
+  CompanyQuestions,
+  CompanyRubrics,
+  CompanyJobs,
+  CompanyApplications,
+} from "./pages/company/CompanyPages.jsx";
+import { COMPANY_ROLES } from "./components/layout/CompanyWorkspaceNav.jsx";
 import { createRoleLoader } from "./utils/auth/roleLoader.js";
 
 const moderatorLoader = createRoleLoader("moderator", "/moderator");
+const companyLoader = createRoleLoader(COMPANY_ROLES, "/company");
 
-/** Đã đăng nhập mentor/admin/moderator → hub riêng, không xem landing customer. */
+/** Đã đăng nhập mentor/admin/moderator/company → hub riêng, không xem landing customer. */
 function roleHomeLoader() {
   const user = getUser();
   if (user?.role === "mentor") throw redirect("/mentor/dashboard");
   if (user?.role === "admin") throw redirect("/admin");
   if (user?.role === "moderator") throw redirect("/moderator");
+  if (COMPANY_ROLES.includes(user?.role)) throw redirect("/company");
   return null;
 }
 
@@ -247,6 +258,19 @@ export const router = createBrowserRouter([
       { path: "queue", Component: ModeratorQueue },
       { path: "queue/:id", Component: ModeratorQueueItem },
       { path: "quality", Component: ModeratorQuality },
+    ],
+  },
+  {
+    path: "/company",
+    Component: CompanyLayout,
+    loader: companyLoader,
+    children: [
+      { index: true, loader: () => redirect("/company/overview") },
+      { path: "overview", Component: CompanyOverview },
+      { path: "questions", Component: CompanyQuestions },
+      { path: "rubrics", Component: CompanyRubrics },
+      { path: "jobs", Component: CompanyJobs },
+      { path: "applications", Component: CompanyApplications },
     ],
   },
   { path: "*", loader: () => redirect("/") },
