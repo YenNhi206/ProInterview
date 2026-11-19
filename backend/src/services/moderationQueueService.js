@@ -78,7 +78,10 @@ export async function upsertIncompleteEvaluationItem({ session, questionIndex })
 
 // ── Đọc hàng đợi ──────────────────────────────────────────────────────────────────────────────
 
-/** Mặc định chỉ item còn mở (open + in_review); ưu tiên cao trước, cũ nhất trước. */
+/**
+ * Mặc định chỉ item còn mở (open + in_review); xếp theo thời gian tạo, cũ nhất trước (DECISIONS.md #16).
+ * `priority` vẫn được ghi trên item và lọc được qua query, nhưng không còn quyết định thứ tự.
+ */
 export async function listQueue({ type, status, priority, assignee, page = 1, limit = 20 }, moderatorId) {
   const filter = { status: status ?? { $in: ["open", "in_review"] } };
   if (type) filter.type = type;
@@ -87,7 +90,7 @@ export async function listQueue({ type, status, priority, assignee, page = 1, li
   if (assignee === "unassigned") filter.assignee = null;
   const [items, total] = await Promise.all([
     ModerationItem.find(filter)
-      .sort({ priorityRank: -1, createdAt: 1 })
+      .sort({ createdAt: 1, _id: 1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .populate("assignee", "name email")

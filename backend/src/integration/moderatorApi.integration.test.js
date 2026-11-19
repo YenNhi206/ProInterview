@@ -198,12 +198,13 @@ describe("Queue", () => {
     return { customer, session, q, reportId, itemId: moderationItemId };
   }
 
-  it("list theo priority (high trước), detail kèm report + câu hỏi", async () => {
-    const low = await ModerationItem.create({ type: "question_report", priority: "low" });
-    const high = await ModerationItem.create({ type: "evaluation_incomplete", priority: "high" });
+  it("list theo thời gian (cũ nhất trước, bỏ qua priority), detail kèm report + câu hỏi", async () => {
+    // DECISIONS.md #16: tạo trước thì đứng trước, kể cả khi mục sau có priority high.
+    const older = await ModerationItem.create({ type: "question_report", priority: "low", createdAt: new Date(Date.now() - 60_000) });
+    const newer = await ModerationItem.create({ type: "evaluation_incomplete", priority: "high" });
     const body = await (await api(moderator, "GET", "/queue?limit=100")).json();
     const ids = body.items.map((i) => String(i._id));
-    assert.ok(ids.indexOf(String(high._id)) < ids.indexOf(String(low._id)));
+    assert.ok(ids.indexOf(String(older._id)) < ids.indexOf(String(newer._id)));
 
     const { itemId, reportId, q } = await reportedSession();
     const detail = await (await api(moderator, "GET", `/queue/${itemId}`)).json();
