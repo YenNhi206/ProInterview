@@ -103,6 +103,7 @@ Cột "Task xử lý" ghi ✅ khi task đã merge; các bẫy đó còn giữ l�
 | `sepayWebhookService.findPendingTargets` chỉ nhận 5 loại; `parsePiOrderFromText` chỉ nhận mã `PI…` | Tiền lộ trình về mà không ai xác nhận | LP-10 |
 | `mentorshipRequestsService.js:125` chỉ cho tạo booking khi `status === "selected"` | Thêm status mới làm luồng cũ lỗi 403 | ✅ LP-05 (`REQUEST_MENTOR_CHOSEN_STATUSES`) |
 | `InterviewSession`: 3 câu baseline có `competencyId = ""`; `moderatorOverride`, `evaluationIncomplete` nằm trên `answers[i]` (không nằm trên `feedback.perQuestion[i]`); `shrmLevel` fallback `"proficient"` khi LLM trả giá trị lạ | Hồ sơ năng lực không gán được câu baseline; đọc nhầm chỗ thì bỏ sót điểm moderator; nhãn "Tốt" giả | ✅ LP-01 (`aiAnswerToLevel`) · PR-06 · AI-13 |
+| `shrmKeys` của lộ trình: LP-07 chỉ kiểm regex, LP-20 đặt danh sách tạm 12 key (6 key không có trong bộ tiêu chí) | Lưu key không tra được tên, mức, anchors; hồ sơ năng lực bỏ sót | PR #204 (`isValidCompetencyKey` + `GET /api/competencies`; script `db:migrate-lp-shrm-keys`) |
 | `Notification.type` là enum | Loại mới bị Mongoose từ chối, không báo lỗi | ✅ N-06 (PR #194) |
 | `interviewsController.js:476` trả `alreadyGenerated` khi ≥ 5 câu; `questionsAllowed` lấy theo quota | Pro không bao giờ nhận câu follow-up ở buổi theo job; buổi kết thúc sớm | JB-06 |
 | `moderationQueueService.js:83` không lọc `type`; `createItemForReport` (dòng 39) map mọi `targetType` khác thành `evaluation_report` | Rubric và báo cáo job lọt vào hàng đợi phỏng vấn, sai loại | JB-04, CO-07 |
