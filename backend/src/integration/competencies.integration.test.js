@@ -50,8 +50,8 @@ describe("GET /api/competencies", () => {
   });
 
   it("mọi role hiện có đọc được, trả { success, framework } kèm header cache", async () => {
-    // company_moderator chưa có trong enum User.role (N-02) nên chưa tạo được user role này.
-    for (const role of ["customer", "mentor", "admin", "moderator", "enterprise"]) {
+    // N-02 đã đổi role `enterprise` → `company_moderator`.
+    for (const role of ["customer", "mentor", "admin", "moderator", "company_moderator"]) {
       const u = await User.create({ name: `Comp ${role}`, email: `comp-${role}-${Date.now()}@test.local`, role });
       const res = await get(mintAccessToken(u._id));
       assert.equal(res.status, 200, `role ${role}`);

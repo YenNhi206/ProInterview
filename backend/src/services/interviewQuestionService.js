@@ -235,6 +235,41 @@ function buildLLMError(status, errBody, retryAfterMs) {
  * @param {string} [opts.anthropicModel] - Override Anthropic model (dùng eval model cho evaluation)
  */
 async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2, traceId, traceName, anthropicModel } = {}) {
+  // QA-01: Chế độ mock LLM bằng biến môi trường để test tải không tốn tiền
+  if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") {
+    return JSON.stringify({
+      inferredRole: "Software Engineer",
+      inferredSeniority: "junior",
+      questions: [
+        {
+          id: "mock_q1",
+          layer: "theory",
+          seniority: "junior",
+          competencyId: "technical_mastery",
+          competencyName: "Technical Mastery",
+          question: "Bạn hãy giải thích cơ chế Event Loop trong JavaScript?",
+          starGuidance: {
+            situation: ["Khi xử lý tác vụ bất đồng bộ"],
+            task: ["Cần đảm bảo UI không bị block"],
+            action: ["Dùng Promise hoặc async/await"],
+            result: ["Ứng dụng mượt mà"],
+          },
+          expectedKeywords: ["call stack", "microtask", "macrotask"],
+          deepDive: ["Sự khác nhau giữa setTimeout và Promise.resolve?"],
+        },
+      ],
+      overallScore: 85,
+      overall5: 4.25,
+      summary: "Ứng viên trả lời lưu loát, nắm vững kiến thức nền tảng.",
+      strengths: ["Hiểu rõ mô hình bất đồng bộ"],
+      improvements: ["Cần phân tích sâu hơn về memory leak"],
+      perQuestion: [
+        { questionIndex: 0, overallScore: 85, overall5: 4.25, score: 85, shrmLevel: "Vững" },
+      ],
+      rubricScores: [],
+    });
+  }
+
   const provider = getLLMProvider();
   const startMs  = Date.now();
 

@@ -4,6 +4,35 @@ import { publicNotificationPrefsForRole } from "../constants/notificationPrefs.j
 
 const { Schema } = mongoose;
 
+const savedCvSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true, default: "CV chính" },
+    fileName: { type: String, required: true, trim: true },
+    fileUrl: { type: String, required: true, trim: true },
+    fileSize: { type: Number, default: 0 },
+    isDefault: { type: Boolean, default: false },
+    uploadedAt: { type: Date, default: Date.now },
+  },
+  { _id: true, timestamps: true }
+);
+
+const verifiedCompetencySchema = new Schema(
+  {
+    competencyId: { type: String, default: "" },
+    name: { type: String, required: true },
+    category: { type: String, default: "Core Competency" },
+    score: { type: Number, min: 0, max: 100, default: 80 },
+    level: { type: String, default: "Thành thạo" },
+    verifiedBy: { type: String, default: "SHRM/DDI AI Evaluation System" },
+    verifierType: { type: String, enum: ["ai_shrm", "mentor", "system"], default: "ai_shrm" },
+    verifiedAt: { type: Date, default: Date.now },
+    badge: { type: String, default: "SHRM Verified" },
+    evidence: { type: String, default: "" },
+    verificationCode: { type: String, default: "" },
+  },
+  { _id: true }
+);
+
 const userSchema = new Schema(
   {
     supabaseId: { type: String, unique: true, sparse: true },
@@ -17,14 +46,24 @@ const userSchema = new Schema(
     avatar: { type: String, default: "" },
 
     /**
-     * moderator  — kiểm duyệt chất lượng AI (ngân hàng câu hỏi, review queue) + duyệt khóa học.
-     * enterprise — đại diện tổ chức (trường/agency): quản lý cohort, credit, talent pool.
-     *              Credit tổ chức là trục riêng, KHÔNG phải một giá trị của `plan`.
+     * moderator         — kiểm duyệt chất lượng AI (ngân hàng câu hỏi, review queue) + duyệt khóa học.
+     * company_moderator — đại diện tổ chức/công ty: quản lý câu hỏi, rubric, job post, đơn ứng tuyển.
+     *                     Credit tổ chức là trục riêng, KHÔNG phải một giá trị của `plan`.
      */
     role: {
       type: String,
-      enum: ["customer", "mentor", "admin", "moderator", "enterprise"],
+      enum: ["customer", "mentor", "admin", "moderator", "company_moderator"],
       default: "customer",
+    },
+    /**
+     * ID công ty gắn với tài khoản role `company_moderator`.
+     * Cho phép null đối với các role khác (customer, mentor, admin, moderator).
+     */
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: "Company",
+      default: null,
+      index: true,
     },
     plan: { type: String, enum: ["free", "starter_pro", "elite_pro", "professional", "pro", "basic", "premium"], default: "free" },
     planExpiresAt: { type: Date, default: null },
@@ -100,6 +139,16 @@ const userSchema = new Schema(
       bookedMentor: { type: Boolean, default: false },
       receivedOffer: { type: Boolean, default: false },
     },
+
+    /** Danh sách nhiều CV được lưu trữ & quản lý bởi ứng viên (Multi-CV Vault) */
+    savedCvs: { type: [savedCvSchema], default: [] },
+
+    /** Hồ sơ năng lực đã xác thực từ AI (SHRM/DDI framework) hoặc Mentor 1:1 */
+    verifiedCompetencies: { type: [verifiedCompetencySchema], default: [] },
+    verifiedReadinessScore: { type: Number, default: 0 },
+    isCompetencyVerified: { type: Boolean, default: false },
+    verifiedProfileSummary: { type: String, default: "" },
+    lastVerifiedAt: { type: Date, default: null },
 
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
@@ -209,6 +258,7 @@ export function toPublicUser(doc) {
     email: plain.email,
     name: plain.name,
     role: plain.role,
+    companyId: plain.companyId ? plain.companyId.toString() : null,
     avatar: resolveStoredUploadUrl(plain.avatar),
     phone: plain.phone ?? "",
     position: (plain.desiredPosition || plain.position || "").trim(),
@@ -243,6 +293,37 @@ export function toPublicUser(doc) {
         ? { acceptedAt: plain.consent.camera.acceptedAt, version: plain.consent.camera.version }
         : null,
     },
+    savedCvs: Array.isArray(plain.savedCvs)
+      ? plain.savedCvs.map((c) => ({
+          id: c._id ? c._id.toString() : c.id,
+          title: c.title,
+          fileName: c.fileName,
+          fileUrl: resolveStoredUploadUrl(c.fileUrl),
+          fileSize: c.fileSize,
+          isDefault: Boolean(c.isDefault),
+          uploadedAt: c.uploadedAt || c.createdAt,
+        }))
+      : [],
+    verifiedCompetencies: Array.isArray(plain.verifiedCompetencies)
+      ? plain.verifiedCompetencies.map((v) => ({
+          id: v._id ? v._id.toString() : v.id,
+          competencyId: v.competencyId,
+          name: v.name,
+          category: v.category,
+          score: v.score,
+          level: v.level,
+          verifiedBy: v.verifiedBy,
+          verifierType: v.verifierType,
+          verifiedAt: v.verifiedAt,
+          badge: v.badge,
+          evidence: v.evidence,
+          verificationCode: v.verificationCode,
+        }))
+      : [],
+    verifiedReadinessScore: plain.verifiedReadinessScore || 0,
+    isCompetencyVerified: Boolean(plain.isCompetencyVerified),
+    verifiedProfileSummary: plain.verifiedProfileSummary || "",
+    lastVerifiedAt: plain.lastVerifiedAt || null,
   };
   return out;
 }

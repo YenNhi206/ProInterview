@@ -9,6 +9,8 @@ import { useUserPresence } from "../../hooks/useUserPresence.js";
 const ADMIN_HEADER_RULES = [
   [/^\/admin\/users\/[^/]+$/, "Chi tiết người dùng"],
   [/^\/admin\/users$/, "Người dùng"],
+  [/^\/admin\/companies$/, "Đối tác doanh nghiệp"],
+  [/^\/admin\/companies\/[^/]+$/, "Đối tác doanh nghiệp"],
   [/^\/admin\/mentors\/pending$/, "Duyệt cố vấn"],
   [/^\/admin\/mentors\/[^/]+$/, "Cố vấn"],
   [/^\/admin\/mentors$/, "Cố vấn"],

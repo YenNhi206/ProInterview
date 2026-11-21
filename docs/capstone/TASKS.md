@@ -1,7 +1,7 @@
 # Kế hoạch task — Capstone FA26 (GFA26SE160)
 
 > Nguồn: tab "Kế hoạch task" và "Đánh giá lại & Kế hoạch Capstone" (cập nhật lần 2, 18/11/2026), đã đối chiếu với mã nguồn.
-> Quyết định thiết kế: [DECISIONS.md](DECISIONS.md). Thiết kế tham khảo và bẫy trong code: [DESIGN.md](DESIGN.md). Quy ước cho AI agent: mục "Capstone FA26" trong [CLAUDE.md](../../CLAUDE.md).
+> Quyết định thiết kế: [DECISIONS.md](DECISIONS.md). Quy ước cho AI agent: mục "Capstone FA26" trong [CLAUDE.md](../../CLAUDE.md).
 
 **107 task**, 4 người, 7 giai đoạn, không gắn ngày. Nhận task theo thứ tự trong bảng của mình, miễn là task ở cột "Cần trước" đã xong.
 
@@ -78,10 +78,10 @@ Sau GĐ 0, ba luồng chạy song song: Learning Path (Trầm), Company và Rubr
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
 | N-01 | Todo | Merge PR #187, set `REFRESH_TOKEN_PEPPER` trên Render | Trầm | | Đăng nhập, refresh, đăng xuất chạy trên production | P0 |
-| N-02 | Todo | Đổi role `enterprise` → `company_moderator` **đúng 8 chỗ**: `User.role`, `requireRole.js`, `userRoleService` (ASSIGNABLE_ROLES), `seedUsers.js`, `backend/src/data/usersSeed.json` (dòng 29), test `rbacRoles`, `docs/database/prointerview_schema.mongodb.js`, comment trong `frontend/src/app/utils/auth/roleLoader.js`. **Không tìm-thay hàng loạt**: `enterprise` còn là giá trị gói trong `CVAnalysis.planAtTime`, `CVAnalysis.jsx`, `adminController.js` | Văn | | Chạy lại seed không tạo role cũ; test RBAC xanh | P0 |
-| N-03 | Todo | Script migrate user role `enterprise` → `company_moderator` (chạy lại nhiều lần không lỗi) | Văn | N-02 | `enterprise@dev.local` đăng nhập được với role mới | P0 |
-| N-04 | Todo | Thêm `User.companyId` + index; helper `assertSameCompany(req, companyId)` | Văn | N-02 | Helper có unit test cho trường hợp khác công ty | P0 |
-| N-05 | Todo | Cố định Node 22: `engines` và `NODE_VERSION=22` trong `render.yaml`; đổi `test:node` sang glob | Văn | | Thêm file test mới không phải sửa `package.json`; Render build bằng Node 22 | P0 |
+| N-02 | Done | Đổi role `enterprise` → `company_moderator` **đúng 8 chỗ**: `User.role`, `requireRole.js`, `userRoleService` (ASSIGNABLE_ROLES), `seedUsers.js`, `backend/src/data/usersSeed.json` (dòng 29), test `rbacRoles`, `docs/database/prointerview_schema.mongodb.js`, comment trong `frontend/src/app/utils/auth/roleLoader.js`. **Không tìm-thay hàng loạt**: `enterprise` còn là giá trị gói trong `CVAnalysis.planAtTime`, `CVAnalysis.jsx`, `adminController.js` | Văn | | Chạy lại seed không tạo role cũ; test RBAC xanh | P0 |
+| N-03 | Done | Script migrate user role `enterprise` → `company_moderator` (chạy lại nhiều lần không lỗi) | Văn | N-02 | `enterprise@dev.local` đăng nhập được với role mới | P0 |
+| N-04 | Done | Thêm `User.companyId` + index; helper `assertSameCompany(req, companyId)` | Văn | N-02 | Helper có unit test cho trường hợp khác công ty | P0 |
+| N-05 | Done | Cố định Node 22: `engines` và `NODE_VERSION=22` trong `render.yaml`; đổi `test:node` sang glob | Văn | | Thêm file test mới không phải sửa `package.json`; Render build bằng Node 22 | P0 |
 | N-06 | Done | Mở rộng enum `Notification.type`: lộ trình (đề xuất, chấp nhận, yêu cầu sửa, đã thanh toán, kết quả buổi, hủy), ứng tuyển (nộp, đổi trạng thái), lời mời công ty, rubric (duyệt, từ chối), job bị ẩn, đề xuất cải tiến AI | Trầm | | Test lưu được từng loại; làm trước mọi luồng mới | P0 |
 | N-07 | Todo | Job đánh `abandoned` cho `InterviewSession` `in_progress` quá 24h; loại khỏi thống kê | Trầm | | Test integration; enum cập nhật trong `STATE_MACHINES.md` | P0 |
 | N-08 | Todo | Bổ sung doanh thu theo nguồn (booking, khóa, gói, lộ trình) vào API analytics admin. Các API khác **đã có**: `/analytics/user-behavior`, `/analytics/users/:id/journey`, `/users/:id`, content stats | Trầm | | Số khớp truy vấn tay trên DB | P0 |
@@ -90,7 +90,7 @@ Sau GĐ 0, ba luồng chạy song song: Learning Path (Trầm), Company và Rubr
 | N-11 | Todo | `cvMatch.js` tạo bản ghi `CVAnalysis` `processing` trước khi gọi Python, ghi `failed` hoặc kết quả + `durationMs` sau; FE cập nhật bản ghi đó thay vì tạo mới. Log `durationMs` từng bước pipeline avatar (TTS, D-ID, mirror) | Trầm | | Mỗi lần phân tích chỉ có 1 bản ghi; lỗi hiện `failed`; có log thời gian trên Render | P0 |
 | N-12 | Done | Sửa các chỗ lệch trong `CLAUDE.md` (router, thư mục `api/`, danh sách model, trạng thái FE); thêm quy ước tên role, mã task, các bẫy | Janet | N-02 | Thành viên mới đọc không bị dẫn sai | P1 |
 | N-13 | Todo | Nhãn UI theo tên trong đơn: Candidate, Platform Moderator, Company Moderator | Nhi | N-02 | Không còn chữ "customer" hay "enterprise" (role) trên giao diện | P1 |
-| N-14 | Todo | Dọn `scratch_*`, `debug_*`, `*.ps1`, `line501.txt` ở gốc backend; sửa `dev:full` chạy được trên Windows | Văn | | Gốc backend chỉ còn file của ứng dụng | P2 |
+| N-14 | Done | Dọn `scratch_*`, `debug_*`, `*.ps1`, `line501.txt` ở gốc backend; sửa `dev:full` chạy được trên Windows | Văn | | Gốc backend chỉ còn file của ứng dụng | P2 |
 
 ## Giai đoạn 1: Learning Path
 
@@ -162,21 +162,21 @@ Lý do trừ 1: đối chiếu prompt hiện tại cho thấy AI chấm dễ hơ
 
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
-| CO-01 | Todo | Model `Company`; API admin tạo, sửa, tạm khóa, danh sách. Đổi `QuestionBank.orgId` từ `ref: "Organization"` sang `ref: "Company"` | Văn | N-04 | Công ty bị khóa thì Company Mod bị chặn vào; `populate("orgId")` chạy được | P0 |
-| CO-02 | Todo | Model `CompanyInvite`; email có token (lưu hash, hết hạn 7 ngày); `accept` tạo tài khoản mới role `company_moderator`. Email đã có tài khoản role khác thì từ chối (quyết định 14) | Văn | CO-01, N-06 | Token dùng 1 lần; test hết hạn, dùng lại, email trùng | P0 |
-| CO-03 | Todo | Middleware `requireCompanyModerator` + lọc theo `companyId` cho mọi route `/api/company/*` | Văn | CO-02 | Test truy cập chéo công ty trả 403 cho từng route | P0 |
+| CO-01 | Done | Model `Company`; API admin tạo, sửa, tạm khóa, danh sách. Đổi `QuestionBank.orgId` từ `ref: "Organization"` sang `ref: "Company"` | Văn | N-04 | Công ty bị khóa thì Company Mod bị chặn vào; `populate("orgId")` chạy được | P0 |
+| CO-02 | Done | Model `CompanyInvite`; email có token (lưu hash, hết hạn 7 ngày); `accept` tạo tài khoản mới role `company_moderator`. Email đã có tài khoản role khác thì từ chối (quyết định 14) | Văn | CO-01, N-06 | Token dùng 1 lần; test hết hạn, dùng lại, email trùng | P0 |
+| CO-03 | Done | Middleware `requireCompanyModerator` + lọc theo `companyId` cho mọi route `/api/company/*` | Văn | CO-02 | Test truy cập chéo công ty trả 403 cho từng route | P0 |
 | CO-04 | Todo | `POST /api/company/questions/generate`: sinh 8–12 câu nháp theo `roleCategory` (SHRM/DDI), `orgId = companyId`, `source: org_template`, `status: draft` (quyết định 11) | Janet | CO-03 | Không trùng `textHash`; ghi `provenance.promptVersion`; câu không hiện ở trang câu hỏi của Platform Mod (đã lọc `orgId: null`) | P0 |
-| CO-05 | Todo | API company xem, duyệt, sửa, từ chối, tự thêm câu. **Dùng lại** `QuestionBank.status` (`draft`, `rejected` đã có) và `roleCategory` (đã có index); không thêm field mới | Văn | CO-04 | Sửa câu ghi vào `history`; test | P0 |
+| CO-05 | Done | API company xem, duyệt, sửa, từ chối, tự thêm câu. **Dùng lại** `QuestionBank.status` (`draft`, `rejected` đã có) và `roleCategory` (đã có index); không thêm field mới | Văn | CO-04 | Sửa câu ghi vào `history`; test | P0 |
 | CO-06 | Todo | Pregen và cache video avatar cho câu công ty đã duyệt, giống câu baseline (mirror Cloudinary, 180 ngày). P0 vì user free luyện theo job sẽ tạo video D-ID riêng mỗi buổi | Janet | CO-05 | Buổi luyện theo job không gọi D-ID cho câu công ty đã có cache | P0 |
-| CO-07 | Todo | Model `CompanyRubric` (`roleCategory`, status `draft → pending_review → approved \| rejected`, `archived`); API soạn (tiêu chí, trọng số, `shrmKey`, mô tả thang 0–5, câu áp dụng), `submit` chuyển `pending_review`. **Không tạo ModerationItem**, để rubric không lọt vào hàng đợi HITL | Văn | CO-05 | Tổng trọng số bằng 100%; test; `/moderator/queue` không hiện rubric | P0 |
-| CO-08 | Todo | API Platform Mod: danh sách rubric `pending_review`, duyệt/từ chối kèm ghi chú; version mới được duyệt thì version cũ `archived` | Văn | CO-07 | Mỗi `roleCategory` của mỗi công ty chỉ có 1 rubric `approved` | P0 |
+| CO-07 | Done | Model `CompanyRubric` (`roleCategory`, status `draft → pending_review → approved \| rejected`, `archived`); API soạn (tiêu chí, trọng số, `shrmKey`, mô tả thang 0–5, câu áp dụng), `submit` chuyển `pending_review`. **Không tạo ModerationItem**, để rubric không lọt vào hàng đợi HITL | Văn | CO-05 | Tổng trọng số bằng 100%; test; `/moderator/queue` không hiện rubric | P0 |
+| CO-08 | Done | API Platform Mod: danh sách rubric `pending_review`, duyệt/từ chối kèm ghi chú; version mới được duyệt thì version cũ `archived` | Văn | CO-07 | Mỗi `roleCategory` của mỗi công ty chỉ có 1 rubric `approved` | P0 |
 | CO-09 | Todo | AI gợi ý cho Platform Mod: tiêu chí map đúng SHRM chưa, mô tả thang có mơ hồ hay trùng lặp | Janet | CO-07 | Hiện cảnh báo trong màn duyệt rubric | P1 |
-| CO-10 | Todo | FE admin `/admin/companies`, `/admin/companies/:id`, nút mời Company Moderator | Văn | CO-02 | Tạo công ty và mời được trên UI | P0 |
-| CO-11 | Todo | FE trang nhận lời mời `/company-invite/:token` (đặt mật khẩu) | Nhi | CO-02 | Vào thẳng `/company` sau khi nhận | P0 |
-| CO-12 | Todo | FE layout `/company` (sidebar, loader theo role), dashboard tóm tắt; thêm nhánh `company_moderator` vào `roleHomeLoader` trong `routes.js` | Văn | CO-03 | Role khác bị đẩy ra; Company Mod vào `/` được chuyển về `/company` | P0 |
-| CO-13 | Todo | FE `/company/questions` dạng bảng: nút sinh bộ câu, lọc theo vị trí, duyệt, sửa, từ chối, thêm câu | Văn | CO-05, CO-12 | Thao tác hàng loạt được | P0 |
+| CO-10 | Done | FE admin `/admin/companies`, `/admin/companies/:id`, nút mời Company Moderator | Văn | CO-02 | Tạo công ty và mời được trên UI | P0 |
+| CO-11 | Done | FE trang nhận lời mời `/company-invite/:token` (đặt mật khẩu) | Nhi | CO-02 | Vào thẳng `/company` sau khi nhận | P0 |
+| CO-12 | Done | FE layout `/company` (sidebar, loader theo role), dashboard tóm tắt; thêm nhánh `company_moderator` vào `roleHomeLoader` trong `routes.js` | Văn | CO-03 | Role khác bị đẩy ra; Company Mod vào `/` được chuyển về `/company` | P0 |
+| CO-13 | Done | FE `/company/questions` dạng bảng: nút sinh bộ câu, lọc theo vị trí, duyệt, sửa, từ chối, thêm câu | Văn | CO-05, CO-12 | Thao tác hàng loạt được | P0 |
 | CO-14 | Todo | FE `/company/rubrics` và trình soạn rubric (tiêu chí, trọng số, chọn SHRM, mô tả từng mức, gắn câu hỏi) | Nhi | CO-07, CO-12 | Gửi duyệt được, thấy lý do bị từ chối | P0 |
-| CO-15 | Todo | FE `/moderator/rubrics` dạng bảng: danh sách `pending_review`, xem chi tiết, duyệt/từ chối | Văn | CO-08 | Duyệt xong công ty thấy trạng thái mới | P0 |
+| CO-15 | Done | FE `/moderator/rubrics` dạng bảng: danh sách `pending_review`, xem chi tiết, duyệt/từ chối | Văn | CO-08 | Duyệt xong công ty thấy trạng thái mới | P0 |
 
 ## Giai đoạn 3: Candidate Profile và kho CV
 
@@ -186,15 +186,15 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
-| PR-01 | Todo | Model `CandidateProfile`; API `GET/PATCH /api/profile/me` (headline, vị trí mục tiêu, CV mặc định) | Văn | CO-03 | Profile tự tạo khi user vào lần đầu; test | P0 |
-| PR-02 | Todo | Model mới `CVDocument` (tái dùng cách lưu file của `mentorshipDocumentsService`); API CRUD, `duplicate`, đặt mặc định, `version` | Văn | PR-01 | Một user có nhiều CV, đúng một CV mặc định | P0 |
+| PR-01 | Done | Model `CandidateProfile`; API `GET/PATCH /api/profile/me` (headline, vị trí mục tiêu, CV mặc định) | Văn | CO-03 | Profile tự tạo khi user vào lần đầu; test | P0 |
+| PR-02 | Done | Model mới `CVDocument` (tái dùng cách lưu file của `mentorshipDocumentsService`); API CRUD, `duplicate`, đặt mặc định, `version` | Văn | PR-01 | Một user có nhiều CV, đúng một CV mặc định | P0 |
 | PR-03 | Todo | Python `POST /validate`: kiểm tra file có phải CV (mục Kinh nghiệm, Học vấn, Kỹ năng, liên hệ; LLM phán khi không chắc) | Janet | | Bộ 20 file mẫu (10 CV, 10 không phải) đúng ≥ 18 | P1 |
-| PR-04 | Todo | Nối validate vào upload CV và phân tích CV/JD; lỗi tiếng Việt rõ ràng | Văn | PR-02, PR-03 | Upload ảnh hoặc hóa đơn bị từ chối | P1 |
+| PR-04 | Done | Nối validate vào upload CV và phân tích CV/JD; lỗi tiếng Việt rõ ràng | Văn | PR-02, PR-03 | Upload ảnh hoặc hóa đơn bị từ chối | P1 |
 | PR-05 | Todo | Best-fit: Python chấm nhiều CV với một JD, trả xếp hạng và lý do; Node `POST /api/cv/best-fit` | Janet | PR-02 | 3 CV trả kết quả trong ≤ 60 giây | P1 |
 | PR-06 | Todo | Dịch vụ gộp hồ sơ năng lực: `competencyProfile` từng buổi phỏng vấn, kết quả buổi lộ trình, khóa học hoàn thành; cập nhật theo sự kiện; bỏ session `abandoned` | Janet | PR-01, LP-13, N-07 | Mỗi năng lực có level, số bằng chứng và danh sách nguồn | P0 |
-| PR-07 | Todo | API `GET /api/profile/me/competencies` và DTO rút gọn dùng cho Application snapshot | Văn | PR-06 | Đúng định dạng DTO, có test | P0 |
+| PR-07 | Done | API `GET /api/profile/me/competencies` và DTO rút gọn dùng cho Application snapshot | Văn | PR-06 | Đúng định dạng DTO, có test | P0 |
 | PR-08 | Todo | Trích nội dung PDF đã tải lên thành `content` JSON để mở trong editor | Janet | PR-02 | CV mẫu tách đúng các mục chính | P1 |
-| PR-09 | Todo | Xuất PDF ở backend: `POST /api/cvs/:id/export-pdf` bằng `pdfkit` + font DejaVu đang dùng cho hóa đơn (`react-pdf` chỉ xem được, không tạo được PDF) | Văn | PR-02 | PDF mở được, tiếng Việt đúng dấu, 1 mẫu chuẩn ATS | P1 |
+| PR-09 | Done | Xuất PDF ở backend: `POST /api/cvs/:id/export-pdf` bằng `pdfkit` + font DejaVu đang dùng cho hóa đơn (`react-pdf` chỉ xem được, không tạo được PDF) | Văn | PR-02 | PDF mở được, tiếng Việt đúng dấu, 1 mẫu chuẩn ATS | P1 |
 | PR-10 | Todo | FE `/profile` viết lại: thông tin, vị trí mục tiêu, CV mặc định, thẻ năng lực "đã xác thực" bấm ra xem nguồn | Nhi | PR-01, PR-07 | Hiện đúng dữ liệu tài khoản seed | P0 |
 | PR-11 | Todo | FE `/cvs`: kho CV, tải lên, nhân bản, đặt mặc định, xóa | Nhi | PR-02 | Thao tác đủ 4 việc trên UI | P0 |
 | PR-12 | Todo | FE best-fit trong `CVAnalysisHub`: chọn nhiều CV, dán JD, xem xếp hạng và khoảng thiếu | Nhi | PR-05 | Chọn CV hợp nhất rồi sang phân tích chi tiết | P1 |
@@ -254,16 +254,16 @@ AI-01 đến AI-06 là P0 vì nằm trong kịch bản demo bước 7. `promptVe
 
 | Mã | Trạng thái | Task | Người | Cần trước | Xong khi | Mức |
 |:---|:-----------|:-----|:------|:----------|:---------|:---:|
-| QA-01 | Todo | Chế độ mock LLM, D-ID, ElevenLabs bằng biến môi trường để test tải không tốn tiền | Văn | | Bật cờ thì không phát sinh CostEvent | P0 |
-| QA-02 | Todo | Script k6 100 người dùng đồng thời (đăng nhập, xem mentor, xem job, tạo session, đặt lịch); nới rate limit riêng cho môi trường test; ghi p95 và tỉ lệ lỗi | Văn | QA-01 | Kết quả ghi vào `nfr-results.md` | P0 |
-| QA-03 | Todo | Đo CV/JD ≤ 60 giây (30 CV) và avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) từ log N-11; báo p50/p95 | Văn | N-11 | Kết quả ghi vào `nfr-results.md` | P0 |
+| QA-01 | Done | Chế độ mock LLM, D-ID, ElevenLabs bằng biến môi trường để test tải không tốn tiền | Văn | | Bật cờ thì không phát sinh CostEvent | P0 |
+| QA-02 | Done | Script k6 100 người dùng đồng thời (đăng nhập, xem mentor, xem job, tạo session, đặt lịch); nới rate limit riêng cho môi trường test; ghi p95 và tỉ lệ lỗi | Văn | QA-01 | Kết quả ghi vào `nfr-results.md` | P0 |
+| QA-03 | Done | Đo CV/JD ≤ 60 giây (30 CV) và avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) từ log N-11; báo p50/p95 | Văn | N-11 | Kết quả ghi vào `nfr-results.md` | P0 |
 | QA-04 | Todo | Đo thời gian đối soát SePay trên 20 giao dịch (webhook đến → Payment `success`) | Trầm | LP-10 | Kết quả ghi vào `nfr-results.md` | P0 |
-| QA-05 | Todo | Seed dữ liệu demo cho **staging**: 2 công ty, 3 job, rubric đã duyệt, 3 mentor, ứng viên có lịch sử phỏng vấn và lộ trình, **ít nhất 5 lượt chấm lại** để miner đủ ngưỡng. Giữ `_devOnlyGuard.js` (chặn production) | Văn | JB-09, LP-13, AI-03 | Một lệnh ra đủ dữ liệu kịch bản demo trên staging | P0 |
+| QA-05 | Done | Seed dữ liệu demo cho **staging**: 2 công ty, 3 job, rubric đã duyệt, 3 mentor, ứng viên có lịch sử phỏng vấn và lộ trình, **ít nhất 5 lượt chấm lại** để miner đủ ngưỡng. Giữ `_devOnlyGuard.js` (chặn production) | Văn | JB-09, LP-13, AI-03 | Một lệnh ra đủ dữ liệu kịch bản demo trên staging | P0 |
 | QA-06 | Todo | Kiểm thử thủ công trên staging theo kịch bản demo 7 bước và theo từng vai trò; ghi lỗi vào issue có mã task | Nhi | QA-05 | Không còn lỗi chặn luồng | P0 |
 | QA-07 | Todo | Kiểm tra responsive và sửa lỗi giao diện các màn hình mới | Nhi | QA-06 | Mọi màn hình mới dùng được ở bề ngang điện thoại | P1 |
 | DOC-01 | Todo | SRS: bảng ánh xạ 39 chức năng ↔ use case ↔ màn hình ↔ API; bảng tên role; mục "Chức năng bổ trợ" (giỏ hàng, coupon, gói Pro) | Janet | | Mọi dòng trong đơn V2 có use case | P0 |
 | DOC-02 | Todo | SDD và sequence diagram: Learning Path (có chia tiền và chặn luồng hủy cũ), Job Post, Ứng tuyển | Trầm | LP-17, JB-10 | Sequence khớp code | P0 |
-| DOC-03 | Todo | SDD và sequence diagram: Company, lời mời, duyệt câu, Rubric, Profile và kho CV | Văn | CO-08, PR-07 | Sequence khớp code | P0 |
+| DOC-03 | Done | SDD và sequence diagram: Company, lời mời, duyệt câu, Rubric, Profile và kho CV | Văn | CO-08, PR-07 | Sequence khớp code | P0 |
 | DOC-04 | Todo | SDD và sequence diagram: chấm rubric, Learning from Reviews, hồ sơ năng lực, sàng lọc khóa | Janet | JB-07, AI-05 | Sequence khớp code | P0 |
 | DOC-05 | Todo | Hồ sơ Review: BM01 Design Brief, BM02 Self-Review, BM03 Record of Changes, BM04 Commitment | Janet | | Nộp đủ 4 biểu mẫu | P0 |
 | DOC-06 | Todo | Hướng dẫn sử dụng theo 5 vai trò, có ảnh chụp | Nhi | QA-06 | Mỗi vai trò có luồng chính | P1 |

@@ -56,6 +56,8 @@ import {
 } from "../../components/profile/ProfileCvSection";
 import { ProfileWorkHistoryEditor } from "../../components/profile/ProfileWorkHistoryEditor";
 import { ProfileEducationHistoryEditor } from "../../components/profile/ProfileEducationHistoryEditor";
+import { ProfileMultiCvVault } from "../../components/profile/ProfileMultiCvVault";
+import { ProfileVerifiedCompetencies } from "../../components/profile/ProfileVerifiedCompetencies";
 import { uploadFile } from "../../api/uploadApi.js";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import "../../../styles/settings.css";
@@ -219,6 +221,7 @@ export function Profile() {
     email: user?.email || "",
     phone: user?.phone || "",
   });
+  const [userCvs, setUserCvs] = useState(user?.savedCvs || []);
   const [saveMsg, setSaveMsg] = useState(null);
   const [mentorProfile, setMentorProfile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -337,11 +340,29 @@ export function Profile() {
       action: () => jumpToSection("skills"),
     });
 
+    const hasCvs = Boolean(userCvs?.length > 0 || user?.savedCvs?.length > 0);
+    if (hasCvs) score += 10;
+    items.push({
+      id: "multi-cv",
+      label: "Kho lưu trữ CV",
+      done: hasCvs,
+      action: () => document.getElementById("profile-multi-cv")?.scrollIntoView({ behavior: "smooth" }),
+    });
+
+    const hasVerified = Boolean(user?.isCompetencyVerified);
+    if (hasVerified) score += 10;
+    items.push({
+      id: "verified-competencies",
+      label: "Năng lực xác thực (SHRM)",
+      done: hasVerified,
+      action: () => document.getElementById("profile-verified-competencies")?.scrollIntoView({ behavior: "smooth" }),
+    });
+
     return {
       completionPercentage: Math.min(score, 100),
       checklist: items,
     };
-  }, [form, cvProfile]);
+  }, [form, cvProfile, userCvs, user]);
 
   const scrollToCv = () => {
     document.getElementById("profile-cv")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -825,7 +846,7 @@ export function Profile() {
                 className="rounded-3xl border border-white/10 bg-[#120d2c]/85 backdrop-blur-2xl p-6 sm:p-9 shadow-[0_20px_50px_rgba(5,3,20,0.45)]"
               >
                 {/* Workspace Header */}
-                <div className="border-b border-white/10 pb-6 mb-7">
+                <div className="border-b border-white/10 pb-6 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="size-10 rounded-2xl bg-violet-600/25 border border-violet-400/30 text-violet-300 flex items-center justify-center shadow-[0_0_16px_rgba(124,58,237,0.25)]">
                       <FileText size={20} />
@@ -839,7 +860,65 @@ export function Profile() {
                   </div>
                 </div>
 
-                {/* 1. Basic Contact Info */}
+                {/* Quick Navigation Anchor Pills */}
+                <div className="flex flex-wrap items-center gap-2 mb-8 pb-5 border-b border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("profile-multi-cv")?.scrollIntoView({ behavior: "smooth" })}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-violet-400/30 bg-violet-500/15 px-3.5 py-1.5 text-xs font-bold text-violet-300 hover:bg-violet-500/25 transition-all cursor-pointer"
+                  >
+                    <FileText size={13} />
+                    Kho lưu trữ CV
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("profile-verified-competencies")?.scrollIntoView({ behavior: "smooth" })}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3.5 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 transition-all cursor-pointer"
+                  >
+                    <ShieldCheck size={13} />
+                    Năng lực xác thực (SHRM)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("profile-contact-section")?.scrollIntoView({ behavior: "smooth" })}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    <User size={13} />
+                    Thông tin liên hệ
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => jumpToSection("work")}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    <Briefcase size={13} />
+                    Kinh nghiệm & Kỹ năng
+                  </button>
+                </div>
+
+                {/* 1. Multi-CV Storage & Management (Quản lý nhiều CV) */}
+                <div id="profile-multi-cv">
+                  <ProfileMultiCvVault
+                    initialCvs={user?.savedCvs || []}
+                    onCvsChange={(cvs) => setUserCvs(cvs)}
+                  />
+                </div>
+
+                {/* 2. Verified Competency Profile (Hồ sơ năng lực đã xác thực) */}
+                <div id="profile-verified-competencies">
+                  <ProfileVerifiedCompetencies
+                    initialProfile={{
+                      isCompetencyVerified: user?.isCompetencyVerified,
+                      verifiedReadinessScore: user?.verifiedReadinessScore,
+                      verifiedCompetencies: user?.verifiedCompetencies,
+                    }}
+                  />
+                </div>
+
+                {/* 3. Basic Contact Info */}
                 <div id="profile-contact-section" className="mb-8">
                   <div className="flex items-center gap-2 mb-4">
                     <User size={15} className="text-violet-400" />

@@ -3,36 +3,30 @@ import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 
 const ACCENT = {
   purple: {
-    frame: "bg-gradient-to-br from-[#a56af0]/[0.1] via-[#21182f] to-[#21182f]",
-    bar: "bg-[#8037f4]",
-    value: "text-[#8037f4]",
-    title: "text-slate-900",
-    subtitle: "text-violet-500/80",
-    icon: "text-[#8037f4]",
-    iconBg: "bg-[#8037f4]/12 ring-1 ring-[#8037f4]/15",
-    hover: "hover:shadow-[0_8px_24px_rgba(128,55,244,0.1)]",
+    frame: "border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 hover:border-violet-500/40 hover:shadow-[0_0_24px_rgba(130,60,240,0.18)] transition-all duration-300",
+    value: "text-white font-black tracking-tight",
+    title: "text-violet-200/90 font-bold uppercase tracking-wider text-[11px]",
+    subtitle: "text-slate-400 font-medium text-xs",
+    icon: "text-violet-300",
+    iconBg: "bg-violet-500/15 border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.2)]",
   },
   lime: {
-    frame: "bg-gradient-to-br from-[#93f72b]/[0.08] via-[#21182f] to-[#21182f]",
-    bar: "bg-[#93f72b]",
-    value: "text-slate-900",
-    title: "text-slate-900",
-    subtitle: "text-slate-500",
-    icon: "text-slate-900",
-    iconBg: "bg-[#93f72b]/30 ring-1 ring-[#93f72b]/35",
-    hover: "hover:shadow-[0_8px_24px_rgba(147,247,43,0.14)]",
+    frame: "border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 hover:border-[#93f72b]/40 hover:shadow-[0_0_24px_rgba(147,247,43,0.18)] transition-all duration-300",
+    value: "text-white font-black tracking-tight",
+    title: "text-[#93f72b] font-bold uppercase tracking-wider text-[11px]",
+    subtitle: "text-slate-400 font-medium text-xs",
+    icon: "text-[#93f72b]",
+    iconBg: "bg-[#93f72b]/15 border border-[#93f72b]/30 shadow-[0_0_12px_rgba(147,247,43,0.25)]",
   },
 };
 
-/** Khối 3 cột thống kê mentor — tím + lime brand */
+/** Khối 3 cột thống kê mentor — 3 cards bento sang trọng */
 export function MentorStatPanel({ children, className = "" }) {
   return (
     <div
-      className={`mb-6 overflow-hidden rounded-2xl border border-[#8037f4]/15 bg-white shadow-[0_4px_20px_rgba(128,55,244,0.07)] ${className}`.trim()}
+      className={`mb-8 grid gap-5 sm:grid-cols-3 ${className}`.trim()}
     >
-      <div className="grid divide-y divide-violet-100/80 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -40,7 +34,7 @@ export function MentorStatPanel({ children, className = "" }) {
 /** Lưới 4 ô thống kê (đánh giá chéo, v.v.) */
 export function MentorStatMiniGrid({ children, className = "" }) {
   return (
-    <div className={`mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 ${className}`.trim()}>
+    <div className={`mb-6 grid grid-cols-2 gap-3.5 lg:grid-cols-4 ${className}`.trim()}>
       {children}
     </div>
   );
@@ -63,81 +57,95 @@ export function MentorStatFrame({
   const Wrapper = animate ? motion.div : "div";
   const motionProps = animate
     ? {
-        initial: { opacity: 0, y: 12 },
+        initial: { opacity: 0, y: 14 },
         animate: { opacity: 1, y: 0 },
         transition: {
           delay: 0.06 + (index - 1) * 0.08,
-          duration: 0.4,
+          duration: 0.45,
           ease: [0.22, 1, 0.36, 1],
         },
         whileHover: { y: -2 },
-        whileTap: { scale: 0.98, y: 0 },
+        whileTap: { scale: 0.985, y: 0 },
       }
     : {};
 
+  const valStr = String(value ?? "");
+  const isLong = valStr.length > 5;
+  const isMedium = valStr.length > 3;
+
   const valueCls = compact
-    ? "text-[clamp(1.75rem,3.5vw,2.5rem)]"
+    ? isLong
+      ? "text-sm sm:text-base font-bold"
+      : isMedium
+        ? "text-base sm:text-lg font-extrabold"
+        : "text-2xl sm:text-[1.75rem] font-black"
     : moneyAmount != null
-      ? "text-[clamp(2rem,4vw,3.25rem)]"
-      : "text-[clamp(2.5rem,5vw,4rem)]";
+      ? "text-[clamp(1.75rem,3.2vw,2.5rem)]"
+      : isLong
+        ? "text-base sm:text-lg font-bold"
+        : isMedium
+          ? "text-xl sm:text-2xl font-extrabold"
+          : "text-[clamp(2rem,3.5vw,2.75rem)]";
 
   const shellCls = compact
-    ? `rounded-2xl border border-[#8037f4]/12 shadow-[0_2px_12px_rgba(128,55,244,0.06)] ${theme.frame} ${theme.hover} flex min-h-[6.75rem] flex-col justify-center`
-    : `${theme.frame} ${theme.hover}`;
+    ? `rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] backdrop-blur-xl ${theme.frame} flex min-h-[5.25rem] flex-col justify-center px-4 py-3.5 sm:px-5 sm:py-4`
+    : `rounded-2xl shadow-[0_16px_44px_rgba(0,0,0,0.4)] backdrop-blur-xl ${theme.frame} px-6 py-6`;
 
   return (
     <Wrapper
       {...motionProps}
-      className={`relative px-4 py-4 transition-shadow duration-200 sm:px-5 sm:py-5 ${shellCls}`}
+      className={`relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${shellCls}`}
     >
-      <div
-        className={`absolute bottom-4 left-0 top-4 w-1 rounded-full ${theme.bar}`}
-        aria-hidden
-      />
+      {/* Top Hairline Glow */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+
       {CornerIcon ? (
         <span
-          className={`absolute right-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-lg ${theme.iconBg}`}
+          className={`absolute ${compact ? "right-3.5 top-3.5 h-7 w-7 rounded-lg" : "right-5 top-5 h-8 w-8 rounded-xl"} inline-flex items-center justify-center ${theme.iconBg}`}
           aria-hidden
         >
-          <CornerIcon size={14} className={theme.icon} strokeWidth={2.1} />
+          <CornerIcon size={compact ? 14 : 16} className={theme.icon} strokeWidth={2.2} />
         </span>
       ) : cornerLabel ? (
         <span
-          className="absolute right-4 top-4 text-[11px] font-bold tabular-nums tracking-wide text-slate-400"
+          className={`absolute ${compact ? "right-3.5 top-3.5" : "right-5 top-5"} text-[10px] font-bold tabular-nums tracking-wide text-slate-400`}
           aria-hidden
         >
           {cornerLabel}
         </span>
       ) : null}
-      <div className={compact || CornerIcon ? "pr-8" : undefined}>
-      <p
-        className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
-      >
-        {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
-      </p>
-      <p className={`${compact ? "mt-1.5" : "mt-2"} text-sm font-bold ${theme.title}`}>{title}</p>
-      {subtitle ? (
-        <p className={`mt-1 text-xs leading-relaxed ${theme.subtitle}`}>{subtitle}</p>
-      ) : null}
-      {footer}
+
+      <div className={compact || CornerIcon ? (compact ? "pr-6" : "pr-8") : undefined}>
+        <p
+          className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
+        >
+          {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
+        </p>
+        <p className={`${compact ? "mt-1.5 text-[10px]" : "mt-2.5 text-[11px]"} ${theme.title}`}>{title}</p>
+        {subtitle ? (
+          <p className={`${compact ? "mt-1 text-[11px]" : "mt-1.5 text-xs"} leading-snug ${theme.subtitle}`}>{subtitle}</p>
+        ) : null}
+        {footer}
       </div>
     </Wrapper>
   );
 }
 
-/** Thanh hoạt động tím — ô 1 dashboard */
 export function MentorSessionActivityBlocks({ activeCount = 0, total = 5 }) {
   const filled = Math.max(0, Math.min(total - 1, activeCount));
   return (
-    <div className="mt-6 flex items-center gap-1.5" aria-hidden>
+    <div className="mt-4 flex items-center gap-2" aria-hidden>
       {Array.from({ length: total }, (_, i) => {
         const isAccent = i === total - 1;
         const isFilled = !isAccent && i < filled;
+        const active = isAccent || isFilled;
         return (
           <div
             key={i}
-            className={`h-2 w-2 rounded-[3px] transition-colors ${
-              isAccent || isFilled ? "bg-[#8037f4]" : "bg-[#8037f4]/18"
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              active
+                ? "w-5 bg-[#93f72b] shadow-[0_0_10px_rgba(147,247,43,0.8)]"
+                : "w-2 bg-white/15"
             }`}
           />
         );

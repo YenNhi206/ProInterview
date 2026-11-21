@@ -3,6 +3,7 @@ import { uploadToCloudinary, deleteLocalFile, generateUploadSignature, isCloudin
 import { getPublicBaseUrl } from "../utils/publicBaseUrl.js";
 import { logger } from "../config/logger.js";
 import { httpError } from "../utils/apiErrors.js";
+import { validateCvFile } from "../services/cvValidator.js";
 
 const isProd = () => process.env.NODE_ENV === "production";
 
@@ -80,6 +81,12 @@ export const UploadController = {
   uploadCV: async (req, res, next) => {
     try {
       if (!req.file) return res.status(400).json({ success: false, error: "Không tìm thấy file" });
+      validateCvFile({
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        buffer: req.file.buffer,
+        size: req.file.size,
+      });
       const { url, absoluteUrl } = await resolveUrl(req, req.file, {
         folder:        "prointerview/cv-files",
         resource_type: "raw",

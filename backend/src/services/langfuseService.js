@@ -29,6 +29,7 @@ function cfg() {
 }
 
 export function isLangfuseEnabled() {
+  if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") return false;
   const { publicKey, secretKey } = cfg();
   return Boolean(publicKey && secretKey);
 }

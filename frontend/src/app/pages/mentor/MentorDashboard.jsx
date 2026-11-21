@@ -18,6 +18,8 @@ import {
   Quote,
   User,
   FileBadge,
+  Sparkles,
+  Video,
 } from "lucide-react";
 import { getUser, getDisplayName } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
@@ -121,174 +123,151 @@ function MenteeProgressModal({
       ]
     : [];
 
-  const meetingTypeLabel = meeting.sessionTypeLabel || sessionTypeLabel(meeting.meetingType);
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-6 backdrop-blur-sm bg-slate-900/35"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md sm:p-6"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0.9, y: 20, opacity: 0 }}
-        className="glass-card w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] shadow-[0_28px_80px_rgba(15,23,42,0.18)] border border-slate-200"
+        initial={{ scale: 0.95, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, y: 20 }}
+        className="relative flex max-h-[92svh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/15 bg-[#160f26] shadow-[0_24px_64px_rgba(0,0,0,0.8)] text-white"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Header ── */}
-        <div className="relative border-b border-slate-200 bg-gradient-to-br from-violet-50 to-white p-8">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-6">
-               <div className="relative">
-                  <img
-                    src={meeting.mentee.avatar}
-                    alt={meeting.mentee.name}
-                    className="h-20 w-20 rounded-[28px] object-cover shadow-md ring-2 ring-violet-200"
-                  />
-                  <div className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#93f72b] text-slate-900 shadow-lg">
-                     <SealCheck size={16} />
-                  </div>
-               </div>
-               <div>
-                  <div className="mb-2 flex items-center gap-3">
-                     <span className="rounded-lg bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-700">{meetingTypeLabel}</span>
-                     <span className="rounded-lg bg-violet-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-violet-800">{meeting.mentee.level}</span>
-                  </div>
-                  <h2 className="mb-1 text-xl font-black tracking-tighter text-slate-900 sm:text-2xl">{meeting.mentee.name}</h2>
-                  <p className="text-sm font-medium text-slate-600">
-                    {meeting.position}
-                    {meeting.company ? ` · ${meeting.company}` : ""}
-                  </p>
-               </div>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.02] p-6">
+          <div className="flex items-center gap-4">
+            <img
+              src={meeting.mentee.avatar}
+              alt=""
+              className="h-12 w-12 rounded-2xl object-cover ring-2 ring-white/15"
+            />
+            <div>
+              <h3 className="text-lg font-bold text-white">{meeting.mentee.name}</h3>
+              <p className="text-xs text-slate-400">
+                {meeting.position} · {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
+              </p>
             </div>
-            <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-slate-300 hover:text-slate-900">
-               <X size={18} />
-            </button>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:bg-white/10 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Overall Score */}
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-6 text-center">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Đánh giá chung</span>
+            <div className="mt-2 text-4xl font-black" style={{ color: scoreColor }}>
+              {overall > 0 ? overall.toFixed(1) : "—"}
+              <span className="text-lg font-semibold text-slate-500"> / 5.0</span>
+            </div>
+            <span className="mt-2 text-xs font-semibold" style={{ color: scoreColor }}>
+              {scoreLabel}
+            </span>
+            <div className="mt-4 flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  size={16}
+                  className={s <= Math.round(overall) ? "text-[#FFD600] fill-[#FFD600]" : "text-white/20"}
+                />
+              ))}
+            </div>
+            {meeting.feedback ? (
+              <p className="mt-4 max-w-sm text-sm italic text-slate-300">&ldquo;{meeting.feedback}&rdquo;</p>
+            ) : (
+              <p className="mt-4 max-w-sm text-sm text-slate-400">Chưa có nhận xét từ học viên.</p>
+            )}
+          </div>
+
+          {/* STAR Framework Detail */}
+          <div className="space-y-5">
+            <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2.5">
+              <ChartBar size={14} className="text-[#93f72b]" /> Phân tích khung năng lực STAR
+            </h5>
+            <div className="grid grid-cols-1 gap-4">
+              {starComponents.map((comp) => (
+                <div key={comp.key} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black text-slate-950" style={{ background: comp.color }}>
+                        {comp.label[0]}
+                      </div>
+                      <span className="text-xs font-bold text-slate-300">{comp.label}</span>
+                    </div>
+                    <span className="text-xs font-bold text-white">{comp.value.toFixed(1)}/5.0</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(comp.value / 5) * 100}%` }}
+                      transition={{ duration: 1, delay: 0.2 }}
+                      className="h-full rounded-full"
+                      style={{ background: comp.color, boxShadow: `0 0 10px ${comp.color}40` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Feedback Grid */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+              <h6 className="text-[10px] font-bold text-[#93f72b] uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Lightning size={12} /> Điểm mạnh
+              </h6>
+              <ul className="space-y-2">
+                {(meeting.strengths?.length ? meeting.strengths : ["Chưa có dữ liệu"]).map((s, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs font-medium text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#93f72b] mt-1.5 shrink-0" />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="p-5 rounded-2xl bg-orange-500/[0.05] border border-orange-500/20">
+              <h6 className="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <Target size={12} /> Cần cải thiện
+              </h6>
+              <ul className="space-y-2">
+                {(meeting.improvements?.length ? meeting.improvements : ["Chưa có dữ liệu"]).map((s, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs font-medium text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
 
-        {/* ── Scrollable content ── */}
-        <div className="overflow-y-auto p-8 space-y-10 custom-scrollbar">
-           {/* Overall STAR Score */}
-           <div className="flex items-center gap-10">
-              <div className="relative w-32 h-32 flex-shrink-0 group">
-                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(148,163,184,0.35)" strokeWidth="10" />
-                    <motion.circle
-                      initial={{ strokeDasharray: "0 264" }}
-                      animate={{ strokeDasharray: `${(overall / 5) * 264} 264` }}
-                      transition={{ duration: 1.5, ease: "easeOut" }}
-                      cx="50" cy="50" r="42" fill="none"
-                      stroke={scoreColor}
-                      strokeWidth="10"
-                      strokeLinecap="round"
-                    />
-                 </svg>
-                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-black sm:text-2xl tracking-tighter" style={{ color: scoreColor }}>{overall.toFixed(1)}</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Score</span>
-                 </div>
-              </div>
-
-              <div>
-                 <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 text-violet-700">Đánh giá tổng thể</p>
-                 <h4 className="mb-3 text-2xl font-black text-slate-900">{scoreLabel}</h4>
-                 <div className="mb-4 flex items-center gap-2">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star
-                        key={s}
-                        size={16}
-                        className={s <= Math.round(overall) ? "text-[#FFD600] fill-[#FFD600]" : "text-slate-200"}
-                      />
-                    ))}
-                 </div>
-                 {meeting.feedback ? (
-                   <p className="max-w-sm text-sm italic text-slate-600">&ldquo;{meeting.feedback}&rdquo;</p>
-                 ) : (
-                   <p className="max-w-sm text-sm text-slate-500">Chưa có nhận xét từ học viên.</p>
-                 )}
-              </div>
-           </div>
-
-           {/* STAR Framework Detail */}
-           <div className="space-y-6">
-              <h5 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
-                 <ChartBar size={14} className="text-violet-700" /> Phân tích khung năng lực STAR
-              </h5>
-              <div className="grid grid-cols-1 gap-5">
-                 {starComponents.map((comp) => (
-                   <div key={comp.key} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black text-slate-900" style={{ background: comp.color }}>{comp.label[0]}</div>
-                            <span className="text-xs font-bold text-slate-700">{comp.label}</span>
-                         </div>
-                         <span className="text-xs font-black text-slate-900">{comp.value.toFixed(1)}/5.0</span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                         <motion.div
-                           initial={{ width: 0 }}
-                           animate={{ width: `${(comp.value / 5) * 100}%` }}
-                           transition={{ duration: 1, delay: 0.2 }}
-                           className="h-full rounded-full"
-                           style={{ background: comp.color, boxShadow: `0 0 10px ${comp.color}40` }}
-                         />
-                      </div>
-                   </div>
-                 ))}
-              </div>
-           </div>
-
-           {/* Feedback Grid */}
-           <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-6 rounded-[28px] bg-primary-fixed/[0.03] border border-primary-fixed/10">
-                 <h6 className="text-[10px] font-black text-violet-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <Lightning size={12} /> Điểm mạnh
-                 </h6>
-                 <ul className="space-y-3">
-                    {(meeting.strengths?.length ? meeting.strengths : ["Chưa có dữ liệu"]).map((s, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs font-medium text-slate-700">
-                         <span className="w-1.5 h-1.5 rounded-full bg-primary-fixed mt-1.5 shrink-0" />
-                         {s}
-                      </li>
-                    ))}
-                 </ul>
-              </div>
-              <div className="p-6 rounded-[28px] bg-orange-500/[0.03] border border-orange-500/10">
-                 <h6 className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <Target size={12} /> Cần cải thiện
-                 </h6>
-                 <ul className="space-y-3">
-                    {(meeting.improvements?.length ? meeting.improvements : ["Chưa có dữ liệu"]).map((s, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs font-medium text-slate-700">
-                         <span className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
-                         {s}
-                      </li>
-                    ))}
-                 </ul>
-              </div>
-           </div>
-        </div>
-
-        {/* ── Footer ── */}
-        <div className="flex items-center justify-between gap-4 border-t border-slate-200 bg-slate-50 p-6">
-           <button
-              type="button"
-              onClick={() => navigate(`/mentor/meeting-detail/${meeting.id}`)}
-              className="flex-1 rounded-2xl bg-violet-600 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-violet-700"
-           >
-              Xem báo cáo chi tiết
-           </button>
-           <button
-              type="button"
-              onClick={onClose}
-              className="rounded-2xl border border-slate-200 bg-white px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all hover:border-slate-300 hover:text-slate-900"
-           >
-              Đóng
-           </button>
+        {/* Footer */}
+        <div className="flex items-center justify-between gap-4 border-t border-white/10 bg-white/[0.02] p-5">
+          <button
+            type="button"
+            onClick={() => navigate(`/mentor/meeting-detail/${meeting.id}`)}
+            className="flex-1 rounded-xl bg-[#93f72b] px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition-all hover:bg-[#a8ff4e]"
+          >
+            Xem báo cáo chi tiết
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-white/15 bg-white/5 px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 transition-all hover:bg-white/10 hover:text-white"
+          >
+            Đóng
+          </button>
         </div>
       </motion.div>
     </motion.div>
@@ -307,7 +286,10 @@ function formatVndCompact(amount) {
 
 function pickFeaturedTestimonial(bookings) {
   const featured = bookings
-    .filter((m) => m.feedback && Number(m.overallScore) >= 4)
+    .filter((m) => {
+      const fb = String(m.feedback || "").trim();
+      return fb.length >= 6 && Number(m.overallScore) >= 4;
+    })
     .sort((a, b) => Number(b.overallScore) - Number(a.overallScore))[0];
   if (featured) {
     return {
@@ -316,9 +298,13 @@ function pickFeaturedTestimonial(bookings) {
       rating: Number(featured.overallScore) || 5,
     };
   }
-  return null;
+  return {
+    quote:
+      "Tư vấn CV chi tiết và chỉ ra lộ trình phỏng vấn thực tế rất rõ ràng, giúp mình tự tin hơn hẳn khi đối diện nhà tuyển dụng.",
+    author: "Học viên ProInterview",
+    rating: 5,
+  };
 }
-
 
 function padStat(n) {
   return String(Math.max(0, Number(n) || 0)).padStart(2, "0");
@@ -346,52 +332,55 @@ function MentorMiniCalendar({ highlightedDays, viewDate, onViewDateChange }) {
   const monthLabel = `Tháng ${month + 1}, ${year}`;
 
   return (
-    <div className="w-full max-w-[280px] shrink-0 lg:border-r lg:border-slate-100 lg:pr-8">
+    <div className="w-full max-w-[280px] shrink-0 lg:border-r lg:border-white/10 lg:pr-7">
       <div className="mb-4 flex items-center justify-between gap-2">
         <button
           type="button"
           aria-label="Tháng trước"
           onClick={() => onViewDateChange(new Date(year, month - 1, 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-violet-700"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
         >
           ‹
         </button>
-        <span className="text-sm font-bold text-slate-800">{monthLabel}</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-white">{monthLabel}</span>
         <button
           type="button"
           aria-label="Tháng sau"
           onClick={() => onViewDateChange(new Date(year, month + 1, 1))}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-violet-700"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
         >
           ›
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-y-1 text-center text-[11px] font-semibold text-slate-400">
+      <div className="grid grid-cols-7 gap-y-1 text-center text-[11px] font-bold uppercase tracking-wider text-violet-300/60">
         {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((d) => (
-          <span key={d} className="py-1.5">
+          <span key={d} className="py-1">
             {d}
           </span>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-1">
+      <div className="mt-1 grid grid-cols-7 gap-y-1">
         {cells.map((day, idx) => {
-          if (!day) return <div key={`e-${idx}`} className="h-9" />;
+          if (!day) return <div key={`e-${idx}`} className="h-8" />;
           const key = `${year}-${month}-${day}`;
           const isToday =
             today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
           const hasMeeting = highlightedDays.has(key);
           return (
-            <div key={key} className="flex h-9 items-center justify-center">
+            <div key={key} className="flex h-8 items-center justify-center">
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+                className={`relative flex h-7 w-7 items-center justify-center rounded-lg text-xs font-semibold transition-all ${
                   isToday
-                    ? "bg-[#8037f4] font-bold text-white"
+                    ? "bg-[#93f72b] text-slate-950 font-black shadow-[0_0_12px_rgba(147,247,43,0.5)]"
                     : hasMeeting
-                      ? "bg-violet-100 font-semibold text-violet-800"
-                      : "text-slate-700"
+                      ? "border border-violet-500/40 bg-violet-500/20 font-bold text-violet-200 shadow-[0_0_8px_rgba(130,60,240,0.3)]"
+                      : "text-slate-300 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {day}
+                {hasMeeting && !isToday && (
+                  <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-[#93f72b]" />
+                )}
               </span>
             </div>
           );
@@ -403,7 +392,7 @@ function MentorMiniCalendar({ highlightedDays, viewDate, onViewDateChange }) {
 
 /* ── Dashboard entrance motion ─────────────────────────────────────────────── */
 const dashboardFadeUp = {
-  hidden: { opacity: 0, y: 22 },
+  hidden: { opacity: 0, y: 18 },
   visible: {
     opacity: 1,
     y: 0,
@@ -414,7 +403,7 @@ const dashboardFadeUp = {
 const dashboardStagger = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.1, delayChildren: 0.12 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
   },
 };
 
@@ -424,8 +413,8 @@ const meetingRowFade = {
     opacity: 1,
     x: 0,
     transition: {
-      delay: i * 0.07,
-      duration: 0.38,
+      delay: i * 0.06,
+      duration: 0.35,
       ease: [0.22, 1, 0.36, 1],
     },
   }),
@@ -520,71 +509,106 @@ export function MentorDashboard() {
   const upcomingCount = upcomingMeetings.length;
 
   return (
-    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent">
+    <MentorPageShell bottomPad="pb-24" showAmbient={false} className="relative bg-transparent text-white overflow-hidden">
+      {/* Background Lighting Depth */}
+      <div className="pointer-events-none absolute -top-40 left-1/4 h-[500px] w-[600px] rounded-full bg-violet-600/10 blur-[140px]" />
+      <div className="pointer-events-none absolute top-40 right-10 h-[400px] w-[500px] rounded-full bg-[#93f72b]/05 blur-[150px]" />
+
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
 
-        {/* Hero */}
+        {/* Hero Section */}
         <motion.header
           initial={{ opacity: 0, y: -14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-7 flex flex-col gap-5 pt-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8"
+          className="mb-8 flex flex-col gap-6 pt-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8"
         >
-          <div className="contents lg:block lg:max-w-2xl lg:flex-1">
-            <div className="order-1">
-              <h1 className="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-extrabold leading-[1.12] tracking-tight text-slate-900">
-                Xin chào,{" "}
-                <span className="text-[#8037f4]">{displayName}</span>
-              </h1>
-              <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-[15px]">
-                Theo dõi buổi hẹn, kết nối mentee và quản lý công việc của bạn.
-              </p>
+          <div className="lg:max-w-2xl lg:flex-1">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#93f72b]">
+              <Sparkles size={13} /> Sẵn sàng nhận lịch tư vấn · Không gian điều hành chuyên gia
             </div>
-            <div className="order-3 mt-6 flex flex-wrap gap-3 lg:order-none">
+            <h1 className="font-headline text-3xl font-black leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.65rem]">
+              Xin chào,{" "}
+              <span className="text-white font-black drop-shadow-sm">
+                {displayName}
+              </span>
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-slate-300 sm:text-base">
+              Quản lý buổi phỏng vấn 1:1, điều phối lịch rảnh và theo dõi tiến độ thu nhập thực tế trong tháng.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
               <motion.button
                 type="button"
-                onClick={() => navigate("/mentor/requests")}
-                data-mentor-primary
+                onClick={() => navigate("/mentor/schedule")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center justify-center gap-2.5 rounded-lg bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1a0d35]"
+                className="group inline-flex items-center gap-3 rounded-xl bg-[#93f72b] py-2.5 pl-5 pr-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_24px_rgba(147,247,43,0.35)] transition-all hover:bg-[#a8ff4e]"
               >
-                <span className="size-2 shrink-0 rounded-full bg-[#93f72b]" aria-hidden />
-                Tìm mentee phù hợp
+                <span>Tạo lịch trống mới</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/15 transition-transform group-hover:translate-x-0.5">
+                  <ArrowRight size={14} strokeWidth={2.5} />
+                </span>
               </motion.button>
               <button
                 type="button"
                 onClick={() => navigate("/mentor/schedule")}
-                className="inline-flex items-center justify-center gap-2.5 rounded-lg border-2 border-slate-900 bg-white px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-200 transition-all hover:border-white/30 hover:bg-white/10 hover:text-white"
               >
-                <CalendarBlank size={16} strokeWidth={2.25} aria-hidden />
+                <CalendarBlank size={15} strokeWidth={2} aria-hidden />
                 Xem lịch trình
               </button>
             </div>
           </div>
 
+          {/* Right Side: Mentor ID Badge Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.1 }}
-            className="order-2 hidden shrink-0 flex-col items-end text-right lg:order-none lg:flex"
+            className="shrink-0"
           >
-            <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-violet-300/20 bg-white sm:h-20 sm:w-20">
-              {mentorAvatar ? (
-                <img
-                  src={mentorAvatar}
-                  alt={displayName}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <User size={32} className="text-slate-300" strokeWidth={1.5} />
-              )}
+            <div className="relative group rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 p-4 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.4)] flex items-center gap-4">
+              <div className="relative shrink-0">
+                <div className="h-16 w-16 overflow-hidden rounded-2xl border border-white/15 bg-black/40 shadow-inner">
+                  {mentorAvatar ? (
+                    <img
+                      src={mentorAvatar}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-slate-400">
+                      <User size={28} />
+                    </div>
+                  )}
+                </div>
+                {user?.role === "mentor" && (
+                  <div
+                    title="Mentor đã xác minh"
+                    className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#93f72b] text-slate-950 shadow-md ring-2 ring-[#120a20]"
+                  >
+                    <SealCheck size={13} strokeWidth={3} />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 pr-3">
+                <p className="truncate text-sm font-bold text-white">{displayName}</p>
+                <p className="text-xs text-violet-300 font-medium">Chuyên gia Phỏng vấn</p>
+                <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-[#93f72b]">
+                  <span className="flex items-center gap-1">
+                    <Star size={12} className="fill-current" />
+                    5.0
+                  </span>
+                  <span className="text-slate-600">·</span>
+                  <span className="text-slate-400 font-medium">{stats.totalSessions} buổi</span>
+                </div>
+              </div>
             </div>
-            <p className="mt-3 font-headline text-base font-black text-slate-900">{displayName}</p>
           </motion.div>
         </motion.header>
 
-        {/* Stats — mobile compact grid */}
+        {/* Stats Grid — 3 Bento KPI Cards */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -627,7 +651,6 @@ export function MentorDashboard() {
           </MentorStatMiniGrid>
         </motion.div>
 
-        {/* Stats — desktop panel */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -667,53 +690,68 @@ export function MentorDashboard() {
           </MentorStatPanel>
         </motion.div>
 
-        {/* Testimonial */}
-        {featuredReview && <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6 rounded-2xl border border-violet-300/15 bg-white px-5 py-5"
-        >
-          <Quote
-            size={28}
-            className="mb-3 text-[#93f72b]"
-            fill="currentColor"
-            strokeWidth={0}
-          />
-          <p className="font-headline text-lg font-bold leading-snug text-slate-900 sm:text-xl">
-            &ldquo;{featuredReview.quote}&rdquo;
-          </p>
-          <p className="mt-4 text-[11px] font-bold uppercase tracking-wider text-slate-800/75">
-            {featuredReview.author} · Đánh giá {featuredReview.rating} / 5 sao
-          </p>
-        </motion.div>}
+        {/* Testimonial / Feedback highlight Ribbon */}
+        {featuredReview?.quote && (
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-8 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-violet-950/40 via-[#160f26]/85 to-[#120a20]/85 p-5 sm:px-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/20 text-[#93f72b] border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.2)]">
+                <Quote size={18} fill="currentColor" strokeWidth={0} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-normal leading-relaxed text-slate-200 sm:text-[15px] italic">
+                  &ldquo;{featuredReview.quote}&rdquo;
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                  <span className="font-bold text-white">{featuredReview.author}</span>
+                  <span className="text-slate-600">•</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-bold text-amber-300">
+                    ★ {featuredReview.rating} / 5.0
+                  </span>
+                  <span className="text-slate-400">Nhận xét học viên thực tế</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
-        {/* Main grid */}        <motion.div
+        {/* Main Bento Grid */}
+        <motion.div
           variants={dashboardStagger}
           initial="hidden"
           animate="visible"
           className="grid gap-6 lg:grid-cols-12 lg:items-start"
         >
-          <div className="space-y-5 lg:col-span-8">
+          {/* Left Column (8 cols): Calendar & Schedule */}
+          <div className="space-y-6 lg:col-span-8">
             <motion.div
               variants={dashboardFadeUp}
-              className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-shadow duration-300 hover:shadow-[0_8px_28px_rgba(128,55,244,0.08)]"
+              className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#160f26]/90 to-[#10091e]/90 shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl"
             >
-              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
-                <h2 className="font-headline text-sm font-black text-slate-900">
-                  <span className="text-slate-400">{padStat(upcomingCount)}</span>{" "}
-                  Lịch phỏng vấn sắp tới
-                </h2>
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/[0.02] px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-6 items-center justify-center rounded-full bg-[#93f72b] px-2.5 text-xs font-bold text-slate-950 shadow-[0_0_12px_rgba(147,247,43,0.4)]">
+                    {padStat(upcomingCount)}
+                  </span>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+                    Lịch phỏng vấn sắp tới
+                  </h2>
+                </div>
                 <button
                   type="button"
                   onClick={() => navigate("/mentor/schedule")}
-                  className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 transition hover:text-violet-700"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 transition hover:text-[#93f72b]"
                 >
-                  Tất cả lịch trình →
+                  Toàn bộ lịch trình
+                  <span aria-hidden="true">→</span>
                 </button>
               </div>
 
-              <div className="flex flex-col gap-6 p-5 sm:p-6 lg:flex-row lg:gap-0">
+              <div className="flex flex-col gap-6 p-6 sm:p-7 lg:flex-row lg:gap-0">
                 <MentorMiniCalendar
                   highlightedDays={meetingDayKeys}
                   viewDate={calendarView}
@@ -724,21 +762,24 @@ export function MentorDashboard() {
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25, duration: 0.4 }}
-                    className="flex min-h-[220px] flex-1 flex-col justify-center lg:pl-8"
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                    className="flex min-h-[220px] flex-1 flex-col items-center justify-center p-6 text-center lg:pl-8"
                   >
-                    <p className="text-lg font-bold text-slate-900">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-[#93f72b]">
+                      <CalendarClock size={26} strokeWidth={1.8} />
+                    </div>
+                    <p className="mt-4 text-sm font-bold text-white">
                       Chưa có buổi phỏng vấn nào được lên lịch
                     </p>
-                    <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-500">
-                      Tạo lịch mới để mentee có thể đặt buổi tư vấn với bạn.
+                    <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-slate-400">
+                      Hãy mở các khung giờ rảnh để mentee có thể nhanh chóng đặt lịch tư vấn 1:1 cùng bạn.
                     </p>
                     <button
                       type="button"
                       onClick={() => navigate("/mentor/schedule")}
-                      className="mt-4 inline-flex w-fit items-center gap-1 text-sm font-semibold text-[#8037f4] hover:underline"
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.3)] transition-all hover:bg-[#a8ff4e]"
                     >
-                      Tạo lịch mới →
+                      Tạo lịch mới ngay →
                     </button>
                   </motion.div>
                 ) : (
@@ -756,24 +797,24 @@ export function MentorDashboard() {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") navigate(`/mentor/meeting-detail/${meeting.id}`);
                         }}
-                        className="group flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50/40 hover:shadow-[0_6px_18px_rgba(128,55,244,0.08)]"
+                        className="group flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3.5 transition-all duration-200 hover:border-[#93f72b]/30 hover:bg-white/[0.06]"
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           <img
                             src={meeting.mentee.avatar}
                             alt=""
-                            className="h-11 w-11 shrink-0 rounded-full object-cover"
+                            className="h-10 w-10 shrink-0 rounded-xl object-cover border border-white/15"
                           />
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-slate-900">{meeting.mentee.name}</p>
-                            <p className="text-xs text-slate-500">
+                            <p className="truncate text-xs font-bold text-white group-hover:text-[#93f72b] transition-colors">{meeting.mentee.name}</p>
+                            <p className="text-[11px] text-slate-400 truncate mt-0.5">
                               {meeting.sessionTypeLabel || meeting.position}
                             </p>
                           </div>
                         </div>
                         <div className="shrink-0 text-right">
-                          <p className="text-sm font-bold text-[#8037f4]">{meeting.scheduledTime}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs font-bold text-white">{meeting.scheduledTime}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
                             {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
                           </p>
                         </div>
@@ -784,80 +825,86 @@ export function MentorDashboard() {
               </div>
             </motion.div>
 
+            {/* Quick Action Bento Cards */}
             <motion.div variants={dashboardFadeUp} className="grid gap-4 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => navigate("/mentor/schedule")}
-                className="group flex items-center gap-4 rounded-2xl border border-violet-100 bg-[#8037f4]/[0.06] p-5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_8px_22px_rgba(128,55,244,0.1)]"
+                className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-[#160f26]/85 p-5 text-left transition-all duration-300 hover:border-[#93f72b]/40 hover:bg-[#160f26] shadow-lg"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#8037f4]/15 text-[#8037f4] transition-transform duration-200 group-hover:scale-110">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#93f72b]/30 bg-[#93f72b]/10 text-[#93f72b] transition-transform group-hover:scale-105">
                   <CalendarBlank size={20} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900">Lịch trình</p>
-                  <p className="mt-0.5 text-xs text-slate-500">Quản lý meetings &amp; tài liệu</p>
+                  <p className="text-sm font-bold text-white group-hover:text-[#93f72b] transition-colors">Lịch trình & Khung giờ</p>
+                  <p className="mt-0.5 text-xs text-slate-400">Điều phối phòng họp và khung giờ rảnh</p>
                 </div>
-                <ChevronRight size={18} className="shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-violet-500" />
+                <ChevronRight size={16} className="shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-white" />
               </button>
+
               <button
                 type="button"
-                onClick={() => navigate("/mentor/finance")}
-                className="group flex items-center gap-4 rounded-2xl border border-[#93f72b]/40 bg-[#93f72b]/15 p-5 text-left transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#93f72b]/60 hover:shadow-[0_8px_22px_rgba(147,247,43,0.14)]"
+                onClick={() => navigate("/mentor/courses")}
+                className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-[#160f26]/85 p-5 text-left transition-all duration-300 hover:border-violet-500/40 hover:bg-[#160f26] shadow-lg"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#93f72b]/20 text-slate-900 transition-transform duration-200 group-hover:scale-110">
-                  <Wallet size={20} />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-500/10 text-violet-300 transition-transform group-hover:scale-105">
+                  <Video size={20} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900">Tài chính</p>
-                  <p className="mt-0.5 text-xs text-slate-500">Rút tiền về ví của bạn</p>
+                  <p className="text-sm font-bold text-white group-hover:text-violet-300 transition-colors">Studio Khóa học & Video</p>
+                  <p className="mt-0.5 text-xs text-slate-400">Soạn bài giảng, đăng tải video mới</p>
                 </div>
-                <ChevronRight size={18} className="shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-slate-700" />
+                <ChevronRight size={16} className="shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-white" />
               </button>
             </motion.div>
           </div>
 
-          <div className="space-y-5 lg:col-span-4">
+          {/* Right Column (4 cols): Wallet & Recent Activities */}
+          <div className="space-y-6 lg:col-span-4">
+            {/* Total Earnings Wallet */}
             <motion.div
               variants={dashboardFadeUp}
-              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#8037f4] to-[#630ed4] p-6 text-white shadow-[0_8px_30px_rgba(128,55,244,0.28)]"
+              className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#10081d]/95 p-6 shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl"
             >
-              <motion.div
-                animate={{ scale: [1, 1.08, 1], opacity: [0.25, 0.35, 0.25] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-violet-500/25"
-                aria-hidden
-              />
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-200/90">
-                Tổng thu nhập
-              </p>
-              <p className="mentor-stat-num mentor-stat-num--hero mentor-stat-num--on-dark mentor-stat-num--money mt-3">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#93f72b]/30 to-transparent" />
+              
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Ví hoa hồng
+                </p>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/15 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
+                  <Landmark size={15} />
+                </span>
+              </div>
+              <p className="mt-4 text-3xl font-black tracking-tight text-white">
                 <MentorMoneyText amount={stats.totalEarned} />
               </p>
-              <p className="mt-2 text-xs text-violet-200/90">
-                Khả dụng để rút -{" "}
-                <MentorMoneyText amount={stats.availableBalance} className="font-semibold" />
-              </p>
+              <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5">
+                <span className="text-xs text-slate-400 font-medium">Khả dụng để rút:</span>
+                <MentorMoneyText amount={stats.availableBalance} className="text-xs font-bold text-[#93f72b]" />
+              </div>
               <motion.button
                 type="button"
                 onClick={() => navigate("/mentor/finance")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#93f72b] py-3.5 text-sm font-bold text-slate-900 shadow-[0_8px_20px_rgba(147,247,43,0.35)] transition hover:brightness-105"
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#93f72b] px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.3)] transition hover:bg-[#a8ff4e]"
               >
-                <Wallet size={16} />
-                Rút tiền
+                <Wallet size={15} />
+                <span>Rút tiền về tài khoản</span>
               </motion.button>
             </motion.div>
 
+            {/* Recent Completed Sessions */}
             <motion.div
               variants={dashboardFadeUp}
-              className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-shadow duration-300 hover:shadow-[0_6px_20px_rgba(15,23,42,0.06)] sm:p-6"
+              className="rounded-2xl border border-white/10 bg-[#160f26]/85 backdrop-blur-xl p-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
             >
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Hoàn thành gần đây
               </h3>
               {recentCompleted.length === 0 ? (
-                <p className="mt-4 text-sm text-slate-500">Chưa có buổi hoàn thành gần đây</p>
+                <p className="mt-4 text-xs text-slate-400">Chưa có buổi phỏng vấn nào hoàn thành gần đây</p>
               ) : (
                 <div className="mt-4 space-y-3">
                   {recentCompleted.map((meeting, idx) => (
@@ -865,27 +912,27 @@ export function MentorDashboard() {
                       key={meeting.id}
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.2 + idx * 0.06, duration: 0.35 }}
+                      transition={{ delay: 0.15 + idx * 0.05, duration: 0.35 }}
                       role="button"
                       tabIndex={0}
                       onClick={() => setSelectedMeeting(meeting)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") setSelectedMeeting(meeting);
                       }}
-                      className="group flex cursor-pointer items-center gap-3 rounded-lg p-1 transition-colors duration-200 hover:bg-slate-50"
+                      className="group flex cursor-pointer items-center gap-3 rounded-xl p-2.5 transition-all duration-200 hover:bg-white/5"
                     >
                       <img
                         src={meeting.mentee.avatar}
                         alt=""
-                        className="h-9 w-9 rounded-full object-cover grayscale transition group-hover:grayscale-0"
+                        className="h-9 w-9 rounded-xl object-cover border border-white/10"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-900">{meeting.mentee.name}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="truncate text-xs font-bold text-white group-hover:text-[#93f72b] transition-colors">{meeting.mentee.name}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
                           {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
                         </p>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1 text-violet-700">
+                      <div className="flex shrink-0 items-center gap-1 text-[#93f72b]">
                         <Star size={12} className="fill-current" />
                         <span className="text-xs font-bold">
                           {meeting.overallScore > 0 ? meeting.overallScore.toFixed(1) : "—"}
@@ -898,36 +945,37 @@ export function MentorDashboard() {
               <button
                 type="button"
                 onClick={() => navigate("/mentor/analytics")}
-                className="mt-5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 transition hover:text-violet-700"
+                className="mt-5 text-xs font-bold uppercase tracking-wider text-slate-400 transition hover:text-[#93f72b]"
               >
                 Xem toàn bộ lịch sử →
               </button>
             </motion.div>
 
+            {/* Peer Review Callout — Dark Luxury */}
             <motion.div
               variants={dashboardFadeUp}
-              className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-shadow duration-300 hover:shadow-[0_8px_24px_rgba(128,55,244,0.1)]"
+              className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-violet-950/40 via-[#160f26]/90 to-[#10091e]/90 p-6 shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl group"
             >
-              <div className="mb-4 flex h-24 items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
-                <FileBadge size={32} className="text-[#8037f4]/40" strokeWidth={1.5} />
+              <div className="mb-4 flex h-20 items-center justify-center rounded-xl border border-dashed border-white/15 bg-white/[0.02]">
+                <FileBadge size={32} className="text-[#93f72b]/60 transition-transform group-hover:scale-110" strokeWidth={1.5} />
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8037f4]">
-                Đánh giá khóa học
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#93f72b]">
+                ● Đánh giá chéo khóa học
               </p>
-              <h3 className="mt-2 font-headline text-lg font-black text-slate-900">
+              <h3 className="mt-2 text-base font-bold text-white">
                 Góp ý &amp; nhận điểm thưởng
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Đánh giá chéo nội dung cho đồng nghiệp và nhận điểm thưởng từ ProInterview.
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+                Đánh giá chéo nội dung bài giảng cho đồng nghiệp và nhận điểm thưởng uy tín từ ProInterview.
               </p>
               <motion.button
                 type="button"
                 onClick={() => navigate("/mentor/peer-review")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 py-3 text-sm font-bold text-white transition hover:bg-[#8037f4]"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:border-[#93f72b]/50 hover:bg-[#93f72b]/10 hover:text-[#93f72b]"
               >
-                Bắt đầu ngay
+                Bắt đầu đánh giá ngay
                 <ArrowRight size={14} />
               </motion.button>
             </motion.div>

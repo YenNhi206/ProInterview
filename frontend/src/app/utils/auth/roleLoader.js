@@ -9,7 +9,7 @@ function isRouterRedirect(error) {
  * Loader chặn route theo role, xác minh qua `/api/auth/me` (không tin localStorage —
  * role ở client có thể bị sửa tay, nguồn sự thật là server).
  *
- * @param {string|string[]} role role bắt buộc, ví dụ "admin" | "moderator"; mảng = chấp nhận một trong các role
+ * @param {string|string[]} role role bắt buộc, ví dụ "admin" | "moderator" | "company_moderator"; mảng = chấp nhận một trong các role
  * @param {string} basePath đường dẫn quay lại sau khi đăng nhập
  */
 export function createRoleLoader(role, basePath) {

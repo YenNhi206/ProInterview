@@ -19,6 +19,7 @@ import {
   LogOut,
   ChevronsUpDown,
   Upload,
+  Building2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -75,9 +76,10 @@ const MAIN_GROUPS = [
     ],
   },
   {
-    title: "Người dùng",
+    title: "Người dùng & Doanh nghiệp",
     items: [
       { to: "/admin/users", label: "Người dùng", icon: Users },
+      { to: "/admin/companies", label: "Đối tác doanh nghiệp", icon: Building2 },
       { to: "/admin/users/import", label: "Nhập từ Google Form", icon: Upload },
       { to: "/admin/mentors", label: "Cố vấn", icon: GraduationCap },
     ],

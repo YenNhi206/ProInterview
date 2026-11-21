@@ -6,23 +6,33 @@ import React from "react";
  */
 const MENTOR_LIGHT_STYLES = `
         .glass-card {
-           background: #ffffff;
-           backdrop-filter: none;
+           background: rgba(255, 255, 255, 0.03);
+           backdrop-filter: blur(16px);
+           -webkit-backdrop-filter: blur(16px);
            border-radius: 20px;
-           border: 1px solid rgba(186, 165, 255, 0.38);
+           border: 1px solid rgba(255, 255, 255, 0.08);
            transition: transform 0.3s ease, border-color 0.25s ease, box-shadow 0.3s ease;
            position: relative;
            overflow: hidden;
-           box-shadow: 0 8px 18px rgba(128, 55, 244, 0.07);
+           box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
         }
         .glass-card::before {
-           content: none;
+           content: "";
+           position: absolute;
+           inset: 0;
+           border-radius: inherit;
+           padding: 1px;
+           background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+           -webkit-mask-composite: xor;
+           mask-composite: exclude;
+           pointer-events: none;
         }
         @media (hover: hover) {
         .glass-card:hover {
-           border-color: rgba(128, 55, 244, 0.35);
+           border-color: rgba(196, 255, 71, 0.35);
            transform: translateY(-2px);
-           box-shadow: 0 12px 28px rgba(128, 55, 244, 0.12);
+           box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45), 0 0 24px rgba(196, 255, 71, 0.12);
         }
         }
         .glow-halo {
@@ -86,14 +96,12 @@ const MENTOR_LIGHT_STYLES = `
           font-weight: 900;
           font-variation-settings: "wght" 900;
           line-height: 1;
-          letter-spacing: -0.06em;
+          letter-spacing: -0.04em;
           font-variant-numeric: tabular-nums;
           font-feature-settings: "tnum" 1;
-          color: #0f172a;
+          color: #ffffff;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
-          paint-order: stroke fill;
-          -webkit-text-stroke: 0.4px currentColor;
         }
         .mentor-stat-num--hero {
           font-size: 1.75rem;
@@ -161,7 +169,7 @@ export function MentorPageShell({
     : "min-h-screen overflow-x-clip";
   return (
     <div
-      className={`mentor-surface relative antialiased ${heightBlock} font-sans text-slate-900 selection:bg-violet-100 selection:text-violet-900 bg-transparent ${bottomPad} ${mentorRole ? "mentor-role-shell " : ""}${className}`.trim()}
+      className={`mentor-surface relative antialiased ${heightBlock} font-sans text-white selection:bg-violet-100 selection:text-violet-900 bg-transparent ${bottomPad} ${mentorRole ? "mentor-role-shell " : ""}${className}`.trim()}
     >
       <style>{`${MENTOR_LIGHT_STYLES}${extraStyles || ""}`}</style>
       {showAmbient && (

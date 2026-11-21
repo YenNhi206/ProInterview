@@ -29,6 +29,10 @@ import { coursesRouter } from "./routes/courses.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { adminRouter } from "./routes/admin.js";
 import { moderatorRouter } from "./routes/moderator.js";
+import { companyRouter } from "./routes/company.js";
+import { companyInvitesRouter } from "./routes/companyInvites.js";
+import { profileRouter } from "./routes/profile.js";
+import { cvsRouter } from "./routes/cvs.js";
 import { enrollmentsRouter } from "./routes/enrollments.js";
 import { cvRouter } from "./routes/cv.js";
 import { cvMatchRouter } from "./routes/cvMatch.js";
@@ -66,9 +70,11 @@ export function createApp() {
         : defaultDevOrigins;
   const staticCorsOrigin = allowOrigins.length > 0 ? allowOrigins : true;
 
+  const isLoadTest = process.env.LOAD_TEST === "true" || process.env.MOCK_AI_SERVICES === "true";
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: isProd ? 500 : 10_000,
+    max: isLoadTest ? 100_000 : (isProd ? 500 : 10_000),
+    skip: () => isLoadTest,
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => req.path === "/health",
@@ -217,6 +223,10 @@ export function createApp() {
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/moderator", moderatorRouter);
+  app.use("/api/company", companyRouter);
+  app.use("/api/company-invites", companyInvitesRouter);
+  app.use("/api/profile", profileRouter);
+  app.use("/api/cvs", cvsRouter);
   app.use("/api/enrollments", enrollmentsRouter);
   app.use("/api/cv", cvRouter);
   app.use("/api/cv", cvMatchRouter);

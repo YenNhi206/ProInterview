@@ -6,7 +6,7 @@ import { activateMentorCommissionPolicy } from "./mentorCommissionService.js";
  * Role admin được phép gán cho user khác. Cố ý KHÔNG có `admin` — nâng quyền quản trị
  * phải làm thủ công ở DB, tránh một admin bị chiếm tài khoản tự nhân bản quyền.
  */
-export const ASSIGNABLE_ROLES = ["customer", "mentor", "moderator", "enterprise"];
+export const ASSIGNABLE_ROLES = ["customer", "mentor", "moderator", "company_moderator"];
 
 /**
  * Admin đặt role cho user khác (không đụng tài khoản admin).

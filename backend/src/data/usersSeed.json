@@ -26,7 +26,7 @@
   {
     "email": "enterprise@dev.local",
     "name": "Tổ chức Dev",
-    "role": "enterprise",
+    "role": "company_moderator",
     "password": "Dev123456"
   }
 ]

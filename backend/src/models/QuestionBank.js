@@ -156,11 +156,9 @@ const questionBankSchema = new Schema(
     },
     /**
      * null = pool dùng chung toàn hệ thống.
-     * Có giá trị = câu hỏi riêng của tổ chức (Enterprise template), không phục vụ user ngoài tổ chức.
-     * `ref` trỏ tới model `Organization` sẽ được thêm ở package Enterprise — tới lúc đó
-     * đừng gọi .populate("orgId") vì model chưa đăng ký.
+     * Có giá trị = câu hỏi riêng của công ty (Enterprise template), không phục vụ user ngoài công ty.
      */
-    orgId: { type: Schema.Types.ObjectId, ref: "Organization", default: null, index: true },
+    orgId: { type: Schema.Types.ObjectId, ref: "Company", default: null, index: true },
 
     // ----- Vòng đời kiểm duyệt -----
     status: {

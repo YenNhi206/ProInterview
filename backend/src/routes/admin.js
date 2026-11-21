@@ -8,6 +8,7 @@ import { requireAdmin } from "../middleware/requireAdmin.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { AdminController } from "../controllers/adminController.js";
 import { AdminCostDashboardController } from "../controllers/adminCostDashboardController.js";
+import { AdminCompanyController } from "../controllers/adminCompanyController.js";
 import { upload } from "../middleware/upload.js";
 
 export const adminRouter = Router();
@@ -88,3 +89,12 @@ adminRouter.patch("/payouts/:id/reject", asyncHandler(AdminAccountController.rej
 adminRouter.get("/interview-metrics", asyncHandler(AdminController.getInterviewMetrics));
 adminRouter.get("/analytics/user-behavior", asyncHandler(AdminController.getPlatformBehavior));
 adminRouter.get("/analytics/users/:id/journey", asyncHandler(AdminController.getUserJourney));
+
+// ----- Quản lý đối tác doanh nghiệp / Công ty (CO-01 & CO-02) -----
+adminRouter.get("/companies", asyncHandler(AdminCompanyController.list));
+adminRouter.post("/companies", asyncHandler(AdminCompanyController.create));
+adminRouter.get("/companies/:id", asyncHandler(AdminCompanyController.getById));
+adminRouter.patch("/companies/:id", asyncHandler(AdminCompanyController.update));
+adminRouter.patch("/companies/:id/status", asyncHandler(AdminCompanyController.toggleStatus));
+adminRouter.post("/companies/:id/invites", asyncHandler(AdminCompanyController.inviteModerator));
+adminRouter.get("/companies/:id/invites", asyncHandler(AdminCompanyController.listInvites));

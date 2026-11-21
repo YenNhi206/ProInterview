@@ -95,11 +95,14 @@ import { ModeratorQuestions } from "./pages/moderator/ModeratorQuestions.jsx";
 import { ModeratorQueue } from "./pages/moderator/ModeratorQueue.jsx";
 import { ModeratorQueueItem } from "./pages/moderator/ModeratorQueueItem.jsx";
 import { ModeratorQuality } from "./pages/moderator/ModeratorQuality.jsx";
+import { ModeratorRubrics } from "./pages/moderator/ModeratorRubrics.jsx";
+import { AdminCompanies } from "./pages/admin/AdminCompanies.jsx";
+import { CompanyInviteAccept } from "./pages/auth/CompanyInviteAccept.jsx";
 import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
+import { CompanyDashboard } from "./pages/company/CompanyDashboard.jsx";
+import { CompanyQuestions } from "./pages/company/CompanyQuestions.jsx";
+import { CompanyRubrics } from "./pages/company/CompanyRubrics.jsx";
 import {
-  CompanyOverview,
-  CompanyQuestions,
-  CompanyRubrics,
   CompanyJobs,
   CompanyApplications,
 } from "./pages/company/CompanyPages.jsx";
@@ -109,7 +112,7 @@ import { createRoleLoader } from "./utils/auth/roleLoader.js";
 const moderatorLoader = createRoleLoader("moderator", "/moderator");
 const companyLoader = createRoleLoader(COMPANY_ROLES, "/company");
 
-/** Đã đăng nhập mentor/admin/moderator/company → hub riêng, không xem landing customer. */
+/** Đã đăng nhập mentor/admin/moderator/company_moderator → hub riêng, không xem landing customer. */
 function roleHomeLoader() {
   const user = getUser();
   if (user?.role === "mentor") throw redirect("/mentor/dashboard");
@@ -162,6 +165,7 @@ export const router = createBrowserRouter([
               const user = getUser();
               if (user?.role === "admin") throw redirect("/admin");
               if (user?.role === "mentor") throw redirect("/mentor/dashboard");
+              if (user?.role === "company_moderator") throw redirect("/company");
               return null;
             },
             Component: Dashboard,
@@ -230,6 +234,8 @@ export const router = createBrowserRouter([
       { path: "users", Component: AdminUsers },
       { path: "users/import", Component: AdminImportUsers },
       { path: "users/:id", Component: AdminUserDetail },
+      { path: "companies", Component: AdminCompanies },
+      { path: "companies/:id", Component: AdminCompanies },
       { path: "mentors/pending", Component: AdminMentorsPending },
       { path: "mentors/:id", Component: AdminMentorDetail },
       { path: "mentors", Component: AdminMentors },
@@ -265,18 +271,20 @@ export const router = createBrowserRouter([
       { index: true, loader: () => redirect("/moderator/queue") },
       { path: "courses", Component: AdminContentCourses },
       { path: "questions", Component: ModeratorQuestions },
+      { path: "rubrics", Component: ModeratorRubrics },
       { path: "queue", Component: ModeratorQueue },
       { path: "queue/:id", Component: ModeratorQueueItem },
       { path: "quality", Component: ModeratorQuality },
     ],
   },
+  { path: "/company-invite/:token", Component: CompanyInviteAccept },
   {
     path: "/company",
     Component: CompanyLayout,
     loader: companyLoader,
     children: [
       { index: true, loader: () => redirect("/company/overview") },
-      { path: "overview", Component: CompanyOverview },
+      { path: "overview", Component: CompanyDashboard },
       { path: "questions", Component: CompanyQuestions },
       { path: "rubrics", Component: CompanyRubrics },
       { path: "jobs", Component: CompanyJobs },

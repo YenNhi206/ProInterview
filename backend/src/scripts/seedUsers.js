@@ -14,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SALT_ROUNDS = 10;
 
 /** Phải khớp enum `role` trong models/User.js — thiếu role nào thì seed âm thầm tụt về customer. */
-const SEEDABLE_ROLES = ["customer", "mentor", "admin", "moderator", "enterprise"];
+const SEEDABLE_ROLES = ["customer", "mentor", "admin", "moderator", "company_moderator"];
 
 async function main() {
   const uri = process.env.MONGO_URI;

@@ -763,3 +763,197 @@ Table 4.2 : Table Descriptions
 3.19 Admin Finance
 
 3.21 Achievement
+
+#### 3.22 Candidate Profile (Hồ sơ ứng viên & Năng lực xác thực)
+
+##### 3.22.1 Sequence Diagram: Tự động khởi tạo & Cập nhật Hồ sơ ứng viên
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Candidate as Ứng viên (Frontend)
+    participant Controller as candidateProfileController
+    participant Service as candidateProfileService
+    participant DB as MongoDB (CandidateProfile / CVDocument / User)
+
+    Note over Candidate, DB: Lần đầu truy cập - Tự động khởi tạo
+    Candidate->>Controller: GET /api/profile/me (Bearer Token)
+    Controller->>Service: getOrCreateCandidateProfile(userId)
+    Service->>DB: CandidateProfile.findOne({ userId })
+    alt Chưa có profile
+        Service->>DB: User.findById(userId)
+        Service->>DB: CVDocument.findOne({ userId, isDefault: true })
+        Service->>DB: CandidateProfile.create({ userId, headline, targetRole, competencies })
+    end
+    Service-->>Controller: profile
+    Controller-->>Candidate: 200 OK { success: true, profile }
+
+    Note over Candidate, DB: Cập nhật thông tin hồ sơ
+    Candidate->>Controller: PATCH /api/profile/me (headline, targetRoles, summary)
+    Controller->>Service: updateCandidateProfile(userId, updateData)
+    Service->>DB: CandidateProfile.findOneAndUpdate({ userId }, updateData, { new: true })
+    Service-->>Controller: updatedProfile
+    Controller-->>Candidate: 200 OK { success: true, profile: updatedProfile }
+```
+
+##### 3.22.2 Sequence Diagram: Tổng hợp Bằng chứng Năng lực (Competency Aggregation)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Candidate as Ứng viên (Frontend)
+    participant Controller as candidateProfileController
+    participant Service as candidateProfileService
+    participant Interview as InterviewSession
+    participant Booking as Booking
+    participant DB as MongoDB (CandidateProfile)
+
+    Candidate->>Controller: GET /api/profile/me/competencies
+    Controller->>Service: getProfileCompetencies(userId)
+    Service->>DB: getOrCreateCandidateProfile(userId)
+    Service->>Interview: find({ userId, status: "completed" }) (Bỏ qua abandoned)
+    Service->>Booking: find({ menteeId: userId, status: "completed" })
+    Note over Service: Tính điểm trung bình & cấp độ (1-5)<br/>Cập nhật evidenceCount và danh sách nguồn bằng chứng
+    Service->>DB: profile.save() (Cập nhật isVerified = true)
+    Service-->>Controller: { competencies, snapshot }
+    Controller-->>Candidate: 200 OK { success: true, competencies, snapshot }
+```
+
+#### 3.23 CV Portfolio (Kho CV, Nhân bản, Validate & Xuất PDF)
+
+##### 3.23.1 Sequence Diagram: Tải lên & Validate CV (Kiểm tra định dạng & Hóa đơn)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Candidate as Ứng viên (Frontend)
+    participant UploadCtrl as uploadController
+    participant Validator as cvValidator
+    participant Service as cvDocumentService
+    participant DB as MongoDB (CVDocument)
+
+    Candidate->>UploadCtrl: POST /api/upload/cv (Multipart File)
+    UploadCtrl->>Validator: validateUploadedCvBuffer(file.buffer, file.originalname)
+    Note over Validator: Kiểm tra magic bytes (PNG/JPEG header) & Text hóa đơn VAT
+    alt File không hợp lệ (Ảnh hoặc Hóa đơn)
+        Validator-->>UploadCtrl: { isValid: false, reason: "..." }
+        UploadCtrl-->>Candidate: 400 Bad Request { success: false, error: "..." }
+    else File CV hợp lệ
+        Validator-->>UploadCtrl: { isValid: true }
+        UploadCtrl->>Service: createCVDocument({ userId, fileUrl, ... })
+        Service->>DB: CVDocument.create() (Tự động isDefault nếu là CV đầu tiên)
+        Service-->>UploadCtrl: cvDocument
+        UploadCtrl-->>Candidate: 201 Created { success: true, cv: cvDocument }
+    end
+```
+
+##### 3.23.2 Sequence Diagram: Nhân bản CV & Quản lý Version
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Candidate as Ứng viên (Frontend)
+    participant Controller as cvDocumentController
+    participant Service as cvDocumentService
+    participant DB as MongoDB (CVDocument)
+
+    Candidate->>Controller: POST /api/cvs/:id/duplicate
+    Controller->>Service: duplicateCV(cvId, userId)
+    Service->>DB: CVDocument.findOne({ _id: cvId, userId })
+    Service->>DB: CVDocument.create({ title: "[Bản sao] " + title, isDefault: false, parentCvId: cvId })
+    Service-->>Controller: duplicatedCv
+    Controller-->>Candidate: 201 Created { success: true, cv: duplicatedCv }
+```
+
+##### 3.23.3 Sequence Diagram: Xuất PDF tiếng Việt chuẩn ATS
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Candidate as Ứng viên (Frontend)
+    participant Controller as cvDocumentController
+    participant PDFService as cvExportPdfService
+    participant PDFKit as PDFKit Engine (DejaVuSans.ttf)
+
+    Candidate->>Controller: POST /api/cvs/:id/export-pdf
+    Controller->>PDFService: generateCvPdf(cvDocument)
+    PDFService->>PDFKit: Khởi tạo Document & nạp font tiếng Việt DejaVuSans
+    PDFService->>PDFKit: Vẽ bố cục ATS 1 cột (Header, Kinh nghiệm, Học vấn, Kỹ năng)
+    PDFKit-->>PDFService: PDF Stream / Buffer
+    PDFService-->>Controller: pdfBuffer
+    Controller-->>Candidate: 200 OK (Content-Type: application/pdf, Content-Disposition: attachment)
+```
+
+#### 3.25 Partner Companies (Quản lý Công ty & Lời mời HR)
+
+##### 3.25.1 Sequence Diagram: Admin tạo Công ty & Gửi Lời mời Company Moderator
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Quản trị viên (Admin)
+    participant CompanyCtrl as adminCompanyController
+    participant InviteCtrl as companyInviteController
+    participant Mail as emailService
+    participant DB as MongoDB (Company / CompanyInvite)
+
+    Admin->>CompanyCtrl: POST /api/admin/companies (name, taxCode, industry)
+    CompanyCtrl->>DB: Company.create({ name, taxCode, industry, status: "active" })
+    CompanyCtrl-->>Admin: 201 Created { success: true, company }
+
+    Admin->>InviteCtrl: POST /api/admin/companies/:id/invites (email)
+    InviteCtrl->>DB: Kiểm tra email chưa có role customer/mentor (Quyết định 14)
+    InviteCtrl->>DB: CompanyInvite.create({ email, companyId, tokenHash, expiresAt: +7 days })
+    InviteCtrl->>Mail: sendCompanyInviteEmail(email, inviteUrl)
+    InviteCtrl-->>Admin: 201 Created { success: true, message: "Đã gửi lời mời" }
+```
+
+##### 3.25.2 Sequence Diagram: HR nhận Lời mời & Truy cập Phân quyền Cách ly
+```mermaid
+sequenceDiagram
+    autonumber
+    actor HR as Đại diện Doanh nghiệp (HR)
+    participant InviteCtrl as companyInviteController
+    participant Middleware as requireCompanyModerator
+    participant CompanyRouter as /api/company/*
+    participant DB as MongoDB (User / CompanyInvite / Company)
+
+    HR->>InviteCtrl: POST /api/company-invites/accept (token, name, password)
+    InviteCtrl->>DB: CompanyInvite.findOne({ tokenHash, isAccepted: false, expiresAt > now })
+    InviteCtrl->>DB: User.create({ email, name, role: "company_moderator", companyId })
+    InviteCtrl->>DB: invite.isAccepted = true
+    InviteCtrl-->>HR: 200 OK { success: true, token: jwt }
+
+    HR->>CompanyRouter: GET /api/company/questions (Bearer Token)
+    CompanyRouter->>Middleware: requireCompanyModerator(req, res, next)
+    Middleware->>DB: User.findById(userId) & Company.findById(companyId)
+    Note over Middleware: Kiểm tra company status === "active"<br/>Gán req.companyId = user.companyId
+    Middleware-->>CompanyRouter: next() (Cách ly dữ liệu, chặn 403 nếu truy cập chéo)
+    CompanyRouter-->>HR: 200 OK { questions: [...] }
+```
+
+#### 3.26 Company Evaluation & Rubrics (Ngân hàng câu hỏi & Duyệt Rubric)
+
+##### 3.26.1 Sequence Diagram: Soạn Rubric, Kiểm tra 100% trọng số & Duyệt Platform Mod
+```mermaid
+sequenceDiagram
+    autonumber
+    actor HR as Company Moderator
+    actor Mod as Platform Moderator
+    participant RubricCtrl as companyWorkspaceController
+    participant ModCtrl as moderatorRubricController
+    participant DB as MongoDB (CompanyRubric)
+
+    HR->>RubricCtrl: POST /api/company/rubrics (roleCategory, criteria)
+    Note over RubricCtrl: Kiểm tra sum(weights) === 100%
+    RubricCtrl->>DB: CompanyRubric.create({ companyId, criteria, status: "draft" })
+    RubricCtrl-->>HR: 201 Created { rubric }
+
+    HR->>RubricCtrl: POST /api/company/rubrics/:id/submit
+    RubricCtrl->>DB: CompanyRubric.findByIdAndUpdate(id, { status: "pending_review" })
+    RubricCtrl-->>HR: 200 OK { message: "Đã gửi duyệt rubric" }
+
+    Mod->>ModCtrl: GET /api/moderator/rubrics/pending
+    ModCtrl->>DB: CompanyRubric.find({ status: "pending_review" }).populate("companyId")
+    ModCtrl-->>Mod: 200 OK { rubrics: [...] }
+
+    Mod->>ModCtrl: POST /api/moderator/rubrics/:id/approve (moderatorNotes)
+    ModCtrl->>DB: Lưu version cũ cùng roleCategory -> "archived"
+    ModCtrl->>DB: Cập nhật rubric hiện tại -> "approved" (Đảm bảo mỗi roleCategory chỉ 1 bản approved)
+    ModCtrl-->>Mod: 200 OK { success: true, message: "Đã phê duyệt rubric" }
+```
+

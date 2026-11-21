@@ -97,6 +97,14 @@ export async function listVoices() {
  * @returns {Promise<{buffer: Buffer, contentType: string}|null>} null nếu ElevenLabs không enabled
  */
 export async function synthesizeSpeech(text, opts = {}) {
+  // QA-01: Chế độ mock ElevenLabs bằng biến môi trường để test tải không tốn tiền
+  if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") {
+    return {
+      buffer: Buffer.from("MOCK_ELEVENLABS_TTS_AUDIO_BUFFER"),
+      contentType: "audio/mpeg",
+    };
+  }
+
   if (!isElevenLabsEnabled()) return null;
 
   const { apiKey, voiceId: defaultVoiceId, modelId: defaultModelId } = cfg();
