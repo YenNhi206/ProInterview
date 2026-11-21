@@ -846,6 +846,12 @@ export function MentorshipRequests() {
                       )
                     )
                   )}
+                  {/* LP-18: ứng viên thấy lộ trình mentor đã gửi (backend không trả bản nháp cho ứng viên). */}
+                  {!mentor && request.learningPath && (
+                    <Link className="mr-primary mt-3 inline-flex" to="/learning-paths">
+                      Xem lộ trình mentor gửi <ArrowRight size={15} />
+                    </Link>
+                  )}
                 </section>
               )}
 

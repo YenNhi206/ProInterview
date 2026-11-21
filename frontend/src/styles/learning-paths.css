@@ -132,3 +132,10 @@
   .lp-session-tools { justify-content: flex-end; padding-bottom: 0; }
   .lp-ready-list { grid-template-columns: 1fr; }
 }
+
+/* ---------- Ứng viên: /learning-paths (LP-18) ---------- */
+.lp-candidate-card { display: flex; flex-direction: column; }
+.lp-candidate-card .mr-list-link { margin-top: auto; }
+.lp-mentor-link { color: #e9dcf8; font-weight: 550; }
+.lp-mentor-link:hover { color: #93f72b; }
+.lp-next-step { margin: 14px 0 17px !important; font-size: 12px; color: #d7c9e6; }

@@ -12,6 +12,7 @@
 import { randomUUID } from "crypto";
 import { calcLLMCost } from "./costCalculator.js";
 import { recordCostEvent } from "./costLedgerService.js";
+import { COST_EVENT_KIND } from "../constants/costEventKinds.js";
 
 // traceId → { userId, tags } — để logGeneration/logEvent biết userId/tags của trace gốc
 // khi ghi vào cost ledger (Langfuse ingest body không cần userId lặp lại ở mỗi generation,
@@ -99,6 +100,8 @@ export function createTrace({ name, userId, sessionId, metadata = {}, tags = [] 
  * @param {number} opts.latencyMs
  * @param {object} [opts.usage]     - { inputTokens, outputTokens, totalTokens, cacheWriteTokens, cacheReadTokens }
  * @param {object} [opts.metadata]
+ * @param {string} [opts.costKind="llm_call"] - kind ghi vào CostEvent; lời gọi LLM của luồng có ngưỡng
+ *   riêng truyền `COST_EVENT_KIND.RUBRIC_SCORING` (JB-07) hoặc `COST_EVENT_KIND.COURSE_PRESCREEN` (AI-08)
  */
 export function logGeneration({
   traceId,
@@ -110,6 +113,7 @@ export function logGeneration({
   latencyMs,
   usage = {},
   metadata = {},
+  costKind = COST_EVENT_KIND.LLM_CALL,
 }) {
   if (!traceId) return;
   const generationId = randomUUID();
@@ -171,7 +175,7 @@ export function logGeneration({
 
   const ctx = traceContext.get(traceId) ?? {};
   recordCostEvent({
-    kind:      "llm_call",
+    kind:      costKind,
     tags:      ctx.tags ?? [],
     userId:    ctx.userId,
     model,
@@ -211,7 +215,7 @@ export function logEvent({ traceId, name, input = {}, output = {}, metadata = {}
 
   const ctx = traceContext.get(traceId) ?? {};
   recordCostEvent({
-    kind:      name, // "tts_elevenlabs" | "avatar_video_did"
+    kind:      name, // "tts_elevenlabs" | "avatar_video_did"; tên khác COST_EVENT_KINDS bị ledger bỏ qua
     tags:      ctx.tags ?? [],
     userId:    ctx.userId,
     costUsd:   metadata.costUsd ?? 0,

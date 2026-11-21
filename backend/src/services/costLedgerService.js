@@ -10,6 +10,13 @@ import mongoose from "mongoose";
 import { CostEvent } from "../models/CostEvent.js";
 import { logger } from "../config/logger.js";
 import { sendSlackAlert } from "./alertService.js";
+import {
+  COST_KINDS_WITH_DAILY_THRESHOLD,
+  getCostKindDailyThreshold,
+  isValidCostEventKind,
+} from "../constants/costEventKinds.js";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function isMongoReady() {
   return mongoose.connection.readyState === 1;
@@ -17,7 +24,7 @@ function isMongoReady() {
 
 /**
  * @param {object} opts
- * @param {string} opts.kind - "llm_call" | "tts_elevenlabs" | "avatar_video_did"
+ * @param {string} opts.kind - một giá trị trong `COST_EVENT_KINDS` (constants/costEventKinds.js)
  * @param {string[]} [opts.tags]
  * @param {string} [opts.userId]
  * @param {string} [opts.model]
@@ -41,6 +48,10 @@ export async function recordCostEvent({
     return null;
   }
   if (!isMongoReady()) return; // dev không có Mongo, hoặc DB tạm mất kết nối — bỏ qua, không throw
+  if (!isValidCostEventKind(kind)) {
+    logger.warn("cost_ledger_unknown_kind", { kind });
+    return;
+  }
   try {
     await CostEvent.create({
       kind,
@@ -54,7 +65,60 @@ export async function recordCostEvent({
     });
   } catch (err) {
     logger.warn("cost_ledger_write_failed", { error: err.message, kind });
+    return;
   }
+
+  if (getCostKindDailyThreshold(kind)) {
+    try {
+      await checkCostKindDailyThreshold(kind);
+    } catch (err) {
+      logger.warn("cost_threshold_check_failed", { error: err.message, kind });
+    }
+  }
+}
+
+function utcDayStart(now) {
+  const d = new Date(now);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
+/**
+ * Tổng chi phí và số lần gọi trong ngày (UTC, cùng cách group với getCostDashboard) của một kind
+ * có ngưỡng; vượt `maxDailyUsd` hoặc `maxDailyCount` thì gửi Slack, tối đa 1 lần / kind / ngày (AI-12).
+ *
+ * @param {string} kind
+ * @param {object} [opts]
+ * @param {Date}    [opts.now=new Date()]
+ * @param {boolean} [opts.alert=true] - false: chỉ trả trạng thái, không gửi Slack (dùng cho dashboard)
+ * @returns {Promise<null | { kind, day, costUsd, count, maxDailyUsd, maxDailyCount, exceeded }>}
+ *   null khi kind không có ngưỡng hoặc MongoDB chưa kết nối.
+ */
+export async function checkCostKindDailyThreshold(kind, { now = new Date(), alert = true } = {}) {
+  const threshold = getCostKindDailyThreshold(kind);
+  if (!threshold || !isMongoReady()) return null;
+
+  const since = utcDayStart(now);
+  const [row] = await CostEvent.aggregate([
+    { $match: { kind, createdAt: { $gte: since, $lt: new Date(since.getTime() + DAY_MS) } } },
+    { $group: { _id: null, costUsd: { $sum: "$costUsd" }, count: { $sum: 1 } } },
+  ]);
+
+  const day      = since.toISOString().slice(0, 10);
+  const costUsd  = row?.costUsd ?? 0;
+  const count    = row?.count ?? 0;
+  const exceeded = costUsd > threshold.maxDailyUsd || count > threshold.maxDailyCount;
+
+  if (exceeded && alert) {
+    sendSlackAlert(
+      `💸 *Chi phí ${kind} vượt ngưỡng ngày ${day}*: $${costUsd.toFixed(3)} / ${count} lần ` +
+        `(ngưỡng $${threshold.maxDailyUsd} hoặc ${threshold.maxDailyCount} lần). ` +
+        "Kiểm tra vòng lặp gọi lại hoặc model đang dùng.",
+      { dedupKey: `cost_kind_${kind}_${day}`, dedupMs: DAY_MS },
+    );
+  }
+
+  return { kind, day, costUsd, count, ...threshold, exceeded };
 }
 
 /**
@@ -105,6 +169,12 @@ export async function getCostDashboard({ days = 14 } = {}) {
     );
   }
 
+  const kindThresholds = (
+    await Promise.all(
+      COST_KINDS_WITH_DAILY_THRESHOLD.map((kind) => checkCostKindDailyThreshold(kind, { alert: false })),
+    )
+  ).filter(Boolean);
+
   return {
     ok: true,
     days,
@@ -113,6 +183,7 @@ export async function getCostDashboard({ days = 14 } = {}) {
     todayCostUsd,
     yesterdayCostUsd,
     spike,
+    kindThresholds,
   };
 }
 

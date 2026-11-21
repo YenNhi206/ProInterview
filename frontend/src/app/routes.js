@@ -19,6 +19,7 @@ import { InterviewFeedback } from "./pages/interview/InterviewFeedback";
 import { InterviewTrial } from "./pages/interview/InterviewTrial";
 import { InterviewTrialDone } from "./pages/interview/InterviewTrialDone";
 import { MentorshipRequests } from "./pages/mentorship/MentorshipRequests";
+import { LearningPaths } from "./pages/learningPaths/LearningPaths";
 import { Mentors } from "./pages/mentors/Mentors";
 import { MentorProfile } from "./pages/mentors/MentorProfile";
 import { Booking } from "./pages/booking/Booking";
@@ -172,6 +173,8 @@ export const router = createBrowserRouter([
           { path: "my-bookings", Component: MyBookings },
           { path: "mentor-requests", loader: requireCustomerAuthLoader, Component: MentorshipRequests },
           { path: "mentor-requests/:requestId", loader: requireCustomerAuthLoader, Component: MentorshipRequests },
+          // LP-18: lộ trình mentor đã gửi cho ứng viên (chi tiết /learning-paths/:id ở LP-19).
+          { path: "learning-paths", loader: requireCustomerAuthLoader, Component: LearningPaths },
           { path: "my-courses", Component: MyCourses },
           { path: "payment-history", loader: requireAuthLoader, Component: PaymentHistory },
       { path: "cart", loader: requireCustomerAuthLoader, Component: Cart },
