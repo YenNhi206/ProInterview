@@ -245,7 +245,7 @@ AI-01 đến AI-06 là P0 vì nằm trong kịch bản demo bước 7. `promptVe
 | AI-09 | Todo | FE: nhãn sàng lọc trên `/moderator/courses`; mentor thấy cảnh báo trước khi gửi | Văn | AI-08 | Hiện đúng cờ từ API | P1 |
 | AI-10 | Todo | API `GET /api/recommendations/me`: khóa học, mentor (chuyên môn khớp năng lực còn thiếu, đánh giá), job (năng lực khớp yêu cầu); chấm theo luật có trọng số | Janet | PR-07, JB-03 | Mỗi gợi ý kèm một dòng lý do | P1 |
 | AI-11 | Todo | FE khối gợi ý trên `/dashboard` (mentor, khóa, job) | Nhi | AI-10 | Bấm vào được trang chi tiết | P1 |
-| AI-12 | Doing · Janet | Thêm kind `rubric_scoring`, `course_prescreen` vào `CostEvent`; ngưỡng cảnh báo Slack cho hai loại | Janet | | Lưu được CostEvent mới; làm trước JB-07 và AI-08 | P0 |
+| AI-12 | Review · Janet · PR #209 | Thêm kind `rubric_scoring`, `course_prescreen` vào `CostEvent`; ngưỡng cảnh báo Slack cho hai loại | Janet | | Lưu được CostEvent mới; làm trước JB-07 và AI-08 | P0 |
 | AI-13 | Todo | Bỏ fallback `shrmLevel = "proficient"` khi LLM trả giá trị lạ hoặc thiếu (`interviewQuestionService.js:895`) và khi đọc lại feedback đã cache (`interviewsController.js:612`); thay bằng `""` và để FE hiện "Chưa đủ dữ liệu" | Janet | | Câu thiếu `shrm_level` không còn hiện nhãn "Tốt"; test cả hai chỗ | P1 |
 
 ## Giai đoạn 6: Kiểm thử, đo NFR, tài liệu, demo
