@@ -56,12 +56,11 @@ import {
 } from "../../components/profile/ProfileCvSection";
 import { ProfileWorkHistoryEditor } from "../../components/profile/ProfileWorkHistoryEditor";
 import { ProfileEducationHistoryEditor } from "../../components/profile/ProfileEducationHistoryEditor";
-import { ProfileMultiCvVault } from "../../components/profile/ProfileMultiCvVault";
-import { ProfileVerifiedCompetencies } from "../../components/profile/ProfileVerifiedCompetencies";
 import { uploadFile } from "../../api/uploadApi.js";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import "../../../styles/settings.css";
 import "../../../styles/commerce-theme.css";
+import { CandidateProfilePanel } from "../../components/profile/CandidateProfilePanel.jsx";
 import {
   emptyWorkEntry,
   estimateExperienceYears,
@@ -221,7 +220,8 @@ export function Profile() {
     email: user?.email || "",
     phone: user?.phone || "",
   });
-  const [userCvs, setUserCvs] = useState(user?.savedCvs || []);
+  /** PR-10: số CV (kho /cvs) và số năng lực có bằng chứng — CandidateProfilePanel báo lên để tính mức hoàn thiện. */
+  const [candidateSummary, setCandidateSummary] = useState({ cvCount: 0, verifiedCount: 0 });
   const [saveMsg, setSaveMsg] = useState(null);
   const [mentorProfile, setMentorProfile] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -340,7 +340,7 @@ export function Profile() {
       action: () => jumpToSection("skills"),
     });
 
-    const hasCvs = Boolean(userCvs?.length > 0 || user?.savedCvs?.length > 0);
+    const hasCvs = candidateSummary.cvCount > 0;
     if (hasCvs) score += 10;
     items.push({
       id: "multi-cv",
@@ -349,7 +349,7 @@ export function Profile() {
       action: () => document.getElementById("profile-multi-cv")?.scrollIntoView({ behavior: "smooth" }),
     });
 
-    const hasVerified = Boolean(user?.isCompetencyVerified);
+    const hasVerified = candidateSummary.verifiedCount > 0;
     if (hasVerified) score += 10;
     items.push({
       id: "verified-competencies",
@@ -362,7 +362,7 @@ export function Profile() {
       completionPercentage: Math.min(score, 100),
       checklist: items,
     };
-  }, [form, cvProfile, userCvs, user]);
+  }, [form, cvProfile, candidateSummary, user]);
 
   const scrollToCv = () => {
     document.getElementById("profile-cv")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -676,6 +676,7 @@ export function Profile() {
               )}
           </AnimatePresence>
 
+
           {/* Main Grid: Left Avatar/Stats + Right Workspace */}
           <div className="grid lg:grid-cols-12 gap-8 items-start" id="profile-main-grid">
 
@@ -862,6 +863,8 @@ export function Profile() {
 
                 {/* Quick Navigation Anchor Pills */}
                 <div className="flex flex-wrap items-center gap-2 mb-8 pb-5 border-b border-white/10">
+                  {!isMentor && (
+                    <>
                   <button
                     type="button"
                     onClick={() => document.getElementById("profile-multi-cv")?.scrollIntoView({ behavior: "smooth" })}
@@ -879,6 +882,8 @@ export function Profile() {
                     <ShieldCheck size={13} />
                     Năng lực xác thực (SHRM)
                   </button>
+                    </>
+                  )}
 
                   <button
                     type="button"
@@ -899,24 +904,15 @@ export function Profile() {
                   </button>
                 </div>
 
-                {/* 1. Multi-CV Storage & Management (Quản lý nhiều CV) */}
-                <div id="profile-multi-cv">
-                  <ProfileMultiCvVault
-                    initialCvs={user?.savedCvs || []}
-                    onCvsChange={(cvs) => setUserCvs(cvs)}
-                  />
-                </div>
-
-                {/* 2. Verified Competency Profile (Hồ sơ năng lực đã xác thực) */}
-                <div id="profile-verified-competencies">
-                  <ProfileVerifiedCompetencies
-                    initialProfile={{
-                      isCompetencyVerified: user?.isCompetencyVerified,
-                      verifiedReadinessScore: user?.verifiedReadinessScore,
-                      verifiedCompetencies: user?.verifiedCompetencies,
-                    }}
-                  />
-                </div>
+                {/* 1–2. PR-10: hồ sơ ứng viên trên CVDocument + CandidateProfile (PR-01/02/07) — cùng kho với /cvs.
+                    Thay ProfileMultiCvVault (/api/users/me/cvs) và ProfileVerifiedCompetencies (tự sinh điểm mẫu khi
+                    chưa có dữ liệu). Mentor không có hồ sơ ứng viên. */}
+                {!isMentor && (
+                  <div id="profile-multi-cv" className="mb-8">
+                    <span id="profile-verified-competencies" />
+                    <CandidateProfilePanel onSummary={setCandidateSummary} />
+                  </div>
+                )}
 
                 {/* 3. Basic Contact Info */}
                 <div id="profile-contact-section" className="mb-8">
