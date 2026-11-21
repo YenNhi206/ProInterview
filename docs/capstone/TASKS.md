@@ -175,7 +175,7 @@ Lý do trừ 1: đối chiếu prompt hiện tại cho thấy AI chấm dễ hơ
 | CO-11 | Done | FE trang nhận lời mời `/company-invite/:token` (đặt mật khẩu) | Nhi | CO-02 | Vào thẳng `/company` sau khi nhận | P0 |
 | CO-12 | Done | FE layout `/company` (sidebar, loader theo role), dashboard tóm tắt; thêm nhánh `company_moderator` vào `roleHomeLoader` trong `routes.js` | Văn | CO-03 | Role khác bị đẩy ra; Company Mod vào `/` được chuyển về `/company` | P0 |
 | CO-13 | Done | FE `/company/questions` dạng bảng: nút sinh bộ câu, lọc theo vị trí, duyệt, sửa, từ chối, thêm câu | Văn | CO-05, CO-12 | Thao tác hàng loạt được | P0 |
-| CO-14 | Doing · Nhi | FE `/company/rubrics` và trình soạn rubric (tiêu chí, trọng số, chọn SHRM, mô tả từng mức, gắn câu hỏi) | Nhi | CO-07, CO-12 | Gửi duyệt được, thấy lý do bị từ chối | P0 |
+| CO-14 | Review · Nhi · PR #211 | FE `/company/rubrics` và trình soạn rubric (tiêu chí, trọng số, chọn SHRM, mô tả từng mức, gắn câu hỏi) | Nhi | CO-07, CO-12 | Gửi duyệt được, thấy lý do bị từ chối | P0 |
 | CO-15 | Done | FE `/moderator/rubrics` dạng bảng: danh sách `pending_review`, xem chi tiết, duyệt/từ chối | Văn | CO-08 | Duyệt xong công ty thấy trạng thái mới | P0 |
 
 ## Giai đoạn 3: Candidate Profile và kho CV
