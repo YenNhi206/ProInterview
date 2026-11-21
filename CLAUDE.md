@@ -104,7 +104,13 @@ UPSTASH_REDIS_REST_URL=<https://...>  UPSTASH_REDIS_REST_TOKEN=<token>   # bắt
 JAAS_APP_ID=  JAAS_API_KEY_ID=  JAAS_PRIVATE_KEY=   # thiếu → meet.jit.si
 SEPAY_WEBHOOK_API_KEY=<key>
 SENTRY_DSN=  MAIL_USER=  MAIL_PASS=
+SLACK_ALERT_WEBHOOK_URL=<https://hooks.slack.com/...>   # thiếu → alert chỉ ghi log
+# Ngưỡng Slack theo ngày (UTC) cho CostEvent rubric_scoring / course_prescreen (AI-12); mặc định $2·300 lần / $1·50 lần
+COST_ALERT_RUBRIC_SCORING_DAILY_USD=  COST_ALERT_RUBRIC_SCORING_DAILY_COUNT=
+COST_ALERT_COURSE_PRESCREEN_DAILY_USD=  COST_ALERT_COURSE_PRESCREEN_DAILY_COUNT=
 ```
+
+Lời gọi LLM cho chấm rubric (JB-07) hoặc sàng lọc khóa (AI-08) truyền `costKind: COST_EVENT_KIND.RUBRIC_SCORING` / `COURSE_PRESCREEN` vào `logGeneration()` (`constants/costEventKinds.js`). Kind không có trong danh sách bị ledger bỏ qua (log `cost_ledger_unknown_kind`).
 
 Production cần thêm `REFRESH_TOKEN_PEPPER` (server exit nếu thiếu).
 

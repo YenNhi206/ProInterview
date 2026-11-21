@@ -555,7 +555,12 @@ ensureCollection("securitylogs", {
 
 ensureCollection("costevents", {
   required: ["kind"],
-  properties: { kind: str, costUsd: num, costVnd: num, fromCache: bool },
+  properties: {
+    kind: en("llm_call", "tts_elevenlabs", "avatar_video_did", "rubric_scoring", "course_prescreen"),
+    costUsd: num,
+    costVnd: num,
+    fromCache: bool,
+  },
 }, [
   [{ kind: 1 }],
   [{ tags: 1 }],
