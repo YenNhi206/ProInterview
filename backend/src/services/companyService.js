@@ -270,7 +270,9 @@ export async function acceptInvite({ rawToken, name, password }) {
     user = await User.create({
       name: cleanName,
       email: invite.email,
-      password: passwordHash,
+      // Field mật khẩu của User là `passwordHash`; ghi `password` thì Mongoose bỏ qua im lặng
+      // và HR không đăng nhập được sau khi nhận lời mời.
+      passwordHash,
       role: "company_moderator",
       companyId: invite.companyId._id,
       isEmailVerified: true,
@@ -278,7 +280,7 @@ export async function acceptInvite({ rawToken, name, password }) {
     });
   } else {
     user.name = cleanName;
-    user.password = passwordHash;
+    user.passwordHash = passwordHash;
     user.companyId = invite.companyId._id;
     user.role = "company_moderator";
     await user.save();

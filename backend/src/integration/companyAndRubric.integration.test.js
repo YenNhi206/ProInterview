@@ -212,6 +212,16 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
     assert.equal(acceptData.user.role, "company_moderator");
     assert.equal(String(acceptData.user.companyId), String(companyA._id));
 
+    // Đăng nhập được ngay bằng mật khẩu vừa đặt (trước đây mật khẩu không được lưu)
+    const loginRes = await fetch(`${http.baseUrl}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: inviteEmail, password: "Password123!" }),
+    });
+    assert.equal(loginRes.status, 200);
+    const loginData = await loginRes.json();
+    assert.equal(loginData.user.role, "company_moderator");
+
     // Thử nhận lại lần 2 bằng cùng token -> phải bị 400 (token dùng 1 lần)
     const reuseRes = await fetch(`${http.baseUrl}/api/company-invites/accept`, {
       method: "POST",
