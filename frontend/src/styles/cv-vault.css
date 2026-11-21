@@ -1,0 +1,25 @@
+/*
+ * Kho CV — /cvs (PR-11). Dựng trên bộ khung `mr-*` (mentorship-requests.css) như trang /learning-paths;
+ * chỉ thêm phần riêng của kho CV.
+ */
+.cv-vault .cv-upload { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.cv-vault .cv-upload .mr-form-grid { align-items: start; }
+.cv-vault .cv-upload input[type="file"] { padding: 9px 11px; font-size: 12px; }
+.cv-vault .cv-upload-submit { display: flex; align-items: flex-end; height: 100%; padding-top: 26px; }
+.cv-field-error { color: #fda4af; font-size: 11px; font-weight: 500; }
+
+.cv-card { display: flex; flex-direction: column; }
+.cv-card.is-default { border-color: #93f72b55; }
+.cv-card .mr-status { display: inline-flex; align-items: center; gap: 4px; }
+.cv-file { display: flex; align-items: center; gap: 8px; margin-top: 14px !important; font-size: 12px; color: #cdbde0; min-width: 0; }
+.cv-file svg { flex-shrink: 0; color: #93f72b; }
+.cv-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-file small { flex-shrink: 0; color: #9f8db3; font-size: 11px; }
+.cv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: auto; padding-top: 18px; border-top: 1px solid #ffffff10; }
+.cv-card .cv-actions { margin-top: 18px; }
+.cv-vault .cv-actions :is(.mr-secondary) { padding: 8px 13px; font-size: 11px; }
+.cv-vault .cv-actions .cv-danger:hover:not(:disabled) { border-color: #fda4af80; color: #fecdd3; }
+.cv-spin { animation: cv-spin 1s linear infinite; color: #93f72b; }
+@keyframes cv-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .cv-spin { animation: none; } }
+@media (max-width: 800px) { .cv-vault .cv-upload-submit { padding-top: 0; } }

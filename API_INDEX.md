@@ -544,6 +544,21 @@ Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/
 
 **Quy tắc:** key năng lực giữ nguyên 20 key cũ; bỏ key thì đặt `deprecated: true` (vẫn hiện tên cho dữ liệu cũ, form mentor/rubric không cho chọn). Mức `null` = "Chưa đủ dữ liệu", khác mức 0. BE dùng `isValidCompetencyKey`, `aiAnswerToLevel`, `suggestOutcome`, `toDisplayLevel` trong `competencyFramework.js`.
 
+
+### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11)
+
+**File:** `backend/src/routes/cvs.js` · **Model:** `CVDocument` · Chỉ chủ CV đọc/ghi được (lọc theo `userId`)
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| GET | `/api/cvs` | Bearer | `{ items, cvs }` (cùng dữ liệu): CV mặc định trước, rồi mới cập nhật trước. Mỗi CV có `id`, `title`, `targetRole`, `fileName`, `fileUrl`, `fileSize`, `version`, `isDefault`, `content` |
+| POST | `/api/cvs` | Bearer | multipart `file` (PDF/DOCX/DOC/TXT, ≤ 5 MB, kiểm có phải CV — PR-04) + `title?`, `targetRole?`; hoặc JSON `content` để tạo CV soạn sẵn. CV đầu tiên tự là mặc định. **201** |
+| GET / PATCH | `/api/cvs/:id` | Bearer | Xem / sửa (`title`, `targetRole`, `content`…) |
+| POST | `/api/cvs/:id/duplicate` | Bearer | Bản sao tên `[Bản sao] …`, không mặc định. **201** |
+| POST | `/api/cvs/:id/set-default` | Bearer | Đặt mặc định (bỏ mặc định CV khác, cập nhật `CandidateProfile.defaultCvId`). Alias `PATCH /:id/default` |
+| DELETE | `/api/cvs/:id` | Bearer | Xóa; xóa CV mặc định thì CV mới cập nhật gần nhất thành mặc định |
+| GET / POST | `/api/cvs/:id/export-pdf` | Bearer | Xuất PDF (pdfkit + DejaVu) — PR-09 |
+
 ---
 
 ## Phần B — Tích hợp ngoài (FE gọi trực tiếp)
