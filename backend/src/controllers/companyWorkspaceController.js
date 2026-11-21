@@ -1,6 +1,72 @@
+import mongoose from "mongoose";
 import { QuestionBank, hashQuestionText } from "../models/QuestionBank.js";
 import { CompanyRubric } from "../models/CompanyRubric.js";
 import { assertSameCompany } from "../utils/assertSameCompany.js";
+import { isValidCompetencyKey } from "../services/competencyFramework.js";
+
+/** Thang mô tả của mỗi tiêu chí rubric: 6 mức 0–5 (CO-07). */
+const RUBRIC_LEVELS = ["0", "1", "2", "3", "4", "5"];
+const RUBRIC_MAX_CRITERIA = 10;
+const RUBRIC_LEVEL_MAX_LENGTH = 500;
+
+/**
+ * Chuẩn hóa `criteria` gửi lên khi tạo / sửa rubric (CO-14). Chỉ nhận field của model, kiểm:
+ * `shrmKey` thuộc bộ tiêu chí LP-01 (không deprecated), trọng số nguyên 1–100, mô tả mức 0–5,
+ * câu áp dụng phải là câu đã duyệt của chính công ty. Mô tả mức được để trống khi soạn nháp;
+ * đủ 6 mức mới gửi duyệt được (xem `submitRubric`).
+ * @returns {{ criteria?: object[], error?: string }}
+ */
+async function normalizeRubricCriteria(input, companyId) {
+  if (!Array.isArray(input)) return { error: "Danh sách tiêu chí không hợp lệ." };
+  if (input.length > RUBRIC_MAX_CRITERIA) return { error: `Rubric tối đa ${RUBRIC_MAX_CRITERIA} tiêu chí.` };
+
+  const criteria = [];
+  const allQuestionIds = new Set();
+  for (const [i, raw] of input.entries()) {
+    const label = `Tiêu chí ${i + 1}`;
+    const name = String(raw?.name ?? "").trim();
+    if (!name) return { error: `${label}: tên không được để trống.` };
+    const weight = Number(raw?.weight);
+    if (!Number.isInteger(weight) || weight < 1 || weight > 100) {
+      return { error: `${label}: trọng số phải là số nguyên từ 1 đến 100.` };
+    }
+    const shrmKey = String(raw?.shrmKey ?? "").trim();
+    if (!isValidCompetencyKey(shrmKey)) {
+      return { error: `${label}: năng lực "${shrmKey}" không có trong bộ tiêu chí SHRM/DDI hoặc đã ngừng dùng.` };
+    }
+    const levels = {};
+    for (const level of RUBRIC_LEVELS) {
+      const text = String(raw?.levels?.[level] ?? "").trim();
+      if (text.length > RUBRIC_LEVEL_MAX_LENGTH) {
+        return { error: `${label}: mô tả mức ${level} tối đa ${RUBRIC_LEVEL_MAX_LENGTH} ký tự.` };
+      }
+      levels[level] = text;
+    }
+    const questionIds = [...new Set((raw?.questionIds ?? []).map(String))];
+    if (questionIds.some((id) => !mongoose.isValidObjectId(id))) return { error: `${label}: mã câu hỏi không hợp lệ.` };
+    questionIds.forEach((id) => allQuestionIds.add(id));
+    criteria.push({ name, weight, shrmKey, description: String(raw?.description ?? "").trim(), levels, questionIds });
+  }
+
+  if (allQuestionIds.size) {
+    const owned = await QuestionBank.countDocuments({ _id: { $in: [...allQuestionIds] }, orgId: companyId, status: "approved" });
+    if (owned !== allQuestionIds.size) {
+      return { error: "Chỉ gắn được câu hỏi đã duyệt của công ty bạn." };
+    }
+  }
+  return { criteria };
+}
+
+/** Mức chưa có mô tả của từng tiêu chí — rubric chỉ gửi duyệt khi danh sách này rỗng. */
+function missingLevelDescriptions(criteria = []) {
+  const missing = [];
+  criteria.forEach((c, i) => {
+    const levels = c.levels instanceof Map ? Object.fromEntries(c.levels) : c.levels || {};
+    const empty = RUBRIC_LEVELS.filter((l) => !String(levels[l] ?? "").trim());
+    if (empty.length) missing.push(`tiêu chí ${i + 1} (mức ${empty.join(", ")})`);
+  });
+  return missing;
+}
 
 export const CompanyWorkspaceController = {
   // Lấy thông tin công ty hiện tại của user
@@ -405,6 +471,9 @@ export const CompanyWorkspaceController = {
 
     const nextVersion = (maxVersionDoc?.version || 0) + 1;
 
+    const normalized = await normalizeRubricCriteria(criteria, companyId);
+    if (normalized.error) return res.status(400).json({ success: false, error: normalized.error });
+
     const rubric = await CompanyRubric.create({
       companyId,
       title: title.trim(),
@@ -412,7 +481,7 @@ export const CompanyWorkspaceController = {
       description: description.trim(),
       version: nextVersion,
       status: "draft",
-      criteria,
+      criteria: normalized.criteria,
       createdBy: req.userId,
     });
 
@@ -434,10 +503,18 @@ export const CompanyWorkspaceController = {
       });
     }
 
+    if (rubric.status === "pending_review") {
+      return res.status(409).json({ success: false, error: "Rubric đang chờ Platform Moderator duyệt, chưa sửa được." });
+    }
+
     const { title, description, criteria } = req.body;
     if (title && title.trim()) rubric.title = title.trim();
     if (description !== undefined) rubric.description = description;
-    if (Array.isArray(criteria)) rubric.criteria = criteria;
+    if (criteria !== undefined) {
+      const normalized = await normalizeRubricCriteria(criteria, rubric.companyId);
+      if (normalized.error) return res.status(400).json({ success: false, error: normalized.error });
+      rubric.criteria = normalized.criteria;
+    }
 
     await rubric.save();
     return res.json({ success: true, message: "Cập nhật rubric thành công.", rubric });
@@ -458,6 +535,10 @@ export const CompanyWorkspaceController = {
 
     assertSameCompany(req, rubric.companyId);
 
+    if (!["draft", "rejected"].includes(rubric.status)) {
+      return res.status(409).json({ success: false, error: "Chỉ gửi duyệt được rubric bản nháp hoặc bị từ chối." });
+    }
+
     if (!rubric.criteria || rubric.criteria.length === 0) {
       return res.status(400).json({
         success: false,
@@ -470,6 +551,14 @@ export const CompanyWorkspaceController = {
       return res.status(400).json({
         success: false,
         error: `Tổng trọng số các tiêu chí phải bằng 100% (hiện tại: ${totalWeight}%).`,
+      });
+    }
+
+    const missing = missingLevelDescriptions(rubric.criteria);
+    if (missing.length) {
+      return res.status(400).json({
+        success: false,
+        error: `Cần mô tả đủ 6 mức (0–5) cho mỗi tiêu chí trước khi gửi duyệt. Còn thiếu: ${missing.join("; ")}.`,
       });
     }
 

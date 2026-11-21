@@ -544,6 +544,22 @@ Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/
 
 **Quy tắc:** key năng lực giữ nguyên 20 key cũ; bỏ key thì đặt `deprecated: true` (vẫn hiện tên cho dữ liệu cũ, form mentor/rubric không cho chọn). Mức `null` = "Chưa đủ dữ liệu", khác mức 0. BE dùng `isValidCompetencyKey`, `aiAnswerToLevel`, `suggestOutcome`, `toDisplayLevel` trong `competencyFramework.js`.
 
+
+### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)
+
+**File:** `backend/src/routes/company.js` (`requireCompanyModerator`, lọc theo `companyId`) · `backend/src/routes/moderator.js` · **Model:** `CompanyRubric`
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| GET | `/api/company/rubrics` | Company Moderator | Rubric của công ty mình. Query `roleCategory` tùy chọn |
+| GET | `/api/company/rubrics/:id` | Company Moderator | Khác công ty → 403. Lý do từ chối ở `moderationNote.comment` |
+| POST | `/api/company/rubrics` | Company Moderator | Body `{ title, roleCategory, description?, criteria?: [{ name, weight (nguyên 1–100), shrmKey, levels: {"0".."5": string ≤ 500}, questionIds?[] }] }` (≤ 10 tiêu chí). `shrmKey` phải thuộc bộ tiêu chí LP-01 và không `deprecated`; `questionIds` phải là câu `approved` của chính công ty; field ngoài model bị bỏ. **201** bản nháp (`version` tự tăng theo `roleCategory`) |
+| PATCH | `/api/company/rubrics/:id` | Company Moderator | Sửa `title`, `description`, `criteria` (kiểm như POST). Chỉ khi `draft` / `rejected`; `pending_review` → 409; `approved` / `archived` → 400 |
+| POST | `/api/company/rubrics/:id/submit` | Company Moderator | Chỉ từ `draft` / `rejected` (khác → 409). Cần ≥ 1 tiêu chí, tổng trọng số 100%, **mỗi tiêu chí đủ mô tả 6 mức 0–5** (thiếu → 400). Chuyển `pending_review`, không tạo ModerationItem |
+| GET | `/api/moderator/rubrics` | Platform Moderator | Query `status` (vd `pending_review`) |
+| POST | `/api/moderator/rubrics/:id/approve` | Platform Moderator | Duyệt; bản `approved` cũ cùng công ty + `roleCategory` → `archived` |
+| POST | `/api/moderator/rubrics/:id/reject` | Platform Moderator | Body `{ comment }` bắt buộc → `rejected`, lưu `moderationNote.comment` |
+
 ---
 
 ## Phần B — Tích hợp ngoài (FE gọi trực tiếp)

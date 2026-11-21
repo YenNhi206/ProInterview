@@ -282,10 +282,21 @@ export function ModeratorRubrics() {
                       {crit.weight}%
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 font-mono">SHRM key: {crit.shrmKey}</p>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    SHRM key: {crit.shrmKey} · {crit.questionIds?.length || 0} câu hỏi áp dụng
+                  </p>
                   {crit.description && (
                     <p className="mt-2 text-xs text-slate-700 leading-relaxed">{crit.description}</p>
                   )}
+                  {/* CO-14: mô tả thang 0–5 — căn cứ chính để Platform Moderator thẩm định rubric. */}
+                  <div className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                    {["0", "1", "2", "3", "4", "5"].map((level) => (
+                      <div key={level} className="rounded-lg border border-slate-200/80 bg-white p-2 text-[11px]">
+                        <span className="font-bold text-violet-700">Mức {level}: </span>
+                        <span className="text-slate-700">{crit.levels?.[level] || "Chưa có mô tả"}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
