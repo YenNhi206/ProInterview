@@ -35,6 +35,7 @@ export function AppLayout() {
     pathNorm.startsWith("mentors/") ||
     pathNorm.startsWith("mentor-requests") ||
     pathNorm.startsWith("learning-paths") ||
+    pathNorm === "cvs" ||
     pathNorm.startsWith("booking/") ||
     pathNorm.includes("cv-analysis/history") ||
     pathNorm.includes("cv-analysis/jd/result") ||
