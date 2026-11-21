@@ -23,13 +23,14 @@ let createApp;
 let recordCostEvent;
 let getCostDashboard;
 let getCacheMetrics;
+let checkCostKindDailyThreshold;
 
 before(async () => {
   harness = await startMongoHarness();
   ({ User } = await import("../models/User.js"));
   ({ CostEvent } = await import("../models/CostEvent.js"));
   ({ createApp } = await import("../app.js"));
-  ({ recordCostEvent, getCostDashboard, getCacheMetrics } = await import(
+  ({ recordCostEvent, getCostDashboard, getCacheMetrics, checkCostKindDailyThreshold } = await import(
     "../services/costLedgerService.js"
   ));
   http = await startHttpServer(createApp());
@@ -127,6 +128,91 @@ describe("costLedgerService — recordCostEvent + aggregation", () => {
     assert.equal(result.cacheMisses, 9);
     assert.equal(result.baselineRendersThisMonth, 7);
     assert.equal(result.baselineRenderAlert, true);
+  });
+});
+
+describe("AI-12 — kind rubric_scoring / course_prescreen + ngưỡng Slack theo ngày", () => {
+  const SLACK_URL = "https://hooks.slack.test/ai-12";
+  let slackCalls;
+  let realFetch;
+  let prevWebhook;
+
+  before(() => {
+    realFetch = globalThis.fetch;
+    prevWebhook = process.env.SLACK_ALERT_WEBHOOK_URL;
+    process.env.SLACK_ALERT_WEBHOOK_URL = SLACK_URL;
+    // Chỉ chặn request tới Slack; request HTTP khác của test đi qua fetch thật.
+    globalThis.fetch = async (url, init) => {
+      if (String(url) === SLACK_URL) {
+        slackCalls.push(JSON.parse(init.body).text);
+        return new Response("ok", { status: 200 });
+      }
+      return realFetch(url, init);
+    };
+  });
+
+  after(() => {
+    globalThis.fetch = realFetch;
+    if (prevWebhook === undefined) delete process.env.SLACK_ALERT_WEBHOOK_URL;
+    else process.env.SLACK_ALERT_WEBHOOK_URL = prevWebhook;
+    delete process.env.COST_ALERT_COURSE_PRESCREEN_DAILY_COUNT;
+  });
+
+  it("lưu được CostEvent rubric_scoring và course_prescreen", async () => {
+    await CostEvent.deleteMany({});
+    slackCalls = [];
+    await recordCostEvent({ kind: "rubric_scoring", costUsd: 0.004, metadata: { sessionId: "s-1" } });
+    await recordCostEvent({ kind: "course_prescreen", costUsd: 0.002, metadata: { courseId: "c-1" } });
+
+    const kinds = (await CostEvent.find({}).lean()).map((d) => d.kind).sort();
+    assert.deepEqual(kinds, ["course_prescreen", "rubric_scoring"]);
+    assert.equal(slackCalls.length, 0, "dưới ngưỡng thì không gửi Slack");
+  });
+
+  it("kind lạ bị bỏ qua, schema cũng chặn khi ghi thẳng", async () => {
+    await CostEvent.deleteMany({});
+    await recordCostEvent({ kind: "rubric_scoreing", costUsd: 1 });
+    assert.equal(await CostEvent.countDocuments({}), 0);
+    await assert.rejects(CostEvent.create({ kind: "rubric_scoreing" }), /ValidationError|is not a valid enum/);
+  });
+
+  it("vượt ngưỡng USD ngày thì gửi đúng 1 alert, lần ghi sau trong ngày không gửi lại", async () => {
+    await CostEvent.deleteMany({});
+    slackCalls = [];
+    await insertCostEventAt(0, { kind: "rubric_scoring", costUsd: 1.99 });
+    await insertCostEventAt(1, { kind: "rubric_scoring", costUsd: 50 }); // hôm qua, không tính
+
+    await recordCostEvent({ kind: "rubric_scoring", costUsd: 0.02 }); // hôm nay $2.01 > $2
+    await recordCostEvent({ kind: "rubric_scoring", costUsd: 0.02 });
+
+    assert.equal(slackCalls.length, 1);
+    assert.match(slackCalls[0], /rubric_scoring vượt ngưỡng/);
+  });
+
+  it("ngưỡng số lần đọc từ env; checkCostKindDailyThreshold trả trạng thái", async () => {
+    await CostEvent.deleteMany({});
+    process.env.COST_ALERT_COURSE_PRESCREEN_DAILY_COUNT = "2";
+    for (let i = 0; i < 3; i++) await insertCostEventAt(0, { kind: "course_prescreen", costUsd: 0 });
+
+    const status = await checkCostKindDailyThreshold("course_prescreen", { alert: false });
+    assert.equal(status.count, 3);
+    assert.equal(status.maxDailyCount, 2);
+    assert.equal(status.exceeded, true);
+    assert.equal(await checkCostKindDailyThreshold("llm_call"), null, "kind không có ngưỡng → null");
+  });
+
+  it("getCostDashboard() trả kindThresholds cho 2 kind mới mà không gửi Slack", async () => {
+    await CostEvent.deleteMany({});
+    slackCalls = [];
+    process.env.COST_ALERT_COURSE_PRESCREEN_DAILY_COUNT = "2";
+    for (let i = 0; i < 3; i++) await insertCostEventAt(0, { kind: "course_prescreen", costUsd: 0 });
+
+    const result = await getCostDashboard({ days: 7 });
+    const byKind = Object.fromEntries(result.kindThresholds.map((t) => [t.kind, t]));
+    assert.deepEqual(Object.keys(byKind).sort(), ["course_prescreen", "rubric_scoring"]);
+    assert.equal(byKind.course_prescreen.exceeded, true);
+    assert.equal(byKind.rubric_scoring.exceeded, false);
+    assert.equal(slackCalls.length, 0);
   });
 });
 

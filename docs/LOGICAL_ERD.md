@@ -591,7 +591,7 @@ erDiagram
     }
     COST_EVENT {
         ObjectId _id PK
-        string kind "llm_call|tts_elevenlabs|avatar_video_did"
+        string kind "llm_call|tts_elevenlabs|avatar_video_did|rubric_scoring|course_prescreen"
         string userId
         string model
         number costUsd
