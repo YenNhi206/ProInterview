@@ -86,7 +86,7 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> pending : recordTransferPending<br/>(booking / subscription / enrollment)
+    [*] --> pending : recordTransferPending<br/>(booking / subscription / enrollment / learning_path)
     pending --> success : Admin xác nhận / SePay khớp
     pending --> held_inactive_account : SePay nhận tiền<br/>[tài khoản người trả đã đóng]
     pending --> cancelled : Booking quá hạn / đơn giỏ hàng hết hạn
@@ -96,12 +96,14 @@ stateDiagram-v2
     refund_pending --> refunded : Admin chuyển hoàn
     success --> refunded : Hoàn ngay
     held_inactive_account --> refunded : Admin xử lý tiền treo
+    cancelled --> pending : Lộ trình: ứng viên checkout lại<br/>(mã PI mới, cùng bản ghi)
 ```
 
 | Chuyển | Code |
 |:-------|:-----|
 | `pending → held_inactive_account` | `services/heldPaymentService.js`; webhook log ghi `SepayWebhookEvent.status = held_inactive_account` |
-| `pending → cancelled` | `jobs/bookingStaleSweepJob.js`, `services/cartService.js` (`expireCartOrder`) |
+| `pending → cancelled` | `jobs/bookingStaleSweepJob.js`, `services/cartService.js` (`expireCartOrder`), `transferPaymentExpiryService.expireLearningPathTransferIfNeeded` (LP-10, gọi khi checkout, poll `transfer-status`, xem lịch sử thanh toán) |
+| `cancelled → pending` (chỉ `learning_path`) | `POST /api/learning-paths/:id/checkout` mở lại bản ghi với mã `PI…` mới (unique `{provider, type, referenceId}` không cho tạo bản ghi thứ hai) |
 | Idempotent | `SepayWebhookEvent.sepayId` unique — webhook gửi lại → `ignored` |
 
 ---
@@ -327,7 +329,7 @@ stateDiagram-v2
     draft --> proposed : Mentor gửi đề xuất<br/>[≥ 1 buổi, có giá, buổi 0đ completed]
     proposed --> revision_requested : Ứng viên yêu cầu sửa<br/>(revisionNote)
     revision_requested --> proposed : Mentor gửi lại<br/>(version + 1)
-    proposed --> pending_payment : Ứng viên chấp nhận<br/>(sinh paymentRef)
+    proposed --> pending_payment : Ứng viên chấp nhận<br/>(paymentRef sinh khi checkout)
     pending_payment --> active : SePay webhook / admin xác nhận CK
     active --> completed : Buổi cuối đạt
     active --> cancelled : Hủy lộ trình<br/>(hoàn T − phần các buổi đã done)
@@ -341,11 +343,11 @@ stateDiagram-v2
 | `draft` / `revision_requested` → `proposed` | `POST /api/learning-paths/:id/propose` | LP-07, LP-08 |
 | `proposed` → `revision_requested` | `POST /api/learning-paths/:id/request-revision` | LP-08 |
 | `proposed` → `pending_payment` | `POST /api/learning-paths/:id/accept` | LP-08 |
-| `pending_payment` → `active` | SePay webhook / xác nhận tay | LP-10, LP-11 |
+| `pending_payment` → `active` | SePay webhook (`confirmLearningPathTransfer`) / xác nhận tay | LP-10, LP-11 |
 | `active` → `completed` | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` (buổi cuối `passed`) | LP-13 |
 | `active` → `cancelled` | `POST /api/learning-paths/:id/cancel` | LP-15 |
 
-Model và enum có từ LP-03. **Đã code (LP-07):** `→ draft` (`createLearningPathDraft`), `draft / revision_requested → proposed` (`proposeLearningPath`, cập nhật có điều kiện theo `status` + `version`; gửi lại thì `version + 1`; yêu cầu mentor → `path_proposed`). **LP-08:** `proposed → revision_requested` (`requestLearningPathRevision`, lưu `revisionNote`) và `proposed → pending_payment` (`acceptLearningPath`, ghi `acceptedAt`, chặn chấp nhận phiên bản cũ qua `version`); cả hai cập nhật có điều kiện `status: proposed` + `version`, nên chấp nhận và yêu cầu sửa cùng lúc chỉ một thao tác thắng. Các chuyển còn lại làm ở task ghi trong bảng. Mỗi yêu cầu mentor chỉ có 1 lộ trình chưa `cancelled` (partial unique index).
+Model và enum có từ LP-03. **Đã code (LP-07):** `→ draft` (`createLearningPathDraft`), `draft / revision_requested → proposed` (`proposeLearningPath`, cập nhật có điều kiện theo `status` + `version`; gửi lại thì `version + 1`; yêu cầu mentor → `path_proposed`). **LP-08:** `proposed → revision_requested` (`requestLearningPathRevision`, lưu `revisionNote`) và `proposed → pending_payment` (`acceptLearningPath`, ghi `acceptedAt`, chặn chấp nhận phiên bản cũ qua `version`); cả hai cập nhật có điều kiện `status: proposed` + `version`, nên chấp nhận và yêu cầu sửa cùng lúc chỉ một thao tác thắng. **LP-10:** `pending_payment → active` (`confirmLearningPathTransfer` trong `learningPathPaymentService.js`): ghi Payment `learning_path` `success` rồi cập nhật có điều kiện `status: pending_payment` (cùng transaction nếu DB hỗ trợ), ghi `paidAt`, thông báo `learning_path_paid` cho mentee và mentor. Hết hạn mã CK **không** đổi trạng thái lộ trình (vẫn `pending_payment`, checkout lại có mã mới). Lộ trình `pending_payment` không bị job nào quét. Các chuyển còn lại làm ở task ghi trong bảng. Mỗi yêu cầu mentor chỉ có 1 lộ trình chưa `cancelled` (partial unique index).
 
 ---
 

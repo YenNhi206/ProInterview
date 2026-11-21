@@ -244,7 +244,7 @@ Pipeline pre-generated: ElevenLabs TTS (giọng theo gender) → upload audio Cl
 
 ### Thanh toán
 
-Kênh chính thức là **chuyển khoản ngân hàng**: `recordTransferPending` → user `submit-transfer` → SePay webhook (`POST /api/payments/webhook/sepay`) khớp mã `PI…` **hoặc** admin xác nhận → `recordAdminTransferSuccess`. Dùng cho booking, khóa học, giỏ hàng (`CartOrder`, 1 QR cho cả đơn) và gói Pro. MoMo/ZaloPay/VNPay chỉ là stub, trả 400 ở production. Thêm khoản thu mới thì tái dùng đường ray này.
+Kênh chính thức là **chuyển khoản ngân hàng**: `recordTransferPending` → user `submit-transfer` → SePay webhook (`POST /api/payments/webhook/sepay`) khớp mã `PI…` **hoặc** admin xác nhận → `recordAdminTransferSuccess`. Dùng cho booking, khóa học, giỏ hàng (`CartOrder`, 1 QR cho cả đơn), gói Pro và lộ trình học (Payment `learning_path`, `POST /api/learning-paths/:id/checkout`, LP-10). MoMo/ZaloPay/VNPay chỉ là stub, trả 400 ở production. Thêm khoản thu mới thì tái dùng đường ray này.
 
 ### Google Identity
 
@@ -326,7 +326,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 | `controllers/adminController.js` `getPlatformFinanceSummary` | Cộng mọi booking `paid` vào doanh thu | Đã loại booking lộ trình và buổi 0đ bằng `EXCLUDE_LEARNING_PATH_BOOKINGS` (LP-04); báo cáo doanh thu booking mới cũng phải loại như vậy |
 | `jobs/bookingStaleSweepJob.js` | Hủy mọi booking `pending` chưa trả tiền đã qua giờ bắt đầu | Booking không cần thanh toán riêng phải tạo với `paymentStatus: "paid"` |
 | `services/bookingsService.js` (`cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking`) | Booking `paid` bị hoàn tiền / sinh rebook credit theo từng buổi | Đã chặn ở LP-22: `isLearningPathOrAssessmentBooking()` → `closeLearningPathOrAssessmentBooking()` (không hoàn tiền, không credit, buổi lộ trình quay về `planned`). Luồng hủy/hoàn tiền mới cũng phải kiểm tra hàm này |
-| `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription; `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng và `paymentRef` sinh bằng `utils/orderRef.js` |
+| `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription, learning_path (LP-10); `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng, thêm vào `TRANSFER_REFERENCE_MODELS` (`paymentsService.js`), `PAYMENT_TYPES` (`Payment.js`), `SEPAY_ENTITY_TYPES` (`SepayWebhookEvent.js`), và sinh mã bằng `generatePiOrderRef()` (`utils/orderRef.js`). Mẫu đầy đủ: `services/learningPathPaymentService.js` |
 | `services/mentorshipRequestsService.js` `resolveRequestBooking` | Trước LP-05 chỉ cho tạo booking khi `request.status === "selected"` | Đã sửa ở LP-05: dùng `REQUEST_MENTOR_CHOSEN_STATUSES` (`selected`, `assessing`, `path_proposed`). Thêm status mới sau khi chọn mentor thì thêm vào hằng số này |
 | `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |
 | `services/moderationQueueService.js:39, :83` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report`; danh sách hàng đợi không lọc `type` | Loại mới cần map riêng; hàng đợi HITL chỉ lấy 3 loại phỏng vấn |

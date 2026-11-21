@@ -1,4 +1,13 @@
 /** Mã đơn chuyển khoản (PI…) — dùng chung enrollment, booking, SePay. */
+import crypto from "node:crypto";
+
+/**
+ * Sinh mã đơn CK mới: `PI` + 12 chữ số, khớp `parsePiOrderFromText` (PI\d{5,12}).
+ * Dùng cho giỏ hàng và lộ trình (LP-10); loại thanh toán mới cũng sinh mã ở đây.
+ */
+export function generatePiOrderRef() {
+  return `PI${crypto.randomInt(100_000_000_000, 999_999_999_999)}`;
+}
 
 export function extractOrderPart(value) {
   const s = String(value || "").trim();
