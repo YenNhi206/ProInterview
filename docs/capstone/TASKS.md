@@ -195,7 +195,7 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | PR-07 | Done | API `GET /api/profile/me/competencies` và DTO rút gọn dùng cho Application snapshot | Văn | PR-06 | Đúng định dạng DTO, có test | P0 |
 | PR-08 | Todo | Trích nội dung PDF đã tải lên thành `content` JSON để mở trong editor | Janet | PR-02 | CV mẫu tách đúng các mục chính | P1 |
 | PR-09 | Done | Xuất PDF ở backend: `POST /api/cvs/:id/export-pdf` bằng `pdfkit` + font DejaVu đang dùng cho hóa đơn (`react-pdf` chỉ xem được, không tạo được PDF) | Văn | PR-02 | PDF mở được, tiếng Việt đúng dấu, 1 mẫu chuẩn ATS | P1 |
-| PR-10 | Doing · Nhi | FE `/profile` viết lại: thông tin, vị trí mục tiêu, CV mặc định, thẻ năng lực "đã xác thực" bấm ra xem nguồn | Nhi | PR-01, PR-07 | Hiện đúng dữ liệu tài khoản seed | P0 |
+| PR-10 | Review · Nhi · PR #214 | FE `/profile` viết lại: thông tin, vị trí mục tiêu, CV mặc định, thẻ năng lực "đã xác thực" bấm ra xem nguồn | Nhi | PR-01, PR-07 | Hiện đúng dữ liệu tài khoản seed | P0 |
 | PR-11 | Review · Nhi · PR #213 | FE `/cvs`: kho CV, tải lên, nhân bản, đặt mặc định, xóa | Nhi | PR-02 | Thao tác đủ 4 việc trên UI | P0 |
 | PR-12 | Todo | FE best-fit trong `CVAnalysisHub`: chọn nhiều CV, dán JD, xem xếp hạng và khoảng thiếu | Nhi | PR-05 | Chọn CV hợp nhất rồi sang phân tích chi tiết | P1 |
 | PR-13 | Todo | FE CV editor `/cvs/:id/edit`: sửa theo mục, áp gợi ý AI vào bullet, lưu version, nút tải PDF gọi PR-09 | Nhi | PR-09 | Sửa, lưu và tải được | P1 |
