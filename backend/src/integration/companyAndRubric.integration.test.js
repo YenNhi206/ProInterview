@@ -38,6 +38,10 @@ after(async () => {
   if (harness) await stopMongoHarness(harness);
 });
 
+/** Mô tả đủ 6 mức 0–5 (bắt buộc khi gửi duyệt, CO-14). */
+const LEVELS = { 0: "Chưa có", 1: "Biết sơ", 2: "Làm được với hỗ trợ", 3: "Tự làm được", 4: "Làm tốt, hướng dẫn người khác", 5: "Chuyên gia" };
+const crit = (name, shrmKey, weight, extra = {}) => ({ name, shrmKey, weight, levels: LEVELS, ...extra });
+
 function authHeaders(userId) {
   return {
     Authorization: `Bearer ${mintAccessToken(userId)}`,
@@ -337,8 +341,8 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
       headers: authHeaders(companyModA._id),
       body: JSON.stringify({
         criteria: [
-          { name: "CI/CD Pipeline", shrmKey: "technical_mastery", weight: 50 },
-          { name: "Kubernetes & Docker", shrmKey: "technical_mastery", weight: 30 },
+          crit("CI/CD Pipeline", "technical_learning", 50),
+          crit("Kubernetes & Docker", "problem_solving", 30),
         ],
       }),
     });
@@ -358,8 +362,8 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
       headers: authHeaders(companyModA._id),
       body: JSON.stringify({
         criteria: [
-          { name: "CI/CD Pipeline", shrmKey: "technical_mastery", weight: 60 },
-          { name: "Kubernetes & Docker", shrmKey: "technical_mastery", weight: 40 },
+          crit("CI/CD Pipeline", "technical_learning", 60),
+          crit("Kubernetes & Docker", "problem_solving", 40),
         ],
       }),
     });
@@ -409,7 +413,7 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
       method: "PATCH",
       headers: authHeaders(companyModA._id),
       body: JSON.stringify({
-        criteria: [{ name: "All-in-one DevOps", shrmKey: "technical_mastery", weight: 100 }],
+        criteria: [crit("All-in-one DevOps", "technical_learning", 100)],
       }),
     });
 
@@ -431,5 +435,57 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
 
     const v2Doc = await CompanyRubric.findById(v2Id);
     assert.equal(v2Doc.status, "approved");
+  });
+  // ── CO-14: trình soạn rubric — kiểm năng lực, mô tả mức, câu áp dụng, từ chối → sửa → gửi lại ──
+  it("CO-14: kiểm shrmKey theo LP-01, đủ 6 mức mới gửi duyệt, gắn câu đã duyệt của công ty, bị từ chối thì sửa và gửi lại", async () => {
+    const post = (path, body, user = companyModA) =>
+      fetch(`${http.baseUrl}${path}`, { method: "POST", headers: authHeaders(user._id), body: JSON.stringify(body ?? {}) });
+    const patch = (path, body) =>
+      fetch(`${http.baseUrl}${path}`, { method: "PATCH", headers: authHeaders(companyModA._id), body: JSON.stringify(body) });
+
+    // Năng lực ngoài bộ tiêu chí LP-01 → 400
+    const badKey = await post("/api/company/rubrics", { title: "Rubric FE", roleCategory: "frontend", criteria: [crit("UI", "technical_mastery", 100)] });
+    assert.equal(badKey.status, 400);
+    assert.match((await badKey.json()).error, /bộ tiêu chí/);
+
+    // Câu hỏi của công ty khác / chưa duyệt không gắn được
+    const otherQ = await QuestionBank.create({ text: `Câu của FPT ${Date.now()}`, textHash: `hash-co14-b-${Date.now()}`, orgId: companyB._id, source: "org_template", roleCategory: "frontend", status: "approved" });
+    const draftQ = await QuestionBank.create({ text: `Câu nháp VNG ${Date.now()}`, textHash: `hash-co14-d-${Date.now()}`, orgId: companyA._id, source: "org_template", roleCategory: "frontend", status: "draft" });
+    const okQ = await QuestionBank.create({ text: `Câu đã duyệt VNG ${Date.now()}`, textHash: `hash-co14-a-${Date.now()}`, orgId: companyA._id, source: "org_template", roleCategory: "frontend", status: "approved" });
+    for (const q of [otherQ, draftQ]) {
+      const res = await post("/api/company/rubrics", { title: "Rubric FE", roleCategory: "frontend", criteria: [crit("UI", "communication", 100, { questionIds: [String(q._id)] })] });
+      assert.equal(res.status, 400);
+    }
+
+    // Bản nháp được thiếu mô tả mức, nhưng gửi duyệt thì 400
+    const created = await post("/api/company/rubrics", {
+      title: "Rubric FE", roleCategory: "frontend",
+      criteria: [{ name: "Giao tiếp", shrmKey: "communication", weight: 100, levels: { 0: "Chưa có" }, questionIds: [String(okQ._id)], extra: "bị bỏ" }],
+    });
+    assert.equal(created.status, 201);
+    const rubric = (await created.json()).rubric;
+    assert.deepEqual(rubric.criteria[0].questionIds.map(String), [String(okQ._id)]);
+    assert.equal(rubric.criteria[0].extra, undefined, "chỉ lưu field của model");
+    const noLevels = await post(`/api/company/rubrics/${rubric._id}/submit`);
+    assert.equal(noLevels.status, 400);
+    assert.match((await noLevels.json()).error, /6 mức/);
+
+    // Đủ mức → gửi duyệt; đang chờ duyệt thì không sửa, không gửi lại
+    assert.equal((await patch(`/api/company/rubrics/${rubric._id}`, { criteria: [crit("Giao tiếp", "communication", 100)] })).status, 200);
+    assert.equal((await post(`/api/company/rubrics/${rubric._id}/submit`)).status, 200);
+    assert.equal((await patch(`/api/company/rubrics/${rubric._id}`, { title: "Sửa khi chờ" })).status, 409);
+    assert.equal((await post(`/api/company/rubrics/${rubric._id}/submit`)).status, 409);
+
+    // Platform Mod từ chối → công ty thấy lý do ở moderationNote.comment, sửa rồi gửi lại
+    const reject = await post(`/api/moderator/rubrics/${rubric._id}/reject`, { comment: "Mô tả mức 3 và 4 chưa phân biệt rõ." }, platformMod);
+    assert.equal(reject.status, 200);
+    const seen = await (await fetch(`${http.baseUrl}/api/company/rubrics/${rubric._id}`, { headers: authHeaders(companyModA._id) })).json();
+    assert.equal(seen.rubric.status, "rejected");
+    assert.equal(seen.rubric.moderationNote.comment, "Mô tả mức 3 và 4 chưa phân biệt rõ.");
+    const fixed = { ...LEVELS, 3: "Tự trình bày rõ cho người cùng chuyên môn", 4: "Trình bày rõ cho người ngoài chuyên môn" };
+    assert.equal((await patch(`/api/company/rubrics/${rubric._id}`, { criteria: [crit("Giao tiếp", "communication", 100, { levels: fixed })] })).status, 200);
+    const resubmit = await post(`/api/company/rubrics/${rubric._id}/submit`);
+    assert.equal(resubmit.status, 200);
+    assert.equal((await resubmit.json()).rubric.status, "pending_review");
   });
 });
