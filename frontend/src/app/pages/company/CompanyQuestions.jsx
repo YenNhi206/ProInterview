@@ -23,17 +23,7 @@ import {
 } from "lucide-react";
 import { companyApi } from "../../api/companyApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
-
-const ROLE_CATEGORIES = [
-  { id: "", label: "Tất cả vị trí" },
-  { id: "software_engineer", label: "Software Engineer" },
-  { id: "frontend", label: "Frontend Developer" },
-  { id: "backend", label: "Backend Developer" },
-  { id: "fullstack", label: "Fullstack Developer" },
-  { id: "devops", label: "DevOps / SRE" },
-  { id: "mobile", label: "Mobile Developer" },
-  { id: "data_engineer", label: "Data Engineer" },
-];
+import { useRoleCategories } from "../../hooks/useRoleCategories.js";
 
 const STATUS_FILTERS = [
   { id: "", label: "Tất cả trạng thái" },
@@ -43,6 +33,12 @@ const STATUS_FILTERS = [
 ];
 
 export function CompanyQuestions() {
+  // Danh sách vị trí dùng chung từ GET /api/role-categories (config/roleCategories.json ở backend).
+  const { roleCategories } = useRoleCategories();
+  const ROLE_CATEGORIES = useMemo(
+    () => [{ id: "", label: "Tất cả vị trí" }, ...roleCategories.map((r) => ({ id: r.key, label: r.nameVi }))],
+    [roleCategories],
+  );
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
 

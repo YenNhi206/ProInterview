@@ -271,11 +271,12 @@ erDiagram
         ObjectId _id PK
         ObjectId companyId FK "→ COMPANY"
         string title
-        string roleCategory "slug, cùng CompanyRubric/QuestionBank"
+        string roleCategory "key trong config/roleCategories.json"
         enum level "intern|fresher|junior|middle|senior|lead"
         enum employmentType "full_time|part_time|contract|internship"
         enum workMode "onsite|hybrid|remote"
         string location
+        string salaryRange
         string description
         array requiredCompetencies "{shrmKey (LP-01), minLevel 1..5}, không trùng key"
         array requiredSkills

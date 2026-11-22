@@ -36,12 +36,14 @@ const jobPostSchema = new Schema(
   {
     companyId: { type: Schema.Types.ObjectId, ref: "Company", required: true },
     title: { type: String, required: true, trim: true, maxlength: 150 },
-    /** Nhóm vị trí (slug), dùng chung với `QuestionBank.roleCategory` và `CompanyRubric.roleCategory`. */
+    /** Nhóm vị trí, key trong `config/roleCategories.json` (dùng chung với QuestionBank / CompanyRubric). */
     roleCategory: { type: String, required: true, trim: true, lowercase: true, maxlength: 60 },
     level: { type: String, enum: JOB_POST_LEVELS, required: true },
     employmentType: { type: String, enum: JOB_POST_EMPLOYMENT_TYPES, default: "full_time" },
     workMode: { type: String, enum: JOB_POST_WORK_MODES, default: "onsite" },
     location: { type: String, trim: true, default: "", maxlength: 200 },
+    /** Mức lương hiển thị, nhập tự do (ví dụ "25–35 triệu", "Thỏa thuận"). */
+    salaryRange: { type: String, trim: true, default: "", maxlength: 100 },
     description: { type: String, trim: true, default: "", maxlength: 10000 },
     requiredCompetencies: { type: [requiredCompetencySchema], default: [] },
     requiredSkills: { type: [{ type: String, trim: true, maxlength: 60 }], default: [] },

@@ -6,6 +6,7 @@ import { connectDatabase } from "../db/connect.js";
 import { User } from "../models/User.js";
 import { Company } from "../models/Company.js";
 import { CompanyRubric } from "../models/CompanyRubric.js";
+import { JobPost } from "../models/JobPost.js";
 import { QuestionBank, hashQuestionText } from "../models/QuestionBank.js";
 import { Mentor } from "../models/Mentor.js";
 import { CandidateProfile } from "../models/CandidateProfile.js";
@@ -112,7 +113,7 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
       criteria: [
         {
           name: "Kiến thức cốt lõi React & TypeScript",
-          shrmKey: "technical_mastery",
+          shrmKey: "technical_learning",
           weight: 40,
           description: "Nắm vững lifecycle, hook, state management",
           levels: {
@@ -162,50 +163,72 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
     console.log("  ✓ Đã tạo & phê duyệt CompanyRubric: FPT Software Frontend");
   }
 
-  // ── 4. Tạo 3 Job Posts demo ──
-  const jobsCollection = mongoose.connection.collection("job_posts");
-  const existingJob = await jobsCollection.findOne({ title: "Senior Frontend Engineer (React/TypeScript)" });
+  // ── 4. Tạo 3 Job Posts demo (model JobPost, JB-01) ──
+  // Năng lực theo bộ tiêu chí LP-01 ({ shrmKey, minLevel }), roleCategory theo config/roleCategories.json.
+  const existingJob = await JobPost.findOne({ title: "Senior Frontend Engineer (React/TypeScript)" }).lean();
   if (!existingJob) {
-    await jobsCollection.insertMany([
+    const now = new Date();
+    const inDays = (n) => new Date(now.getTime() + n * 86400 * 1000);
+    await JobPost.create([
       {
         companyId: fpt._id,
         title: "Senior Frontend Engineer (React/TypeScript)",
         roleCategory: "frontend",
-        status: "published",
         level: "senior",
+        employmentType: "full_time",
+        workMode: "hybrid",
+        location: "Hà Nội",
         salaryRange: "30.000.000 - 45.000.000 VND",
-        description: "Tham gia phát triển dự án chuyển đổi số ngân hàng, xây dựng trải nghiệm giao dịch người dùng.",
-        requiredCompetencies: ["technical_mastery", "problem_solving", "teamwork"],
+        description: "Tham gia phát triển dự án chuyển đổi số ngân hàng, xây dựng trải nghiệm giao dịch cho hàng triệu người dùng. Làm việc cùng team sản phẩm và backend để thiết kế giao diện hiệu năng cao.",
+        requiredCompetencies: [
+          { shrmKey: "technical_learning", minLevel: 4 },
+          { shrmKey: "problem_solving", minLevel: 3 },
+          { shrmKey: "teamwork", minLevel: 3 },
+        ],
         requiredSkills: ["React", "TypeScript", "Tailwind CSS", "REST API"],
         rubricId: rubricFpt._id,
-        closesAt: new Date(Date.now() + 30 * 86400 * 1000),
-        createdAt: new Date(),
+        status: "published",
+        publishedAt: now,
+        closesAt: inDays(30),
       },
       {
         companyId: fpt._id,
         title: "Backend Golang Specialist",
         roleCategory: "backend",
-        status: "published",
         level: "middle",
+        employmentType: "full_time",
+        workMode: "onsite",
+        location: "TP. Hồ Chí Minh",
         salaryRange: "25.000.000 - 38.000.000 VND",
-        description: "Xây dựng microservices hiệu năng cao, xử lý hàng triệu transaction mỗi ngày.",
-        requiredCompetencies: ["technical_mastery", "problem_solving"],
+        description: "Xây dựng microservices hiệu năng cao, xử lý hàng triệu transaction mỗi ngày. Thiết kế API, tối ưu truy vấn cơ sở dữ liệu và vận hành hệ thống hàng đợi sự kiện.",
+        requiredCompetencies: [
+          { shrmKey: "technical_learning", minLevel: 3 },
+          { shrmKey: "problem_solving", minLevel: 3 },
+        ],
         requiredSkills: ["Golang", "PostgreSQL", "Kafka", "Docker"],
-        closesAt: new Date(Date.now() + 25 * 86400 * 1000),
-        createdAt: new Date(),
+        status: "published",
+        publishedAt: now,
+        closesAt: inDays(25),
       },
       {
         companyId: vng._id,
         title: "Fullstack Product Engineer (Node.js/React)",
         roleCategory: "fullstack",
-        status: "published",
         level: "senior",
+        employmentType: "full_time",
+        workMode: "hybrid",
+        location: "TP. Hồ Chí Minh",
         salaryRange: "35.000.000 - 50.000.000 VND",
-        description: "Định hình sản phẩm từ khâu ý tưởng, kiến trúc backend đến giao diện người dùng cho ứng dụng Zalo.",
-        requiredCompetencies: ["technical_mastery", "adaptability", "leadership"],
+        description: "Định hình sản phẩm từ khâu ý tưởng, kiến trúc backend đến giao diện người dùng cho ứng dụng Zalo. Chủ động đề xuất giải pháp và dẫn dắt nhóm nhỏ triển khai tính năng mới.",
+        requiredCompetencies: [
+          { shrmKey: "technical_learning", minLevel: 4 },
+          { shrmKey: "adaptability", minLevel: 3 },
+          { shrmKey: "leadership", minLevel: 3 },
+        ],
         requiredSkills: ["React", "Node.js", "Redis", "System Design"],
-        closesAt: new Date(Date.now() + 40 * 86400 * 1000),
-        createdAt: new Date(),
+        status: "published",
+        publishedAt: now,
+        closesAt: inDays(40),
       },
     ]);
     console.log("  ✓ Đã tạo 3 Job Posts demo");

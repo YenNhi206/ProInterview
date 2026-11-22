@@ -1,6 +1,6 @@
 /**
- * Job Post — phía Company Moderator (JB-01): tạo / sửa bản nháp, đăng, đóng.
- * API công khai (JB-03), tự đóng khi hết hạn (JB-02) và ẩn/hiện của Platform Mod (JB-04) làm ở task riêng.
+ * Job Post — phía Company Moderator (JB-01): tạo / sửa bản nháp, đăng, đóng; tự đóng khi quá hạn (JB-02).
+ * API công khai ở `publicJobsService.js` (JB-03); ẩn/hiện của Platform Mod (JB-04) làm ở task riêng.
  *
  * Quyền: route `/api/company/jobs*` đã qua `authJwt` + `requireCompanyModerator` (CO-03), nên
  * `companyId` lấy từ `req.companyId`; mọi truy vấn lọc theo `companyId` → job công ty khác trả 404.
@@ -12,6 +12,7 @@ import { JobPost, JOB_POST_EMPLOYMENT_TYPES, JOB_POST_LEVELS, JOB_POST_STATUSES,
 import { CompanyRubric } from "../models/CompanyRubric.js";
 import { httpError } from "../utils/apiErrors.js";
 import { getCompetency, isValidCompetencyKey } from "./competencyFramework.js";
+import { isValidRoleCategory, roleCategoryName } from "./roleCategories.js";
 
 export const JOB_POST_MAX_COMPETENCIES = 10;
 export const JOB_POST_MAX_SKILLS = 30;
@@ -20,8 +21,12 @@ export const JOB_POST_MIN_DESCRIPTION = 50;
 /** Company Mod chỉ sửa nội dung khi bản nháp hoặc đang đăng; job bị ẩn / đã đóng thì khóa. */
 const EDITABLE_STATUSES = ["draft", "published"];
 
-// roleCategory dùng chung slug với QuestionBank / CompanyRubric (chuỗi tự do ở CO-05, CO-07).
-const roleCategory = Joi.string().trim().lowercase().pattern(/^[a-z0-9_]{2,60}$/);
+// roleCategory theo danh sách chung `config/roleCategories.json` (cùng QuestionBank / CompanyRubric, đề xuất (l)).
+const roleCategory = Joi.string().trim().lowercase().custom((value, helpers) =>
+  isValidRoleCategory(value) ? value : helpers.error("any.invalid"));
+/** Lọc danh sách: nhận cả key đã `deprecated` để vẫn tìm được job cũ. */
+const roleCategoryFilter = Joi.string().trim().lowercase().custom((value, helpers) =>
+  isValidRoleCategory(value, { allowDeprecated: true }) ? value : helpers.error("any.invalid"));
 const shrmKey = Joi.string().trim().lowercase().custom((value, helpers) =>
   isValidCompetencyKey(value) ? value : helpers.error("any.invalid"));
 const competencyInput = Joi.object({
@@ -35,6 +40,7 @@ const fields = {
   employmentType: Joi.string().valid(...JOB_POST_EMPLOYMENT_TYPES),
   workMode: Joi.string().valid(...JOB_POST_WORK_MODES),
   location: Joi.string().trim().max(200).allow(""),
+  salaryRange: Joi.string().trim().max(100).allow(""),
   description: Joi.string().trim().max(10000).allow(""),
   requiredCompetencies: Joi.array().items(competencyInput).max(JOB_POST_MAX_COMPETENCIES).unique("shrmKey"),
   requiredSkills: Joi.array().items(Joi.string().trim().min(1).max(60)).max(JOB_POST_MAX_SKILLS),
@@ -51,18 +57,19 @@ const updateInput = Joi.object(fields).min(1);
 const statusInput = Joi.object({ status: Joi.string().valid("published", "closed").required() });
 const listInput = Joi.object({
   status: Joi.string().valid(...JOB_POST_STATUSES),
-  roleCategory,
+  roleCategory: roleCategoryFilter,
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(20),
 });
 
 const FIELD_LABELS = {
   title: "tiêu đề (3–150 ký tự)",
-  roleCategory: "nhóm vị trí (chữ thường, số, dấu gạch dưới)",
+  roleCategory: "nhóm vị trí (chọn trong danh sách GET /api/role-categories)",
   level: "cấp độ",
   employmentType: "hình thức làm việc",
   workMode: "nơi làm việc",
   location: "địa điểm (tối đa 200 ký tự)",
+  salaryRange: "mức lương (tối đa 100 ký tự)",
   description: "mô tả (tối đa 10.000 ký tự)",
   requiredCompetencies: `năng lực yêu cầu (tối đa ${JOB_POST_MAX_COMPETENCIES}, key trong bộ tiêu chí, không trùng, mức 1–5)`,
   requiredSkills: `kỹ năng (tối đa ${JOB_POST_MAX_SKILLS}, mỗi kỹ năng 1–60 ký tự)`,
@@ -148,6 +155,14 @@ function assertPublishable(job) {
   assertFutureClosesAt(job.closesAt);
 }
 
+/** Năng lực yêu cầu kèm tên tiếng Việt từ bộ tiêu chí LP-01 (dùng chung DTO công ty và công khai). */
+export function requiredCompetencyRows(job) {
+  return (job.requiredCompetencies || []).map((c) => {
+    const meta = getCompetency(c.shrmKey);
+    return { shrmKey: c.shrmKey, minLevel: c.minLevel, name: meta?.nameVi || c.shrmKey };
+  });
+}
+
 export async function jobPostDTO(job) {
   const rubric = job.rubricId
     ? await CompanyRubric.findById(job.rubricId).select("title version status roleCategory").lean()
@@ -157,15 +172,14 @@ export async function jobPostDTO(job) {
     companyId: String(job.companyId),
     title: job.title,
     roleCategory: job.roleCategory,
+    roleCategoryName: roleCategoryName(job.roleCategory),
     level: job.level,
     employmentType: job.employmentType,
     workMode: job.workMode,
     location: job.location,
+    salaryRange: job.salaryRange || "",
     description: job.description,
-    requiredCompetencies: (job.requiredCompetencies || []).map((c) => {
-      const meta = getCompetency(c.shrmKey);
-      return { shrmKey: c.shrmKey, minLevel: c.minLevel, name: meta?.nameVi || c.shrmKey };
-    }),
+    requiredCompetencies: requiredCompetencyRows(job),
     requiredSkills: job.requiredSkills || [],
     rubricId: job.rubricId ? String(job.rubricId) : "",
     rubric: rubric ? { id: String(rubric._id), title: rubric.title, version: rubric.version, status: rubric.status, roleCategory: rubric.roleCategory } : null,
@@ -270,4 +284,20 @@ export async function changeCompanyJobStatus(companyId, userId, jobId, body) {
   ).lean();
   if (!updated) throw httpError(409, "Tin tuyển dụng vừa đổi trạng thái. Vui lòng tải lại trang.");
   return jobPostDTO(updated);
+}
+
+/**
+ * JB-02: đóng job quá hạn nhận hồ sơ (`closesAt <= now`), chạy trong job định kỳ 20 phút
+ * (`bookingStaleSweepJob`). Job bị ẩn cũng đóng theo hạn. Cập nhật có điều kiện theo status
+ * nên chạy lại hay chạy song song với thao tác của Company Mod đều an toàn.
+ * API công khai (JB-03) đã tự loại job quá hạn ngay lúc truy vấn, nên trễ tối đa 20 phút chỉ ảnh hưởng
+ * trạng thái hiển thị ở trang của công ty.
+ * @returns {Promise<{ closed: number }>}
+ */
+export async function closeExpiredJobPosts(now = new Date()) {
+  const res = await JobPost.updateMany(
+    { status: { $in: ["published", "hidden"] }, closesAt: { $type: "date", $lte: now } },
+    { $set: { status: "closed", closedAt: now, closedReason: "expired" } },
+  );
+  return { closed: res.modifiedCount ?? 0 };
 }

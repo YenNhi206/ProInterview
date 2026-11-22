@@ -211,7 +211,8 @@ ensureCollection("job_posts", {
   properties: {
     companyId: oid,
     title: str,
-    roleCategory: str,
+    roleCategory: str, // key trong backend/src/config/roleCategories.json
+    salaryRange: str,
     level: en("intern", "fresher", "junior", "middle", "senior", "lead"),
     employmentType: en("full_time", "part_time", "contract", "internship"),
     workMode: en("onsite", "hybrid", "remote"),

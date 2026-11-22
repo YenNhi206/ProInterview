@@ -12,6 +12,9 @@ import { InterviewSession } from "../models/InterviewSession.js";
 import { LearningPath } from "../models/LearningPath.js";
 import { ModerationItem } from "../models/ModerationItem.js";
 import { seedStagingDemo } from "../scripts/seedStagingDemo.js";
+import { isValidCompetencyKey } from "../services/competencyFramework.js";
+import { isValidRoleCategory } from "../services/roleCategories.js";
+import { listPublicJobs } from "../services/publicJobsService.js";
 
 describe("QA-05: Seed dữ liệu demo kịch bản 7 bước cho staging", () => {
   let mongod;
@@ -47,9 +50,18 @@ describe("QA-05: Seed dữ liệu demo kịch bản 7 bước cho staging", () =
     assert.ok(rubric);
     assert.equal(rubric.criteria.reduce((sum, c) => sum + c.weight, 0), 100);
 
-    // 4. Kiểm tra 3 Job Posts
+    // 4. Kiểm tra 3 Job Posts đúng model JobPost (JB-01) và hiện ở danh sách công khai (JB-03)
     const jobs = await mongoose.connection.collection("job_posts").find({}).toArray();
     assert.equal(jobs.length, 3, "Phải có đúng 3 Job Posts");
+    for (const job of jobs) {
+      assert.ok(isValidRoleCategory(job.roleCategory), `roleCategory ${job.roleCategory}`);
+      assert.ok(job.requiredCompetencies.length > 0);
+      assert.ok(job.requiredCompetencies.every((c) => isValidCompetencyKey(c.shrmKey) && Number.isInteger(c.minLevel)));
+      assert.ok(job.publishedAt);
+    }
+    assert.ok(rubric.criteria.every((c) => isValidCompetencyKey(c.shrmKey)), "Tiêu chí rubric dùng key LP-01");
+    const publicJobs = await listPublicJobs({});
+    assert.equal(publicJobs.pagination.total, 3, "Cả 3 job demo hiện ở GET /api/jobs");
 
     // 5. Kiểm tra 3 Mentors
     const mentors = await Mentor.find({});

@@ -379,6 +379,7 @@ stateDiagram-v2
     [*] --> draft : Company Mod tạo
     draft --> published : Company Mod đăng<br/>[mô tả ≥ 50 ký tự, ≥ 1 năng lực, closesAt tương lai, rubric hợp lệ]
     published --> closed : Company Mod đóng / quá closesAt (JB-02)
+    hidden --> closed : quá closesAt (JB-02)
     published --> hidden : Platform Mod ẩn (JB-04)
     hidden --> published : Platform Mod bỏ ẩn (JB-04)
     hidden --> closed : Company Mod đóng
@@ -390,8 +391,8 @@ stateDiagram-v2
 | → `draft` | `POST /api/company/jobs` (`createCompanyJob`) | JB-01 |
 | `draft` → `published` | `PATCH /api/company/jobs/:id/status` `{ status: "published" }` (`changeCompanyJobStatus`) | JB-01 |
 | `published` / `hidden` → `closed` | `PATCH /api/company/jobs/:id/status` `{ status: "closed" }`, `closedReason: company` | JB-01 |
-| `published` → `closed` (hết hạn) | job định kỳ, `closedReason: expired` | JB-02 |
+| `published` / `hidden` → `closed` (hết hạn) | `closeExpiredJobPosts` trong `bookingStaleSweepJob` (20 phút), `closedReason: expired` | JB-02 |
 | `published` ↔ `hidden` | `PATCH /api/moderator/jobs/:id/visibility` | JB-04 |
 
-**Đã code (JB-01):** tạo, sửa (chỉ `draft` / `published`; job đang đăng phải vẫn đủ điều kiện đăng), đăng, đóng. Đổi trạng thái cập nhật có điều kiện theo `status` (hai lần đăng cùng lúc chỉ một lần thắng); sửa nội dung có điều kiện theo `status` + `updatedAt`. Company Mod không mở lại job đã đóng và không bỏ ẩn. Chưa job nào trong `backend/src/jobs` quét `JobPost` (JB-02 thêm vào job định kỳ có sẵn). API công khai (JB-03) chỉ trả `published`.
+**Đã code (JB-01):** tạo, sửa (chỉ `draft` / `published`; job đang đăng phải vẫn đủ điều kiện đăng), đăng, đóng. Đổi trạng thái cập nhật có điều kiện theo `status` (hai lần đăng cùng lúc chỉ một lần thắng); sửa nội dung có điều kiện theo `status` + `updatedAt`. Company Mod không mở lại job đã đóng và không bỏ ẩn. **JB-02:** `closeExpiredJobPosts` (`jobPostsService.js`) chạy trong nhịp 20 phút của `jobs/bookingStaleSweepJob.js`: job `published` hoặc `hidden` có `closesAt <= now` → `closed`, `closedReason: expired` (cập nhật có điều kiện theo status, chạy lại không đổi gì; bản nháp không bị đóng). **JB-03:** API công khai chỉ trả `published` chưa quá hạn của công ty không bị khóa, nên không phụ thuộc độ trễ của job định kỳ.
 

@@ -500,9 +500,9 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 | Method | Path | Ai | Ghi chú |
 |:-------|:-----|:---|:--------|
 | GET | `/api/mentorship-requests?scope=open\|mine` | Mentee / Mentor | Mentee: yêu cầu của mình. Mentor: `open` = đang mở, `mine` = đã gửi đề nghị |
-| POST | `/api/mentorship-requests` | Mentee | multipart: `position`, `description`, `sessionType`, `availability?`, `budget?`, **`jobPostId?`** (LP-05, ObjectId 24 ký tự, bỏ trống = null), `cv`/`jd` (file) hoặc `cvSource`/`jdSource` |
+| POST | `/api/mentorship-requests` | Mentee | multipart: `position`, `description`, `sessionType`, `availability?`, `budget?`, **`jobPostId?`** (LP-05; từ JB-03 phải là job **đang mở**: `published`, chưa quá `closesAt`, công ty không bị khóa, khác → 400; bỏ trống = null), `cv`/`jd` (file) hoặc `cvSource`/`jdSource` |
 | GET | `/api/mentorship-requests/documents` | Mentee | CV/JD đã lưu để dùng lại |
-| GET | `/api/mentorship-requests/:id` | Chủ yêu cầu / Mentor liên quan | DTO: `status`, `offers`, `bookingId` (booking thường), **`jobPostId`**, **`assessment`** `{ bookingId, status, date, timeSlot, durationMinutes, cancelledBy }` \| null, **`learningPath`** `{ id, status }` \| null (LP-20: lộ trình chưa hủy; mentee không thấy khi còn `draft`) |
+| GET | `/api/mentorship-requests/:id` | Chủ yêu cầu / Mentor liên quan | DTO: `status`, `offers`, `bookingId` (booking thường), **`jobPostId`**, **`jobPost`** (tóm tắt job gắn kèm, xem A.19 `jobPostSummary`) \| null, **`assessment`** `{ bookingId, status, date, timeSlot, durationMinutes, cancelledBy }` \| null, **`learningPath`** `{ id, status }` \| null (LP-20: lộ trình chưa hủy; mentee không thấy khi còn `draft`) |
 | POST | `/api/mentorship-requests/:id/offers` | Mentor | Gửi đề nghị (`message`, `availability`) |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/select` | Mentee | `open → selected` |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/withdraw` | Mentor | Rút đề nghị |
@@ -518,7 +518,7 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 
 Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (dùng chung `requestActor` với A.16). Response `{ success, learningPath }` hoặc `{ success, learningPaths }`.
 
-**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, acceptedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
+**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, jobPost (tóm tắt job, quyết định 5: `requiredCompetencies` làm khung chọn `shrmKeys`) | null, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, acceptedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
 
 | Method | Path | Ai | Ghi chú |
 |:-------|:-----|:---|:--------|
@@ -540,19 +540,43 @@ Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/
 
 Mọi route `/api/company/*` gắn `authJwt` + `requireCompanyModerator` (CO-03): role `company_moderator`, đã gắn `companyId`, công ty không bị `suspended` (khác → 401/403). Mọi truy vấn lọc theo công ty của người gọi: job công ty khác trả **404**. Không cần duyệt trước khi đăng (quyết định 8).
 
-**DTO `job`:** `id, companyId, title, roleCategory, level, employmentType, workMode, location, description, requiredCompetencies[] { shrmKey, minLevel, name }, requiredSkills[], rubricId, rubric { id, title, version, status, roleCategory } | null, status, closesAt, publishedAt, closedAt, closedReason, createdAt, updatedAt`. `name` lấy `nameVi` từ bộ tiêu chí LP-01.
+**DTO `job`:** `id, companyId, title, roleCategory, roleCategoryName, level, employmentType, workMode, location, salaryRange, description, requiredCompetencies[] { shrmKey, minLevel, name }, requiredSkills[], rubricId, rubric { id, title, version, status, roleCategory } | null, status, closesAt, publishedAt, closedAt, closedReason, createdAt, updatedAt`. `name` lấy `nameVi` từ bộ tiêu chí LP-01.
 
 | Method | Path | Ghi chú |
 |:-------|:-----|:--------|
 | GET | `/api/company/jobs` | Query `status?` (`draft` \| `published` \| `closed` \| `hidden`), `roleCategory?`, `page` (mặc định 1), `limit` (1–100, mặc định 20). Trả `{ success, jobs, pagination { page, limit, total, totalPages }, counts { draft, published, closed, hidden } }` (`counts` của cả công ty, cho các tab) |
-| POST | `/api/company/jobs` | Tạo **bản nháp**, **201** `{ success, job }`. Body: `title` (3–150, bắt buộc), `roleCategory` (slug `^[a-z0-9_]{2,60}$`, bắt buộc, cùng giá trị với `QuestionBank.roleCategory` / `CompanyRubric.roleCategory`), `level` (`intern` \| `fresher` \| `junior` \| `middle` \| `senior` \| `lead`, bắt buộc), `employmentType?` (`full_time` mặc định \| `part_time` \| `contract` \| `internship`), `workMode?` (`onsite` mặc định \| `hybrid` \| `remote`), `location?` (≤ 200), `description?` (≤ 10.000), `requiredCompetencies?: [{ shrmKey, minLevel }]` (≤ 10, key hợp lệ theo `isValidCompetencyKey`, không trùng, `minLevel` nguyên 1–5), `requiredSkills?: string[]` (≤ 30, mỗi cái 1–60 ký tự; bỏ trùng không phân biệt hoa thường), `rubricId?` (null/"" để bỏ), `closesAt?` (ISO, phải ở tương lai; null = không hạn) |
+| POST | `/api/company/jobs` | Tạo **bản nháp**, **201** `{ success, job }`. Body: `title` (3–150, bắt buộc), `roleCategory` (bắt buộc, key trong `GET /api/role-categories`), `level` (`intern` \| `fresher` \| `junior` \| `middle` \| `senior` \| `lead`, bắt buộc), `employmentType?` (`full_time` mặc định \| `part_time` \| `contract` \| `internship`), `workMode?` (`onsite` mặc định \| `hybrid` \| `remote`), `location?` (≤ 200), `salaryRange?` (≤ 100, chữ tự do), `description?` (≤ 10.000), `requiredCompetencies?: [{ shrmKey, minLevel }]` (≤ 10, key hợp lệ theo `isValidCompetencyKey`, không trùng, `minLevel` nguyên 1–5), `requiredSkills?: string[]` (≤ 30, mỗi cái 1–60 ký tự; bỏ trùng không phân biệt hoa thường), `rubricId?` (null/"" để bỏ), `closesAt?` (ISO, phải ở tương lai; null = không hạn) |
 | GET | `/api/company/jobs/:id` | `{ success, job }`. Id sai định dạng → 400; job công ty khác → 404 |
 | PATCH | `/api/company/jobs/:id` | Body: các field như POST (ít nhất 1; `status`, `companyId` bị bỏ qua). Chỉ khi `draft` hoặc `published` (`hidden`/`closed` → 409). Job đang đăng phải vẫn đủ điều kiện đăng. Hai người sửa cùng lúc → 409 cho người sau |
 | PATCH | `/api/company/jobs/:id/status` | Body `{ status: "published" \| "closed" }`. **Đăng** (`draft → published`, ghi `publishedAt`): cần mô tả ≥ 50 ký tự, ≥ 1 năng lực yêu cầu, `closesAt` (nếu có) ở tương lai, rubric (nếu có) vẫn hợp lệ. **Đóng** (`published` \| `hidden` → `closed`, `closedReason: "company"`). Đăng lại job đã đóng / bỏ ẩn / đóng bản nháp → 409 |
 
 **Rubric gắn vào job:** chỉ rubric `approved` của **cùng công ty** và **cùng `roleCategory`** với job; khác → 400 (rubric công ty khác báo như không tồn tại). Đổi `roleCategory` khi đang gắn rubric thì phải đổi rubric theo. Rubric bị lưu trữ (có version mới được duyệt) sau khi gắn vào bản nháp → không đăng được tới khi chọn rubric mới.
 
-Sắp có: tự đóng khi quá `closesAt` (JB-02), `GET /api/jobs` công khai (JB-03), ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
+**Tự đóng (JB-02):** job `published` / `hidden` có `closesAt <= now` chuyển `closed`, `closedReason: "expired"`, trong nhịp 20 phút của `bookingStaleSweepJob` (`closeExpiredJobPosts`). API công khai đã loại job quá hạn ngay lúc truy vấn.
+
+**Kiểm tra key ở API công ty khác (đề xuất (l)):** `POST/PATCH /api/company/questions`, `POST /api/company/questions/generate-starter`, `POST /api/company/rubrics` nhận `roleCategory` trong `GET /api/role-categories` (khác → 400). `competencyId` của câu hỏi và `criteria[].shrmKey` của rubric (`POST`, `PATCH`, `submit`) phải là key bộ tiêu chí LP-01 (khác → 400). `competencyId` mặc định của câu hỏi công ty là `technical_learning`.
+
+Sắp có: ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
+
+---
+
+### A.19. Tin tuyển dụng công khai — `/api/jobs` (JB-03) và nhóm vị trí — `/api/role-categories`
+
+**File:** `backend/src/routes/jobs.js`, `routes/roleCategories.js` · **Service:** `publicJobsService.js`, `roleCategories.js` · **Dữ liệu nhóm vị trí:** `backend/src/config/roleCategories.json` (nguồn duy nhất)
+
+Không cần đăng nhập. Job **đang mở** = `status: published`, `closesAt` null hoặc ở tương lai, công ty không `suspended`. Không bao giờ trả `draft`, `closed`, `hidden`.
+
+**DTO công khai `job`:** `id, title, roleCategory, roleCategoryName, level, employmentType, workMode, location, salaryRange, summary (≤ 280 ký tự), description (chỉ ở chi tiết), requiredCompetencies[] { shrmKey, minLevel, name }, requiredSkills[], hasRubric, closesAt, publishedAt, company { id, name, slug, logo, industry, website, size, address }`. Không có `createdBy`, `rubricId`, nội dung rubric, `status`.
+
+| Method | Path | Ghi chú |
+|:-------|:-----|:--------|
+| GET | `/api/jobs` | Query: `q?` (≤ 100 ký tự, tìm trong tiêu đề, kỹ năng, địa điểm, không phân biệt hoa thường), `roleCategory?`, `level?`, `employmentType?`, `workMode?`, `company?` (slug; công ty không có / bị khóa → danh sách rỗng), `page` (mặc định 1), `limit` (1–50, mặc định 12). Mới đăng trước (`publishedAt`). Trả `{ success, jobs, pagination { page, limit, total, totalPages } }`. Bộ lọc sai → 400 |
+| GET | `/api/jobs/:id` | `{ success, job }` có `description` đầy đủ. Không mở → 404; id sai → 400 |
+| GET | `/api/role-categories` | `{ success, version, roleCategories: [{ key, nameVi, nameEn, interviewRole, suggestedCompetencies[] }] }`. `interviewRole` = key trong `ROLE_COMPETENCY_MAP` (phỏng vấn AI, JB-06); `suggestedCompetencies` = năng lực ưu tiên của vị trí (gợi ý khi soạn job). `Cache-Control: public, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). FE: `api/roleCategoriesApi.js`, hook `useRoleCategories()` |
+
+**`jobPostSummary`** (DTO `jobPost` trong yêu cầu mentor và lộ trình): `id, title, roleCategory, roleCategoryName, level, isOpen, company { name, slug } | null, requiredCompetencies[], requiredSkills[]`. Đọc cả job đã đóng (`isOpen: false`) vì job có thể đóng sau khi gửi yêu cầu.
+
+Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/apply` (JB-08). Luồng ứng viên cần job hợp lệ dùng `findPublicJob(id)` của `publicJobsService.js`.
 
 ---
 
