@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import {
+  ListFilter,
   ArrowLeft,
   ArrowRight,
   Briefcase,
@@ -1084,7 +1085,7 @@ export function MentorshipRequests() {
             </MentorStatMiniGrid>
           )}
 
-          {/* Thanh lọc: hàng 1 = tab (mentor) + ô tìm kiếm; hàng 2 = lọc theo hình thức. Chữ không xuống dòng. */}
+          {/* Thanh lọc: hàng 1 = tab (mentor) + ô tìm kiếm; hàng 2 = biểu tượng lọc + loại hỗ trợ. Chữ không xuống dòng. */}
           <div className="mb-6 rounded-2xl border border-white/10 bg-[#160f26]/85 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {mentor && (
@@ -1148,7 +1149,7 @@ export function MentorshipRequests() {
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
-              <span className="mr-1 text-[11px] font-semibold text-slate-500">Hình thức:</span>
+              <ListFilter size={15} className="mr-0.5 shrink-0 text-slate-500" aria-label="Lọc theo loại hỗ trợ" />
               {[
                 ["all", "Tất cả"],
                 ["mock_interview", "Phỏng vấn thử"],
@@ -1293,7 +1294,7 @@ export function MentorshipRequests() {
 
               <p className="mt-2 max-w-md text-xs leading-relaxed text-slate-400">
                 {searchQuery || sessionFilter !== "all"
-                  ? "Thử thay đổi từ khóa tìm kiếm hoặc chọn 'Tất cả hình thức' để xem danh sách đầy đủ."
+                  ? "Thử thay đổi từ khóa tìm kiếm hoặc chọn 'Tất cả' để xem danh sách đầy đủ."
                   : mentor
                   ? scope === "mine"
                     ? "Chuyển sang tab 'Nhu cầu đang mở' để tìm các yêu cầu phù hợp với thế mạnh của bạn."
