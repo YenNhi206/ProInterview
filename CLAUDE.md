@@ -386,3 +386,19 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 | `docs/ACTIVITY_DIAGRAMS.md` | Activity diagram 9 luồng nghiệp vụ chính |
 | `docs/report/` | SRS, SDD, đăng ký capstone, kiểm thử |
 | `POSTMAN_TESTING.md` | Hướng dẫn test API với Postman |
+
+
+## Kế hoạch capstone (docs/plan/)
+
+- Phạm vi đã đăng ký: docs/plan/REGISTRATION_V2.md. Mã REQ: docs/plan/REQUIREMENTS.md.
+- Tiến độ và task: docs/plan/TASKS.md (nguồn đúng duy nhất). Quyết định: docs/plan/DECISIONS.md. Thiết kế và bẫy: docs/plan/DESIGN.md.
+- Thứ tự đọc trước mỗi task: REQUIREMENTS.md → TASKS.md → DECISIONS.md → DESIGN.md.
+- Mỗi task gắn ít nhất một mã REQ. Task không có REQ: dừng và báo.
+- Việc phát sinh: phân loại bat-buoc / chi-tiet / ngoai-don / no-ky-thuat (START_HERE.md mục "Luật task phát sinh"). Không tự thêm task vào bảng chính; ghi vào "Đề xuất thay đổi kế hoạch".
+- Chỉ làm đủ cột "Xong khi". Không mở rộng sang REQ khác trong cùng PR.
+- Tài liệu và code mâu thuẫn: tin code, ghi đề xuất, không tự đổi phạm vi.
+- Tên role: code customer / mentor / admin / moderator / company_moderator; báo cáo Candidate / Mentor / Admin / Platform Moderator / Company Moderator.
+- Repo có 2 agent (Claude Code và Gemini trong Antigravity). Luật cho Gemini nằm ở AGENTS.md; sửa luật kế hoạch thì sửa cả hai file.
+- Một task chỉ một agent làm: task đang Doing hoặc Review thì dừng và báo.
+- Sửa TASKS.md, REQUIREMENTS.md, DECISIONS.md: pull nhánh chính trước, chỉ sửa dòng của task mình và thêm dòng mới vào cuối bảng, không định dạng lại bảng.
+- Mô tả PR có 2 dòng: "REQ: <mã, mã>" và "Agent: Claude".

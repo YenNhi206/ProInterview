@@ -1,3 +1,5 @@
+> Bản cũ, không dùng. Bản chuẩn: docs/plan/TASKS.md
+
 # Kế hoạch task — Capstone FA26 (GFA26SE160)
 
 > Nguồn: tab "Kế hoạch task" và "Đánh giá lại & Kế hoạch Capstone" (cập nhật lần 2, 18/11/2026), đã đối chiếu với mã nguồn.
