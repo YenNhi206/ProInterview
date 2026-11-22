@@ -160,18 +160,52 @@ describe("Checkout lộ trình (LP-10)", () => {
     assert.equal((await paymentsOf(lp.id)).length, 0);
   });
 
-  it("hai lần bấm thanh toán cùng lúc: chỉ một mã PI, một bản ghi Payment", async () => {
+  it("nhiều lần bấm thanh toán cùng lúc: mọi phản hồi cùng một mã PI, đúng mã của bản ghi Payment duy nhất", async () => {
+    // Lặp vài vòng để bắt được các thứ tự xen kẽ khác nhau (lỗi cũ chỉ lộ ra trên CI).
+    for (let round = 0; round < 4; round += 1) {
+      const mentee = await newMentee();
+      const lp = await acceptedPath(mentee);
+      const results = await Promise.all(Array.from({ length: 5 }, () => api(mentee, `/${lp.id}/checkout`, "POST")));
+      assert.ok(results.every((r) => r.status === 200 || r.status === 409), JSON.stringify(results.map((r) => r.status)));
+      const ok = results.filter((r) => r.status === 200);
+      assert.ok(ok.length >= 1);
+      const rows = await paymentsOf(lp.id);
+      assert.equal(rows.length, 1);
+      const path = await pathOf(lp.id);
+      assert.equal(rows[0].status, "pending");
+      assert.equal(rows[0].providerRef, path.paymentRef);
+      // Mã trả cho trình duyệt phải là mã SePay sẽ khớp — không được có lần nào nhận mã đã bị thay.
+      for (const r of ok) assert.equal(r.payment.orderRef, path.paymentRef, `vòng ${round}`);
+    }
+  });
+
+  it("lần checkout trước dừng giữa chừng (đã ghi mã vào lộ trình, chưa có Payment): lần sau dùng lại đúng mã đó", async () => {
     const mentee = await newMentee();
     const lp = await acceptedPath(mentee);
-    const results = await Promise.all([api(mentee, `/${lp.id}/checkout`, "POST"), api(mentee, `/${lp.id}/checkout`, "POST")]);
-    const ok = results.filter((r) => r.status === 200);
-    assert.ok(ok.length >= 1);
-    assert.ok(results.every((r) => r.status === 200 || r.status === 409));
+    await models.LearningPath.updateOne({ _id: lp.id }, { $set: { paymentRef: "PI123456789012" } });
+    const res = await checkout(mentee, lp.id);
+    assert.equal(res.payment.orderRef, "PI123456789012");
     const rows = await paymentsOf(lp.id);
     assert.equal(rows.length, 1);
-    const path = await pathOf(lp.id);
-    assert.equal(rows[0].providerRef, path.paymentRef);
-    for (const r of ok) assert.equal(r.payment.orderRef, path.paymentRef);
+    assert.equal(rows[0].providerRef, "PI123456789012");
+    assert.equal((await webhook("PI123456789012", PRICE)).status, 200);
+    assert.equal((await pathOf(lp.id)).status, "active");
+  });
+
+  it("đang mở lại giao dịch hết hạn (lộ trình đã có mã mới, Payment còn mã cũ): lần sau hoàn tất bằng mã mới", async () => {
+    const mentee = await newMentee();
+    const lp = await acceptedPath(mentee);
+    const first = await checkout(mentee, lp.id);
+    await models.Payment.updateOne({ type: "learning_path", referenceId: lp.id }, { $set: { status: "cancelled", failureReason: "payment_timeout" } });
+    await models.LearningPath.updateOne({ _id: lp.id }, { $set: { paymentRef: "PI999888777666" } });
+    const res = await checkout(mentee, lp.id);
+    assert.equal(res.payment.orderRef, "PI999888777666");
+    assert.notEqual(res.payment.orderRef, first.payment.orderRef);
+    const [row] = await paymentsOf(lp.id);
+    assert.equal(row.status, "pending");
+    assert.equal(row.providerRef, "PI999888777666");
+    // Bấm lại lần nữa: mã còn hạn → trả đúng mã đó, không sinh mã khác.
+    assert.equal((await checkout(mentee, lp.id)).payment.orderRef, "PI999888777666");
   });
 });
 
