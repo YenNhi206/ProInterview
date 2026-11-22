@@ -370,8 +370,11 @@ stateDiagram-v2
 | Chuyển | Hàm / endpoint | Task |
 |:-------|:---------------|:-----|
 | `planned` → `scheduled` | `POST /api/learning-paths/:id/sessions/:sid/schedule` | LP-12 |
+| `scheduled` → `planned` | Hủy / vắng mặt booking của buổi (`closeLearningPathOrAssessmentBooking`) | LP-22 |
 | `scheduled` → `done` (+ `outcome`) | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` | LP-13 |
 | → `cancelled` | Hủy lộ trình | LP-15 |
+
+**Đã code (LP-12):** `planned → scheduled` (`scheduleLearningPathSession` trong `learningPathSessionsService.js`). Buổi mở đặt lịch tính bằng `findSchedulableSession` (`utils/learningPathSchedule.js`): lộ trình `active`; đi theo `order`, mỗi `order` lấy lần học mới nhất (bỏ `cancelled`); gặp buổi `planned` đầu tiên chưa đạt thì mở buổi đó, gặp buổi `scheduled` hoặc `not_passed` thì không mở buổi nào. Nên mỗi lúc chỉ có tối đa 1 buổi `scheduled`. Giữ buổi bằng cập nhật có điều kiện (`status: planned`, `bookingId: null`) trước khi tạo Booking; tạo Booking lỗi thì trả buổi về `planned`.
 
 ---
 

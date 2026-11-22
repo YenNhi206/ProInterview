@@ -3,6 +3,7 @@
  * LP-07: Mentor tạo / sửa bản nháp, gửi đề xuất. LP-08 thêm accept / request-revision cho ứng viên.
  * LP-10: ứng viên thanh toán trọn gói bằng chuyển khoản (checkout, submit-transfer); SePay xác nhận qua
  * `POST /api/payments/webhook/sepay`, trạng thái poll qua `GET /api/payments/transfer-status?orderRef=PI…`.
+ * LP-12: ứng viên đặt lịch từng buổi (`POST /:id/sessions/:sid/schedule`), buổi sau chỉ mở khi buổi trước đạt.
  * Quyền: mentee (customer) hoặc Mentor đã duyệt — dùng chung `requestActor` với /api/mentorship-requests.
  */
 import { Router } from "express";
@@ -12,6 +13,7 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import { requestActor } from "../services/mentorshipRequestsService.js";
 import * as service from "../services/learningPathsService.js";
 import * as paymentService from "../services/learningPathPaymentService.js";
+import * as sessionsService from "../services/learningPathSessionsService.js";
 
 export const learningPathsRouter = Router();
 
@@ -70,4 +72,10 @@ learningPathsRouter.post("/:id/checkout", mutationLimit, asyncHandler(async (req
 learningPathsRouter.patch("/:id/submit-transfer", mutationLimit, asyncHandler(async (req, res) => {
   const { learningPath, payment } = await paymentService.submitLearningPathTransfer(req.pathActor, req.params.id);
   res.json({ success: true, learningPath, payment });
+}));
+
+// LP-12: ứng viên đặt lịch buổi đang mở (buổi trước đã `passed`) → tạo Booking gắn buổi, buổi `scheduled`.
+learningPathsRouter.post("/:id/sessions/:sid/schedule", mutationLimit, asyncHandler(async (req, res) => {
+  const { learningPath, booking } = await sessionsService.scheduleLearningPathSession(req.pathActor, req.params.id, req.params.sid, req.body);
+  res.status(201).json({ success: true, learningPath, booking });
 }));

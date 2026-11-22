@@ -491,6 +491,22 @@ function mentorHasExplicitSchedule(mentor) {
   return keys.length > 0 || recurring.length > 0;
 }
 
+/**
+ * Khung giờ có nằm trong lịch mentor mở không (cùng quy tắc với `createBooking`). Mentor chưa khai báo
+ * lịch thì mọi giờ đều mở. Trả thông báo lỗi tiếng Việt, hoặc `""` nếu mở. Dùng lại ở LP-12.
+ * @param {object} mentor - Mentor lean (cần `availableSlots`, `recurringSchedule`, `blockedDates`)
+ * @param {string} date - DD/MM/YYYY
+ * @param {string} timeSlot - HH:mm
+ */
+export function mentorSlotClosedReason(mentor, date, timeSlot) {
+  if (!mentorHasExplicitSchedule(mentor)) return "";
+  const allowedSlots = getMentorSlotsForDate(mentor, date);
+  if (!Array.isArray(allowedSlots)) return "";
+  if (allowedSlots.length === 0) return "Mentor không mở lịch cho ngày này.";
+  if (!allowedSlots.includes(timeSlot)) return "Khung giờ này không nằm trong lịch mentor mở.";
+  return "";
+}
+
 function buildNotes(body) {
   const direct = typeof body.notes === "string" ? body.notes.trim() : "";
   if (direct) return direct.slice(0, 8000);
@@ -690,14 +706,9 @@ export async function createBooking(userId, body) {
   if (!dateNormalized || !/^\d{2}\/\d{2}(\/\d{4})?$/.test(dateNormalized)) {
     return { ok: false, status: 400, error: "Ngày đặt lịch không hợp lệ (dùng DD/MM/YYYY)." };
   }
-  const allowedSlots = getMentorSlotsForDate(mentor, dateNormalized);
-  if (mentorHasExplicitSchedule(mentor) && Array.isArray(allowedSlots)) {
-    if (allowedSlots.length === 0) {
-      return { ok: false, status: 400, error: "Mentor không mở lịch cho ngày này." };
-    }
-    if (!allowedSlots.includes(timeNormalized)) {
-      return { ok: false, status: 400, error: "Khung giờ này không nằm trong lịch mentor mở." };
-    }
+  const slotClosed = mentorSlotClosedReason(mentor, dateNormalized, timeNormalized);
+  if (slotClosed) {
+    return { ok: false, status: 400, error: slotClosed };
   }
   const requestedAt = parseBookingDateTime(dateNormalized, timeNormalized);
   if (!requestedAt || Number.isNaN(requestedAt.getTime())) {

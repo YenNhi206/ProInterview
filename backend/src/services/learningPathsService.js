@@ -19,6 +19,7 @@ import { deliverNotification } from "./notificationDeliveryService.js";
 import { splitLearningPathShares } from "../utils/learningPathMoney.js";
 import { isValidCompetencyKey } from "./competencyFramework.js";
 import { jobPostSummary } from "./publicJobsService.js";
+import { findSchedulableSession } from "../utils/learningPathSchedule.js";
 
 export const LEARNING_PATH_MAX_SESSIONS = 12;
 /** Giá trọn gói tối thiểu khi gửi đề xuất (VND). Bản nháp được để 0. */
@@ -98,6 +99,13 @@ export async function learningPathDTO(pathOrId) {
     path.assessmentBookingId ? Booking.findById(path.assessmentBookingId).select("status date timeSlot durationMinutes").lean() : null,
     path.jobPostId ? jobPostSummary(path.jobPostId) : null,
   ]);
+  // LP-12: giờ hẹn của buổi đã đặt lịch, và buổi nào đang mở đặt lịch (buổi trước đã đạt).
+  const sessionBookingIds = sessions.map((s) => s.bookingId).filter(Boolean);
+  const sessionBookings = sessionBookingIds.length
+    ? await Booking.find({ _id: { $in: sessionBookingIds } }).select("status date timeSlot durationMinutes").lean()
+    : [];
+  const bookingById = new Map(sessionBookings.map((b) => [String(b._id), b]));
+  const schedulableId = String(findSchedulableSession(path, sessions)?._id ?? "");
   return {
     id: String(path._id),
     candidateId: String(path.candidateId),
@@ -136,19 +144,27 @@ export async function learningPathDTO(pathOrId) {
     assessment: assessment
       ? { bookingId: String(assessment._id), status: assessment.status, date: assessment.date, timeSlot: assessment.timeSlot, durationMinutes: assessment.durationMinutes }
       : null,
-    sessions: sessions.map((s) => ({
-      id: String(s._id),
-      order: s.order,
-      attempt: s.attempt,
-      title: s.title,
-      objectives: s.objectives,
-      shrmKeys: s.shrmKeys,
-      shareAmount: s.shareAmount,
-      status: s.status,
-      outcome: s.outcome,
-      bookingId: s.bookingId ? String(s.bookingId) : "",
-      retakeOf: s.retakeOf ? String(s.retakeOf) : "",
-    })),
+    sessions: sessions.map((s) => {
+      const booking = s.bookingId ? bookingById.get(String(s.bookingId)) : null;
+      return {
+        id: String(s._id),
+        order: s.order,
+        attempt: s.attempt,
+        title: s.title,
+        objectives: s.objectives,
+        shrmKeys: s.shrmKeys,
+        shareAmount: s.shareAmount,
+        status: s.status,
+        outcome: s.outcome,
+        bookingId: s.bookingId ? String(s.bookingId) : "",
+        retakeOf: s.retakeOf ? String(s.retakeOf) : "",
+        /** LP-12: true ở đúng một buổi khi lộ trình `active` và mọi buổi trước đã `passed`. */
+        canSchedule: String(s._id) === schedulableId,
+        booking: booking
+          ? { id: String(booking._id), status: booking.status, date: booking.date, timeSlot: booking.timeSlot, durationMinutes: booking.durationMinutes }
+          : null,
+      };
+    }),
   };
 }
 
