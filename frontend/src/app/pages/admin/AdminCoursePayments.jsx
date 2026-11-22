@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Clock, User, BookOpen } from "lucide-react";
+import { Clock, CheckCircle2, User, BookOpen } from "lucide-react";
 import { motion } from "motion/react";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { adminApi } from "../../api/adminApi.js";
@@ -124,15 +124,25 @@ export function AdminCoursePayments() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={adminStatGrid2}>
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Chờ đối soát</p>
-          <p className="mt-1 text-2xl font-black text-amber-950">{summary.pendingTransferCount}</p>
-          <p className="mt-1 text-sm font-semibold text-amber-900">{vnd(summary.pendingTransferAmount)}</p>
+        <div className="admin-glow-card glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Chờ đối soát</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{summary.pendingTransferCount}</h3>
+            <p className="mt-2 text-sm font-semibold text-amber-400">{vnd(summary.pendingTransferAmount)}</p>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-amber-400">
+            <Clock size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Đã thu qua SePay</p>
-          <p className="mt-1 text-2xl font-black text-emerald-950">{summary.paidCollectedCount}</p>
-          <p className="mt-1 text-sm font-semibold text-emerald-900">{vnd(summary.paidCollectedAmount)}</p>
+        <div className="admin-glow-card glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Đã thu qua SePay</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{summary.paidCollectedCount}</h3>
+            <p className="mt-2 text-sm font-semibold text-emerald-400">{vnd(summary.paidCollectedAmount)}</p>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-emerald-400">
+            <CheckCircle2 size={24} strokeWidth={2.2} />
+          </div>
         </div>
       </motion.div>
 
@@ -178,9 +188,12 @@ export function AdminCoursePayments() {
                 <tr>
                   <td
                     colSpan="7"
-                    className={`${adminTdCell} py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500`}
+                    className={`${adminTdCell} py-20 text-center text-slate-400`}
                   >
-                    Đang tải học phí khóa học…
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải học phí khóa học…</span>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (

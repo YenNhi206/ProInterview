@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { Users, Search, Mail, Tag, Upload } from "lucide-react";
+import { Users, Search, Mail, Tag, Upload, Eye } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
 import { ensureMinQuotaUsage } from "../../utils/analytics/mockQuota.js";
 import { estimateDisplayLastSeenAt } from "../../utils/analytics/mockJourney.js";
+import { getInitials } from "../../utils/auth/auth.js";
 
 const PAID_PLANS = new Set(["starter_pro", "elite_pro"]);
 
@@ -81,128 +82,142 @@ export function AdminUsers() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div>
-          <h2 className="font-headline mb-2 text-3xl font-black uppercase tracking-tighter text-slate-900">
-            Quản lý <span className="text-violet-700">Người dùng</span>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-violet-400 mb-1">
+            Hệ thống Người dùng
+          </p>
+          <h2 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Quản lý <span className="text-violet-400">Người dùng</span>
           </h2>
-          <p className="text-sm font-medium text-slate-600">Toàn bộ tài khoản đã đăng ký trên hệ thống.</p>
+          <p className="text-sm font-medium text-slate-400 mt-1">Toàn bộ tài khoản đã đăng ký trên hệ thống ProInterview.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-slate-400" />
+        <div className="flex items-center gap-3">
+          <div className="relative min-w-[240px] sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Tìm email, tên..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-6 text-sm text-slate-900 outline-none transition-all focus:border-violet-400 md:w-64"
+              className="w-full rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-400 outline-none backdrop-blur-sm transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
             />
           </div>
           <Link
             to="/admin/users/import"
-            className="flex items-center gap-2 rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-violet-500/25 hover:bg-violet-700 transition-colors whitespace-nowrap"
+            className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/30 hover:bg-violet-500 transition-colors whitespace-nowrap"
           >
-            <Upload size={16} /> Nhập từ Google Form
+            <Upload size={14} /> Nhập từ Google Form
           </Link>
         </div>
       </div>
 
-
-      <div className="glass-card overflow-hidden border-slate-200/90">
+      <div className="glass-card overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] shadow-2xl backdrop-blur-md">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/90">
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <tr className="border-b border-white/10 bg-white/[0.04]">
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Người dùng / Email
                 </th>
-                <th className="px-8 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Vai trò
                 </th>
-                <th className="px-8 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Gói cước
                 </th>
-                <th className="px-8 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Trực tuyến
                 </th>
-                <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Thao tác
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-white/[0.06] text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500">
-                    Đang tải dữ liệu người dùng...
+                  <td colSpan="5" className="px-6 py-16 text-center text-sm text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải người dùng...</span>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500">
+                  <td colSpan="5" className="px-6 py-16 text-center text-sm italic text-slate-400">
                     Không có dữ liệu người dùng.
                   </td>
                 </tr>
               ) : (
                 filtered.map((user) => (
-                  <tr key={user._id} className="group transition-colors hover:bg-violet-50/40">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="flex size-10 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-400 transition-colors group-hover:border-violet-200 group-hover:text-violet-700">
+                  <tr key={user._id} className="group transition-colors hover:bg-white/[0.03]">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3.5">
+                        <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-violet-950/40 text-violet-300">
                           {user.avatar ? (
                             <img src={user.avatar} alt="" className="size-full object-cover" />
                           ) : (
-                            <Users size={20} />
+                            <span className="font-bold text-xs">{getInitials(user.name || "U")}</span>
                           )}
                         </div>
-                        <div>
-                          <Link to={`/admin/users/${user._id}`} className="font-black text-slate-900 hover:text-violet-700">
-                            {user.name}
+                        <div className="min-w-0">
+                          <Link to={`/admin/users/${user._id}`} className="truncate font-semibold text-white hover:text-violet-400 transition-colors block">
+                            {user.name || "Người dùng"}
                           </Link>
-                          <p className="flex items-center gap-1 text-[10px] text-slate-500">
-                            <Mail size={10} /> {user.email}
+                          <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                            <Mail size={12} className="opacity-70" /> {user.email}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <div className="flex justify-center">
                         <span
-                          className={`rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-widest ${
+                          className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                             user.role === "admin"
-                              ? "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700"
+                              ? "border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400"
                               : user.role === "mentor"
-                                ? "border-lime-200 bg-lime-50 text-lime-900"
-                                : "border-slate-200 bg-slate-100 text-slate-600"
+                                ? "border-lime-500/30 bg-lime-500/10 text-lime-400"
+                                : "border-white/10 bg-white/5 text-slate-300"
                           }`}
                         >
                           {user.role}
                         </span>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-center">
-                      <span className="flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600">
-                        <Tag size={12} className="text-violet-600" /> {user.plan || "free"}
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-300">
+                        <Tag size={12} className="text-violet-400" /> {user.plan || "free"}
                       </span>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <UserOnlineStatus
                         isOnline={Boolean(user.isOnline)}
                         lastSeenAt={user.displayLastSeenAt}
                         isActive={user.isActive !== false}
                       />
                     </td>
-                    <td className="px-8 py-6 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleActive(user._id, user.isActive !== false)}
-                        className={`rounded-xl border px-4 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
-                          user.isActive !== false
-                            ? "border-red-200 bg-red-50 text-red-700 hover:border-red-400 hover:bg-red-600 hover:text-white"
-                            : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-600 hover:text-white"
-                        }`}
-                      >
-                        {user.isActive !== false ? "Khóa" : "Mở khóa"}
-                      </button>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(user._id, user.isActive !== false)}
+                          className={`inline-flex items-center justify-center rounded-xl border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            user.isActive !== false
+                              ? "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white"
+                              : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white"
+                          }`}
+                        >
+                          {user.isActive !== false ? "Khóa" : "Mở khóa"}
+                        </button>
+                        <Link
+                          to={`/admin/users/${user._id}`}
+                          title="Chi tiết người dùng"
+                          className="size-8 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-all hover:bg-white/15 hover:text-white"
+                        >
+                          <Eye size={16} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))

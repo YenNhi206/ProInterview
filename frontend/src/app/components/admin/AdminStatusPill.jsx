@@ -2,7 +2,7 @@ import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
 import { labelPaymentStatus } from "../../utils/admin/adminPaymentUi.js";
 
 const PILL =
-  "inline-flex w-fit max-w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-bold leading-none";
+  "inline-flex w-fit max-w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-bold leading-none admin-shimmer-badge transition-all duration-300 hover:scale-105 cursor-default";
 
 function StatusRow({ caption, children }) {
   return (
@@ -24,21 +24,21 @@ export function StatusPill({ icon: Icon, label, toneClass }) {
 }
 
 const BOOKING_TONES = {
-  pending: { Icon: Clock, label: "Chờ duyệt buổi", tone: "border-orange-200 bg-orange-50 text-orange-800" },
-  confirmed: { Icon: CheckCircle, label: "Đã duyệt buổi", tone: "border-cyan-200 bg-cyan-50 text-cyan-800" },
-  paid: { Icon: CheckCircle, label: "Đã duyệt buổi", tone: "border-cyan-200 bg-cyan-50 text-cyan-800" },
-  cancelled: { Icon: XCircle, label: "Đã hủy", tone: "border-red-200 bg-red-50 text-red-700" },
-  in_progress: { Icon: AlertCircle, label: "Đang diễn ra", tone: "border-sky-200 bg-sky-50 text-sky-800" },
-  completed: { Icon: CheckCircle, label: "Hoàn thành", tone: "border-emerald-200 bg-emerald-50 text-emerald-800" },
-  no_show: { Icon: XCircle, label: "Không tham gia", tone: "border-rose-200 bg-rose-50 text-rose-800" },
+  pending: { Icon: Clock, label: "Chờ duyệt buổi", tone: "border-amber-500/30 bg-amber-500/10 text-amber-400" },
+  confirmed: { Icon: CheckCircle, label: "Đã duyệt buổi", tone: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400" },
+  paid: { Icon: CheckCircle, label: "Đã duyệt buổi", tone: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400" },
+  cancelled: { Icon: XCircle, label: "Đã hủy", tone: "border-rose-500/30 bg-rose-500/10 text-rose-400" },
+  in_progress: { Icon: AlertCircle, label: "Đang diễn ra", tone: "border-sky-500/30 bg-sky-500/10 text-sky-400" },
+  completed: { Icon: CheckCircle, label: "Hoàn thành", tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" },
+  no_show: { Icon: XCircle, label: "Không tham gia", tone: "border-rose-500/30 bg-rose-500/15 text-rose-400" },
 };
 
 const PAYMENT_TONES = {
-  pending: { Icon: Clock, label: "Chờ đối soát", tone: "border-violet-200 bg-violet-50 text-violet-800" },
-  paid: { Icon: CheckCircle, label: "Đã thanh toán", tone: "border-emerald-200 bg-emerald-50 text-emerald-800" },
-  refund_pending: { Icon: Clock, label: "Chờ hoàn tiền", tone: "border-sky-200 bg-sky-50 text-sky-800" },
-  refunded: { Icon: CheckCircle, label: "Đã hoàn tiền", tone: "border-slate-200 bg-slate-100 text-slate-700" },
-  partial_refund: { Icon: AlertCircle, label: "Hoàn một phần", tone: "border-indigo-200 bg-indigo-50 text-indigo-800" },
+  pending: { Icon: Clock, label: "Chờ đối soát", tone: "border-violet-500/30 bg-violet-500/10 text-violet-400" },
+  paid: { Icon: CheckCircle, label: "Đã thanh toán", tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" },
+  refund_pending: { Icon: Clock, label: "Chờ hoàn tiền", tone: "border-sky-500/30 bg-sky-500/10 text-sky-400" },
+  refunded: { Icon: CheckCircle, label: "Đã hoàn tiền", tone: "border-white/10 bg-white/5 text-slate-300" },
+  partial_refund: { Icon: AlertCircle, label: "Hoàn một phần", tone: "border-indigo-500/30 bg-indigo-500/10 text-indigo-400" },
 };
 
 export function BookingStatusPill({ status }) {

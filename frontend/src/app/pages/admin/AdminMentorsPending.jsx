@@ -260,8 +260,11 @@ export function AdminMentorsPending() {
             <tbody className="divide-y divide-slate-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="px-8 py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500">
-                    Đang tải danh sách chờ...
+                  <td colSpan="4" className="px-8 py-20 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải danh sách chờ...</span>
+                    </div>
                   </td>
                 </tr>
               ) : mentors.length === 0 ? (

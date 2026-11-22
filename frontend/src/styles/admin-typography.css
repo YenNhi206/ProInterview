@@ -1,82 +1,492 @@
 /**
- * Typography admin — Lexend headline stack, chữ đậm hơn customer/mentor mặc định.
- * Bọc bởi `.admin-shell` trong AdminLayout.
+ * Typography & Theme Admin — Hệ thống giao diện tối sang trọng (Dark Luxury Glassmorphism)
+ * Đồng bộ toàn diện với layout và design system của website ProInterview.
  */
 
 .admin-shell {
   font-family: var(--font-headline), "Plus Jakarta Sans", system-ui, sans-serif;
-  font-weight: 500;
-  font-variation-settings: "wght" 530;
   letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #f8fafc;
+  background-color: #0a0416 !important;
 }
 
 .admin-shell .font-headline {
   font-family: var(--font-headline), "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
-.admin-shell [data-admin-content] {
-  font-weight: 500;
+.admin-shell {
+  --adm-bg: #0a0416;
+  --adm-surface: rgba(255, 255, 255, 0.035);
+  --adm-surface-hover: rgba(255, 255, 255, 0.06);
+  --adm-border: rgba(255, 255, 255, 0.1);
+  --adm-border-subtle: rgba(255, 255, 255, 0.06);
+  --adm-text: #f8fafc;
+  --adm-muted: #94a3b8;
+  --adm-subtle: #64748b;
+  --adm-violet: #a855f7;
+  --adm-lime: #93f72b;
 }
 
+/* ── Typography hierarchy ─────────────────────────────────────────── */
 .admin-shell [data-admin-content] h1,
 .admin-shell [data-admin-content] h2,
 .admin-shell [data-admin-content] h3,
 .admin-shell [data-admin-content] h4 {
   font-family: var(--font-headline), "Plus Jakarta Sans", system-ui, sans-serif;
   letter-spacing: -0.022em;
+  color: #ffffff;
 }
 
-/* Bảng & ô dữ liệu */
-.admin-shell [data-admin-content] table tbody td {
-  font-weight: 600;
-  font-size: 0.875rem;
-  line-height: 1.45;
+/* Mapping màu chữ: chữ tối trong template chuyển thành chữ sáng trên nền dark */
+.admin-shell [data-admin-content] :is(.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-zinc-900) {
+  color: #ffffff !important;
+}
+.admin-shell [data-admin-content] :is(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
+  color: #cbd5e1 !important;
+}
+.admin-shell [data-admin-content] :is(.text-slate-500, .text-gray-500, .text-zinc-500) {
+  color: #94a3b8 !important;
+}
+.admin-shell [data-admin-content] :is(.text-slate-400, .text-gray-400) {
+  color: #94a3b8 !important;
 }
 
-.admin-shell [data-admin-content] table thead th {
-  font-weight: 900;
+/* Màu tím nhấn (accent) trên nền tối sáng và rực rỡ hơn */
+.admin-shell [data-admin-content] :is(.text-violet-700, .text-violet-800, .text-purple-700, .text-purple-800) {
+  color: #c084fc !important;
+}
+.admin-shell [data-admin-content] :is(.text-violet-600, .text-purple-600, .text-indigo-600) {
+  color: #a78bfa !important;
 }
 
-/* Form trong admin */
-.admin-shell [data-admin-content] input:not([type="checkbox"]):not([type="radio"]),
-.admin-shell [data-admin-content] textarea {
-  font-weight: 600;
+/* ── Surfaces & Glass Cards ────────────────────────────────────────── */
+.admin-shell [data-admin-content] .glass-card,
+.admin-shell [data-admin-content] :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
+  background-color: var(--adm-surface) !important;
+  border-color: var(--adm-border) !important;
+}
+.admin-shell [data-admin-content] :is(.bg-white\/90, .bg-white\/95, .bg-white\/80, .bg-slate-50\/90, .bg-slate-50\/80, .bg-slate-50\/70, .bg-slate-50\/50, .bg-slate-50\/40) {
+  background-color: var(--adm-surface) !important;
+  border-color: var(--adm-border) !important;
+}
+.admin-shell [data-admin-content] :is(.border-slate-100, .border-slate-200, .border-slate-200\/90, .border-slate-200\/80, .border-slate-300, .border-gray-200) {
+  border-color: var(--adm-border) !important;
 }
 
-/* Nâng một bậc các utility Tailwind phổ biến trong admin */
-.admin-shell [data-admin-content] .font-normal {
-  font-weight: 500;
+/* ── KPI & Summary Stat Cards (Đồng bộ Dark Glass tím sang trọng theo website ProInterview) ── */
+.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-amber-100"], [class*="bg-yellow-50"], [class*="bg-emerald-50"], [class*="bg-emerald-100"], [class*="bg-green-50"], [class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-orange-50"], [class*="bg-orange-100"]) {
+  background-color: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36) !important;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]):hover {
+  border-color: rgba(167, 139, 250, 0.35) !important;
 }
 
-.admin-shell [data-admin-content] .font-medium {
-  font-weight: 600;
-}
-
-.admin-shell [data-admin-content] .font-semibold {
+/* Nhãn tiêu đề của ô KPI */
+.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) p:first-child,
+.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-amber-900, .text-amber-950, .text-emerald-900, .text-emerald-950, .text-sky-900, .text-sky-950, .text-violet-900, .text-violet-950, .text-orange-900, .text-orange-950) {
+  color: #94a3b8 !important;
+  letter-spacing: 0.08em;
   font-weight: 700;
 }
 
-.admin-shell [data-admin-content] .font-bold {
-  font-weight: 800;
+/* Số liệu chính (Value / Count) */
+.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-2xl, .text-3xl, .text-4xl) {
+  color: #ffffff !important;
+  font-weight: 800 !important;
 }
 
-.admin-shell [data-admin-content] .font-extrabold {
-  font-weight: 900;
-}
-
-.admin-shell [data-admin-content] .font-black {
-  font-weight: 900;
-}
-
-/* Sidebar — nhãn nhóm menu */
-.admin-shell [data-sidebar="group-label"] {
-  font-weight: 900;
-}
-
-/* Thẻ stat / glass-card — mô tả phụ trực tiếp */
-.admin-shell [data-admin-content] .glass-card > p.text-sm,
-.admin-shell [data-admin-content] .glass-card > p.text-xs {
+/* Số tiền / Phụ đề có màu nhấn nhẹ nhàng, tinh tế */
+.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-orange-50"]) p:nth-child(3) {
+  color: #fbbf24 !important;
   font-weight: 600;
+}
+.admin-shell [data-admin-content] :is([class*="bg-emerald-50"], [class*="bg-green-50"]) p:nth-child(3) {
+  color: #34d399 !important;
+  font-weight: 600;
+}
+.admin-shell [data-admin-content] :is([class*="bg-sky-50"], [class*="bg-blue-50"]) p:nth-child(3) {
+  color: #38bdf8 !important;
+  font-weight: 600;
+}
+.admin-shell [data-admin-content] :is([class*="bg-violet-50"], [class*="bg-purple-50"]) p:nth-child(3) {
+  color: #c084fc !important;
+  font-weight: 600;
+}
+
+/* ── Dropdowns & Filters: Tuyệt đối không để ô trắng chọi với nền tối ── */
+.admin-shell .pi-select-trigger,
+.admin-shell .pi-dropdown-surface,
+[data-admin-content] .pi-select-trigger,
+[data-admin-content] .pi-dropdown-surface {
+  --menu-bg: #140b2a !important;
+  --menu-text: #f8fafc !important;
+  --menu-muted: #94a3b8 !important;
+  --menu-border: rgba(255, 255, 255, 0.12) !important;
+  --menu-hover: #231346 !important;
+  --menu-selected: #2d1858 !important;
+  --menu-accent: #a855f7 !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+.admin-shell .pi-select-trigger svg,
+[data-admin-content] .pi-select-trigger svg {
+  color: #94a3b8 !important;
+}
+
+/* ── Filter Tabs & Chips (Tránh nút màu trắng đục chọi với nền) ── */
+.admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]) {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+.admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]):hover {
+  background-color: rgba(255, 255, 255, 0.09) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+.admin-shell [data-admin-content] :is(button, a):is([class*="bg-violet-100"], [class*="bg-violet-200"]) {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
+  border-color: rgba(167, 139, 250, 0.4) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+}
+.admin-shell [data-admin-content] :is(button, a):is(.bg-slate-800, .bg-slate-900) {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+/* ── Modals & Dialogs (Tránh nền trắng chói mắt khi mở modal) ─────── */
+.admin-shell [role="dialog"],
+.admin-shell [data-slot="dialog-content"],
+.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]):is(.bg-white, [class*="bg-white"]) {
+  background-color: #0d061a !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 30px rgba(124, 58, 237, 0.15) !important;
+}
+.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) :is(h1, h2, h3, h4) {
+  color: #ffffff !important;
+}
+.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) p {
+  color: #cbd5e1 !important;
+}
+.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) textarea,
+.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) input {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* ── Bảng & Dữ liệu ──────────────────────────────────────────────── */
+.admin-shell [data-admin-content] table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+.admin-shell [data-admin-content] table thead tr {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-bottom: 1px solid var(--adm-border) !important;
+}
+.admin-shell [data-admin-content] table thead th {
+  color: #94a3b8 !important;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-shell [data-admin-content] table tbody tr {
+  border-bottom: 1px solid var(--adm-border-subtle);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.admin-shell [data-admin-content] table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.14) 0%, rgba(99, 102, 241, 0.08) 45%, rgba(255, 255, 255, 0.03) 100%) !important;
+  box-shadow: inset 4px 0 0 #a855f7, 0 8px 24px -4px rgba(124, 58, 237, 0.2) !important;
+}
+.admin-shell [data-admin-content] table tbody tr:hover td {
+  color: #ffffff !important;
+}
+.admin-shell [data-admin-content] table tbody tr:hover td :is(.text-slate-900, .text-slate-800, .text-slate-700) {
+  color: #ffffff !important;
+}
+.admin-shell [data-admin-content] table tbody td {
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: color 0.2s ease;
+}
+
+/* Table Action Buttons & Badges: phẳng, rực rỡ, không bị bóng 3D đen thui */
+.admin-shell table td :is(button, a[role="button"], a:has(svg)) {
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: #cbd5e1 !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.admin-shell table td :is(button, a[role="button"], a:has(svg)):hover {
+  transform: translateY(-2px) scale(1.15) !important;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(168, 85, 247, 0.6) !important;
+  background-color: rgba(168, 85, 247, 0.22) !important;
+  color: #ffffff !important;
+}
+.admin-shell table td :is(button, a[role="button"], a:has(svg)):hover svg {
+  color: #ffffff !important;
+  transform: scale(1.12);
+  transition: transform 0.2s ease !important;
+}
+
+/* Đảm bảo chữ trạng thái và nút bấm trong admin luôn tương phản cao, rực rỡ trên nền tối */
+.admin-shell [data-admin-content] :is(.text-amber-900, .text-amber-950, .text-orange-900, .text-orange-950) {
+  color: #fbbf24 !important;
+}
+.admin-shell [data-admin-content] :is(.text-lime-900, .text-lime-950, .text-emerald-900, .text-emerald-950, .text-green-900) {
+  color: #34d399 !important;
+}
+.admin-shell [data-admin-content] :is(.text-red-900, .text-red-950, .text-rose-900, .text-rose-950) {
+  color: #fb7185 !important;
+}
+.admin-shell [data-admin-content] :is(.text-sky-900, .text-sky-950, .text-blue-900, .text-blue-950) {
+  color: #38bdf8 !important;
+}
+.admin-shell [data-admin-content] :is(.text-violet-900, .text-violet-950, .text-purple-900, .text-purple-950) {
+  color: #c084fc !important;
+}
+
+/* ── Uiverse.io Micro-Interactions & Animations cho Admin ─────────── */
+
+/* 1. Thẻ KPI Dark Glass có vệt sáng viền & Ambient Glow khi hover */
+.admin-glow-card {
+  position: relative;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.admin-glow-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5), transparent);
+  opacity: 0.6;
+  transition: opacity 0.35s ease;
+}
+.admin-glow-card:hover {
+  border-color: rgba(168, 85, 247, 0.35);
+  box-shadow: 0 12px 40px rgba(124, 58, 237, 0.18), 0 0 20px rgba(168, 85, 247, 0.1);
+  transform: translateY(-2px);
+}
+.admin-glow-card:hover::before {
+  opacity: 1;
+}
+
+/* 2. Hiệu ứng quét sáng Shimmer trên Badge trạng thái */
+.admin-shimmer-badge {
+  position: relative;
+  overflow: hidden;
+}
+.admin-shimmer-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: transform 0.8s ease;
+}
+.admin-shimmer-badge:hover::after {
+  transform: translateX(200%);
+}
+
+/* 3. Chấm tròn nhịp tim (Radar Pulse Orb) */
+@keyframes adminPulseOrb {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(168, 85, 247, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+}
+.admin-pulse-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  animation: adminPulseOrb 2s infinite;
+}
+
+/* 4. Loader xoay 2 vòng quỹ đạo (Dual Orbital Spinner) */
+.admin-orbital-loader {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-orbital-loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  border-top-color: #a855f7;
+  border-right-color: rgba(217, 70, 239, 0.8);
+  animation: spin 1s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.6));
+}
+.admin-orbital-loader::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  border-bottom-color: #818cf8;
+  border-left-color: #6366f1;
+  animation: spin 1.4s linear infinite reverse;
+}
+
+/* ── Form Controls & Search Inputs ─────────────────────────────────── */
+.admin-shell [data-admin-content] input:not([type="checkbox"]):not([type="radio"]),
+.admin-shell [data-admin-content] textarea,
+.admin-shell [data-admin-content] select {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--adm-border) !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem;
+}
+.admin-shell [data-admin-content] input::placeholder,
+.admin-shell [data-admin-content] textarea::placeholder {
+  color: #64748b !important;
+}
+.admin-shell [data-admin-content] input:focus,
+.admin-shell [data-admin-content] textarea:focus,
+.admin-shell [data-admin-content] select:focus {
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+  outline: none !important;
+}
+
+/* ── Semantic Badges ───────────────────────────────────────────────── */
+.admin-shell [data-admin-content] :is(.bg-emerald-50, .bg-emerald-100, .bg-green-50, .bg-green-100) {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+.admin-shell [data-admin-content] :is(.text-emerald-700, .text-emerald-800, .text-green-700) {
+  color: #34d399 !important;
+}
+.admin-shell [data-admin-content] :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+.admin-shell [data-admin-content] :is(.text-red-700, .text-red-800, .text-rose-700, .text-rose-800) {
+  color: #fb7185 !important;
+}
+.admin-shell [data-admin-content] :is(.bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100) {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+.admin-shell [data-admin-content] :is(.text-orange-800, .text-amber-800, .text-orange-700, .text-amber-700) {
+  color: #fbbf24 !important;
+}
+.admin-shell [data-admin-content] :is(.bg-violet-50, .bg-violet-100, .bg-purple-50) {
+  background-color: rgba(139, 92, 246, 0.12) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+.admin-shell [data-admin-content] :is(.text-violet-800, .text-purple-800) {
+  color: #c084fc !important;
+}
+
+/* Nút bấm thứ cấp */
+.admin-shell [data-admin-content] button:not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]):not([role="switch"]):not([role="checkbox"]) {
+  border-color: var(--adm-border);
+}
+
+/* ── Sidebar Navigation Items: Phẳng, sạch, không bị viền nổi 3D khi không hover ── */
+[data-sidebar="sidebar"] :is(button, a),
+[data-slot="sidebar-menu-button"],
+[data-sidebar="menu-button"],
+.admin-shell [data-sidebar="sidebar"] :is(button, a),
+.admin-shell [data-slot="sidebar-menu-button"],
+.admin-shell [data-sidebar="menu-button"] {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+[data-sidebar="menu-button"]:not([data-active="true"]),
+[data-slot="sidebar-menu-button"]:not([data-active="true"]),
+.admin-shell [data-sidebar="menu-button"]:not([data-active="true"]),
+.admin-shell [data-slot="sidebar-menu-button"]:not([data-active="true"]) {
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: 1px solid transparent !important;
+  color: #94a3b8 !important;
+  border-radius: 0.75rem !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.admin-shell [data-sidebar="menu-button"]:not([data-active="true"]) svg,
+.admin-shell [data-slot="sidebar-menu-button"]:not([data-active="true"]) svg {
+  color: #94a3b8 !important;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease !important;
+}
+
+.admin-shell [data-sidebar="menu-button"]:not([data-active="true"]):hover,
+.admin-shell [data-slot="sidebar-menu-button"]:not([data-active="true"]):hover {
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.18) 0%, rgba(99, 102, 241, 0.06) 100%) !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  color: #ffffff !important;
+  box-shadow: inset 3px 0 0 #a855f7, 0 0 20px rgba(168, 85, 247, 0.22) !important;
+  transform: translateX(6px) !important;
+}
+
+.admin-shell [data-sidebar="menu-button"]:not([data-active="true"]):hover svg,
+.admin-shell [data-slot="sidebar-menu-button"]:not([data-active="true"]):hover svg {
+  color: #c084fc !important;
+  transform: scale(1.2) !important;
+}
+
+.admin-shell [data-sidebar="menu-button"][data-active="true"],
+.admin-shell [data-slot="sidebar-menu-button"][data-active="true"] {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(167, 139, 250, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+}
+
+.admin-shell [data-sidebar="menu-button"][data-active="true"] svg,
+.admin-shell [data-slot="sidebar-menu-button"][data-active="true"] svg {
+  color: #ffffff !important;
+}
+
+/* User footer card ở chân Sidebar */
+.admin-shell [data-slot="sidebar-footer"] button {
+  background-image: none !important;
+  box-shadow: none !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-shell [data-slot="sidebar-footer"] button:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: none !important;
 }
