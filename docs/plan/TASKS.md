@@ -15,7 +15,8 @@
 - **Mã task**: `N` nền tảng, `LP` Learning Path, `CO` Company và Rubric, `PR` Profile và CV, `JB` Job Post và Ứng tuyển, `AI` vòng AI, `QA` kiểm thử, `DOC` tài liệu. Mã không đổi; task mới lấy số tiếp theo (ví dụ LP-22 đứng sau LP-04).
 - **Mức**: P0 bắt buộc cho buổi bảo vệ, P1 nên có, P2 làm nếu còn thời gian.
 - **Nhánh và PR**: mỗi task một nhánh `feat/<mã>-<tên-ngắn>`, ví dụ `feat/LP-02-fix-booking-index`. Tên PR bắt đầu bằng mã task.
-- **Review chéo**: BE của Trầm do Văn review và ngược lại; FE do Janet review; AI do Trầm review. Janet merge.
+- **Nhóm làm việc**: phần AI do Janet làm trọn, không chia cho người khác. Văn và Nhi làm cặp (Company, Profile, CV, giao diện job và ứng tuyển). Trầm làm riêng (Learning Path, Job Post, Ứng tuyển, thanh toán). Task của Janet và Trầm không giao cho Văn.
+- **Review chéo**: Văn và Nhi review chéo nhau; Trầm và Janet review chéo nhau (BE của Trầm do Janet review, AI do Trầm review). Janet merge.
 - **Task sẵn sàng** = `Todo` và mọi task trong cột "Cần xong trước" đã `Done`.
 - **Làm đầu tiên**: LP-02 (index unique Booking) và N-06 (enum Notification).
 - **Giao được ngay**: N-01, N-02, N-03, N-05, N-06, N-07, N-10, AI-01, AI-12, LP-02, CO-01.
@@ -56,10 +57,10 @@ Sau GĐ0, ba luồng chạy song song: Learning Path (Trầm), Company và Rubri
 
 | Người | Vai trò | Sở hữu | P0 | P1 | P2 | Tổng |
 | --- | --- | --- | --- | --- | --- | --- |
-| Trầm | Backend | Index Booking, Learning Path, chặn luồng hủy cũ, chia tiền và đường ray thanh toán lộ trình, enum Notification, doanh thu theo nguồn, trạng thái CVAnalysis, Job Post, Ứng tuyển, đo SePay; FE `/company/jobs`, xác nhận tay lộ trình | 30 | 2 | 0 | 32 |
-| Văn | Backend | Đổi role và migrate, Node 22 + test glob, Company, lời mời, phân quyền, Rubric, Profile, kho CV, xuất PDF, test tải, đo CV/avatar, đo lại avatar ElevenLabs, seed demo; FE admin công ty, `/company` layout + câu hỏi, moderator rubric, báo cáo job, AI improvements | 25 | 4 | 1 | 30 |
-| Nhi | Frontend | Luồng ứng viên và mentor (lộ trình, hồ sơ, CV, job, ứng tuyển), trang nhận lời mời, trình soạn rubric, chi tiết đơn ứng tuyển, gỡ số liệu giả, HITL bước 7, kiểm thử thủ công | 16 | 7 | 0 | 23 |
-| Janet | Lead, AI | Tiêu chí SHRM/DDI, sinh câu và cache video câu công ty, CV validate và best-fit, hồ sơ năng lực, khoảng thiếu, luyện theo job, chấm rubric, vòng cải tiến AI, sàng lọc khóa, gợi ý, chuyển video avatar D-ID sang ElevenLabs, SRS/SDD, hồ sơ Review, merge | 20 | 9 | 0 | 29 |
+| Trầm | Backend | Index Booking, Learning Path, chặn luồng hủy cũ, chia tiền và đường ray thanh toán lộ trình, enum Notification, doanh thu theo nguồn, trạng thái CVAnalysis, Job Post, Ứng tuyển, đo SePay; FE `/company/jobs`, xác nhận tay lộ trình, màn moderator xử lý báo cáo job | 31 | 2 | 0 | 33 |
+| Văn | Backend + Frontend (cặp với Nhi) | Đổi role và migrate, Node 22 + test glob, Company, lời mời, phân quyền, Rubric, Profile, kho CV, xuất PDF, test tải, đo CV/avatar, seed demo; FE admin công ty, `/company` layout + câu hỏi, moderator rubric, nhãn vai trò, `/jobs`, `/company/applications`, CV editor, responsive | 24 | 5 | 1 | 30 |
+| Nhi | Frontend (cặp với Văn) | Luồng ứng viên và mentor (lộ trình, hồ sơ, CV, job, ứng tuyển), trang nhận lời mời, trình soạn rubric, gỡ số liệu giả, HITL bước 7, kiểm thử thủ công | 14 | 3 | 0 | 17 |
+| Janet | Lead, AI | Tiêu chí SHRM/DDI, sinh câu và cache video câu công ty, CV validate và best-fit, hồ sơ năng lực, khoảng thiếu, luyện theo job, chấm rubric, vòng cải tiến AI, sàng lọc khóa, gợi ý, chuyển video avatar D-ID sang ElevenLabs và đo lại, toàn bộ màn hình AI (duyệt cải tiến AI, Quality Dashboard, nhãn sàng lọc khóa, khối gợi ý), SRS/SDD, hồ sơ Review, merge | 22 | 12 | 0 | 34 |
 | **Cộng** | | | **91** | **22** | **1** | **114** |
 
 ---
@@ -82,7 +83,7 @@ Sau GĐ0, ba luồng chạy song song: Learning Path (Trầm), Company và Rubri
 | N-10 | C-10 (+PM-03) | Done | FE HITL bước 7: nút "Báo sai", nhãn "Đang chờ kiểm định", ưu tiên `moderatorOverride.overall` trên `InterviewFeedback.jsx` | Nhi |  | Báo sai tạo được ModerationItem; điểm moderator hiện thay điểm AI | P0 |
 | N-11 | NFR-01 (+NFR-02, AIS-05) | Todo | `cvMatch.js` tạo bản ghi `CVAnalysis` với status `processing` trước khi gọi Python, ghi `failed` hoặc kết quả + `durationMs` sau; FE cập nhật bản ghi đó thay vì tạo mới. Log `durationMs` từng bước pipeline avatar (TTS, D-ID, mirror) | Trầm |  | Mỗi lần phân tích chỉ có 1 bản ghi; lỗi hiện `failed`; có log thời gian trên Render | P0 |
 | N-12 | NEN (*) | Done | Sửa các chỗ lệch trong `CLAUDE.md` (router, thư mục `api/`, danh sách model, trạng thái FE); thêm quy ước tên role, mã task, các bẫy | Janet | N-02 | Thành viên mới đọc không bị dẫn sai | P1 |
-| N-13 | A-01 (+CM-01, PM-01) | Todo | Nhãn UI theo tên trong đơn: Candidate, Platform Moderator, Company Moderator | Nhi | N-02 | Không còn chữ "customer" hay "enterprise" (role) trên giao diện | P1 |
+| N-13 | A-01 (+CM-01, PM-01) | Todo | Nhãn UI theo tên trong đơn: Candidate, Platform Moderator, Company Moderator | Văn | N-02 | Không còn chữ "customer" hay "enterprise" (role) trên giao diện | P1 |
 | N-14 | NEN (*) | Done | Dọn `scratch_*`, `debug_*`, `*.ps1`, `line501.txt` ở gốc backend; sửa `dev:full` chạy được trên Windows | Văn |  | Gốc backend chỉ còn file của ứng dụng | P2 |
 
 ## GĐ 1: Learning Path
@@ -192,7 +193,7 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | PR-10 | C-02 | Review · Nhi · PR #214 | FE `/profile` viết lại: thông tin, vị trí mục tiêu, CV mặc định, thẻ năng lực "đã xác thực" bấm ra xem nguồn | Nhi | PR-01, PR-07 | Hiện đúng dữ liệu tài khoản seed | P0 |
 | PR-11 | C-02 | Review · Nhi · PR #213 | FE `/cvs`: kho CV, tải lên, nhân bản, đặt mặc định, xóa | Nhi | PR-02 | Thao tác đủ 4 việc trên UI | P0 |
 | PR-12 | C-04 | Todo | FE best-fit trong `CVAnalysisHub`: chọn nhiều CV, dán JD, xem xếp hạng và khoảng thiếu | Nhi | PR-05 | Chọn CV hợp nhất rồi sang phân tích chi tiết | P1 |
-| PR-13 | C-04 | Todo | FE CV editor `/cvs/:id/edit`: sửa theo mục, áp gợi ý AI vào bullet, lưu version, nút tải PDF gọi PR-09 | Nhi | PR-09 | Sửa, lưu và tải được | P1 |
+| PR-13 | C-04 | Todo | FE CV editor `/cvs/:id/edit`: sửa theo mục, áp gợi ý AI vào bullet, lưu version, nút tải PDF gọi PR-09 | Văn | PR-09 | Sửa, lưu và tải được | P1 |
 
 ## GĐ 4: Job Post và Ứng tuyển
 
@@ -212,13 +213,13 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | JB-08 | C-05 (+NFR-06) | Todo | Model `Application`; `POST /api/jobs/:id/apply` (cvId, `consent` bắt buộc, snapshot hồ sơ + điểm rubric buổi luyện gần nhất); `withdraw` ẩn snapshot, công ty chỉ còn thấy tên và "Đã rút"; `GET /api/applications/me` | Trầm | JB-03, PR-07, JB-07 | Không consent thì 400; mỗi job mỗi người 1 đơn | P0 |
 | JB-09 | CM-04 | Todo | API company xem danh sách/chi tiết đơn, đổi trạng thái `viewed`/`shortlisted`/`rejected`, gửi Notification | Trầm | JB-08 | Chỉ đọc được dữ liệu qua đơn có consent và chưa rút | P0 |
 | JB-10 | NFR-06 | Todo | Test integration: consent, rút đơn, truy cập chéo công ty, job bị ẩn | Trầm | JB-09 | Một file test riêng chạy xanh | P0 |
-| JB-11 | C-05 | Todo | FE `/jobs`: danh sách, lọc, thẻ job | Nhi | JB-03 | Lọc đúng theo API | P0 |
+| JB-11 | C-05 | Todo | FE `/jobs`: danh sách, lọc, thẻ job | Văn | JB-03 | Lọc đúng theo API | P0 |
 | JB-12 | C-05 | Todo | FE `/jobs/:id`: mô tả, khoảng thiếu, nút Luyện theo job, Ứng tuyển (chọn CV + ô đồng ý), Báo cáo, gửi yêu cầu mentor gắn job (`jobPostId`, đề xuất i) | Nhi | JB-05, JB-06, JB-08 | Đi hết luồng trên UI | P0 |
 | JB-13 | C-05 | Todo | FE `/my-applications`: trạng thái đơn, rút đơn | Nhi | JB-08 | Trạng thái đổi khi công ty xử lý | P0 |
 | JB-14 | C-03 | Todo | FE trang feedback phỏng vấn: hiện điểm rubric công ty và trích dẫn khi buổi gắn job | Nhi | JB-07 | Buổi luyện tự do không hiện phần này | P0 |
 | JB-15 | CM-03 | Todo | FE `/company/jobs` dạng bảng và form soạn job (năng lực, kỹ năng, chọn rubric, ngày đóng) | Trầm | JB-01, CO-12 | Đăng và đóng job trên UI | P0 |
-| JB-16 | CM-04 | Todo | FE `/company/applications` và chi tiết đơn (xem CV, thẻ năng lực, câu trả lời kèm điểm rubric, shortlist/từ chối) | Nhi | JB-09, CO-12 | Shortlist xong ứng viên nhận thông báo | P0 |
-| JB-17 | PM-05 | Todo | FE moderator: màn xử lý báo cáo job (loại `job_post_report`, tách khỏi hàng đợi phỏng vấn), nút ẩn/hiện | Văn | JB-04 | Xử lý được một báo cáo job trên UI | P0 |
+| JB-16 | CM-04 | Todo | FE `/company/applications` và chi tiết đơn (xem CV, thẻ năng lực, câu trả lời kèm điểm rubric, shortlist/từ chối) | Văn | JB-09, CO-12 | Shortlist xong ứng viên nhận thông báo | P0 |
+| JB-17 | PM-05 | Todo | FE moderator: màn xử lý báo cáo job (loại `job_post_report`, tách khỏi hàng đợi phỏng vấn), nút ẩn/hiện | Trầm | JB-04 | Xử lý được một báo cáo job trên UI | P0 |
 
 ## GĐ 5: Vòng AI và gợi ý
 
@@ -233,12 +234,12 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | AI-03 | AIS-06 | Todo | Model `AIImprovementProposal`; `aiImprovementMinerJob` gom ModerationItem đã xử lý (`override_score`, sửa hoặc khai tử câu) theo ngưỡng cấu hình (mặc định 5); thêm `createVersion(key, { baseVersion, template, fewShotExamples })` vào `promptVersionService`, kiểm tên `<tiền tố>-vN` và `validateTemplate` như `activate()` (đề xuất h) | Janet | AI-02 | Test: đủ ngưỡng thì tạo đúng 1 đề xuất | P0 |
 | AI-04 | AIS-06 | Todo | Backtest: chạy đề xuất trên AI-01 và 10 câu trả lời cũ, lưu điểm trước/sau vào đề xuất; backtest cần đổi phần chữ do `competencyFramework.js` sinh thì chuyển phần đó vào template PromptVersion (đề xuất g) | Janet | AI-01, AI-03 | Hiện được độ lệch so với điểm chuẩn | P0 |
 | AI-05 | PM-04 | Todo | API Platform Mod duyệt, từ chối, rollback; duyệt thì bật PromptVersion mới | Janet | AI-04 | Rollback trả về version trước; test | P0 |
-| AI-06 | PM-04 | Todo | FE `/moderator/ai-improvements` dạng bảng: bằng chứng, trước/sau, duyệt, từ chối, rollback | Văn | AI-05 | Duyệt được một đề xuất trên UI | P0 |
-| AI-07 | PM-06 | Todo | Quality Dashboard thêm: rubric chờ duyệt, thời gian duyệt rubric, tỉ lệ bị sửa trước/sau mỗi lần đổi version (BE + FE) | Văn | AI-05, CO-08 | Số khớp truy vấn tay | P1 |
+| AI-06 | PM-04 | Todo | FE `/moderator/ai-improvements` dạng bảng: bằng chứng, trước/sau, duyệt, từ chối, rollback | Janet | AI-05 | Duyệt được một đề xuất trên UI | P0 |
+| AI-07 | PM-06 | Todo | Quality Dashboard thêm: rubric chờ duyệt, thời gian duyệt rubric, tỉ lệ bị sửa trước/sau mỗi lần đổi version (BE + FE) | Janet | AI-05, CO-08 | Số khớp truy vấn tay | P1 |
 | AI-08 | AIS-08 | Todo | AI sàng lọc khóa học khi mentor gửi duyệt: đủ nội dung, video, mô tả, dấu hiệu vi phạm; ghi `Course.aiPrescreen` + ModerationItem `course_prescreen`; model rẻ; CostEvent `course_prescreen` | Janet | AI-12 | Mỗi khóa gửi duyệt có kết quả và cờ cụ thể | P1 |
-| AI-09 | PM-05 | Todo | FE: nhãn sàng lọc trên `/moderator/courses`; mentor thấy cảnh báo trước khi gửi | Văn | AI-08 | Hiện đúng cờ từ API | P1 |
+| AI-09 | PM-05 | Todo | FE: nhãn sàng lọc trên `/moderator/courses`; mentor thấy cảnh báo trước khi gửi | Janet | AI-08 | Hiện đúng cờ từ API | P1 |
 | AI-10 | AIS-07 (+C-09) | Todo | API `GET /api/recommendations/me`: khóa học, mentor (chuyên môn khớp năng lực còn thiếu, đánh giá), job (năng lực khớp yêu cầu); chấm theo luật có trọng số | Janet | PR-07, JB-03 | Mỗi gợi ý kèm một dòng lý do | P1 |
-| AI-11 | C-09 | Todo | FE khối gợi ý trên `/dashboard` (mentor, khóa, job) | Nhi | AI-10 | Bấm vào được trang chi tiết | P1 |
+| AI-11 | C-09 | Todo | FE khối gợi ý trên `/dashboard` (mentor, khóa, job) | Janet | AI-10 | Bấm vào được trang chi tiết | P1 |
 | AI-12 | AIS-08 | Done | Thêm kind `rubric_scoring`, `course_prescreen` vào `CostEvent`; ngưỡng cảnh báo Slack cho hai loại | Janet |  | Lưu được CostEvent mới; làm trước JB-07 và AI-08 | P0 |
 | AI-13 | AIS-02 (+C-03) | Todo | Bỏ fallback `shrmLevel = "proficient"` khi LLM trả giá trị lạ hoặc thiếu ở 4 chỗ: `interviewQuestionService.js:737`, `interviewsController.js:635` (đọc lại feedback đã cache), `frontend/src/app/utils/interview/feedbackModeration.js:42` và `:53`; thay bằng `""` và để FE hiện "Chưa đủ dữ liệu" | Janet |  | Câu thiếu `shrm_level` không còn hiện nhãn "Tốt"; test cả backend và FE | P1 |
 | AI-14 | AIS-04 (+NFR-02) | Todo | Chạy thử video avatar ElevenLabs `POST /v1/flows/video` (gói Pro, bất đồng bộ, poll cách ≥ 10 giây): `creatify-aurora` và các model có cử chỉ gọi được qua API (OmniHuman 1.5, HeyGen Avatar 4; model ByteDance có thể phải xin duyệt). Dùng ảnh `AI-female`/`AI-male`, audio tiếng Việt ElevenLabs, 3 câu baseline và câu dài nhất trong bộ câu hỏi | Janet |  | Có bảng theo model: thời gian tạo, credit, độ dài clip tối đa, khẩu hình tiếng Việt, cử chỉ; chọn 1 model. Không model nào đạt p95 ≤ 130 giây thì dừng, giữ D-ID, báo nhóm | P0 |
@@ -258,8 +259,8 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | QA-04 | NFR-03 | Todo | Đo thời gian đối soát SePay trên 20 giao dịch (webhook đến → Payment `success`) | Trầm | LP-10 | Kết quả ghi vào `nfr-results.md` | P0 |
 | QA-05 | AIS-06 (+A-02, CM-01, CM-02, CM-03, C-05, C-07, CM-04) | Done | Seed dữ liệu demo cho **staging**: 2 công ty, 3 job, rubric đã duyệt, 3 mentor, ứng viên có lịch sử phỏng vấn và lộ trình, **ít nhất 5 lượt chấm lại** để miner đủ ngưỡng. Giữ `_devOnlyGuard.js` (chặn production) | Văn | JB-09, LP-13, AI-03 | Một lệnh ra đủ dữ liệu kịch bản demo trên staging | P0 |
 | QA-06 | C-07 (+A-02, CM-01, CM-02, PM-02, C-05, C-03, CM-04, PM-03, PM-04) | Todo | Kiểm thử thủ công trên staging theo kịch bản demo 7 bước và theo từng vai trò; ghi lỗi vào issue có mã task | Nhi | QA-05 | Không còn lỗi chặn luồng | P0 |
-| QA-07 | C-02 (+C-04, C-05, C-07, CM-01, CM-02, CM-03, CM-04) | Todo | Kiểm tra responsive và sửa lỗi giao diện các màn hình mới | Nhi | QA-06 | Mọi màn hình mới dùng được ở bề ngang điện thoại | P1 |
-| QA-08 | NFR-02 (+AIS-04) | Todo | Đo lại phần avatar của QA-03 với ElevenLabs (20 câu mới, 20 câu đã cache), chạy lại `npm run warmup:baseline-videos` | Văn | AI-15 | Kết quả p50/p95 ghi vào `nfr-results.md`, ghi rõ provider và model | P0 |
+| QA-07 | C-02 (+C-04, C-05, C-07, CM-01, CM-02, CM-03, CM-04) | Todo | Kiểm tra responsive và sửa lỗi giao diện các màn hình mới | Văn | QA-06 | Mọi màn hình mới dùng được ở bề ngang điện thoại | P1 |
+| QA-08 | NFR-02 (+AIS-04) | Todo | Đo lại phần avatar của QA-03 với ElevenLabs (20 câu mới, 20 câu đã cache), chạy lại `npm run warmup:baseline-videos` | Janet | AI-15 | Kết quả p50/p95 ghi vào `nfr-results.md`, ghi rõ provider và model | P0 |
 | DOC-01 | C-01..AIS-08 | Todo | SRS: bảng ánh xạ 39 chức năng ↔ use case ↔ màn hình ↔ API; bảng tên role; mục "Chức năng bổ trợ" (giỏ hàng, coupon, gói Pro) | Janet |  | Mọi dòng trong đơn V2 có use case | P0 |
 | DOC-02 | C-07 (+C-05, NFR-06) | Todo | SDD và sequence diagram: Learning Path (có chia tiền và chặn luồng hủy cũ), Job Post, Ứng tuyển | Trầm | LP-17, JB-10 | Sequence khớp code | P0 |
 | DOC-03 | A-02 (+CM-01, CM-02, PM-02, C-02) | Done | SDD và sequence diagram: Company, lời mời, duyệt câu, Rubric, Profile và kho CV | Văn | CO-08, PR-07 | Sequence khớp code | P0 |
