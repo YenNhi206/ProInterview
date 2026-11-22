@@ -421,7 +421,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/bookings/mentor/:id/start` | Bearer + Mentor | Mentor bắt đầu buổi |
 | PATCH | `/api/bookings/mentor/:id/check-in` | Bearer + Mentor | Check-in webcam — body `{ imageUrl }` |
 | PATCH | `/api/bookings/mentor/:id/session-capture` | Bearer + Mentor | Lưu ảnh/chụp phiên |
-| GET | `/api/bookings/mentor/:id` | Bearer + Mentor | Chi tiết booking phía mentor |
+| GET | `/api/bookings/mentor/:id` | Bearer + Mentor | Chi tiết booking phía mentor. Booking buổi lộ trình có thêm `learningPathId`, `learningPathSessionId` (rỗng với booking thường; LP-21 dùng để mở form chấm đạt / chưa đạt) |
 | GET | `/api/bookings/mentor/:id/booked-slots` | — / Mentor | Slot đã đặt |
 | PATCH | `/api/bookings/mentor/:id/reschedule` | Bearer + Mentor | Dời lịch (mentor). 409 nếu mentee có buổi khác chồng giờ mới (xem C.3 "Chặn ứng viên trùng giờ") |
 | PATCH | `/api/bookings/mentor/:id/cancel` | Bearer + Mentor | Hủy (mentor) |

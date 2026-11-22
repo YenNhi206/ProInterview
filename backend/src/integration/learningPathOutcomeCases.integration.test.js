@@ -369,6 +369,15 @@ describe("D. Quyền truy cập", () => {
     assert.equal(byOrder(await getPath(lp, mentor.user), 1).feedback.summary, PASS.feedback.summary);
     assert.equal((await api(otherMentor.user, `/${lp.id}`)).status, 404);
   });
+
+  it("D9. Booking của buổi lộ trình (GET /api/bookings/mentor/:id) có learningPathId + learningPathSessionId để trang chấm nhận ra", async () => {
+    const session = await models.LearningPathSession.findById(s1.id).lean();
+    const res = await fetch(`${http.baseUrl}/api/bookings/mentor/${session.bookingId}`, { headers: { Authorization: `Bearer ${mintAccessToken(mentor.user._id)}` } });
+    const body = await res.json();
+    assert.equal(res.status, 200, body.error);
+    assert.equal(body.booking.learningPathId, lp.id);
+    assert.equal(body.booking.learningPathSessionId, s1.id);
+  });
 });
 
 // ---------------------------------------------------------------------------
