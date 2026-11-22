@@ -29,6 +29,7 @@ import {
 } from "../utils/bookingSchedule.js";
 import { newPaymentExpiresAt, isTransferPaymentExpired, TRANSFER_PAYMENT_TIMEOUT_MS } from "../utils/transferPaymentExpiry.js";
 import { expireBookingTransferIfNeeded } from "./transferPaymentExpiryService.js";
+import { MENTEE_BUSY_MESSAGE, candidateConflictMessage, findCandidateBookingConflict } from "./bookingConflictService.js";
 import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { buildJaasMeetingLaunch, isJaasConfigured } from "./jaasService.js";
 import { isProduction } from "../utils/prodGuard.js";
@@ -856,6 +857,16 @@ export async function createBooking(userId, body) {
     } else {
       return { ok: false, status: 409, error: "Khung giờ này đã được đặt. Chọn giờ khác." };
     }
+  }
+
+  // Ứng viên không được có 2 buổi chồng giờ, kể cả với mentor khác (đặt lại đúng slot của mình đã trả về ở trên).
+  const candidateConflict = await findCandidateBookingConflict(uid, {
+    date: dateNormalized,
+    timeSlot: timeNormalized,
+    durationMinutes,
+  });
+  if (candidateConflict) {
+    return { ok: false, status: 409, error: candidateConflictMessage(candidateConflict) };
   }
 
   const creditFromRaw =
@@ -2794,6 +2805,13 @@ export async function resolveMentorCancelBooking(userId, rawId, body) {
     .select("_id")
     .lean();
   if (dup) return { ok: false, status: 409, error: "Khung giờ mới đã có người đặt." };
+  const userConflict = await findCandidateBookingConflict(booking.userId, {
+    date: newDateNorm,
+    timeSlot: newSlot,
+    durationMinutes: booking.durationMinutes,
+    excludeBookingId: booking._id,
+  });
+  if (userConflict) return { ok: false, status: 409, error: candidateConflictMessage(userConflict) };
 
   const entry = {
     oldDate: booking.date,
@@ -2914,6 +2932,13 @@ export async function rescheduleMentorBooking(mentorUserId, rawId, body) {
     _id: { $ne: booking._id },
   }).select("_id").lean();
   if (dup) return { ok: false, status: 409, error: "Khung giờ mới đã có người đặt." };
+  const menteeConflict = await findCandidateBookingConflict(booking.userId, {
+    date: newDateNorm,
+    timeSlot: newSlot,
+    durationMinutes: booking.durationMinutes,
+    excludeBookingId: booking._id,
+  });
+  if (menteeConflict) return { ok: false, status: 409, error: MENTEE_BUSY_MESSAGE };
 
   booking.rescheduleHistory = [
     ...(booking.rescheduleHistory || []),

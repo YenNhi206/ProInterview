@@ -24,7 +24,7 @@ const pad = (n) => String(n).padStart(2, "0");
 /** Ngày + giờ lấy theo đúng thời điểm đích (giờ local) để không phụ thuộc múi giờ máy chạy test. */
 function slot(daysFromNow) {
   seq += 1;
-  const d = new Date(Date.now() + daysFromNow * 86400000 + seq * 60_000);
+  const d = new Date(Date.now() + 86400000 + daysFromNow * 60_000 + seq * 2 * 3_600_000);
   return { date: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`, timeSlot: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
 }
 
@@ -112,7 +112,7 @@ describe("POST /api/mentorship-requests/:id/accept-assessment (LP-05)", () => {
     const mentor = await actor(mentors[0].user);
     await assert.rejects(service.acceptAssessment(mentor, String(request._id), { date: "2026-12-01", timeSlot: "10:00" }), { status: 400 });
     await assert.rejects(service.acceptAssessment(mentor, String(request._id), { ...slot(3), timeSlot: "25:00" }), { status: 400 });
-    await assert.rejects(service.acceptAssessment(mentor, String(request._id), slot(-1)), { status: 400 });
+    await assert.rejects(service.acceptAssessment(mentor, String(request._id), { date: "01/01/2020", timeSlot: "09:00" }), { status: 400 });
 
     const taken = slot(4);
     await models.Booking.create({

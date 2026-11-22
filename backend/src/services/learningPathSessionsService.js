@@ -23,6 +23,7 @@ import { learningPathBookingMoney } from "../utils/learningPathBookingMoney.js";
 import { LEARNING_PATH_SCHEDULE_BLOCK as BLOCK, checkSessionSchedulable } from "../utils/learningPathSchedule.js";
 import { mentorSlotClosedReason, normalizeBookingDate } from "./bookingsService.js";
 import { expireBookingTransferIfNeeded } from "./transferPaymentExpiryService.js";
+import { candidateConflictMessage, findCandidateBookingConflict } from "./bookingConflictService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { learningPathDTO, loadPathForCandidate } from "./learningPathsService.js";
 
@@ -125,6 +126,8 @@ export async function scheduleLearningPathSession(actor, pathId, sessionId, body
   const slotClosed = mentorSlotClosedReason(mentor, input.date, input.timeSlot);
   if (slotClosed) throw httpError(400, slotClosed);
   await assertMentorSlotFree(mentor._id, input.date, input.timeSlot);
+  const ownConflict = await findCandidateBookingConflict(path.candidateId, input);
+  if (ownConflict) throw httpError(409, candidateConflictMessage(ownConflict));
 
   const bookingId = new mongoose.Types.ObjectId();
   const claimed = await LearningPathSession.findOneAndUpdate(

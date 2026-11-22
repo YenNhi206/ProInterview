@@ -8,6 +8,7 @@ import { Booking } from "../models/Booking.js";
 import { httpError } from "../utils/apiErrors.js";
 import { assessmentBookingMoney } from "../utils/learningPathBookingMoney.js";
 import { isBookingSlotInFuture } from "../utils/bookingSchedule.js";
+import { MENTEE_BUSY_MESSAGE, findCandidateBookingConflict } from "./bookingConflictService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { LearningPath } from "../models/LearningPath.js";
 import { findPublicJob, jobPostSummary } from "./publicJobsService.js";
@@ -175,6 +176,7 @@ export async function acceptAssessment(actor, requestId, body) {
     if (previous?.status === "completed") throw httpError(409, "Buổi đánh giá đã hoàn thành. Bước tiếp theo là soạn lộ trình.");
   }
   if (!isBookingSlotInFuture(input.date, input.timeSlot)) throw httpError(400, "Chọn thời gian trong tương lai cho buổi đánh giá.");
+  if (await findCandidateBookingConflict(request.userId, input)) throw httpError(409, MENTEE_BUSY_MESSAGE);
 
   let booking;
   try {

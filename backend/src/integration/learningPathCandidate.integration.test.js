@@ -27,7 +27,7 @@ const SESSIONS = [
 const pad = (n) => String(n).padStart(2, "0");
 function slot(daysFromNow) {
   seq += 1;
-  const d = new Date(Date.now() + daysFromNow * 86400000 + seq * 60_000);
+  const d = new Date(Date.now() + 86400000 + daysFromNow * 60_000 + seq * 2 * 3_600_000);
   return { date: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`, timeSlot: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
 }
 const actor = (user) => mrService.requestActor(String(user._id));
