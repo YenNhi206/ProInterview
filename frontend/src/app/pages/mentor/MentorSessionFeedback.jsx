@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { fetchMentorBookingById, updateMentorNotes } from "../../api/bookingsApi.js";
 import { avatarSrc, DEFAULT_AVATAR } from "../../utils/shared/mediaUrl.js";
 import { sessionTypeLabel } from "../../utils/booking/sessionTypeLabels.js";
@@ -103,17 +104,13 @@ ${generalNotes || "Không có ghi chú thêm."}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-10"
         >
-          {/* Header Section */}
-          <div className="mb-16 flex items-center justify-end">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Session Feedback</span>
-          </div>
-
-          <div className="text-center space-y-4 mb-20">
-            <h1 className="font-headline text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-3xl">
-              Đánh giá <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">chuyên sâu</span>
-            </h1>
-            <p className="text-lg font-semibold text-slate-500">Ghi nhận tiến trình và định hướng cho học viên</p>
-          </div>
+          {/* Unified Mentor Header */}
+          <MentorPageHeader
+            backTo={`/mentor/meetings/${sessionId}`}
+            backLabel="Quay lại Chi tiết buổi hẹn"
+            title="Đánh giá"
+            highlight="chuyên sâu"
+          />
 
           <div className="space-y-12">
             <div className="grid lg:grid-cols-12 gap-10">

@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { getUser } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames";
 import { fetchMentorPeerReviews, submitMentorPeerReview } from "../../api/mentorApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
@@ -138,60 +139,81 @@ function pickPriorityCourse(courses, categoryFilter = "all") {
 
 function PriorityPeerReviewSpotlight({ course, onReview }) {
   const hasCustomThumb = Boolean(String(course.cover || "").trim());
+  const coverUrl = mediaSrc(course.cover, DEFAULT_COURSE_THUMB);
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className="mb-8 overflow-hidden rounded-2xl border border-white/10 bg-[#160f26]/85 p-6 shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl sm:p-7"
+      className="relative mb-8 overflow-hidden rounded-3xl border border-violet-500/30 bg-[#0e071c] p-6 shadow-[0_16px_48px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-7"
     >
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
-        <div className="lg:w-[42%]">
-          {hasCustomThumb ? (
-            <div className="h-[200px] overflow-hidden rounded-xl border border-white/10 sm:h-[220px] lg:h-[240px]">
-              <img
-                src={mediaSrc(course.cover, DEFAULT_COURSE_THUMB)}
-                alt=""
-                className="h-full w-full object-cover"
-              />
+      {/* ── Dynamic Ambient Background from Peer Course Image ── */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <img
+          src={coverUrl}
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover scale-105 blur-[6px] opacity-100 brightness-115 saturate-125 transition-transform duration-700"
+        />
+        {/* Lighter, radiant gradient overlay: bright photo backdrop with pristine text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#080212]/80 via-[#0a0418]/60 to-[#06010e]/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080212]/60 via-transparent to-black/10" />
+      </div>
+
+      {/* Decorative neon ambient glow */}
+      <div className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-violet-600/25 blur-3xl" />
+
+      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center">
+        {/* Left: Thumbnail */}
+        <div className="lg:w-[40%] shrink-0">
+          <div className="relative h-[200px] overflow-hidden rounded-2xl border border-white/20 bg-slate-900 shadow-xl group sm:h-[220px] lg:h-[230px]">
+            <img
+              src={coverUrl}
+              alt=""
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3.5">
+              <span className="inline-flex items-center gap-1 rounded-md bg-black/60 backdrop-blur-md px-2.5 py-0.5 text-[11px] font-medium text-slate-200">
+                <BookOpen size={12} className="text-violet-400" />
+                Khóa học đồng nghiệp
+              </span>
             </div>
-          ) : (
-            <div className="flex h-[200px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 text-center sm:h-[220px] lg:h-[240px]">
-              <ImageIcon size={32} className="text-[#93f72b]/50" strokeWidth={1.5} />
-              <p className="max-w-[220px] text-xs leading-relaxed text-slate-400">
-                Ảnh khóa học của đồng nghiệp
-              </p>
-            </div>
-          )}
+          </div>
         </div>
 
+        {/* Right: Info & Actions */}
         <div className="flex min-w-0 flex-1 flex-col justify-center">
-          <p className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#93f72b]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#93f72b]" aria-hidden />
-            Ưu tiên đánh giá tuần này
-          </p>
-          <h2 className="font-headline text-xl font-black leading-snug text-white sm:text-2xl">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/40 bg-violet-950/70 backdrop-blur-md px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-violet-200 shadow-sm">
+              <Sparkles size={12} className="text-violet-300" />
+              Ưu tiên đánh giá tuần này
+            </span>
+          </div>
+
+          <h2 className="font-headline text-xl font-black leading-snug text-white sm:text-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
             {course.title}
           </h2>
-          <p className="mt-3 text-sm text-slate-400">
-            Tác giả <strong className="text-white">{course.mentor}</strong>
-            <span className="mx-2 text-slate-600">·</span>
+
+          <p className="mt-3 text-sm text-slate-300 font-medium drop-shadow">
+            Tác giả <strong className="text-white font-bold">{course.mentor}</strong>
+            <span className="mx-2 text-slate-500">·</span>
             {Number(course.participants || 0).toLocaleString("vi-VN")} học viên
-            <span className="mx-2 text-slate-600">·</span>
-            <span className="text-[#93f72b]">{formatCategoryShort(course.category)}</span>
+            <span className="mx-2 text-slate-500">·</span>
+            <span className="text-violet-300 font-bold">{formatCategoryShort(course.category)}</span>
           </p>
+
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => onReview(course)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#93f72b] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-violet-600/35 border border-violet-400/35 transition hover:from-violet-500 hover:to-indigo-500 hover:border-violet-300 active:scale-[0.98]"
             >
               <ClipboardList size={15} />
               Đánh giá ngay
             </button>
-            <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#93f72b]/30 bg-[#93f72b]/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-[#93f72b]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#93f72b]" aria-hidden />
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-300 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden />
               Chưa đánh giá
             </span>
           </div>
@@ -248,14 +270,13 @@ const PeerReviewListRow = forwardRef(function PeerReviewListRow({ course, index,
 
   const statusBadge = (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-        reviewed
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${reviewed
           ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-          : "border border-[#93f72b]/30 bg-[#93f72b]/10 text-[#93f72b]"
-      }`}
+          : "border border-violet-400/30 bg-violet-500/10 text-violet-300"
+        }`}
     >
       <span
-        className={`h-1.5 w-1.5 shrink-0 rounded-full ${reviewed ? "bg-emerald-400" : "bg-[#93f72b]"}`}
+        className={`h-1.5 w-1.5 shrink-0 rounded-full ${reviewed ? "bg-emerald-400" : "bg-violet-400"}`}
       />
       {reviewed ? "Đã đánh giá" : "Chờ bạn góp ý"}
     </span>
@@ -274,7 +295,7 @@ const PeerReviewListRow = forwardRef(function PeerReviewListRow({ course, index,
     <button
       type="button"
       onClick={() => onReview(course)}
-      className="peer-review-cta inline-flex min-h-[42px] w-full items-center justify-center gap-1.5 rounded-xl bg-[#93f72b] px-5 py-2 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.3)] transition hover:bg-[#a8ff4e] lg:w-auto lg:min-h-0"
+      className="peer-review-cta inline-flex min-h-[42px] w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-violet-600/30 border border-violet-400/30 transition hover:from-violet-500 hover:to-indigo-500 lg:w-auto lg:min-h-0"
     >
       <ClipboardList size={15} />
       Đánh giá ngay
@@ -295,9 +316,8 @@ const PeerReviewListRow = forwardRef(function PeerReviewListRow({ course, index,
       {/* Mobile card */}
       <div className="mentor-peer-row overflow-hidden rounded-2xl border border-white/10 bg-[#160f26]/85 p-4 shadow-lg lg:hidden">
         <div
-          className={`relative h-36 w-full overflow-hidden rounded-xl ${
-            hasCustomThumb ? "border border-white/10" : `bg-gradient-to-br ${gradient}`
-          }`}
+          className={`relative h-36 w-full overflow-hidden rounded-xl ${hasCustomThumb ? "border border-white/10" : `bg-gradient-to-br ${gradient}`
+            }`}
         >
           {thumbInner}
         </div>
@@ -314,7 +334,7 @@ const PeerReviewListRow = forwardRef(function PeerReviewListRow({ course, index,
           <div className="mt-4 grid grid-cols-2 gap-2.5">
             <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
               <div className="flex items-center gap-1.5 text-slate-400">
-                <Users size={14} className="text-[#93f72b]" strokeWidth={2} />
+                <Users size={14} className="text-violet-400" strokeWidth={2} />
                 <span className="text-[11px] font-semibold">Học viên</span>
               </div>
               <p className="mt-1 text-lg font-bold text-white">{course.participants}</p>
@@ -336,14 +356,13 @@ const PeerReviewListRow = forwardRef(function PeerReviewListRow({ course, index,
       {/* Desktop row */}
       <div className="mentor-peer-row group relative mx-1 hidden flex-col gap-4 px-3 py-4 sm:mx-2 sm:px-5 sm:py-4 lg:flex lg:flex-row lg:items-center">
         <div
-          className={`relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl border border-white/10 ${
-            hasCustomThumb ? "" : `bg-gradient-to-br ${gradient}`
-          }`}
+          className={`relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-xl border border-white/10 ${hasCustomThumb ? "" : `bg-gradient-to-br ${gradient}`
+            }`}
         >
           {thumbInner}
         </div>
         <div className="min-w-0 flex-1 lg:pr-4">
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white transition-colors duration-200 group-hover:text-[#93f72b]">
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white transition-colors duration-200 group-hover:text-violet-300">
             {course.title}
           </h3>
           <p className="mt-1 text-xs text-slate-400">
@@ -353,7 +372,7 @@ const PeerReviewListRow = forwardRef(function PeerReviewListRow({ course, index,
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 text-slate-300 lg:w-28 lg:justify-center">
-          <Users size={14} className="shrink-0 text-[#93f72b]" strokeWidth={2} />
+          <Users size={14} className="shrink-0 text-violet-300" strokeWidth={2} />
           <span className="text-sm font-bold text-white">{course.participants}</span>
           <span className="text-xs text-slate-400">học viên</span>
         </div>
@@ -473,15 +492,15 @@ export function MentorPeerReview() {
       prev.map((c) =>
         c.id === selectedCourse.id
           ? {
-              ...c,
-              status: "reviewed",
-              rating: (
-                (reviewForm.contentRating +
-                  reviewForm.qualityRating +
-                  reviewForm.priceValueRating) /
-                3
-              ).toFixed(1),
-            }
+            ...c,
+            status: "reviewed",
+            rating: (
+              (reviewForm.contentRating +
+                reviewForm.qualityRating +
+                reviewForm.priceValueRating) /
+              3
+            ).toFixed(1),
+          }
           : c,
       ),
     );
@@ -490,22 +509,10 @@ export function MentorPeerReview() {
   return (
     <MentorPageShell extraStyles={PEER_ROW_STYLES}>
       <div className="relative z-10 mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
-        <motion.header
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 pt-2"
-        >
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#93f72b]">
-            <Sparkles size={13} /> Đánh Giá Chéo Khóa Học
-          </div>
-          <h1 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">
-            Đánh giá chéo <span className="text-[#93f72b]">đồng nghiệp</span>
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-violet-200/70">
-            Góp ý chất lượng bài giảng cho các mentor khác và tích lũy điểm thưởng uy tín trong cộng đồng ProInterview.
-          </p>
-        </motion.header>
+        <MentorPageHeader
+          title="Đánh giá chéo"
+          highlight="đồng nghiệp"
+        />
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -525,7 +532,7 @@ export function MentorPeerReview() {
             <MentorStatFrame
               index={2}
               compact
-              accent="lime"
+              accent="purple"
               value={String(reviewedCount)}
               title="Đã hoàn thành"
               cornerIcon={CheckCircle2}
@@ -541,7 +548,7 @@ export function MentorPeerReview() {
             <MentorStatFrame
               index={4}
               compact
-              accent="lime"
+              accent="purple"
               value={avgRating}
               title="Điểm trung bình"
               cornerIcon={Star}
@@ -569,17 +576,16 @@ export function MentorPeerReview() {
                       key={tab.id}
                       type="button"
                       onClick={() => setFilter(tab.id)}
-                      className={`mw-tab relative shrink-0 snap-start whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
-                        active
-                          ? "text-[#93f72b]"
+                      className={`mw-tab relative shrink-0 snap-start whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${active
+                          ? "text-violet-300"
                           : "text-slate-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       {tab.label}
                       {active && (
                         <motion.span
                           layoutId="mentorPeerTabUnderline"
-                          className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[#93f72b]"
+                          className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-violet-500"
                           transition={{ type: "spring", stiffness: 420, damping: 32 }}
                         />
                       )}
@@ -597,11 +603,10 @@ export function MentorPeerReview() {
                       type="button"
                       data-button-surface={active ? undefined : "none"}
                       onClick={() => setCategory(cat)}
-                      className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition ${
-                        active
-                          ? "bg-[#93f72b] text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.35)]"
+                      className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition ${active
+                          ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/30 border border-violet-400/30"
                           : "mw-chip border border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10 hover:text-white"
-                      }`}
+                        }`}
                     >
                       {formatCategory(cat)}
                     </button>
@@ -620,14 +625,14 @@ export function MentorPeerReview() {
                 placeholder="Tìm khóa học hoặc mentor..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full min-h-[42px] rounded-xl border border-white/15 bg-[#10091e] py-2 pl-9 pr-4 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-[#93f72b] focus:ring-2 focus:ring-[#93f72b]/20"
+                className="w-full min-h-[42px] rounded-xl border border-white/15 bg-[#10091e] py-2 pl-9 pr-4 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
               />
             </div>
           </div>
 
           {coursesForReview.length === 0 ? (
             <div className="px-6 py-20 text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#93f72b]/30 bg-[#93f72b]/10 text-[#93f72b]">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-500/10 text-violet-400">
                 <FileBadge size={26} />
               </div>
               <h3 className="text-base font-bold text-white mb-1.5">
@@ -721,7 +726,7 @@ export function MentorPeerReview() {
                     <button
                       type="button"
                       onClick={() => navigate(`/courses/${selectedCourse.id}?peerReview=1`)}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#93f72b] hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-300 hover:underline"
                     >
                       <BookOpen size={13} /> Chi tiết đề cương
                     </button>

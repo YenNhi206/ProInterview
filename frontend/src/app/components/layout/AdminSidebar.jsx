@@ -98,7 +98,7 @@ const MAIN_GROUPS = [
     items: [
       { to: "/admin/reviews", label: "Đánh giá", icon: Star },
       { to: "/admin/analytics", label: "Phân tích", icon: LineChart },
-      { to: "/admin/audit-log", label: "Nhật ký admin", icon: BookOpen },
+      { to: "/admin/audit-log", label: "Nhật ký thao tác", icon: BookOpen },
     ],
   },
 ];

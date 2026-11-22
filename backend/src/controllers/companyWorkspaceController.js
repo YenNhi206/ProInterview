@@ -4,6 +4,7 @@ import { CompanyRubric } from "../models/CompanyRubric.js";
 import { assertSameCompany } from "../utils/assertSameCompany.js";
 import { isValidCompetencyKey } from "../services/competencyFramework.js";
 import { isValidRoleCategory } from "../services/roleCategories.js";
+import { COMPANY_QUESTION_COUNT, generateCompanyQuestionDrafts } from "../services/companyQuestionGenService.js";
 
 /** Thang mô tả của mỗi tiêu chí rubric: 6 mức 0–5 (CO-07). */
 const RUBRIC_LEVELS = ["0", "1", "2", "3", "4", "5"];
@@ -299,6 +300,41 @@ export const CompanyWorkspaceController = {
 
     await question.save();
     return res.json({ success: true, message: "Đã từ chối câu hỏi.", question });
+  },
+
+  // CO-04: AI sinh bộ 8–12 câu nháp theo roleCategory (quyết định 11)
+  async generateQuestions(req, res) {
+    const roleCategory = req.body?.roleCategory;
+    if (!isValidRoleCategory(roleCategory)) {
+      return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
+    }
+    const { min, max } = COMPANY_QUESTION_COUNT;
+    const count = req.body?.count === undefined ? COMPANY_QUESTION_COUNT.default : Number(req.body.count);
+    if (!Number.isInteger(count) || count < min || count > max) {
+      return res.status(400).json({ success: false, error: `Số câu cần sinh phải là số nguyên từ ${min} đến ${max}.` });
+    }
+
+    try {
+      const result = await generateCompanyQuestionDrafts({
+        companyId: req.companyId, roleCategory, count, userId: req.userId,
+      });
+      const n = result.questions.length;
+      const skipped = result.skippedDuplicates ? ` Bỏ qua ${result.skippedDuplicates} câu trùng với câu đã có.` : "";
+      return res.status(201).json({
+        success: true,
+        message: `Đã sinh ${n} câu hỏi nháp, chờ bạn duyệt.${skipped}`,
+        count: n,
+        skippedDuplicates: result.skippedDuplicates,
+        promptVersion: result.promptVersion,
+        questions: result.questions,
+      });
+    } catch (err) {
+      // 502/503 tự trả thông báo riêng: errorHandler ở production đổi lỗi 5xx thành câu chung.
+      if ([400, 502, 503].includes(err?.status)) {
+        return res.status(err.status).json({ success: false, error: err.message });
+      }
+      throw err;
+    }
   },
 
   // Sinh bộ câu hỏi mẫu khởi đầu cho roleCategory

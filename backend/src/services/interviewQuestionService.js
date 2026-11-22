@@ -97,6 +97,12 @@ export function activeLLMModel(kind = "qgen") {
   return c.model;
 }
 
+/** Có ít nhất một khóa LLM (OpenAI-compatible hoặc Anthropic) — CO-04 kiểm trước khi gọi. */
+export function isLLMConfigured() {
+  const { apiKey, anthropicKey } = cfg();
+  return Boolean(apiKey || anthropicKey);
+}
+
 function getLLMProvider() {
   const explicit = process.env.LLM_PROVIDER?.toLowerCase();
   const { anthropicKey, baseUrl } = cfg();
@@ -234,7 +240,7 @@ function buildLLMError(status, errBody, retryAfterMs) {
  * @param {string} [opts.traceName]  - Tên generation cho Langfuse
  * @param {string} [opts.anthropicModel] - Override Anthropic model (dùng eval model cho evaluation)
  */
-async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2, traceId, traceName, anthropicModel } = {}) {
+export async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2, traceId, traceName, anthropicModel } = {}) {
   // QA-01: Chế độ mock LLM bằng biến môi trường để test tải không tốn tiền
   if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") {
     return JSON.stringify({
@@ -381,7 +387,7 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
   throw lastErr;
 }
 
-function extractJson(text) {
+export function extractJson(text) {
   const start = text.indexOf("{");
   const end   = text.lastIndexOf("}");
   if (start === -1 || end === -1) throw new Error("Không tìm thấy JSON trong output LLM");

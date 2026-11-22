@@ -187,3 +187,45 @@ it("paginates owned payment history and records successful and failed admin acti
   assert.equal((await request(f.customer, "/api/admin/audit-log")).status, 403);
   const logs = await request(admin, "/api/admin/audit-log?success=true"); assert.ok(logs.entries.length > 0); assert.ok(logs.entries.every((l) => l.details.success));
 });
+it("records mentor payout-account changes in the audit log with the account number masked to the last 4 digits", async () => {
+  const f = await fixture();
+  const res = await request(f.owner, "/api/mentor/payout-account", "PATCH", { bankName: "VCB", accountNumber: "0123456789", accountName: "MENTOR TEST" });
+  assert.equal(res.status, 200);
+  let entry;
+  for (let i = 0; i < 30 && !entry; i++) { entry = await models.SecurityLog.findOne({ type: "mentor_action", userId: f.owner._id, "details.path": "/api/mentor/payout-account" }); if (!entry) await new Promise((r) => setTimeout(r, 20)); }
+  assert.ok(entry); assert.equal(entry.details.success, true);
+  assert.equal(entry.details.body.accountNumber, "****6789");
+  assert.ok(!JSON.stringify(entry.details).includes("0123456789"));
+  const mentorLogs = await request(admin, "/api/admin/audit-log?actor=mentor");
+  assert.ok(mentorLogs.entries.some((l) => String(l._id) === String(entry._id)));
+  assert.ok(mentorLogs.entries.every((l) => l.type === "mentor_action"));
+  assert.equal((await request(admin, "/api/admin/audit-log?actor=hacker")).status, 400);
+});
+it("separates moderator actions from admin actions, including legacy admin_action rows on /api/moderator", async () => {
+  const moderator = await models.User.create({ name: "Platform mod", email: `mod-${Date.now()}@test.local`, role: "moderator" });
+  const legacy = await models.SecurityLog.create({ userId: moderator._id, type: "admin_action", details: { method: "PATCH", path: "/api/moderator/questions/legacy", statusCode: 200, success: true } });
+  const res = await request(moderator, "/api/moderator/questions/not-a-valid-id/approve", "PATCH", {});
+  let entry;
+  for (let i = 0; i < 30 && !entry; i++) { entry = await models.SecurityLog.findOne({ type: "moderator_action", userId: moderator._id }); if (!entry) await new Promise((r) => setTimeout(r, 20)); }
+  assert.ok(entry, `moderator request (HTTP ${res.status}) phải ghi moderator_action`);
+  const modLogs = await request(admin, "/api/admin/audit-log?actor=moderator&limit=200");
+  const ids = modLogs.entries.map((l) => String(l._id));
+  assert.ok(ids.includes(String(entry._id))); assert.ok(ids.includes(String(legacy._id)));
+  assert.ok(modLogs.entries.every((l) => l.details.path.startsWith("/api/moderator")));
+  const adminLogs = await request(admin, "/api/admin/audit-log?actor=admin&limit=200");
+  assert.ok(adminLogs.entries.every((l) => l.type === "admin_action" && !l.details.path.startsWith("/api/moderator")));
+});
+it("logs Company Moderator actions separately with the company name", async () => {
+  const company = await models.Company.create({ name: "Công ty Audit", slug: `cong-ty-audit-${Date.now()}` });
+  const cm = await models.User.create({ name: "Company mod", email: `cm-${Date.now()}@test.local`, role: "company_moderator", companyId: company._id });
+  const res = await request(cm, "/api/company/questions/not-a-valid-id/approve", "POST", {});
+  let entry;
+  for (let i = 0; i < 30 && !entry; i++) { entry = await models.SecurityLog.findOne({ type: "company_moderator_action", userId: cm._id }); if (!entry) await new Promise((r) => setTimeout(r, 20)); }
+  assert.ok(entry, `company moderator request (HTTP ${res.status}) phải ghi company_moderator_action`);
+  const logs = await request(admin, "/api/admin/audit-log?actor=company_moderator&limit=200");
+  const row = logs.entries.find((l) => String(l._id) === String(entry._id));
+  assert.ok(row); assert.equal(row.userId.role, "company_moderator"); assert.equal(row.userId.companyId.name, "Công ty Audit");
+  assert.ok(logs.entries.every((l) => l.type === "company_moderator_action"));
+  const modLogs = await request(admin, "/api/admin/audit-log?actor=moderator&limit=200");
+  assert.ok(!modLogs.entries.some((l) => String(l._id) === String(entry._id)));
+});

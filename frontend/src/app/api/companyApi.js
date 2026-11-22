@@ -45,8 +45,9 @@ export const companyApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  generateStarterQuestions: (data = {}) =>
-    authedFetch("/api/company/questions/generate-starter", {
+  /** CO-04: AI sinh 8–12 câu nháp theo roleCategory — body { roleCategory, count }. */
+  generateQuestions: (data = {}) =>
+    authedFetch("/api/company/questions/generate", {
       method: "POST",
       body: JSON.stringify(data),
     }),

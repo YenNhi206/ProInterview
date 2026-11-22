@@ -527,16 +527,16 @@ export function MentorDashboard() {
               </span>
             </h1>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-5 flex flex-wrap items-center gap-3">
               <motion.button
                 type="button"
                 onClick={() => navigate("/mentor/schedule")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group inline-flex items-center gap-3 rounded-xl bg-[#93f72b] py-2.5 pl-5 pr-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_24px_rgba(147,247,43,0.35)] transition-all hover:bg-[#a8ff4e]"
+                className="group inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 pl-5 pr-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_18px_rgba(124,58,237,0.45)] border border-violet-400/30 transition-all hover:from-violet-500 hover:to-indigo-500"
               >
                 <span>Tạo lịch trống mới</span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/15 transition-transform group-hover:translate-x-0.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 transition-transform group-hover:translate-x-0.5">
                   <ArrowRight size={14} strokeWidth={2.5} />
                 </span>
               </motion.button>
@@ -550,7 +550,6 @@ export function MentorDashboard() {
               </button>
             </div>
           </div>
-
         </motion.header>
 
         {/* Stats Grid — 3 Bento KPI Cards */}
@@ -722,7 +721,7 @@ export function MentorDashboard() {
                     <button
                       type="button"
                       onClick={() => navigate("/mentor/schedule")}
-                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.3)] transition-all hover:bg-[#a8ff4e]"
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_18px_rgba(124,58,237,0.45)] border border-violet-400/30 transition-all hover:from-violet-500 hover:to-indigo-500"
                     >
                       Tạo lịch mới ngay →
                     </button>
