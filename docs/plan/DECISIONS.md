@@ -41,3 +41,4 @@
 | 22/11/2026 | DOC-01 | Bản chuẩn của kế hoạch là docs/plan/; docs/capstone/TASKS.md là bản cũ, giữ để tham khảo | Janet |
 | 22/11/2026 | DOC-01 | Ngoài mã REQ, có nhãn NEN (*) cho việc dùng chung cả dự án (hạ tầng, quy trình, hồ sơ bắt buộc của môn) | Janet |
 | 22/11/2026 | DOC-01 | Mọi task gắn ít nhất một mã REQ; task phát sinh chỉ vào bảng chính qua "Đề xuất thay đổi kế hoạch" do Janet duyệt (trừ `bat-buoc` là sửa nhỏ: người phụ trách tự duyệt, ghi trong PR); việc ngoài đơn V2 chuyển "Hướng phát triển" | Janet |
+| 22/11/2026 | AI-14..AI-17, QA-08 | Video avatar chuyển từ D-ID sang ElevenLabs (`POST /v1/flows/video`). Đổi qua `AVATAR_PROVIDER` sau khi AI-14 chứng minh p95 ≤ 130 giây; gỡ D-ID (AI-17) chỉ sau khi QA-08 đo lại đạt. Giữ mirror Cloudinary, cache 180 ngày, fallback giọng trình duyệt cộng ảnh tĩnh. Chấp nhận rủi ro TTS và video cùng một nhà cung cấp | Nhóm |
