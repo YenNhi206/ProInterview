@@ -238,4 +238,12 @@
 .mentor-workspace.mw-light .mentor-workspace-brand-row .mentor-workspace-brand img { filter:brightness(.92) contrast(1.12) saturate(1.05); }
 .mentor-workspace-badge { flex-shrink:0; padding:2px 8px; border-radius:999px; border:1px solid rgba(163,230,53,.4); background:rgba(163,230,53,.15); color:#a3e635; font-size:8px; font-weight:900; letter-spacing:.08em; line-height:1.5; box-shadow:0 0 10px rgba(147,247,43,.2); }
 .mentor-workspace-mobile-nav .mentor-workspace-brand-row { margin-right:32px; }
-.mentor-workspace-account .notification-trigger { flex-shrink:0; width:34px; height:34px; border:0; background:transparent; }
+/* Chuông nổi góc trên phải (khu Mentor). Cùng hàng với nút mở menu trên điện thoại. */
+.mentor-workspace-bell { position:fixed; top:16px; right:20px; z-index:40; }
+.mentor-workspace-bell .notification-trigger { width:40px; height:40px; border:1px solid var(--mw-border); border-radius:10px; background:var(--mw-raised); backdrop-filter:blur(12px); color:var(--mw-text); }
+/* Chừa dải trên cho chuông để nút ở đầu trang (Làm mới, Rút tiền…) không bị đè. Điện thoại đã chừa 72px cho nút menu. */
+@media(min-width:1024px) { .mentor-workspace:has(> .mentor-workspace-bell) > .mentor-workspace-main { padding-top:60px; } }
+
+/* Đốm màu blur trang trí trong trang (vd. hero Bảng điều khiển) bị cắt ở mép trên vùng nội dung
+   thành đường tách nền; nền chung đã có vầng sáng nên ẩn đi ở mọi chế độ. */
+.mentor-workspace .mentor-workspace-main .pointer-events-none:is([class*="blur-["], .blur-3xl, .blur-2xl) { display:none; }

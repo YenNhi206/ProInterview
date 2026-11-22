@@ -92,8 +92,6 @@ function WorkspaceMenu({ config, onClose, active }) {
     <WorkspaceThemeSwitch />
     <div className="mentor-workspace-account">
       <Link to="/profile" onClick={onClose} className="mentor-workspace-user"><span className="mentor-workspace-avatar"><NavUserAvatar avatar={user?.avatar} initials={getInitials(name)} /></span><span title={name}>{name}</span></Link>
-      {/* Có `badge` thì hàng logo giống admin (không chỗ cho chuông) → chuông nằm cạnh tài khoản. */}
-      {badge && <NotificationCenter active={active} onSelect={handleNotification} />}
       <button type="button" aria-label="Đăng xuất" title="Đăng xuất" onClick={async () => { await logout(); navigate("/"); }}><LogOut size={17} /></button>
     </div>
   </>;
@@ -149,6 +147,12 @@ export function WorkspaceNav(config) {
   const [desktop, setDesktop] = useState(() => window.matchMedia("(min-width: 1024px)").matches);
   const location = useLocation();
   const lightSheet = useContext(WorkspaceThemeContext)?.resolved === "light";
+  const navigate = useNavigate();
+  const openNotification = (notification) => {
+    const actionUrl = notification.metadata?.actionUrl || notification.actionUrl;
+    if (actionUrl) navigate(actionUrl);
+    else config.onNotification?.(notification, navigate);
+  };
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1024px)");
     const change = () => { setDesktop(query.matches); setOpen(false); };
@@ -158,6 +162,8 @@ export function WorkspaceNav(config) {
   useEffect(() => { setOpen(false); }, [location.pathname]);
   return <>
     <aside className="mentor-workspace-nav" aria-label={`Điều hướng – ${config.label}`}><WorkspaceMenu config={config} active={desktop} /></aside>
+    {/* Có `badge` (khu Mentor): chuông nổi ở góc trên bên phải trang thay vì trong sidebar. */}
+    {config.badge && <div className="mentor-workspace-bell"><NotificationCenter active onSelect={openNotification} /></div>}
     {!desktop && <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild><button type="button" className="mentor-workspace-menu-toggle" aria-label="Mở menu"><Menu size={21} /></button></SheetTrigger>
       <SheetContent side="left" className={`mentor-workspace mentor-workspace-mobile-nav${lightSheet ? " mw-light" : ""}`}>

@@ -102,7 +102,7 @@ html[data-workspace-theme="light"] body { background-color: #f2f3f5 !important; 
 
 /* Đốm màu làm mờ trang trí (pointer-events-none + blur): trên nền tối thì hòa vào, trên nền sáng
    bị cắt ở mép vùng nội dung thành vệt tím và đường tách nền. */
-:root[data-workspace-theme="light"] .mentor-workspace .pointer-events-none:is([class*="blur-["], .blur-3xl, .blur-2xl) { display: none; }
+/* (ẩn đốm blur trang trí: đã chuyển sang mentor-workspace.css, áp cho cả 2 chế độ) */
 /* Bóng đổ đậm của thiết kế cũ → bóng mảnh, đỡ chói. */
 :root[data-workspace-theme="light"] .mentor-workspace-main [class*="shadow-"]:not(button):not(a) { box-shadow: 0 1px 2px rgba(35, 37, 47, 0.05); }
 
