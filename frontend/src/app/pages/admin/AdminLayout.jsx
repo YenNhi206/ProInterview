@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Outlet, useLocation } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "../../components/ui/sidebar";
 import { AdminSidebar } from "../../components/layout/AdminSidebar";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
@@ -65,12 +65,6 @@ function AdminTopBar() {
       </div>
       <div className="flex-1" />
       <div className="flex items-center gap-3">
-        <Link
-          to="/"
-          className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          Trang chủ ProInterview
-        </Link>
         <span
           className="shrink-0 rounded-full border border-lime-400/40 bg-lime-400/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-lime-400 shadow-[0_0_12px_rgba(147,247,43,0.18)]"
         >
