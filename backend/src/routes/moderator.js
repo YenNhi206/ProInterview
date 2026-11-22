@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authJwt } from "../middleware/authJwt.js";
 import { requireModerator } from "../middleware/requireRole.js";
-import { adminAuditLog } from "../middleware/adminAuditLog.js";
+import { moderatorAuditLog } from "../middleware/adminAuditLog.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { AdminController } from "../controllers/adminController.js";
 import { ModeratorController } from "../controllers/moderatorController.js";
@@ -14,12 +14,12 @@ import { ModeratorRubricController } from "../controllers/moderatorRubricControl
  * duyệt được nữa (xem requireRole.js — cổng này không cho admin đi vòng).
  * Handler tái dùng AdminController vì logic duyệt không đổi, chỉ đổi người có quyền.
  *
- * `adminAuditLog` ghi `type: "admin_action"` theo req.userId nên thao tác của moderator
- * vẫn hiện trong trang /admin/audit-log — không mất vết kiểm toán sau khi chuyển quyền.
+ * `moderatorAuditLog` ghi `type: "moderator_action"` theo req.userId nên thao tác của moderator
+ * vẫn hiện trong trang /admin/audit-log (lọc `?actor=moderator`), tách riêng khỏi thao tác admin.
  */
 export const moderatorRouter = Router();
 
-moderatorRouter.use(authJwt, requireModerator, adminAuditLog);
+moderatorRouter.use(authJwt, requireModerator, moderatorAuditLog);
 
 // Thống kê nội dung — moderator cần để xếp thứ tự hàng đợi duyệt.
 // Admin vẫn giữ bản của mình ở /api/admin/content/stats (dùng ở trang Phỏng vấn AI).

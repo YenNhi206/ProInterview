@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authJwt } from "../middleware/authJwt.js";
 import { requireCompanyModerator } from "../middleware/requireCompanyModerator.js";
+import { companyModeratorAuditLog } from "../middleware/adminAuditLog.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { companyQuestionGenLimiter } from "../middleware/rateLimiters.js";
 import { CompanyWorkspaceController } from "../controllers/companyWorkspaceController.js";
@@ -8,8 +9,9 @@ import { CompanyJobsController } from "../controllers/companyJobsController.js";
 
 export const companyRouter = Router();
 
-// Mọi route ở đây bắt buộc qua authJwt và requireCompanyModerator (CO-03)
-companyRouter.use(authJwt, requireCompanyModerator);
+// Mọi route ở đây bắt buộc qua authJwt và requireCompanyModerator (CO-03).
+// Thao tác ghi (POST/PATCH/...) được ghi vào nhật ký `company_moderator_action`, xem ở /admin/audit-log.
+companyRouter.use(authJwt, requireCompanyModerator, companyModeratorAuditLog);
 
 // Thông tin công ty & Dashboard tóm tắt
 companyRouter.get("/profile", asyncHandler(CompanyWorkspaceController.getProfile));

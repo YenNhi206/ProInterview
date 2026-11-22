@@ -3,6 +3,7 @@ import { authJwt } from "../middleware/authJwt.js";
 import { requireMentor } from "../middleware/requireMentor.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { MentorController } from "../controllers/mentorController.js";
+import { mentorAuditLog } from "../middleware/adminAuditLog.js";
 
 export const mentorRouter = Router();
 
@@ -12,7 +13,8 @@ mentorRouter.get("/analytics", authJwt, requireMentor, asyncHandler(MentorContro
 mentorRouter.get("/peer-reviews", authJwt, requireMentor, asyncHandler(MentorController.peerReviewQueue));
 mentorRouter.post("/peer-reviews/:courseId", authJwt, requireMentor, asyncHandler(MentorController.submitPeerReview));
 mentorRouter.get("/reviews", authJwt, requireMentor, asyncHandler(MentorController.reviews));
-mentorRouter.post("/payout", authJwt, requireMentor, asyncHandler(MentorController.payout));
+// Thao tác tiền của mentor ghi nhật ký (`SecurityLog` mentor_action) để đối soát chi trả.
+mentorRouter.post("/payout", authJwt, requireMentor, mentorAuditLog, asyncHandler(MentorController.payout));
 mentorRouter.get("/payouts", authJwt, requireMentor, asyncHandler(MentorController.payoutHistory));
-mentorRouter.patch("/payout-account", authJwt, requireMentor, asyncHandler(MentorController.payoutAccount));
-mentorRouter.post("/request-price-change", authJwt, requireMentor, asyncHandler(MentorController.requestPriceChange));
+mentorRouter.patch("/payout-account", authJwt, requireMentor, mentorAuditLog, asyncHandler(MentorController.payoutAccount));
+mentorRouter.post("/request-price-change", authJwt, requireMentor, mentorAuditLog, asyncHandler(MentorController.requestPriceChange));

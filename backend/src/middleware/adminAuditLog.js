@@ -1,5 +1,7 @@
 /**
  * Ghi vết mọi thao tác thay đổi dữ liệu của admin vào `SecurityLog` (type `admin_action`).
+ * `mentorAuditLog` dùng cùng cơ chế cho thao tác tiền của mentor (type `mentor_action`): đổi tài khoản
+ * nhận tiền, gửi yêu cầu rút tiền, xin đổi giá — để đối soát khi có tranh chấp chi trả (A-04, M-06).
  *
  * Mount ở router-level ngay sau `authJwt + requireAdmin` — không đụng vào từng handler, nên
  * không xung đột với các thay đổi đang diễn ra bên trong `adminController`.
@@ -22,8 +24,16 @@ const REDACTED_KEYS = new Set([
   "refreshtoken",
   "admininvitecode",
   "secret",
-  "authorization", "apikey", "api_key", "accountnumber", "bankaccount", "bankaccounts", "integrations", "cookie", "cvtext", "content",
+  "authorization", "apikey", "api_key", "bankaccount", "bankaccounts", "integrations", "cookie", "cvtext", "content",
 ]);
+
+/** Số tài khoản: chỉ giữ 4 số cuối (`****1234`) — đủ để đối soát mentor đã khai tài khoản nào, không lộ số đầy đủ. */
+const MASKED_TAIL_KEYS = new Set(["accountnumber"]);
+
+export function maskAccountTail(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return digits ? `****${digits.slice(-4)}` : "";
+}
 
 const MAX_BODY_CHARS = 2000;
 
@@ -38,7 +48,10 @@ function redactBody(value, depth = 0) {
 
   const out = {};
   for (const [key, val] of Object.entries(value)) {
-    out[key] = REDACTED_KEYS.has(key.toLowerCase().replace(/[^a-z0-9]/g, "")) ? "[redacted]" : redactBody(val, depth + 1);
+    const normalized = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (REDACTED_KEYS.has(normalized)) out[key] = "[redacted]";
+    else if (MASKED_TAIL_KEYS.has(normalized)) out[key] = maskAccountTail(val);
+    else out[key] = redactBody(val, depth + 1);
   }
   return out;
 }
@@ -56,35 +69,43 @@ function boundedBody(body) {
   }
 }
 
-export function adminAuditLog(req, res, next) {
-  if (READ_ONLY_METHODS.has(req.method)) return next();
+/** Middleware ghi `SecurityLog` loại `type` cho request thay đổi dữ liệu (đặt sau authJwt + kiểm role). */
+export function createAuditLog(type) {
+  return function auditLog(req, res, next) {
+    if (READ_ONLY_METHODS.has(req.method)) return next();
 
-  // Snapshot trước khi handler chạy — handler có thể mutate req.body.
-  const snapshot = {
-    method: req.method,
-    path: (req.originalUrl || req.url).split("?")[0],
-    body: boundedBody(req.body),
-  };
-  const adminUserId = req.userId;
-  const ipAddress = req.ip;
-  const userAgent = String(req.headers["user-agent"] || "").slice(0, 500);
+    // Snapshot trước khi handler chạy — handler có thể mutate req.body.
+    const snapshot = {
+      method: req.method,
+      path: (req.originalUrl || req.url).split("?")[0],
+      body: boundedBody(req.body),
+    };
+    const actorId = req.userId;
+    const ipAddress = req.ip;
+    const userAgent = String(req.headers["user-agent"] || "").slice(0, 500);
 
-  res.on("finish", () => {
-    // Fire-and-forget: audit log hỏng không bao giờ được làm hỏng response đã trả về.
-    SecurityLog.create({
-      userId: adminUserId,
-      type: "admin_action",
-      details: {
-        ...snapshot,
-        statusCode: res.statusCode,
-        success: res.statusCode >= 200 && res.statusCode < 400,
-      },
-      ipAddress,
-      userAgent,
-    }).catch((err) => {
-      console.error("[adminAuditLog] không ghi được log:", err.message);
+    res.on("finish", () => {
+      // Fire-and-forget: audit log hỏng không bao giờ được làm hỏng response đã trả về.
+      SecurityLog.create({
+        userId: actorId,
+        type,
+        details: {
+          ...snapshot,
+          statusCode: res.statusCode,
+          success: res.statusCode >= 200 && res.statusCode < 400,
+        },
+        ipAddress,
+        userAgent,
+      }).catch((err) => {
+        console.error(`[auditLog:${type}] không ghi được log:`, err.message);
+      });
     });
-  });
 
-  next();
+    next();
+  };
 }
+
+export const adminAuditLog = createAuditLog("admin_action");
+export const moderatorAuditLog = createAuditLog("moderator_action");
+export const companyModeratorAuditLog = createAuditLog("company_moderator_action");
+export const mentorAuditLog = createAuditLog("mentor_action");

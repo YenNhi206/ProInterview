@@ -1,5 +1,7 @@
 /**
- * Đọc nhật ký thao tác admin (`SecurityLog` type `admin_action`) — do `adminAuditLog` ghi.
+ * Đọc nhật ký thao tác (`SecurityLog`): `admin_action` (admin), `moderator_action` (Platform Moderator),
+ * `company_moderator_action` (Company Moderator)
+ * và `mentor_action` (thao tác tiền của mentor), do các middleware trong `adminAuditLog.js` ghi.
  *
  * Tách khỏi `adminController.js` để phần audit log không chạm vào file đang có thay đổi
  * song song từ nhánh khác.
@@ -8,6 +10,21 @@ import mongoose from "mongoose";
 import { SecurityLog } from "../models/SecurityLog.js";
 
 const DEFAULT_LIMIT = 50;
+
+/**
+ * Dòng ghi trước khi tách `moderator_action` mang type `admin_action` nhưng path `/api/moderator/...`
+ * (admin không đi qua cổng moderator), nên tách theo path để lọc đúng cả dữ liệu cũ.
+ */
+const LEGACY_MODERATOR_PATH = /^\/api\/moderator(\/|$)/;
+
+/** `?actor=` → điều kiện Mongo; bỏ trống = mọi loại nhật ký. */
+const ACTOR_FILTERS = {
+  admin: { type: "admin_action", "details.path": { $not: LEGACY_MODERATOR_PATH } },
+  moderator: { $or: [{ type: "moderator_action" }, { type: "admin_action", "details.path": LEGACY_MODERATOR_PATH }] },
+  company_moderator: { type: "company_moderator_action" },
+  mentor: { type: "mentor_action" },
+};
+const ALL_AUDIT_FILTER = { type: { $in: ["admin_action", "moderator_action", "company_moderator_action", "mentor_action"] } };
 const MAX_LIMIT = 200;
 
 function parsePositiveInt(raw, fallback, max) {
@@ -19,14 +36,18 @@ function parsePositiveInt(raw, fallback, max) {
 export const AdminAuditController = {
   /**
    * GET /api/admin/audit-log
-   * Query: page, limit, adminId, method, success ("true"|"false"), from, to (ISO date)
+   * Query: page, limit, actor ("admin"|"moderator"|"company_moderator"|"mentor"), adminId (người thao tác), method, success ("true"|"false"), from, to (ISO date)
    */
   getAuditLog: async (req, res, next) => {
     try {
       const page = parsePositiveInt(req.query?.page, 1);
       const limit = parsePositiveInt(req.query?.limit, DEFAULT_LIMIT, MAX_LIMIT);
 
-      const filter = { type: "admin_action" };
+      const actor = String(req.query?.actor || "").trim().toLowerCase();
+      if (actor && !ACTOR_FILTERS[actor]) {
+        return res.status(400).json({ success: false, error: "actor chỉ nhận admin, moderator, company_moderator hoặc mentor." });
+      }
+      const filter = { ...(ACTOR_FILTERS[actor] || ALL_AUDIT_FILTER) };
 
       const adminId = String(req.query?.adminId || "").trim();
       if (adminId) {
@@ -69,7 +90,7 @@ export const AdminAuditController = {
           .sort({ createdAt: -1 })
           .skip((page - 1) * limit)
           .limit(limit)
-          .populate("userId", "name email")
+          .populate({ path: "userId", select: "name email role companyId", populate: { path: "companyId", select: "name" } })
           .lean(),
         SecurityLog.countDocuments(filter),
       ]);
