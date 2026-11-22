@@ -141,6 +141,22 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
 :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-xl { background: #93f72b; border-color: #93f72b; color: #17210b; box-shadow: none; }
 :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-lg { background: rgba(147, 247, 43, 0.16); border-color: rgba(147, 247, 43, 0.55); color: #c9ff8f; }
 
+/* Nút bấm: buttons.css (toàn site) phủ hiệu ứng 3D (vòng sáng 1px + quầng 4px + bóng trong) bằng !important.
+   Bản tối đã tắt trong mentor-workspace.css; bản sáng tắt ở đây để nút phẳng, sạch, chỉ hiện bóng mảnh khi rê chuột. */
+:root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"]) { background-image: none; box-shadow: none !important; }
+@media (hover: hover) {
+  :root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"]):not(:disabled, [aria-disabled="true"]):hover { box-shadow: 0 4px 12px -6px rgba(91, 33, 182, 0.35) !important; }
+}
+:root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"]):not(:disabled, [aria-disabled="true"]):active { box-shadow: none !important; }
+
+/* Nút nền trắng không viền trước dựa vào vòng sáng của buttons.css để thấy mép; bỏ vòng sáng thì thêm viền. */
+:root[data-workspace-theme="light"] :is(button, a[class*="inline-flex"][class*="rounded"]).bg-white:not([class*="border"]) { border: 1px solid #d9cdf6; }
+:root[data-workspace-theme="light"] :is(button, a[class*="inline-flex"][class*="rounded"]).bg-white:not([class*="border"]):hover { border-color: #b9a2ee; background-color: #f6f1ff; }
+
+/* Chữ gradient bắt đầu từ trắng (from-white …) chỉ đọc được trên nền tối → gradient tím đậm; bản xanh ngọc giữ sắc xanh. */
+:root[data-workspace-theme="light"] .bg-clip-text[class*="from-white"] { background-image: linear-gradient(90deg, #6d28d9 0%, #9333ea 100%); }
+:root[data-workspace-theme="light"] .bg-clip-text[class*="from-white"][class*="to-teal"] { background-image: linear-gradient(90deg, #047857 0%, #0f766e 100%); }
+
 /* Thẻ kính mờ (glass-card của MentorPageShell) → thẻ trắng có viền + bóng nhẹ. */
 :root[data-workspace-theme="light"] .glass-card {
   background: var(--mw-surface);
