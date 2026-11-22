@@ -10,10 +10,10 @@
  */
 :root[data-workspace-theme="light"],
 .mentor-workspace.mw-light {
-  --mw-bg: #f2f3f5;
-  --mw-surface: #fbfbfc;
-  --mw-raised: #f6f7f9;
-  --mw-border: #e3e5ea;
+  --mw-bg: #f3f1f9;
+  --mw-surface: #fcfbfe;
+  --mw-raised: #f6f3fc;
+  --mw-border: #e6e0f4;
   --mw-text: #23252f;
   --mw-muted: #5b5772;
   --mw-lime: #4d8a0f;
@@ -21,25 +21,29 @@
 }
 .mentor-workspace.mw-light { background: transparent; color: var(--mw-text); color-scheme: light; }
 .app-shell-ambient.mw-light-ambient {
-  background: var(--mw-bg);
+  /* Nền cố định phủ cả màn hình (không bị cắt như đốm trong trang): vầng tím nhẹ ở 2 góc trên. */
+  background:
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(139, 92, 246, 0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(167, 139, 250, 0.10) 0%, transparent 70%),
+    var(--mw-bg);
 }
 :root[data-workspace-theme="light"] ::selection { background: #7c3aed30; color: #1e1b2e; }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
-:root[data-workspace-theme="light"] .mentor-workspace-nav { border-right: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .mentor-workspace-nav { border-right: 1px solid var(--mw-border); border-radius: 14px; background: rgba(250, 248, 255, 0.75); box-shadow: 0 1px 2px rgba(109, 40, 217, 0.04); }
 .mentor-workspace.mw-light.mentor-workspace-mobile-nav { background-color: var(--mw-surface); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading { color: var(--mw-muted); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-dot { background: #65b512; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link { border: 1px solid transparent; color: #4b4763; }
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link svg { color: #7a7596; }
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link:hover { background: #eceef2; color: var(--mw-text); }
+:root[data-workspace-theme="light"] .mentor-workspace-nav-link svg { color: #7c5bc4; }
+:root[data-workspace-theme="light"] .mentor-workspace-nav-link:hover { background: #efe9fc; color: #5b21b6; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active { background: #93f72b; color: #17210b; border-color: #7fd925; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active svg { color: #17210b; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link:focus-visible { outline: 2px solid var(--mw-accent); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-account { border-top: 1px solid var(--mw-border); }
 :root[data-workspace-theme="light"] .mentor-workspace-user { color: var(--mw-text); }
 :root[data-workspace-theme="light"] .mentor-workspace-account > button { color: var(--mw-muted); }
-:root[data-workspace-theme="light"] .mentor-workspace-account > button:hover { color: var(--mw-accent); background: #eceef2; }
+:root[data-workspace-theme="light"] .mentor-workspace-account > button:hover { color: var(--mw-accent); background: #efe9fc; }
 :root[data-workspace-theme="light"] .mentor-workspace-menu-toggle { color: var(--mw-text); background: var(--mw-surface); border: 1px solid var(--mw-border); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading .notification-trigger { color: var(--mw-muted); }
 
@@ -84,13 +88,13 @@
 /* Phần nằm ngoài khung (cuộn quá đà, vùng dưới nền fixed) cũng sáng. */
 /* theme.css ép `body` tối bằng !important → phải !important để thắng. Màu chữ body cũng đổi,
    vì dialog render qua portal kế thừa màu chữ từ body. */
-html[data-workspace-theme="light"] { background-color: #f2f3f5; color-scheme: light; }
-html[data-workspace-theme="light"] body { background-color: #f2f3f5 !important; color: #23252f !important; color-scheme: light; }
+html[data-workspace-theme="light"] { background-color: #f3f1f9; color-scheme: light; }
+html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; color: #23252f !important; color-scheme: light; }
 /* Bắt chung theo chuỗi con trong class: viền / nền trắng mờ (border-white/10, bg-white/[0.04]…). */
 :root[data-workspace-theme="light"] :is([class*="border-white/"], .border-white) { border-color: var(--mw-border); }
 :root[data-workspace-theme="light"] [class*="divide-white/"] > :not(:last-child) { border-color: var(--mw-border); }
 :root[data-workspace-theme="light"] :is(.bg-white\/5, .bg-white\/10, .bg-white\/12, .bg-white\/15, .bg-white\/20, [class*="bg-white/["]) { background-color: var(--mw-surface); }
-:root[data-workspace-theme="light"] :is([class*="hover:bg-white/"]):hover { background-color: #eceef2; }
+:root[data-workspace-theme="light"] :is([class*="hover:bg-white/"]):hover { background-color: #efe9fc; }
 /* Nền hex rất tối (#0…, #1…: #160f26, #0c0e15, #120a20…) và gradient tối → thẻ trắng. */
 :root[data-workspace-theme="light"] :is([class*="bg-[#0"], [class*="bg-[#1"]) { background-color: var(--mw-surface); }
 :root[data-workspace-theme="light"] :is([class*="from-[#0"], [class*="from-[#1"], [class*="via-[#0"], [class*="via-[#1"]) { background-image: none; background-color: var(--mw-surface); }
@@ -116,7 +120,7 @@ html[data-workspace-theme="light"] body { background-color: #f2f3f5 !important; 
 }
 :root[data-workspace-theme="light"] .glass-card::before { content: none; }
 @media (hover: hover) {
-  :root[data-workspace-theme="light"] .glass-card:hover { border-color: #cfd2da; transform: none; box-shadow: 0 2px 8px -2px rgba(35, 37, 47, 0.08); }
+  :root[data-workspace-theme="light"] .glass-card:hover { border-color: #cdbff0; transform: none; box-shadow: 0 2px 8px -2px rgba(35, 37, 47, 0.08); }
 }
 :root[data-workspace-theme="light"] :is(.mentor-stat-num, .mentor-stat-num--on-dark) { color: var(--mw-text); -webkit-text-stroke: 0; }
 :root[data-workspace-theme="light"] :is(.mentor-label, .mentor-label--on-dark, .mentor-label svg) { color: #6b6785; }
