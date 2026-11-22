@@ -12,7 +12,9 @@ export async function startMongoHarness() {
   const { MongoMemoryServer } = await import("mongodb-memory-server");
   const mongoose = (await import("mongoose")).default;
   const mongod = await MongoMemoryServer.create();
-  await mongoose.connect(mongod.getUri());
+  // Kết nối như app (strictQuery: true), nếu không lỗi sai tên field trong filter sẽ pass giả.
+  const { connectDatabase } = await import("../db/connect.js");
+  await connectDatabase(mongod.getUri());
   return { mongod, mongoose };
 }
 

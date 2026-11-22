@@ -343,8 +343,10 @@ describe("Giai đoạn 3: Candidate Profile và kho CV (PR-01, PR-02, PR-04, PR-
       hrGender: "female",
       roleCategory: "frontend",
       status: "completed",
+      answers: [{ questionIndex: 0, transcript: "Em tách bundle và đo lại LCP." }],
       feedback: {
         overallScore: 88,
+        perQuestion: [{ questionIndex: 0, score: 88 }],
         summary: "Ứng viên có phản xạ kỹ thuật vững vàng.",
       },
     });

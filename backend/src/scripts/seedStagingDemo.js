@@ -403,6 +403,7 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
     hrGender: "female",
     roleCategory: "frontend",
     status: "completed",
+    answers: [{ questionIndex: 0, transcript: "Event Loop hoạt động với Call Stack, Web API và Task Queue..." }],
     feedback: {
       overallScore: 88,
       overall5: 4.4,

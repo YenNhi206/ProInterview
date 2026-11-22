@@ -2,12 +2,13 @@ import {
   getOrCreateCandidateProfile,
   updateCandidateProfile,
   getProfileCompetencies,
+  presentCandidateProfile,
 } from "../services/candidateProfileService.js";
 
 export const CandidateProfileController = {
   // PR-01: Lấy hồ sơ ứng viên (tự khởi tạo nếu vào lần đầu)
   async getProfile(req, res) {
-    const profile = await getOrCreateCandidateProfile(req.userId);
+    const profile = await presentCandidateProfile(await getOrCreateCandidateProfile(req.userId));
     return res.json({
       success: true,
       profile,
@@ -16,7 +17,7 @@ export const CandidateProfileController = {
 
   // PR-01: Cập nhật headline, targetRole, defaultCvId,...
   async updateProfile(req, res) {
-    const profile = await updateCandidateProfile(req.userId, req.body);
+    const profile = await presentCandidateProfile(await updateCandidateProfile(req.userId, req.body));
     return res.json({
       success: true,
       message: "Cập nhật hồ sơ ứng viên thành công.",

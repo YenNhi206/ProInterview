@@ -2,7 +2,7 @@ import { CandidateProfile } from "../models/CandidateProfile.js";
 import { CVDocument } from "../models/CVDocument.js";
 import { User } from "../models/User.js";
 import { InterviewSession } from "../models/InterviewSession.js";
-import { Booking } from "../models/Booking.js";
+import { interviewEvidenceFilter } from "./competencyEvidence.js";
 import { httpError } from "../utils/apiErrors.js";
 
 const DEFAULT_COMPETENCY_KEYS = [
@@ -104,120 +104,53 @@ export async function updateCandidateProfile(userId, updateData) {
 }
 
 /**
+ * Năng lực luôn tính lại từ bằng chứng của chính user, chỉ đọc.
+ * KHÔNG đọc `profile.competencies` / `isVerified` đã lưu: dữ liệu cũ có booking của user khác và điểm giả.
+ */
+async function computeVerifiedState(userId) {
+  const sessions = await InterviewSession.find(interviewEvidenceFilter(userId))
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .select("feedback.overallScore competencyProfile.roleCategory createdAt")
+    .lean();
+
+  const sources = sessions.map((s) => ({
+    type: "ai_interview",
+    refId: s._id,
+    title: `Phỏng vấn AI: ${s.competencyProfile?.roleCategory || "Kỹ thuật"} (${s.feedback.overallScore}/100)`,
+    score: s.feedback.overallScore,
+    at: s.createdAt,
+  }));
+  const average = sources.length ? Math.round(sources.reduce((sum, x) => sum + x.score, 0) / sources.length) : 0;
+
+  const competencies = DEFAULT_COMPETENCY_KEYS.map((def) => {
+    // Gộp tạm điểm tổng vào một key cho tới khi PR-06 gộp theo competencyId từng câu.
+    const own = def.key === "technical_mastery" ? sources : [];
+    const score = own.length ? average : 0;
+    return {
+      ...def,
+      level: Math.min(5, Math.max(1, Math.round(score / 20))),
+      score,
+      evidenceCount: own.length,
+      sources: own,
+    };
+  });
+
+  return { competencies, isVerified: sources.length > 0, verifiedAt: sources[0]?.at ?? null };
+}
+
+/** Hồ sơ trả cho client: các field xác thực được tính lại, không lấy từ DB. */
+export async function presentCandidateProfile(profile) {
+  return { ...profile.toJSON(), ...(await computeVerifiedState(profile.userId)) };
+}
+
+/**
  * PR-07: Lấy hồ sơ năng lực đã gộp (competencies) và DTO cho Application snapshot
  */
 export async function getProfileCompetencies(userId) {
-  const profile = await getOrCreateCandidateProfile(userId);
-
-  // Đọc thêm các buổi phỏng vấn đã hoàn thành (bỏ abandoned)
-  const interviewSessions = await InterviewSession.find({
-    userId,
-    status: "completed",
-  })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-
-  // Đọc thêm các buổi mentor đánh giá hoặc lộ trình hoàn thành
-  const mentorBookings = await Booking.find({
-    menteeId: userId,
-    status: "completed",
-  })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-
-  // Tổng hợp bằng chứng cho từng competency
-  const competenciesMap = new Map();
-
-  for (const c of profile.competencies || []) {
-    competenciesMap.set(c.key, {
-      key: c.key,
-      name: c.name,
-      category: c.category,
-      level: c.level || 1,
-      score: c.score || 0,
-      evidenceCount: c.evidenceCount || 0,
-      sources: Array.isArray(c.sources) ? [...c.sources] : [],
-    });
-  }
-
-  // Đảm bảo đủ các key cơ sở
-  for (const def of DEFAULT_COMPETENCY_KEYS) {
-    if (!competenciesMap.has(def.key)) {
-      competenciesMap.set(def.key, {
-        key: def.key,
-        name: def.name,
-        category: def.category,
-        level: 1,
-        score: 0,
-        evidenceCount: 0,
-        sources: [],
-      });
-    }
-  }
-
-  // Gộp bằng chứng từ InterviewSessions
-  for (const s of interviewSessions) {
-    const score = Number(s.feedback?.overallScore) || 0;
-    if (score > 0) {
-      const targetKey = "technical_mastery";
-      const item = competenciesMap.get(targetKey);
-      if (item) {
-        const alreadyHas = item.sources.some((src) => src.refId && String(src.refId) === String(s._id));
-        if (!alreadyHas) {
-          item.sources.push({
-            type: "ai_interview",
-            refId: s._id,
-            title: `Phỏng vấn AI: ${s.roleCategory || "Kỹ thuật"} (${score}/100)`,
-            score,
-            at: s.createdAt || new Date(),
-          });
-          item.evidenceCount = item.sources.length;
-          item.score = Math.round(
-            item.sources.reduce((sum, x) => sum + (x.score || 0), 0) / item.sources.length
-          );
-          item.level = Math.min(5, Math.max(1, Math.round(item.score / 20)));
-        }
-      }
-    }
-  }
-
-  // Gộp bằng chứng từ MentorBookings
-  for (const b of mentorBookings) {
-    const targetKey = "problem_solving";
-    const item = competenciesMap.get(targetKey);
-    if (item) {
-      const alreadyHas = item.sources.some((src) => src.refId && String(src.refId) === String(b._id));
-      if (!alreadyHas) {
-        item.sources.push({
-          type: "mentor_session",
-          refId: b._id,
-          title: `Buổi hướng dẫn cùng Mentor (${b.date || "Hoàn thành"})`,
-          score: 85,
-          at: b.createdAt || new Date(),
-        });
-        item.evidenceCount = item.sources.length;
-        item.score = Math.round(
-          item.sources.reduce((sum, x) => sum + (x.score || 0), 0) / item.sources.length
-        );
-        item.level = Math.min(5, Math.max(1, Math.round(item.score / 20)));
-      }
-    }
-  }
-
-  const resultCompetencies = Array.from(competenciesMap.values());
-
-  // Lưu cache lại profile nếu có cập nhật bằng chứng mới
-  profile.competencies = resultCompetencies;
-  profile.isVerified = resultCompetencies.some((c) => c.evidenceCount > 0);
-  if (profile.isVerified && !profile.verifiedAt) {
-    profile.verifiedAt = new Date();
-  }
-  await profile.save();
-
+  const profile = await presentCandidateProfile(await getOrCreateCandidateProfile(userId));
   return {
-    competencies: resultCompetencies,
+    competencies: profile.competencies,
     snapshot: toApplicationCompetencySnapshot(profile),
   };
 }

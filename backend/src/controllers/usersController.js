@@ -134,8 +134,8 @@ export class UsersController {
   /** POST /api/users/me/verified-competencies/sync — Đồng bộ hoặc làm mới đánh giá năng lực */
   static async syncVerifiedCompetencies(req, res, next) {
     try {
-      const sampleIfEmpty = req.body?.sampleIfEmpty !== false;
-      const result = await verifiedCompetencyService.syncVerifiedCompetencies(req.userId, { sampleIfEmpty });
+      // Giữ route cho client cũ; bỏ qua body, client không được yêu cầu cấp verified.
+      const result = await verifiedCompetencyService.getVerifiedCompetencyProfile(req.userId);
       if (!result.ok) {
         return res.status(result.status || 400).json({ success: false, error: result.error });
       }

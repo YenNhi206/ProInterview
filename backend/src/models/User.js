@@ -304,26 +304,13 @@ export function toPublicUser(doc) {
           uploadedAt: c.uploadedAt || c.createdAt,
         }))
       : [],
-    verifiedCompetencies: Array.isArray(plain.verifiedCompetencies)
-      ? plain.verifiedCompetencies.map((v) => ({
-          id: v._id ? v._id.toString() : v.id,
-          competencyId: v.competencyId,
-          name: v.name,
-          category: v.category,
-          score: v.score,
-          level: v.level,
-          verifiedBy: v.verifiedBy,
-          verifierType: v.verifierType,
-          verifiedAt: v.verifiedAt,
-          badge: v.badge,
-          evidence: v.evidence,
-          verificationCode: v.verificationCode,
-        }))
-      : [],
-    verifiedReadinessScore: plain.verifiedReadinessScore || 0,
-    isCompetencyVerified: Boolean(plain.isCompetencyVerified),
-    verifiedProfileSummary: plain.verifiedProfileSummary || "",
-    lastVerifiedAt: plain.lastVerifiedAt || null,
+    // PR-07: dữ liệu verified lưu trên User không tin được (booking của user khác, điểm mẫu) → không trả ra.
+    // Giữ shape cho client cũ; trạng thái thật lấy ở GET /api/profile/me/competencies.
+    verifiedCompetencies: [],
+    verifiedReadinessScore: 0,
+    isCompetencyVerified: false,
+    verifiedProfileSummary: "",
+    lastVerifiedAt: null,
   };
   return out;
 }

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { User, toPublicUser } from "../models/User.js";
 
 describe("User Model - Multi-CV Vault & Verified Competencies", () => {
-  it("toPublicUser returns savedCvs array and verifiedCompetencies array", () => {
+  it("toPublicUser returns savedCvs and never exposes stored verified data (PR-07)", () => {
     const mockUser = {
       _id: "674000000000000000000001",
       name: "Nguyễn Văn A",
@@ -55,11 +55,9 @@ describe("User Model - Multi-CV Vault & Verified Competencies", () => {
     assert.equal(pub.savedCvs[0].isDefault, true);
     assert.equal(pub.savedCvs[1].isDefault, false);
 
-    assert.equal(Array.isArray(pub.verifiedCompetencies), true);
-    assert.equal(pub.verifiedCompetencies.length, 1);
-    assert.equal(pub.verifiedCompetencies[0].name, "Phương pháp STAR");
-    assert.equal(pub.verifiedReadinessScore, 88);
-    assert.equal(pub.isCompetencyVerified, true);
+    assert.deepEqual(pub.verifiedCompetencies, []);
+    assert.equal(pub.verifiedReadinessScore, 0);
+    assert.equal(pub.isCompetencyVerified, false);
   });
 
   it("handles empty savedCvs and empty verifiedCompetencies gracefully", () => {
