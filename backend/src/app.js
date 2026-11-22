@@ -31,6 +31,8 @@ import { adminRouter } from "./routes/admin.js";
 import { moderatorRouter } from "./routes/moderator.js";
 import { companyRouter } from "./routes/company.js";
 import { companyInvitesRouter } from "./routes/companyInvites.js";
+import { jobsRouter } from "./routes/jobs.js";
+import { roleCategoriesRouter } from "./routes/roleCategories.js";
 import { profileRouter } from "./routes/profile.js";
 import { cvsRouter } from "./routes/cvs.js";
 import { enrollmentsRouter } from "./routes/enrollments.js";
@@ -225,6 +227,8 @@ export function createApp() {
   app.use("/api/moderator", moderatorRouter);
   app.use("/api/company", companyRouter);
   app.use("/api/company-invites", companyInvitesRouter);
+  app.use("/api/jobs", jobsRouter);
+  app.use("/api/role-categories", roleCategoriesRouter);
   app.use("/api/profile", profileRouter);
   app.use("/api/cvs", cvsRouter);
   app.use("/api/enrollments", enrollmentsRouter);

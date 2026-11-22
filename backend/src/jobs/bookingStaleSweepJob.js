@@ -5,6 +5,7 @@ import { Payment } from "../models/Payment.js";
 import { User } from "../models/User.js";
 import { deliverNotification } from "../services/notificationDeliveryService.js";
 import { parseBookingStartMs } from "../utils/bookingSchedule.js";
+import { closeExpiredJobPosts } from "../services/jobPostsService.js";
 
 export const STALE_GRACE_MS = 60 * 60 * 1000;
 const INTERVAL_MS = 20 * 60 * 1000;
@@ -68,6 +69,13 @@ export function startBookingStaleSweepJob() {
   const tick = async () => {
     try { await runStaleSweep(); }
     catch (error) { console.error("[bookingStaleSweepJob]", error.message); }
+    // JB-02: cùng nhịp 20 phút, đóng tin tuyển dụng quá hạn nhận hồ sơ (lỗi bên này không chặn bên kia).
+    try {
+      if (mongoose.connection.readyState === 1) {
+        const { closed } = await closeExpiredJobPosts();
+        if (closed) console.log(`[bookingStaleSweepJob] Đã đóng ${closed} tin tuyển dụng quá hạn.`);
+      }
+    } catch (error) { console.error("[bookingStaleSweepJob] job posts:", error.message); }
     if (!stopped) {
       timer = setTimeout(tick, INTERVAL_MS);
       timer.unref?.();

@@ -3,6 +3,7 @@ import { QuestionBank, hashQuestionText } from "../models/QuestionBank.js";
 import { CompanyRubric } from "../models/CompanyRubric.js";
 import { assertSameCompany } from "../utils/assertSameCompany.js";
 import { isValidCompetencyKey } from "../services/competencyFramework.js";
+import { isValidRoleCategory } from "../services/roleCategories.js";
 
 /** Thang mô tả của mỗi tiêu chí rubric: 6 mức 0–5 (CO-07). */
 const RUBRIC_LEVELS = ["0", "1", "2", "3", "4", "5"];
@@ -66,6 +67,22 @@ function missingLevelDescriptions(criteria = []) {
     if (empty.length) missing.push(`tiêu chí ${i + 1} (mức ${empty.join(", ")})`);
   });
   return missing;
+}
+
+// Đề xuất (l) trong TASKS.md: roleCategory và key năng lực của câu hỏi / rubric công ty phải nằm trong danh sách chung
+// (`config/roleCategories.json`, `config/competencies.json`) để luyện theo job (JB-06), chấm rubric (JB-07)
+// và hồ sơ năng lực (PR-06) tra được.
+const ROLE_CATEGORY_ERROR = "Vị trí (roleCategory) không có trong danh sách nhóm vị trí (GET /api/role-categories).";
+const COMPETENCY_ERROR = "Mã năng lực không có trong bộ tiêu chí SHRM/DDI (GET /api/competencies).";
+
+/**
+ * Lỗi key năng lực đầu tiên của tiêu chí rubric đã lưu, hoặc "". Tạo / sửa đã kiểm trong
+ * `normalizeRubricCriteria` (CO-14); hàm này chặn gửi duyệt rubric cũ lưu key sai trước khi có kiểm tra.
+ */
+function rubricCriteriaError(criteria) {
+  if (!Array.isArray(criteria)) return "";
+  const bad = criteria.find((c) => !isValidCompetencyKey(String(c?.shrmKey ?? "").trim()));
+  return bad ? `Tiêu chí "${bad?.name || "?"}": ${COMPETENCY_ERROR}` : "";
 }
 
 export const CompanyWorkspaceController = {
@@ -139,7 +156,7 @@ export const CompanyWorkspaceController = {
     const {
       questionText,
       roleCategory = "software_engineer",
-      competencyId = "technical_mastery",
+      competencyId = "technical_learning",
       layer = "project",
       seniority = "middle",
       difficulty = "medium",
@@ -151,6 +168,12 @@ export const CompanyWorkspaceController = {
     const cleanText = (req.body.text || req.body.questionText || req.body.question || "").trim();
     if (!cleanText) {
       return res.status(400).json({ success: false, error: "Nội dung câu hỏi không được để trống." });
+    }
+    if (!isValidRoleCategory(roleCategory)) {
+      return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
+    }
+    if (!isValidCompetencyKey(competencyId)) {
+      return res.status(400).json({ success: false, error: COMPETENCY_ERROR });
     }
 
     const textHash = hashQuestionText(cleanText);
@@ -203,6 +226,13 @@ export const CompanyWorkspaceController = {
     if (cleanText && cleanText !== question.text) {
       question.text = cleanText;
       question.textHash = hashQuestionText(question.text);
+    }
+
+    if (roleCategory && !isValidRoleCategory(roleCategory)) {
+      return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
+    }
+    if (competencyId && !isValidCompetencyKey(competencyId)) {
+      return res.status(400).json({ success: false, error: COMPETENCY_ERROR });
     }
 
     if (difficulty) question.difficulty = difficulty;
@@ -275,6 +305,9 @@ export const CompanyWorkspaceController = {
   async generateStarterQuestions(req, res) {
     const companyId = req.companyId;
     const roleCategory = req.body.roleCategory || "software_engineer";
+    if (!isValidRoleCategory(roleCategory)) {
+      return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
+    }
 
     const STARTER_TEMPLATES = {
       software_engineer: [
@@ -462,6 +495,9 @@ export const CompanyWorkspaceController = {
     if (!roleCategory || !roleCategory.trim()) {
       return res.status(400).json({ success: false, error: "Vị trí ứng tuyển (roleCategory) không được để trống." });
     }
+    if (!isValidRoleCategory(roleCategory.trim())) {
+      return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
+    }
 
     // Đếm version cho roleCategory này
     const maxVersionDoc = await CompanyRubric.findOne({ companyId, roleCategory })
@@ -545,6 +581,10 @@ export const CompanyWorkspaceController = {
         error: "Rubric phải có ít nhất một tiêu chí đánh giá.",
       });
     }
+
+    // Rubric soạn trước khi có kiểm tra key (dữ liệu cũ) cũng phải sửa key trước khi gửi duyệt.
+    const submitCriteriaError = rubricCriteriaError(rubric.criteria);
+    if (submitCriteriaError) return res.status(400).json({ success: false, error: submitCriteriaError });
 
     const totalWeight = rubric.criteria.reduce((sum, c) => sum + (Number(c.weight) || 0), 0);
     if (totalWeight !== 100) {

@@ -276,6 +276,20 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 
 Áp dụng trực tiếp trong `createBooking`, `EnrollmentController.enroll`, `createSubscriptionTransferPending` qua field `couponCode` trong body — server tự tính lại `totalAmount`/`pricePaid`/`amount` sau giảm giá (không tin số tiền client gửi). Mỗi user dùng 1 lần/mã (`Coupon.usedBy`). Tạo mã: `npm run seed:coupon`. Chi tiết: **API_INDEX.md A.15**.
 
+### Tin tuyển dụng — Company Moderator (JB-01)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | GET | `/api/company/jobs` | `[AUTH][COMPANY_MOD]` danh sách job của công ty, lọc trạng thái, `counts` |
+| ✅ | POST | `/api/company/jobs` | `[AUTH][COMPANY_MOD]` tạo bản nháp |
+| ✅ | GET | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` chi tiết (job công ty khác → 404) |
+| ✅ | PATCH | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` sửa khi `draft` / `published` |
+| ✅ | PATCH | `/api/company/jobs/:id/status` | `[AUTH][COMPANY_MOD]` `published` (đăng) / `closed` (đóng) |
+| ✅ | GET | `/api/jobs` · `/api/jobs/:id` | Công khai — chỉ job đang mở, lọc vị trí / cấp độ / công ty / từ khóa (JB-03) |
+| ✅ | GET | `/api/role-categories` | Công khai — danh sách nhóm vị trí dùng chung (`config/roleCategories.json`) |
+
+Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJob` (JB-02). Chi tiết: **API_INDEX.md A.18, A.19**. FE `/company/jobs` ở JB-15, `/jobs` ở JB-11.
+
 ### Lộ trình học — Mentor soạn và gửi (LP-07)
 
 | BE | Method | Endpoint | Auth |
@@ -299,7 +313,7 @@ FE (LP-20): ✅ `/mentor/learning-paths` (danh sách, lọc theo trạng thái, 
 
 | BE | Method | Endpoint | Auth |
 |:---|:-------|:---------|:-----|
-| ✅ | POST | `/api/mentorship-requests` | `[AUTH]` mentee — thêm `jobPostId` tùy chọn |
+| ✅ | POST | `/api/mentorship-requests` | `[AUTH]` mentee — thêm `jobPostId` tùy chọn (phải là job đang mở, từ JB-03) |
 | ✅ | POST | `/api/mentorship-requests/:id/accept-assessment` | `[AUTH][MENTOR]` Mentor được chọn — tạo buổi đánh giá 0đ, request → `assessing` |
 
 FE: trang `/mentor/requests/:id` có form "Tạo buổi đánh giá 0đ" cho Mentor được chọn; mentee thấy khối "Buổi đánh giá 0đ" trên `/mentor-requests/:id`. Chi tiết: **API_INDEX.md A.16**.

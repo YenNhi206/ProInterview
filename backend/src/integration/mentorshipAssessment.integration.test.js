@@ -177,14 +177,29 @@ describe("Luồng đặt lịch thường từ yêu cầu với status mới (LP
 });
 
 describe("jobPostId tùy chọn khi tạo yêu cầu (LP-05, quyết định 5)", () => {
-  it("lưu jobPostId hợp lệ, bỏ trống thì null, sai định dạng thì 400", async () => {
-    const jobPostId = "65a1b2c3d4e5f60718293a4b";
+  it("lưu jobPostId của job đang mở, bỏ trống thì null, sai định dạng / không tồn tại / đã đóng thì 400", async () => {
+    // Từ JB-03: jobPostId phải là job đang mở (published, chưa hết hạn, công ty không bị khóa).
+    const company = await models.Company.create({ name: "Công ty LP05", slug: "lp05-company" });
+    const job = await models.JobPost.create({
+      companyId: company._id, title: "Frontend Developer (React)", roleCategory: "frontend", level: "junior",
+      description: "Phát triển giao diện React cho sản phẩm thương mại điện tử, phối hợp cùng team thiết kế.",
+      requiredCompetencies: [{ shrmKey: "technical_learning", minLevel: 3 }], status: "published", publishedAt: new Date(),
+    });
+    const jobPostId = String(job._id);
     const withJob = await service.createRequest(await actor(mentee), { ...fields, jobPostId }, files);
     assert.equal(String(withJob.jobPostId), jobPostId);
     const dto = await service.requestDTO(withJob, await actor(mentee));
     assert.equal(dto.jobPostId, jobPostId);
+    assert.equal(dto.jobPost.title, "Frontend Developer (React)");
+    assert.equal(dto.jobPost.isOpen, true);
+    assert.deepEqual(dto.jobPost.requiredCompetencies.map((c) => c.shrmKey), ["technical_learning"]);
     assert.equal((await service.createRequest(await actor(mentee), { ...fields, jobPostId: "" }, files)).jobPostId, null);
     await assert.rejects(service.createRequest(await actor(mentee), { ...fields, jobPostId: "not-an-id" }, files), { status: 400 });
+    await assert.rejects(service.createRequest(await actor(mentee), { ...fields, jobPostId: "65a1b2c3d4e5f60718293a4b" }, files), { status: 400 });
+    await models.JobPost.updateOne({ _id: job._id }, { $set: { status: "closed" } });
+    await assert.rejects(service.createRequest(await actor(mentee), { ...fields, jobPostId }, files), { status: 400 });
+    // Job đóng sau khi đã gửi yêu cầu: yêu cầu vẫn giữ job, DTO báo isOpen = false.
+    assert.equal((await service.requestDTO(withJob, await actor(mentee))).jobPost.isOpen, false);
     await models.MentorshipRequest.updateMany({ userId: mentee._id, status: "open" }, { $set: { status: "closed" } });
   });
 });

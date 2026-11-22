@@ -18,6 +18,7 @@ import { resolveBookingPlatformFeeRate } from "./mentorCommissionService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { splitLearningPathShares } from "../utils/learningPathMoney.js";
 import { isValidCompetencyKey } from "./competencyFramework.js";
+import { jobPostSummary } from "./publicJobsService.js";
 
 export const LEARNING_PATH_MAX_SESSIONS = 12;
 /** Giá trọn gói tối thiểu khi gửi đề xuất (VND). Bản nháp được để 0. */
@@ -89,12 +90,13 @@ export async function learningPathDTO(pathOrId) {
   const isDocument = pathOrId && typeof pathOrId === "object" && !(pathOrId instanceof mongoose.Types.ObjectId) && "status" in pathOrId;
   const path = isDocument ? pathOrId : await LearningPath.findById(pathOrId).lean();
   if (!path) throw httpError(404, "Không tìm thấy lộ trình.");
-  const [sessions, candidate, mentor, request, assessment] = await Promise.all([
+  const [sessions, candidate, mentor, request, assessment, jobPost] = await Promise.all([
     LearningPathSession.find({ pathId: path._id }).sort({ order: 1, attempt: 1 }).lean(),
     User.findById(path.candidateId).select("name").lean(),
     Mentor.findById(path.mentorId).select("name title avatar publicId").lean(),
     MentorshipRequest.findById(path.mentorshipRequestId).select("title position description sessionType cvName jdName").lean(),
     path.assessmentBookingId ? Booking.findById(path.assessmentBookingId).select("status date timeSlot durationMinutes").lean() : null,
+    path.jobPostId ? jobPostSummary(path.jobPostId) : null,
   ]);
   return {
     id: String(path._id),
@@ -102,6 +104,8 @@ export async function learningPathDTO(pathOrId) {
     mentorId: String(path.mentorId),
     mentorshipRequestId: String(path.mentorshipRequestId),
     jobPostId: path.jobPostId ? String(path.jobPostId) : "",
+    /** Quyết định 5: năng lực yêu cầu của job làm khung khi mentor chọn `shrmKeys` cho từng buổi. */
+    jobPost,
     assessmentBookingId: path.assessmentBookingId ? String(path.assessmentBookingId) : "",
     goal: path.goal,
     status: path.status,

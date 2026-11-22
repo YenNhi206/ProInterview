@@ -10,6 +10,7 @@ import { assessmentBookingMoney } from "../utils/learningPathBookingMoney.js";
 import { isBookingSlotInFuture } from "../utils/bookingSchedule.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { LearningPath } from "../models/LearningPath.js";
+import { findPublicJob, jobPostSummary } from "./publicJobsService.js";
 
 const text = max => Joi.string().trim().max(max).required();
 const requestInput = Joi.object({ title: Joi.string().trim().min(5).max(160).allow(""), position: text(160), description: text(4000).min(20), sessionType: Joi.string().valid("mock_interview", "cv_review", "career_consulting").required(), availability: Joi.string().trim().max(500).allow("").default(""), budget: Joi.number().integer().min(0).max(100000000).empty("").allow(null).default(null), cvSource: Joi.string().max(80).allow(""), jdSource: Joi.string().max(80).allow(""), jobPostId: Joi.string().hex().length(24).empty("").allow(null).default(null) });
@@ -71,6 +72,8 @@ export async function requestDTO(request, actor) {
     cvName: canDownload ? request.cvName : "", jdName: canDownload ? request.jdName : "",
     bookingId: bookings[0]?._id ? String(bookings[0]._id) : "",
     jobPostId: request.jobPostId ? String(request.jobPostId) : "",
+    /** Quyết định 5: job gắn kèm (tiêu đề, công ty, năng lực yêu cầu) để mentor soạn lộ trình theo khung của job. */
+    jobPost: request.jobPostId ? await jobPostSummary(request.jobPostId) : null,
     /** LP-20: lộ trình chưa hủy của yêu cầu (Mentor mở trình soạn; ứng viên chỉ dùng khi không còn là bản nháp). */
     learningPath: learningPath ? { id: String(learningPath._id), status: learningPath.status } : null,
     assessment: assessment ? { bookingId: String(assessment._id), status: assessment.status, date: assessment.date, timeSlot: assessment.timeSlot, durationMinutes: assessment.durationMinutes, cancelledBy: assessment.cancelledBy || "" } : null,
@@ -94,6 +97,8 @@ export async function createRequest(actor, body, files) {
   if ((cvSource && files?.cv?.[0]) || (jdSource && files?.jd?.[0])) throw httpError(400, "Mỗi tài liệu chỉ chọn một nguồn: tệp cũ hoặc tải mới.");
   if ((!cvSource && !files?.cv?.[0]) || (!jdSource && !files?.jd?.[0])) throw httpError(400, "Cần đính kèm cả CV và JD.");
   if (await MentorshipRequest.countDocuments({ userId: actor.userId, status: "open" }) >= 10) throw httpError(400, "Bạn có thể có tối đa 10 yêu cầu đang mở.");
+  // JB-03: job gắn kèm phải đang mở (đã đăng, chưa hết hạn, công ty không bị khóa).
+  if (input.jobPostId && !(await findPublicJob(input.jobPostId))) throw httpError(400, "Tin tuyển dụng không tồn tại hoặc đã đóng.");
   const [cv, jd] = await Promise.all([cvSource ? readOwnedDocument(actor.userId, cvSource, "cv") : files.cv[0], jdSource ? readOwnedDocument(actor.userId, jdSource, "jd") : files.jd[0]]);
   if ([cv, jd].some(file => !file.buffer?.length || file.buffer.length > 5 * 1024 * 1024)) throw httpError(400, "Tài liệu phải có nội dung và không vượt quá 5MB mỗi file.");
   const request = await MentorshipRequest.create({ ...input, userId: actor.userId, cvName: cv.originalname.slice(0, 240), jdName: jd.originalname.slice(0, 240), cvData: cv.buffer, jdData: jd.buffer });

@@ -3,6 +3,7 @@ import { authJwt } from "../middleware/authJwt.js";
 import { requireCompanyModerator } from "../middleware/requireCompanyModerator.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { CompanyWorkspaceController } from "../controllers/companyWorkspaceController.js";
+import { CompanyJobsController } from "../controllers/companyJobsController.js";
 
 export const companyRouter = Router();
 
@@ -29,3 +30,10 @@ companyRouter.post("/rubrics", asyncHandler(CompanyWorkspaceController.createRub
 companyRouter.get("/rubrics/:id", asyncHandler(CompanyWorkspaceController.getRubricById));
 companyRouter.patch("/rubrics/:id", asyncHandler(CompanyWorkspaceController.updateRubric));
 companyRouter.post("/rubrics/:id/submit", asyncHandler(CompanyWorkspaceController.submitRubric));
+
+// JB-01: Tin tuyển dụng (tạo / sửa bản nháp, đăng, đóng). Không cần duyệt trước khi đăng (quyết định 8).
+companyRouter.get("/jobs", asyncHandler(CompanyJobsController.list));
+companyRouter.post("/jobs", asyncHandler(CompanyJobsController.create));
+companyRouter.get("/jobs/:id", asyncHandler(CompanyJobsController.get));
+companyRouter.patch("/jobs/:id", asyncHandler(CompanyJobsController.update));
+companyRouter.patch("/jobs/:id/status", asyncHandler(CompanyJobsController.changeStatus));

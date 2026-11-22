@@ -205,6 +205,30 @@ ensureCollection("learning_path_sessions", {
   [{ retakeOf: 1 }, { partialFilterExpression: { retakeOf: { $type: "objectId" } } }],
 ]);
 
+// JB-01: tin tuyển dụng của công ty
+ensureCollection("job_posts", {
+  required: ["companyId", "title", "roleCategory", "level", "status"],
+  properties: {
+    companyId: oid,
+    title: str,
+    roleCategory: str, // key trong backend/src/config/roleCategories.json
+    salaryRange: str,
+    level: en("intern", "fresher", "junior", "middle", "senior", "lead"),
+    employmentType: en("full_time", "part_time", "contract", "internship"),
+    workMode: en("onsite", "hybrid", "remote"),
+    requiredCompetencies: { bsonType: "array" },
+    requiredSkills: { bsonType: "array", items: str },
+    rubricId: oidOrNull,
+    status: en("draft", "published", "closed", "hidden"),
+    closesAt: { bsonType: ["date", "null"] },
+    closedReason: en("", "company", "expired"),
+  },
+}, [
+  [{ companyId: 1, status: 1, updatedAt: -1 }],
+  [{ status: 1, roleCategory: 1, level: 1, publishedAt: -1 }],
+  [{ status: 1, closesAt: 1 }, { partialFilterExpression: { closesAt: { $type: "date" } } }],
+]);
+
 ensureCollection("mentor_knowledge", {
   required: ["bookingId", "mentorId", "mentorUserId"],
   properties: { bookingId: oid, mentorId: oid, mentorUserId: oid },

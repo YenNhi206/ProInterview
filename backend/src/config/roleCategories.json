@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "description": "Danh sách nhóm vị trí (roleCategory) dùng chung cho câu hỏi công ty (QuestionBank), rubric công ty (CompanyRubric), tin tuyển dụng (JobPost) và buổi luyện theo job (JB-06). Key giữ nguyên, không đổi tên; muốn bỏ thì đặt deprecated: true. interviewRole là key trong ROLE_COMPETENCY_MAP (services/competencyFramework.js) để lấy năng lực ưu tiên của vị trí.",
+  "roleCategories": [
+    { "key": "software_engineer", "nameVi": "Kỹ sư phần mềm", "nameEn": "Software Engineer", "interviewRole": "developer" },
+    { "key": "frontend", "nameVi": "Lập trình viên Frontend", "nameEn": "Frontend Developer", "interviewRole": "frontend" },
+    { "key": "backend", "nameVi": "Lập trình viên Backend", "nameEn": "Backend Developer", "interviewRole": "backend" },
+    { "key": "fullstack", "nameVi": "Lập trình viên Fullstack", "nameEn": "Fullstack Developer", "interviewRole": "fullstack" },
+    { "key": "mobile", "nameVi": "Lập trình viên Mobile", "nameEn": "Mobile Developer", "interviewRole": "mobile" },
+    { "key": "devops", "nameVi": "DevOps / SRE", "nameEn": "DevOps / SRE", "interviewRole": "devops" },
+    { "key": "qa_tester", "nameVi": "Kiểm thử phần mềm (QA/QC)", "nameEn": "QA / Tester", "interviewRole": "developer" },
+    { "key": "data_engineer", "nameVi": "Kỹ sư dữ liệu", "nameEn": "Data Engineer", "interviewRole": "data" },
+    { "key": "data_analyst", "nameVi": "Chuyên viên phân tích dữ liệu", "nameEn": "Data Analyst", "interviewRole": "data" },
+    { "key": "ai_ml", "nameVi": "Kỹ sư AI / Machine Learning", "nameEn": "AI / ML Engineer", "interviewRole": "ai_ml" },
+    { "key": "business_analyst", "nameVi": "Chuyên viên phân tích nghiệp vụ (BA)", "nameEn": "Business Analyst", "interviewRole": "product" },
+    { "key": "product_manager", "nameVi": "Quản lý sản phẩm", "nameEn": "Product Manager", "interviewRole": "product" },
+    { "key": "project_manager", "nameVi": "Quản lý dự án", "nameEn": "Project Manager", "interviewRole": "manager" },
+    { "key": "ui_ux_designer", "nameVi": "Thiết kế UI/UX", "nameEn": "UI/UX Designer", "interviewRole": "design" },
+    { "key": "marketing", "nameVi": "Marketing", "nameEn": "Marketing", "interviewRole": "marketing" },
+    { "key": "sales", "nameVi": "Kinh doanh", "nameEn": "Sales", "interviewRole": "sales" },
+    { "key": "hr", "nameVi": "Nhân sự", "nameEn": "Human Resources", "interviewRole": "hr" }
+  ]
+}

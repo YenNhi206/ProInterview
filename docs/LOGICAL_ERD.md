@@ -259,6 +259,43 @@ Booking của buổi lộ trình gắn `learningPathId` + `learningPathSessionId
 
 ---
 
+## A3. Tin tuyển dụng (capstone FA26, JB-01)
+
+```mermaid
+erDiagram
+    COMPANY ||--o{ JOB_POST : "đăng"
+    COMPANY_RUBRIC |o--o{ JOB_POST : "chấm buổi luyện theo job"
+    USER ||--o{ JOB_POST : "Company Mod tạo (createdBy)"
+    JOB_POST |o--o{ MENTORSHIP_REQUEST : "gắn job (tùy chọn)"
+    JOB_POST |o--o{ LEARNING_PATH : "gắn job (tùy chọn)"
+    JOB_POST {
+        ObjectId _id PK
+        ObjectId companyId FK "→ COMPANY"
+        string title
+        string roleCategory "key trong config/roleCategories.json"
+        enum level "intern|fresher|junior|middle|senior|lead"
+        enum employmentType "full_time|part_time|contract|internship"
+        enum workMode "onsite|hybrid|remote"
+        string location
+        string salaryRange
+        string description
+        array requiredCompetencies "{shrmKey (LP-01), minLevel 1..5}, không trùng key"
+        array requiredSkills
+        ObjectId rubricId FK "→ COMPANY_RUBRIC approved, cùng công ty + roleCategory"
+        enum status "draft|published|closed|hidden"
+        date closesAt "null = không hạn"
+        date publishedAt
+        date closedAt
+        enum closedReason "''|company|expired"
+        ObjectId createdBy FK "→ USER"
+        ObjectId updatedBy FK "→ USER"
+    }
+```
+
+Rubric chỉ được gắn khi `approved`, cùng `companyId` và cùng `roleCategory` với job (kiểm ở service, không có ràng buộc DB). `MentorshipRequest.jobPostId`, `LearningPath.jobPostId` đã có từ LP-05/LP-03 và trỏ tới model này.
+
+---
+
 ## B. Khóa học · Giỏ hàng · Đánh giá
 
 ```mermaid
@@ -636,7 +673,7 @@ erDiagram
 | LEARNING_PATH – LEARNING_PATH_SESSION | 1 – 1..n | Unique `{pathId, order, attempt}`: buổi học lại cùng `order`, `attempt` + 1 |
 | LEARNING_PATH_SESSION – BOOKING | 0..1 – 0..1 | Partial unique `{bookingId}` khi có `bookingId` |
 | Mã CK lộ trình đang chờ | — | Partial unique `LearningPath.paymentRef` khi `status=pending_payment` |
-| LEARNING_PATH – PAYMENT (CK) | 1 – 0..1 | Unique `{provider, type, referenceId}` của Payment: mỗi lộ trình 1 bản ghi CK; hết hạn thì mở lại bản ghi đó với mã mới (LP-10) |
+| COMPANY – JOB_POST | 1 – 0..n | Index `{companyId, status, updatedAt}`; mọi API `/api/company/jobs` lọc theo `companyId` của Company Mod (JB-01) |
 | BOOKING – MENTOR_KNOWLEDGE | 1 – 0..1 | `MentorKnowledge.bookingId` unique |
 | USER – COURSE (ENROLLMENT) | n – n | Unique `{userId, courseId}` |
 | USER – REVIEW – target | — | Unique `{userId, targetType, targetId}`: mỗi người đánh giá một mentor/khóa một lần |

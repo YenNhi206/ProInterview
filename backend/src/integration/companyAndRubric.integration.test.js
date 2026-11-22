@@ -280,8 +280,8 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
       headers: authHeaders(companyModA._id),
       body: JSON.stringify({
         questionText: qText,
-        roleCategory: "mobile_engineer",
-        competencyId: "technical_mastery",
+        roleCategory: "mobile",
+        competencyId: "technical_learning",
         status: "draft",
       }),
     });
@@ -327,7 +327,7 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
       headers: authHeaders(companyModA._id),
       body: JSON.stringify({
         title: "Rubric Senior DevOps",
-        roleCategory: "devops_engineer",
+        roleCategory: "devops",
         description: "Khung năng lực đánh giá vị trí DevOps",
       }),
     });
@@ -404,7 +404,7 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
       headers: authHeaders(companyModA._id),
       body: JSON.stringify({
         title: "Rubric Senior DevOps V2",
-        roleCategory: "devops_engineer",
+        roleCategory: "devops",
       }),
     });
     const v2Id = (await createV2Res.json()).rubric._id;

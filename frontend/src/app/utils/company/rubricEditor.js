@@ -4,7 +4,7 @@
  * không đặt danh sách năng lực cứng ở FE. Backend kiểm lại toàn bộ (companyWorkspaceController).
  */
 
-/** Vị trí tuyển — cùng mã với trang Câu hỏi công ty (`roleCategory` của QuestionBank). */
+/** Vị trí tuyển mặc định khi chưa tải được `GET /api/role-categories` (nguồn chính: backend config/roleCategories.json). */
 export const ROLE_CATEGORIES = [
   { id: "software_engineer", label: "Software Engineer" },
   { id: "frontend", label: "Frontend Developer" },
