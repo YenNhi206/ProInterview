@@ -490,3 +490,15 @@
   border-color: rgba(255, 255, 255, 0.14) !important;
   box-shadow: none !important;
 }
+
+/* Logo sidebar là SidebarMenuButton nhưng không phải mục menu: không trượt/nảy, không vạch tím khi rê chuột. */
+/* Lặp [data-sidebar-brand] để độ ưu tiên cao hơn quy tắc hover chung của menu-button (cũng !important). */
+.admin-shell [data-sidebar-brand][data-sidebar-brand][data-sidebar-brand],
+.admin-shell [data-sidebar-brand][data-sidebar-brand][data-sidebar-brand]:hover,
+.admin-shell [data-sidebar-brand][data-sidebar-brand][data-sidebar-brand]:active {
+  transform: none !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  transition: none !important;
+}

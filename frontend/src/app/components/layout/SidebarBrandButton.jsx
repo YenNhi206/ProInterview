@@ -17,6 +17,7 @@ export function SidebarBrandButton({
       size="lg"
       tooltip={tooltip}
       onClick={onClick}
+      data-sidebar-brand=""
       className="
         h-14 min-h-14 cursor-pointer overflow-hidden rounded-none py-2
         hover:bg-sidebar-accent active:bg-sidebar-accent/80
