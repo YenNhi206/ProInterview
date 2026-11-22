@@ -103,6 +103,7 @@ stateDiagram-v2
 |:-------|:-----|
 | `pending → held_inactive_account` | `services/heldPaymentService.js`; webhook log ghi `SepayWebhookEvent.status = held_inactive_account` |
 | `pending → cancelled` | `jobs/bookingStaleSweepJob.js`, `services/cartService.js` (`expireCartOrder`), `transferPaymentExpiryService.expireLearningPathTransferIfNeeded` (LP-10, gọi khi checkout, poll `transfer-status`, xem lịch sử thanh toán) |
+| `cancelled → success` (chỉ `learning_path`, LP-11) | Admin xác nhận ngoại lệ (`force` + lý do) giao dịch đã hết hạn khi tiền đến muộn mà lộ trình vẫn `pending_payment` |
 | `cancelled → pending` (chỉ `learning_path`) | `POST /api/learning-paths/:id/checkout` mở lại bản ghi với mã `PI…` mới (unique `{provider, type, referenceId}` không cho tạo bản ghi thứ hai) |
 | Idempotent | `SepayWebhookEvent.sepayId` unique — webhook gửi lại → `ignored` |
 
@@ -343,7 +344,7 @@ stateDiagram-v2
 | `draft` / `revision_requested` → `proposed` | `POST /api/learning-paths/:id/propose` | LP-07, LP-08 |
 | `proposed` → `revision_requested` | `POST /api/learning-paths/:id/request-revision` | LP-08 |
 | `proposed` → `pending_payment` | `POST /api/learning-paths/:id/accept` | LP-08 |
-| `pending_payment` → `active` | SePay webhook (`confirmLearningPathTransfer`) / xác nhận tay | LP-10, LP-11 |
+| `pending_payment` → `active` | SePay webhook (`confirmLearningPathTransfer`) / admin `PATCH /api/admin/payments/:id/confirm-learning-path-transfer` (`adminConfirmLearningPathTransfer`) | LP-10, LP-11 |
 | `active` → `completed` | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` (buổi cuối `passed`) | LP-13 |
 | `active` → `cancelled` | `POST /api/learning-paths/:id/cancel` | LP-15 |
 

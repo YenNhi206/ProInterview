@@ -72,6 +72,7 @@ import { AdminImportUsers } from "./pages/admin/AdminImportUsers.jsx";
 import { AdminBookings } from "./pages/admin/AdminBookings.jsx";
 import { AdminCoursePayments } from "./pages/admin/AdminCoursePayments.jsx";
 import { AdminSubscriptionPayments } from "./pages/admin/AdminSubscriptionPayments.jsx";
+import { AdminLearningPathPayments } from "./pages/admin/AdminLearningPathPayments.jsx";
 import { AdminMentorsPending } from "./pages/admin/AdminMentorsPending.jsx";
 import { ProtectedOutlet } from "./components/auth/ProtectedOutlet.jsx";
 import { requireAuthLoader, requireCustomerAuthLoader } from "./utils/auth/requireAuthLoader.js";
@@ -252,6 +253,7 @@ export const router = createBrowserRouter([
       { path: "bookings/:id", Component: AdminBookingDetail },
       { path: "course-payments", Component: AdminCoursePayments },
       { path: "subscription-payments", Component: AdminSubscriptionPayments },
+      { path: "learning-path-payments", Component: AdminLearningPathPayments },
       { path: "content/questions", Component: AdminContentQuestions },
       // Duyệt khóa học đã chuyển sang khu vực kiểm duyệt viên — admin không còn quyền.
       {

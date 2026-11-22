@@ -173,8 +173,10 @@ export async function submitLearningPathTransfer(actor, pathId) {
  * giao dịch success thì trả `{ ok: true, idempotent: true }`, không gửi thông báo lần hai.
  *
  * @param {string} pathId
- * @param {{ force?: boolean, forceNote?: string, adminUserId?: string, amount?: number }} options
- *   `amount`: số tiền thực nhận (SePay); lệch `Payment.amount` thì từ chối.
+ * @param {{ force?: boolean, forceNote?: string, adminUserId?: string, amount?: number, allowExpired?: boolean }} options
+ *   `amount`: số tiền thực nhận (SePay / admin nhập theo sao kê); lệch `Payment.amount` thì từ chối.
+ *   `allowExpired` (chỉ admin, LP-11): xác nhận cả giao dịch đã bị hủy vì hết hạn — tiền đến muộn sau
+ *   cửa sổ CK mà lộ trình vẫn chờ thanh toán. Bắt buộc kèm `force` + lý do.
  * @returns {Promise<{ ok: boolean, status?: number, error?: string, idempotent?: boolean, learningPath?: object }>}
  */
 export async function confirmLearningPathTransfer(pathId, options = {}) {
@@ -199,8 +201,14 @@ export async function confirmLearningPathTransfer(pathId, options = {}) {
   if (LOCKED_PAYMENT_STATUSES.includes(payment.status)) {
     return { ok: false, status: 409, error: "Giao dịch đang đối soát hoặc đã hoàn tiền; không xác nhận lại được." };
   }
+  // Tiền đến sau khi mã đã hết hạn (Payment `cancelled` vì payment_timeout): chỉ admin xác nhận được,
+  // dạng ngoại lệ có lý do, sau khi đối chiếu sao kê (LP-11). SePay không bao giờ khớp giao dịch đã hủy.
+  const lateTransfer = payment.status === "cancelled" && payment.failureReason === "payment_timeout";
+  if (lateTransfer && !(options.allowExpired && force)) {
+    return { ok: false, status: 409, error: "Mã chuyển khoản đã hết hạn. Nếu đã nhận tiền, admin xác nhận ngoại lệ kèm lý do đối soát." };
+  }
   // `success` mà lộ trình chưa active: lần trước dừng giữa chừng (DB không có transaction) → chạy tiếp.
-  if (!["pending", "success"].includes(payment.status)) {
+  if (!lateTransfer && !["pending", "success"].includes(payment.status)) {
     return { ok: false, status: 409, error: "Giao dịch đã hết hạn hoặc bị hủy. Ứng viên cần tạo mã chuyển khoản mới." };
   }
   if (!force && !payment.providerResponse?.submittedAt) {
@@ -329,4 +337,122 @@ export async function learningPathTransferStatusForUser(userId, orderRef) {
     // Giống booking/khóa học: xác nhận kiểu force (SePay tự khớp hoặc admin ngoại lệ).
     sepayAuto: paid && Boolean(payment.providerResponse?.forceConfirm),
   };
+}
+
+// ---------------------------------------------------------------------------
+// LP-11 — admin đối soát tay chuyển khoản lộ trình
+// ---------------------------------------------------------------------------
+
+/** Bộ lọc trang đối soát: chờ xác nhận, hết hạn mà lộ trình vẫn chờ thanh toán (có thể tiền đến muộn), đã nhận. */
+export const ADMIN_LEARNING_PATH_TRANSFER_FILTERS = ["pending", "expired", "paid"];
+
+function adminRowStatus(payment) {
+  if (payment.status === "success") return "paid";
+  if (payment.status === "cancelled") return "expired";
+  if (payment.status === "pending" && transferPaymentExpiryMeta(payment).expired) return "expired";
+  if (payment.status === "pending") return payment.providerResponse?.submittedAt ? "submitted" : "pending";
+  return payment.status;
+}
+
+/**
+ * Danh sách giao dịch CK lộ trình cho admin (`GET /api/admin/payments/learning-path-transfers?status=`).
+ * `pending`: còn hạn chờ tiền; `expired`: hết hạn (đã hoặc chưa bị hủy) mà lộ trình vẫn `pending_payment`;
+ * `paid`: đã nhận (kèm `confirmedVia` sepay | admin).
+ */
+export async function listLearningPathTransfersForAdmin({ status = "pending", limit = 100 } = {}) {
+  const filterKey = ADMIN_LEARNING_PATH_TRANSFER_FILTERS.includes(status) ? status : "pending";
+  const base = { type: LEARNING_PATH_PAYMENT_TYPE, provider: "transfer" };
+  const now = new Date();
+  const cap = Math.min(200, Math.max(1, Number(limit) || 100));
+  let query;
+  if (filterKey === "paid") query = { ...base, status: "success" };
+  else if (filterKey === "expired") {
+    query = { ...base, $or: [{ status: "cancelled", failureReason: "payment_timeout" }, { status: "pending", paymentExpiresAt: { $lte: now } }] };
+  } else query = { ...base, status: "pending", paymentExpiresAt: { $gt: now } };
+
+  const rows = await Payment.find(query)
+    .sort(filterKey === "paid" ? { paidAt: -1, _id: -1 } : { createdAt: -1, _id: -1 })
+    .limit(cap * (filterKey === "expired" ? 2 : 1))
+    .populate("userId", "name email")
+    .lean();
+
+  const paths = await LearningPath.find({ _id: { $in: rows.map((r) => r.referenceId) } })
+    .select("status totalAmount version mentorId paymentRef paidAt")
+    .lean();
+  const pathById = new Map(paths.map((p) => [String(p._id), p]));
+  const mentors = await Mentor.find({ _id: { $in: paths.map((p) => p.mentorId) } }).select("name publicId").lean();
+  const mentorById = new Map(mentors.map((m) => [String(m._id), m]));
+
+  const items = [];
+  for (const p of rows) {
+    const path = pathById.get(String(p.referenceId));
+    // Hết hạn mà lộ trình đã đổi trạng thái (đã thanh toán lần khác, bị hủy) thì không còn gì để đối soát.
+    if (filterKey === "expired" && path?.status !== "pending_payment") continue;
+    const pr = p.providerResponse && typeof p.providerResponse === "object" ? p.providerResponse : {};
+    const mentor = path ? mentorById.get(String(path.mentorId)) : null;
+    const user = p.userId && typeof p.userId === "object" ? p.userId : null;
+    items.push({
+      paymentId: String(p._id),
+      learningPathId: String(p.referenceId),
+      orderRef: p.providerRef || "",
+      amount: p.amount,
+      status: adminRowStatus(p),
+      createdAt: p.createdAt,
+      paymentExpiresAt: p.paymentExpiresAt ?? null,
+      submittedAt: pr.submittedAt ?? null,
+      paidAt: p.paidAt ?? null,
+      /** `sepay` khi tự khớp webhook, `admin` khi admin xác nhận tay. */
+      confirmedVia: p.status === "success" ? (pr.confirmedByUserId ? "admin" : "sepay") : "",
+      forceConfirm: Boolean(pr.forceConfirm),
+      forceNote: pr.forceNote || "",
+      candidate: user ? { id: String(user._id), name: user.name || "", email: user.email || "" } : null,
+      mentor: mentor ? { name: mentor.name || "", publicId: mentor.publicId || "" } : null,
+      learningPath: path ? { status: path.status, totalAmount: path.totalAmount, version: path.version, paymentRef: path.paymentRef || "" } : null,
+    });
+    if (items.length >= cap) break;
+  }
+
+  const [paidAgg, pendingCount, submittedCount] = await Promise.all([
+    Payment.aggregate([
+      { $match: { ...base, status: "success" } },
+      { $group: { _id: null, count: { $sum: 1 }, total: { $sum: "$amount" } } },
+    ]),
+    Payment.countDocuments({ ...base, status: "pending", paymentExpiresAt: { $gt: now } }),
+    Payment.countDocuments({ ...base, status: "pending", paymentExpiresAt: { $gt: now }, "providerResponse.submittedAt": { $exists: true, $ne: null } }),
+  ]);
+  return {
+    payments: items,
+    stats: {
+      paidCount: paidAgg[0]?.count || 0,
+      paidTotalAmount: paidAgg[0]?.total || 0,
+      pendingCount,
+      submittedCount,
+    },
+  };
+}
+
+/**
+ * Admin xác nhận CK lộ trình theo `paymentId` (`PATCH /api/admin/payments/:id/confirm-learning-path-transfer`).
+ * - Không `force`: ứng viên phải đã báo «Đã chuyển khoản».
+ * - `force` + `forceNote` (≥ 3 ký tự): xác nhận ngoại lệ; được phép cả giao dịch đã hết hạn (tiền đến muộn).
+ * - `amount` (nếu gửi): số tiền trên sao kê, phải khớp giá lộ trình.
+ */
+export async function adminConfirmLearningPathTransfer(paymentId, { adminUserId, force, forceNote, amount } = {}) {
+  if (!mongoose.isValidObjectId(paymentId)) return { ok: false, status: 400, error: "Mã giao dịch không hợp lệ." };
+  const payment = await Payment.findOne({ _id: paymentId, type: LEARNING_PATH_PAYMENT_TYPE, provider: "transfer" })
+    .select("referenceId")
+    .lean();
+  if (!payment) return { ok: false, status: 404, error: "Không tìm thấy giao dịch chuyển khoản lộ trình." };
+  const hasAmount = !(amount === undefined || amount === null || amount === "");
+  if (hasAmount && !Number.isFinite(Number(amount))) return { ok: false, status: 400, error: "Số tiền không hợp lệ." };
+  const result = await confirmLearningPathTransfer(String(payment.referenceId), {
+    adminUserId: String(adminUserId || ""),
+    force: Boolean(force),
+    forceNote: String(forceNote || ""),
+    allowExpired: Boolean(force),
+    ...(hasAmount ? { amount: Number(amount) } : {}),
+  });
+  if (!result.ok) return result;
+  const updated = await Payment.findById(paymentId).lean();
+  return { ...result, payment: updated };
 }
