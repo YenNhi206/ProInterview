@@ -30,7 +30,12 @@
 :root[data-workspace-theme="light"] ::selection { background: #7c3aed30; color: #1e1b2e; }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
-:root[data-workspace-theme="light"] .mentor-workspace-nav { border-right: 1px solid var(--mw-border); border-radius: 14px; background: rgba(250, 248, 255, 0.75); box-shadow: 0 1px 2px rgba(109, 40, 217, 0.04); }
+:root[data-workspace-theme="light"] .mentor-workspace-nav { border-right: 1px solid var(--mw-border); background: rgba(250, 248, 255, 0.8); }
+/* Có nền riêng thì sidebar phải dính mép trái, cao hết màn hình (bản tối nền trong suốt nên được đặt lơ lửng
+   cách mép 16px). Padding bù lại để nội dung bên trong giữ đúng vị trí cũ; rộng 230px = margin-left của nội dung. */
+@media (min-width: 1024px) {
+  :root[data-workspace-theme="light"] .mentor-workspace-nav { top: 0; left: 0; bottom: 0; width: 230px; padding: 32px 18px 38px 24px; }
+}
 .mentor-workspace.mw-light.mentor-workspace-mobile-nav { background-color: var(--mw-surface); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading { color: var(--mw-muted); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-dot { background: #7c3aed; }
