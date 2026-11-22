@@ -16,7 +16,6 @@ import {
   Users,
   Search,
   Sparkles,
-  TrendingUp,
   Award,
   Calendar,
   Send,
@@ -41,6 +40,7 @@ import {
 } from "../../api/mentorshipRequestsApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
 import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
+import { formatBudgetShort, mentorRequestStats } from "../../utils/mentor/mentorRequestStats.js";
 import "../../../styles/mentorship-requests.css";
 
 const TYPES = {
@@ -93,6 +93,8 @@ export function MentorshipRequests() {
 
   const [scope, setScope] = useState("open");
   const [rows, setRows] = useState([]);
+  /** Số liệu đầu trang của mentor: luôn tính từ cả 2 danh sách, không đổi theo tab. */
+  const [summaryRows, setSummaryRows] = useState({ open: [], mine: [] });
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -180,6 +182,21 @@ export function MentorshipRequests() {
       active = false;
     };
   }, [requestId, scope, reload, isNew]);
+
+  useEffect(() => {
+    if (!mentor || requestId) return undefined;
+    let active = true;
+    Promise.all([listMentorshipRequests("open"), listMentorshipRequests("mine")])
+      .then(([open, mine]) => {
+        if (active) setSummaryRows({ open: open?.requests || [], mine: mine?.requests || [] });
+      })
+      .catch(() => {
+        /* Lỗi tải đã hiện ở danh sách chính; ô số liệu giữ giá trị cũ. */
+      });
+    return () => {
+      active = false;
+    };
+  }, [mentor, requestId, reload]);
 
   const action = async (fn, message) => {
     if (busy) return;
@@ -280,20 +297,7 @@ export function MentorshipRequests() {
     });
   }, [rows, sessionFilter, searchQuery]);
 
-  // Dynamic statistics
-  const stats = useMemo(() => {
-    const total = rows?.length || 0;
-    const withBudget = (rows || []).filter((r) => r.budget != null && r.budget > 0);
-    const avgBudget = withBudget.length
-      ? Math.round(withBudget.reduce((sum, r) => sum + r.budget, 0) / withBudget.length)
-      : null;
-
-    return {
-      openCount: total,
-      myOffers: scope === "mine" ? total : 0,
-      avgBudgetLabel: avgBudget ? `${(avgBudget / 1000).toLocaleString("vi-VN")}k` : "Linh hoạt",
-    };
-  }, [rows, scope]);
+  const mentorStats = useMemo(() => mentorRequestStats(summaryRows.open, summaryRows.mine), [summaryRows]);
 
   const content = (
     <div className={`mr-page ${mentor ? "mr-page-mentor" : ""} ${isNew ? "mr-page-new" : requestId ? "mr-page-detail" : ""}`}>
@@ -1040,36 +1044,36 @@ export function MentorshipRequests() {
             <MentorStatMiniGrid className="mb-8">
               <MentorStatFrame
                 index={1}
-                value={rows.length}
+                value={mentorStats.openCount}
                 title="Nhu cầu đang mở"
-                subtitle="Mentee đang tìm kiếm mentor"
+                subtitle="Mentee đang tìm mentor"
                 cornerIcon={Briefcase}
                 accent="lime"
                 compact
               />
               <MentorStatFrame
                 index={2}
-                value={scope === "mine" ? rows.length : "Đang mở"}
-                title="Đề nghị của bạn"
-                subtitle="Chủ động kết nối với ứng viên"
+                value={mentorStats.waiting}
+                title="Đề nghị chờ phản hồi"
+                subtitle="Bạn đã gửi, mentee chưa chọn"
                 cornerIcon={Send}
                 accent="purple"
                 compact
               />
               <MentorStatFrame
                 index={3}
-                value="100%"
-                title="Tỷ lệ kết nối"
-                subtitle="Phản hồi trong 24 giờ"
-                cornerIcon={TrendingUp}
+                value={mentorStats.chosen}
+                title="Được mentee chọn"
+                subtitle="Đề nghị của bạn được nhận"
+                cornerIcon={CheckCircle2}
                 accent="purple"
                 compact
               />
               <MentorStatFrame
                 index={4}
-                value={stats.avgBudgetLabel}
+                value={formatBudgetShort(mentorStats.avgBudget)}
                 title="Ngân sách TB"
-                subtitle="Mức dự kiến từ mentee"
+                subtitle="Trung bình các nhu cầu đang mở"
                 cornerIcon={Sparkles}
                 accent="purple"
                 compact
