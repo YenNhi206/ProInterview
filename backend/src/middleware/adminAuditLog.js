@@ -107,4 +107,5 @@ export function createAuditLog(type) {
 
 export const adminAuditLog = createAuditLog("admin_action");
 export const moderatorAuditLog = createAuditLog("moderator_action");
+export const companyModeratorAuditLog = createAuditLog("company_moderator_action");
 export const mentorAuditLog = createAuditLog("mentor_action");

@@ -568,7 +568,7 @@ ensureCollection("securitylogs", {
   required: ["type"],
   properties: {
     userId: oid,
-    type: en("prompt_injection_attempt", "rate_limit_hit", "suspicious_output", "admin_action", "moderator_action", "mentor_action"),
+    type: en("prompt_injection_attempt", "rate_limit_hit", "suspicious_output", "admin_action", "moderator_action", "company_moderator_action", "mentor_action"),
   },
 }, [
   [{ userId: 1 }],

@@ -597,6 +597,7 @@ Chi tiết response lỗi / thành công: tham chiếu `API_INDEX.md` (phần đ
 - ✅ `/admin/finance/operations`: đối soát số dư, quét giải phóng và ghi nhận hoàn tiền đang giữ.
 - ✅ `/admin/audit-log`: nhật ký thao tác admin thành công/thất bại, che trường bí mật.
 - ✅ Nhật ký thao tác tiền của mentor (rút tiền, đổi tài khoản nhận tiền, yêu cầu đổi giá): `SecurityLog` `mentor_action`, số tài khoản chỉ giữ 4 số cuối, lọc `?actor=mentor` ở `/admin/audit-log`.
+- ✅ Nhật ký Company Moderator: mọi thao tác ghi trên `/api/company/*` (câu hỏi, rubric, tin tuyển dụng) ghi `company_moderator_action`, lọc `?actor=company_moderator`, kèm tên công ty.
 - ✅ Chi tiết người dùng: xem tác động, giải ngân số dư còn tồn và đóng mềm qua cổng kiểm tra nghĩa vụ.
 - ✅ Tự đóng tài khoản dùng cùng cổng kiểm tra; giữ chứng từ và vô hiệu phiên.
 

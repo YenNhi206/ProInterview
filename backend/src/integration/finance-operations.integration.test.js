@@ -215,3 +215,17 @@ it("separates moderator actions from admin actions, including legacy admin_actio
   const adminLogs = await request(admin, "/api/admin/audit-log?actor=admin&limit=200");
   assert.ok(adminLogs.entries.every((l) => l.type === "admin_action" && !l.details.path.startsWith("/api/moderator")));
 });
+it("logs Company Moderator actions separately with the company name", async () => {
+  const company = await models.Company.create({ name: "Công ty Audit", slug: `cong-ty-audit-${Date.now()}` });
+  const cm = await models.User.create({ name: "Company mod", email: `cm-${Date.now()}@test.local`, role: "company_moderator", companyId: company._id });
+  const res = await request(cm, "/api/company/questions/not-a-valid-id/approve", "POST", {});
+  let entry;
+  for (let i = 0; i < 30 && !entry; i++) { entry = await models.SecurityLog.findOne({ type: "company_moderator_action", userId: cm._id }); if (!entry) await new Promise((r) => setTimeout(r, 20)); }
+  assert.ok(entry, `company moderator request (HTTP ${res.status}) phải ghi company_moderator_action`);
+  const logs = await request(admin, "/api/admin/audit-log?actor=company_moderator&limit=200");
+  const row = logs.entries.find((l) => String(l._id) === String(entry._id));
+  assert.ok(row); assert.equal(row.userId.role, "company_moderator"); assert.equal(row.userId.companyId.name, "Công ty Audit");
+  assert.ok(logs.entries.every((l) => l.type === "company_moderator_action"));
+  const modLogs = await request(admin, "/api/admin/audit-log?actor=moderator&limit=200");
+  assert.ok(!modLogs.entries.some((l) => String(l._id) === String(entry._id)));
+});
