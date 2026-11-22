@@ -1,5 +1,6 @@
 /**
- * Đọc nhật ký thao tác admin (`SecurityLog` type `admin_action`) — do `adminAuditLog` ghi.
+ * Đọc nhật ký thao tác (`SecurityLog`): `admin_action` (admin + Platform Moderator, do `adminAuditLog` ghi)
+ * và `mentor_action` (thao tác tiền của mentor, do `mentorAuditLog` ghi).
  *
  * Tách khỏi `adminController.js` để phần audit log không chạm vào file đang có thay đổi
  * song song từ nhánh khác.
@@ -8,6 +9,10 @@ import mongoose from "mongoose";
 import { SecurityLog } from "../models/SecurityLog.js";
 
 const DEFAULT_LIMIT = 50;
+
+/** `?actor=` → type trong SecurityLog; bỏ trống = cả hai. */
+const ACTOR_TYPES = { admin: ["admin_action"], mentor: ["mentor_action"] };
+const ALL_AUDIT_TYPES = ["admin_action", "mentor_action"];
 const MAX_LIMIT = 200;
 
 function parsePositiveInt(raw, fallback, max) {
@@ -19,14 +24,18 @@ function parsePositiveInt(raw, fallback, max) {
 export const AdminAuditController = {
   /**
    * GET /api/admin/audit-log
-   * Query: page, limit, adminId, method, success ("true"|"false"), from, to (ISO date)
+   * Query: page, limit, actor ("admin"|"mentor"), adminId (người thao tác), method, success ("true"|"false"), from, to (ISO date)
    */
   getAuditLog: async (req, res, next) => {
     try {
       const page = parsePositiveInt(req.query?.page, 1);
       const limit = parsePositiveInt(req.query?.limit, DEFAULT_LIMIT, MAX_LIMIT);
 
-      const filter = { type: "admin_action" };
+      const actor = String(req.query?.actor || "").trim().toLowerCase();
+      if (actor && !ACTOR_TYPES[actor]) {
+        return res.status(400).json({ success: false, error: "actor chỉ nhận admin hoặc mentor." });
+      }
+      const filter = { type: { $in: ACTOR_TYPES[actor] || ALL_AUDIT_TYPES } };
 
       const adminId = String(req.query?.adminId || "").trim();
       if (adminId) {
@@ -69,7 +78,7 @@ export const AdminAuditController = {
           .sort({ createdAt: -1 })
           .skip((page - 1) * limit)
           .limit(limit)
-          .populate("userId", "name email")
+          .populate("userId", "name email role")
           .lean(),
         SecurityLog.countDocuments(filter),
       ]);

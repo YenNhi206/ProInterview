@@ -30,6 +30,7 @@ const ADMIN_HEADER_RULES = [
   [/^\/admin\/reviews$/, "Đánh giá"],
   [/^\/admin\/support$/, "Hỗ trợ"],
   [/^\/admin\/settings$/, "Cài đặt hệ thống"],
+  [/^\/admin\/audit-log$/, "Nhật ký thao tác"],
   [/^\/admin$/, "Quản trị"],
 ];
 
