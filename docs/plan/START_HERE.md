@@ -22,7 +22,7 @@ Thư mục `docs/plan/` gồm:
 3. Chạy **Prompt 0** ở một phiên riêng để tạo `REQUIREMENTS.md` và gắn REQ cho mọi task.
 4. Commit lên nhánh chính: `docs: add scope anchor (REQUIREMENTS, REQ column)`.
 5. Báo cả nhóm: từ giờ chỉ nhận việc qua `TASKS.md`, và task không có REQ thì không làm.
-
+6. Nếu dùng Gemini trong Antigravity: đặt AGENTS.md ở gốc repo. Antigravity tự nạp file này. Prompt A đến F dùng được nguyên văn cho cả hai agent.
 ## Vòng làm một task
 
 1. Mở **phiên agent mới** cho mỗi task (ngữ cảnh sạch).

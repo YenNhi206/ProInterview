@@ -396,4 +396,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 - Chỉ làm đủ cột "Xong khi". Không mở rộng sang REQ khác trong cùng PR.
 - Tài liệu và code mâu thuẫn: tin code, ghi đề xuất, không tự đổi phạm vi.
 - Tên role: code customer / mentor / admin / moderator / company_moderator; báo cáo Candidate / Mentor / Admin / Platform Moderator / Company Moderator.
-```
+- Repo có 2 agent (Claude Code và Gemini trong Antigravity). Luật cho Gemini nằm ở AGENTS.md; sửa luật kế hoạch thì sửa cả hai file.
+- Một task chỉ một agent làm: task đang Doing hoặc Review thì dừng và báo.
+- Sửa TASKS.md, REQUIREMENTS.md, DECISIONS.md: pull nhánh chính trước, chỉ sửa dòng của task mình và thêm dòng mới vào cuối bảng, không định dạng lại bảng.
+- Mô tả PR có 2 dòng: "REQ: <mã, mã>" và "Agent: Claude".
