@@ -96,6 +96,35 @@ export async function expireSubscriptionTransferIfNeeded(payment, { session } = 
   return { expired: true };
 }
 
+/**
+ * Hủy giao dịch CK lộ trình (LP-10) đã quá hạn. Lộ trình vẫn ở `pending_payment`:
+ * ứng viên bấm thanh toán lại thì nhận mã PI mới (`checkoutLearningPath`).
+ * Điều kiện `status: "pending"` trong bộ lọc để không đè giao dịch vừa được xác nhận.
+ */
+export async function expireLearningPathTransferIfNeeded(payment, { session } = {}) {
+  if (!payment) return { expired: false };
+  if (String(payment.type || "").toLowerCase() !== "learning_path") return { expired: false };
+  if (String(payment.provider || "").toLowerCase() !== "transfer") return { expired: false };
+  if (String(payment.status || "").toLowerCase() !== "pending") return { expired: false };
+  if (!isTransferPaymentExpired(payment)) return { expired: false };
+
+  const result = await Payment.updateOne(
+    { _id: payment._id, status: "pending" },
+    {
+      $set: {
+        status: "cancelled",
+        failureReason: "payment_timeout",
+        "providerResponse.expiredAt": new Date().toISOString(),
+      },
+    },
+    session ? { session } : {},
+  );
+  if (result.modifiedCount === 0) return { expired: false };
+  payment.status = "cancelled";
+  payment.failureReason = "payment_timeout";
+  return { expired: true };
+}
+
 export async function expireBookingTransferById(bookingId, opts) {
   const booking = await Booking.findById(bookingId);
   if (!booking) return { expired: false, missing: true };

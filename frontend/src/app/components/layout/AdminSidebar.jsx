@@ -20,6 +20,7 @@ import {
   ChevronsUpDown,
   Upload,
   Building2,
+  Route,
 } from "lucide-react";
 import {
   Sidebar,
@@ -63,6 +64,7 @@ const MAIN_GROUPS = [
     title: "Đối soát SePay",
     items: [
       { to: "/admin/subscription-payments", label: "Theo dõi gói Pro/Elite", icon: Crown },
+      { to: "/admin/learning-path-payments", label: "Đối soát lộ trình học", icon: Route },
       { to: "/admin/course-payments", label: "Theo dõi học phí khóa", icon: BookOpen },
     ],
   },

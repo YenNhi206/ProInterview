@@ -31,6 +31,11 @@ import {
   expireEnrollmentTransferIfNeeded,
   expireSubscriptionTransferIfNeeded,
 } from "./transferPaymentExpiryService.js";
+import {
+  confirmLearningPathTransfer,
+  findPendingLearningPathTargets,
+  learningPathTransferStatusForUser,
+} from "./learningPathPaymentService.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 
@@ -178,6 +183,9 @@ async function findPendingTargets(orderRef) {
     }
   }
 
+  // LP-10: lộ trình trả trọn gói — Payment `learning_path` pending, providerRef = LearningPath.paymentRef.
+  targets.push(...(await findPendingLearningPathTargets(norm)));
+
   return targets;
 }
 
@@ -223,6 +231,9 @@ async function autoConfirmTarget(target, { sepayId, amount }) {
   }
   if (target.entityType === "subscription") {
     return confirmSubscriptionTransferByAdmin(target.entityId, opts);
+  }
+  if (target.entityType === "learning_path") {
+    return confirmLearningPathTransfer(target.entityId, { ...opts, amount });
   }
   return { ok: false, status: 400, error: "Loại đơn không hỗ trợ." };
 }
@@ -534,6 +545,9 @@ export async function getTransferStatusForUser(userId, orderRefRaw) {
       }
     }
   }
+
+  const learningPathStatus = await learningPathTransferStatusForUser(uid, orderRef);
+  if (learningPathStatus) return learningPathStatus;
 
   return {
     ok: true,

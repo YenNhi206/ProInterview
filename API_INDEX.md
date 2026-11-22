@@ -38,7 +38,7 @@ Không nâng `admin` qua API (phải sửa trực tiếp DB).
 | POST | `/api/admin/cart-orders/:id/confirm-transfer` | ADMIN | Body `{ force: true, forceNote, amount }`; đối soát đúng **tổng đơn** |
 
 `order` có `id`, `orderRef`, `items`, `totalAmount`, `couponCode`, `status`, `paymentExpiresAt`.
-Webhook SePay hiện có và `/api/payments/transfer-status` hỗ trợ `entityType: "cart"`.
+Webhook SePay hiện có và `/api/payments/transfer-status` hỗ trợ `entityType: "cart"` (và `"learning_path"` từ LP-10, xem A.17).
 Đơn giữ nguyên giá/ưu đãi sau khi tạo QR; server áp dụng Pro/Elite và coupon trên tổng tiền.
 `CartOrder` quản lý mã chuyển khoản chung; `Enrollment.cartOrderId` liên kết từng khóa, giữ nguyên index mã thanh toán riêng và ledger từng enrollment.
 Xác nhận từng enrollment thuộc giỏ qua endpoint cũ trả 409. Đơn quá hạn giải phóng toàn bộ ghi danh pending, giữ giỏ; tiền đã nhận được lưu trước khi mở quyền học để có thể tiếp tục khi gián đoạn.
@@ -370,6 +370,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/admin/enrollments/:id/confirm-transfer-payment` | Xác nhận CK ghi danh |
 | GET | `/api/admin/payments/subscription-pending` | Gói subscription chờ CK |
 | PATCH | `/api/admin/payments/:id/confirm-subscription-transfer` | Xác nhận CK gói |
+| GET | `/api/admin/payments/learning-path-transfers?status=` | **LP-11.** CK lộ trình: `pending` (mặc định, mã còn hạn), `expired` (mã hết hạn mà lộ trình vẫn `pending_payment`, có thể tiền đến muộn), `paid`. Trả `{ success, payments[] { paymentId, learningPathId, orderRef, amount, status (pending \| submitted \| expired \| paid), createdAt, paymentExpiresAt, submittedAt, paidAt, confirmedVia (sepay \| admin), forceConfirm, forceNote, candidate { id, name, email }, mentor { name, publicId }, learningPath { status, totalAmount, version, paymentRef } }, stats { paidCount, paidTotalAmount, pendingCount, submittedCount } }`. FE `/admin/learning-path-payments` |
+| PATCH | `/api/admin/payments/:id/confirm-learning-path-transfer` | **LP-11.** Body `{ force?, forceNote?, amount? }`. Không `force`: ứng viên phải đã báo «Đã chuyển» (400). `force` cần `forceNote` ≥ 3 ký tự; chỉ `force` mới xác nhận được giao dịch đã hết hạn (tiền đến muộn, khác → 409). `amount` (số tiền trên sao kê) lệch giá lộ trình → 400. Thành công: Payment `success`, lộ trình `active`, thông báo `learning_path_paid`; gọi lại → `idempotent: true`. Trả `{ success, payment, learningPath, idempotent }` |
 | POST | `/api/admin/payments/normalize-transfer-refs` | Chuẩn hóa mã tham chiếu CK |
 | GET | `/api/admin/finance/courses` | Tổng hợp doanh thu khóa |
 | GET | `/api/admin/finance/platform-summary` | Tài chính nền tảng — query `?month=YYYY-MM` (tuỳ chọn) |
@@ -514,11 +516,11 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 
 ### A.17. Module Lộ trình học — `/api/learning-paths`
 
-**File:** `backend/src/routes/learningPaths.js` · **Service:** `learningPathsService.js` · **Model:** `LearningPath`, `LearningPathSession`
+**File:** `backend/src/routes/learningPaths.js` · **Service:** `learningPathsService.js`, `learningPathPaymentService.js` (LP-10) · **Model:** `LearningPath`, `LearningPathSession`, `Payment` (`type: learning_path`)
 
 Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (dùng chung `requestActor` với A.16). Response `{ success, learningPath }` hoặc `{ success, learningPaths }`.
 
-**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, acceptedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
+**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, acceptedAt, paymentRef, paidAt, completedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
 
 | Method | Path | Ai | Ghi chú |
 |:-------|:-----|:---|:--------|
@@ -529,8 +531,14 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 | POST | `/api/learning-paths/:id/propose` | Mentor soạn | **LP-07.** `draft`/`revision_requested → proposed`. Chặn (400): chưa có buổi; giá < 10.000₫; buổi đánh giá 0đ chưa `completed`. Chụp `platformFeeRate` theo Mentor (`resolveBookingPlatformFeeRate`); gửi lại sau sửa thì `version + 1`. Yêu cầu mentor → `path_proposed`; thông báo `learning_path_proposed` cho mentee |
 | POST | `/api/learning-paths/:id/accept` | Mentee của lộ trình | **LP-08.** Body `{ version? }`. `proposed → pending_payment`, ghi `acceptedAt`. Gửi `version` đang xem thì 409 nếu mentor đã gửi phiên bản khác. 409 khi không ở `proposed`; mentor gọi → 403; bản nháp / lộ trình của người khác → 404. Thông báo `learning_path_accepted` cho mentor |
 | POST | `/api/learning-paths/:id/request-revision` | Mentee của lộ trình | **LP-08.** Body `{ note }` (5–2000 ký tự, bắt buộc). `proposed → revision_requested`, lưu `revisionNote`. Mentor sửa (`PATCH`) rồi gửi lại (`propose`) → `version + 1`. Thông báo `learning_path_revision_requested` cho mentor |
+| POST | `/api/learning-paths/:id/checkout` | Mentee của lộ trình | **LP-10.** Chỉ khi `pending_payment` (khác → 409; đã `active`/`completed` → 409 "đã thanh toán"). Trả `{ success, learningPath, payment }`. Tạo Payment `type: learning_path`, `provider: transfer`, `amount = totalAmount`, `providerRef` = mã `PI` + 12 số (`generatePiOrderRef`), hết hạn sau `TRANSFER_PAYMENT_TIMEOUT_MINUTES` (mặc định 15). Gọi lại khi mã còn hạn → trả **đúng mã cũ, không gia hạn**; mã đã hết hạn → mã mới trên cùng bản ghi Payment. Hai lần bấm cùng lúc: một lần nhận 409 |
+| PATCH | `/api/learning-paths/:id/submit-transfer` | Mentee của lộ trình | **LP-10.** Ứng viên báo "Tôi đã chuyển khoản": ghi `Payment.providerResponse.submittedAt` (giúp admin đối soát tay, LP-11). 404 chưa checkout; 409 mã đã hết hạn hoặc lộ trình không còn chờ thanh toán. Trả `{ success, learningPath, payment }` |
 
-Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
+**DTO `payment` (LP-10):** `paymentId, orderRef, amount, status (pending | submitted | paid | expired), submittedAt, paymentExpiresAt, expiresInMs, timeoutMinutes`. FE hiện QR theo `orderRef` + `amount` như checkout giỏ hàng, rồi poll `GET /api/payments/transfer-status?orderRef=…` (trả `entityType: "learning_path"`, `entityId` = id lộ trình, `redirectTo: /learning-paths/:id` khi `paid`).
+
+**Xác nhận tiền lộ trình (LP-10):** SePay webhook khớp mã `PI…` của Payment `learning_path` đang chờ và **đúng** `totalAmount` → `confirmLearningPathTransfer`: Payment `success`, lộ trình `pending_payment → active` (`paidAt`), thông báo `learning_path_paid` cho mentee và mentor. Sai tiền / mã hết hạn / mã cũ → `SepayWebhookEvent.status = unmatched`, lộ trình giữ nguyên. Webhook trùng `id` → idempotent. Tài khoản ứng viên ngừng hoạt động → `held_inactive_account`, không kích hoạt. Admin xác nhận tay (LP-11): A.10 `/api/admin/payments/learning-path-transfers`, `/api/admin/payments/:id/confirm-learning-path-transfer`.
+
+Sắp có: `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
 
 ---
 
@@ -767,7 +775,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | POST | `/api/payments/webhook/momo` |
 | POST | `/api/payments/webhook/zalopay` |
 | POST | `/api/payments/webhook/sepay` — header `Authorization: Apikey <SEPAY_WEBHOOK_API_KEY>`; body JSON SePay (`transferType: in`, `transferAmount`, `content` chứa mã `PI…`); trả `{ success: true }` |
-| GET | `/api/payments/transfer-status?orderRef=PI…` — Bearer JWT; poll checkout (`status`: `pending` \| `submitted` \| `paid` \| `not_found`) |
+| GET | `/api/payments/transfer-status?orderRef=PI…` — Bearer JWT; poll checkout (`status`: `pending` \| `submitted` \| `paid` \| `expired` \| `not_found`; `entityType`: `cart` \| `booking` \| `course` \| `subscription` \| `learning_path`) |
 | GET | `/api/payments/history` |
 | POST | `/api/payments/subscription/transfer-pending` |
 | PATCH | `/api/payments/subscription/:paymentId/submit-transfer` |

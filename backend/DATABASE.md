@@ -133,7 +133,8 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `Enrollment.js` | `enrollments` | Ghi danh; tiến độ; CK; `lessonNotes[]` ghi chú học viên theo `lessonId` |
 | `Review.js` | `reviews` | Đánh giá mentor/course |
 | `Notification.js` | `notifications` | Thông báo |
-| `Payment.js` | `payments` | Thanh toán |
+| `Payment.js` | `payments` | Sổ cái thanh toán. `type`: `booking`, `subscription`, `course`, `learning_path` (LP-10: trọn gói lộ trình, `referenceModel: LearningPath`, `referenceId` = id lộ trình, `providerRef` = mã `PI…` trùng `LearningPath.paymentRef`). Mỗi đối tượng tối đa 1 bản ghi CK (unique `{provider, type, referenceId}`) |
+| `SepayWebhookEvent.js` | `sepaywebhookevents` | Log webhook SePay, idempotent theo `sepayId`; `entityType` ∈ `cart`, `booking`, `booking_group`, `course`, `subscription`, `learning_path` (rỗng khi chưa khớp) |
 | `Subscription.js` | `subscriptions` | Gói đăng ký |
 | `Report.js` | `reports` | Báo cáo / khiếu nại |
 | `Activity.js` | `activities` | Feed hoạt động dashboard |

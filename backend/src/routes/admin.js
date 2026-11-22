@@ -10,6 +10,7 @@ import { AdminController } from "../controllers/adminController.js";
 import { AdminCostDashboardController } from "../controllers/adminCostDashboardController.js";
 import { AdminCompanyController } from "../controllers/adminCompanyController.js";
 import { upload } from "../middleware/upload.js";
+import { adminConfirmLearningPathTransfer, listLearningPathTransfersForAdmin } from "../services/learningPathPaymentService.js";
 
 export const adminRouter = Router();
 
@@ -79,6 +80,21 @@ adminRouter.patch(
   "/payments/:id/confirm-subscription-transfer",
   asyncHandler(AdminController.confirmSubscriptionTransferPayment),
 );
+// LP-11: đối soát tay chuyển khoản lộ trình (trọn gói, Payment type learning_path).
+adminRouter.get("/payments/learning-path-transfers", asyncHandler(async (req, res) => {
+  const { payments, stats } = await listLearningPathTransfersForAdmin({ status: req.query.status, limit: req.query.limit });
+  res.json({ success: true, payments, stats });
+}));
+adminRouter.patch("/payments/:id/confirm-learning-path-transfer", asyncHandler(async (req, res) => {
+  const result = await adminConfirmLearningPathTransfer(req.params.id, {
+    adminUserId: req.userId,
+    force: Boolean(req.body?.force),
+    forceNote: String(req.body?.forceNote || "").trim(),
+    amount: req.body?.amount,
+  });
+  if (!result.ok) return res.status(result.status || 400).json({ success: false, error: result.error });
+  res.json({ success: true, payment: result.payment, learningPath: result.learningPath, idempotent: Boolean(result.idempotent) });
+}));
 adminRouter.patch("/bookings/:id/status", asyncHandler(AdminController.updateBookingStatus));
 adminRouter.get("/payouts", asyncHandler(AdminController.getPayoutRequests));
 adminRouter.patch("/payouts/:id/approve", asyncHandler(AdminAccountController.approve));
