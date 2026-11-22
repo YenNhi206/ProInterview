@@ -1084,72 +1084,42 @@ export function MentorshipRequests() {
             </MentorStatMiniGrid>
           )}
 
-          {/* Filter & Search Toolbar */}
+          {/* Thanh lọc: hàng 1 = tab (mentor) + ô tìm kiếm; hàng 2 = lọc theo hình thức. Chữ không xuống dòng. */}
           <div className="mb-6 rounded-2xl border border-white/10 bg-[#160f26]/85 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              {/* Scope Tabs */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {mentor && (
-                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+                <div className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1" role="tablist" aria-label="Danh sách">
                   {[
-                    ["open", "Nhu cầu đang mở"],
-                    ["mine", "Đề nghị của tôi"],
-                  ].map(([val, label]) => {
+                    ["open", "Nhu cầu đang mở", summaryRows.open.length],
+                    ["mine", "Đề nghị của tôi", summaryRows.mine.length],
+                  ].map(([val, label, count]) => {
                     const active = scope === val;
                     return (
                       <button
                         key={val}
                         type="button"
+                        role="tab"
+                        aria-selected={active}
                         onClick={() => setScope(val)}
-                        className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                          active
-                            ? "bg-[#93f72b] text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.35)]"
-                            : "text-slate-400 hover:text-white"
+                        className={`inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-xs font-bold transition-colors ${
+                          active ? "bg-[#93f72b] text-slate-950" : "text-slate-400 hover:text-white"
                         }`}
                       >
                         {label}
-                        {active && (
-                          <span
-                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                              active ? "bg-slate-950/20 text-slate-950" : "bg-white/10 text-slate-400"
-                            }`}
-                          >
-                            {rows.length}
-                          </span>
-                        )}
+                        <span
+                          className={`min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-black tabular-nums ${
+                            active ? "bg-slate-950/15 text-slate-950" : "bg-white/10 text-slate-400"
+                          }`}
+                        >
+                          {count}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
               )}
 
-              {/* Session Type Filters */}
-              <div className="flex flex-wrap items-center gap-2">
-                {[
-                  ["all", "Tất cả hình thức"],
-                  ["mock_interview", "Phỏng vấn thử"],
-                  ["cv_review", "Review CV"],
-                  ["career_consulting", "Tư vấn nghề nghiệp"],
-                ].map(([key, label]) => {
-                  const active = sessionFilter === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setSessionFilter(key)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                        active
-                          ? "border border-[#93f72b]/50 bg-[#93f72b]/15 text-[#93f72b]"
-                          : "border border-white/5 bg-white/[0.02] text-slate-400 hover:border-white/15 hover:text-slate-200"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Search Box */}
-              <div className="relative min-w-[240px]">
+              <div className="relative w-full sm:max-w-xs">
                 <Search
                   size={14}
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1159,20 +1129,49 @@ export function MentorshipRequests() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm vị trí, từ khóa..."
+                  aria-label="Tìm nhu cầu"
                   /* .mr-page input đặt padding 11px 14px (độ ưu tiên cao hơn pl-9) → chữ đè kính lúp; ghi đè bằng style. */
-                  style={{ paddingLeft: "2.25rem", paddingRight: "2rem" }}
-                  className="w-full rounded-xl border border-white/10 bg-[#120a20] py-2 pl-9 pr-8 text-xs text-white placeholder-slate-500 transition focus:border-[#93f72b] focus:outline-none"
+                  style={{ paddingLeft: "2.25rem", paddingRight: "2rem", paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+                  className="w-full rounded-xl border border-white/10 bg-[#120a20] text-xs text-white placeholder-slate-500 transition focus:border-[#93f72b] focus:outline-none"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
+                    aria-label="Xóa tìm kiếm"
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                   >
                     <X size={13} />
                   </button>
                 )}
               </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+              <span className="mr-1 text-[11px] font-semibold text-slate-500">Hình thức:</span>
+              {[
+                ["all", "Tất cả"],
+                ["mock_interview", "Phỏng vấn thử"],
+                ["cv_review", "Review CV"],
+                ["career_consulting", "Tư vấn nghề nghiệp"],
+              ].map(([key, label]) => {
+                const active = sessionFilter === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setSessionFilter(key)}
+                    className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                      active
+                        ? "border border-[#93f72b]/50 bg-[#93f72b]/15 text-[#93f72b]"
+                        : "border border-white/10 bg-transparent text-slate-400 hover:border-white/20 hover:text-slate-200"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
