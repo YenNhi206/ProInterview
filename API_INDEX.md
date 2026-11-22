@@ -600,6 +600,15 @@ Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/
 **Quy tắc:** key năng lực giữ nguyên 20 key cũ; bỏ key thì đặt `deprecated: true` (vẫn hiện tên cho dữ liệu cũ, form mentor/rubric không cho chọn). Mức `null` = "Chưa đủ dữ liệu", khác mức 0. BE dùng `isValidCompetencyKey`, `aiAnswerToLevel`, `suggestOutcome`, `toDisplayLevel` trong `competencyFramework.js`.
 
 
+### A.18. AI sinh bộ câu nháp cho công ty — `POST /api/company/questions/generate` (CO-04)
+
+| Method | Endpoint | Auth | Mô tả |
+|:-------|:---------|:-----|:------|
+| POST | `/api/company/questions/generate` | Company Moderator; rate limit 10 lần / 15 phút / user | Body `{ roleCategory, count? }`: `roleCategory` là key trong `GET /api/role-categories`, `count` nguyên 8–12 (mặc định 10); sai → **400**, không gọi LLM. AI sinh câu theo năng lực của vị trí (`interviewRole` → `ROLE_COMPETENCY_MAP`, chỉ key bộ tiêu chí LP-01). Lưu vào `QuestionBank`: `orgId = companyId`, `source: "org_template"`, `status: "draft"`, `provenance.promptVersion` / `generatedBy.promptVersion` = version prompt thực sự chạy (`companyq-vN`). Câu trùng `textHash` với câu đã có của công ty (mọi trạng thái) hoặc trùng nhau trong lượt bị bỏ qua. **201** `{ success, message, count, skippedDuplicates, promptVersion, questions }`. Chưa cấu hình LLM → **503**; LLM trả kết quả không dùng được sau 1 lần sửa JSON → **502** (không lưu gì) |
+
+Prompt key `company_question_gen` (PromptVersion, tiền tố `companyq`), bản mặc định `companyq-v1` trong `prompts/companyQuestionGenPrompt.js`. Câu đã có (chưa bị từ chối) của cùng vị trí được đưa vào prompt (tối đa 30) để tránh lặp ý. Trang câu hỏi của Platform Moderator (`GET /api/moderator/questions`) chỉ đọc `orgId: null` nên không thấy các câu này. Duyệt / sửa / từ chối: `PATCH /api/company/questions/:id`, `POST /api/company/questions/:id/approve|reject`, `batch-approve`, `batch-reject` (CO-05).
+
+
 ### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)
 
 **File:** `backend/src/routes/company.js` (`requireCompanyModerator`, lọc theo `companyId`) · `backend/src/routes/moderator.js` · **Model:** `CompanyRubric`

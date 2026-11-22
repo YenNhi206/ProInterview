@@ -11,6 +11,10 @@ import {
 import {
   EVALUATION_KEY, EVALUATION_DEFAULT_VERSION, EVALUATION_SPEC, EVALUATION_DEFAULT_TEMPLATE,
 } from "./evaluationPrompt.js";
+import {
+  COMPANY_QUESTION_GEN_KEY, COMPANY_QUESTION_GEN_DEFAULT_VERSION, COMPANY_QUESTION_GEN_SPEC,
+  COMPANY_QUESTION_GEN_DEFAULT_TEMPLATE,
+} from "./companyQuestionGenPrompt.js";
 
 export const PROMPT_REGISTRY = deepFreezeModule({
   [QUESTION_GEN_KEY]: {
@@ -22,6 +26,14 @@ export const PROMPT_REGISTRY = deepFreezeModule({
     versionPrefix: "eval",
     spec: EVALUATION_SPEC,
     default: { version: EVALUATION_DEFAULT_VERSION, template: EVALUATION_DEFAULT_TEMPLATE, fewShotExamples: [] },
+  },
+  // CO-04: bộ câu nháp cho công ty theo roleCategory (không có CV/JD ứng viên).
+  [COMPANY_QUESTION_GEN_KEY]: {
+    versionPrefix: "companyq",
+    spec: COMPANY_QUESTION_GEN_SPEC,
+    default: {
+      version: COMPANY_QUESTION_GEN_DEFAULT_VERSION, template: COMPANY_QUESTION_GEN_DEFAULT_TEMPLATE, fewShotExamples: [],
+    },
   },
 });
 

@@ -288,6 +288,14 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | GET | `/api/jobs` · `/api/jobs/:id` | Công khai — chỉ job đang mở, lọc vị trí / cấp độ / công ty / từ khóa (JB-03) |
 | ✅ | GET | `/api/role-categories` | Công khai — danh sách nhóm vị trí dùng chung (`config/roleCategories.json`) |
 
+### Câu hỏi công ty — AI sinh bộ câu nháp (CO-04)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | POST | `/api/company/questions/generate` | `[AUTH][COMPANY_MOD]` AI sinh 8–12 câu `draft` theo `roleCategory`, chống trùng `textHash`, ghi `provenance.promptVersion` (prompt `company_question_gen`) |
+
+Chi tiết: **API_INDEX.md A.18 (CO-04)**. FE: nút "Sinh bộ câu bằng AI" trên `/company/questions`.
+
 Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJob` (JB-02). Chi tiết: **API_INDEX.md A.18, A.19**. FE `/company/jobs` ở JB-15, `/jobs` ở JB-11.
 
 ### Lộ trình học — Mentor soạn và gửi (LP-07)

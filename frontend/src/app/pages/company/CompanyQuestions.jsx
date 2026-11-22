@@ -71,6 +71,7 @@ export function CompanyQuestions() {
   // Starter pack role
   const [starterRole, setStarterRole] = useState("software_engineer");
   const [generating, setGenerating] = useState(false);
+  const [generateCount, setGenerateCount] = useState(10);
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
@@ -219,14 +220,14 @@ export function CompanyQuestions() {
   const handleGenerateStarter = async () => {
     setGenerating(true);
     try {
-      const res = await companyApi.generateStarterQuestions({ roleCategory: starterRole });
+      const res = await companyApi.generateQuestions({ roleCategory: starterRole, count: generateCount });
       if (res.success) {
-        toastApiSuccess(res.message || "Sinh bộ câu hỏi mẫu thành công!");
+        toastApiSuccess(res.message || "Đã sinh bộ câu hỏi nháp.");
         setShowGenerateModal(false);
         fetchQuestions();
       }
     } catch (err) {
-      toastApiError(err, "Không thể sinh bộ câu hỏi mẫu.");
+      toastApiError(err, "Không thể sinh bộ câu hỏi.");
     } finally {
       setGenerating(false);
     }
@@ -273,7 +274,7 @@ export function CompanyQuestions() {
             className="inline-flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-2.5 text-xs font-semibold text-indigo-300 transition hover:bg-indigo-500/20 shadow-sm"
           >
             <Sparkles className="size-4" />
-            Sinh bộ câu hỏi mẫu
+            Sinh bộ câu bằng AI
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -409,7 +410,7 @@ export function CompanyQuestions() {
                     <HelpCircle className="mx-auto size-8 text-slate-600" />
                     <p className="mt-2 font-medium text-slate-300">Chưa có câu hỏi nào</p>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Bạn có thể bấm "Sinh bộ câu hỏi mẫu" hoặc "Thêm câu hỏi mới" để bắt đầu.
+                      Bạn có thể bấm "Sinh bộ câu bằng AI" hoặc "Thêm câu hỏi mới" để bắt đầu.
                     </p>
                   </td>
                 </tr>
@@ -547,7 +548,7 @@ export function CompanyQuestions() {
         </div>
       </div>
 
-      {/* Modal: Sinh bộ câu hỏi mẫu */}
+      {/* Modal: AI sinh bộ câu nháp (CO-04) */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
           <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
@@ -556,8 +557,8 @@ export function CompanyQuestions() {
                 <Sparkles className="size-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-base">Sinh bộ câu hỏi mẫu</h3>
-                <p className="text-xs text-slate-400">Tự động khởi tạo 5 câu hỏi chuẩn hóa theo vị trí</p>
+                <h3 className="font-bold text-white text-base">Sinh bộ câu bằng AI</h3>
+                <p className="text-xs text-slate-400">AI soạn 8–12 câu nháp theo khung SHRM/DDI của vị trí</p>
               </div>
             </div>
 
@@ -579,9 +580,26 @@ export function CompanyQuestions() {
                 </select>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Số câu cần sinh
+                </label>
+                <select
+                  value={generateCount}
+                  onChange={(e) => setGenerateCount(Number(e.target.value))}
+                  className="mt-1.5 w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                >
+                  {[8, 9, 10, 11, 12].map((n) => (
+                    <option key={n} value={n}>
+                      {n} câu
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="rounded-xl bg-indigo-950/30 border border-indigo-500/20 p-3 text-xs text-indigo-300">
                 <p>
-                  Hệ thống sẽ tạo 5 câu hỏi phỏng vấn chuẩn ở trạng thái <strong>Bản nháp (draft)</strong> để bạn có thể xem lại, sửa đổi và duyệt trước khi đưa vào phỏng vấn.
+                  Câu được tạo ở trạng thái <strong>Bản nháp (draft)</strong>. Bạn xem lại, sửa và duyệt trước khi đưa vào phỏng vấn. Câu trùng với câu đã có của công ty sẽ được bỏ qua. Việc sinh mất khoảng 20–60 giây.
                 </p>
               </div>
             </div>

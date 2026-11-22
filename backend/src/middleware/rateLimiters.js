@@ -50,6 +50,17 @@ export const baselineTrialLimiter = rateLimit({
   message: { success: false, error: "Quá nhiều yêu cầu. Thử lại sau ít phút." },
 });
 
+/** CO-04: Company Moderator sinh bộ câu nháp bằng LLM — tối đa 10 lần / 15 phút / user. */
+export const companyQuestionGenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProd ? 10 : 100,
+  skip: isLoadTest,
+  keyGenerator: (req) => req.userId ?? req.ip,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Bạn đã sinh câu hỏi quá nhiều lần. Vui lòng thử lại sau 15 phút." },
+});
+
 /** CV Analysis — tối đa 5 lần phân tích/phút/user. Chống bot đốt Gemini quota. */
 export const cvAnalyzeLimiter = rateLimit({
   windowMs: 60 * 1000,
