@@ -1,6 +1,6 @@
-import { useId, useState } from "react";
+import { useId, useState, useEffect } from "react";
 import { Bell, Check, CheckCheck, ChevronDown, LoaderCircle, RefreshCw, Trash2, X } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "../ui/popover";
 import { useNavbarNotifications } from "../../hooks/useNavbarNotifications.js";
 import { notificationKind } from "../../utils/shared/notificationKind.js";
 import "../../../styles/notifications.css";
@@ -43,50 +43,118 @@ function NotificationRow({ notification, onSelect, onDelete, disabled, deleting 
   const { icon: Icon, label, tone } = notificationKind(notification.type);
   const date = notificationDate(notification.createdAt);
   const body = notification.body || notification.message || "";
-  const canExpand = body.length > 110;
+  const canExpand = body.length > 100;
 
   return (
-    <article className={`notification-row${notification.isRead ? "" : " notification-row--unread"}`}>
-      <button type="button" className="notification-row-main" onClick={() => onSelect(notification)} disabled={disabled}>
-        <span className={`notification-kind-icon notification-kind-icon--${tone}`} aria-hidden="true"><Icon size={18} strokeWidth={1.8} /></span>
-        <span className="notification-copy">
+    <article
+      className={`notification-row${notification.isRead ? "" : " notification-row--unread"}`}
+      onClick={() => onSelect(notification)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(notification);
+        }
+      }}
+    >
+      <div className="notification-row-main">
+        <span className={`notification-kind-icon notification-kind-icon--${tone}`} aria-hidden="true">
+          <Icon size={18} strokeWidth={1.8} />
+        </span>
+        <div className="notification-copy">
           <span className="notification-title">{notification.title}</span>
-          {body && <span id={bodyId} className={`notification-body${canExpand && !expanded ? " notification-body--clamped" : ""}`}>{body}</span>}
+          {body && (
+            <div id={bodyId} className={`notification-body${canExpand && !expanded ? " notification-body--clamped" : ""}`}>
+              {body}
+            </div>
+          )}
+          {canExpand && (
+            <button
+              type="button"
+              className="notification-expand"
+              aria-expanded={expanded}
+              aria-controls={bodyId}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((val) => !val);
+              }}
+            >
+              <span>{expanded ? "Thu gọn" : "Xem thêm"}</span>
+              <ChevronDown size={11} className={expanded ? "rotate-180 transition-transform" : "transition-transform"} aria-hidden="true" />
+            </button>
+          )}
           <span className="notification-meta">
             <span>{label}</span>
-            {date && <><span aria-hidden="true">·</span><time dateTime={date.toISOString()} title={date.toLocaleString("vi-VN")}>{notificationTime(date)}</time></>}
+            {date && (
+              <>
+                <span aria-hidden="true">·</span>
+                <time dateTime={date.toISOString()} title={date.toLocaleString("vi-VN")}>
+                  {notificationTime(date)}
+                </time>
+              </>
+            )}
             {!notification.isRead && <span className="notification-unread-dot" aria-label="Chưa đọc" />}
           </span>
-        </span>
-      </button>
+        </div>
+      </div>
       <button
         type="button"
         className="notification-delete"
-        onClick={() => onDelete(notification._id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(notification._id);
+        }}
         disabled={disabled}
         aria-label={`Xóa thông báo: ${notification.title}`}
         aria-busy={deleting}
         title={deleting ? "Đang xóa…" : "Xóa thông báo"}
       >
-        {deleting
-          ? <LoaderCircle size={15} className="notification-delete-spinner" aria-hidden="true" />
-          : <Trash2 size={15} strokeWidth={1.6} aria-hidden="true" />}
+        {deleting ? (
+          <LoaderCircle size={15} className="notification-delete-spinner" aria-hidden="true" />
+        ) : (
+          <Trash2 size={15} strokeWidth={1.6} aria-hidden="true" />
+        )}
       </button>
-      {canExpand && (
-        <button type="button" className="notification-expand" aria-expanded={expanded} aria-controls={bodyId} onClick={() => setExpanded((value) => !value)}>
-          {expanded ? "Thu gọn" : "Xem thêm"}<ChevronDown size={12} aria-hidden="true" />
-        </button>
-      )}
     </article>
   );
 }
 
-export function NotificationCenter({ active = true, onSelect }) {
-  const [open, setOpen] = useState(false);
+export function NotificationCenter({
+  active = true,
+  onSelect,
+  asBar = false,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  trigger = null,
+  anchor = null,
+  side,
+  align,
+  onUnreadCountChange,
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? (controlledOnOpenChange || (() => {})) : setInternalOpen;
   const [filter, setFilter] = useState("all");
   const [deletionMessage, setDeletionMessage] = useState("");
   const titleId = useId();
-  const { notifications, unreadCount, loading, error, busy, loadNotifications, handleMarkAllRead, handleMarkOneRead, handleDeleteNotification } = useNavbarNotifications(active);
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    busy,
+    loadNotifications,
+    handleMarkAllRead,
+    handleMarkOneRead,
+    handleDeleteNotification,
+  } = useNavbarNotifications(active);
+
+  useEffect(() => {
+    onUnreadCountChange?.(unreadCount);
+  }, [unreadCount, onUnreadCountChange]);
+
   const filtered = filter === "unread" ? notifications.filter((notification) => !notification.isRead) : notifications;
   const groups = groupByDate(filtered);
   const hasNotifications = notifications.length > 0 || unreadCount > 0;
@@ -108,15 +176,43 @@ export function NotificationCenter({ active = true, onSelect }) {
     if (await handleDeleteNotification(id)) setDeletionMessage("Đã xóa thông báo.");
   };
 
+  const resolvedSide = side || (asBar ? "top" : "bottom");
+  const resolvedAlign = align || (asBar ? "start" : "end");
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <button type="button" className="notification-trigger" aria-label={unreadCount ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo"}>
-          <Bell size={20} strokeWidth={1.7} aria-hidden="true" />
-          {unreadCount > 0 && <span className="notification-trigger-count" aria-hidden="true">{unreadCount > 99 ? "99+" : unreadCount}</span>}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} collisionPadding={12} className="notification-center" aria-labelledby={titleId}>
+      {anchor && <PopoverAnchor asChild>{anchor}</PopoverAnchor>}
+      {trigger ? (
+        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      ) : !anchor ? (
+        <PopoverTrigger asChild>
+          {asBar ? (
+            <button
+              type="button"
+              className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-semibold text-slate-300 transition-all hover:border-violet-500/40 hover:bg-white/[0.07] hover:text-white focus:outline-none"
+              aria-label={unreadCount ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo"}
+            >
+              <div className="flex items-center gap-2.5">
+                <Bell size={15} className="text-violet-400 shrink-0" strokeWidth={1.8} />
+                <span>Thông báo</span>
+              </div>
+              {unreadCount > 0 ? (
+                <span className="rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-2 py-0.5 text-[10px] font-black text-white shadow-[0_0_8px_rgba(124,58,237,0.5)]">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              ) : (
+                <span className="text-[10px] font-medium text-slate-500">0</span>
+              )}
+            </button>
+          ) : (
+            <button type="button" className="notification-trigger" aria-label={unreadCount ? `Thông báo, ${unreadCount} chưa đọc` : "Thông báo"}>
+              <Bell size={20} strokeWidth={1.7} aria-hidden="true" />
+              {unreadCount > 0 && <span className="notification-trigger-count" aria-hidden="true">{unreadCount > 99 ? "99+" : unreadCount}</span>}
+            </button>
+          )}
+        </PopoverTrigger>
+      ) : null}
+      <PopoverContent side={resolvedSide} align={resolvedAlign} sideOffset={12} collisionPadding={12} className="notification-center" aria-labelledby={titleId}>
         <span className="sr-only" role="status">{deletionMessage}</span>
         <header className="notification-header">
           <h2 id={titleId}>Thông báo</h2>

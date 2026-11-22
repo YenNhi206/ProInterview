@@ -12,6 +12,8 @@ import {
   parsePrice, previewShares, proposeChecklist, saveErrors, shrmLabel, toPayload, toggleShrm, unselectableShrmKeys,
 } from "../../utils/learningPath/learningPathEditor.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import "../../../styles/mentorship-requests.css";
 import "../../../styles/learning-paths.css";
 
@@ -182,14 +184,14 @@ export function MentorLearningPathEditor() {
   const totalPreview = parsePrice(state.totalAmount);
 
   return (
-    <div className="mr-page mr-page-mentor mr-page-detail lp-page lp-editor">
-      <header className="mr-heading">
-        <div>
-          <Link to="/mentor/learning-paths" className="mr-back"><ArrowLeft size={15} />Lộ trình học</Link>
-          <h1>{editable ? (isNew ? "Soạn lộ trình mới" : "Soạn lộ trình") : "Lộ trình học"}</h1>
-          <p>{editable ? "Chia mục tiêu của mentee thành các buổi rõ ràng, gắn năng lực cần rèn và đặt giá trọn gói." : "Lộ trình đã gửi cho mentee. Bạn sửa được khi mentee yêu cầu chỉnh sửa."}</p>
-        </div>
-      </header>
+    <MentorPageShell bottomPad="pb-24" showAmbient={false} className="bg-transparent text-white">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8 py-5">
+        <div className="mr-page mr-page-mentor mr-page-detail lp-page lp-editor !max-w-none !p-0">
+          <MentorPageHeader
+            backTo="/mentor/learning-paths"
+            backLabel="Quay lại Lộ trình học"
+            title={editable ? (isNew ? "Soạn lộ trình mới" : "Chỉnh sửa lộ trình") : "Lộ trình học"}
+          />
 
       {error && <div className="mr-error" role="alert">{error}</div>}
       {notice && <div className="mr-notice" role="status"><CheckCircle2 size={18} />{notice}</div>}
@@ -381,6 +383,8 @@ export function MentorLearningPathEditor() {
           </div>
         </dialog>
       )}
-    </div>
+        </div>
+      </div>
+    </MentorPageShell>
   );
 }

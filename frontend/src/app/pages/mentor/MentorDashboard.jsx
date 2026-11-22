@@ -524,29 +524,23 @@ export function MentorDashboard() {
           className="mb-8 flex flex-col gap-6 pt-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8"
         >
           <div className="lg:max-w-2xl lg:flex-1">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#93f72b]">
-              <Sparkles size={13} /> Sẵn sàng nhận lịch tư vấn · Không gian điều hành chuyên gia
-            </div>
             <h1 className="font-headline text-3xl font-black leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.65rem]">
               Xin chào,{" "}
               <span className="text-white font-black drop-shadow-sm">
                 {displayName}
               </span>
             </h1>
-            <p className="mt-3 text-sm leading-relaxed text-slate-300 sm:text-base">
-              Quản lý buổi phỏng vấn 1:1, điều phối lịch rảnh và theo dõi tiến độ thu nhập thực tế trong tháng.
-            </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-5 flex flex-wrap items-center gap-3">
               <motion.button
                 type="button"
                 onClick={() => navigate("/mentor/schedule")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group inline-flex items-center gap-3 rounded-xl bg-[#93f72b] py-2.5 pl-5 pr-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_24px_rgba(147,247,43,0.35)] transition-all hover:bg-[#a8ff4e]"
+                className="group inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 pl-5 pr-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_18px_rgba(124,58,237,0.45)] border border-violet-400/30 transition-all hover:from-violet-500 hover:to-indigo-500"
               >
                 <span>Tạo lịch trống mới</span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/15 transition-transform group-hover:translate-x-0.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 transition-transform group-hover:translate-x-0.5">
                   <ArrowRight size={14} strokeWidth={2.5} />
                 </span>
               </motion.button>
@@ -586,16 +580,16 @@ export function MentorDashboard() {
                 {user?.role === "mentor" && (
                   <div
                     title="Mentor đã xác minh"
-                    className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#93f72b] text-slate-950 shadow-md ring-2 ring-[#120a20]"
+                    className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_0_10px_rgba(124,58,237,0.5)] ring-2 ring-[#120a20]"
                   >
-                    <SealCheck size={13} strokeWidth={3} />
+                    <SealCheck size={13} strokeWidth={2.5} />
                   </div>
                 )}
               </div>
               <div className="min-w-0 pr-3">
                 <p className="truncate text-sm font-bold text-white">{displayName}</p>
                 <p className="text-xs text-violet-300 font-medium">Chuyên gia Phỏng vấn</p>
-                <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-[#93f72b]">
+                <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-amber-400">
                   <span className="flex items-center gap-1">
                     <Star size={12} className="fill-current" />
                     5.0
@@ -777,7 +771,7 @@ export function MentorDashboard() {
                     <button
                       type="button"
                       onClick={() => navigate("/mentor/schedule")}
-                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.3)] transition-all hover:bg-[#a8ff4e]"
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_18px_rgba(124,58,237,0.45)] border border-violet-400/30 transition-all hover:from-violet-500 hover:to-indigo-500"
                     >
                       Tạo lịch mới ngay →
                     </button>

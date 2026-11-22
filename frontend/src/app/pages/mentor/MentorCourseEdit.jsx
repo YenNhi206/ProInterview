@@ -64,6 +64,7 @@ import { ArchiveCourseDialog } from "../../components/courses/ArchiveCourseDialo
 import { mapCourseAdminModerationNote } from "../../utils/admin/courseAdminReview.js";
 import { uploadFile, uploadVideoDirectly, shouldUseDirectUpload } from "../../api/uploadApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { CourseCreateStepper } from "../../components/mentor/course-create/CourseCreateStepper";
 import { CourseCreateStep1, CourseCreateFooter } from "../../components/mentor/course-create/CourseCreateStep1";
 import { CourseCreateStep2 } from "../../components/mentor/course-create/CourseCreateStep2";
@@ -814,15 +815,12 @@ function CreateCourseForm({ navigate }) {
       <MentorPageShell bottomPad="pb-24" className="!min-h-0" extraStyles={MENTOR_COURSE_EDIT_EXTRA_CSS}>
          <style>{mentorValidationKeyframes}</style>
          <div className="relative z-10 mx-auto max-w-4xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
-            <header className="mb-8">
-               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-3.5 py-1 text-xs font-bold text-[#93f72b] tracking-wider uppercase">
-                  <Sparkles size={13} /> Studio Khóa Học & Video
-               </div>
-               <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Tạo khóa học & Tải video mới</h1>
-               <p className="mt-2 max-w-2xl text-sm text-violet-200/70">
-                  Điền thông tin khóa học, tổ chức hệ thống bài giảng và tải video lên. Khóa học sẽ được gửi kiểm duyệt trước khi phát hành công khai.
-               </p>
-            </header>
+            <MentorPageHeader
+               backTo="/mentor/courses"
+               backLabel="Quay lại danh sách khóa học"
+               title="Tạo khóa học &"
+               highlight="Tải video mới"
+            />
 
             <div className={`${mentorCreateScopeClass} ${mentorCreateShellClass}`}>
                <CourseCreateStepper step={step} />

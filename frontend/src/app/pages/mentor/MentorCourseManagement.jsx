@@ -24,6 +24,8 @@ import {
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { getUser } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
+import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
 import { ArchiveCourseDialog } from "../../components/courses/ArchiveCourseDialog";
 import { archiveCourse, fetchMyMentorCourses } from "../../api/courseApi.js";
 import { mapCourseAdminModerationNote } from "../../utils/admin/courseAdminReview.js";
@@ -157,11 +159,27 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-r from-violet-950/30 via-[#0c0e15] to-[#0a0b10] p-6 sm:p-7 shadow-2xl backdrop-blur-xl"
+      className="relative overflow-hidden rounded-3xl border border-violet-500/30 bg-[#0e071c] p-6 sm:p-7 shadow-[0_16px_48px_rgba(0,0,0,0.6)] backdrop-blur-xl"
     >
-      <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-violet-600/15 blur-3xl" />
+      {/* ── Dynamic Ambient Background from Course Image ── */}
+      {course.cover && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <img
+            src={course.cover}
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover scale-105 blur-[6px] opacity-100 brightness-115 saturate-125 transition-transform duration-700"
+          />
+          {/* Elegant dark gradient overlay: ensures WCAG text readability while letting the course photo clearly show through */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#080212]/75 via-[#0a0418]/55 to-[#06010e]/35" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080212]/60 via-transparent to-black/10" />
+        </div>
+      )}
 
-      <div className="relative flex items-center justify-between gap-3 mb-5">
+      {/* Decorative neon ambient glow */}
+      <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-violet-600/20 blur-3xl" />
+
+      <div className="relative z-10 flex items-center justify-between gap-3 mb-5">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-violet-300">
           <Sparkles size={12} className="text-violet-400" />
           Khóa học nổi bật nhất
@@ -172,7 +190,7 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
         </span>
       </div>
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center">
         {/* Cover Thumbnail */}
         <div className="relative w-full lg:w-[320px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 aspect-video group">
           <img
@@ -236,7 +254,7 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
               type="button"
               onClick={() => onEdit(course)}
               disabled={!canEdit}
-              className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm shadow-violet-600/30 transition hover:bg-violet-500 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-violet-600/35 border border-violet-400/35 transition hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50"
             >
               <Video size={15} />
               <span>Chỉnh sửa &amp; Quản lý Video</span>
@@ -244,7 +262,7 @@ function FeaturedCourseSpotlight({ course, onOpen, onEdit }) {
             <button
               type="button"
               onClick={() => onOpen(course)}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-xs font-bold text-slate-100 transition hover:bg-white/[0.12] hover:text-white hover:border-white/25"
             >
               <ExternalLink size={14} />
               <span>Xem trang khóa học</span>
@@ -270,9 +288,11 @@ const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit,
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c0e15] p-4 sm:p-5 transition-all duration-200 hover:border-violet-500/30 hover:bg-white/[0.02]"
+      className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#140c24]/85 p-4 sm:p-5 transition-all duration-200 hover:border-violet-500/35 hover:bg-[#1a1030]"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      
+
+      <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Left: Thumbnail & Main Info */}
         <div className="flex items-start gap-4 min-w-0 flex-1">
           {/* Thumbnail */}
@@ -349,11 +369,10 @@ const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit,
               type="button"
               onClick={() => onEdit(course)}
               disabled={!canEdit}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition ${
-                canEdit
-                  ? "bg-white text-slate-950 hover:bg-slate-200 active:scale-[0.98]"
-                  : "bg-white/5 text-slate-500 cursor-not-allowed"
-              }`}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition ${canEdit
+                ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/30 border border-violet-400/30 hover:from-violet-500 hover:to-indigo-500 hover:border-violet-300"
+                : "bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed"
+                }`}
             >
               <Edit3 size={13} />
               <span>Chỉnh sửa &amp; Video</span>
@@ -364,7 +383,7 @@ const CourseListRow = forwardRef(function CourseListRow({ course, index, onEdit,
                 type="button"
                 onClick={() => onArchive(course)}
                 title="Lưu trữ khóa học"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-400 transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition hover:border-red-500/40 hover:bg-red-500/20 hover:text-red-300"
               >
                 <Trash2 size={15} />
               </button>
@@ -477,120 +496,60 @@ export function MentorCourseManagement() {
   return (
     <MentorPageShell bottomPad="pb-24" showAmbient={false} className="bg-transparent text-white">
       <div className="relative z-10 mx-auto max-w-[1240px] px-4 pt-4 pb-12 sm:px-6 lg:px-8 space-y-8">
-        {/* ── 1. Header Banner ── */}
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-b from-[#13151f]/80 via-[#0d0f16]/90 to-[#0a0b10] p-6 sm:p-8 backdrop-blur-2xl shadow-xl"
-        >
-          <div className="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
+        {/* ── 1. Unified Mentor Header ── */}
+        <MentorPageHeader
+          title="Quản lý Khóa học &"
+          highlight="Bài giảng Video"
+          actions={
+            <button
+              type="button"
+              onClick={() => navigate("/mentor/courses/new/edit")}
+              className="group inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500"
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span>Tạo khóa học & Đăng video mới</span>
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:translate-x-0.5">
+                <ArrowRight size={11} />
+              </span>
+            </button>
+          }
+        />
 
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3 max-w-2xl">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-violet-300">
-                  <GraduationCap size={13} className="text-violet-400" />
-                  Studio Khóa học &amp; Video bài giảng
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Quản lý Khóa học &amp;{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-violet-300">
-                  Bài giảng Video
-                </span>
-              </h1>
-
-              <p className="text-sm text-slate-300 leading-relaxed max-w-xl">
-                Tạo giáo trình chuyên sâu, tải lên video bài giảng chất lượng cao và theo dõi phản hồi từ học viên.
-              </p>
-            </div>
-
-            <div className="flex shrink-0">
-              <button
-                type="button"
-                onClick={() => navigate("/mentor/courses/new/edit")}
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-white px-5 py-3 text-xs font-bold text-slate-950 shadow-md transition-all hover:bg-slate-200 active:scale-[0.98]"
-              >
-                <Plus size={16} strokeWidth={2.5} />
-                <span>Tạo khóa học &amp; Đăng video mới</span>
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-950/10 transition-transform group-hover:translate-x-0.5">
-                  <ArrowRight size={11} />
-                </span>
-              </button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── 2. Studio KPI Bento Grid (4 Cards) ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e15] p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Tổng khóa học
-              </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400">
-                <BookOpen size={16} />
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white tracking-tight">{totalCourses}</span>
-              <span className="text-xs text-slate-400">khóa</span>
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400">Toàn bộ khóa đang quản lý</p>
-          </div>
-
-          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e15] p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Đang phát hành
-              </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                <CheckCircle2 size={16} />
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-emerald-400 tracking-tight">{publishedCoursesCount}</span>
-              <span className="text-xs text-slate-400">đang mở</span>
-            </div>
-            <p className="mt-2 text-[11px] text-emerald-300 font-medium">Công khai trên thư viện</p>
-          </div>
-
-          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e15] p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Tổng học viên
-              </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                <Users size={16} />
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white tracking-tight">
-                {Number(totalStudents || 0).toLocaleString("vi-VN")}
-              </span>
-              <span className="text-xs text-slate-400">học viên</span>
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400">Đã đăng ký học</p>
-          </div>
-
-          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e15] p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Đánh giá trung bình
-              </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                <Star size={16} className="fill-amber-400" />
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-amber-400 tracking-tight">{avgRatingDisplay}</span>
-              {hasAvgRating && <span className="text-xs text-slate-400">/ 5.0</span>}
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400">{hasAvgRating ? "Điểm trung bình khóa học" : "Chưa có lượt đánh giá"}</p>
-          </div>
-        </div>
+        {/* ── 2. Studio KPI Summary Frames ── */}
+        <MentorStatMiniGrid className="mb-6">
+          <MentorStatFrame
+            index={1}
+            value={totalCourses}
+            title="Tổng khóa học"
+            cornerIcon={BookOpen}
+            accent="purple"
+            compact
+          />
+          <MentorStatFrame
+            index={2}
+            value={publishedCoursesCount}
+            title="Đang phát hành"
+            cornerIcon={CheckCircle2}
+            accent="purple"
+            compact
+          />
+          <MentorStatFrame
+            index={3}
+            value={Number(totalStudents || 0).toLocaleString("vi-VN")}
+            title="Tổng học viên"
+            cornerIcon={Users}
+            accent="purple"
+            compact
+          />
+          <MentorStatFrame
+            index={4}
+            value={avgRatingDisplay}
+            title="Đánh giá trung bình"
+            cornerIcon={Star}
+            accent="purple"
+            compact
+          />
+        </MentorStatMiniGrid>
 
         {/* ── 3. Featured Course Spotlight (if any) ── */}
         {featuredCourse && activeTab === "all" && !search.trim() && (
@@ -602,7 +561,7 @@ export function MentorCourseManagement() {
         )}
 
         {/* ── 4. Search & Filter Tabs Toolbar ── */}
-        <div className="rounded-3xl border border-white/[0.08] bg-[#0c0e15] p-6 shadow-xl space-y-6">
+        <div className="rounded-3xl border border-white/10 bg-[#160f26]/85 p-6 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl space-y-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.08] pb-5">
             {/* Filter Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
@@ -614,11 +573,10 @@ export function MentorCourseManagement() {
                     key={t.key}
                     type="button"
                     onClick={() => setActiveTab(t.key)}
-                    className={`mw-tab relative rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
-                      active
-                        ? "bg-violet-600 text-white shadow-sm shadow-violet-600/30"
-                        : "text-slate-400 hover:bg-white/5 hover:text-white"
-                    }`}
+                    className={`mw-tab relative rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${active
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/30 border border-violet-400/30"
+                      : "text-slate-300 hover:bg-white/[0.08] hover:text-white border border-transparent"
+                      }`}
                   >
                     {t.label}
                   </button>
@@ -680,8 +638,8 @@ export function MentorCourseManagement() {
                 {search.trim()
                   ? "Không tìm thấy khóa học nào khớp với từ khóa tìm kiếm."
                   : activeTab === "archived"
-                  ? "Chưa có khóa học nào được lưu trữ."
-                  : "Chưa có khóa học nào trong mục này."}
+                    ? "Chưa có khóa học nào được lưu trữ."
+                    : "Chưa có khóa học nào trong mục này."}
               </p>
               <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
                 Bắt đầu xây dựng khóa học và đăng tải các video bài giảng chất lượng để chia sẻ kinh nghiệm phỏng vấn cùng học viên.
@@ -690,7 +648,7 @@ export function MentorCourseManagement() {
                 <button
                   type="button"
                   onClick={() => navigate("/mentor/courses/new/edit")}
-                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm shadow-violet-600/30 transition hover:bg-violet-500"
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-violet-600/30 border border-violet-400/30 transition hover:from-violet-500 hover:to-indigo-500"
                 >
                   <Plus size={15} />
                   <span>Tạo khóa học &amp; Đăng video ngay</span>
