@@ -1,0 +1,43 @@
+# ProInterview: Quyết định đã chốt
+
+> Agent đọc file này trước mỗi task. Không hỏi lại những gì đã ghi ở đây.
+> Quyết định mới phát sinh khi làm task: ghi vào mục "Nhật ký quyết định mới" ở cuối file, kèm mã task.
+> Khi tài liệu và code mâu thuẫn: tin code, rồi ghi đề xuất sửa vào `TASKS.md` mục "Đề xuất thay đổi kế hoạch".
+
+## 14 quyết định đã chốt (18/11/2026)
+
+| # | Câu hỏi | Đã chốt | Lý do |
+| --- | --- | --- | --- |
+| 1 | Trả tiền lộ trình trọn gói hay từng buổi? | Trọn gói, một `paymentRef` cho cả lộ trình | Đơn ghi "pay for the mentor's learning path"; một QR giống giỏ hàng |
+| 2 | Buổi học lại có tính phí? | Miễn phí 1 lần mỗi buổi, tính sẵn trong giá; lần 2 trở đi mentor đề xuất buổi bổ sung có phí | Giữ lời hứa "retaught before moving on" mà không để mentor dạy không giới hạn |
+| 3 | Thu nhập mentor ghi khi nào? | Mỗi buổi `done` vào `clearingBalance` | Dùng lại `earningsClearanceJob`; hoàn tiền phần chưa học dễ tính |
+| 4 | Phí nền tảng cho lộ trình? | Dùng `Mentor.pricing.platformFeeRate` như booking | Không thêm cấu hình mới |
+| 5 | Lộ trình có bắt buộc gắn job post? | Không bắt buộc; có job thì lấy `requiredCompetencies` làm khung | Giảm phụ thuộc vào Job Post, làm Learning Path trước được |
+| 6 | Tên role trong code? | `enterprise` → `company_moderator`; giữ `customer`, `moderator` trong DB, đổi nhãn UI thành Candidate, Platform Moderator | Role enterprise chỉ có tài khoản seed (`enterprise@dev.local`), đổi kèm script migrate N-03; hai role kia có dữ liệu thật nên giữ |
+| 7 | Mỗi công ty mấy Company Mod? | 1 người cho MVP, model cho phép nhiều | Khớp phạm vi đã chốt 09/11 |
+| 8 | Job post có cần duyệt trước khi đăng? | Không; Platform Mod hậu kiểm (ẩn khi bị báo cáo) | Đơn chỉ ghi "hide reported job posts" |
+| 9 | Rubric công ty áp dụng lúc nào? | Chỉ khi luyện theo job của công ty đó; luyện tự do vẫn chấm SHRM/DDI | Tránh trộn tiêu chí giữa các công ty |
+| 10 | Có đặt deadline theo tuần? | Không; làm theo thứ tự task và cổng giai đoạn, cổng gắn mốc Review | Nhóm chọn lập kế hoạch theo task |
+| 11 | Câu hỏi của công ty lấy từ đâu? | Endpoint sinh bộ 8–12 câu nháp theo `roleCategory` (SHRM/DDI), `orgId = companyId`, `source: org_template`, `status: draft`; Company Mod duyệt, sửa hoặc tự thêm câu | Hiện câu hỏi chỉ sinh giữa buổi cho từng ứng viên (`llm_followup`, `orgId: null`) |
+| 12 | Luyện theo job dùng câu nào, quota thế nào, user free có được luyện? | Mọi gói đều luyện được. Free: 3 câu baseline + 2 câu công ty đã duyệt = 5 câu. Pro: thêm 2 câu follow-up LLM = 7 câu. Trừ 1 lượt phỏng vấn như buổi thường | User free vẫn có câu công ty nên chấm rubric có ý nghĩa; câu công ty cố định nên cache video được, chi phí thấp |
+| 13 | Giới hạn buổi đánh giá 0đ? | Mỗi ứng viên tối đa 1 buổi 0đ chưa xong cùng lúc và 2 buổi trong 30 ngày; ứng viên vắng thì tính là đã dùng; mentor vắng thì không tính và được đặt lại | Chặn lạm dụng mà vẫn cho thử 2 mentor |
+| 14 | Rút đơn thì công ty còn xem snapshot? Email được mời đã có tài khoản khác? | Rút đơn: công ty chỉ còn thấy tên và "Đã rút", snapshot bị ẩn. Email đã có tài khoản role khác: từ chối lời mời, admin mời bằng email công ty khác | Đúng NFR "chỉ chia sẻ khi đồng ý"; `User.role` chỉ có một giá trị nên không trộn quyền ứng viên với quyền xem ứng viên |
+
+## Nguyên tắc thiết kế (áp dụng cho mọi task)
+
+- **Tái dùng, không dựng song song**: Booking cho mọi buổi gặp; đường ray chuyển khoản (SePay + xác nhận tay) cho mọi khoản thu; ModerationItem cho các mục HITL của phỏng vấn. Không thêm cổng thanh toán mới.
+- **Mở rộng router có sẵn**, không tạo prefix mới cho cùng domain (ví dụ dùng `/api/mentorship-requests`, không tạo `/api/mentor-requests`).
+- **Dùng lại field đã có** trước khi thêm field mới (ví dụ `QuestionBank.status`, `roleCategory`, `promptVersion`).
+- **Rubric công ty** dùng status riêng (`pending_review`), không đi qua ModerationItem.
+- **Demo** chạy trên staging; production chỉ smoke test.
+- **Tên vai trò**: code `customer` / `mentor` / `admin` / `moderator` / `company_moderator`; báo cáo gọi Candidate / Mentor / Admin / Platform Moderator / Company Moderator.
+
+## Nhật ký quyết định mới
+
+> Thêm dòng mới ở cuối. Một dòng một quyết định. Chỉ ghi điều có giá trị lâu dài, không ghi chi tiết tạm thời.
+
+| Ngày | Task | Quyết định | Ai chốt |
+| --- | --- | --- | --- |
+| 22/11/2026 | DOC-01 | Bản chuẩn của kế hoạch là docs/plan/; docs/capstone/TASKS.md là bản cũ, giữ để tham khảo | Janet |
+| 22/11/2026 | DOC-01 | Ngoài mã REQ, có nhãn NEN (*) cho việc dùng chung cả dự án (hạ tầng, quy trình, hồ sơ bắt buộc của môn) | Janet |
+| 22/11/2026 | DOC-01 | Mọi task gắn ít nhất một mã REQ; task phát sinh chỉ vào bảng chính qua "Đề xuất thay đổi kế hoạch" do Janet duyệt (trừ `bat-buoc` là sửa nhỏ: người phụ trách tự duyệt, ghi trong PR); việc ngoài đơn V2 chuyển "Hướng phát triển" | Janet |
