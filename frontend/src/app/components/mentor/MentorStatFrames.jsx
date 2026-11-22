@@ -99,7 +99,7 @@ export function MentorStatFrame({
   return (
     <Wrapper
       {...motionProps}
-      className={`relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${shellCls}`}
+      className={`mentor-stat-frame relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${shellCls}`}
     >
       {/* Top Hairline Glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
@@ -123,7 +123,7 @@ export function MentorStatFrame({
       <div className={compact || CornerIcon ? (compact ? "pr-6" : "pr-8") : undefined}>
         <div className={`flex items-baseline ${compact ? "h-8 sm:h-9" : "h-9 sm:h-11"}`}>
           <p
-            className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
+            className={`mentor-stat-num font-headline ${isLong && moneyAmount == null ? "mentor-stat-num--long " : ""}${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
           >
             {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
           </p>

@@ -8,10 +8,13 @@ import {
   LogIn,
   LogOut,
   Menu,
+  Monitor,
+  Moon,
   Route,
   Settings,
   Shield,
   ShoppingCart,
+  Sun,
   User,
   UserPlus,
   X,
@@ -41,6 +44,8 @@ import {
 } from "./mentorNav.js";
 import { NavUserAvatar } from "./NavUserAvatar.jsx";
 import { useCart } from "../../hooks/useCart.jsx";
+import { useWorkspaceTheme } from "../../hooks/useWorkspaceTheme.js";
+import { WorkspaceThemeContext } from "./WorkspaceNav.jsx";
 
 const PAGE_TITLES = {
   "/cart": { label: "Giỏ hàng", sub: "Khóa học đã chọn và thanh toán" },
@@ -129,6 +134,9 @@ function CustomerNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const themeContext = React.useContext(WorkspaceThemeContext);
+  const themeHook = useWorkspaceTheme(true);
+  const theme = themeContext || themeHook;
 
   const { loggedIn, user } = useAuthSession();
   const displayName = getDisplayName(user);
@@ -220,6 +228,19 @@ function CustomerNavbar() {
         />
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={() => theme.setMode(theme.resolved === "light" ? "dark" : "light")}
+            aria-label={theme.resolved === "light" ? "Chuyển sang giao diện tối" : "Chuyển sang giao diện sáng"}
+            title={theme.resolved === "light" ? "Giao diện: Sáng (bấm để đổi tối)" : "Giao diện: Tối (bấm để đổi sáng)"}
+            className="inline-flex size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            {theme.resolved === "light" ? (
+              <Moon className="size-4 text-violet-700" />
+            ) : (
+              <Sun className="size-4 text-amber-300" />
+            )}
+          </button>
           <Link
             to={loggedIn ? "/cart" : buildLoginPath("/cart")}
             aria-label={`Giỏ hàng, ${cart.items.length} khóa học`}
@@ -302,6 +323,47 @@ function CustomerNavbar() {
 
                   <DropdownMenuSeparator />
 
+                  <div className="px-2 py-2">
+                    <div className="mb-1.5 px-1 text-[11px] font-semibold text-slate-400">Giao diện</div>
+                    <div className="grid grid-cols-3 gap-1 rounded-lg border border-white/10 bg-white/5 p-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => theme.setMode("light")}
+                        className={`flex items-center justify-center gap-1 rounded py-1 transition-colors ${
+                          theme.mode === "light"
+                            ? "bg-violet-600 text-white font-semibold shadow-sm"
+                            : "text-slate-300 hover:text-white"
+                        }`}
+                      >
+                        <Sun className="size-3" /> Sáng
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => theme.setMode("dark")}
+                        className={`flex items-center justify-center gap-1 rounded py-1 transition-colors ${
+                          theme.mode === "dark"
+                            ? "bg-violet-600 text-white font-semibold shadow-sm"
+                            : "text-slate-300 hover:text-white"
+                        }`}
+                      >
+                        <Moon className="size-3" /> Tối
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => theme.setMode("system")}
+                        className={`flex items-center justify-center gap-1 rounded py-1 transition-colors ${
+                          theme.mode === "system"
+                            ? "bg-violet-600 text-white font-semibold shadow-sm"
+                            : "text-slate-300 hover:text-white"
+                        }`}
+                      >
+                        <Monitor className="size-3" /> Auto
+                      </button>
+                    </div>
+                  </div>
+
+                  <DropdownMenuSeparator />
+
                   <DropdownMenuItem
                     onClick={handleLogout}
                     variant="destructive"
@@ -365,6 +427,38 @@ function CustomerNavbar() {
             className="flex flex-col gap-1"
             stacked
           />
+          <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2">
+            <div className="px-1 text-[11px] font-semibold text-white/50">Giao diện</div>
+            <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-white/5 p-1 text-xs">
+              <button
+                type="button"
+                onClick={() => theme.setMode("light")}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 transition-colors ${
+                  theme.mode === "light" ? "bg-violet-600 text-white font-bold" : "text-white/70 hover:text-white"
+                }`}
+              >
+                <Sun className="size-3.5" /> Sáng
+              </button>
+              <button
+                type="button"
+                onClick={() => theme.setMode("dark")}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 transition-colors ${
+                  theme.mode === "dark" ? "bg-violet-600 text-white font-bold" : "text-white/70 hover:text-white"
+                }`}
+              >
+                <Moon className="size-3.5" /> Tối
+              </button>
+              <button
+                type="button"
+                onClick={() => theme.setMode("system")}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 transition-colors ${
+                  theme.mode === "system" ? "bg-violet-600 text-white font-bold" : "text-white/70 hover:text-white"
+                }`}
+              >
+                <Monitor className="size-3.5" /> Auto
+              </button>
+            </div>
+          </div>
           {!loggedIn ? (
             <div className="mt-2 flex flex-col gap-2 border-t border-white/10 pt-2">
               <Link
