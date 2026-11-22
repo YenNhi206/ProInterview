@@ -1152,6 +1152,8 @@ export function MentorshipRequests() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm vị trí, từ khóa..."
+                  /* .mr-page input đặt padding 11px 14px (độ ưu tiên cao hơn pl-9) → chữ đè kính lúp; ghi đè bằng style. */
+                  style={{ paddingLeft: "2.25rem", paddingRight: "2rem" }}
                   className="w-full rounded-xl border border-white/10 bg-[#120a20] py-2 pl-9 pr-8 text-xs text-white placeholder-slate-500 transition focus:border-[#93f72b] focus:outline-none"
                 />
                 {searchQuery && (

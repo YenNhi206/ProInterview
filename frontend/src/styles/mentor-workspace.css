@@ -260,3 +260,6 @@
   --radius-2xl: 1rem;
   --radius-3xl: 1.25rem;
 }
+
+/* Giá trị dạng chữ dài (vd. "Đang mở") trong thẻ số liệu: cỡ số lớn ở trên làm chữ phình đè icon góc. */
+.mentor-workspace .mentor-stat-num.mentor-stat-num--long { font-size:clamp(1.25rem,1.8vw,1.6rem); line-height:1.15; }

@@ -117,7 +117,7 @@ export function MentorStatFrame({
 
       <div className={compact || CornerIcon ? (compact ? "pr-6" : "pr-8") : undefined}>
         <p
-          className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
+          className={`mentor-stat-num font-headline ${isLong && moneyAmount == null ? "mentor-stat-num--long " : ""}${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
         >
           {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
         </p>
