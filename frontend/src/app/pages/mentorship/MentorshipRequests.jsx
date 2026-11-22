@@ -317,7 +317,7 @@ export function MentorshipRequests() {
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.8)]" />
             <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#93f72b]">
-              {mentor ? "Không gian kết nối & đồng hành 1:1" : "Đồng hành cùng chuyên gia"}
+              {mentor ? "Kết nối 1:1 với mentee" : "Đồng hành cùng chuyên gia"}
             </span>
           </div>
           <h1 className="font-headline mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
@@ -327,11 +327,11 @@ export function MentorshipRequests() {
               </>
             ) : requestId ? (
               <>
-                Chi tiết <span className="text-[#93f72b]">yêu cầu hỗ trợ</span>
+                Chi tiết <span className="text-[#93f72b]">nhu cầu</span>
               </>
             ) : mentor ? (
               <>
-                Nhu cầu <span className="text-[#93f72b]">từ mentee</span>
+                Nhu cầu <span className="text-[#93f72b]">của mentee</span>
               </>
             ) : (
               <>
@@ -343,9 +343,11 @@ export function MentorshipRequests() {
             {isNew
               ? "Chia sẻ mục tiêu nghề nghiệp và đính kèm hồ sơ để nhận đề nghị từ Mentor chuyên gia."
               : requestId
-              ? "Xem chi tiết mục tiêu của mentee, hồ sơ đính kèm và gửi đề xuất thời gian hỗ trợ."
+              ? mentor
+                ? "Đọc mentee cần gì và tài liệu đính kèm. Nếu bạn giúp được, gửi đề nghị ở bên dưới."
+                : "Xem các đề nghị mentor gửi và chọn người phù hợp với bạn."
               : mentor
-              ? "Tìm kiếm yêu cầu tư vấn 1:1, phỏng vấn thử hoặc review CV phù hợp với chuyên môn của bạn."
+              ? "Mentee đăng nhu cầu cần hỗ trợ. Chọn nhu cầu hợp với chuyên môn của bạn và gửi đề nghị."
               : "Đăng nhu cầu, nhận đề xuất giải pháp và lựa chọn Mentor phù hợp nhất."}
           </p>
         </div>
@@ -419,8 +421,7 @@ export function MentorshipRequests() {
             <RefreshCw size={36} className="animate-spin text-[#93f72b]" />
             <div className="absolute inset-0 rounded-full blur-md bg-[#93f72b]/30" />
           </div>
-          <p className="text-sm font-semibold text-slate-300">Đang đồng bộ danh sách nhu cầu...</p>
-          <p className="mt-1 text-xs text-slate-500">Vui lòng chờ trong giây lát</p>
+          <p className="text-sm font-semibold text-slate-300">Đang tải danh sách nhu cầu…</p>
         </div>
       ) : isNew ? (
         /* Create Request View (Candidate only) */
@@ -620,7 +621,7 @@ export function MentorshipRequests() {
                   <span className="text-[#93f72b] font-medium">{TYPES[request.sessionType]}</span>
                 </div>
                 <div className="mr-detail-goal">
-                  <h3>{mentor ? "MỤC TIÊU MENTEE MUỐN ĐẠT ĐƯỢC" : "MỤC TIÊU CỦA BẠN"}</h3>
+                  <h3>{mentor ? "Mentee cần hỗ trợ gì" : "MỤC TIÊU CỦA BẠN"}</h3>
                   <p className="mr-description">{request.description}</p>
                 </div>
               </section>
@@ -630,7 +631,7 @@ export function MentorshipRequests() {
                 <div className="mr-section-heading">
                   <div>
                     <span className="mr-eyebrow">
-                      {mentor ? "CÁCH BẠN CÓ THỂ ĐỒNG HÀNH" : "CHỌN NGƯỜI PHÙ HỢP NHẤT VỚI MỤC TIÊU"}
+                      {mentor ? "Gửi cho mentee" : "CHỌN NGƯỜI PHÙ HỢP NHẤT VỚI MỤC TIÊU"}
                     </span>
                     <h2 className="text-xl font-bold text-white">
                       {mentor
@@ -708,11 +709,11 @@ export function MentorshipRequests() {
                   <div className="mr-empty">
                     <Users size={30} className="text-[#93f72b]" />
                     <h3 className="text-base font-bold text-white">
-                      {mentor ? "Bạn chưa gửi đề nghị hỗ trợ" : "Chưa có đề nghị nào từ Mentor"}
+                      {mentor ? "Bạn chưa gửi đề nghị" : "Chưa có đề nghị nào từ Mentor"}
                     </h3>
                     <p className="text-xs text-slate-400">
                       {mentor
-                        ? "Hãy giới thiệu chuyên môn và đề xuất khung giờ gặp phù hợp trong biểu mẫu bên dưới."
+                        ? "Điền form bên dưới: bạn giúp mentee được gì và rảnh lúc nào."
                         : "Các Mentor uy tín trên hệ thống đang xem xét yêu cầu và sẽ gửi đề nghị sớm nhất cho bạn."}
                     </p>
                     {!mentor && (
@@ -728,21 +729,21 @@ export function MentorshipRequests() {
                   <form className="mr-offer-form" onSubmit={submitOffer}>
                     <div className="flex items-center gap-2 mb-2">
                       <Send size={16} className="text-[#93f72b]" />
-                      <h3 className="text-base font-bold text-white">Gửi đề nghị hỗ trợ tới mentee</h3>
+                      <h3 className="text-base font-bold text-white">Gửi đề nghị</h3>
                     </div>
                     <label>
-                      Bạn có thể hỗ trợ mentee như thế nào?
+                      Bạn sẽ giúp mentee thế nào?
                       <textarea
                         name="message"
                         required
                         minLength={20}
                         maxLength={3000}
                         rows={4}
-                        placeholder="Nêu rõ chuyên môn phù hợp, lộ trình giải quyết vấn đề và giá trị cụ thể mentee sẽ nhận được sau buổi..."
+                        placeholder="Ví dụ: Mình làm Business Analyst 5 năm. Buổi này mình sẽ hỏi thử 5–6 câu hay gặp, góp ý cách trả lời và chỉ chỗ cần sửa trong CV."
                       />
                     </label>
                     <label>
-                      Thời gian bạn có thể gặp 1:1
+                      Bạn rảnh lúc nào?
                       <input
                         name="availability"
                         required
@@ -751,10 +752,10 @@ export function MentorshipRequests() {
                       />
                     </label>
                     <p className="mr-muted">
-                      Mức phí tham khảo lấy từ hồ sơ của bạn cho loại buổi này. Giá cuối cùng và ưu đãi hiển thị tại checkout; thời gian được chốt theo lịch trống. Một đề nghị tương ứng một buổi 60 phút.
+                      Mỗi đề nghị là 1 buổi 60 phút, phí lấy theo giá trong hồ sơ của bạn. Nếu mentee chọn bạn, họ sẽ đặt giờ theo lịch trống của bạn và thanh toán.
                     </p>
                     <button data-button-surface="none" className="mr-primary" disabled={busy}>
-                      {busy ? "Đang gửi đề nghị…" : "Gửi đề nghị hỗ trợ"}
+                      {busy ? "Đang gửi…" : "Gửi đề nghị"}
                       <ArrowRight size={16} />
                     </button>
                   </form>
@@ -763,7 +764,7 @@ export function MentorshipRequests() {
             </div>
 
             {/* Sidebar */}
-            <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu yêu cầu">
+            <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu của nhu cầu">
               {CHOSEN_STATUSES.includes(request.status) && chosen && (request.assessment || canScheduleAssessment) && (
                 <section className="mr-panel mr-detail-assessment">
                   <div className="mr-detail-section-label">
@@ -919,7 +920,7 @@ export function MentorshipRequests() {
                     </dd>
                   </div>
                   <div>
-                    <dt>Hình thức</dt>
+                    <dt>{mentor ? "Loại hỗ trợ" : "Hình thức"}</dt>
                     <dd className="font-semibold text-[#93f72b]">{TYPES[request.sessionType]}</dd>
                   </div>
                 </dl>
@@ -963,7 +964,7 @@ export function MentorshipRequests() {
                   )}
                   <p className="mr-detail-private">
                     <LockKeyhole size={13} className="text-[#93f72b]" />
-                    <span>Chỉ mentee và Mentor được chọn có quyền tải tài liệu này.</span>
+                    <span>Chỉ mentee và mentor được chọn mới tải được tài liệu này.</span>
                   </p>
                 </div>
               </section>
@@ -973,7 +974,7 @@ export function MentorshipRequests() {
                   <MessageSquare size={16} className="text-[#93f72b]" />
                   <p>
                     {mentor
-                      ? "Đọc kỹ mục tiêu và đề xuất thời gian rõ ràng để mentee dễ dàng đưa ra quyết định."
+                      ? "Mẹo: nói rõ bạn giúp được gì và rảnh lúc nào, mentee sẽ dễ chọn bạn hơn."
                       : "Khi nhận được đề nghị, bạn có thể xem xét profile, lịch rảnh và chi phí trước khi quyết định chọn."}
                   </p>
                 </div>
@@ -1249,7 +1250,7 @@ export function MentorshipRequests() {
                       <div className="mt-4 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5 text-xs font-bold text-[#93f72b] transition group-hover:border-[#93f72b]/30 group-hover:bg-[#93f72b]/10">
                         <span>
                           {mentor
-                            ? "Xem nhu cầu & Đề xuất hỗ trợ"
+                            ? scope === "mine" ? "Xem đề nghị của bạn" : "Xem chi tiết và gửi đề nghị"
                             : `${row.offerCount ?? 0} đề nghị từ Mentor`}
                         </span>
                         <ArrowRight
@@ -1274,21 +1275,21 @@ export function MentorshipRequests() {
 
               <h2 className="font-headline text-xl font-bold text-white">
                 {searchQuery || sessionFilter !== "all"
-                  ? "Không tìm thấy yêu cầu phù hợp"
+                  ? "Không có nhu cầu nào khớp bộ lọc"
                   : mentor
                   ? scope === "mine"
                     ? "Bạn chưa gửi đề nghị nào"
-                    : "Hiện chưa có nhu cầu mới từ mentee"
+                    : "Chưa có nhu cầu nào đang mở"
                   : "Bạn chưa đăng nhu cầu nào"}
               </h2>
 
               <p className="mt-2 max-w-md text-xs leading-relaxed text-slate-400">
                 {searchQuery || sessionFilter !== "all"
-                  ? "Thử thay đổi từ khóa tìm kiếm hoặc chọn 'Tất cả' để xem danh sách đầy đủ."
+                  ? "Thử từ khóa khác, hoặc chọn 'Tất cả' để xem hết."
                   : mentor
                   ? scope === "mine"
-                    ? "Chuyển sang tab 'Nhu cầu đang mở' để tìm các yêu cầu phù hợp với thế mạnh của bạn."
-                    : "Các yêu cầu tư vấn 1:1, phỏng vấn thử hoặc review CV từ mentee sẽ xuất hiện tại đây ngay khi được gửi lên."
+                    ? "Vào tab 'Nhu cầu đang mở', chọn một nhu cầu hợp với bạn và gửi đề nghị."
+                    : "Khi mentee đăng nhu cầu mới, nhu cầu sẽ hiện ở đây."
                   : "Hãy đính kèm CV, JD mục tiêu và mô tả ngắn để các chuyên gia phù hợp chủ động đề xuất hỗ trợ."}
               </p>
 
@@ -1311,7 +1312,7 @@ export function MentorshipRequests() {
                       onClick={() => setScope("open")}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
                     >
-                      Khám phá nhu cầu đang mở →
+                      Xem nhu cầu đang mở →
                     </button>
                   ) : (
                     <button
