@@ -641,7 +641,7 @@ export function MentorDashboard() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-8 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-violet-950/40 via-[#160f26]/85 to-[#120a20]/85 p-5 sm:px-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl"
+            className="mentor-quote-card mb-8 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-violet-950/40 via-[#160f26]/85 to-[#120a20]/85 p-5 sm:px-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl"
           >
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/20 text-[#93f72b] border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.2)]">

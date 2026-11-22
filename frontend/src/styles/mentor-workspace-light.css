@@ -129,6 +129,18 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
 :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame > span[aria-hidden] { background: #7c3aed; border-color: #7c3aed; box-shadow: none; }
 :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame > span[aria-hidden] svg { color: #ffffff; }
 
+/* Thẻ nhận xét nổi bật (Bảng điều khiển) ở chế độ sáng: nền tím, chữ trắng, điểm nhấn lime. */
+:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card.mentor-quote-card {
+  background: radial-gradient(90% 140% at 100% 0%, rgba(255, 255, 255, 0.14) 0%, transparent 55%), linear-gradient(120deg, #7c3aed 0%, #5b21b6 100%);
+  border-color: #6d28d9;
+  box-shadow: 0 12px 28px -16px rgba(91, 33, 182, 0.6);
+}
+:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card :is(p, span) { color: #ffffff; }
+:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .text-slate-600,
+:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .text-slate-400 { color: rgba(255, 255, 255, 0.72); }
+:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-xl { background: #93f72b; border-color: #93f72b; color: #17210b; box-shadow: none; }
+:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-lg { background: rgba(147, 247, 43, 0.16); border-color: rgba(147, 247, 43, 0.55); color: #c9ff8f; }
+
 /* Thẻ kính mờ (glass-card của MentorPageShell) → thẻ trắng có viền + bóng nhẹ. */
 :root[data-workspace-theme="light"] .glass-card {
   background: var(--mw-surface);
