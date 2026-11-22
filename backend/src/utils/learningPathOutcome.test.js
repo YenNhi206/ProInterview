@@ -58,3 +58,25 @@ describe("needsSupplementarySession", () => {
     assert.equal(needsSupplementarySession(failedRetake, "zzz"), false);
   });
 });
+
+describe("resolveOutcomeNextStep — biên", () => {
+  it("attempt thiếu hoặc 0 coi như lần đầu → học lại miễn phí", () => {
+    assert.equal(resolveOutcomeNextStep({}, "not_passed", []), NEXT.FREE_RETAKE);
+    assert.equal(resolveOutcomeNextStep({ attempt: 0 }, "not_passed", []), NEXT.FREE_RETAKE);
+  });
+
+  it("đạt buổi học lại của buổi cuối → hoàn thành lộ trình", () => {
+    const rows = [s("a", 1, 1, "done", "passed"), s("b", 2, 1, "done", "not_passed"), s("b2", 2, 2, "done", "passed")];
+    assert.equal(resolveOutcomeNextStep(rows[2], "passed", rows), NEXT.COMPLETE_PATH);
+  });
+
+  it("đạt buổi 3 nhưng buổi 2 vẫn chưa đạt (dữ liệu lệch) → không hoàn thành", () => {
+    const rows = [s("a", 1, 1, "done", "passed"), s("b", 2, 1, "done", "not_passed"), s("c", 3, 1, "done", "passed")];
+    assert.equal(resolveOutcomeNextStep(rows[2], "passed", rows), NEXT.OPEN_NEXT);
+  });
+
+  it("chấp nhận cả id dạng `id` (DTO) thay vì `_id`", () => {
+    const rows = [{ id: "x1", order: 1, attempt: 1, status: "done", outcome: "not_passed" }, { id: "x2", order: 1, attempt: 2, status: "done", outcome: "not_passed" }];
+    assert.equal(needsSupplementarySession(rows, "x2"), true);
+  });
+});
