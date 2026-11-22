@@ -18,7 +18,6 @@ import {
   Quote,
   User,
   FileBadge,
-  Sparkles,
   Video,
 } from "lucide-react";
 import { getUser, getDisplayName } from "../../utils/auth/auth.js";
@@ -524,9 +523,6 @@ export function MentorDashboard() {
           className="mb-8 flex flex-col gap-6 pt-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8"
         >
           <div className="lg:max-w-2xl lg:flex-1">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#93f72b]">
-              <Sparkles size={13} /> Sẵn sàng nhận lịch tư vấn · Không gian điều hành chuyên gia
-            </div>
             <h1 className="font-headline text-3xl font-black leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.65rem]">
               Xin chào,{" "}
               <span className="text-white font-black drop-shadow-sm">
