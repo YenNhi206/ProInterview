@@ -220,14 +220,19 @@ describe("Danh sách roleCategory chung (đề xuất (l))", () => {
     assert.equal((await call(modA, "/api/company/rubrics", "POST", { title: "Rubric", roleCategory: "devops_engineer" })).status, 400);
     const badCriteria = await call(modA, "/api/company/rubrics", "POST", { title: "Rubric", roleCategory: "devops", criteria: [{ name: "CI/CD", shrmKey: "technical_mastery", weight: 100 }] });
     assert.equal(badCriteria.status, 400);
-    assert.match(badCriteria.error, /CI\/CD/);
-    const rubric = await call(modA, "/api/company/rubrics", "POST", { title: "Rubric DevOps", roleCategory: "devops", criteria: [{ name: "CI/CD", shrmKey: "technical_learning", weight: 100 }] });
+    assert.match(badCriteria.error, /technical_mastery/);
+    // Đủ 6 mức mô tả để lỗi gửi duyệt bên dưới chỉ có thể đến từ key năng lực.
+    const levels = Object.fromEntries(["0", "1", "2", "3", "4", "5"].map((l) => [l, `Mô tả mức ${l}`]));
+    const rubric = await call(modA, "/api/company/rubrics", "POST", { title: "Rubric DevOps", roleCategory: "devops", criteria: [{ name: "CI/CD", shrmKey: "technical_learning", weight: 100, levels }] });
     assert.equal(rubric.status, 201, rubric.error);
     const rubricId = rubric.rubric._id;
     assert.equal((await call(modA, `/api/company/rubrics/${rubricId}`, "PATCH", { criteria: [{ name: "X", shrmKey: "khong_co", weight: 100 }] })).status, 400);
     // Rubric cũ lưu key sai (trước khi có kiểm tra) thì không gửi duyệt được.
     await models.CompanyRubric.updateOne({ _id: rubricId }, { $set: { "criteria.0.shrmKey": "technical_mastery" } });
-    assert.equal((await call(modA, `/api/company/rubrics/${rubricId}/submit`, "POST")).status, 400);
+    const submitted = await call(modA, `/api/company/rubrics/${rubricId}/submit`, "POST");
+    assert.equal(submitted.status, 400);
+    assert.match(submitted.error, /CI\/CD.*bộ tiêu chí/);
+    assert.equal((await models.CompanyRubric.findById(rubricId).lean()).status, "draft");
 
     const qBody = { questionText: `Kể về một lần bạn tối ưu pipeline CI ${Date.now()}`, roleCategory: "devops", competencyId: "technical_learning" };
     assert.equal((await call(modA, "/api/company/questions", "POST", { ...qBody, roleCategory: "telecom_engineer" })).status, 400);

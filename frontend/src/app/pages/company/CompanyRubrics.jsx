@@ -18,6 +18,7 @@ import {
 import { companyApi } from "../../api/companyApi.js";
 import { competenciesApi } from "../../api/competenciesApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
+import { useRoleCategories } from "../../hooks/useRoleCategories.js";
 import { competencyOptions, shrmLabel } from "../../utils/learningPath/learningPathEditor.js";
 import {
   ROLE_CATEGORIES,
@@ -47,6 +48,16 @@ const STATUS_ICON = { approved: CheckCircle2, pending_review: Clock, rejected: X
 
 const inputCls = "rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-violet-500 focus:outline-none";
 
+/**
+ * Vị trí tuyển từ `GET /api/role-categories` (danh sách chung với câu hỏi công ty và tin tuyển dụng).
+ * Khi chưa tải xong (hoặc lỗi mạng) dùng tạm danh sách mặc định trong rubricEditor.js.
+ */
+function useRubricRoles() {
+  const { roleCategories, labelOf } = useRoleCategories();
+  if (!roleCategories.length) return { options: ROLE_CATEGORIES, label: roleLabel };
+  return { options: roleCategories.map((r) => ({ id: r.key, label: r.nameVi })), label: labelOf };
+}
+
 function StatusBadge({ status }) {
   const Icon = STATUS_ICON[status];
   return (
@@ -63,6 +74,7 @@ function StatusBadge({ status }) {
  * bị từ chối thì thấy lý do, sửa và gửi lại.
  */
 export function CompanyRubrics() {
+  const roles = useRubricRoles();
   const [rubrics, setRubrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState("");
@@ -123,7 +135,7 @@ export function CompanyRubrics() {
           className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 focus:border-violet-500 focus:outline-none"
         >
           <option value="">Tất cả vị trí</option>
-          {ROLE_CATEGORIES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+          {roles.options.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
         </select>
         <button onClick={fetchRubrics} title="Làm mới" aria-label="Làm mới" className="rounded-xl border border-slate-800 bg-slate-950 p-2 text-slate-400 transition hover:text-white">
           <RefreshCw className="size-4" />
@@ -150,7 +162,7 @@ export function CompanyRubrics() {
                 <div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="rounded-md bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
-                      v{r.version} • {roleLabel(r.roleCategory)}
+                      v{r.version} • {roles.label(r.roleCategory)}
                     </span>
                     <StatusBadge status={r.status} />
                   </div>
@@ -213,6 +225,7 @@ export function CompanyRubrics() {
 }
 
 function RubricEditorModal({ rubric, framework, onClose, onSaved }) {
+  const roles = useRubricRoles();
   const [form, setForm] = useState(() => toEditorState(rubric));
   const [openLevels, setOpenLevels] = useState(() => new Set([0]));
   const [questions, setQuestions] = useState([]);
@@ -285,7 +298,7 @@ function RubricEditorModal({ rubric, framework, onClose, onSaved }) {
                 title={isNew ? undefined : "Vị trí cố định theo phiên bản rubric"}
                 onChange={(e) => setForm((f) => ({ ...f, roleCategory: e.target.value, criteria: f.criteria.map((c) => ({ ...c, questionIds: [] })) }))}
               >
-                {ROLE_CATEGORIES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+                {roles.options.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
               </select>
             </label>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -394,7 +407,7 @@ function RubricEditorModal({ rubric, framework, onClose, onSaved }) {
                       </summary>
                       <div className="max-h-48 space-y-1 overflow-y-auto border-t border-slate-800 p-3">
                         {questions.length === 0 ? (
-                          <p className="text-[11px] text-slate-500">Chưa có câu hỏi đã duyệt cho vị trí {roleLabel(form.roleCategory)}. Duyệt câu ở trang Câu hỏi phỏng vấn trước.</p>
+                          <p className="text-[11px] text-slate-500">Chưa có câu hỏi đã duyệt cho vị trí {roles.label(form.roleCategory)}. Duyệt câu ở trang Câu hỏi phỏng vấn trước.</p>
                         ) : (
                           questions.map((q) => {
                             const qid = String(q._id);
@@ -457,13 +470,14 @@ function RubricEditorModal({ rubric, framework, onClose, onSaved }) {
 }
 
 function RubricDetailModal({ rubric, framework, onClose }) {
+  const roles = useRubricRoles();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl" role="dialog" aria-modal="true">
         <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
             <span className="rounded-md bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-400">
-              Phiên bản {rubric.version} • {roleLabel(rubric.roleCategory)}
+              Phiên bản {rubric.version} • {roles.label(rubric.roleCategory)}
             </span>
             <h3 className="mt-1 text-lg font-bold text-white">{rubric.title}</h3>
           </div>
