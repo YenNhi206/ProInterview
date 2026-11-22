@@ -115,14 +115,14 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="glass-card px-8 py-8">
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#8037f4]">
+      <div className="glass-card px-8 py-8 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.22em] text-violet-400">
           ProInterview Command Center
         </p>
-        <h1 className="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-extrabold leading-[1.12] tracking-tight text-slate-900">
-          Xin chào, <span className="text-violet-700">Admin!</span>
+        <h1 className="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-extrabold leading-[1.12] tracking-tight text-white">
+          Xin chào, <span className="text-violet-400">Admin!</span>
         </h1>
-        <p className="mt-3 text-sm font-semibold text-slate-600">
+        <p className="mt-2 text-sm font-medium text-slate-400">
           Trung tâm điều hành toàn bộ hệ thống ProInterview.
         </p>
       </div>
@@ -232,18 +232,18 @@ export function AdminDashboard() {
           <Link
             key={to}
             to={to}
-            className={`group glass-card border-slate-200/90 p-6 transition-all hover:border-violet-300/80 ${
-              highlight ? "ring-2 ring-amber-400/50 border-amber-300/60 bg-amber-50/30" : ""
+            className={`admin-glow-card group glass-card rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-all hover:border-violet-500/40 hover:bg-white/[0.06] ${
+              highlight ? "ring-2 ring-amber-400/50 border-amber-300/60 bg-amber-500/10" : ""
             }`}
           >
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-violet-700 transition-all group-hover:border-[#93f72b]/60 group-hover:bg-[#93f72b]/20 group-hover:text-[#120B2E]">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-violet-400 transition-all group-hover:border-[#93f72b]/60 group-hover:bg-[#93f72b]/20 group-hover:text-[#93f72b]">
               <Icon size={24} strokeWidth={2} />
             </div>
-            <h2 className="flex items-center gap-2 text-base font-black text-slate-900 group-hover:text-violet-800">
+            <h2 className="flex items-center gap-2 text-base font-bold text-white group-hover:text-violet-300">
               {label}{" "}
-              <ArrowRight size={14} className="opacity-0 transition-all group-hover:opacity-100" />
+              <ArrowRight size={14} className="opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5" />
             </h2>
-            <p className="mt-2 text-[11px] font-semibold leading-relaxed text-slate-500">{desc}</p>
+            <p className="mt-2 text-xs font-medium leading-relaxed text-slate-400">{desc}</p>
           </Link>
         ))}
       </div>
@@ -253,18 +253,18 @@ export function AdminDashboard() {
 
 function StatCard({ label, value, icon: Icon, color }) {
   return (
-    <div className="glass-card flex items-center justify-between p-8 group">
+    <div className="admin-glow-card glass-card flex items-center justify-between p-6 sm:p-8 rounded-2xl border border-white/10 bg-white/[0.03] shadow-xl backdrop-blur-md group transition-all hover:border-violet-500/30">
       <div>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p>
-        <h3 className="origin-left text-4xl font-black tracking-tighter text-slate-900 transition-transform group-hover:scale-105">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+        <h3 className="origin-left text-3xl sm:text-4xl font-extrabold tracking-tight text-white transition-transform group-hover:scale-105">
           {value}
         </h3>
       </div>
       <div
-        className="flex h-16 w-16 items-center justify-center rounded-[24px] border border-slate-200 bg-slate-50"
+        className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05]"
         style={{ color }}
       >
-        <Icon size={32} strokeWidth={2.5} />
+        <Icon size={28} strokeWidth={2.2} />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Crown, RefreshCw, Search, User } from "lucide-react";
+import { CheckCircle2, Clock, Crown, RefreshCw, Search, User } from "lucide-react";
 import { motion } from "motion/react";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { adminApi } from "../../api/adminApi.js";
@@ -128,16 +128,17 @@ export function AdminSubscriptionPayments() {
         className="flex min-w-0 flex-col justify-between gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Gói</span> Pro / Elite
+          <h2 className="font-headline text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
+            <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Gói</span> Pro / Elite
           </h2>
+          <p className="mt-1 text-xs text-slate-400">Theo dõi kích hoạt và đối soát các giao dịch nâng cấp tài khoản học viên.</p>
         </div>
         <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
           <button
             type="button"
             onClick={() => void loadAll()}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-200 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Làm mới
@@ -149,7 +150,7 @@ export function AdminSubscriptionPayments() {
               placeholder="Tìm học viên, gói, mã thanh toán…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full min-w-0 rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-6 text-sm text-slate-900 outline-none transition-all focus:border-violet-400"
+              className="w-full min-w-0 rounded-2xl border border-white/10 bg-white/[0.05] py-3 pl-12 pr-6 text-sm text-white placeholder:text-slate-500 outline-none transition-all focus:border-violet-500/50 focus:bg-white/[0.08]"
             />
           </div>
         </div>
@@ -160,15 +161,25 @@ export function AdminSubscriptionPayments() {
         animate={{ opacity: 1, y: 0 }}
         className="grid gap-4 sm:grid-cols-2"
       >
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Chờ đối soát</p>
-          <p className="mt-1 text-2xl font-black text-amber-950">{rows.length}</p>
-          <p className="mt-1 text-sm font-semibold text-amber-900">{vnd(totalPending)}</p>
+        <div className="admin-glow-card glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Chờ đối soát</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{rows.length}</h3>
+            <p className="mt-2 text-sm font-semibold text-amber-400">{vnd(totalPending)}</p>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-amber-400">
+            <Clock size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Đã kích hoạt</p>
-          <p className="mt-1 text-2xl font-black text-emerald-950">{paidStats.paidCount}</p>
-          <p className="mt-1 text-sm font-semibold text-emerald-900">{vnd(paidStats.paidTotalAmount)}</p>
+        <div className="admin-glow-card glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Đã kích hoạt</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{paidStats.paidCount}</h3>
+            <p className="mt-2 text-sm font-semibold text-emerald-400">{vnd(paidStats.paidTotalAmount)}</p>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-emerald-400">
+            <CheckCircle2 size={24} strokeWidth={2.2} />
+          </div>
         </div>
       </motion.div>
 
@@ -177,22 +188,20 @@ export function AdminSubscriptionPayments() {
           <button
             type="button"
             onClick={() => setActiveTab("pending")}
-            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
-              activeTab === "pending"
-                ? "border-violet-300 bg-violet-100 text-violet-700"
-                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
-            }`}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${activeTab === "pending"
+                ? "border-violet-500/40 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/30"
+                : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-violet-400/30 hover:bg-white/[0.08] hover:text-white"
+              }`}
           >
             Chờ đối soát
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("history")}
-            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
-              activeTab === "history"
-                ? "border-violet-300 bg-violet-100 text-violet-700"
-                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
-            }`}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${activeTab === "history"
+                ? "border-violet-500/40 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/30"
+                : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-violet-400/30 hover:bg-white/[0.08] hover:text-white"
+              }`}
           >
             Lịch sử mua
           </button>
@@ -202,40 +211,37 @@ export function AdminSubscriptionPayments() {
           <button
             type="button"
             onClick={() => setPlanFilter("all")}
-            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
-              planFilter === "all"
-                ? "border-slate-400 bg-slate-800 text-white"
-                : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
-            }`}
+            className={`rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${planFilter === "all"
+                ? "border-white/30 bg-white/15 text-white shadow-sm"
+                : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-white/20 hover:text-white"
+              }`}
           >
             Tất cả ({sourceRows.length})
           </button>
           <button
             type="button"
             onClick={() => setPlanFilter("starter_pro")}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
-              planFilter === "starter_pro"
-                ? "border-violet-300 bg-violet-100 text-violet-800"
-                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
-            }`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${planFilter === "starter_pro"
+                ? "border-violet-500/40 bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-600/30"
+                : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-violet-400/30 hover:text-white"
+              }`}
           >
-            <Crown size={12} /> Starter Pro ({planCounts.starter_pro})
+            <Crown size={12} className={planFilter === "starter_pro" ? "text-amber-300" : "text-violet-400"} /> Starter Pro ({planCounts.starter_pro})
           </button>
           <button
             type="button"
             onClick={() => setPlanFilter("elite_pro")}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${
-              planFilter === "elite_pro"
-                ? "border-violet-400 bg-violet-200 text-violet-900"
-                : "border-slate-300 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700"
-            }`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-wide transition ${planFilter === "elite_pro"
+                ? "border-amber-500/40 bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-600/30"
+                : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/30 hover:text-white"
+              }`}
           >
-            <Crown size={12} /> Elite Pro ({planCounts.elite_pro})
+            <Crown size={12} className={planFilter === "elite_pro" ? "text-yellow-200" : "text-amber-400"} /> Elite Pro ({planCounts.elite_pro})
           </button>
         </div>
       </div>
 
-      <div className="glass-card min-w-0 max-w-full overflow-hidden border-slate-200/90 [&:hover]:transform-none [&:hover]:shadow-[0_8px_18px_rgba(110,53,232,0.07)]">
+      <div className="glass-card min-w-0 max-w-full overflow-hidden border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.35)] backdrop-blur-xl [&:hover]:transform-none">
         <div className="max-w-full overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-0 table-fixed border-collapse text-left">
             <colgroup>
@@ -261,9 +267,12 @@ export function AdminSubscriptionPayments() {
                 <tr>
                   <td
                     colSpan={5}
-                    className={`${tdCell} py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500`}
+                    className={`${tdCell} py-20 text-center text-slate-400`}
                   >
-                    Đang tải…
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải gói đăng ký…</span>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
@@ -286,13 +295,13 @@ export function AdminSubscriptionPayments() {
                   const ref = row.providerRef || row.paymentRef || "—";
                   const planTone =
                     row.plan === "elite_pro"
-                      ? "border-violet-300 bg-violet-100 text-violet-900"
-                      : "border-violet-200 bg-violet-50 text-violet-800";
+                      ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                      : "border-violet-500/30 bg-violet-500/10 text-violet-300";
                   return (
-                    <tr key={row.id} className="group transition-colors hover:bg-violet-50/40">
+                    <tr key={row.id} className="group transition-colors hover:bg-white/[0.03]">
                       <td className={`${tdCell} min-w-0`}>
                         <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
+                          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300">
                             <User size={14} />
                           </div>
                           <div className="min-w-0">

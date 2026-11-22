@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { ExternalLink, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Clock } from "lucide-react";
 import { AdminFilterSelect, AdminListFilterBar } from "../../components/admin/AdminListFilters.jsx";
 import {
   AdminPageToolbar,
@@ -97,20 +97,26 @@ function parseReportDescription(description = "") {
 }
 
 function statusBadgeClass(status) {
-  if (status === "resolved") return "bg-lime-500/10 text-lime-900 border border-lime-400/25";
-  if (status === "dismissed") return "bg-slate-100 text-slate-600 border border-slate-200";
-  if (status === "reviewing") return "bg-amber-500/10 text-amber-900 border border-amber-400/25";
-  return "bg-orange-500/10 text-orange-900 border border-orange-400/25";
+  if (status === "resolved") {
+    return "admin-shimmer-badge border border-emerald-500/40 bg-emerald-500/20 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]";
+  }
+  if (status === "dismissed") {
+    return "admin-shimmer-badge border border-white/10 bg-white/5 text-slate-400";
+  }
+  if (status === "reviewing") {
+    return "admin-shimmer-badge border border-sky-500/40 bg-sky-500/20 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.2)]";
+  }
+  return "admin-shimmer-badge border border-amber-500/40 bg-amber-500/20 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]";
 }
 
-/** Nút hành động, cùng kiểu viền + nền nhạt như badge trạng thái. */
+/** Nút hành động, màu sắc tương phản cao, nổi bật, dễ nhìn trên nền tối. */
 const actionBtn = {
   amber:
-    "rounded-lg border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-amber-900 hover:bg-amber-500/20 disabled:opacity-50",
+    "inline-flex items-center justify-center rounded-xl border border-amber-400/50 bg-amber-500/20 px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-amber-300 transition-all hover:bg-amber-500/35 hover:border-amber-400 hover:text-amber-100 hover:shadow-[0_0_14px_rgba(245,158,11,0.35)] disabled:opacity-50",
   lime:
-    "rounded-lg border border-lime-400/25 bg-lime-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-lime-900 hover:bg-lime-500/20 disabled:opacity-50",
+    "inline-flex items-center justify-center rounded-xl border border-emerald-400/50 bg-emerald-500/20 px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-300 transition-all hover:bg-emerald-500/35 hover:border-emerald-400 hover:text-emerald-100 hover:shadow-[0_0_14px_rgba(16,185,129,0.35)] disabled:opacity-50",
   slate:
-    "rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600 hover:bg-slate-50 disabled:opacity-50",
+    "inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-200 transition-all hover:border-white/30 hover:bg-white/12 hover:text-white disabled:opacity-50",
 };
 
 function targetLink(rep) {
@@ -247,17 +253,32 @@ export function AdminSupport() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={adminStatGrid3}>
-        <div className="rounded-2xl border border-violet-200 bg-violet-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-violet-900">Tổng báo cáo</p>
-          <p className="mt-1 text-2xl font-black text-violet-950">{counts.total ?? 0}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tổng báo cáo</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{counts.total ?? 0}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-violet-400">
+            <MessageSquare size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Đang mở</p>
-          <p className="mt-1 text-2xl font-black text-amber-950">{counts.open ?? 0}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Đang mở</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{counts.open ?? 0}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-amber-400">
+            <AlertCircle size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-orange-900">Chờ xử lý</p>
-          <p className="mt-1 text-2xl font-black text-orange-950">{counts.pending ?? 0}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Chờ xử lý</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{counts.pending ?? 0}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-orange-400">
+            <Clock size={24} strokeWidth={2.2} />
+          </div>
         </div>
       </motion.div>
 
@@ -307,8 +328,11 @@ export function AdminSupport() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className={`${adminTdCell} text-center text-slate-500`}>
-                    Đang tải…
+                  <td colSpan={7} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-violet-300">Đang tải dữ liệu…</p>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
@@ -331,57 +355,69 @@ export function AdminSupport() {
                   return (
                     <tr
                       key={rep._id}
-                      className={`border-b border-slate-100 last:border-0 ${!isPending && !isReviewing ? "bg-slate-50/50" : ""}`}
+                      className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
                     >
                       <td className={adminTdCell}>
                         <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${statusBadgeClass(rep.status)}`}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${statusBadgeClass(rep.status)}`}
                         >
+                          {rep.status === "pending" ? (
+                            <span className="relative flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]" />
+                            </span>
+                          ) : rep.status === "reviewing" ? (
+                            <span className="relative flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />
+                            </span>
+                          ) : null}
                           {STATUS_LABELS[rep.status] || rep.status}
                         </span>
                       </td>
                       <td className={adminTdCell}>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
                           {REASON_LABELS[rep.reason] || rep.reason}
                         </span>
                       </td>
                       <td className={adminTdCell}>
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-bold text-white">
                           {TARGET_LABELS[rep.targetType] || rep.targetType}
                         </p>
-                        <p className="text-xs text-slate-600">{rep.targetLabel || "—"}</p>
+                        <p className="text-xs text-slate-400">{rep.targetLabel || "—"}</p>
                         {link ? (
                           <Link
                             to={link}
-                            className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-violet-700 hover:text-violet-900"
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors"
                           >
                             Xem <ExternalLink className="h-3 w-3" />
                           </Link>
                         ) : null}
                       </td>
                       <td className={adminTdCell}>
-                        <p className="font-medium text-slate-900">{rep.reportedBy?.name || "—"}</p>
+                        <p className="font-bold text-white">{rep.reportedBy?.name || "—"}</p>
                         {rep.reportedBy?.email ? (
-                          <p className="text-xs text-slate-500">{rep.reportedBy.email}</p>
+                          <p className="text-xs text-slate-400">{rep.reportedBy.email}</p>
                         ) : null}
                       </td>
                       <td className={`${adminTdCell} max-w-xs`}>
                         {parsed.isSeed ? (
                           <p className="mb-1 text-[10px] font-bold uppercase text-slate-400">Demo seed</p>
                         ) : null}
-                        <p className="line-clamp-2 text-slate-700">{preview || "—"}</p>
+                        <p className="line-clamp-2 text-sm text-slate-300">{preview || "—"}</p>
                         {rep.resolution ? (
-                          <p className="mt-1 line-clamp-1 text-[10px] font-bold uppercase text-lime-800">
+                          <p className="mt-1 line-clamp-1 text-xs font-semibold text-emerald-400">
                             Đã xử lý: {rep.resolution}
                           </p>
                         ) : null}
                       </td>
-                      <td className={`${adminTdCell} text-slate-600`}>{formatDate(rep.createdAt)}</td>
+                      <td className={`${adminTdCell} text-slate-400`}>{formatDate(rep.createdAt)}</td>
                       <td className={adminTdCell}>
                         {isPending ? (
-                          <div className="flex flex-col gap-1.5">
+                          <div className="flex flex-col gap-2">
                             <button
                               type="button"
+                              data-button-surface="none"
                               disabled={busy}
                               onClick={() => void applyStatus(rep._id, "reviewing")}
                               className={actionBtn.amber}
@@ -390,6 +426,7 @@ export function AdminSupport() {
                             </button>
                             <button
                               type="button"
+                              data-button-surface="none"
                               disabled={busy}
                               onClick={() => openResolveDialog(rep, "dismissed")}
                               className={actionBtn.slate}
@@ -398,9 +435,10 @@ export function AdminSupport() {
                             </button>
                           </div>
                         ) : isReviewing ? (
-                          <div className="flex flex-col gap-1.5">
+                          <div className="flex flex-col gap-2">
                             <button
                               type="button"
+                              data-button-surface="none"
                               disabled={busy}
                               onClick={() => openResolveDialog(rep, "resolved")}
                               className={actionBtn.lime}
@@ -409,6 +447,7 @@ export function AdminSupport() {
                             </button>
                             <button
                               type="button"
+                              data-button-surface="none"
                               disabled={busy}
                               onClick={() => openResolveDialog(rep, "dismissed")}
                               className={actionBtn.slate}
@@ -417,7 +456,7 @@ export function AdminSupport() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-400">Đã đóng</span>
+                          <span className="text-xs font-semibold text-slate-500">Đã đóng</span>
                         )}
                       </td>
                     </tr>
@@ -457,12 +496,12 @@ export function AdminSupport() {
       </motion.div>
 
       <Dialog open={Boolean(resolveDialog)} onOpenChange={(open) => !open && setResolveDialog(null)}>
-        <DialogContent className="border border-slate-200 bg-white sm:max-w-md">
+        <DialogContent className="border border-white/10 bg-[#0d061a] text-white shadow-2xl backdrop-blur-2xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-white font-extrabold text-lg">
               {resolveDialog?.status === "dismissed" ? "Bác bỏ báo cáo" : "Hoàn tất xử lý"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-slate-400 text-xs">
               Ghi chú gửi cho người báo cáo (tuỳ chọn). Họ sẽ nhận thông báo trong app.
             </DialogDescription>
           </DialogHeader>
@@ -471,27 +510,29 @@ export function AdminSupport() {
             onChange={(e) => setResolutionNote(e.target.value)}
             rows={4}
             placeholder="Ví dụ: Đã liên hệ mentor và cập nhật lịch…"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-violet-500/50"
           />
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2">
             <button
               type="button"
+              data-button-surface="none"
               onClick={() => setResolveDialog(null)}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/5 transition"
             >
               Huỷ
             </button>
             <button
               type="button"
+              data-button-surface="none"
               disabled={busyId === resolveDialog?.id}
               onClick={() => void confirmResolveDialog()}
               className={
                 resolveDialog?.status === "dismissed"
-                  ? "rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                  : "rounded-lg border border-lime-400/25 bg-lime-500/10 px-4 py-2 text-sm font-bold uppercase tracking-wide text-lime-900 hover:bg-lime-500/20 disabled:opacity-50"
+                  ? "rounded-xl border border-rose-500/40 bg-rose-500/20 px-5 py-2 text-sm font-bold uppercase tracking-wide text-rose-300 hover:bg-rose-500/30 transition disabled:opacity-50"
+                  : "rounded-xl border border-emerald-500/40 bg-emerald-500/20 px-5 py-2 text-sm font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-500/30 transition disabled:opacity-50"
               }
             >
-              {resolveDialog?.status === "dismissed" ? "Xác nhận" : "Hoàn tất"}
+              {resolveDialog?.status === "dismissed" ? "Xác nhận bác bỏ" : "Hoàn tất"}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -17,6 +17,7 @@ import {
   ImageIcon,
   User,
   XCircle,
+  AlertCircle,
 } from "lucide-react";
 import { AdminFilterSelect, AdminListFilterBar } from "../../components/admin/AdminListFilters.jsx";
 import { AdminLessonVideoPlayer } from "../../components/admin/AdminLessonVideoPlayer.jsx";
@@ -952,23 +953,38 @@ export function AdminContentCourses() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={adminStatGrid3}>
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Chờ duyệt</p>
-          <p className="mt-1 text-2xl font-black text-amber-950">{counts.total}</p>
-          {counts.total > 0 ? (
-            <p className="mt-1 text-sm font-semibold text-amber-900">
-              {counts.pendingReview} khóa mới
-              {counts.pendingUpdate > 0 ? ` · ${counts.pendingUpdate} cập nhật` : ""}
-            </p>
-          ) : null}
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Chờ duyệt</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{counts.total}</h3>
+            {counts.total > 0 ? (
+              <p className="mt-2 text-xs font-semibold text-amber-400">
+                {counts.pendingReview} khóa mới
+                {counts.pendingUpdate > 0 ? ` · ${counts.pendingUpdate} cập nhật` : ""}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-amber-400">
+            <Clock size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Đã xuất bản</p>
-          <p className="mt-1 text-2xl font-black text-emerald-950">{publishedCount}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Đã xuất bản</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{publishedCount}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-emerald-400">
+            <CheckCircle size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-orange-900">Thiếu video (đã public)</p>
-          <p className="mt-1 text-2xl font-black text-orange-950">{publishedIncompleteCount}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Thiếu video (đã public)</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{publishedIncompleteCount}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-orange-400">
+            <AlertCircle size={24} strokeWidth={2.2} />
+          </div>
         </div>
       </motion.div>
 

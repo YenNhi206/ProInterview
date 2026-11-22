@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Check,
   X,
+  Banknote,
 } from "lucide-react";
 import {
   adminGlassTable,
@@ -267,10 +268,11 @@ export function AdminMentorDetail() {
                   type="button"
                   disabled={busy}
                   onClick={() => void toggleActive()}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-[10px] font-black uppercase tracking-wider disabled:opacity-50 ${
+                  data-button-surface="none"
+                  className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 ${
                     mentor.isActive
-                      ? "border-amber-400/25 bg-amber-500/10 text-amber-900 hover:bg-amber-500/20"
-                      : "border-lime-400/25 bg-lime-500/10 text-lime-900 hover:bg-lime-500/20"
+                      ? "border-rose-500/40 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 hover:border-rose-400"
+                      : "border-emerald-500/40 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-400"
                   }`}
                 >
                   {mentor.isActive ? (
@@ -290,27 +292,44 @@ export function AdminMentorDetail() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={adminStatGrid4}>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Đánh giá</p>
-              <p className="mt-1 flex items-center gap-1 text-2xl font-black text-amber-950">
-                <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
-                {rating > 0 ? rating.toFixed(1) : "—"}
-              </p>
-              <p className="text-xs text-amber-800/80">{reviewCount} lượt đánh giá</p>
+            <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Đánh giá</p>
+                <h3 className="flex items-center gap-1.5 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                  <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+                  {rating > 0 ? rating.toFixed(1) : "—"}
+                </h3>
+                <p className="mt-1 text-xs text-slate-400">{reviewCount} lượt đánh giá</p>
+              </div>
             </div>
-            <div className="rounded-2xl border border-violet-200 bg-violet-50/80 p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-violet-900">Buổi mentor</p>
-              <p className="mt-1 text-2xl font-black text-violet-950">{sessions}</p>
+            <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Buổi mentor</p>
+                <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">{sessions}</h3>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-violet-400">
+                <Calendar size={22} strokeWidth={2.2} />
+              </div>
             </div>
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Giá / giờ</p>
-              <p className="mt-1 text-2xl font-black text-emerald-950">
-                {vnd(mentor.pricePerHour || mentor.hourlyRate)}
-              </p>
+            <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Giá / giờ</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+                  {vnd(mentor.pricePerHour || mentor.hourlyRate)}
+                </h3>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-emerald-400">
+                <Banknote size={22} strokeWidth={2.2} />
+              </div>
             </div>
-            <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-sky-900">Tham gia</p>
-              <p className="mt-1 text-sm font-bold text-sky-950">{formatDate(mentor.createdAt)}</p>
+            <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+              <div>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tham gia</p>
+                <h3 className="text-base sm:text-lg font-bold text-white">{formatDate(mentor.createdAt)}</h3>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-sky-400">
+                <User size={22} strokeWidth={2.2} />
+              </div>
             </div>
           </motion.div>
 
