@@ -16,7 +16,6 @@ import {
   RefreshCw,
   Users,
   Search,
-  Sparkles,
   Award,
   Calendar,
   Send,
@@ -40,8 +39,8 @@ import {
   acceptMentorshipAssessment,
 } from "../../api/mentorshipRequestsApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
-import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
-import { formatBudgetShort, mentorRequestStats } from "../../utils/mentor/mentorRequestStats.js";
+import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
+import { mentorRequestStats } from "../../utils/mentor/mentorRequestStats.js";
 import "../../../styles/mentorship-requests.css";
 
 const TYPES = {
@@ -1045,7 +1044,7 @@ export function MentorshipRequests() {
         <>
           {/* Bento KPI Summary Frames (Mentor only) */}
           {mentor && (
-            <MentorStatMiniGrid className="mb-8">
+            <MentorStatPanel className="mb-8">
               <MentorStatFrame
                 index={1}
                 value={mentorStats.openCount}
@@ -1073,16 +1072,7 @@ export function MentorshipRequests() {
                 accent="purple"
                 compact
               />
-              <MentorStatFrame
-                index={4}
-                value={formatBudgetShort(mentorStats.avgBudget)}
-                title="Ngân sách TB"
-                subtitle="Trung bình các nhu cầu đang mở"
-                cornerIcon={Sparkles}
-                accent="purple"
-                compact
-              />
-            </MentorStatMiniGrid>
+            </MentorStatPanel>
           )}
 
           {/* Thanh lọc: hàng 1 = tab (mentor) + ô tìm kiếm; hàng 2 = biểu tượng lọc + loại hỗ trợ. Chữ không xuống dòng. */}
