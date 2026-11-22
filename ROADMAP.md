@@ -276,6 +276,19 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 
 Áp dụng trực tiếp trong `createBooking`, `EnrollmentController.enroll`, `createSubscriptionTransferPending` qua field `couponCode` trong body — server tự tính lại `totalAmount`/`pricePaid`/`amount` sau giảm giá (không tin số tiền client gửi). Mỗi user dùng 1 lần/mã (`Coupon.usedBy`). Tạo mã: `npm run seed:coupon`. Chi tiết: **API_INDEX.md A.15**.
 
+### Tin tuyển dụng — Company Moderator (JB-01)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | GET | `/api/company/jobs` | `[AUTH][COMPANY_MOD]` danh sách job của công ty, lọc trạng thái, `counts` |
+| ✅ | POST | `/api/company/jobs` | `[AUTH][COMPANY_MOD]` tạo bản nháp |
+| ✅ | GET | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` chi tiết (job công ty khác → 404) |
+| ✅ | PATCH | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` sửa khi `draft` / `published` |
+| ✅ | PATCH | `/api/company/jobs/:id/status` | `[AUTH][COMPANY_MOD]` `published` (đăng) / `closed` (đóng) |
+| 📋 | GET | `/api/jobs` · `/api/jobs/:id` | Công khai (JB-03) |
+
+Chi tiết: **API_INDEX.md A.18**. FE `/company/jobs` ở JB-15.
+
 ### Lộ trình học — Mentor soạn và gửi (LP-07)
 
 | BE | Method | Endpoint | Auth |

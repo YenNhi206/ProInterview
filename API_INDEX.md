@@ -534,6 +534,28 @@ Sắp có: `checkout` (LP-10), `sessions/:sid/schedule` (LP-12), `sessions/:sid/
 
 ---
 
+### A.18. Tin tuyển dụng của công ty — `/api/company/jobs` (JB-01)
+
+**File:** `backend/src/routes/company.js` · **Controller:** `companyJobsController.js` · **Service:** `jobPostsService.js` · **Model:** `JobPost`
+
+Mọi route `/api/company/*` gắn `authJwt` + `requireCompanyModerator` (CO-03): role `company_moderator`, đã gắn `companyId`, công ty không bị `suspended` (khác → 401/403). Mọi truy vấn lọc theo công ty của người gọi: job công ty khác trả **404**. Không cần duyệt trước khi đăng (quyết định 8).
+
+**DTO `job`:** `id, companyId, title, roleCategory, level, employmentType, workMode, location, description, requiredCompetencies[] { shrmKey, minLevel, name }, requiredSkills[], rubricId, rubric { id, title, version, status, roleCategory } | null, status, closesAt, publishedAt, closedAt, closedReason, createdAt, updatedAt`. `name` lấy `nameVi` từ bộ tiêu chí LP-01.
+
+| Method | Path | Ghi chú |
+|:-------|:-----|:--------|
+| GET | `/api/company/jobs` | Query `status?` (`draft` \| `published` \| `closed` \| `hidden`), `roleCategory?`, `page` (mặc định 1), `limit` (1–100, mặc định 20). Trả `{ success, jobs, pagination { page, limit, total, totalPages }, counts { draft, published, closed, hidden } }` (`counts` của cả công ty, cho các tab) |
+| POST | `/api/company/jobs` | Tạo **bản nháp**, **201** `{ success, job }`. Body: `title` (3–150, bắt buộc), `roleCategory` (slug `^[a-z0-9_]{2,60}$`, bắt buộc, cùng giá trị với `QuestionBank.roleCategory` / `CompanyRubric.roleCategory`), `level` (`intern` \| `fresher` \| `junior` \| `middle` \| `senior` \| `lead`, bắt buộc), `employmentType?` (`full_time` mặc định \| `part_time` \| `contract` \| `internship`), `workMode?` (`onsite` mặc định \| `hybrid` \| `remote`), `location?` (≤ 200), `description?` (≤ 10.000), `requiredCompetencies?: [{ shrmKey, minLevel }]` (≤ 10, key hợp lệ theo `isValidCompetencyKey`, không trùng, `minLevel` nguyên 1–5), `requiredSkills?: string[]` (≤ 30, mỗi cái 1–60 ký tự; bỏ trùng không phân biệt hoa thường), `rubricId?` (null/"" để bỏ), `closesAt?` (ISO, phải ở tương lai; null = không hạn) |
+| GET | `/api/company/jobs/:id` | `{ success, job }`. Id sai định dạng → 400; job công ty khác → 404 |
+| PATCH | `/api/company/jobs/:id` | Body: các field như POST (ít nhất 1; `status`, `companyId` bị bỏ qua). Chỉ khi `draft` hoặc `published` (`hidden`/`closed` → 409). Job đang đăng phải vẫn đủ điều kiện đăng. Hai người sửa cùng lúc → 409 cho người sau |
+| PATCH | `/api/company/jobs/:id/status` | Body `{ status: "published" \| "closed" }`. **Đăng** (`draft → published`, ghi `publishedAt`): cần mô tả ≥ 50 ký tự, ≥ 1 năng lực yêu cầu, `closesAt` (nếu có) ở tương lai, rubric (nếu có) vẫn hợp lệ. **Đóng** (`published` \| `hidden` → `closed`, `closedReason: "company"`). Đăng lại job đã đóng / bỏ ẩn / đóng bản nháp → 409 |
+
+**Rubric gắn vào job:** chỉ rubric `approved` của **cùng công ty** và **cùng `roleCategory`** với job; khác → 400 (rubric công ty khác báo như không tồn tại). Đổi `roleCategory` khi đang gắn rubric thì phải đổi rubric theo. Rubric bị lưu trữ (có version mới được duyệt) sau khi gắn vào bản nháp → không đăng được tới khi chọn rubric mới.
+
+Sắp có: tự đóng khi quá `closesAt` (JB-02), `GET /api/jobs` công khai (JB-03), ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
+
+---
+
 ### A.16. Bộ tiêu chí năng lực SHRM/DDI — `/api/competencies` (LP-01)
 
 **File:** `backend/src/routes/competencies.js` · **Dữ liệu:** `backend/src/config/competencies.json` (nguồn duy nhất) · **Service:** `competencyFramework.js` · **FE:** `frontend/src/app/api/competenciesApi.js`

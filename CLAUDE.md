@@ -153,9 +153,9 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 
 `/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-### Models (`models/`) — 31 schema
+### Models (`models/`) — 37 schema
 
-`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`, `Company`, `CompanyInvite`, `CompanyRubric`, `CandidateProfile`, `CVDocument`, `JobPost`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
 Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 

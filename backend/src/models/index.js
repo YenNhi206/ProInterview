@@ -31,6 +31,7 @@ export { ModerationItem } from "./ModerationItem.js";
 export { Company } from "./Company.js";
 export { CompanyInvite } from "./CompanyInvite.js";
 export { CompanyRubric } from "./CompanyRubric.js";
+export { JobPost } from "./JobPost.js";
 export { PromptVersion } from "./PromptVersion.js";
 export { LearningPath } from "./LearningPath.js";
 export { LearningPathSession } from "./LearningPathSession.js";
