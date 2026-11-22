@@ -115,6 +115,8 @@ export function MentorshipRequests() {
 
   const [reload, setReload] = useState(0);
   const isNew = requestId === "new" && !mentor;
+  const isListView = !requestId && !isNew;
+  const listLoadedOnce = useRef(false);
   const backTarget = mentorshipBackTarget({
     returnTo: location.state?.returnTo,
     mentor,
@@ -169,6 +171,7 @@ export function MentorshipRequests() {
           setRequest(body?.request || null);
         } else {
           setRows(body?.requests || []);
+          listLoadedOnce.current = true;
         }
       })
       .catch((e) => {
@@ -409,8 +412,8 @@ export function MentorshipRequests() {
         )}
       </AnimatePresence>
 
-      {/* Loading Skeleton */}
-      {loading ? (
+      {/* Loading Skeleton: chỉ lần tải đầu. Đổi tab ở danh sách thì tải tại chỗ (xem khối Requests Grid). */}
+      {loading && !(isListView && listLoadedOnce.current) ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#140c24]/80 p-16 text-center backdrop-blur-xl">
           <div className="relative mb-4">
             <RefreshCw size={36} className="animate-spin text-[#93f72b]" />
@@ -1173,6 +1176,8 @@ export function MentorshipRequests() {
             </div>
           </div>
 
+          {/* Đổi tab: giữ danh sách cũ (mờ) tại chỗ trong lúc tải, không thay cả trang bằng khung tải → không nhảy. */}
+          <div className={`transition-opacity duration-200 ${loading ? "pointer-events-none opacity-50" : ""}`} aria-busy={loading}>
           {/* Requests Grid */}
           {filteredRows.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -1341,6 +1346,7 @@ export function MentorshipRequests() {
               </div>
             </div>
           )}
+          </div>
         </>
       ) : null}
     </div>
