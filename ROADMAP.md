@@ -5,7 +5,7 @@
 ## Nền RBAC — role `moderator` và `enterprise` (đã có)
 
 - ✅ BE: `User.role` mở rộng thành `customer | mentor | admin | moderator | enterprise`; middleware `requireRole(...roles)` + `requireModerator` / `requireEnterprise` trong `backend/src/middleware/requireRole.js`.
-- ✅ BE: router `/api/moderator` (`routes/moderator.js`), gắn `adminAuditLog` nên thao tác moderator vẫn hiện ở `/admin/audit-log`.
+- ✅ BE: router `/api/moderator` (`routes/moderator.js`), gắn `moderatorAuditLog` (`moderator_action`) nên thao tác moderator hiện ở `/admin/audit-log`, lọc riêng bằng `?actor=moderator`.
 - ✅ BE: **duyệt khóa học chuyển từ admin sang moderator** — `/api/admin/courses/*` đã bỏ, thay bằng `/api/moderator/courses/*`. Cổng moderator cố ý KHÔNG cho admin đi vòng.
 - ✅ BE: model `QuestionBank` (`models/QuestionBank.js`) — substrate dùng chung cho kiểm duyệt ngân hàng câu hỏi (Moderator) và interview template của tổ chức (Enterprise, qua `orgId`).
 - ✅ BE: `setRoleByAdmin` gán được `moderator` / `enterprise` (`ASSIGNABLE_ROLES`); không gán được `admin` qua API.

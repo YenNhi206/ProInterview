@@ -199,7 +199,19 @@ it("records mentor payout-account changes in the audit log with the account numb
   const mentorLogs = await request(admin, "/api/admin/audit-log?actor=mentor");
   assert.ok(mentorLogs.entries.some((l) => String(l._id) === String(entry._id)));
   assert.ok(mentorLogs.entries.every((l) => l.type === "mentor_action"));
-  const adminLogs = await request(admin, "/api/admin/audit-log?actor=admin");
-  assert.ok(adminLogs.entries.every((l) => l.type === "admin_action"));
   assert.equal((await request(admin, "/api/admin/audit-log?actor=hacker")).status, 400);
+});
+it("separates moderator actions from admin actions, including legacy admin_action rows on /api/moderator", async () => {
+  const moderator = await models.User.create({ name: "Platform mod", email: `mod-${Date.now()}@test.local`, role: "moderator" });
+  const legacy = await models.SecurityLog.create({ userId: moderator._id, type: "admin_action", details: { method: "PATCH", path: "/api/moderator/questions/legacy", statusCode: 200, success: true } });
+  const res = await request(moderator, "/api/moderator/questions/not-a-valid-id/approve", "PATCH", {});
+  let entry;
+  for (let i = 0; i < 30 && !entry; i++) { entry = await models.SecurityLog.findOne({ type: "moderator_action", userId: moderator._id }); if (!entry) await new Promise((r) => setTimeout(r, 20)); }
+  assert.ok(entry, `moderator request (HTTP ${res.status}) phải ghi moderator_action`);
+  const modLogs = await request(admin, "/api/admin/audit-log?actor=moderator&limit=200");
+  const ids = modLogs.entries.map((l) => String(l._id));
+  assert.ok(ids.includes(String(entry._id))); assert.ok(ids.includes(String(legacy._id)));
+  assert.ok(modLogs.entries.every((l) => l.details.path.startsWith("/api/moderator")));
+  const adminLogs = await request(admin, "/api/admin/audit-log?actor=admin&limit=200");
+  assert.ok(adminLogs.entries.every((l) => l.type === "admin_action" && !l.details.path.startsWith("/api/moderator")));
 });

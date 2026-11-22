@@ -1,6 +1,6 @@
 /**
- * Đọc nhật ký thao tác (`SecurityLog`): `admin_action` (admin + Platform Moderator, do `adminAuditLog` ghi)
- * và `mentor_action` (thao tác tiền của mentor, do `mentorAuditLog` ghi).
+ * Đọc nhật ký thao tác (`SecurityLog`): `admin_action` (admin), `moderator_action` (Platform Moderator)
+ * và `mentor_action` (thao tác tiền của mentor), do các middleware trong `adminAuditLog.js` ghi.
  *
  * Tách khỏi `adminController.js` để phần audit log không chạm vào file đang có thay đổi
  * song song từ nhánh khác.
@@ -10,9 +10,19 @@ import { SecurityLog } from "../models/SecurityLog.js";
 
 const DEFAULT_LIMIT = 50;
 
-/** `?actor=` → type trong SecurityLog; bỏ trống = cả hai. */
-const ACTOR_TYPES = { admin: ["admin_action"], mentor: ["mentor_action"] };
-const ALL_AUDIT_TYPES = ["admin_action", "mentor_action"];
+/**
+ * Dòng ghi trước khi tách `moderator_action` mang type `admin_action` nhưng path `/api/moderator/...`
+ * (admin không đi qua cổng moderator), nên tách theo path để lọc đúng cả dữ liệu cũ.
+ */
+const LEGACY_MODERATOR_PATH = /^\/api\/moderator(\/|$)/;
+
+/** `?actor=` → điều kiện Mongo; bỏ trống = mọi loại nhật ký. */
+const ACTOR_FILTERS = {
+  admin: { type: "admin_action", "details.path": { $not: LEGACY_MODERATOR_PATH } },
+  moderator: { $or: [{ type: "moderator_action" }, { type: "admin_action", "details.path": LEGACY_MODERATOR_PATH }] },
+  mentor: { type: "mentor_action" },
+};
+const ALL_AUDIT_FILTER = { type: { $in: ["admin_action", "moderator_action", "mentor_action"] } };
 const MAX_LIMIT = 200;
 
 function parsePositiveInt(raw, fallback, max) {
@@ -24,7 +34,7 @@ function parsePositiveInt(raw, fallback, max) {
 export const AdminAuditController = {
   /**
    * GET /api/admin/audit-log
-   * Query: page, limit, actor ("admin"|"mentor"), adminId (người thao tác), method, success ("true"|"false"), from, to (ISO date)
+   * Query: page, limit, actor ("admin"|"moderator"|"mentor"), adminId (người thao tác), method, success ("true"|"false"), from, to (ISO date)
    */
   getAuditLog: async (req, res, next) => {
     try {
@@ -32,10 +42,10 @@ export const AdminAuditController = {
       const limit = parsePositiveInt(req.query?.limit, DEFAULT_LIMIT, MAX_LIMIT);
 
       const actor = String(req.query?.actor || "").trim().toLowerCase();
-      if (actor && !ACTOR_TYPES[actor]) {
-        return res.status(400).json({ success: false, error: "actor chỉ nhận admin hoặc mentor." });
+      if (actor && !ACTOR_FILTERS[actor]) {
+        return res.status(400).json({ success: false, error: "actor chỉ nhận admin, moderator hoặc mentor." });
       }
-      const filter = { type: { $in: ACTOR_TYPES[actor] || ALL_AUDIT_TYPES } };
+      const filter = { ...(ACTOR_FILTERS[actor] || ALL_AUDIT_FILTER) };
 
       const adminId = String(req.query?.adminId || "").trim();
       if (adminId) {

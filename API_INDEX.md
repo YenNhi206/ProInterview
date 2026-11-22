@@ -19,7 +19,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 **Duyệt khóa học đã chuyển sang moderator:** `/api/admin/courses/*` không còn tồn tại (trả 404),
 thay bằng `/api/moderator/courses/*`. Router moderator vẫn gắn `adminAuditLog` nên mọi thao tác
-duyệt vẫn ghi vào `SecurityLog` (`type: admin_action`) và hiện ở trang `/admin/audit-log`.
+duyệt vẫn ghi vào `SecurityLog` (`type: moderator_action`; trước 22/11/2026 là `admin_action`) và hiện ở trang `/admin/audit-log` (lọc `?actor=moderator`).
 
 Gán role: `PATCH /api/users/:id/role` — `ASSIGNABLE_ROLES` = `customer | mentor | moderator | enterprise`.
 Không nâng `admin` qua API (phải sửa trực tiếp DB).
@@ -1095,7 +1095,7 @@ Field presence trên `User`: `lastSeenAt` (heartbeat `/api/auth/presence` + `aut
 | GET | `/api/bookings/:id/invoice` | Chủ giao dịch hoặc admin; PDF booking đã thanh toán |
 | GET | `/api/enrollments/:id/invoice` | Chủ giao dịch hoặc admin; PDF học phí |
 | GET | `/api/cart/orders/:id/invoice` | Chủ đơn hoặc admin; PDF toàn đơn đã hoàn tất |
-| GET | `/api/admin/audit-log` | Admin; phân trang, lọc `actor` (`admin` = admin + moderator, `mentor` = thao tác tiền của mentor; bỏ trống = cả hai, giá trị khác → 400), `adminId`, `method`, `success`, `from`, `to`. Mentor ghi `SecurityLog` `type: mentor_action` ở `POST /api/mentor/payout`, `PATCH /api/mentor/payout-account`, `POST /api/mentor/request-price-change`; `accountNumber` chỉ giữ 4 số cuối (`****1234`) |
+| GET | `/api/admin/audit-log` | Admin; phân trang, lọc `actor` (`admin`, `moderator` = Platform Moderator (`moderator_action`, kèm dòng `admin_action` cũ trên `/api/moderator/*`), `mentor` = thao tác tiền của mentor; bỏ trống = tất cả, giá trị khác → 400), `adminId`, `method`, `success`, `from`, `to`. Mentor ghi `SecurityLog` `type: mentor_action` ở `POST /api/mentor/payout`, `PATCH /api/mentor/payout-account`, `POST /api/mentor/request-price-change`; `accountNumber` chỉ giữ 4 số cuối (`****1234`) |
 | GET | `/api/admin/finance/reconciliation` | Admin; `report.mismatches`, `payoutMismatches`, `alerts`; chỉ đọc |
 | POST | `/api/admin/finance/release-earnings` | Admin; giải phóng khoản đủ 3 ngày, không có report mở |
 | GET | `/api/admin/users/:id/impact` | Admin; số dư, nghĩa vụ, `canClose`, `blockers` |

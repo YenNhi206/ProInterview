@@ -13,7 +13,9 @@ const MENTOR_ACTION_LABELS = {
 
 function actorRoleLabel(row) {
   if (row.userId?.role && ROLE_LABELS[row.userId.role]) return ROLE_LABELS[row.userId.role];
-  return row.type === "mentor_action" ? "Mentor" : "Admin";
+  if (row.type === "mentor_action") return "Mentor";
+  if (row.type === "moderator_action" || row.details?.path?.startsWith("/api/moderator")) return "Platform Moderator";
+  return "Admin";
 }
 
 export function AdminAuditLog() {
@@ -34,7 +36,8 @@ export function AdminAuditLog() {
         onValueChange={(value) => { setActor(value); setPage(1); }}
         options={[
           { value: "", label: "Mọi người thao tác" },
-          { value: "admin", label: "Admin & Moderator" },
+          { value: "admin", label: "Admin" },
+          { value: "moderator", label: "Platform Moderator" },
           { value: "mentor", label: "Mentor" },
         ]}
       />
