@@ -50,7 +50,6 @@ adminRouter.post("/mentors/:id/reject-price", asyncHandler(AdminController.rejec
 adminRouter.get("/users", asyncHandler(AdminController.getAllUsers));
 adminRouter.get("/users/:id", asyncHandler(AdminController.getUserById));
 adminRouter.patch("/users/:id/status", asyncHandler(AdminController.toggleUserStatus));
-adminRouter.post("/users/import-cv", upload.single("file"), asyncHandler(AdminController.importUserAndCV));
 
 
 adminRouter.get("/bookings", asyncHandler(AdminController.getAllBookings));
