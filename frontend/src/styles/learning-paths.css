@@ -23,9 +23,15 @@
 .lp-ready-assess svg { flex-shrink: 0; }
 .lp-ready-assess.is-done { color: #b9ee8c; }
 
-.lp-page .mr-tabs { flex-wrap: wrap; gap: 18px 22px; }
-.lp-page .mr-tabs button span { margin-left: 6px; font-size: 10px; color: #8f86a8; }
-.lp-page .mr-tabs button.active span { color: #93f72b; }
+.lp-page .mr-tabs { flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+.lp-page .mr-tabs button { padding: 10px 16px 14px 16px; margin-bottom: -1px; font-size: 13.5px; line-height: 1.4; }
+.lp-page .mr-tabs button span {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px;
+  border-radius: 999px; font-size: 11px; font-weight: 700;
+  background: rgba(255, 255, 255, 0.08); color: #af99c4;
+}
+.lp-page .mr-tabs button.active span { background: rgba(147, 247, 43, 0.18); color: #93f72b; }
 
 .mr-status.draft { color: #d4bbf2; border-color: #c6a0ec40; background: #c6a0ec08; }
 .mr-status.proposed, .mr-status.pending_payment { color: #f7d27a; border-color: #f7d27a40; background: #f7d27a0a; }

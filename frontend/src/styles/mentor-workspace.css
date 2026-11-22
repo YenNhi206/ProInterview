@@ -19,6 +19,7 @@
 .mentor-workspace-nav-link:focus-visible { outline-offset:3px; }
 .mentor-workspace:not(:where(.mw-light)) .mentor-workspace-nav-link:focus-visible { outline:2px solid #93f72b; }
 .mentor-workspace-nav-separator { margin-top:18px; }
+.mentor-workspace-nav-section-title { padding: 14px 10px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #a8a3c7; }
 .mentor-workspace-nav-account { margin-top:auto; padding-top:20px; }
 .mentor-workspace:not(:where(.mw-light)) .mentor-workspace-nav-account { border-top:1px solid var(--mw-border); }
 @media(min-width:1024px) {

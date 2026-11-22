@@ -12,7 +12,7 @@ export function CompanyLayout() {
   useUserPresence();
 
   return (
-    <WorkspaceShell nav={<CompanyWorkspaceNav />}>
+    <WorkspaceShell nav={<CompanyWorkspaceNav />} themeable>
       <div className="mentor-role-shell min-w-0" data-mentor-content>
         <Outlet />
       </div>

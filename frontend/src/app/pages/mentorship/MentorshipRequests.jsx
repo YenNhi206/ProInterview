@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import {
   ListFilter,
-  ArrowLeft,
   ArrowRight,
   Briefcase,
   CheckCircle2,
@@ -123,6 +122,7 @@ export function MentorshipRequests() {
     detail: !!requestId && !isNew,
   });
   const entryState = { returnTo: `${location.pathname}${location.search}` };
+  const requestTitle = request?.title || location.state?.title || "";
 
   const [documentMode, setDocumentMode] = useState({ cv: "upload", jd: "upload" });
   const [documents, setDocuments] = useState([]);
@@ -243,7 +243,7 @@ export function MentorshipRequests() {
       const body = await createMentorshipRequest(form);
       navigate(`${base}/${body.request.id}`, {
         replace: true,
-        state: { returnTo: backTarget.to },
+        state: { returnTo: backTarget.to, title: body.request?.title },
       });
     } catch (e) {
       setError(e.message);
@@ -307,13 +307,33 @@ export function MentorshipRequests() {
       {/* Top Header */}
       <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Link
-            to={backTarget.to}
-            className="mb-3.5 inline-flex items-center gap-2 text-xs font-semibold text-slate-400 transition hover:text-[#93f72b]"
-          >
-            <ArrowLeft size={14} />
-            {backTarget.label}
-          </Link>
+          {!isListView && backTarget ? (
+            <nav
+              aria-label="Đường dẫn điều hướng"
+              className="mb-3.5 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-400"
+            >
+              <Link
+                to={backTarget.to}
+                title={`Quay lại ${backTarget.label}`}
+                className="mr-breadcrumb-link"
+              >
+                {backTarget.label}
+              </Link>
+              {requestId && requestTitle ? (
+                <>
+                  <span className="text-slate-500" aria-hidden>
+                    /
+                  </span>
+                  <span
+                    className="max-w-[260px] truncate font-medium text-slate-200 sm:max-w-md"
+                    title={requestTitle}
+                  >
+                    {requestTitle}
+                  </span>
+                </>
+              ) : null}
+            </nav>
+          ) : null}
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.8)]" />
             <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#93f72b]">
@@ -1180,7 +1200,7 @@ export function MentorshipRequests() {
                 return (
                   <Link
                     to={`${base}/${row.id}`}
-                    state={entryState}
+                    state={{ ...entryState, title: row.title }}
                     key={row.id}
                     className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 p-6 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#93f72b]/50 hover:shadow-[0_0_30px_rgba(147,247,43,0.15)]"
                   >

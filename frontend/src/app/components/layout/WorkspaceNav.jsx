@@ -12,7 +12,7 @@ import "../../../styles/mentor-workspace.css";
 import "../../../styles/mentor-workspace-light.css";
 
 /** `null` = khu này chưa cho đổi sáng/tối (Platform Moderator, Company Moderator vẫn luôn tối). */
-const WorkspaceThemeContext = createContext(null);
+export const WorkspaceThemeContext = createContext(null);
 
 const THEME_OPTIONS = [
   { value: "light", label: "Sáng", title: "Giao diện sáng", Icon: Sun },
@@ -21,7 +21,7 @@ const THEME_OPTIONS = [
 ];
 
 /** Nút chọn Sáng / Tối / Hệ thống ở cuối sidebar; ẩn ở khu chưa hỗ trợ. */
-function WorkspaceThemeSwitch() {
+export function WorkspaceThemeSwitch() {
   const theme = useContext(WorkspaceThemeContext);
   if (!theme) return null;
   return (
@@ -71,11 +71,29 @@ function WorkspaceMenu({ config, onClose, active }) {
     else onNotification?.(notification, navigate);
   };
   const renderLink = (item, index) => {
+    if (item.section) {
+      return (
+        <div key={item.section} className="mentor-workspace-nav-section-title">
+          {item.section}
+        </div>
+      );
+    }
     const Icon = item.icon;
-    return <NavLink key={item.url} to={item.url} end={item.end ?? item.url === homeUrl} onClick={onClose}
-      className={({ isActive }) => `mentor-workspace-nav-link${isActive ? " is-active" : ""}${index === separatorIndex ? " mentor-workspace-nav-separator" : ""}`}>
-      <Icon size={18} strokeWidth={1.6} /><span>{item.title}</span>
-    </NavLink>;
+    return (
+      <NavLink
+        key={item.url}
+        to={item.url}
+        end={item.end ?? item.url === homeUrl}
+        onClick={onClose}
+        className={({ isActive }) => {
+          const active = item.customActive ? item.customActive(location.pathname) : isActive;
+          return `mentor-workspace-nav-link${active ? " is-active" : ""}${index === separatorIndex ? " mentor-workspace-nav-separator" : ""}`;
+        }}
+      >
+        <Icon size={18} strokeWidth={1.6} />
+        <span>{item.title}</span>
+      </NavLink>
+    );
   };
   return <>
     {badge ? (
