@@ -82,7 +82,6 @@ function WorkspaceMenu({ config, onClose, active }) {
       <div className="mentor-workspace-brand-row">
         <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand" aria-label={`ProInterview – ${heading}`}><img src="/Logo.png" alt="ProInterview" /></Link>
         <span className="mentor-workspace-badge">{badge}</span>
-        <NotificationCenter active={active} onSelect={handleNotification} />
       </div>
     ) : <>
       <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand"><img src="/Logo.png" alt="ProInterview" /></Link>
@@ -93,6 +92,8 @@ function WorkspaceMenu({ config, onClose, active }) {
     <WorkspaceThemeSwitch />
     <div className="mentor-workspace-account">
       <Link to="/profile" onClick={onClose} className="mentor-workspace-user"><span className="mentor-workspace-avatar"><NavUserAvatar avatar={user?.avatar} initials={getInitials(name)} /></span><span title={name}>{name}</span></Link>
+      {/* Có `badge` thì hàng logo giống admin (không chỗ cho chuông) → chuông nằm cạnh tài khoản. */}
+      {badge && <NotificationCenter active={active} onSelect={handleNotification} />}
       <button type="button" aria-label="Đăng xuất" title="Đăng xuất" onClick={async () => { await logout(); navigate("/"); }}><LogOut size={17} /></button>
     </div>
   </>;

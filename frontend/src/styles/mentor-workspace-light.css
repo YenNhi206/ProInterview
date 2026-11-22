@@ -44,7 +44,7 @@
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading .notification-trigger { color: var(--mw-muted); }
 
 /* Nhãn vai trò cạnh logo: chữ lime khó đọc trên nền sáng → xanh lá đậm. */
-:root[data-workspace-theme="light"] .mentor-workspace-badge { color: #3f7a0a; border-color: rgba(101, 181, 18, .45); background: rgba(147, 247, 43, .18); }
+:root[data-workspace-theme="light"] .mentor-workspace-badge { color: #3f7a0a; border-color: rgba(101, 181, 18, .45); background: rgba(147, 247, 43, .18); box-shadow: none; }
 
 /* Nút chọn giao diện (dùng chung 2 chế độ; màu theo biến của từng chế độ). */
 .mentor-workspace-theme {

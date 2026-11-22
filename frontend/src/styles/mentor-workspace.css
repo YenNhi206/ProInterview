@@ -229,10 +229,13 @@
 .mentor-workspace:not(:where(.mw-light)).mentor-workspace .mw-chip.mw-chip.mw-chip:active { background-color: rgba(147, 247, 43, 0.16); }
 @media (prefers-reduced-motion: reduce) { .mentor-workspace .mw-chip { transition: none; } }
 
-/* Hàng logo + nhãn vai trò + chuông (khi WorkspaceNav có `badge`, như sidebar admin). */
-.mentor-workspace-brand-row { display:flex; align-items:center; gap:6px; padding:8px 0 22px 6px; }
+/* Hàng logo + nhãn vai trò (khi WorkspaceNav có `badge`): cùng kiểu đầu sidebar admin
+   (SidebarBrandButton) — logo màu gốc, nhãn lime bên phải, đường kẻ bên dưới. */
+.mentor-workspace-brand-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 0 18px; padding:10px 2px 18px 8px; border-bottom:1px solid var(--mw-border); }
 .mentor-workspace-brand-row .mentor-workspace-brand { padding:0; flex:none; }
-.mentor-workspace-brand-row .mentor-workspace-brand img { width:100px; }
-.mentor-workspace-brand-row .notification-trigger { margin-left:auto; flex-shrink:0; width:28px; height:28px; border:0; background:transparent; }
-.mentor-workspace-badge { flex-shrink:0; padding:2px 6px; border-radius:999px; border:1px solid rgba(147,247,43,.4); background:rgba(147,247,43,.15); color:#93f72b; font-size:8px; font-weight:900; letter-spacing:.08em; line-height:1.4; }
-.mentor-workspace-mobile-nav .mentor-workspace-brand-row { padding-right:36px; }
+.mentor-workspace .mentor-workspace-brand-row .mentor-workspace-brand img { width:110px; }
+/* Nền tối của mentor là tím (admin gần đen): logo tím sẽ chìm → giữ logo trắng ở chế độ tối. */
+.mentor-workspace.mw-light .mentor-workspace-brand-row .mentor-workspace-brand img { filter:brightness(.92) contrast(1.12) saturate(1.05); }
+.mentor-workspace-badge { flex-shrink:0; padding:2px 8px; border-radius:999px; border:1px solid rgba(163,230,53,.4); background:rgba(163,230,53,.15); color:#a3e635; font-size:8px; font-weight:900; letter-spacing:.08em; line-height:1.5; box-shadow:0 0 10px rgba(147,247,43,.2); }
+.mentor-workspace-mobile-nav .mentor-workspace-brand-row { margin-right:32px; }
+.mentor-workspace-account .notification-trigger { flex-shrink:0; width:34px; height:34px; border:0; background:transparent; }
