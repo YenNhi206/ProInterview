@@ -43,6 +43,9 @@
 :root[data-workspace-theme="light"] .mentor-workspace-menu-toggle { color: var(--mw-text); background: var(--mw-surface); border: 1px solid var(--mw-border); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading .notification-trigger { color: var(--mw-muted); }
 
+/* Nhãn vai trò cạnh logo: chữ lime khó đọc trên nền sáng → xanh lá đậm. */
+:root[data-workspace-theme="light"] .mentor-workspace-badge { color: #3f7a0a; border-color: rgba(101, 181, 18, .45); background: rgba(147, 247, 43, .18); }
+
 /* Nút chọn giao diện (dùng chung 2 chế độ; màu theo biến của từng chế độ). */
 .mentor-workspace-theme {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
@@ -312,3 +315,48 @@ html[data-workspace-theme="light"] body { background-color: #f2f3f5 !important; 
 :root[data-workspace-theme="light"] .lp-mentor-link { color: #421773; }
 :root[data-workspace-theme="light"] .lp-mentor-link:hover { color: #467811; }
 :root[data-workspace-theme="light"] .lp-next-step { color: #442c5e; }
+
+/* ── Ô thông báo (notifications.css, mở qua portal) ── quy đổi từ màu tối như phần trên. */
+:root[data-workspace-theme="light"] .notification-trigger { color: rgba(30, 27, 46, 0.65); }
+:root[data-workspace-theme="light"] .notification-trigger:hover,
+:root[data-workspace-theme="light"] .notification-trigger[data-state="open"] { background-color: rgba(30, 27, 46, 0.06); color: var(--mw-text); }
+:root[data-workspace-theme="light"] .notification-trigger-count { border: 2px solid var(--mw-border); box-shadow: 0 0 10px rgba(30, 27, 46, 0.12); }
+:root[data-workspace-theme="light"] .notification-center[data-slot="popover-content"] { background: var(--mw-surface) !important; color-scheme: light; border: 1px solid var(--mw-border) !important; box-shadow: 0 24px 60px rgba(30, 27, 46, 0.12), 0 0 25px rgba(30, 27, 46, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important; color: var(--mw-text) !important; }
+:root[data-workspace-theme="light"] .notification-header { border-bottom: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-center .notification-header h2 { color: var(--mw-text) !important; }
+:root[data-workspace-theme="light"] .notification-read-all,
+:root[data-workspace-theme="light"] .notification-close { color: #5b5772; background: rgba(30, 27, 46, 0.03); border: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-read-all:hover { color: #467811; }
+:root[data-workspace-theme="light"] .notification-close:hover { background: rgba(30, 27, 46, 0.06); border-color: var(--mw-border); color: var(--mw-text); }
+:root[data-workspace-theme="light"] .notification-filters button { color: #5b5772; background: rgba(30, 27, 46, 0.03); border: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-filters button:hover { color: var(--mw-text); background: rgba(30, 27, 46, 0.06); border-color: var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-filters button[aria-pressed="true"] { box-shadow: 0 0 14px rgba(30, 27, 46, 0.12); }
+:root[data-workspace-theme="light"] .notification-scroll { border-top: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-center .notification-footnote { border-top: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-center .notification-date-group h3 { color: #5b5772; }
+:root[data-workspace-theme="light"] .notification-date-group + .notification-date-group { border-top: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-row { border-bottom: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .notification-row:hover,
+:root[data-workspace-theme="light"] .notification-row:focus-within { background: rgba(30, 27, 46, 0.036); }
+:root[data-workspace-theme="light"] .notification-kind-icon--violet { color: #311698; }
+:root[data-workspace-theme="light"] .notification-kind-icon--coral { color: #981629; }
+:root[data-workspace-theme="light"] .notification-kind-icon--green { color: #467811; }
+:root[data-workspace-theme="light"] .notification-kind-icon--blue { color: #165398; }
+:root[data-workspace-theme="light"] .notification-kind-icon--teal { color: #169883; }
+:root[data-workspace-theme="light"] .notification-kind-icon--amber { color: #786011; }
+:root[data-workspace-theme="light"] .notification-delete:hover:not(:disabled) { color: #981616; }
+:root[data-workspace-theme="light"] .notification-title { color: var(--mw-text); }
+:root[data-workspace-theme="light"] .notification-row--unread .notification-title { color: var(--mw-text); }
+:root[data-workspace-theme="light"] .notification-unread-dot { box-shadow: 0 0 8px rgba(30, 27, 46, 0.12); }
+:root[data-workspace-theme="light"] .notification-body { color: #5b5772; }
+:root[data-workspace-theme="light"] .notification-expand { color: #311698; }
+:root[data-workspace-theme="light"] .notification-expand:hover { color: #467811; }
+:root[data-workspace-theme="light"] .notification-empty-icon { color: #311698; box-shadow: 0 0 20px rgba(30, 27, 46, 0.12); }
+:root[data-workspace-theme="light"] .notification-empty-icon--done { color: #467811; box-shadow: 0 0 20px rgba(30, 27, 46, 0.12); }
+:root[data-workspace-theme="light"] .notification-center .notification-empty h3 { color: var(--mw-text) !important; }
+:root[data-workspace-theme="light"] .notification-center .notification-empty p { color: #5b5772; }
+:root[data-workspace-theme="light"] .notification-show-all { color: #467811; }
+:root[data-workspace-theme="light"] .notification-error { color: #981616; }
+:root[data-workspace-theme="light"] .notification-error button { color: var(--mw-text); }
+:root[data-workspace-theme="light"] .notification-skeleton > span { background: rgba(30, 27, 46, 0.048); }
+:root[data-workspace-theme="light"] .notification-skeleton > div > span { background: rgba(30, 27, 46, 0.048); }

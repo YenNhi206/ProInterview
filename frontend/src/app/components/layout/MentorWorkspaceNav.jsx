@@ -12,6 +12,7 @@ export function MentorWorkspaceNav() {
     <WorkspaceNav
       homeUrl="/mentor/dashboard"
       heading="Không gian Mentor"
+      badge="MENTOR"
       label="Mentor"
       mainNav={MENTOR_MAIN_NAV}
       secondaryNav={MENTOR_SECONDARY_NAV}

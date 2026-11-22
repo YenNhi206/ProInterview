@@ -52,6 +52,7 @@ function WorkspaceThemeSwitch() {
  * @param {object}   props
  * @param {string}   props.homeUrl         link logo; cũng là mục chỉ active khi khớp đúng (end)
  * @param {string}   props.heading         nhãn khu vực, ví dụ "Không gian Mentor"
+ * @param {string}   [props.badge]         nhãn ngắn cạnh logo (như "ADMIN" bên admin); có thì thay dòng `heading`
  * @param {string}   props.label           aria-label cho sidebar
  * @param {Array}    props.mainNav         [{ title, url, icon, end? }] — `end` ghi đè quy tắc active mặc định
  * @param {Array}    props.secondaryNav    [{ title, url, icon }]
@@ -59,7 +60,7 @@ function WorkspaceThemeSwitch() {
  * @param {Function} [props.onNotification] (notification, navigate) => void
  */
 function WorkspaceMenu({ config, onClose, active }) {
-  const { homeUrl, heading, label, mainNav, secondaryNav, separatorIndex, onNotification } = config;
+  const { homeUrl, heading, badge, label, mainNav, secondaryNav, separatorIndex, onNotification } = config;
   const { user } = useAuthSession();
   const navigate = useNavigate();
   const name = getDisplayName(user);
@@ -77,8 +78,16 @@ function WorkspaceMenu({ config, onClose, active }) {
     </NavLink>;
   };
   return <>
-    <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand"><img src="/Logo.png" alt="ProInterview" /></Link>
-    <div className="mentor-workspace-nav-heading"><span className="mentor-workspace-nav-dot" />{heading}<NotificationCenter active={active} onSelect={handleNotification} /></div>
+    {badge ? (
+      <div className="mentor-workspace-brand-row">
+        <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand" aria-label={`ProInterview – ${heading}`}><img src="/Logo.png" alt="ProInterview" /></Link>
+        <span className="mentor-workspace-badge">{badge}</span>
+        <NotificationCenter active={active} onSelect={handleNotification} />
+      </div>
+    ) : <>
+      <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand"><img src="/Logo.png" alt="ProInterview" /></Link>
+      <div className="mentor-workspace-nav-heading"><span className="mentor-workspace-nav-dot" />{heading}<NotificationCenter active={active} onSelect={handleNotification} /></div>
+    </>}
     <nav aria-label={label}>{mainNav.map(renderLink)}</nav>
     <nav className="mentor-workspace-nav-account" aria-label={`Tài khoản – ${label}`}>{secondaryNav.map(renderLink)}</nav>
     <WorkspaceThemeSwitch />
