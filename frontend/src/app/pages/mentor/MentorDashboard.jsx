@@ -10,13 +10,11 @@ import {
   BarChart3 as ChartBar,
   CalendarClock,
   Landmark,
-  BadgeCheck as SealCheck,
   Target,
   Zap as Lightning,
   Wallet,
   Users,
   Quote,
-  User,
   FileBadge,
   Video,
 } from "lucide-react";
@@ -492,7 +490,6 @@ export function MentorDashboard() {
   };
 
   const displayName = getDisplayName(user, "Mentor");
-  const mentorAvatar = avatarSrc(user?.avatar) || "";
   const featuredReview = pickFeaturedTestimonial(mentorBookings);
   const monthHint =
     stats.thisMonthSessions > 0
@@ -529,9 +526,6 @@ export function MentorDashboard() {
                 {displayName}
               </span>
             </h1>
-            <p className="mt-3 text-sm leading-relaxed text-slate-300 sm:text-base">
-              Quản lý buổi phỏng vấn 1:1, điều phối lịch rảnh và theo dõi tiến độ thu nhập thực tế trong tháng.
-            </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <motion.button
@@ -557,51 +551,6 @@ export function MentorDashboard() {
             </div>
           </div>
 
-          {/* Right Side: Mentor ID Badge Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-            className="shrink-0"
-          >
-            <div className="relative group rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 p-4 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.4)] flex items-center gap-4">
-              <div className="relative shrink-0">
-                <div className="h-16 w-16 overflow-hidden rounded-2xl border border-white/15 bg-black/40 shadow-inner">
-                  {mentorAvatar ? (
-                    <img
-                      src={mentorAvatar}
-                      alt={displayName}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-slate-400">
-                      <User size={28} />
-                    </div>
-                  )}
-                </div>
-                {user?.role === "mentor" && (
-                  <div
-                    title="Mentor đã xác minh"
-                    className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#93f72b] text-slate-950 shadow-md ring-2 ring-[#120a20]"
-                  >
-                    <SealCheck size={13} strokeWidth={3} />
-                  </div>
-                )}
-              </div>
-              <div className="min-w-0 pr-3">
-                <p className="truncate text-sm font-bold text-white">{displayName}</p>
-                <p className="text-xs text-violet-300 font-medium">Chuyên gia Phỏng vấn</p>
-                <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-[#93f72b]">
-                  <span className="flex items-center gap-1">
-                    <Star size={12} className="fill-current" />
-                    5.0
-                  </span>
-                  <span className="text-slate-600">·</span>
-                  <span className="text-slate-400 font-medium">{stats.totalSessions} buổi</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
         </motion.header>
 
         {/* Stats Grid — 3 Bento KPI Cards */}
