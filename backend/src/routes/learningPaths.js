@@ -4,6 +4,8 @@
  * LP-10: ứng viên thanh toán trọn gói bằng chuyển khoản (checkout, submit-transfer); SePay xác nhận qua
  * `POST /api/payments/webhook/sepay`, trạng thái poll qua `GET /api/payments/transfer-status?orderRef=PI…`.
  * LP-12: ứng viên đặt lịch từng buổi (`POST /:id/sessions/:sid/schedule`), buổi sau chỉ mở khi buổi trước đạt.
+ * LP-13: mentor ghi kết quả buổi (`PATCH /:id/sessions/:sid/outcome`) và đề xuất buổi bổ sung có phí
+ * (`POST /:id/sessions/:sid/supplementary`).
  * Quyền: mentee (customer) hoặc Mentor đã duyệt — dùng chung `requestActor` với /api/mentorship-requests.
  */
 import { Router } from "express";
@@ -78,4 +80,16 @@ learningPathsRouter.patch("/:id/submit-transfer", mutationLimit, asyncHandler(as
 learningPathsRouter.post("/:id/sessions/:sid/schedule", mutationLimit, asyncHandler(async (req, res) => {
   const { learningPath, booking } = await sessionsService.scheduleLearningPathSession(req.pathActor, req.params.id, req.params.sid, req.body);
   res.status(201).json({ success: true, learningPath, booking });
+}));
+
+// LP-13: mentor ghi kết quả buổi (đạt / chưa đạt + feedback theo LP-01) sau khi booking của buổi `completed`.
+learningPathsRouter.patch("/:id/sessions/:sid/outcome", mutationLimit, asyncHandler(async (req, res) => {
+  const { learningPath, nextStep, suggestedOutcome } = await sessionsService.recordLearningPathSessionOutcome(req.pathActor, req.params.id, req.params.sid, req.body);
+  res.json({ success: true, learningPath, nextStep, suggestedOutcome });
+}));
+
+// LP-13 (quyết định 2): buổi học lại vẫn chưa đạt → mentor đề xuất buổi bổ sung có phí (chờ thanh toán).
+learningPathsRouter.post("/:id/sessions/:sid/supplementary", mutationLimit, asyncHandler(async (req, res) => {
+  const { learningPath } = await sessionsService.proposeSupplementarySession(req.pathActor, req.params.id, req.params.sid, req.body);
+  res.status(201).json({ success: true, learningPath });
 }));

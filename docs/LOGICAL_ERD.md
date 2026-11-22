@@ -245,13 +245,15 @@ erDiagram
         array objectives
         array shrmKeys "key SHRM/DDI (LP-01)"
         int shareAmount "VND; học lại miễn phí = 0"
-        enum status "planned|scheduled|done|cancelled"
+        enum status "planned|pending_payment|scheduled|done|cancelled"
         ObjectId bookingId FK,UK "→ BOOKING"
         int attempt "1 = lần đầu"
         ObjectId retakeOf FK "→ LEARNING_PATH_SESSION"
         enum outcome "passed|not_passed|null"
-        object feedback "summary, strengths[], improvements[]"
+        object feedback "summary, strengths[], improvements[], scores[] {shrmKey, score 0–5|null, note}, frameworkVersion, suggestedOutcome (LP-13)"
         date doneAt
+        string supplementaryNote "buổi bổ sung có phí (LP-13)"
+        date proposedAt
     }
 ```
 

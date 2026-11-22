@@ -303,6 +303,8 @@ Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJo
 | ✅ | POST | `/api/learning-paths/:id/checkout` | `[AUTH]` mentee — mã CK `PI…` trọn gói, Payment `learning_path` pending (LP-10) |
 | ✅ | PATCH | `/api/learning-paths/:id/submit-transfer` | `[AUTH]` mentee — báo đã chuyển khoản (LP-10) |
 | ✅ | POST | `/api/learning-paths/:id/sessions/:sid/schedule` | `[AUTH]` mentee — đặt lịch buổi đang mở (buổi trước `passed`), tạo Booking lộ trình (LP-12) |
+| ✅ | PATCH | `/api/learning-paths/:id/sessions/:sid/outcome` | `[AUTH][MENTOR]` ghi đạt / chưa đạt + feedback theo LP-01; chưa đạt lần đầu tạo buổi học lại 0đ; buổi cuối đạt → lộ trình `completed` (LP-13) |
+| ✅ | POST | `/api/learning-paths/:id/sessions/:sid/supplementary` | `[AUTH][MENTOR]` đề xuất buổi bổ sung có phí sau khi buổi học lại vẫn chưa đạt (`pending_payment`, LP-13) |
 | ✅ | GET | `/api/admin/payments/learning-path-transfers` | `[AUTH][ADMIN]` đối soát CK lộ trình: chờ / hết hạn / đã nhận (LP-11) |
 | ✅ | PATCH | `/api/admin/payments/:id/confirm-learning-path-transfer` | `[AUTH][ADMIN]` xác nhận tay; tiền đến muộn sau khi mã hết hạn → xác nhận ngoại lệ (LP-11) |
 
