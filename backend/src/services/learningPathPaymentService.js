@@ -62,9 +62,9 @@ function paymentDTO(payment) {
  * Ứng viên bấm thanh toán: pending_payment → tạo (hoặc trả lại) giao dịch CK trọn gói `totalAmount`.
  * - Giao dịch còn hạn: trả lại đúng mã PI cũ, không gia hạn (QR ứng viên đang mở vẫn đúng).
  * - Chưa có / đã hết hạn: sinh mã PI mới. Mã ghi vào `LearningPath.paymentRef` bằng compare-and-set,
- *   nên hai lần bấm cùng lúc chỉ một lần sinh mã (lần kia nhận 409 rồi tải lại).
+ *   nên hai lần bấm cùng lúc chỉ một lần sinh mã; lần còn lại hoàn tất / trả lại đúng mã đó.
  */
-export async function checkoutLearningPath(actor, pathId) {
+export async function checkoutLearningPath(actor, pathId, _retry = 0) {
   const path = await loadPathForCandidate(actor, pathId);
   if (PAID_PATH_STATUSES.includes(path.status)) throw httpError(409, "Lộ trình đã được thanh toán.");
   if (path.status !== "pending_payment") {
@@ -91,20 +91,35 @@ export async function checkoutLearningPath(actor, pathId) {
     }
   }
 
-  const orderRef = generatePiOrderRef();
-  const claimed = await LearningPath.updateOne(
-    { _id: path._id, status: "pending_payment", paymentRef: path.paymentRef },
-    { $set: { paymentRef: orderRef } },
-  );
-  if (claimed.modifiedCount === 0) {
-    throw httpError(409, "Đang tạo giao dịch thanh toán. Vui lòng tải lại trang.");
+  // Mã đang dùng: `LearningPath.paymentRef` là nguồn sự thật. Lộ trình đã có mã mà Payment chưa mang mã đó
+  // (chưa có Payment, hoặc Payment còn mã cũ) nghĩa là một lần checkout khác đã giành mã nhưng chưa ghi xong
+  // (bấm 2 lần, hoặc lần trước lỗi giữa chừng) → hoàn tất bằng đúng mã đó, không sinh mã mới.
+  // Chỉ sinh mã mới khi lộ trình chưa có mã, hoặc mã hiện tại thuộc giao dịch đã hết hạn / bị hủy.
+  const inFlight = Boolean(path.paymentRef) && (!payment || payment.providerRef !== path.paymentRef);
+  let orderRef = path.paymentRef;
+  if (!inFlight) {
+    orderRef = generatePiOrderRef();
+    const claimed = await LearningPath.updateOne(
+      { _id: path._id, status: "pending_payment", paymentRef: path.paymentRef },
+      { $set: { paymentRef: orderRef } },
+    );
+    if (claimed.modifiedCount === 0) {
+      // Lần bấm khác vừa giành mã trước: đọc lại và trả đúng giao dịch của lần đó (thử lại tối đa 2 lần).
+      if (_retry >= 2) throw httpError(409, "Đang tạo giao dịch thanh toán. Vui lòng tải lại trang.");
+      return checkoutLearningPath(actor, pathId, _retry + 1);
+    }
   }
   const paymentExpiresAt = newPaymentExpiresAt();
 
   if (payment) {
-    // Mở lại giao dịch đã hết hạn (hoặc lệch mã) bằng mã PI mới; điều kiện status chặn đè giao dịch đã xác nhận.
-    const reopened = await Payment.findOneAndUpdate(
-      { _id: payment._id, status: { $in: ["pending", "cancelled", "failed"] } },
+    // Mở lại giao dịch đã hết hạn (hoặc còn mã cũ) bằng mã đang dùng. Bỏ qua nếu một lần gọi song song đã mở
+    // lại bằng đúng mã này (giữ nguyên hạn của QR đã trả cho lần đó); điều kiện status chặn đè giao dịch đã xác nhận.
+    await Payment.updateOne(
+      {
+        _id: payment._id,
+        status: { $in: ["pending", "cancelled", "failed"] },
+        $or: [{ providerRef: { $ne: orderRef } }, { status: { $ne: "pending" } }],
+      },
       {
         $set: {
           status: "pending",
@@ -116,11 +131,10 @@ export async function checkoutLearningPath(actor, pathId) {
         },
         $unset: { failureReason: "" },
       },
-      { returnDocument: "after" },
     );
-    if (!reopened) throw httpError(409, "Giao dịch vừa thay đổi trạng thái. Vui lòng tải lại trang.");
-    payment = reopened;
   } else {
+    // Hai lần gọi cùng tạo: unique {provider, type, referenceId} chỉ cho 1 bản ghi, lần còn lại nhận lại bản ghi đó
+    // (cùng mã nên `recordTransferPending` không đổi providerRef).
     const ledger = await recordTransferPending({
       userId: path.candidateId,
       type: LEARNING_PATH_PAYMENT_TYPE,
@@ -131,10 +145,10 @@ export async function checkoutLearningPath(actor, pathId) {
       paymentExpiresAt,
     });
     if (!ledger.ok) throw httpError(500, ledger.error || "Không tạo được giao dịch chuyển khoản.");
-    payment = await Payment.findOne(ledgerFilter(path._id));
-    if (!payment || payment.providerRef !== orderRef) {
-      throw httpError(409, "Đang tạo giao dịch thanh toán. Vui lòng tải lại trang.");
-    }
+  }
+  payment = await Payment.findOne(ledgerFilter(path._id));
+  if (!payment || payment.status !== "pending" || payment.providerRef !== orderRef) {
+    throw httpError(409, "Giao dịch vừa thay đổi trạng thái. Vui lòng tải lại trang.");
   }
 
   const fresh = await LearningPath.findById(path._id).lean();
