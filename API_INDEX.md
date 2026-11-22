@@ -423,10 +423,10 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/bookings/mentor/:id/session-capture` | Bearer + Mentor | Lưu ảnh/chụp phiên |
 | GET | `/api/bookings/mentor/:id` | Bearer + Mentor | Chi tiết booking phía mentor |
 | GET | `/api/bookings/mentor/:id/booked-slots` | — / Mentor | Slot đã đặt |
-| PATCH | `/api/bookings/mentor/:id/reschedule` | Bearer + Mentor | Dời lịch (mentor) |
+| PATCH | `/api/bookings/mentor/:id/reschedule` | Bearer + Mentor | Dời lịch (mentor). 409 nếu mentee có buổi khác chồng giờ mới (xem C.3 "Chặn ứng viên trùng giờ") |
 | PATCH | `/api/bookings/mentor/:id/cancel` | Bearer + Mentor | Hủy (mentor) |
 | PATCH | `/api/bookings/:id/refund-destination` | Bearer | Cập nhật tài khoản hoàn tiền |
-| PATCH | `/api/bookings/:id/mentor-cancel-resolution` | Bearer | Xử lý hủy từ mentor |
+| PATCH | `/api/bookings/:id/mentor-cancel-resolution` | Bearer | Xử lý hủy từ mentor. Chọn `reschedule` mà giờ mới chồng buổi khác của mình → 409, lựa chọn chưa được ghi |
 | POST | `/api/bookings/:id/report-no-show` | Bearer | Báo no-show |
 | GET | `/api/bookings/:id/rebook-credit` | Bearer | Credit đặt lại |
 | POST | `/api/bookings/:id/mentor-knowledge` | Bearer + Mentor | Ghi chú kiến thức sau buổi |
@@ -508,7 +508,7 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 | POST | `/api/mentorship-requests/:id/offers` | Mentor | Gửi đề nghị (`message`, `availability`) |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/select` | Mentee | `open → selected` |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/withdraw` | Mentor | Rút đề nghị |
-| POST | **`/api/mentorship-requests/:id/accept-assessment`** | Mentor được chọn | **LP-05.** Body `{ date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?: 30–120 (mặc định 60), note? }`. Tạo Booking `sessionType: "assessment"` (mọi field tiền 0, `paid`, `confirmed`), request `selected\|assessing → assessing`, thông báo `booking_confirmed` cho mentee. **201** `{ success, request }`. Lỗi: 400 sai định dạng / giờ đã qua; 403 không phải Mentor được chọn; 409 đang có buổi 0đ chưa diễn ra, buổi 0đ đã hoàn thành, đã `path_proposed`, hoặc trùng khung giờ. Hẹn lại được khi buổi trước `cancelled`/`no_show` |
+| POST | **`/api/mentorship-requests/:id/accept-assessment`** | Mentor được chọn | **LP-05.** Body `{ date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?: 30–120 (mặc định 60), note? }`. Tạo Booking `sessionType: "assessment"` (mọi field tiền 0, `paid`, `confirmed`), request `selected\|assessing → assessing`, thông báo `booking_confirmed` cho mentee. **201** `{ success, request }`. Lỗi: 400 sai định dạng / giờ đã qua; 403 không phải Mentor được chọn; 409 đang có buổi 0đ chưa diễn ra, buổi 0đ đã hoàn thành, đã `path_proposed`, trùng khung giờ của mentor, hoặc mentee đã có buổi khác chồng giờ (thông báo không lộ lịch của mentee). Hẹn lại được khi buổi trước `cancelled`/`no_show` |
 | POST | `/api/mentorship-requests/:id/close` | Mentee | `open → closed` |
 | GET | `/api/mentorship-requests/:id/files/:kind` | Mentee / Mentor được chọn | Tải CV/JD (`kind` = `cv` \| `jd`) |
 
@@ -516,11 +516,11 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 
 ### A.17. Module Lộ trình học — `/api/learning-paths`
 
-**File:** `backend/src/routes/learningPaths.js` · **Service:** `learningPathsService.js`, `learningPathPaymentService.js` (LP-10) · **Model:** `LearningPath`, `LearningPathSession`, `Payment` (`type: learning_path`)
+**File:** `backend/src/routes/learningPaths.js` · **Service:** `learningPathsService.js`, `learningPathPaymentService.js` (LP-10), `learningPathSessionsService.js` (LP-12) · **Model:** `LearningPath`, `LearningPathSession`, `Payment` (`type: learning_path`)
 
 Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (dùng chung `requestActor` với A.16). Response `{ success, learningPath }` hoặc `{ success, learningPaths }`.
 
-**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, jobPost (tóm tắt job, quyết định 5: `requiredCompetencies` làm khung chọn `shrmKeys`) | null, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, acceptedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf }`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
+**DTO `learningPath`:** `id, candidateId, mentorId, mentorshipRequestId, jobPostId, jobPost (tóm tắt job, quyết định 5: `requiredCompetencies` làm khung chọn `shrmKeys`) | null, assessmentBookingId, goal, status, version, revisionNote, totalAmount, platformFeeRate, proposedAt, acceptedAt, createdAt, updatedAt, candidate { name }, request { title, position, description, sessionType, cvName, jdName } | null, assessment { bookingId, status, date, timeSlot, durationMinutes } | null, sessions[] { id, order, attempt, title, objectives[], shrmKeys[], shareAmount, status, outcome, bookingId, retakeOf, canSchedule, booking { id, status, date, timeSlot, durationMinutes } | null }`. `canSchedule` (LP-12) là `true` ở đúng một buổi khi lộ trình `active` và mọi buổi trước đã `passed`. `candidate`, `request`, `assessment` thêm ở LP-20 để Mentor xem hồ sơ mentee khi soạn.
 
 | Method | Path | Ai | Ghi chú |
 |:-------|:-----|:---|:--------|
@@ -532,13 +532,14 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 | POST | `/api/learning-paths/:id/accept` | Mentee của lộ trình | **LP-08.** Body `{ version? }`. `proposed → pending_payment`, ghi `acceptedAt`. Gửi `version` đang xem thì 409 nếu mentor đã gửi phiên bản khác. 409 khi không ở `proposed`; mentor gọi → 403; bản nháp / lộ trình của người khác → 404. Thông báo `learning_path_accepted` cho mentor |
 | POST | `/api/learning-paths/:id/request-revision` | Mentee của lộ trình | **LP-08.** Body `{ note }` (5–2000 ký tự, bắt buộc). `proposed → revision_requested`, lưu `revisionNote`. Mentor sửa (`PATCH`) rồi gửi lại (`propose`) → `version + 1`. Thông báo `learning_path_revision_requested` cho mentor |
 | POST | `/api/learning-paths/:id/checkout` | Mentee của lộ trình | **LP-10.** Chỉ khi `pending_payment` (khác → 409; đã `active`/`completed` → 409 "đã thanh toán"). Trả `{ success, learningPath, payment }`. Tạo Payment `type: learning_path`, `provider: transfer`, `amount = totalAmount`, `providerRef` = mã `PI` + 12 số (`generatePiOrderRef`), hết hạn sau `TRANSFER_PAYMENT_TIMEOUT_MINUTES` (mặc định 15). Gọi lại khi mã còn hạn → trả **đúng mã cũ, không gia hạn**; mã đã hết hạn → mã mới trên cùng bản ghi Payment. Hai lần bấm cùng lúc: một lần nhận 409 |
+| POST | `/api/learning-paths/:id/sessions/:sid/schedule` | Mentee của lộ trình | **LP-12.** Body `{ date (DD/MM/YYYY), timeSlot (HH:mm), durationMinutes? (30–120, mặc định 60), note? (≤ 1000) }`. **201** `{ success, learningPath, booking { id, status, date, timeSlot, durationMinutes, learningPathSessionId } }`. Buổi `planned → scheduled`, tạo Booking `confirmed` gắn `learningPathId` + `learningPathSessionId` (**không** gắn `mentorshipRequestId`), tiền ghi sẵn theo LP-04 (`price = totalAmount = shareAmount`, `platformFee = round(shareAmount × platformFeeRate)`, `paid`, `paymentMethod: learning_path`; buổi học lại = 0). Chỉ đặt được buổi đang mở: lộ trình `active`, đi theo `order`, mỗi `order` xét lần học mới nhất; buổi trước chưa `passed` (đang `scheduled` hoặc `not_passed`) → **409**. Khung giờ: tương lai, trong lịch mentor mở (cùng quy tắc `POST /api/bookings`), mentor chưa có lịch trùng (đơn CK hết hạn đang giữ giờ được giải phóng), mentee không có buổi khác chồng giờ (kể cả với mentor khác) → 400/409. Bấm 2 lần cùng lúc chỉ tạo 1 booking. Mentor gọi → 403; lộ trình / buổi của người khác → 404. Thông báo `booking_confirmed` cho mentor. Hủy buổi qua `DELETE /api/bookings/:id` (LP-22) → buổi về `planned`, đặt lại được |
 | PATCH | `/api/learning-paths/:id/submit-transfer` | Mentee của lộ trình | **LP-10.** Ứng viên báo "Tôi đã chuyển khoản": ghi `Payment.providerResponse.submittedAt` (giúp admin đối soát tay, LP-11). 404 chưa checkout; 409 mã đã hết hạn hoặc lộ trình không còn chờ thanh toán. Trả `{ success, learningPath, payment }` |
 
 **DTO `payment` (LP-10):** `paymentId, orderRef, amount, status (pending | submitted | paid | expired), submittedAt, paymentExpiresAt, expiresInMs, timeoutMinutes`. FE hiện QR theo `orderRef` + `amount` như checkout giỏ hàng, rồi poll `GET /api/payments/transfer-status?orderRef=…` (trả `entityType: "learning_path"`, `entityId` = id lộ trình, `redirectTo: /learning-paths/:id` khi `paid`).
 
 **Xác nhận tiền lộ trình (LP-10):** SePay webhook khớp mã `PI…` của Payment `learning_path` đang chờ và **đúng** `totalAmount` → `confirmLearningPathTransfer`: Payment `success`, lộ trình `pending_payment → active` (`paidAt`), thông báo `learning_path_paid` cho mentee và mentor. Sai tiền / mã hết hạn / mã cũ → `SepayWebhookEvent.status = unmatched`, lộ trình giữ nguyên. Webhook trùng `id` → idempotent. Tài khoản ứng viên ngừng hoạt động → `held_inactive_account`, không kích hoạt. Admin xác nhận tay (LP-11): A.10 `/api/admin/payments/learning-path-transfers`, `/api/admin/payments/:id/confirm-learning-path-transfer`.
 
-Sắp có: `sessions/:sid/schedule` (LP-12), `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
+Sắp có: `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
 
 ---
 
@@ -709,6 +710,8 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | `durationMinutes` | | Mặc định 60 |
 | `meetingLink`, `orderNum`, `paymentMethod` | | Checkout mock: `paymentStatus: "paid"` → `status: confirmed` |
 | `timezone` | | Mặc định `Asia/Ho_Chi_Minh` |
+
+**Chặn ứng viên trùng giờ** (`services/bookingConflictService.js`): ứng viên không được có 2 buổi chồng khoảng `[giờ bắt đầu, + durationMinutes)`, **kể cả với 2 mentor khác nhau**; buổi nối tiếp (19:00–20:00 rồi 20:00) vẫn được. Tính mọi booking của ứng viên đang `pending` / `confirmed` / `in_progress`, trừ đơn CK đã quá hạn. Áp dụng cho `POST /api/bookings`, `PATCH /api/bookings/mentor/:id/reschedule`, `PATCH /api/bookings/:id/mentor-cancel-resolution` (chọn `reschedule`), `POST /api/mentorship-requests/:id/accept-assessment` và `POST /api/learning-paths/:id/sessions/:sid/schedule`. Bị chặn → **409**: ứng viên thấy giờ của buổi đang trùng; mentor (dời lịch, hẹn buổi 0đ) chỉ thấy "Mentee đã có lịch hẹn khác trùng khung giờ này", không lộ lịch của mentee với mentor khác. Đặt lại đúng slot của mình khi tải lại trang checkout không bị coi là trùng.
 
 | Method | Path |
 |:-------|:-----|

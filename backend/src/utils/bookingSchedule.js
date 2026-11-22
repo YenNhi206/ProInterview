@@ -65,3 +65,25 @@ export function isBookingPastAutoCompleteGrace(booking, { graceMinutesAfterEnd =
   const cutoff = parseBookingEndMs(booking, { graceMinutesAfterEnd });
   return Number.isFinite(cutoff) && Date.now() >= cutoff;
 }
+
+/**
+ * Khoảng thời gian [start, end) của một buổi (ms). `durationMinutes` thiếu thì coi 60 phút.
+ * @returns {{ start: number, end: number } | null}
+ */
+export function bookingIntervalMs(booking) {
+  const start = parseBookingStartMs(booking?.date, booking?.timeSlot);
+  if (!Number.isFinite(start)) return null;
+  const minutes = Number(booking?.durationMinutes) > 0 ? Number(booking.durationMinutes) : 60;
+  return { start, end: start + minutes * 60 * 1000 };
+}
+
+/**
+ * Hai buổi có chồng giờ không. Buổi kết thúc đúng lúc buổi kia bắt đầu (19:00–20:00 và 20:00) không tính là trùng.
+ * Buổi không đọc được ngày giờ thì không coi là trùng.
+ */
+export function bookingsOverlap(a, b) {
+  const x = bookingIntervalMs(a);
+  const y = bookingIntervalMs(b);
+  if (!x || !y) return false;
+  return x.start < y.end && y.start < x.end;
+}
