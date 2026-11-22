@@ -248,3 +248,15 @@
 /* Đốm màu blur trang trí trong trang (vd. hero Bảng điều khiển) bị cắt ở mép trên vùng nội dung
    thành đường tách nền; nền chung đã có vầng sáng nên ẩn đi ở mọi chế độ. */
 .mentor-workspace .mentor-workspace-main .pointer-events-none:is([class*="blur-["], .blur-3xl, .blur-2xl) { display:none; }
+
+/* Bo góc thống nhất trong khu workspace. index.css đặt --radius-xl: 3rem / --radius-lg: 2rem cho toàn site,
+   nên rounded-xl (48px) lại tròn hơn rounded-2xl (16px): thẻ trang này bo như viên thuốc, trang kia vuông.
+   Chỉ đặt lại trong workspace (cả dialog qua portal) để không đụng trang ứng viên. */
+.mentor-workspace,
+:root:has(.mentor-workspace) [data-radix-popper-content-wrapper],
+:root:has(.mentor-workspace) [role="dialog"] {
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
+}
