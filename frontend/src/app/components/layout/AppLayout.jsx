@@ -137,7 +137,7 @@ export function AppLayout() {
   if (isMentor || isCompany || isModerator) {
     const nav = isMentor ? <MentorWorkspaceNav /> : isCompany ? <CompanyWorkspaceNav /> : <ModeratorWorkspaceNav />;
     return (
-      <WorkspaceShell nav={nav}>
+      <WorkspaceShell nav={nav} themeable={isMentor}>
         <Outlet />
       </WorkspaceShell>
     );
