@@ -243,9 +243,9 @@ ensureCollection("payments", {
   required: ["userId", "type", "referenceId", "amount", "provider"],
   properties: {
     userId: oid,
-    type: en("booking", "subscription", "course"),
+    type: en("booking", "subscription", "course", "learning_path"),
     referenceId: oid,
-    referenceModel: en("Booking", "Subscription", "Enrollment"),
+    referenceModel: en("Booking", "Subscription", "Enrollment", "LearningPath"),
     amount: num,
     provider: en("momo", "zalopay", "vnpay", "card", "transfer"),
     status: en("pending", "success", "failed", "refund_pending", "refunded", "partial_refund", "cancelled", "held_inactive_account"),

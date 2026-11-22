@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { Star, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ExternalLink, ChevronLeft, ChevronRight, User, BookOpen } from "lucide-react";
 import { AdminFilterSelect, AdminListFilterBar } from "../../components/admin/AdminListFilters.jsx";
 import {
   AdminPageToolbar,
@@ -165,17 +165,32 @@ export function AdminReviews() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={adminStatGrid3}>
-        <div className="rounded-2xl border border-violet-200 bg-violet-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-violet-900">Tổng</p>
-          <p className="mt-1 text-2xl font-black text-violet-950">{counts.total ?? 0}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Tổng đánh giá</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{counts.total ?? 0}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-violet-400">
+            <Star size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Cố vấn</p>
-          <p className="mt-1 text-2xl font-black text-emerald-950">{counts.mentor ?? 0}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Cố vấn</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{counts.mentor ?? 0}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-emerald-400">
+            <User size={24} strokeWidth={2.2} />
+          </div>
         </div>
-        <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-sky-900">Khóa học</p>
-          <p className="mt-1 text-2xl font-black text-sky-950">{counts.course ?? 0}</p>
+        <div className="glass-card flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-xl backdrop-blur-md transition-all hover:border-violet-500/30">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Khóa học</p>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">{counts.course ?? 0}</h3>
+          </div>
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-sky-400">
+            <BookOpen size={24} strokeWidth={2.2} />
+          </div>
         </div>
       </motion.div>
 
@@ -217,32 +232,35 @@ export function AdminReviews() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className={`${adminTdCell} text-center text-slate-500`}>
-                    Đang tải…
+                  <td colSpan={7} className={`${adminTdCell} py-16 text-center text-slate-400`}>
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải đánh giá…</span>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className={`${adminTdCell} text-center text-slate-500`}>
-                    —
+                  <td colSpan={7} className={`${adminTdCell} py-16 text-center text-slate-400 italic`}>
+                    Chưa có đánh giá nào phù hợp.
                   </td>
                 </tr>
               ) : (
                 filtered.map((r) => (
                   <tr
                     key={r._id}
-                    className={`border-b border-slate-100 last:border-0 ${!r.isVisible ? "bg-slate-50/80 opacity-75" : ""}`}
+                    className={`group transition-all duration-200 border-b border-white/[0.06] last:border-0 ${!r.isVisible ? "opacity-60" : ""}`}
                   >
                     <td className={adminTdCell}>
                       <Stars rating={r.rating} />
                     </td>
                     <td className={adminTdCell}>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         {TARGET_LABELS[r.targetType] || r.targetType}
                       </span>
                     </td>
                     <td className={adminTdCell}>
-                      <p className="font-semibold text-slate-900">{r.targetLabel}</p>
+                      <p className="font-semibold text-white transition-colors duration-200 group-hover:text-violet-200">{r.targetLabel}</p>
                       {r.targetId ? (
                         <Link
                           to={
@@ -250,38 +268,38 @@ export function AdminReviews() {
                               ? `/admin/mentors/${r.targetId}`
                               : `/courses/${r.targetId}?adminPreview=1`
                           }
-                          className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-violet-700 hover:text-violet-900"
+                          className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-violet-400 hover:text-violet-300"
                         >
                           Xem <ExternalLink className="h-3 w-3" />
                         </Link>
                       ) : null}
                     </td>
                     <td className={adminTdCell}>
-                      <p className="font-medium text-slate-900">{r.userName || "—"}</p>
+                      <p className="font-semibold text-white">{r.userName || "—"}</p>
                       {r.userEmail ? (
-                        <p className="text-xs text-slate-500">{r.userEmail}</p>
+                        <p className="text-xs text-slate-400">{r.userEmail}</p>
                       ) : null}
                     </td>
                     <td className={`${adminTdCell} max-w-xs`}>
-                      <p className="line-clamp-2 text-slate-700">{r.comment || "—"}</p>
+                      <p className="line-clamp-2 text-slate-200">{r.comment || "—"}</p>
                       {r.hasReply ? (
-                        <p className="mt-1 text-[10px] font-bold uppercase text-violet-700">Đã phản hồi</p>
+                        <p className="mt-1 text-[10px] font-bold uppercase text-violet-400">Đã phản hồi</p>
                       ) : null}
                       {r.isVerified ? (
-                        <p className="mt-1 text-[10px] font-bold uppercase text-emerald-700">Đã xác minh</p>
+                        <p className="mt-1 text-[10px] font-bold uppercase text-emerald-400">Đã xác minh</p>
                       ) : null}
                     </td>
-                    <td className={`${adminTdCell} text-slate-600`}>{formatDate(r.createdAt)}</td>
+                    <td className={`${adminTdCell} text-slate-400`}>{formatDate(r.createdAt)}</td>
                     <td className={adminTdCell}>
                       <button
                         type="button"
+                        data-button-surface="none"
                         disabled={busyId === r._id}
                         onClick={() => void toggleVisibility(r)}
-                        className={`rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider disabled:opacity-50 ${
-                          r.isVisible
-                            ? "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100"
-                            : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                        }`}
+                        className={`inline-flex items-center justify-center rounded-xl border px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-all disabled:opacity-50 ${r.isVisible
+                          ? "border-amber-400/50 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 hover:border-amber-400"
+                          : "border-emerald-400/50 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-400"
+                          }`}
                       >
                         {busyId === r._id ? "…" : r.isVisible ? "Ẩn" : "Hiện"}
                       </button>

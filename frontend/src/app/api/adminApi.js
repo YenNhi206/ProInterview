@@ -117,6 +117,15 @@ export const adminApi = {
       method: "PATCH",
       body: JSON.stringify(body ?? {}),
     }),
+  /** LP-11: chuyển khoản lộ trình — status: pending | expired | paid. */
+  getLearningPathTransfers: (status = "pending") =>
+    authedFetch(`/api/admin/payments/learning-path-transfers?status=${encodeURIComponent(status)}`),
+  /** LP-11: body `{ force?, forceNote?, amount? }`; giao dịch đã hết hạn cần `force` + lý do. */
+  confirmLearningPathTransfer: (paymentId, body = {}) =>
+    authedFetch(`/api/admin/payments/${paymentId}/confirm-learning-path-transfer`, {
+      method: "PATCH",
+      body: JSON.stringify(body ?? {}),
+    }),
   getPayouts: () => authedFetch("/api/admin/payouts"),
   approvePayout: (id, note = "") =>
     authedFetch(`/api/admin/payouts/${id}/approve`, {

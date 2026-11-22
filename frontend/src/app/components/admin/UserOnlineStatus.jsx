@@ -27,8 +27,8 @@ export function UserOnlineStatus({ isOnline, lastSeenAt, isActive = true, compac
   if (isActive === false) {
     return (
       <span className="flex flex-col items-center gap-0.5">
-        <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-red-600">
-          <span className="size-2 rounded-full bg-red-500" aria-hidden />
+        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-rose-400">
+          <span className="size-2 rounded-full bg-rose-500" aria-hidden />
           Đã khóa
         </span>
       </span>
@@ -38,10 +38,10 @@ export function UserOnlineStatus({ isOnline, lastSeenAt, isActive = true, compac
   if (isOnline) {
     return (
       <span className="flex flex-col items-center gap-0.5">
-        <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
           <span className="relative flex size-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
           </span>
           Đang online
         </span>
@@ -51,12 +51,12 @@ export function UserOnlineStatus({ isOnline, lastSeenAt, isActive = true, compac
 
   return (
     <span className="flex flex-col items-center gap-0.5">
-      <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-        <span className="size-2 rounded-full bg-slate-300" aria-hidden />
+      <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <span className="size-1.5 rounded-full bg-slate-500/70" aria-hidden />
         Không online
       </span>
       {!compact && lastSeenAt ? (
-        <span className="text-[10px] font-semibold text-slate-400" title={String(lastSeenAt)}>
+        <span className="text-[10px] font-medium text-slate-500" title={String(lastSeenAt)}>
           {formatLastSeenVi(lastSeenAt)}
         </span>
       ) : null}

@@ -1,6 +1,8 @@
 /**
  * /api/learning-paths — Learning Path (capstone FA26).
  * LP-07: Mentor tạo / sửa bản nháp, gửi đề xuất. LP-08 thêm accept / request-revision cho ứng viên.
+ * LP-10: ứng viên thanh toán trọn gói bằng chuyển khoản (checkout, submit-transfer); SePay xác nhận qua
+ * `POST /api/payments/webhook/sepay`, trạng thái poll qua `GET /api/payments/transfer-status?orderRef=PI…`.
  * Quyền: mentee (customer) hoặc Mentor đã duyệt — dùng chung `requestActor` với /api/mentorship-requests.
  */
 import { Router } from "express";
@@ -9,6 +11,7 @@ import { authJwt } from "../middleware/authJwt.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { requestActor } from "../services/mentorshipRequestsService.js";
 import * as service from "../services/learningPathsService.js";
+import * as paymentService from "../services/learningPathPaymentService.js";
 
 export const learningPathsRouter = Router();
 
@@ -56,4 +59,15 @@ learningPathsRouter.post("/:id/accept", mutationLimit, asyncHandler(async (req, 
 
 learningPathsRouter.post("/:id/request-revision", mutationLimit, asyncHandler(async (req, res) => {
   res.json({ success: true, learningPath: await service.requestLearningPathRevision(req.pathActor, req.params.id, req.body) });
+}));
+
+// LP-10: thanh toán trọn gói (quyết định 1) qua đường ray chuyển khoản + SePay.
+learningPathsRouter.post("/:id/checkout", mutationLimit, asyncHandler(async (req, res) => {
+  const { learningPath, payment } = await paymentService.checkoutLearningPath(req.pathActor, req.params.id);
+  res.json({ success: true, learningPath, payment });
+}));
+
+learningPathsRouter.patch("/:id/submit-transfer", mutationLimit, asyncHandler(async (req, res) => {
+  const { learningPath, payment } = await paymentService.submitLearningPathTransfer(req.pathActor, req.params.id);
+  res.json({ success: true, learningPath, payment });
 }));

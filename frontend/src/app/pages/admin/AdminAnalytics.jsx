@@ -72,7 +72,7 @@ function KpiCard({ label, value, icon: Icon, color = "#8037f4", tint = "violet" 
           </p>
         </div>
         <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/90 shadow-sm sm:h-16 sm:w-16"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-sm sm:h-16 sm:w-16"
           style={{ color }}
         >
           <Icon size={28} strokeWidth={2.25} aria-hidden />
@@ -84,29 +84,29 @@ function KpiCard({ label, value, icon: Icon, color = "#8037f4", tint = "violet" 
 
 function MiniStat({ label, value, accent }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-4 shadow-sm">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 shadow-sm backdrop-blur-md">
       <p className={adminStatLabel}>{label}</p>
-      <p className={`${adminStatValue} mt-1 text-xl sm:text-2xl ${accent || ""}`}>{value}</p>
+      <p className={`${adminStatValue} mt-1 text-xl sm:text-2xl text-white ${accent || ""}`}>{value}</p>
     </div>
   );
 }
 
 function SectionHeader({ icon: Icon, kicker, title, desc, badge }) {
   return (
-    <div className="border-b border-slate-200/90 bg-gradient-to-r from-violet-50/80 via-white to-emerald-50/30 px-5 py-5 sm:px-7">
+    <div className="border-b border-white/10 bg-white/[0.03] px-5 py-5 sm:px-7">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-violet-100 bg-white text-violet-700 shadow-[0_4px_14px_rgba(128,55,244,0.08)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-500/10 text-violet-300 shadow-[0_4px_14px_rgba(128,55,244,0.12)]">
             <Icon className="h-5 w-5" aria-hidden />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8037f4]">{kicker}</p>
-            <h3 className="font-headline mt-0.5 text-lg font-black tracking-tight text-slate-900 sm:text-xl">{title}</h3>
-            {desc ? <p className="mt-1 text-sm font-medium leading-relaxed text-slate-600">{desc}</p> : null}
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-400">{kicker}</p>
+            <h3 className="font-headline mt-0.5 text-lg font-black tracking-tight text-white sm:text-xl">{title}</h3>
+            {desc ? <p className="mt-1 text-sm font-medium leading-relaxed text-slate-400">{desc}</p> : null}
           </div>
         </div>
         {badge ? (
-          <span className="shrink-0 rounded-full border border-violet-100 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wider text-violet-700">
+          <span className="shrink-0 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-violet-300">
             {badge}
           </span>
         ) : null}
@@ -254,17 +254,17 @@ function FunnelSummary({ funnel }) {
 
   return (
     <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
-      <div className="rounded-xl border border-slate-100 bg-white px-3 py-3 text-center sm:px-4">
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-center sm:px-4">
         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Vào app</p>
-        <p className="mt-1 text-xl font-black tabular-nums text-slate-900">{top}</p>
+        <p className="mt-1 text-xl font-black tabular-nums text-white">{top}</p>
       </div>
-      <div className="rounded-xl border border-amber-100 bg-amber-50/50 px-3 py-3 text-center sm:px-4">
-        <p className="text-[10px] font-black uppercase tracking-wider text-amber-700">Cuối funnel</p>
-        <p className="mt-1 text-xl font-black tabular-nums text-amber-900">{bottom}</p>
+      <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.08] px-3 py-3 text-center sm:px-4">
+        <p className="text-[10px] font-black uppercase tracking-wider text-amber-400">Cuối funnel</p>
+        <p className="mt-1 text-xl font-black tabular-nums text-amber-300">{bottom}</p>
       </div>
-      <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-3 text-center sm:px-4">
-        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Tỷ lệ</p>
-        <p className="mt-1 text-xl font-black tabular-nums text-emerald-800">{rate}%</p>
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-3 text-center sm:px-4">
+        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-400">Tỷ lệ</p>
+        <p className="mt-1 text-xl font-black tabular-nums text-emerald-300">{rate}%</p>
       </div>
     </div>
   );

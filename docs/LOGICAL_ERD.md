@@ -34,6 +34,7 @@ erDiagram
     USER ||--o{ PAYMENT : "trả"
     BOOKING ||--o{ PAYMENT : "type=booking"
     SUBSCRIPTION ||--o{ PAYMENT : "type=subscription"
+    LEARNING_PATH ||--o| PAYMENT : "type=learning_path"
     MENTOR ||--o{ PAYOUT_REQUEST : "rút tiền"
     COUPON ||--o{ COUPON_USAGE : "«embedded» usedBy"
     USER ||--o{ COUPON_USAGE : "dùng"
@@ -166,9 +167,9 @@ erDiagram
     PAYMENT {
         ObjectId _id PK
         ObjectId userId FK "→ USER"
-        enum type "booking|subscription|course"
+        enum type "booking|subscription|course|learning_path"
         ObjectId referenceId FK "đa hình"
-        enum referenceModel "Booking|Subscription|Enrollment"
+        enum referenceModel "Booking|Subscription|Enrollment|LearningPath"
         number amount
         enum provider "transfer|momo|zalopay|vnpay|card"
         string providerRef UK
@@ -641,7 +642,7 @@ erDiagram
         number transferAmount
         string orderRef
         enum status "received|processed|ignored|unmatched|failed|held_inactive_account"
-        string entityType
+        enum entityType "cart|booking|booking_group|course|subscription|learning_path (rỗng khi chưa khớp)"
         string entityId
     }
     ACHIEVEMENT {
@@ -654,7 +655,7 @@ erDiagram
     }
 ```
 
-`SEPAY_WEBHOOK_EVENT` và `ACHIEVEMENT` không có khóa ngoại cứng: webhook khớp đối tượng qua `orderRef` → `Booking.paymentRef` / `Enrollment.paymentRef` / `CartOrder.orderRef`, rồi ghi lại `entityType` + `entityId`.
+`SEPAY_WEBHOOK_EVENT` và `ACHIEVEMENT` không có khóa ngoại cứng: webhook khớp đối tượng qua `orderRef` → `Booking.paymentRef` / `Enrollment.paymentRef` / `CartOrder.orderRef` / `Payment.providerRef` (gói Pro, lộ trình), rồi ghi lại `entityType` + `entityId`. Lộ trình (LP-10): `Payment.providerRef` phải trùng `LearningPath.paymentRef` và lộ trình còn `pending_payment`; `entityId` là id lộ trình.
 
 ---
 

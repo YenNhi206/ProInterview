@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import mongoose from "mongoose";
 import { Cart } from "../models/Cart.js";
 import { CartOrder } from "../models/CartOrder.js";
@@ -11,6 +10,7 @@ import { resolvePlanPerkDiscountRate } from "../constants/planCatalog.js";
 import { resolveCoursePlatformFeeRate } from "./mentorCommissionService.js";
 import { validateCoupon } from "./couponService.js";
 import { newPaymentExpiresAt } from "../utils/transferPaymentExpiry.js";
+import { generatePiOrderRef } from "../utils/orderRef.js";
 import { expireEnrollmentTransferIfNeeded } from "./transferPaymentExpiryService.js";
 import { confirmEnrollmentTransferByAdmin, recordTransferPending } from "./paymentsService.js";
 import { tryCreditMentorForPaidEnrollment } from "./mentorEarningsService.js";
@@ -198,7 +198,7 @@ export async function checkoutCart(userId, { couponCode = "" } = {}) {
   let order;
   try {
     order = await CartOrder.create({ userId, items, couponCode: normalizedCoupon,
-      orderRef: `PI${crypto.randomInt(100_000_000_000, 999_999_999_999)}`,
+      orderRef: generatePiOrderRef(),
       totalAmount: items.reduce((sum, i) => sum + i.price, 0), paymentExpiresAt: newPaymentExpiresAt() });
   } catch (error) {
     if (error.code === 11000) fail("Đơn hàng đang được tạo. Vui lòng thử lại sau.", 409);

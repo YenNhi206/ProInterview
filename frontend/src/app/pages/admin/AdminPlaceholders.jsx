@@ -790,8 +790,11 @@ export function AdminTransactions() {
             <tbody className="divide-y divide-slate-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className={`${TX_TD} py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500`}>
-                    Đang tải giao dịch…
+                  <td colSpan={6} className={`${TX_TD} py-20 text-center text-slate-400`}>
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải giao dịch…</span>
+                    </div>
                   </td>
                 </tr>
               ) : filteredRows.length === 0 ? (
@@ -1112,9 +1115,12 @@ export function AdminPayouts() {
                 <tr>
                   <td
                     colSpan={6}
-                    className={`${PAYOUT_TD} py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500`}
+                    className={`${PAYOUT_TD} py-20 text-center text-slate-400`}
                   >
-                    Đang tải yêu cầu rút tiền…
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải yêu cầu rút tiền…</span>
+                    </div>
                   </td>
                 </tr>
               ) : filteredRows.length === 0 ? (

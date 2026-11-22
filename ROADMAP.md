@@ -300,6 +300,12 @@ Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJo
 | ✅ | POST | `/api/learning-paths/:id/propose` | `[AUTH][MENTOR]` gửi đề xuất (≥ 1 buổi, có giá, buổi 0đ đã hoàn thành) |
 | ✅ | POST | `/api/learning-paths/:id/accept` | `[AUTH]` mentee — `proposed → pending_payment` (LP-08) |
 | ✅ | POST | `/api/learning-paths/:id/request-revision` | `[AUTH]` mentee — kèm ghi chú, `proposed → revision_requested` (LP-08) |
+| ✅ | POST | `/api/learning-paths/:id/checkout` | `[AUTH]` mentee — mã CK `PI…` trọn gói, Payment `learning_path` pending (LP-10) |
+| ✅ | PATCH | `/api/learning-paths/:id/submit-transfer` | `[AUTH]` mentee — báo đã chuyển khoản (LP-10) |
+| ✅ | GET | `/api/admin/payments/learning-path-transfers` | `[AUTH][ADMIN]` đối soát CK lộ trình: chờ / hết hạn / đã nhận (LP-11) |
+| ✅ | PATCH | `/api/admin/payments/:id/confirm-learning-path-transfer` | `[AUTH][ADMIN]` xác nhận tay; tiền đến muộn sau khi mã hết hạn → xác nhận ngoại lệ (LP-11) |
+
+FE (LP-11): ✅ `/admin/learning-path-payments` (sidebar admin, nhóm «Đối soát SePay»).
 
 FE (LP-20): ✅ `/mentor/learning-paths` (danh sách, lọc theo trạng thái, yêu cầu sẵn sàng soạn), ✅ `/mentor/learning-paths/new?requestId=` và `/mentor/learning-paths/:id/edit` (trình soạn: mục tiêu, giá trọn gói, thêm / sắp xếp / xóa buổi, mục tiêu buổi, năng lực SHRM, hồ sơ mentee, checklist và gửi). Lối vào từ trang `/mentor/requests/:id` và mục "Lộ trình học" trên sidebar mentor. Chi tiết: **API_INDEX.md A.17**.
 
