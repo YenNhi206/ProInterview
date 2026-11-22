@@ -27,8 +27,8 @@
 | `User` | Chỉ đổi giá trị role `enterprise` thành `company_moderator` (KHÔNG đụng giá trị gói `enterprise`); thêm `companyId`; script migrate |
 | `Booking` ✅ LP-02, LP-04 | `sessionType` thêm `assessment`; thêm `learningPathId`, `learningPathSessionId`; `paymentMethod` thêm `learning_path`; **sửa index unique `mentorshipRequestId`** (loại `assessment` và booking có `learningPathId`) kèm script drop và sync index trên DB thật. Booking lộ trình: `paymentStatus: "paid"`, `price = totalAmount = shareAmount`, `platformFee = round(shareAmount × rate)`, `vat = 0` (ghi qua `utils/learningPathBookingMoney.js`) |
 | `MentorshipRequest` ✅ LP-05 | Thêm `jobPostId`, `assessmentBookingId`; status thêm `assessing`, `path_proposed`; sửa điều kiện `status === "selected"` ở `mentorshipRequestsService.js:125`. Mở rộng router `/api/mentorship-requests` |
-| `Payment` | `type` thêm `learning_path`, `referenceModel` LearningPath |
-| `SepayWebhookEvent` | `entityType` thêm `learning_path` |
+| `Payment` ✅ LP-10 | `type` thêm `learning_path`, `referenceModel` LearningPath |
+| `SepayWebhookEvent` ✅ LP-10 | `entityType` thêm `learning_path` (thành enum `SEPAY_ENTITY_TYPES`) |
 | `Notification` ✅ N-06 | `type` thêm các loại: lộ trình, ứng tuyển, lời mời công ty, rubric, job bị ẩn, cải tiến AI (danh sách gốc: `NOTIFICATION_TYPE_GROUPS`) |
 | `CostEvent` | kind thêm `rubric_scoring`, `course_prescreen` |
 | `InterviewSession` | Thêm `jobPostId`, `companyId`, `rubricId`; mỗi answer thêm `rubricScores[]` {criterionKey, score, evidenceQuote}; `questionsAllowed` riêng cho buổi theo job (5 free / 7 Pro). `promptVersion` đã có, không thêm |
@@ -100,7 +100,7 @@ Cột "Task xử lý" ghi ✅ khi task đã merge; các bẫy đó còn giữ l�
 | `cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking` xử lý mọi booking `paid` | Hoàn tiền từng buổi lộ trình, cộng thêm khoản hoàn của lộ trình | ✅ LP-22 (PR #196) |
 | `mentorNetFromBooking` tính `totalAmount − platformFee`, không đọc `platformFeeRate` | Thiếu `platformFee` thì mentor nhận 100% | ✅ LP-04 (PR #195) · LP-14 |
 | `bookingStaleSweepJob` hủy booking `pending` chưa trả đã qua giờ | Hủy buổi lộ trình và buổi 0đ | ✅ LP-04 (PR #195) |
-| `sepayWebhookService.findPendingTargets` chỉ nhận 5 loại; `parsePiOrderFromText` chỉ nhận mã `PI…` | Tiền lộ trình về mà không ai xác nhận | LP-10 |
+| `sepayWebhookService.findPendingTargets` chỉ nhận 5 loại; `parsePiOrderFromText` chỉ nhận mã `PI…` | Tiền lộ trình về mà không ai xác nhận | ✅ LP-10 (`findPendingLearningPathTargets`, `confirmLearningPathTransfer`) |
 | `mentorshipRequestsService.js:125` chỉ cho tạo booking khi `status === "selected"` | Thêm status mới làm luồng cũ lỗi 403 | ✅ LP-05 (`REQUEST_MENTOR_CHOSEN_STATUSES`) |
 | `InterviewSession`: 3 câu baseline có `competencyId = ""`; `moderatorOverride`, `evaluationIncomplete` nằm trên `answers[i]` (không nằm trên `feedback.perQuestion[i]`); `shrmLevel` fallback `"proficient"` khi LLM trả giá trị lạ | Hồ sơ năng lực không gán được câu baseline; đọc nhầm chỗ thì bỏ sót điểm moderator; nhãn "Tốt" giả | ✅ LP-01 (`aiAnswerToLevel`) · PR-06 · AI-13 |
 | `shrmKeys` của lộ trình: LP-07 chỉ kiểm regex, LP-20 đặt danh sách tạm 12 key (6 key không có trong bộ tiêu chí) | Lưu key không tra được tên, mức, anchors; hồ sơ năng lực bỏ sót | PR #204 (`isValidCompetencyKey` + `GET /api/competencies`; script `db:migrate-lp-shrm-keys`) |

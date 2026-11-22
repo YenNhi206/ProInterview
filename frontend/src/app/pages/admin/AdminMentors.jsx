@@ -4,6 +4,7 @@ import { Users, Search, Filter, CheckCircle, XCircle, Eye, ShieldCheck, Star, Tr
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
+import { getInitials } from "../../utils/auth/auth.js";
 
 export function AdminMentors() {
   const [mentors, setMentors] = useState([]);
@@ -66,157 +67,180 @@ export function AdminMentors() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div>
-          <h2 className="font-headline mb-2 text-3xl font-black uppercase tracking-tighter text-slate-900">
-            Quản lý <span className="text-violet-700">Cố vấn</span>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-violet-400 mb-1">
+            Hệ thống Cố vấn
+          </p>
+          <h2 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Quản lý <span className="text-violet-400">Cố vấn</span>
           </h2>
-          <p className="text-sm font-medium text-slate-600">Danh sách toàn bộ cố vấn trên hệ thống ProInterview.</p>
+          <p className="text-sm font-medium text-slate-400 mt-1">Danh sách toàn bộ cố vấn trên hệ thống ProInterview.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-slate-400" />
+        <div className="flex items-center gap-3">
+          <div className="relative min-w-[240px] sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Tìm tên, email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-6 text-sm text-slate-900 outline-none transition-all focus:border-violet-400 md:w-64"
+              className="w-full rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-400 outline-none backdrop-blur-sm transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
             />
           </div>
           <button
             type="button"
-            className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900"
+            className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-slate-300 transition-all hover:bg-white/10 hover:text-white"
+            title="Bộ lọc"
           >
-            <Filter size={20} />
+            <Filter size={18} />
           </button>
         </div>
       </div>
 
-      <div className="glass-card overflow-hidden border-slate-200/90">
+      <div className="glass-card overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] shadow-2xl backdrop-blur-md">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/90">
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Cố vấn</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Chuyên môn</th>
-                <th className="px-8 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <tr className="border-b border-white/10 bg-white/[0.04]">
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">Cố vấn</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">Chuyên môn</th>
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Hồ sơ
                 </th>
-                <th className="px-8 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Trực tuyến
                 </th>
-                <th className="px-8 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Đánh giá
                 </th>
-                <th className="px-8 py-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   No-show
                 </th>
-                <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Hành động
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-white/[0.06] text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="px-8 py-20 text-center italic text-slate-500">
-                    Đang tải dữ liệu...
+                  <td colSpan="7" className="px-6 py-16 text-center text-sm text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="admin-orbital-loader" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang tải danh sách cố vấn...</span>
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-8 py-20 text-center italic text-slate-500">
+                  <td colSpan="7" className="px-6 py-16 text-center text-sm italic text-slate-400">
                     Không tìm thấy cố vấn nào.
                   </td>
                 </tr>
               ) : (
                 filtered.map((mentor) => (
-                  <tr key={mentor._id} className="group transition-colors hover:bg-violet-50/40">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={mentor.userId?.avatar}
-                          alt=""
-                          className="size-10 rounded-xl bg-slate-100 object-cover"
-                        />
-                        <div>
-                          <p className="font-black text-slate-900">{mentor.userId?.name}</p>
-                          <p className="text-[10px] text-slate-500">{mentor.userId?.email}</p>
+                  <tr key={mentor._id} className="group transition-colors hover:bg-white/[0.03]">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3.5">
+                        <div className="relative size-10 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-violet-950/40">
+                          {mentor.userId?.avatar ? (
+                            <img
+                              src={mentor.userId.avatar}
+                              alt={mentor.userId?.name || ""}
+                              className="size-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const next = e.currentTarget.nextElementSibling;
+                                if (next) next.classList.remove("hidden");
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className={`flex size-full items-center justify-center font-bold text-xs text-violet-200 bg-gradient-to-br from-violet-600/30 to-indigo-600/30 ${
+                              mentor.userId?.avatar ? "hidden" : ""
+                            }`}
+                          >
+                            {mentor.userId?.name ? getInitials(mentor.userId.name) : "M"}
+                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-white">{mentor.userId?.name || "Chưa đặt tên"}</p>
+                          <p className="truncate text-xs text-slate-400">{mentor.userId?.email || ""}</p>
                           {mentor.pendingPricePerHour ? (
                             <Link
                               to={`/admin/mentors/${mentor._id}`}
-                              className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-800 hover:bg-amber-100"
+                              className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300 hover:bg-amber-500/20"
                               title={`Đề xuất giá mới: ${Number(mentor.pendingPricePerHour).toLocaleString("vi-VN")} Đ/giờ`}
                             >
-                              <TrendingUp size={10} /> Yêu cầu đổi giá
+                              <TrendingUp size={10} /> Đổi giá
                             </Link>
                           ) : null}
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <p className="font-medium text-slate-700">{mentor.title}</p>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-500">{mentor.company}</p>
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-slate-200">{mentor.title || "—"}</p>
+                      <p className="text-[11px] uppercase tracking-wider text-slate-400">{mentor.company || "—"}</p>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <div className="flex justify-center">
                         {mentor.isActive ? (
-                          <span className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase text-emerald-700">
-                            <CheckCircle size={10} /> Hoạt động
+                          <span className="admin-shimmer-badge inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                            <CheckCircle size={12} /> Hoạt động
                           </span>
                         ) : mentor.isVerified ? (
-                          <span className="flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-[10px] font-black uppercase text-red-700">
-                            <XCircle size={10} /> Đã khóa
+                          <span className="admin-shimmer-badge inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-400">
+                            <XCircle size={12} /> Đã khóa
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-orange-800">
-                            <XCircle size={10} /> Chờ duyệt
+                          <span className="admin-shimmer-badge inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
+                            <XCircle size={12} /> Chờ duyệt
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4">
                       <UserOnlineStatus
                         isOnline={Boolean(mentor.isOnline)}
                         lastSeenAt={mentor.lastSeenAt}
                         isActive={mentor.isActive !== false && mentor.userId?.isActive !== false}
                       />
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center justify-center gap-1 text-amber-500">
-                        <Star size={12} className="fill-current" />
-                        <span className="font-black text-slate-900">{mentor.rating || "0.0"}</span>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-1.5 text-amber-400">
+                        <Star size={13} className="fill-current" />
+                        <span className="font-bold text-white text-sm">{mentor.rating || "0.0"}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-center">
+                    <td className="px-6 py-4 text-center">
                       {Number(mentor.stats?.noShowCount || 0) > 0 ? (
                         <span
-                          className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[10px] font-black uppercase text-rose-800"
+                          className="inline-flex rounded-full border border-rose-500/30 bg-rose-500/15 px-2.5 py-0.5 text-xs font-bold text-rose-400"
                           title="Số lần no-show đã ghi nhận"
                         >
                           {mentor.stats.noShowCount}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold text-slate-400">0</span>
+                        <span className="text-xs font-medium text-slate-500">0</span>
                       )}
                     </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleToggleActive(mentor)}
-                          className={`rounded-xl border p-2 transition-all ${
+                          className={`size-8 inline-flex items-center justify-center rounded-xl border transition-all ${
                             mentor.isActive
-                              ? "border-red-200 bg-red-50 text-red-700 hover:border-red-400 hover:bg-red-600 hover:text-white"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-600 hover:text-white"
+                              ? "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white"
+                              : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white"
                           }`}
-                          title={mentor.isActive ? "Khóa" : "Duyệt"}
+                          title={mentor.isActive ? "Khóa cố vấn" : "Kích hoạt cố vấn"}
                         >
                           <ShieldCheck size={16} />
                         </button>
                         <Link
                           to={`/admin/mentors/${mentor._id}`}
-                          title="Chi tiết"
-                          className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900"
+                          title="Xem chi tiết"
+                          className="size-8 inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-all hover:bg-white/15 hover:text-white"
                         >
                           <Eye size={16} />
                         </Link>

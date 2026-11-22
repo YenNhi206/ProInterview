@@ -111,6 +111,10 @@ export async function learningPathDTO(pathOrId) {
     platformFeeRate: path.platformFeeRate,
     proposedAt: path.proposedAt ?? null,
     acceptedAt: path.acceptedAt ?? null,
+    /** LP-10: mã CK trọn gói hiện tại (rỗng tới khi ứng viên bấm thanh toán) và mốc thanh toán. */
+    paymentRef: path.paymentRef || "",
+    paidAt: path.paidAt ?? null,
+    completedAt: path.completedAt ?? null,
     createdAt: path.createdAt,
     updatedAt: path.updatedAt,
     /** LP-20: bối cảnh để Mentor soạn lộ trình (hồ sơ ứng viên đầy đủ có ở PR-01). */
@@ -288,7 +292,8 @@ function requireCandidate(actor) {
   if (actor?.mentor) throw httpError(403, "Chỉ mentee của lộ trình mới thực hiện được thao tác này.");
 }
 
-async function loadPathForCandidate(actor, pathId) {
+/** Ứng viên của lộ trình; bản nháp coi như không tồn tại. Dùng lại ở LP-10 (`learningPathPaymentService`). */
+export async function loadPathForCandidate(actor, pathId) {
   requireCandidate(actor);
   assertPathId(pathId);
   const path = await LearningPath.findById(pathId).lean();

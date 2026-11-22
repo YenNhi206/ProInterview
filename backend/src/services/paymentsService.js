@@ -13,6 +13,7 @@ import {
   expireSubscriptionTransferIfNeeded,
   expireBookingTransferById,
   expireEnrollmentTransferById,
+  expireLearningPathTransferIfNeeded,
 } from "./transferPaymentExpiryService.js";
 import { incrementCourseEnrollmentCount } from "./courseStatsService.js";
 import { tryCreditMentorForPaidEnrollment } from "./mentorEarningsService.js";
@@ -22,6 +23,25 @@ import { validateCoupon, claimCouponUsageByCode } from "./couponService.js";
 import { isProduction } from "../utils/prodGuard.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
+
+/** Loại khoản thu đi qua đường ray chuyển khoản → model mà `referenceId` trỏ tới. */
+const TRANSFER_REFERENCE_MODELS = {
+  booking: "Booking",
+  course: "Enrollment",
+  subscription: "Subscription",
+  learning_path: "LearningPath",
+};
+const TRANSFER_TYPE_ERROR = "type phải là booking, course, subscription hoặc learning_path.";
+
+function resolveTransferReferenceModel(type, referenceModel) {
+  const expected = TRANSFER_REFERENCE_MODELS[type];
+  if (!expected) return { error: TRANSFER_TYPE_ERROR };
+  const refModel = referenceModel || expected;
+  if (!Object.values(TRANSFER_REFERENCE_MODELS).includes(String(refModel))) {
+    return { error: "referenceModel không hợp lệ." };
+  }
+  return { refModel };
+}
 
 function isMongoReady() {
   return mongoose.connection.readyState === 1;
@@ -235,15 +255,9 @@ export async function recordAdminTransferSuccess({
   const amt = Math.round(Number(amount) || 0);
   if (amt <= 0) return { ok: false, error: "Số tiền không hợp lệ." };
   const t = String(type || "").toLowerCase();
-  if (!["booking", "course", "subscription"].includes(t)) {
-    return { ok: false, error: "type phải là booking, course hoặc subscription." };
-  }
-  const refModel =
-    referenceModel ||
-    (t === "booking" ? "Booking" : t === "course" ? "Enrollment" : "Subscription");
-  if (!["Booking", "Enrollment", "Subscription"].includes(String(refModel))) {
-    return { ok: false, error: "referenceModel không hợp lệ." };
-  }
+  const resolved = resolveTransferReferenceModel(t, referenceModel);
+  if (resolved.error) return { ok: false, error: resolved.error };
+  const { refModel } = resolved;
 
   const defaultProviderRef = `trf-${t}-${String(rid)}`;
 
@@ -346,16 +360,9 @@ export async function recordTransferPending({
   if (amt <= 0) return { ok: false, error: "Số tiền không hợp lệ." };
 
   const t = String(type || "").toLowerCase();
-  if (!["booking", "course", "subscription"].includes(t)) {
-    return { ok: false, error: "type phải là booking, course hoặc subscription." };
-  }
-
-  const refModel =
-    referenceModel ||
-    (t === "booking" ? "Booking" : t === "course" ? "Enrollment" : "Subscription");
-  if (!["Booking", "Enrollment", "Subscription"].includes(String(refModel))) {
-    return { ok: false, error: "referenceModel không hợp lệ." };
-  }
+  const resolved = resolveTransferReferenceModel(t, referenceModel);
+  if (resolved.error) return { ok: false, error: resolved.error };
+  const { refModel } = resolved;
 
   const existingQuery =
     t === "subscription"
@@ -802,9 +809,7 @@ export async function recordTransferSubmitted({ userId, type, referenceId, payme
   const uid = new mongoose.Types.ObjectId(String(userId));
   const rid = new mongoose.Types.ObjectId(String(referenceId));
   const t = String(type || "").toLowerCase();
-  if (!["booking", "course", "subscription"].includes(t)) {
-    return { ok: false, error: "type phải là booking, course hoặc subscription." };
-  }
+  if (!TRANSFER_REFERENCE_MODELS[t]) return { ok: false, error: TRANSFER_TYPE_ERROR };
 
   const ref = typeof paymentRef === "string" ? paymentRef.trim().slice(0, 200) : "";
   const at = submittedAt instanceof Date ? submittedAt : new Date();
@@ -851,6 +856,11 @@ export async function listPaymentHistory(userId, limit = 50, options = {}) {
         await expireBookingTransferById(p.referenceId).catch(() => {});
       } else if (p.type === "course") {
         await expireEnrollmentTransferById(p.referenceId).catch(() => {});
+      } else if (p.type === "learning_path") {
+        // Lộ trình giữ `pending_payment`; chỉ giao dịch CK bị hủy (LP-10). Hàm đã cập nhật có điều kiện
+        // `status: "pending"`, bỏ qua lệnh save bên dưới để không đè giao dịch SePay vừa xác nhận.
+        await expireLearningPathTransferIfNeeded(p).catch(() => {});
+        continue;
       } else {
         await expireSubscriptionTransferIfNeeded(p).catch(() => {});
       }
@@ -865,7 +875,7 @@ export async function listPaymentHistory(userId, limit = 50, options = {}) {
   const lim = Math.min(100, Math.max(1, parseInt(limit) || 50));
   const page = Math.max(1, parseInt(options.page) || 1);
   const filter = { userId };
-  if (["booking", "course", "subscription"].includes(options.type)) filter.type = options.type;
+  if (TRANSFER_REFERENCE_MODELS[options.type]) filter.type = options.type;
   const statuses = Payment.schema.path("status").enumValues;
   if (statuses.includes(options.status)) filter.status = options.status;
   const [rows, total] = await Promise.all([

@@ -2,13 +2,16 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
+export const PAYMENT_TYPES = ["booking", "subscription", "course", "learning_path"];
+
 const paymentSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
 
-    type: { type: String, enum: ["booking", "subscription", "course"], required: true },
+    /** `learning_path`: trả trọn gói lộ trình (LP-10), `referenceId` = LearningPath._id. */
+    type: { type: String, enum: PAYMENT_TYPES, required: true },
     referenceId: { type: Schema.Types.ObjectId, required: true },
-    referenceModel: { type: String, enum: ["Booking", "Subscription", "Enrollment"] },
+    referenceModel: { type: String, enum: ["Booking", "Subscription", "Enrollment", "LearningPath"] },
 
     amount: { type: Number, required: true },
     currency: { type: String, default: "VND" },
