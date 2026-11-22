@@ -1,4 +1,4 @@
-import { MENTOR_MAIN_NAV, MENTOR_SECONDARY_NAV } from "./mentorNav.js";
+import { MENTOR_MAIN_NAV, MENTOR_NAV_GROUPS } from "./mentorNav.js";
 import { WorkspaceNav } from "./WorkspaceNav.jsx";
 
 function handleMentorNotification(notification, navigate) {
@@ -13,9 +13,8 @@ export function MentorWorkspaceNav() {
       homeUrl="/mentor/dashboard"
       heading="Không gian Mentor"
       label="Mentor"
+      groups={MENTOR_NAV_GROUPS}
       mainNav={MENTOR_MAIN_NAV}
-      secondaryNav={MENTOR_SECONDARY_NAV}
-      separatorIndex={3}
       onNotification={handleMentorNotification}
     />
   );

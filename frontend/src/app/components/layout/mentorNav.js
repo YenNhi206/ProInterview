@@ -23,6 +23,33 @@ export const MENTOR_MAIN_NAV = [
   { title: "Đánh giá", url: "/mentor/reviews", icon: Star },
 ];
 
+export const MENTOR_NAV_GROUPS = [
+  {
+    title: "Tổng quan",
+    items: [
+      { title: "Bảng điều khiển", url: "/mentor/dashboard", icon: LayoutGrid },
+      { title: "Nhu cầu mentee", url: "/mentor/requests", icon: ClipboardList },
+      { title: "Lịch họp", url: "/mentor/schedule", icon: Calendar },
+    ],
+  },
+  {
+    title: "Đào tạo & Hướng dẫn",
+    items: [
+      { title: "Lộ trình học", url: "/mentor/learning-paths", icon: Route },
+      { title: "Khóa học", url: "/mentor/courses", icon: GraduationCap },
+      { title: "Đánh giá chéo", url: "/mentor/peer-review", icon: ClipboardList },
+    ],
+  },
+  {
+    title: "Tài chính & Hiệu suất",
+    items: [
+      { title: "Tài chính", url: "/mentor/finance", icon: CircleDollarSign },
+      { title: "Phân tích", url: "/mentor/analytics", icon: TrendingUp },
+      { title: "Đánh giá", url: "/mentor/reviews", icon: Star },
+    ],
+  },
+];
+
 export const MENTOR_SECONDARY_NAV = [
   { title: "Hồ sơ", url: "/profile", icon: User },
   { title: "Cài đặt", url: "/settings", icon: Settings },
