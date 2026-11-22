@@ -10,21 +10,21 @@
  */
 :root[data-workspace-theme="light"],
 .mentor-workspace.mw-light {
-  --mw-bg: #f3f1f9;
+  --mw-bg: #efebfa;
   --mw-surface: #fcfbfe;
   --mw-raised: #f6f3fc;
-  --mw-border: #e6e0f4;
+  --mw-border: #ddd3f5;
   --mw-text: #23252f;
   --mw-muted: #5b5772;
-  --mw-lime: #4d8a0f;
+  --mw-lime: #6d28d9;
   --mw-accent: #6d28d9;
 }
 .mentor-workspace.mw-light { background: transparent; color: var(--mw-text); color-scheme: light; }
 .app-shell-ambient.mw-light-ambient {
   /* Nền cố định phủ cả màn hình (không bị cắt như đốm trong trang): vầng tím nhẹ ở 2 góc trên. */
   background:
-    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(139, 92, 246, 0.13) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(167, 139, 250, 0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(139, 92, 246, 0.24) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(124, 58, 237, 0.16) 0%, transparent 70%),
     var(--mw-bg);
 }
 :root[data-workspace-theme="light"] ::selection { background: #7c3aed30; color: #1e1b2e; }
@@ -33,12 +33,12 @@
 :root[data-workspace-theme="light"] .mentor-workspace-nav { border-right: 1px solid var(--mw-border); border-radius: 14px; background: rgba(250, 248, 255, 0.75); box-shadow: 0 1px 2px rgba(109, 40, 217, 0.04); }
 .mentor-workspace.mw-light.mentor-workspace-mobile-nav { background-color: var(--mw-surface); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading { color: var(--mw-muted); }
-:root[data-workspace-theme="light"] .mentor-workspace-nav-dot { background: #65b512; }
+:root[data-workspace-theme="light"] .mentor-workspace-nav-dot { background: #7c3aed; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link { border: 1px solid transparent; color: #4b4763; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link svg { color: #7c5bc4; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link:hover { background: #efe9fc; color: #5b21b6; }
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active { background: #93f72b; color: #17210b; border-color: #7fd925; }
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active svg { color: #17210b; }
+:root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active { background: #6d28d9; color: #ffffff; border-color: #5b21b6; box-shadow: 0 6px 16px -6px rgba(109, 40, 217, 0.55); }
+:root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active svg { color: #ffffff; }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-link:focus-visible { outline: 2px solid var(--mw-accent); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-account { border-top: 1px solid var(--mw-border); }
 :root[data-workspace-theme="light"] .mentor-workspace-user { color: var(--mw-text); }
@@ -48,7 +48,7 @@
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading .notification-trigger { color: var(--mw-muted); }
 
 /* Nhãn vai trò cạnh logo: chữ lime khó đọc trên nền sáng → xanh lá đậm. */
-:root[data-workspace-theme="light"] .mentor-workspace-badge { color: #3f7a0a; border-color: rgba(101, 181, 18, .45); background: rgba(147, 247, 43, .18); box-shadow: none; }
+:root[data-workspace-theme="light"] .mentor-workspace-badge { color: #ffffff; border-color: #6d28d9; background: #6d28d9; box-shadow: none; }
 
 /* Nút chọn giao diện (dùng chung 2 chế độ; màu theo biến của từng chế độ). */
 .mentor-workspace-theme {
@@ -64,6 +64,7 @@
 }
 .mentor-workspace-theme button:hover { color: var(--mw-text); }
 .mentor-workspace-theme button.is-active { color: #17210b; background: #93f72b; }
+:root[data-workspace-theme="light"] .mentor-workspace-theme button.is-active { color: #ffffff; background: #6d28d9; }
 .mentor-workspace-theme button:focus-visible { outline: 2px solid var(--mw-lime); outline-offset: 1px; }
 @media (prefers-reduced-motion: reduce) { .mentor-workspace-theme button { transition: none; } }
 
