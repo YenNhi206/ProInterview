@@ -68,7 +68,6 @@ import { PaymentHistory } from "./pages/account/PaymentHistory.jsx";
 import { AdminAuditLog } from "./pages/admin/AdminAuditLog.jsx";
 import { AdminFinanceOperations } from "./pages/admin/AdminFinanceOperations.jsx";
 import { AdminUsers } from "./pages/admin/AdminUsers.jsx";
-import { AdminImportUsers } from "./pages/admin/AdminImportUsers.jsx";
 import { AdminBookings } from "./pages/admin/AdminBookings.jsx";
 import { AdminCoursePayments } from "./pages/admin/AdminCoursePayments.jsx";
 import { AdminSubscriptionPayments } from "./pages/admin/AdminSubscriptionPayments.jsx";
@@ -236,7 +235,6 @@ export const router = createBrowserRouter([
       { index: true, Component: AdminDashboard },
       { path: "analytics", Component: AdminAnalytics },
       { path: "users", Component: AdminUsers },
-      { path: "users/import", Component: AdminImportUsers },
       { path: "users/:id", Component: AdminUserDetail },
       { path: "companies", Component: AdminCompanies },
       { path: "companies/:id", Component: AdminCompanies },

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { Users, Search, Mail, Tag, Upload, Eye } from "lucide-react";
+import { Users, Search, Mail, Tag, Eye } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
@@ -101,12 +101,6 @@ export function AdminUsers() {
               className="w-full rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-400 outline-none backdrop-blur-sm transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
             />
           </div>
-          <Link
-            to="/admin/users/import"
-            className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-600/30 hover:bg-violet-500 transition-colors whitespace-nowrap"
-          >
-            <Upload size={14} /> Nhập từ Google Form
-          </Link>
         </div>
       </div>
 
