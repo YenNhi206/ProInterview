@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authJwt } from "../middleware/authJwt.js";
 import { requireCompanyModerator } from "../middleware/requireCompanyModerator.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
+import { companyQuestionGenLimiter } from "../middleware/rateLimiters.js";
 import { CompanyWorkspaceController } from "../controllers/companyWorkspaceController.js";
 import { CompanyJobsController } from "../controllers/companyJobsController.js";
 
@@ -17,7 +18,8 @@ companyRouter.get("/dashboard", asyncHandler(CompanyWorkspaceController.getDashb
 // CO-05: Quản lý ngân hàng câu hỏi công ty
 companyRouter.get("/questions", asyncHandler(CompanyWorkspaceController.listQuestions));
 companyRouter.post("/questions", asyncHandler(CompanyWorkspaceController.createQuestion));
-companyRouter.post("/questions/generate-starter", asyncHandler(CompanyWorkspaceController.generateStarterQuestions));
+companyRouter.post("/questions/generate", companyQuestionGenLimiter, asyncHandler(CompanyWorkspaceController.generateQuestions));
+companyRouter.post("/questions/generate-starter",asyncHandler(CompanyWorkspaceController.generateStarterQuestions));
 companyRouter.post("/questions/batch-approve", asyncHandler(CompanyWorkspaceController.batchApproveQuestions));
 companyRouter.post("/questions/batch-reject", asyncHandler(CompanyWorkspaceController.batchRejectQuestions));
 companyRouter.patch("/questions/:id", asyncHandler(CompanyWorkspaceController.editQuestion));

@@ -28,11 +28,15 @@ const SEED_NOTE = "Bản mặc định trong code lúc chạy sync (AI-02)";
 
 /** Mọi chuỗi promptVersion đã ghi trong DB, kèm key suy từ chỗ ghi. */
 export async function discoverStoredVersions() {
-  const [questionVersions, feedbackVersions, bankGenerated, bankProvenance] = await Promise.all([
+  const pool = { orgId: null };
+  const company = { orgId: { $ne: null } }; // câu công ty (CO-04) sinh bằng prompt company_question_gen
+  const [questionVersions, feedbackVersions, bankGenerated, bankProvenance, orgGenerated, orgProvenance] = await Promise.all([
     InterviewSession.distinct("questions.promptVersion"),
     InterviewSession.distinct("feedback.promptVersion"),
-    QuestionBank.distinct("generatedBy.promptVersion"),
-    QuestionBank.distinct("provenance.promptVersion"),
+    QuestionBank.distinct("generatedBy.promptVersion", pool),
+    QuestionBank.distinct("provenance.promptVersion", pool),
+    QuestionBank.distinct("generatedBy.promptVersion", company),
+    QuestionBank.distinct("provenance.promptVersion", company),
   ]);
   const found = new Map(); // version → key
   const add = (list, key) => {
@@ -42,6 +46,7 @@ export async function discoverStoredVersions() {
   };
   add(feedbackVersions, "evaluation");
   add([...questionVersions, ...bankGenerated, ...bankProvenance], "question_gen");
+  add([...orgGenerated, ...orgProvenance], "company_question_gen");
   return found;
 }
 
