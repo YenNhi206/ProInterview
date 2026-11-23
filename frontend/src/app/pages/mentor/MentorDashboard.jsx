@@ -521,33 +521,14 @@ export function MentorDashboard() {
       <div className="pointer-events-none absolute -top-40 left-1/4 h-[500px] w-[600px] rounded-full bg-violet-600/10 blur-[140px]" />
       <div className="pointer-events-none absolute top-40 right-10 h-[400px] w-[500px] rounded-full bg-[#93f72b]/05 blur-[150px]" />
 
-      {/* 1. Subheader Banner: Chào mừng (đồng bộ phong cách thương hiệu Tím & Lime) */}
+      {/* 1. Subheader Banner: Chào mừng (phong cách cổng thông tin tối giản chuẩn mẫu) */}
       <div className="w-full border-b border-violet-100 bg-gradient-to-r from-violet-50/70 via-white to-violet-50/40 px-4 py-2.5 [html[data-workspace-theme=dark]_&]:border-violet-500/20 [html[data-workspace-theme=dark]_&]:bg-[#120a22]/90 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto flex max-w-7xl items-center">
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.6)]" />
             <h1 className="font-headline text-sm font-bold tracking-tight text-slate-900 [html[data-workspace-theme=dark]_&]:text-white sm:text-base">
               Chào mừng
             </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/mentor/schedule")}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-violet-600/30 transition hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 [html[data-workspace-theme=dark]_&]:shadow-[0_0_12px_rgba(147,247,43,0.3)]"
-            >
-              <CalendarBlank size={14} />
-              <span className="hidden sm:inline">Tạo lịch trống mới</span>
-              <span className="sm:hidden">Tạo lịch</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/mentor/requests")}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300 [html[data-workspace-theme=dark]_&]:border-white/15 [html[data-workspace-theme=dark]_&]:bg-white/5 [html[data-workspace-theme=dark]_&]:text-slate-300 [html[data-workspace-theme=dark]_&]:hover:bg-white/10 [html[data-workspace-theme=dark]_&]:hover:text-white"
-            >
-              <ClipboardList size={14} />
-              <span>Nhu cầu mentee</span>
-            </button>
           </div>
         </div>
       </div>
