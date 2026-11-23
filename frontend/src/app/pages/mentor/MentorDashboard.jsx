@@ -521,44 +521,35 @@ export function MentorDashboard() {
       <div className="pointer-events-none absolute -top-40 left-1/4 h-[500px] w-[600px] rounded-full bg-violet-600/10 blur-[140px]" />
       <div className="pointer-events-none absolute top-40 right-10 h-[400px] w-[500px] rounded-full bg-[#93f72b]/05 blur-[150px]" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-
-        {/* 1. Header / Greeting Row */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-1"
-        >
-          <div>
-            <h1 className="font-headline text-2xl font-black tracking-tight text-white [html[data-workspace-theme=light]_&]:text-slate-900 sm:text-3xl">
-              Chào mừng
-            </h1>
-            <p className="text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 mt-0.5">
-              Trung tâm điều phối phỏng vấn &amp; quản trị hoạt động cố vấn ProInterview
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
+      {/* 1. Subheader Banner: Chào mừng (phong cách cổng thông tin FPT) */}
+      <div className="w-full border-b border-slate-200/90 bg-[#eef1f6] px-4 py-2 [html[data-workspace-theme=dark]_&]:border-white/10 [html[data-workspace-theme=dark]_&]:bg-[#14172b] sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <h1 className="font-headline text-sm font-bold tracking-tight text-slate-800 [html[data-workspace-theme=dark]_&]:text-slate-100 sm:text-base">
+            Chào mừng
+          </h1>
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => navigate("/mentor/schedule")}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2563eb] [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-95"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:opacity-95 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
             >
               <CalendarBlank size={14} />
-              <span>Tạo lịch trống mới</span>
+              <span className="hidden sm:inline">Tạo lịch trống mới</span>
+              <span className="sm:hidden">Tạo lịch</span>
             </button>
             <button
               type="button"
               onClick={() => navigate("/mentor/requests")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e2daf3] px-3.5 py-2 text-xs font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700 transition hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 [html[data-workspace-theme=dark]_&]:border-white/15 [html[data-workspace-theme=dark]_&]:bg-white/5 [html[data-workspace-theme=dark]_&]:text-slate-300 [html[data-workspace-theme=dark]_&]:hover:bg-white/10"
             >
               <ClipboardList size={14} />
               <span>Nhu cầu mentee</span>
             </button>
           </div>
-        </motion.div>
+        </div>
+      </div>
 
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-4 pb-12 sm:px-6 lg:px-8">
         {/* 2. Top Bento Info Strip (Matching the Student/Mentor Portal Reference) */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}

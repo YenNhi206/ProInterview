@@ -110,11 +110,23 @@
     z-index: 30;
     border-right: 1px solid var(--mw-border);
     overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  }
+
+  .mentor-workspace.is-sidebar-collapsed .mentor-workspace-nav {
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .mentor-workspace-main {
     margin-left: 230px;
-    padding-top: 16px;
+    padding-top: 0;
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mentor-workspace.is-sidebar-collapsed .mentor-workspace-main {
+    margin-left: 0;
   }
 
   .mentor-workspace-nav .overflow-y-auto {
@@ -142,13 +154,16 @@
 
 @media(max-width:1023px) {
   .mentor-workspace-main {
-    padding-top: 72px;
+    padding-top: 0;
+  }
+  .mentor-workspace-menu-toggle {
+    display: none;
   }
 }
 
 @media(max-width:639px) {
   .mentor-workspace-main {
-    padding-top: 72px;
+    padding-top: 0;
   }
 }
 

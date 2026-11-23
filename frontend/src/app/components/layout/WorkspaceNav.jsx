@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router";
-import { LogOut, Menu, Monitor, Moon, Sun, User, Settings, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown, LogOut, Menu, Monitor, Moon, Sun, User, Settings, ChevronsUpDown } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter.jsx";
 import { NavUserAvatar } from "./NavUserAvatar.jsx";
 import { useAuthSession } from "../../hooks/useAuthSession";
@@ -225,14 +225,131 @@ function WorkspaceMenu({ config, onClose, active }) {
   );
 }
 
+/** Ngữ cảnh chia sẻ trạng thái đóng/mở sidebar giữa WorkspaceTopBar và WorkspaceNav */
+export const WorkspaceLayoutContext = createContext({
+  sidebarCollapsed: false,
+  setSidebarCollapsed: () => {},
+  mobileMenuOpen: false,
+  setMobileMenuOpen: () => {},
+  toggleSidebar: () => {},
+  desktop: true,
+});
+
 /**
- * Khung trang workspace: nền ambient + sidebar `nav` + floating notification + vùng nội dung.
+ * Thanh điều hướng trên cùng (Top Navigation Bar) theo phong cách cổng thông tin:
+ * - Bên trái: Nút Hamburger [ ≡ ] để thu gọn/mở rộng menu.
+ * - Bên phải: Chọn ngôn ngữ (🇻🇳 Tiếng Việt), Chuông thông báo (🔔), Nút đổi giao diện Sáng/Tối (🌙 / ☀️).
+ * - Lưu ý: Vị trí (Location) và Phóng to nhỏ (Fullscreen) đã được lược bỏ theo yêu cầu người dùng.
+ */
+export function WorkspaceTopBar({ onToggleSidebar, theme, themeable, light, onNotification }) {
+  const [lang, setLang] = useState("vi");
+
+  return (
+    <header className="mentor-workspace-topbar sticky top-0 z-30 flex h-12 w-full items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur-md transition-colors [html[data-workspace-theme=dark]_&]:border-white/10 [html[data-workspace-theme=dark]_&]:bg-[#0c0618]/95 sm:px-6">
+      {/* 1. Nút Hamburger [ ≡ ] */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="flex h-8.5 w-8.5 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none [html[data-workspace-theme=dark]_&]:border-white/10 [html[data-workspace-theme=dark]_&]:bg-white/5 [html[data-workspace-theme=dark]_&]:text-slate-300 [html[data-workspace-theme=dark]_&]:hover:bg-white/10 [html[data-workspace-theme=dark]_&]:hover:text-white cursor-pointer"
+          aria-label="Thu gọn / Mở rộng menu"
+          title="Thu gọn / Mở rộng menu"
+        >
+          <Menu size={18} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* 2. Cụm công cụ bên phải */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Ngôn ngữ: 🇻🇳 Tiếng Việt ⌵ */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 focus:outline-none [html[data-workspace-theme=dark]_&]:text-slate-200 [html[data-workspace-theme=dark]_&]:hover:bg-white/10 cursor-pointer"
+            >
+              <span className="text-sm leading-none">🇻🇳</span>
+              <span className="hidden sm:inline">Tiếng Việt</span>
+              <ChevronDown size={13} className="text-slate-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-36">
+            <DropdownMenuItem
+              onClick={() => setLang("vi")}
+              className="flex items-center justify-between text-xs font-bold text-blue-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b]"
+            >
+              <span className="flex items-center gap-1.5">
+                <span>🇻🇳</span>
+                <span>Tiếng Việt</span>
+              </span>
+              <Check size={14} />
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled
+              className="flex items-center justify-between text-xs text-slate-400 opacity-60"
+            >
+              <span className="flex items-center gap-1.5">
+                <span>🇬🇧</span>
+                <span>English</span>
+              </span>
+              <span className="text-[10px]">Sớm ra mắt</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Chuông thông báo 🔔 */}
+        <div className="relative flex items-center">
+          <NotificationCenter active={true} onSelect={onNotification} />
+        </div>
+
+        {/* Chuyển đổi giao diện Sáng / Tối 🌙 / ☀️ */}
+        {themeable && (
+          <button
+            type="button"
+            onClick={() => theme?.setTheme(light ? "dark" : "light")}
+            className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none [html[data-workspace-theme=dark]_&]:text-slate-300 [html[data-workspace-theme=dark]_&]:hover:bg-white/10 [html[data-workspace-theme=dark]_&]:hover:text-white cursor-pointer"
+            title={light ? "Chuyển sang giao diện tối" : "Chuyển sang giao diện sáng"}
+            aria-label={light ? "Chuyển sang giao diện tối" : "Chuyển sang giao diện sáng"}
+          >
+            {light ? <Moon size={18} strokeWidth={1.8} /> : <Sun size={18} strokeWidth={1.8} />}
+          </button>
+        )}
+      </div>
+    </header>
+  );
+}
+
+/**
+ * Khung trang workspace: nền ambient + sidebar `nav` + thanh TopBar cố định + vùng nội dung.
  * `themeable` bật lựa chọn Sáng / Tối / Theo hệ thống; không bật thì luôn tối.
  */
 export function WorkspaceShell({ nav, children, themeable = false, onNotification }) {
   const theme = useWorkspaceTheme(themeable);
   const light = theme.resolved === "light";
   const navigate = useNavigate();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [desktop, setDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : true
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const change = () => {
+      setDesktop(query.matches);
+      if (query.matches) setMobileMenuOpen(false);
+    };
+    query.addEventListener("change", change);
+    return () => query.removeEventListener("change", change);
+  }, []);
+
+  const toggleSidebar = () => {
+    if (desktop) {
+      setSidebarCollapsed((prev) => !prev);
+    } else {
+      setMobileMenuOpen((prev) => !prev);
+    }
+  };
 
   const handleNotification = (notification) => {
     const actionUrl = notification.metadata?.actionUrl || notification.actionUrl;
@@ -253,61 +370,85 @@ export function WorkspaceShell({ nav, children, themeable = false, onNotificatio
     else delete root.dataset.workspaceTheme;
   }, [light]);
 
+  const layoutValue = {
+    sidebarCollapsed,
+    setSidebarCollapsed,
+    mobileMenuOpen,
+    setMobileMenuOpen,
+    toggleSidebar,
+    desktop,
+  };
+
   return (
     <WorkspaceThemeContext.Provider value={themeable ? theme : null}>
-      <div
-        className={`mentor-workspace${light ? " mw-light" : " commerce-theme"} pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 antialiased`}
-        style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
-      >
-        {light ? (
-          <div className="app-shell-ambient mw-light-ambient" aria-hidden />
-        ) : (
-          <div className="app-shell-ambient app-shell-ambient--commerce" aria-hidden>
-            <span className="commerce-glow commerce-glow--top-left" />
-            <span className="commerce-glow commerce-glow--top-right" />
-            <span className="commerce-glow commerce-glow--bottom-left" />
-            <span className="commerce-glow commerce-glow--bottom-right" />
-          </div>
-        )}
-        <SelectThemeContext.Provider value={light ? "light" : "dark"}>
-          {nav}
+      <WorkspaceLayoutContext.Provider value={layoutValue}>
+        <div
+          className={`mentor-workspace${light ? " mw-light" : " commerce-theme"}${sidebarCollapsed ? " is-sidebar-collapsed" : ""} pi-typography-shell relative min-h-svh w-full max-w-full min-w-0 antialiased`}
+          style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
+        >
+          {light ? (
+            <div className="app-shell-ambient mw-light-ambient" aria-hidden />
+          ) : (
+            <div className="app-shell-ambient app-shell-ambient--commerce" aria-hidden>
+              <span className="commerce-glow commerce-glow--top-left" />
+              <span className="commerce-glow commerce-glow--top-right" />
+              <span className="commerce-glow commerce-glow--bottom-left" />
+              <span className="commerce-glow commerce-glow--bottom-right" />
+            </div>
+          )}
+          <SelectThemeContext.Provider value={light ? "light" : "dark"}>
+            {nav}
 
-          {/* Nút chuông thông báo cố định ở đầu trang */}
-          <aside className="absolute top-4 right-5 sm:right-8 z-30 pointer-events-auto">
-            <NotificationCenter active={true} onSelect={handleNotification} />
-          </aside>
-
-          <main className="mentor-workspace-main relative z-[1] min-h-0 flex-1">
-            {children}
-          </main>
-        </SelectThemeContext.Provider>
-      </div>
+            <main className="mentor-workspace-main relative z-[1] min-h-0 flex-1">
+              <WorkspaceTopBar
+                onToggleSidebar={toggleSidebar}
+                theme={theme}
+                themeable={themeable}
+                light={light}
+                onNotification={handleNotification}
+              />
+              {children}
+            </main>
+          </SelectThemeContext.Provider>
+        </div>
+      </WorkspaceLayoutContext.Provider>
     </WorkspaceThemeContext.Provider>
   );
 }
 
 export function WorkspaceNav(config) {
-  const [open, setOpen] = useState(false);
-  const [desktop, setDesktop] = useState(() => window.matchMedia("(min-width: 1024px)").matches);
+  const layout = useContext(WorkspaceLayoutContext);
   const location = useLocation();
   const lightSheet = useContext(WorkspaceThemeContext)?.resolved === "light";
 
+  const open = layout?.mobileMenuOpen ?? false;
+  const setOpen = layout?.setMobileMenuOpen ?? (() => {});
+  const desktop = layout?.desktop ?? true;
+
   useEffect(() => {
-    const query = window.matchMedia("(min-width: 1024px)");
-    const change = () => { setDesktop(query.matches); setOpen(false); };
-    query.addEventListener("change", change);
-    return () => query.removeEventListener("change", change);
-  }, []);
-  useEffect(() => { setOpen(false); }, [location.pathname]);
-  return <>
-    <aside className="mentor-workspace-nav" aria-label={`Điều hướng – ${config.label}`}><WorkspaceMenu config={config} active={desktop} /></aside>
-    {!desktop && <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild><button type="button" className="mentor-workspace-menu-toggle" aria-label="Mở menu"><Menu size={21} /></button></SheetTrigger>
-      <SheetContent side="left" className={`mentor-workspace mentor-workspace-mobile-nav${lightSheet ? " mw-light" : ""}`}>
-        <SheetTitle className="sr-only">Điều hướng – {config.label}</SheetTitle>
-        <SheetDescription className="sr-only">Công việc, thông báo và tài khoản</SheetDescription>
-        <WorkspaceMenu config={config} active={open} onClose={() => setOpen(false)} />
-      </SheetContent>
-    </Sheet>}
-  </>;
+    setOpen(false);
+  }, [location.pathname, setOpen]);
+
+  return (
+    <>
+      <aside
+        className={`mentor-workspace-nav${layout?.sidebarCollapsed ? " is-collapsed" : ""}`}
+        aria-label={`Điều hướng – ${config.label}`}
+      >
+        <WorkspaceMenu config={config} active={desktop} />
+      </aside>
+      {!desktop && (
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent
+            side="left"
+            className={`mentor-workspace mentor-workspace-mobile-nav${lightSheet ? " mw-light" : ""}`}
+          >
+            <SheetTitle className="sr-only">Điều hướng – {config.label}</SheetTitle>
+            <SheetDescription className="sr-only">Công việc, thông báo và tài khoản</SheetDescription>
+            <WorkspaceMenu config={config} active={open} onClose={() => setOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      )}
+    </>
+  );
 }
