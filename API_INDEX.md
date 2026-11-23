@@ -665,6 +665,19 @@ Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, t
 | POST | `/api/moderator/rubrics/:id/approve` | Platform Moderator | Duyệt; bản `approved` cũ cùng công ty + `roleCategory` → `archived` |
 | POST | `/api/moderator/rubrics/:id/reject` | Platform Moderator | Body `{ comment }` bắt buộc → `rejected`, lưu `moderationNote.comment` |
 
+`questionIds` gắn được câu `pending_platform_review` hoặc `approved` của chính công ty (CO-05).
+
+### A.18. Lời mời Company Moderator — `/api/company-invites` (CO-02)
+
+**File:** `routes/companyInvites.js` (công khai, không cần token) · **Service:** `companyService.js` (`verifyInviteToken`, `acceptInvite`) · **Điều khoản:** `config/rubricSharingTerms.js` · **FE:** `/company-invite/:token`
+
+| Method | Path | Ghi chú |
+|:-------|:-----|:--------|
+| GET | `/api/company-invites/verify/:token` | `{ success, invite { id, email, company { id, name, slug, logo, industry }, expiresAt }, terms { version, title, points[] } }`. Token sai / đã dùng / thu hồi → 400; hết hạn → 400 và lời mời chuyển `expired`; công ty bị khóa → 403 |
+| POST | `/api/company-invites/accept` | Body `{ token, name, password (≥ 6), acceptRubricTerms: true, termsVersion }`. Không đồng ý điều khoản (`acceptRubricTerms` khác `true`) → **400**; `termsVersion` khác bản hiện tại → **409** (tải lại trang). Email đã có tài khoản role khác → 400 (quyết định 14). Token dùng 1 lần, giành bằng lệnh nguyên tử (hai lần nhận cùng lúc chỉ một lần thành công). **201** `{ user, token, refreshToken }` |
+
+**Điều khoản dùng rubric ẩn danh (quyết định AI-18):** khi nhận lời mời, thời điểm và version đồng ý lưu ở `CompanyInvite.rubricTermsAcceptedAt` / `rubricTermsVersion`; lần đồng ý đầu tiên của công ty lưu ở `Company.rubricSharingConsent { acceptedAt, acceptedBy, termsVersion }`. Miner AI-18 chỉ lấy rubric của công ty có `rubricSharingConsent.acceptedAt`. Đổi nội dung điều khoản thì tăng `version` trong `config/rubricSharingTerms.js`.
+
 ### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11)
 
 **File:** `backend/src/routes/cvs.js` · **Model:** `CVDocument` · Chỉ chủ CV đọc/ghi được (lọc theo `userId`)

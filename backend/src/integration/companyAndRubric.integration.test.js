@@ -204,6 +204,8 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
         token,
         name: "HR Tuyển Dụng Mới",
         password: "Password123!",
+        acceptRubricTerms: true,
+        termsVersion: verifyData.terms.version,
       }),
     });
 
@@ -230,6 +232,8 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
         token,
         name: "Hacker",
         password: "Password123!",
+        acceptRubricTerms: true,
+        termsVersion: verifyData.terms.version,
       }),
     });
     assert.equal(reuseRes.status, 400);
