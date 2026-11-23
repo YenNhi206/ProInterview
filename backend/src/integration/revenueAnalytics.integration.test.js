@@ -266,6 +266,38 @@ describe("Doanh thu theo nguồn khớp truy vấn tay (N-08)", () => {
   });
 });
 
+describe("Trang tài chính cũ dùng chung công thức (N-08)", () => {
+  it("platform-summary: enrollment chưa ghi platformFee (null) tính theo tỉ lệ, khớp API doanh thu theo nguồn", async () => {
+    const summary = await call(admin, "/api/admin/finance/platform-summary");
+    assert.equal(summary.status, 200, summary.error);
+    const fin = summary.platformFinance;
+    // Trước N-08: Number(null) = 0 → enrollment 199.000đ bị tính phí 0%.
+    assert.equal(fin.course.platformRevenue, 104_650 + Math.round(199_000 * 0.35));
+    assert.equal(fin.course.mentorNet, 299_000 + 199_000 - fin.course.platformRevenue);
+
+    // Mọi dữ liệu mẫu nằm trong 366 ngày → so với API mới cho booking và khóa học.
+    const { revenue } = await call(admin, "/api/admin/analytics/revenue?days=366");
+    for (const key of ["booking", "course"]) {
+      const src = revenue.sources.find((s) => s.key === key);
+      assert.equal(fin[key].grossCollected, src.grossCollected, `${key} gross`);
+      assert.equal(fin[key].platformRevenue, src.platformRevenue, `${key} platformRevenue`);
+      assert.equal(fin[key].mentorNet, src.mentorNet, `${key} mentorNet`);
+    }
+  });
+});
+
+describe("bookingRevenueRow / courseRevenueRow (N-08)", () => {
+  it("phí null/thiếu → theo tỉ lệ; phí 0 là 0; phí kẹp trong [0, gross]; trừ tiền hoàn", async () => {
+    const { bookingRevenueRow, courseRevenueRow } = await import("../services/revenueAnalyticsService.js");
+    assert.deepEqual(courseRevenueRow({ pricePaid: 100_000, platformFee: null }), { gross: 100_000, fee: 35_000 });
+    assert.deepEqual(courseRevenueRow({ pricePaid: 100_000, platformFee: null, platformFeeRate: 0.2 }), { gross: 100_000, fee: 20_000 });
+    assert.deepEqual(courseRevenueRow({ pricePaid: 100_000, platformFee: 0 }), { gross: 100_000, fee: 0 });
+    assert.deepEqual(courseRevenueRow({ pricePaid: 100_000, platformFee: 150_000 }), { gross: 100_000, fee: 100_000 });
+    assert.deepEqual(bookingRevenueRow({ totalAmount: 400_000, platformFee: 120_000, cancelRefundAmountVnd: 350_000 }), { gross: 50_000, fee: 50_000 });
+    assert.deepEqual(bookingRevenueRow({ price: 300_000, platformFee: undefined }), { gross: 300_000, fee: 90_000 });
+  });
+});
+
 describe("learningPathPlatformFee (N-08)", () => {
   it("tổng phí các buổi gốc; không có buổi thì coi cả gói là 1 buổi", () => {
     assert.equal(learningPathPlatformFee({ platformFeeRate: 0.2 }, [{ shareAmount: 333_333 }, { shareAmount: 333_334 }]), 66_667 * 2);
