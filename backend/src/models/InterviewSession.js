@@ -176,6 +176,8 @@ const interviewSessionSchema = new Schema(
     },
     totalDurationSeconds: { type: Number, default: 0 },
     completedAt: { type: Date },
+    /** N-07: lúc job đánh `abandoned` (buổi `in_progress` quá `INTERVIEW_ABANDON_AFTER_MS`). */
+    abandonedAt: { type: Date },
     feedbackGeneratedAt: { type: Date },
 
     reportPdfUrl: { type: String, default: "" },
@@ -190,6 +192,11 @@ interviewSessionSchema.index({ status: 1 });
 // Accumulation queries: tìm sessions cùng role/competency để lấy few-shot examples
 interviewSessionSchema.index({ "competencyProfile.roleCategory": 1, status: 1, createdAt: -1 });
 interviewSessionSchema.index({ "competencyProfile.competencyIds": 1, status: 1 });
+
+/** N-07: buổi `in_progress` tạo quá 24 giờ thì coi là bỏ dở. */
+export const INTERVIEW_ABANDON_AFTER_MS = 24 * 60 * 60 * 1000;
+/** N-07: điều kiện Mongo loại buổi bỏ dở khỏi thống kê. Trải vào query: `{ ...EXCLUDE_ABANDONED_SESSIONS, createdAt }`. */
+export const EXCLUDE_ABANDONED_SESSIONS = Object.freeze({ status: { $ne: "abandoned" } });
 
 export const InterviewSession =
   mongoose.models.InterviewSession ?? mongoose.model("InterviewSession", interviewSessionSchema);

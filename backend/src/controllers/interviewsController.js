@@ -286,6 +286,14 @@ export const InterviewsController = {
         });
       }
 
+      // N-07: buổi đã bị đánh bỏ dở (quá 24 giờ) không hoàn thành lại được.
+      if (session.status === "abandoned") {
+        return res.status(409).json({
+          success: false,
+          error: "Phiên phỏng vấn đã quá 24 giờ và bị đánh dấu bỏ dở. Vui lòng bắt đầu buổi mới.",
+        });
+      }
+
       // Merge backup answers từ request body — bảo vệ trường hợp fire-and-forget PATCH
       // chưa kịp ghi trước khi user thoát trang
       if (Array.isArray(answers) && answers.length > 0) {
