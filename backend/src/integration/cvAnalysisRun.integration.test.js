@@ -293,3 +293,31 @@ describe("Một lần phân tích = một bản ghi (N-11)", () => {
     assert.equal(doc.quotaCharged, true);
   });
 });
+
+describe("Bản ghi đang chạy / lỗi không lọt vào thống kê (N-11)", () => {
+  it("dashboard ứng viên, tài liệu mentorship, thống kê admin chỉ đếm bản đã xong", async () => {
+    const user = await newUser();
+    const admin = await User.create({ name: "Admin N11", email: `n11-admin-${Date.now()}@test.local`, role: "admin" });
+    const base = { userId: user._id, mode: "jd", tier: "basic", jdFileName: "jd.pdf" };
+    await CVAnalysis.create({ ...base, cvFileName: "done.pdf", cvFileUrl: "/uploads/done.pdf", status: "completed", result: { match: { score: 70 } } });
+    await CVAnalysis.create({ ...base, cvFileName: "running.pdf", cvFileUrl: "/uploads/running.pdf", status: "processing" });
+    await CVAnalysis.create({ ...base, cvFileName: "broken.pdf", cvFileUrl: "/uploads/broken.pdf", status: "failed", error: "boom" });
+    const auth = (u) => ({ headers: { Authorization: `Bearer ${mintAccessToken(u._id)}` } });
+
+    const dash = await (await fetch(`${http.baseUrl}/api/users/dashboard-stats`, auth(user))).json();
+    assert.equal(dash.success, true, JSON.stringify(dash));
+    assert.equal(dash.stats.cvAnalysesCount, 1);
+    assert.equal(dash.stats.cvBestMatchScore, 70);
+
+    const docs = await (await fetch(`${http.baseUrl}/api/mentorship-requests/documents`, auth(user))).json();
+    assert.equal(docs.success, true, JSON.stringify(docs));
+    const names = docs.documents.filter((d) => d.source === "Phân tích CV" && d.kind === "cv").map((d) => d.name);
+    assert.deepEqual(names, ["done.pdf"]);
+
+    const content = await (await fetch(`${http.baseUrl}/api/admin/content/stats`, auth(admin))).json();
+    assert.equal(content.success, true, JSON.stringify(content));
+    const expected = await CVAnalysis.countDocuments({ status: { $nin: ["processing", "failed"] } });
+    assert.equal(content.content.cvAnalyses, expected);
+    assert.ok(expected < (await CVAnalysis.countDocuments()), "có bản ghi processing/failed bị loại");
+  });
+});
