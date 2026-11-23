@@ -13,6 +13,7 @@ import {
   TrendingDown,
   ArrowRight,
   BarChart3,
+  Wallet,
 } from "lucide-react";
 import {
   AdminPageHeader,
@@ -33,11 +34,6 @@ import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { formatDurationMs, labelRoute } from "../../utils/analytics/analyticsLabels.js";
-import {
-  ensureReasonableContentTotals,
-  ensureReasonableFunnel,
-  ensureReasonableTopRoutes,
-} from "../../utils/analytics/mockAggregate.js";
 
 function vnd(n) {
   return formatVnd(n);
@@ -88,6 +84,79 @@ function MiniStat({ label, value, accent }) {
       <p className={adminStatLabel}>{label}</p>
       <p className={`${adminStatValue} mt-1 text-xl sm:text-2xl text-white ${accent || ""}`}>{value}</p>
     </div>
+  );
+}
+
+const REVENUE_PERIODS = [7, 30, 90];
+const REVENUE_BAR_COLORS = {
+  booking: "bg-violet-500",
+  course: "bg-amber-500",
+  subscription: "bg-sky-500",
+  learning_path: "bg-lime-500",
+};
+
+/** N-09: doanh thu theo nguồn từ GET /api/admin/analytics/revenue (N-08). Số thật, không bù. */
+function RevenueBySource({ revenue, days, onDaysChange, loading }) {
+  const totals = revenue?.totals;
+  const sources = revenue?.sources || [];
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`${adminGlassTable} overflow-hidden`}>
+      <SectionHeader
+        icon={Wallet}
+        kicker="Tài chính"
+        title={`Doanh thu theo nguồn · ${days} ngày`}
+        desc="Tiền đã thu (trừ hoàn tiền), tách theo đặt lịch mentor, khóa học, gói Pro/Elite và lộ trình."
+      />
+      <div className="space-y-5 p-5 sm:p-7">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Khoảng thời gian">
+          {REVENUE_PERIODS.map((d) => (
+            <button
+              key={d}
+              type="button"
+              aria-pressed={days === d}
+              disabled={loading}
+              onClick={() => onDaysChange(d)}
+              className={`rounded-full border px-3 py-1 text-xs font-bold transition-colors ${
+                days === d ? "border-violet-500 bg-violet-600 text-white" : "border-white/15 text-slate-300 hover:border-violet-400"
+              }`}
+            >
+              {d} ngày
+            </button>
+          ))}
+        </div>
+        {!revenue ? (
+          <EmptyHint>{loading ? "Đang tải doanh thu…" : "Không tải được doanh thu."}</EmptyHint>
+        ) : (
+          <>
+            <div className={adminStatGrid4}>
+              <MiniStat label="Tổng đã thu" value={vnd(totals?.grossCollected)} />
+              <MiniStat label="Nền tảng giữ" value={vnd(totals?.platformRevenue)} accent="text-violet-800" />
+              <MiniStat label="Trả mentor" value={vnd(totals?.mentorNet)} accent="text-emerald-700" />
+              <MiniStat label="Giao dịch" value={totals?.count ?? 0} />
+            </div>
+            {(totals?.count ?? 0) === 0 ? (
+              <EmptyHint>Chưa có khoản thu nào trong {days} ngày qua.</EmptyHint>
+            ) : (
+              <ul className="space-y-3">
+                {sources.map((src) => (
+                  <li key={src.key} className="space-y-1.5">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                      <span className="font-bold text-white">{src.label}</span>
+                      <span className="font-semibold text-slate-300">
+                        {vnd(src.grossCollected)} · {src.count} giao dịch · {src.sharePct}%
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/10" aria-hidden>
+                      <div className={`h-full rounded-full ${REVENUE_BAR_COLORS[src.key] || "bg-violet-500"}`} style={{ width: `${src.sharePct}%` }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
@@ -283,6 +352,9 @@ export function AdminAnalytics() {
   const [content, setContent] = useState(null);
   const [behavior, setBehavior] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [revenue, setRevenue] = useState(null);
+  const [revenueDays, setRevenueDays] = useState(30);
+  const [revenueLoading, setRevenueLoading] = useState(true);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -293,33 +365,26 @@ export function AdminAnalytics() {
     ]);
     const loadedStats = statsRes.success ? statsRes.stats || null : null;
     if (statsRes.success) setStats(loadedStats);
-    if (contentRes.success) {
-      // "Phân tích CV"/"Phiên AI" tổng lấy thẳng từ DB, có thể thấp hơn ước tính từ
-      // chính số Pro/Elite thật (stats.plans) nhân với target đã bù ở trang chi tiết
-      // user (mockQuota.js) — nâng lên khớp nếu vậy, không hạ khi số thật đã cao hơn.
-      setContent(ensureReasonableContentTotals(contentRes.content || null, loadedStats?.plans));
-    }
-    if (behaviorRes.success) {
-      const b = behaviorRes.behavior || null;
-      // Số thật quá thấp (vd. "Phòng phỏng vấn" trung bình vài chục giây, funnel rớt
-      // gần hết ở 1 bước) trông vô lý cho dashboard báo cáo — nâng lên mức hợp lý,
-      // không hạ số thật khi nó đã ổn. Chỉ tính ở trình duyệt, không ghi lại DB.
-      setBehavior(
-        b
-          ? {
-              ...b,
-              topRoutes: ensureReasonableTopRoutes(b.topRoutes, loadedStats?.plans),
-              funnel: ensureReasonableFunnel(b.funnel),
-            }
-          : null,
-      );
-    }
+    // N-09: hiển thị đúng số từ API, không nâng hay bù ở trình duyệt.
+    if (contentRes.success) setContent(contentRes.content || null);
+    if (behaviorRes.success) setBehavior(behaviorRes.behavior || null);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     void loadAll();
   }, [loadAll]);
+
+  const loadRevenue = useCallback(async (days) => {
+    setRevenueLoading(true);
+    const res = await tryApi(() => adminApi.getRevenueBySource({ days }), { fallback: "", silent: true });
+    setRevenue(res.success ? res.revenue || null : null);
+    setRevenueLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void loadRevenue(revenueDays);
+  }, [loadRevenue, revenueDays]);
 
   const plans = stats?.plans || { free: 0, starter_pro: 0, elite_pro: 0 };
   const bookingBreakdown = useMemo(() => {
@@ -404,6 +469,8 @@ export function AdminAnalytics() {
               </div>
             </div>
           </motion.div>
+
+          <RevenueBySource revenue={revenue} days={revenueDays} onDaysChange={setRevenueDays} loading={revenueLoading} />
 
           {behavior ? (
             <div className="grid items-stretch gap-6 lg:grid-cols-2 xl:grid-cols-5">

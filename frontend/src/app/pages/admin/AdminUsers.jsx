@@ -4,32 +4,7 @@ import { Users, Search, Mail, Tag, Eye } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
-import { ensureMinQuotaUsage } from "../../utils/analytics/mockQuota.js";
-import { estimateDisplayLastSeenAt } from "../../utils/analytics/mockJourney.js";
 import { getInitials } from "../../utils/auth/auth.js";
-
-const PAID_PLANS = new Set(["starter_pro", "elite_pro"]);
-
-/** "Trực tuyến" ở đây phải khớp với trang chi tiết user (cũng bù theo cùng công
- * thức) — nếu không sẽ có cảnh 1 tài khoản hiện 2 ngày khác nhau ở 2 trang. */
-function resolveDisplayLastSeenAt(user) {
-  if (!PAID_PLANS.has(user.plan)) return user.lastSeenAt;
-  const cvUsed = ensureMinQuotaUsage(user._id, user.quota?.cvAnalysisUsed ?? 0, user.quota?.cvAnalysisLimit ?? 3, user.plan, "cvAnalysis");
-  const interviewUsed = ensureMinQuotaUsage(
-    user._id,
-    user.quota?.interviewUsed ?? 0,
-    user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1,
-    user.plan,
-    "interview",
-  );
-  return estimateDisplayLastSeenAt(user._id, {
-    createdAt: user.createdAt,
-    planExpiresAt: user.planExpiresAt,
-    lastSeenAt: user.lastSeenAt,
-    interviewUsed,
-    cvUsed,
-  });
-}
 
 export function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -73,8 +48,7 @@ export function AdminUsers() {
         .sort((a, b) => {
           if (a.isOnline === b.isOnline) return 0;
           return a.isOnline ? -1 : 1;
-        })
-        .map((u) => ({ ...u, displayLastSeenAt: resolveDisplayLastSeenAt(u) })),
+        }),
     [users, searchTerm],
   );
 
@@ -187,7 +161,7 @@ export function AdminUsers() {
                     <td className="px-6 py-4">
                       <UserOnlineStatus
                         isOnline={Boolean(user.isOnline)}
-                        lastSeenAt={user.displayLastSeenAt}
+                        lastSeenAt={user.lastSeenAt}
                         isActive={user.isActive !== false}
                       />
                     </td>
