@@ -384,6 +384,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/admin/interview-metrics` | Metric phỏng vấn AI |
 | GET | `/api/admin/analytics/user-behavior` | Hành vi nền tảng — query `?days=` (1–90, mặc định 7) → `{ behavior }` |
 | GET | `/api/admin/analytics/users/:id/journey` | Hành trình user — query `?days=`, `?limit=` → `{ journey }` |
+| GET | `/api/admin/analytics/revenue` | Doanh thu theo nguồn (N-08) — query `?days=` (1–366, mặc định 30, tính cả hôm nay) hoặc `?month=YYYY-MM` (giờ VN) → `{ revenue: { period, totals, sources[], series[] } }`. `sources[]`: `booking` (Booking `paid`/`partial_refund`, loại booking lộ trình và buổi 0đ), `course` (Enrollment `paid`, `pricePaid > 0`), `subscription` (Payment `subscription` `success`), `learning_path` (Payment `learning_path` `success`/`partial_refund`); mỗi nguồn `{ key, label, grossCollected, platformRevenue, mentorNet, count, sharePct }`, `grossCollected` đã trừ tiền hoàn; mốc thời gian `paidAt` ?? `createdAt`; bỏ Payment demo `UIMOCK-`. `series[]`: mỗi ngày `{ date, booking, course, subscription, learning_path, total }` |
 
 **Online presence:** `isOnline` = `lastSeenAt` trong cửa sổ **3 phút** (`backend/src/utils/userPresence.js`). Heartbeat FE: `POST /api/auth/presence` + `authJwt` tự touch mỗi request.
 
@@ -462,6 +463,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 |:-------|:-----|:-------------|
 | GET | `/api/admin/analytics/user-behavior` | `behavior` — funnel, top routes, recent actions |
 | GET | `/api/admin/analytics/users/:id/journey` | `journey` — timeline, `topRoutes`, `lastStop`, `lastAction` |
+| GET | `/api/admin/analytics/revenue` | `revenue` — doanh thu theo nguồn (booking, khóa, gói, lộ trình) + chuỗi theo ngày (N-08) |
 
 **FE:** `usePageAnalytics.js`, `analyticsApi.js`, `trackAction`, `AdminAnalytics.jsx`, `UserJourneyPanel.jsx`.
 
@@ -925,6 +927,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | GET | `/api/admin/interview-metrics` |
 | GET | `/api/admin/analytics/user-behavior` |
 | GET | `/api/admin/analytics/users/:id/journey` |
+| GET | `/api/admin/analytics/revenue` |
 
 ### C.15. AI providers — `/api/ai`
 
@@ -948,6 +951,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | POST | `/api/analytics/events` | Bearer |
 | GET | `/api/admin/analytics/user-behavior` | Admin — `?days=` |
 | GET | `/api/admin/analytics/users/:id/journey` | Admin — `?days=`, `?limit=` |
+| GET | `/api/admin/analytics/revenue` | Admin — `?days=` hoặc `?month=YYYY-MM` |
 
 ### C.17. Achievements — `/api/achievements`
 

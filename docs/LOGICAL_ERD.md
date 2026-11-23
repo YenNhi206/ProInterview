@@ -584,6 +584,21 @@ erDiagram
         ObjectId activatedBy FK "→ USER"
         string note
     }
+    AI_IMPROVEMENT_PROPOSAL {
+        ObjectId _id PK
+        enum target "question_gen|evaluation (AI-03)"
+        enum kind "few_shot|prompt_change|calibration|rubric_anchor"
+        string groupKey "competencyId | roleCategory | _general"
+        enum status "proposed|approved|rejected|rolled_back"
+        string summary
+        array evidence_moderationItemIds FK,UK "→ MODERATION_ITEM, mỗi item 1 đề xuất"
+        int evidence_overrideCount
+        number evidence_avgScoreDelta "điểm moderator − điểm AI (0–5)"
+        object before "promptKey, version, fewShotExamples"
+        object after "promptKey, version (→ PROMPT_VERSION chưa bật), fewShotExamples"
+        object backtest "AI-04"
+        object review "by → USER, at, note"
+    }
 ```
 
 ---
@@ -689,13 +704,15 @@ erDiagram
 | SEPAY_WEBHOOK_EVENT | — | Unique `sepayId` → webhook gửi lại không xử lý hai lần |
 | PROMPT_VERSION – chuỗi `promptVersion` | 1 – 0..n | Không có FK: session và QuestionBank lưu nguyên chuỗi `version`. Unique `{key, version}` và unique `{version}` (`version_unique`, vì Quality Dashboard nhóm theo chuỗi không kèm key) |
 | PROMPT_VERSION bản active | — | Partial unique `{key}` khi `active: true` (`key_single_active`) → mỗi key tối đa 1 bản active (AI-02) |
+| MODERATION_ITEM – AI_IMPROVEMENT_PROPOSAL | n – 0..1 | Unique `evidence.moderationItemIds` (multikey, `evidence_item_unique`) → mỗi item làm bằng chứng cho tối đa 1 đề xuất (AI-03) |
+| AI_IMPROVEMENT_PROPOSAL chờ duyệt | — | Partial unique `{target, kind, groupKey}` khi `status: proposed` (`group_single_proposed`) → mỗi nhóm tối đa 1 đề xuất chờ duyệt |
 
 ## Thay đổi so với Conceptual ERD cũ
 
 Conceptual ERD (`PROINTERVIEW_CONCEPTUAL.drawio`) có 17 thực thể và ghi "chưa có role kiểm duyệt viên". Từ đó đến nay đã thêm:
 
 - `User.role` có thêm `moderator`, `enterprise`.
-- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`, `LearningPath`, `LearningPathSession` (capstone FA26, LP-03), `PromptVersion` (AI-02).
+- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`, `LearningPath`, `LearningPathSession` (capstone FA26, LP-03), `PromptVersion` (AI-02), `AIImprovementProposal` (AI-03).
 - `Report` mở rộng `targetType` cho câu hỏi/đánh giá AI (`reasonCode` riêng).
 - `InterviewSession.answers` có `evaluationIncomplete`, `moderatorOverride`; `questions`/`answers` trỏ `questionBankId`.
 - `Course.adminReview.reviewedBy` giờ là moderator (route chuyển từ `/api/admin` sang `/api/moderator`).

@@ -11,6 +11,7 @@ import { AdminCostDashboardController } from "../controllers/adminCostDashboardC
 import { AdminCompanyController } from "../controllers/adminCompanyController.js";
 import { upload } from "../middleware/upload.js";
 import { adminConfirmLearningPathTransfer, listLearningPathTransfersForAdmin } from "../services/learningPathPaymentService.js";
+import { getRevenueBySource, resolveRevenuePeriod } from "../services/revenueAnalyticsService.js";
 
 export const adminRouter = Router();
 
@@ -104,6 +105,12 @@ adminRouter.patch("/payouts/:id/reject", asyncHandler(AdminAccountController.rej
 adminRouter.get("/interview-metrics", asyncHandler(AdminController.getInterviewMetrics));
 adminRouter.get("/analytics/user-behavior", asyncHandler(AdminController.getPlatformBehavior));
 adminRouter.get("/analytics/users/:id/journey", asyncHandler(AdminController.getUserJourney));
+// N-08: doanh thu theo nguồn (booking, khóa, gói, lộ trình) — ?days=30 hoặc ?month=YYYY-MM.
+adminRouter.get("/analytics/revenue", asyncHandler(async (req, res) => {
+  const resolved = resolveRevenuePeriod({ days: req.query.days, month: req.query.month });
+  if (!resolved.ok) return res.status(400).json({ success: false, error: resolved.error });
+  res.json({ success: true, revenue: await getRevenueBySource(resolved.period) });
+}));
 
 // ----- Quản lý đối tác doanh nghiệp / Công ty (CO-01 & CO-02) -----
 adminRouter.get("/companies", asyncHandler(AdminCompanyController.list));

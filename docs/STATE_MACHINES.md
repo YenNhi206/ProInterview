@@ -412,9 +412,29 @@ stateDiagram-v2
 
 **Đã code (JB-01):** tạo, sửa (chỉ `draft` / `published`; job đang đăng phải vẫn đủ điều kiện đăng), đăng, đóng. Đổi trạng thái cập nhật có điều kiện theo `status` (hai lần đăng cùng lúc chỉ một lần thắng); sửa nội dung có điều kiện theo `status` + `updatedAt`. Company Mod không mở lại job đã đóng và không bỏ ẩn. **JB-02:** `closeExpiredJobPosts` (`jobPostsService.js`) chạy trong nhịp 20 phút của `jobs/bookingStaleSweepJob.js`: job `published` hoặc `hidden` có `closesAt <= now` → `closed`, `closedReason: expired` (cập nhật có điều kiện theo status, chạy lại không đổi gì; bản nháp không bị đóng). **JB-03:** API công khai chỉ trả `published` chưa quá hạn của công ty không bị khóa, nên không phụ thuộc độ trễ của job định kỳ.
 
+
+## 16. Đề xuất cải tiến AI — `AIImprovementProposal.status` (capstone FA26)
+
+```mermaid
+stateDiagram-v2
+    [*] --> proposed : aiImprovementMinerJob<br/>[nhóm đủ ngưỡng, chưa có đề xuất chờ duyệt]
+    proposed --> approved : Platform Mod duyệt (AI-05)<br/>bật PromptVersion `after.version`
+    proposed --> rejected : Platform Mod từ chối (AI-05)
+    approved --> rolled_back : Platform Mod rollback (AI-05)<br/>bật lại `before.version`
+    rejected --> [*]
+    rolled_back --> [*]
+```
+
+| Chuyển | Hàm / endpoint | Task |
+|:-------|:---------------|:-----|
+| → `proposed` | `mineImprovementProposals` (`services/aiImprovementMinerService.js`) trong `jobs/aiImprovementMinerJob.js` (mỗi ngày, lượt đầu sau 10 phút) | AI-03 |
+| `proposed` → `approved` / `rejected`; `approved` → `rolled_back` | `PATCH /api/moderator/ai-improvements/:id` | AI-05 (chưa code) |
+
+**Đã code (AI-03):** miner gom `ModerationItem` `resolved` có `resolution.action` là `override_score` (target `evaluation`, nhóm theo `competencyId` của câu) hoặc `edit_question` / `deprecate_question` (target `question_gen`, nhóm theo `roleCategory`; bỏ câu công ty có `orgId`). Nhóm có ≥ `AI_IMPROVEMENT_MIN_EVIDENCE` (mặc định 5) item chưa dùng thì tạo PromptVersion mới **chưa bật** (`createVersion`: bản active + tối đa 3 few-shot từ ca lệch nhiều nhất, tổng tối đa 9) và 1 đề xuất `few_shot`, báo `ai_improvement_proposed` cho moderator. Mỗi item chỉ làm bằng chứng một lần; nhóm đang có đề xuất `proposed` thì item mới để lại tới lượt sau khi đề xuất được xử lý. Không job nào khác lọc theo status này.
+
 ---
 
-## 16. Phân tích CV — `CVAnalysis.status` (N-11)
+## 17. Phân tích CV — `CVAnalysis.status` (N-11)
 
 ```mermaid
 stateDiagram-v2
