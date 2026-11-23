@@ -41,6 +41,8 @@ npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (k
 npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
 npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)
 npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần trên production sau khi merge
+npm run db:migrate-enterprise-role:dry  # N-03: đếm user role cũ `enterprise` (không ghi DB); production: đặt TARGET_MONGO_URI
+npm run db:migrate-enterprise-role      # N-03: đổi `enterprise` → `company_moderator`; chạy lại được
 npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
 npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08)
 node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy

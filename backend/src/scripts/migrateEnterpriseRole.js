@@ -1,53 +1,64 @@
 /**
- * Migration N-03: Đổi role user từ `enterprise` sang `company_moderator`.
+ * Migration N-03: đổi role user từ `enterprise` sang `company_moderator`. Chạy lại nhiều lần không lỗi.
  *
- * Chạy được nhiều lần mà không lỗi (idempotent).
- * Hỗ trợ cờ --dry-run để kiểm tra trước số lượng mà không ghi DB.
+ * Chạy thử (không ghi DB): npm run db:migrate-enterprise-role:dry · Chạy thật: npm run db:migrate-enterprise-role
+ * DB khác .env (production): đặt TARGET_MONGO_URI, ví dụ PowerShell:
+ *   $env:TARGET_MONGO_URI="mongodb+srv://..."; npm run db:migrate-enterprise-role:dry
  *
- * Sử dụng:
- *   node src/scripts/migrateEnterpriseRole.js [--dry-run]
+ * Đề xuất (n) trong docs/plan/TASKS.md: `loadEnv` nạp `.env` với `override: true`, nên đặt `MONGO_URI`
+ * trên dòng lệnh vẫn bị `.env` ghi đè; script phải đọc `TARGET_MONGO_URI` trước và in host đích.
  */
-import "../config/loadEnv.js";
+import { pathToFileURL } from "node:url";
 import mongoose from "mongoose";
 import { connectDatabase } from "../db/connect.js";
 import { User } from "../models/User.js";
 
+const FILTER = { role: "enterprise" };
+
+/**
+ * Đổi mọi user `enterprise` sang `company_moderator` (dry run chỉ đếm).
+ * @returns {Promise<{ found: number, updated: number }>}
+ */
+export async function migrateEnterpriseRole({ dryRun = false } = {}) {
+  const found = await User.countDocuments(FILTER);
+  if (dryRun || found === 0) return { found, updated: 0 };
+  const result = await User.updateMany(FILTER, { $set: { role: "company_moderator" } });
+  return { found, updated: result.modifiedCount };
+}
+
+/** Host của chuỗi kết nối, bỏ user:password (để in ra màn hình không lộ mật khẩu). */
+export function mongoHost(uri) {
+  return String(uri ?? "").replace(/^mongodb(\+srv)?:\/\/([^@/]*@)?/, "").split(/[/?]/)[0];
+}
+
 async function main() {
-  const uri = process.env.MONGO_URI;
+  // Nạp .env chỉ khi chạy từ dòng lệnh: test import module này không bị .env ghi đè biến môi trường.
+  await import("../config/loadEnv.js");
+  const uri = process.env.TARGET_MONGO_URI?.trim() || process.env.MONGO_URI;
   if (!uri) {
-    console.error("Lỗi: Chưa cấu hình MONGO_URI trong môi trường.");
+    console.error("Thiếu MONGO_URI (hoặc TARGET_MONGO_URI).");
     process.exit(1);
   }
+  const source = process.env.TARGET_MONGO_URI?.trim() ? "TARGET_MONGO_URI" : "MONGO_URI trong .env";
+  // PowerShell nuốt `--` nên dùng script :dry; npm đặt npm_config_dry_run khi cờ rơi vào npm.
+  const dryRun =
+    process.argv.includes("--dry-run") || process.env.DRY_RUN === "1" || process.env.npm_config_dry_run === "true";
+  console.log(`[migrateEnterpriseRole] kết nối tới: ${mongoHost(uri)} (${source}) · ${dryRun ? "DRY RUN" : "GHI THẬT"}`);
 
-  const dryRun = process.argv.includes("--dry-run");
   await connectDatabase(uri);
-  console.log(`[migrateEnterpriseRole] Đã kết nối MongoDB (${dryRun ? "DRY-RUN" : "LIVE"}).`);
-
-  const filter = { role: "enterprise" };
-  const count = await User.countDocuments(filter);
-
-  if (count === 0) {
-    console.log("[migrateEnterpriseRole] Không tìm thấy user nào có role 'enterprise'. Không cần migrate.");
-    await mongoose.disconnect();
-    return;
-  }
-
-  console.log(`[migrateEnterpriseRole] Tìm thấy ${count} user có role 'enterprise'.`);
-
-  if (dryRun) {
-    console.log("[migrateEnterpriseRole] DRY-RUN: Bỏ qua bước cập nhật database.");
-  } else {
-    const result = await User.updateMany(filter, { $set: { role: "company_moderator" } });
-    console.log(`[migrateEnterpriseRole] Đã migrate thành công ${result.modifiedCount} user sang role 'company_moderator'.`);
-  }
-
+  const { found, updated } = await migrateEnterpriseRole({ dryRun });
+  if (found === 0) console.log("[migrateEnterpriseRole] Không còn user role 'enterprise'. Không cần migrate.");
+  else if (dryRun) console.log(`[migrateEnterpriseRole] DRY RUN (không ghi DB): ${found} user sẽ đổi sang 'company_moderator'.`);
+  else console.log(`[migrateEnterpriseRole] Đã đổi ${updated}/${found} user sang 'company_moderator'.`);
   await mongoose.disconnect();
 }
 
-main().catch(async (err) => {
-  console.error("[migrateEnterpriseRole] Lỗi khi thực hiện migrate:", err);
-  try {
-    await mongoose.disconnect();
-  } catch {}
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(async (err) => {
+    console.error("[migrateEnterpriseRole] Lỗi khi migrate:", err);
+    try {
+      await mongoose.disconnect();
+    } catch {}
+    process.exit(1);
+  });
+}
