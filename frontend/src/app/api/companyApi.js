@@ -109,6 +109,25 @@ export const companyApi = {
       body: JSON.stringify({ comment }),
     }),
 
+  // ── Platform Moderator: Duyệt câu hỏi doanh nghiệp (CO-16) ──
+  listModeratorCompanyQuestions: (params = {}) =>
+    authedFetch(`/api/moderator/company-questions${toQuery(params)}`),
+  approveModeratorCompanyQuestion: (id, note = "") =>
+    authedFetch(`/api/moderator/company-questions/${id}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
+  rejectModeratorCompanyQuestion: (id, reason) =>
+    authedFetch(`/api/moderator/company-questions/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  bulkModeratorCompanyQuestions: (action, ids, reason = "") =>
+    authedFetch("/api/moderator/company-questions/bulk", {
+      method: "POST",
+      body: JSON.stringify({ action, ids, reason }),
+    }),
+
   // ── Public: Nhận lời mời (CO-02 & CO-11) ──
   verifyInvite: (token) => fetch(`/api/company-invites/verify/${encodeURIComponent(token)}`).then((r) => r.json()),
   acceptInvite: (data) =>

@@ -299,6 +299,8 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/company/questions/upload` | `[AUTH][COMPANY_MOD]` tải lên hàng loạt ≤ 50 câu theo job, bỏ câu trùng `textHash` → `pending_platform_review` (CO-05) |
 | ✅ | PATCH | `/api/company/questions/:id` | `[AUTH][COMPANY_MOD]` sửa câu, ghi `history`; đổi chữ câu `approved` → duyệt lại (CO-05) |
 | ✅ | POST | `/api/company/questions/:id/approve` · `/reject` · `batch-approve` · `batch-reject` | `[AUTH][COMPANY_MOD]` duyệt → `pending_platform_review` chờ Platform Mod (quyết định CO-16) |
+| ✅ | GET | `/api/moderator/company-questions` | `[AUTH][MODERATOR]` câu doanh nghiệp theo tab chờ duyệt / đã duyệt / từ chối, kèm công ty và job (CO-16) |
+| ✅ | POST | `/api/moderator/company-questions/:id/approve` · `/:id/reject` · `/bulk` | `[AUTH][MODERATOR]` duyệt → `approved` + render video avatar; từ chối bắt buộc lý do (CO-16) |
 
 Chi tiết: **API_INDEX.md A.18 (CO-04, CO-05)**. FE: nút "Sinh bộ câu bằng AI" trên `/company/questions`.
 

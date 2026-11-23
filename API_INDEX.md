@@ -631,7 +631,20 @@ Vòng đời câu doanh nghiệp (quyết định CO-16, 23/11/2026): `draft` �
 
 `GET /api/company/dashboard` trả thêm `stats.questions.pendingPlatformReview`. Rubric công ty gắn được câu `pending_platform_review` hoặc `approved` của chính công ty.
 
-Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`. Từ CO-05, Company Mod duyệt không còn xếp hàng render; CO-16 gọi `scheduleCompanyQuestionVideoWarm` lúc Platform Mod duyệt. Render nền cho cả 2 giới tính (`persistVideo: true`, mirror Cloudinary), không chặn response. Cache tính theo nội dung câu, nên buổi luyện theo job gọi `POST /api/ai/interview/pregenerate` với câu này sẽ trúng cache, không gọi provider video. Backfill hoặc render lại sau khi đổi provider: `npm run warmup:company-videos`.
+#### Platform Moderator duyệt câu doanh nghiệp — `/api/moderator/company-questions` (CO-16)
+
+**File:** `routes/moderator.js` (`requireModerator`, ghi `moderator_action`) · **Controller:** `moderatorCompanyQuestionController.js` · **Service:** `companyQuestionReviewService.js` · **FE:** `/moderator/company-questions` (`ModeratorCompanyQuestions.jsx`)
+
+| Method | Endpoint | Mô tả |
+|:-------|:---------|:------|
+| GET | `/api/moderator/company-questions` | Query `status?` (`pending_platform_review` mặc định \| `approved` \| `rejected`; khác → 400), `companyId?`, `jobPostId?`, `roleCategory?`, `q?` (≤ 100 ký tự), `page`, `limit` (1–100, mặc định 20). Chỉ câu `orgId != null`. Tab chờ duyệt xếp cũ nhất trước. Trả `{ success, questions: [{ ..., company { _id, name, slug, logo }, jobPost { _id, title, status, level } \| null, lastEdit }], counts { pending_platform_review, approved, rejected }, pagination }` |
+| POST | `/api/moderator/company-questions/:id/approve` | Body `{ note? }`. `pending_platform_review` → `approved`, ghi `review`, `moderation`, `history`; xếp hàng render video avatar (CO-06). Câu khác trạng thái → **409**; câu pool chung / không có → **404** |
+| POST | `/api/moderator/company-questions/:id/reject` | Body `{ reason }` (bắt buộc, ≤ 500). → `rejected`; lý do lưu ở `moderation.reason` (công ty xem ở `GET /api/company/questions`) |
+| POST | `/api/moderator/company-questions/bulk` | Body `{ action: "approve" \| "reject", ids (≤ 100), reason? }` (`reject` bắt buộc `reason`). Chỉ đổi câu đang `pending_platform_review`, câu khác bỏ qua. Trả `{ updated, skipped }` |
+
+Route duyệt của ngân hàng câu chung (`PATCH /api/moderator/questions/:id/approve`, `POST /api/moderator/questions/bulk`) chỉ tác động câu `orgId: null`, nên không đi vòng được luồng này.
+
+Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, tức là lúc Platform Mod duyệt (CO-16). Company Mod duyệt không xếp hàng render. Render nền cho cả 2 giới tính (`persistVideo: true`, mirror Cloudinary), không chặn response. Cache tính theo nội dung câu, nên buổi luyện theo job gọi `POST /api/ai/interview/pregenerate` với câu này sẽ trúng cache, không gọi provider video. Backfill hoặc render lại sau khi đổi provider: `npm run warmup:company-videos`.
 
 
 ### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)

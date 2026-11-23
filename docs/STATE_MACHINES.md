@@ -179,7 +179,39 @@ stateDiagram-v2
 
 **Tác động lúc chạy phỏng vấn:** chỉ câu `approved` (và `orgId=null`) được phục vụ làm fallback; `applyDeprecationPolicy` loại câu LLM vừa sinh nếu trùng `textHash` một câu `deprecated` và sinh lại tối đa `REGENERATE_ATTEMPTS = 2` lần.
 
-Giá trị `draft`, `rejected` có trong enum nhưng **chưa có luồng nào ghi** — dành cho Enterprise template sau này.
+Các route duyệt của pool chung (`PATCH /api/moderator/questions/:id/approve`, `POST .../questions/bulk`) chỉ tác động câu `orgId=null`; câu doanh nghiệp đi luồng 6b.
+
+### 6b. Câu hỏi doanh nghiệp (`orgId != null`, CO-04, CO-05, CO-16)
+
+Quyết định CO-16 (23/11/2026): câu Company Moderator đã duyệt phải qua Platform Moderator duyệt mới được dùng.
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft : AI sinh bộ câu nháp (CO-04)<br/>· bộ câu mẫu · tự thêm / tải lên với status=draft
+    [*] --> pending_platform_review : Company Mod tự thêm câu<br/>hoặc tải lên theo job (CO-05)
+
+    draft --> pending_platform_review : Company Mod duyệt<br/>(đơn lẻ hoặc hàng loạt)
+    draft --> rejected : Company Mod từ chối
+    rejected --> pending_platform_review : Company Mod duyệt lại
+
+    pending_platform_review --> approved : Platform Mod duyệt (CO-16)<br/>→ render video avatar (CO-06)
+    pending_platform_review --> rejected : Platform Mod từ chối (bắt buộc lý do)
+    approved --> pending_platform_review : Company Mod sửa chữ câu<br/>(phải duyệt lại)
+    approved --> rejected : Company Mod từ chối (gỡ khỏi phỏng vấn)
+```
+
+| Chuyển | Hàm | Endpoint |
+|:-------|:----|:---------|
+| `[*] → draft` | `generateCompanyQuestionDrafts`, `generateStarterQuestions` | `POST /api/company/questions/generate`, `/generate-starter` |
+| `[*] → pending_platform_review` (hoặc `draft`) | `createQuestion`, `uploadQuestions` (`companyWorkspaceController.js`) | `POST /api/company/questions`, `/questions/upload` |
+| `draft \| rejected → pending_platform_review` | `approveQuestion`, `batchApproveQuestions` | `POST /api/company/questions/:id/approve`, `/batch-approve` |
+| `→ rejected` (Company Mod) | `rejectQuestion`, `batchRejectQuestions` | `POST /api/company/questions/:id/reject`, `/batch-reject` |
+| `approved → pending_platform_review` | `editQuestion` (khi đổi chữ) | `PATCH /api/company/questions/:id` |
+| `pending_platform_review → approved \| rejected` | `approveCompanyQuestion`, `rejectCompanyQuestion`, `bulkReviewCompanyQuestions` (`services/companyQuestionReviewService.js`) | `POST /api/moderator/company-questions/:id/approve`, `/:id/reject`, `/bulk` |
+
+**Tác động:** chỉ câu `approved` vào phỏng vấn (JB-06) và được render video avatar (`scheduleCompanyQuestionVideoWarm`, CO-06). Rubric công ty gắn được câu `pending_platform_review` hoặc `approved`.
+
+Giá trị `draft`, `rejected` chỉ dùng cho câu doanh nghiệp; pool chung chưa có luồng nào ghi hai giá trị này.
 
 ---
 
