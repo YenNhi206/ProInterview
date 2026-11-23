@@ -531,8 +531,9 @@ erDiagram
         string competencyId
         string roleCategory
         enum source "baseline|llm_followup|moderator|org_template"
-        ObjectId orgId FK "→ ORGANIZATION (chưa có)"
-        enum status "draft|pending_review|approved|rejected|deprecated"
+        ObjectId orgId FK "→ COMPANY"
+        ObjectId jobPostId FK "→ JOB_POST, câu doanh nghiệp (CO-05)"
+        enum status "draft|pending_review|pending_platform_review|approved|rejected|deprecated"
         object review "by → USER, at, note"
         object deprecation "by → USER, reason"
         array revisions

@@ -5,6 +5,7 @@ import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
 import { getInitials } from "../../utils/auth/auth.js";
+import { roleLabel } from "../../utils/auth/roleLabels.js";
 
 export function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -149,7 +150,7 @@ export function AdminUsers() {
                                 : "border-white/10 bg-white/5 text-slate-300"
                           }`}
                         >
-                          {user.role}
+                          {roleLabel(user.role)}
                         </span>
                       </div>
                     </td>

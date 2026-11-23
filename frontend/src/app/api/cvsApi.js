@@ -10,6 +10,23 @@ export const cvsApi = {
   setDefault: (id) => authedFetch(`/api/cvs/${encodeURIComponent(id)}/set-default`, { method: "POST" }),
   remove: (id) => authedFetch(`/api/cvs/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
+  /** PR-13: các lần phân tích CV đã xong (`list`, mới nhất trước) để lấy gợi ý viết lại bullet. */
+  listAnalyses: () => authedFetch("/api/cv/analyses"),
+
+  /** PR-13: tải PDF của CV (PR-09, pdfkit). Trả `{ success, blob }` hoặc `{ success: false, error }`. */
+  downloadPdf(id) {
+    if (!hasAuthCredentials()) return Promise.resolve({ success: false, error: ERROR_MESSAGES.UNAUTHENTICATED });
+    return authFetch(`/api/cvs/${encodeURIComponent(id)}/export-pdf`, { method: "GET", headers: { Accept: "application/pdf" } })
+      .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          return { success: false, error: normalizeApiError(body, res.status) };
+        }
+        return { success: true, blob: await res.blob() };
+      })
+      .catch(() => ({ success: false, error: ERROR_MESSAGES.NETWORK }));
+  },
+
   /** multipart: `file` + `title` / `targetRole` tùy chọn. Không đặt Content-Type để trình duyệt tự thêm boundary. */
   upload({ file, title = "", targetRole = "" }) {
     if (!hasAuthCredentials()) return Promise.resolve({ success: false, error: ERROR_MESSAGES.UNAUTHENTICATED });

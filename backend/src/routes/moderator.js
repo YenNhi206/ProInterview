@@ -6,6 +6,7 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import { AdminController } from "../controllers/adminController.js";
 import { ModeratorController } from "../controllers/moderatorController.js";
 import { ModeratorRubricController } from "../controllers/moderatorRubricController.js";
+import { ModeratorCompanyQuestionController } from "../controllers/moderatorCompanyQuestionController.js";
 
 /**
  * Moderator — lớp kiểm định chất lượng, tách khỏi vận hành của admin.
@@ -58,6 +59,12 @@ moderatorRouter.patch("/jobs/:id/visibility", asyncHandler(ModeratorController.s
 moderatorRouter.get("/quality/stats", asyncHandler(ModeratorController.qualityStats));
 
 // ── CO-08: Phê duyệt Rubric doanh nghiệp ─────────────────────────────────────
+// ── Câu hỏi doanh nghiệp: duyệt tầng hai (CO-16), tách khỏi ngân hàng câu chung ở trên ──
+moderatorRouter.get("/company-questions", asyncHandler(ModeratorCompanyQuestionController.list));
+moderatorRouter.post("/company-questions/bulk", asyncHandler(ModeratorCompanyQuestionController.bulk));
+moderatorRouter.post("/company-questions/:id/approve", asyncHandler(ModeratorCompanyQuestionController.approve));
+moderatorRouter.post("/company-questions/:id/reject", asyncHandler(ModeratorCompanyQuestionController.reject));
+
 moderatorRouter.get("/rubrics", asyncHandler(ModeratorRubricController.list));
 moderatorRouter.get("/rubrics/:id", asyncHandler(ModeratorRubricController.getById));
 moderatorRouter.post("/rubrics/:id/approve", asyncHandler(ModeratorRubricController.approve));

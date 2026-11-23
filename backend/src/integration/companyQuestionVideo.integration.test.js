@@ -1,6 +1,7 @@
 /**
- * CO-06: duyệt câu công ty → render trước video avatar (× 2 giới tính) để buổi luyện theo job
- * trúng cache, không gọi provider video.
+ * CO-06: câu công ty đã duyệt → render trước video avatar (× 2 giới tính) để buổi luyện theo job
+ * trúng cache, không gọi provider video. Từ CO-05 (quyết định CO-16), Company Mod duyệt chỉ đưa câu
+ * sang `pending_platform_review` và không render; CO-16 gọi warm lúc Platform Mod duyệt.
  *
  * Phần lớn test thay hàm pregen bằng bản giả (__setCompanyVideoPregenForTest).
  * Test cuối chạy pipeline thật của avatarService với fetch tới api.d-id.com bị chặn, để chứng
@@ -99,11 +100,10 @@ function warmedBy(gender) {
   return pregenCalls.filter((c) => c.gender === gender).flatMap((c) => c.questions);
 }
 
-describe("CO-06 — warm video khi câu công ty được duyệt", () => {
-  it("duyệt một câu → render cả 2 giới tính, persistVideo bật", async () => {
-    const q = await seedQuestion("Kể về lần bạn xử lý xung đột trong nhóm?");
-    const res = await call("POST", `/questions/${q._id}/approve`, {});
-    assert.equal(res.status, 200);
+describe("CO-06 — warm video cho câu công ty đã duyệt", () => {
+  it("câu đã duyệt → render cả 2 giới tính, persistVideo bật", async () => {
+    const q = await seedQuestion("Kể về lần bạn xử lý xung đột trong nhóm?", { status: "approved" });
+    videoSvc.scheduleCompanyQuestionVideoWarm([q]);
     await videoSvc.whenCompanyVideoWarmIdle();
 
     assert.deepEqual(warmedBy("male"), [q.text]);
@@ -111,60 +111,54 @@ describe("CO-06 — warm video khi câu công ty được duyệt", () => {
     assert.ok(pregenCalls.every((c) => c.persistVideo === true));
   });
 
-  it("tự thêm câu (mặc định đã duyệt) → render; tạo ở trạng thái nháp → không render", async () => {
-    const approved = await call("POST", "/questions", { text: "Câu tự thêm đã duyệt?", competencyId: "teamwork" });
-    assert.equal(approved.status, 201);
-    const draft = await call("POST", "/questions", { text: "Câu tự thêm nháp?", competencyId: "teamwork", status: "draft" });
-    assert.equal(draft.status, 201);
-    await videoSvc.whenCompanyVideoWarmIdle();
-
-    assert.deepEqual(warmedBy("male"), ["Câu tự thêm đã duyệt?"]);
-  });
-
-  it("từ chối câu → không render", async () => {
-    const q = await seedQuestion("Câu sẽ bị từ chối?");
-    const res = await call("POST", `/questions/${q._id}/reject`, { reason: "không phù hợp" });
-    assert.equal(res.status, 200);
+  it("câu nháp, chờ Platform Mod, bị từ chối hoặc câu pool chung → không render", async () => {
+    const qs = [
+      await seedQuestion("Câu nháp?"),
+      await seedQuestion("Câu chờ Platform Mod?", { status: "pending_platform_review" }),
+      await seedQuestion("Câu bị từ chối?", { status: "rejected" }),
+      await seedQuestion("Câu pool chung?", { orgId: null, status: "approved" }),
+    ];
+    videoSvc.scheduleCompanyQuestionVideoWarm(qs);
     await videoSvc.whenCompanyVideoWarmIdle();
     assert.equal(pregenCalls.length, 0);
   });
 
-  it("duyệt hàng loạt → chỉ render câu của chính công ty, chia lô tối đa WARM_CHUNK_SIZE", async () => {
-    const own = [];
-    for (let i = 1; i <= 4; i += 1) own.push(await seedQuestion(`Câu hàng loạt số ${i}?`));
-    const other = await seedQuestion("Câu của công ty B?", { orgId: companyB._id });
+  it("CO-05: Company Mod duyệt, duyệt hàng loạt, tự thêm, sửa câu → không render (chờ Platform Mod, CO-16)", async () => {
+    const single = await seedQuestion("Câu duyệt lẻ?");
+    const batch = [await seedQuestion("Câu hàng loạt 1?"), await seedQuestion("Câu hàng loạt 2?")];
+    const approved = await seedQuestion("Câu đã được Platform Mod duyệt?", { status: "approved" });
 
-    const res = await call("POST", "/questions/batch-approve", { ids: [...own.map((q) => q._id), other._id] });
-    assert.equal(res.status, 200);
+    assert.equal((await call("POST", `/questions/${single._id}/approve`, {})).status, 200);
+    assert.equal((await call("POST", "/questions/batch-approve", { ids: batch.map((q) => q._id) })).status, 200);
+    assert.equal((await call("POST", "/questions", { text: "Câu tự thêm?", competencyId: "teamwork" })).status, 201);
+    assert.equal((await call("PATCH", `/questions/${approved._id}`, { text: "Câu đã duyệt sau khi sửa?" })).status, 200);
+    await videoSvc.whenCompanyVideoWarmIdle();
+
+    assert.equal(pregenCalls.length, 0);
+  });
+
+  it("duyệt hàng loạt theo id → chỉ render câu đã duyệt của chính công ty, chia lô tối đa WARM_CHUNK_SIZE", async () => {
+    const own = [];
+    for (let i = 1; i <= 4; i += 1) own.push(await seedQuestion(`Câu hàng loạt số ${i}?`, { status: "approved" }));
+    const pending = await seedQuestion("Câu chưa qua Platform Mod?", { status: "pending_platform_review" });
+    const other = await seedQuestion("Câu của công ty B?", { orgId: companyB._id, status: "approved" });
+
+    videoSvc.scheduleCompanyQuestionVideoWarmByIds([...own.map((q) => q._id), pending._id, other._id], companyA._id);
     await videoSvc.whenCompanyVideoWarmIdle();
 
     const male = warmedBy("male");
     assert.deepEqual([...male].sort(), own.map((q) => q.text).sort());
-    assert.ok(!male.includes(other.text));
     assert.deepEqual([...warmedBy("female")].sort(), own.map((q) => q.text).sort());
     assert.ok(pregenCalls.every((c) => c.questions.length <= videoSvc.WARM_CHUNK_SIZE));
     assert.equal(pregenCalls.length, 4); // 4 câu = 2 lô × 2 giới tính
   });
 
-  it("sửa chữ câu đã duyệt → render text mới; sửa không đổi chữ hoặc câu nháp → không render", async () => {
-    const approved = await seedQuestion("Câu gốc đã duyệt?", { status: "approved" });
-    const draft = await seedQuestion("Câu gốc nháp?");
-
-    assert.equal((await call("PATCH", `/questions/${approved._id}`, { difficulty: "hard" })).status, 200);
-    assert.equal((await call("PATCH", `/questions/${draft._id}`, { text: "Câu nháp đã sửa?" })).status, 200);
-    assert.equal((await call("PATCH", `/questions/${approved._id}`, { text: "Câu đã duyệt sau khi sửa?" })).status, 200);
-    await videoSvc.whenCompanyVideoWarmIdle();
-
-    assert.deepEqual(warmedBy("male"), ["Câu đã duyệt sau khi sửa?"]);
-  });
-
-  it("lỗi render không làm hỏng API duyệt", async () => {
+  it("lỗi render chỉ ghi log, không ném lỗi ra ngoài", async () => {
     videoSvc.__setCompanyVideoPregenForTest(async () => {
       throw new Error("provider down");
     });
-    const q = await seedQuestion("Câu khi provider lỗi?");
-    const res = await call("POST", `/questions/${q._id}/approve`, {});
-    assert.equal(res.status, 200);
+    const q = await seedQuestion("Câu khi provider lỗi?", { status: "approved" });
+    videoSvc.scheduleCompanyQuestionVideoWarm([q]);
     await videoSvc.whenCompanyVideoWarmIdle();
     const saved = await QuestionBank.findById(q._id).lean();
     assert.equal(saved.status, "approved");
@@ -173,6 +167,7 @@ describe("CO-06 — warm video khi câu công ty được duyệt", () => {
   it("listApprovedCompanyQuestionTexts chỉ lấy câu công ty đã duyệt (script backfill)", async () => {
     await seedQuestion("Câu công ty đã duyệt?", { status: "approved" });
     await seedQuestion("Câu công ty nháp?");
+    await seedQuestion("Câu công ty chờ Platform Mod?", { status: "pending_platform_review" });
     await seedQuestion("Câu pool chung đã duyệt?", { orgId: null, status: "approved" });
     assert.deepEqual(await videoSvc.listApprovedCompanyQuestionTexts(), ["Câu công ty đã duyệt?"]);
   });
@@ -215,11 +210,10 @@ describe("CO-06 — câu đã warm thì buổi luyện không gọi provider vid
     }
   });
 
-  it("duyệt câu → 2 job D-ID; pregen lại cùng câu (buổi luyện) → 0 job, trúng cache", async () => {
+  it("warm câu đã duyệt → 2 job D-ID; pregen lại cùng câu (buổi luyện) → 0 job, trúng cache", async () => {
     const text = `Câu kiểm tra cache CO-06 ${Date.now()}?`;
-    const q = await seedQuestion(text);
-    const res = await call("POST", `/questions/${q._id}/approve`, {});
-    assert.equal(res.status, 200);
+    const q = await seedQuestion(text, { status: "approved" });
+    videoSvc.scheduleCompanyQuestionVideoWarm([q]);
     await videoSvc.whenCompanyVideoWarmIdle();
 
     const creates = didCalls.filter((c) => c.method === "POST");

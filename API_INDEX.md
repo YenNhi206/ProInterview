@@ -579,7 +579,7 @@ Mọi route `/api/company/*` gắn `authJwt` + `requireCompanyModerator` (CO-03)
 
 **Tự đóng (JB-02):** job `published` / `hidden` có `closesAt <= now` chuyển `closed`, `closedReason: "expired"`, trong nhịp 20 phút của `bookingStaleSweepJob` (`closeExpiredJobPosts`). API công khai đã loại job quá hạn ngay lúc truy vấn.
 
-**Kiểm tra key ở API công ty khác (đề xuất (l)):** `POST/PATCH /api/company/questions`, `POST /api/company/questions/generate-starter`, `POST /api/company/rubrics` nhận `roleCategory` trong `GET /api/role-categories` (khác → 400). `competencyId` của câu hỏi và `criteria[].shrmKey` của rubric (`POST`, `PATCH`, `submit`) phải là key bộ tiêu chí LP-01 (khác → 400). `competencyId` mặc định của câu hỏi công ty là `technical_learning`.
+**Kiểm tra key ở API công ty khác (đề xuất (l)):** `POST/PATCH /api/company/questions`, `POST /api/company/questions/upload` (job), `POST /api/company/rubrics` nhận `roleCategory` trong `GET /api/role-categories` (khác → 400). `competencyId` của câu hỏi và `criteria[].shrmKey` của rubric (`POST`, `PATCH`, `submit`) phải là key bộ tiêu chí LP-01 (khác → 400). `competencyId` mặc định của câu hỏi công ty là `technical_learning`.
 
 Sắp có: ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
 
@@ -623,9 +623,39 @@ Sắp có trên `/api/jobs`: `/:id/apply` (JB-08). Luồng ứng viên cần job
 |:-------|:---------|:-----|:------|
 | POST | `/api/company/questions/generate` | Company Moderator; rate limit 10 lần / 15 phút / user | Body `{ roleCategory, count? }`: `roleCategory` là key trong `GET /api/role-categories`, `count` nguyên 8–12 (mặc định 10); sai → **400**, không gọi LLM. AI sinh câu theo năng lực của vị trí (`interviewRole` → `ROLE_COMPETENCY_MAP`, chỉ key bộ tiêu chí LP-01). Lưu vào `QuestionBank`: `orgId = companyId`, `source: "org_template"`, `status: "draft"`, `provenance.promptVersion` / `generatedBy.promptVersion` = version prompt thực sự chạy (`companyq-vN`). Câu trùng `textHash` với câu đã có của công ty (mọi trạng thái) hoặc trùng nhau trong lượt bị bỏ qua. **201** `{ success, message, count, skippedDuplicates, promptVersion, questions }`. Chưa cấu hình LLM → **503**; LLM trả kết quả không dùng được sau 1 lần sửa JSON → **502** (không lưu gì) |
 
-Prompt key `company_question_gen` (PromptVersion, tiền tố `companyq`), bản mặc định `companyq-v1` trong `prompts/companyQuestionGenPrompt.js`. Câu đã có (chưa bị từ chối) của cùng vị trí được đưa vào prompt (tối đa 30) để tránh lặp ý. Trang câu hỏi của Platform Moderator (`GET /api/moderator/questions`) chỉ đọc `orgId: null` nên không thấy các câu này. Duyệt / sửa / từ chối: `PATCH /api/company/questions/:id`, `POST /api/company/questions/:id/approve|reject`, `batch-approve`, `batch-reject` (CO-05).
+Prompt key `company_question_gen` (PromptVersion, tiền tố `companyq`), bản mặc định `companyq-v1` trong `prompts/companyQuestionGenPrompt.js`. Câu đã có (chưa bị từ chối) của cùng vị trí được đưa vào prompt (tối đa 30) để tránh lặp ý. Trang câu hỏi của Platform Moderator (`GET /api/moderator/questions`) chỉ đọc `orgId: null` nên không thấy các câu này.
 
-Video avatar câu công ty (CO-06): khi một câu công ty chuyển sang `approved` (tự thêm, duyệt, duyệt hàng loạt, hoặc sửa chữ câu đã duyệt), backend xếp hàng render nền video avatar cho cả 2 giới tính (`persistVideo: true`, mirror Cloudinary), không chặn response. Cache tính theo nội dung câu, nên buổi luyện theo job gọi `POST /api/ai/interview/pregenerate` với câu này sẽ trúng cache, không gọi provider video. Backfill hoặc render lại sau khi đổi provider: `npm run warmup:company-videos`.
+#### Quản lý câu hỏi công ty (CO-05)
+
+Vòng đời câu doanh nghiệp (quyết định CO-16, 23/11/2026): `draft` → `pending_platform_review` (Company Mod duyệt) → `approved` \| `rejected` (Platform Mod, CO-16); `draft` → `rejected` (Company Mod). **Chỉ câu `approved` mới vào buổi phỏng vấn.** Câu có `jobPostId` (tin tuyển dụng của chính công ty) hoặc `null` (dùng chung theo `roleCategory`).
+
+| Method | Endpoint | Mô tả |
+|:-------|:---------|:------|
+| GET | `/api/company/questions` | Query `status?` (giá trị trong enum, sai → 400), `roleCategory?`, `jobPostId?` (id job, hoặc `none` = câu không gắn job; id sai → 400), `page`, `limit` (1–100, mặc định 50). Trả `{ success, questions, pagination }` |
+| POST | `/api/company/questions` | Tự thêm một câu. Body `{ text, jobPostId?, roleCategory?, competencyId?, layer?, seniority?, status? }`. Có `jobPostId` thì `roleCategory` mặc định lấy của job. Mặc định `pending_platform_review`; `status: "draft"` để lưu nháp. Trùng `textHash` với câu đã có của công ty → **409**; job công ty khác → **403**; job không có → **404** |
+| POST | `/api/company/questions/upload` | Tải lên hàng loạt cho một job. Body `{ jobPostId, questions: [string \| { text, competencyId?, layer?, seniority? }], status? }`, tối đa **50** câu, mỗi câu ≤ 1000 ký tự. `roleCategory` lấy của job; `seniority` lấy cấp độ job nếu thuộc thang `intern/junior/middle/senior`, không thì `middle`; `competencyId` mặc định `technical_learning`. Một dòng sai → **400** `{ errors: [{ line, error }] }`, không lưu câu nào. Câu trùng `textHash` với câu đã có của công ty (mọi trạng thái) hoặc trùng nhau trong lượt bị bỏ qua. Mặc định `pending_platform_review`; `status: "draft"` để lưu nháp. **201** `{ success, message, count, skippedDuplicates, questions }` |
+| PATCH | `/api/company/questions/:id` | Sửa `text`, `roleCategory`, `competencyId`, `jobPostId` (null/"" = bỏ gắn job), kèm `reason?`. Mỗi lần sửa ghi `history` (`action: "edit"`, `previousQuestion`). Đổi chữ câu `approved` → quay về `pending_platform_review`. Đổi chữ trùng câu khác của công ty → **409** |
+| POST | `/api/company/questions/:id/approve` | Chỉ từ `draft` hoặc `rejected` → `pending_platform_review`. Câu đã ở `pending_platform_review` / `approved` → **409** |
+| POST | `/api/company/questions/:id/reject` | → `rejected`, ghi `history` |
+| POST | `/api/company/questions/batch-approve` | Body `{ ids, reason? }`. Chỉ chuyển câu `draft` / `rejected` của chính công ty sang `pending_platform_review`; câu khác giữ nguyên. Trả `modifiedCount`. Id sai → **400** |
+| POST | `/api/company/questions/batch-reject` | Body `{ ids, reason? }` → `rejected`. Id sai → **400** |
+
+`GET /api/company/dashboard` trả thêm `stats.questions.pendingPlatformReview`. Rubric công ty gắn được câu `pending_platform_review` hoặc `approved` của chính công ty.
+
+#### Platform Moderator duyệt câu doanh nghiệp — `/api/moderator/company-questions` (CO-16)
+
+**File:** `routes/moderator.js` (`requireModerator`, ghi `moderator_action`) · **Controller:** `moderatorCompanyQuestionController.js` · **Service:** `companyQuestionReviewService.js` · **FE:** `/moderator/company-questions` (`ModeratorCompanyQuestions.jsx`)
+
+| Method | Endpoint | Mô tả |
+|:-------|:---------|:------|
+| GET | `/api/moderator/company-questions` | Query `status?` (`pending_platform_review` mặc định \| `approved` \| `rejected`; khác → 400), `companyId?`, `jobPostId?`, `roleCategory?`, `q?` (≤ 100 ký tự), `page`, `limit` (1–100, mặc định 20). Chỉ câu `orgId != null`. Tab chờ duyệt xếp cũ nhất trước. Trả `{ success, questions: [{ ..., company { _id, name, slug, logo }, jobPost { _id, title, status, level } \| null, lastEdit }], counts { pending_platform_review, approved, rejected }, pagination }` |
+| POST | `/api/moderator/company-questions/:id/approve` | Body `{ note? }`. `pending_platform_review` → `approved`, ghi `review`, `moderation`, `history`; xếp hàng render video avatar (CO-06). Câu khác trạng thái → **409**; câu pool chung / không có → **404** |
+| POST | `/api/moderator/company-questions/:id/reject` | Body `{ reason }` (bắt buộc, ≤ 500). → `rejected`; lý do lưu ở `moderation.reason` (công ty xem ở `GET /api/company/questions`) |
+| POST | `/api/moderator/company-questions/bulk` | Body `{ action: "approve" \| "reject", ids (≤ 100), reason? }` (`reject` bắt buộc `reason`). Chỉ đổi câu đang `pending_platform_review`, câu khác bỏ qua. Trả `{ updated, skipped }` |
+
+Route duyệt của ngân hàng câu chung (`PATCH /api/moderator/questions/:id/approve`, `POST /api/moderator/questions/bulk`) chỉ tác động câu `orgId: null`, nên không đi vòng được luồng này.
+
+Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, tức là lúc Platform Mod duyệt (CO-16). Company Mod duyệt không xếp hàng render. Render nền cho cả 2 giới tính (`persistVideo: true`, mirror Cloudinary), không chặn response. Cache tính theo nội dung câu, nên buổi luyện theo job gọi `POST /api/ai/interview/pregenerate` với câu này sẽ trúng cache, không gọi provider video. Backfill hoặc render lại sau khi đổi provider: `npm run warmup:company-videos`.
 
 
 ### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)
@@ -643,7 +673,20 @@ Video avatar câu công ty (CO-06): khi một câu công ty chuyển sang `appro
 | POST | `/api/moderator/rubrics/:id/approve` | Platform Moderator | Duyệt; bản `approved` cũ cùng công ty + `roleCategory` → `archived` |
 | POST | `/api/moderator/rubrics/:id/reject` | Platform Moderator | Body `{ comment }` bắt buộc → `rejected`, lưu `moderationNote.comment` |
 
-### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11)
+`questionIds` gắn được câu `pending_platform_review` hoặc `approved` của chính công ty (CO-05).
+
+### A.18. Lời mời Company Moderator — `/api/company-invites` (CO-02)
+
+**File:** `routes/companyInvites.js` (công khai, không cần token) · **Service:** `companyService.js` (`verifyInviteToken`, `acceptInvite`) · **Điều khoản:** `config/rubricSharingTerms.js` · **FE:** `/company-invite/:token`
+
+| Method | Path | Ghi chú |
+|:-------|:-----|:--------|
+| GET | `/api/company-invites/verify/:token` | `{ success, invite { id, email, company { id, name, slug, logo, industry }, expiresAt }, terms { version, title, points[] } }`. Token sai / đã dùng / thu hồi → 400; hết hạn → 400 và lời mời chuyển `expired`; công ty bị khóa → 403 |
+| POST | `/api/company-invites/accept` | Body `{ token, name, password (≥ 6), acceptRubricTerms: true, termsVersion }`. Không đồng ý điều khoản (`acceptRubricTerms` khác `true`) → **400**; `termsVersion` khác bản hiện tại → **409** (tải lại trang). Email đã có tài khoản role khác → 400 (quyết định 14). Token dùng 1 lần, giành bằng lệnh nguyên tử (hai lần nhận cùng lúc chỉ một lần thành công). **201** `{ user, token, refreshToken }` |
+
+**Điều khoản dùng rubric ẩn danh (quyết định AI-18):** khi nhận lời mời, thời điểm và version đồng ý lưu ở `CompanyInvite.rubricTermsAcceptedAt` / `rubricTermsVersion`; lần đồng ý đầu tiên của công ty lưu ở `Company.rubricSharingConsent { acceptedAt, acceptedBy, termsVersion }`. Miner AI-18 chỉ lấy rubric của công ty có `rubricSharingConsent.acceptedAt`. Đổi nội dung điều khoản thì tăng `version` trong `config/rubricSharingTerms.js`.
+
+### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11, `/cvs/:id/edit` PR-13)
 
 **File:** `backend/src/routes/cvs.js` · **Model:** `CVDocument` · Chỉ chủ CV đọc/ghi được (lọc theo `userId`)
 
