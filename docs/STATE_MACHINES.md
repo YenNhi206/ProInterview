@@ -214,6 +214,8 @@ stateDiagram-v2
 
 Khi resolve: `Report` liên kết → `resolved`/`dismissed` + `resolvedBy`; `override_score` ghi `InterviewSession.answers[i].moderatorOverride`; người báo cáo nhận `Notification` (link `/interview/feedback?sessionId=`).
 
+**`course_prescreen` (AI-08):** không vào hàng đợi trên (`listQueue`, `getQueueItem`, `claimItem`, `resolveItem` và KPI hàng đợi chỉ xét 3 loại phỏng vấn, `HITL_QUEUE_TYPES`). `coursePrescreenService.prescreenCourse` upsert 1 item / khóa ở `open` mỗi lần mentor gửi duyệt (`PATCH /api/courses/:id/publish`, hoặc `PUT /api/courses/:id` với khóa đang bán); `closePrescreenItem` chuyển `resolved` khi moderator duyệt / từ chối khóa (`resolution.action: null`, `note` bắt đầu bằng `approve` hoặc `reject`).
+
 Trạng thái `Report` cho báo cáo mentor/booking/review/course (không qua hàng đợi): `pending → reviewing → resolved | dismissed`, do admin xử lý ở `/api/admin`.
 
 **JB-04:** `/api/moderator/queue` không truyền `type` chỉ trả 3 loại phỏng vấn; `job_post_report` hiện ở màn riêng (JB-17, `?type=job_post_report`). KPI hàng đợi của Quality Dashboard cũng chỉ đếm 3 loại phỏng vấn. Report `job_post` không hiện ở trang support admin (`MODERATOR_REPORT_TARGET_TYPES`).

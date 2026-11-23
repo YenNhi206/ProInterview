@@ -5,19 +5,26 @@ const { Schema } = mongoose;
 /**
  * ModerationItem — hàng đợi kiểm định của moderator (/api/moderator/queue).
  *
- * Sinh từ 2 nguồn:
+ * Sinh từ 3 nguồn:
  *   - Người dùng báo sai ở trang Feedback → Report (interview_question | interview_evaluation)
  *     → item `question_report` / `evaluation_report`.
  *   - LLM chấm thiếu tiêu chí sau khi retry → item `evaluation_incomplete` (tự động, priority high).
+ *   - AI sàng lọc khóa học khi mentor gửi duyệt → item `course_prescreen` (AI-08, không vào hàng đợi HITL).
  *
  * `snapshot` chụp câu hỏi / transcript / điểm AI tại thời điểm tạo để moderator review đúng
  * thứ người dùng đã thấy, kể cả khi câu hỏi trong bank bị sửa sau đó.
  */
-/** 3 loại của hàng đợi HITL phỏng vấn (`/moderator/queue` mặc định chỉ lấy các loại này). */
-export const INTERVIEW_MODERATION_ITEM_TYPES = ["question_report", "evaluation_report", "evaluation_incomplete"];
-/** JB-04: báo cáo tin tuyển dụng — màn riêng (JB-17), không lẫn vào hàng đợi phỏng vấn. */
+/**
+ * Loại hiện trong hàng đợi HITL phỏng vấn (/api/moderator/queue mặc định, KPI hàng đợi). `course_prescreen`
+ * (AI-08) chỉ ghi lại kết quả AI sàng lọc khóa học và đóng khi moderator duyệt / từ chối khóa,
+ * moderator xem ở /moderator/courses, không xử lý qua hàng đợi này.
+ */
+export const HITL_QUEUE_TYPES = ["question_report", "evaluation_report", "evaluation_incomplete"];
+/** JB-04: báo cáo tin tuyển dụng — màn riêng (JB-17, `?type=job_post_report`), không lẫn vào hàng đợi phỏng vấn. */
 export const JOB_POST_REPORT_ITEM_TYPE = "job_post_report";
-export const MODERATION_ITEM_TYPES = [...INTERVIEW_MODERATION_ITEM_TYPES, JOB_POST_REPORT_ITEM_TYPE];
+/** Loại xem / nhận / xử lý được qua /api/moderator/queue/* (lọc `type` rõ ràng). Không gồm `course_prescreen`. */
+export const QUEUE_ITEM_TYPES = [...HITL_QUEUE_TYPES, JOB_POST_REPORT_ITEM_TYPE];
+export const MODERATION_ITEM_TYPES = [...HITL_QUEUE_TYPES, "course_prescreen", JOB_POST_REPORT_ITEM_TYPE];
 export const MODERATION_ITEM_STATUSES = ["open", "in_review", "resolved", "dismissed"];
 export const MODERATION_RESOLUTION_ACTIONS = ["dismiss", "deprecate_question", "edit_question", "override_score", "hide_job"];
 /** Sort theo chuỗi "priority" ra normal > low > high (alphabet) — sắp xếp hàng đợi bằng rank số. */
@@ -36,6 +43,8 @@ const moderationItemSchema = new Schema(
       questionIndex: { type: Number, default: null },
       questionBankId: { type: Schema.Types.ObjectId, ref: "QuestionBank", default: null },
       reportId: { type: Schema.Types.ObjectId, ref: "Report", default: null },
+      /** AI-08: khóa học được AI sàng lọc (type `course_prescreen`). */
+      courseId: { type: Schema.Types.ObjectId, ref: "Course", default: null },
       /** User liên quan: người báo (report) hoặc chủ session (evaluation_incomplete). */
       userId: { type: Schema.Types.ObjectId, ref: "User", default: null },
       /** JB-04: tin tuyển dụng bị báo cáo (`job_post_report`). */
@@ -44,6 +53,10 @@ const moderationItemSchema = new Schema(
     },
 
     snapshot: {
+      /** course_prescreen: tiêu đề khóa. */
+      courseTitle: { type: String, default: "" },
+      /** course_prescreen: kết quả sàng lọc tại thời điểm ghi { score, flags, summary, model, promptVersion }. */
+      aiPrescreen: { type: Schema.Types.Mixed, default: null },
       questionText: { type: String, default: "" },
       transcript: { type: String, default: "" },
       /** perQuestion evaluation tại thời điểm tạo: { scores, overall, shrmLevel, incompleteFields, … } */
@@ -88,6 +101,12 @@ moderationItemSchema.index(
 moderationItemSchema.index(
   { type: 1, "refs.sessionId": 1, "refs.questionIndex": 1 },
   { unique: true, partialFilterExpression: { type: "evaluation_incomplete" } },
+);
+
+// course_prescreen: 1 item / khóa, mỗi lần gửi duyệt cập nhật lại (upsert).
+moderationItemSchema.index(
+  { type: 1, "refs.courseId": 1 },
+  { unique: true, partialFilterExpression: { type: "course_prescreen" }, name: "course_prescreen_per_course" },
 );
 
 export const ModerationItem =

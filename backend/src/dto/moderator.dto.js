@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { MODERATION_ITEM_TYPES, MODERATION_ITEM_STATUSES } from "../models/ModerationItem.js";
+import { QUEUE_ITEM_TYPES, MODERATION_ITEM_STATUSES } from "../models/ModerationItem.js";
 import { QUESTION_SOURCES } from "../models/QuestionBank.js";
 import { COMPETENCY_LIBRARY } from "../services/competencyFramework.js";
 
@@ -45,7 +45,8 @@ export const bulkQuestionsBody = Joi.object({
 });
 
 export const listQueueQuery = Joi.object({
-  type: Joi.string().valid(...MODERATION_ITEM_TYPES),
+  // Lọc được 3 loại phỏng vấn và báo cáo tin tuyển dụng (JB-04); không gồm course_prescreen (AI-08).
+  type: Joi.string().valid(...QUEUE_ITEM_TYPES),
   status: Joi.string().valid(...MODERATION_ITEM_STATUSES),
   priority: Joi.string().valid("low", "normal", "high"),
   assignee: Joi.string().valid("me", "unassigned"),

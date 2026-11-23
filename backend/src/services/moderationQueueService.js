@@ -4,7 +4,7 @@
  *  - Đọc / nhận / xử lý item: /api/moderator/queue*.
  */
 import mongoose from "mongoose";
-import { ModerationItem, PRIORITY_RANK, INTERVIEW_MODERATION_ITEM_TYPES, JOB_POST_REPORT_ITEM_TYPE } from "../models/ModerationItem.js";
+import { ModerationItem, PRIORITY_RANK, HITL_QUEUE_TYPES, QUEUE_ITEM_TYPES, JOB_POST_REPORT_ITEM_TYPE } from "../models/ModerationItem.js";
 import { setJobVisibility, closeJobReport } from "./jobPostModerationService.js";
 import { Report } from "../models/Report.js";
 import { InterviewSession } from "../models/InterviewSession.js";
@@ -90,8 +90,9 @@ export async function upsertIncompleteEvaluationItem({ session, questionIndex })
  */
 export async function listQueue({ type, status, priority, assignee, page = 1, limit = 20 }, moderatorId) {
   const filter = { status: status ?? { $in: ["open", "in_review"] } };
-  // JB-04: không chỉ định `type` thì chỉ lấy 3 loại phỏng vấn — báo cáo tin tuyển dụng có màn riêng (JB-17).
-  filter.type = type ?? { $in: INTERVIEW_MODERATION_ITEM_TYPES };
+  // Không chỉ định `type` → chỉ 3 loại phỏng vấn. Lọc rõ được `job_post_report` (JB-04, màn JB-17);
+  // `course_prescreen` (AI-08) không xử lý qua hàng đợi này.
+  filter.type = type && QUEUE_ITEM_TYPES.includes(type) ? type : { $in: HITL_QUEUE_TYPES };
   if (priority) filter.priority = priority;
   if (assignee === "me") filter.assignee = moderatorId;
   if (assignee === "unassigned") filter.assignee = null;
@@ -109,7 +110,7 @@ export async function listQueue({ type, status, priority, assignee, page = 1, li
 
 /** Item + report gốc + câu trong bank + điểm moderator hiện tại (nếu đã chấm lại). */
 export async function getQueueItem(id) {
-  const item = await ModerationItem.findById(id).populate("assignee", "name email").lean();
+  const item = await ModerationItem.findOne({ _id: id, type: { $in: QUEUE_ITEM_TYPES } }).populate("assignee", "name email").lean();
   if (!item) return { ok: false, status: 404, error: "Không tìm thấy mục kiểm định." };
   const [report, question, session] = await Promise.all([
     item.refs?.reportId ? Report.findById(item.refs.reportId).populate("reportedBy", "name email").lean() : null,
@@ -127,12 +128,12 @@ const CLOSED = ["resolved", "dismissed"];
 /** Gán cho mình + in_review. Đang được moderator khác nhận → 409. */
 export async function claimItem(id, moderatorId) {
   const item = await ModerationItem.findOneAndUpdate(
-    { _id: id, status: { $nin: CLOSED }, assignee: { $in: [null, moderatorId] } },
+    { _id: id, type: { $in: QUEUE_ITEM_TYPES }, status: { $nin: CLOSED }, assignee: { $in: [null, moderatorId] } },
     { $set: { assignee: moderatorId, status: "in_review" } },
     { returnDocument: "after" },
   ).lean();
   if (item) return { ok: true, item };
-  const existing = await ModerationItem.findById(id).select("status assignee").lean();
+  const existing = await ModerationItem.findOne({ _id: id, type: { $in: QUEUE_ITEM_TYPES } }).select("status assignee").lean();
   if (!existing) return { ok: false, status: 404, error: "Không tìm thấy mục kiểm định." };
   if (CLOSED.includes(existing.status)) return { ok: false, status: 409, error: "Mục này đã được xử lý." };
   return { ok: false, status: 409, error: "Mục này đang được moderator khác xử lý." };
@@ -182,7 +183,7 @@ async function writeModeratorOverride(item, payload, note, moderatorId) {
  */
 export async function resolveItem(id, { action, note = "", payload = {} }, moderatorId) {
   if (!mongoose.isValidObjectId(id)) return { ok: false, status: 400, error: "id không hợp lệ." };
-  const item = await ModerationItem.findById(id);
+  const item = await ModerationItem.findOne({ _id: id, type: { $in: QUEUE_ITEM_TYPES } });
   if (!item) return { ok: false, status: 404, error: "Không tìm thấy mục kiểm định." };
   if (CLOSED.includes(item.status)) return { ok: false, status: 409, error: "Mục này đã được xử lý." };
   if (item.assignee && String(item.assignee) !== String(moderatorId)) {

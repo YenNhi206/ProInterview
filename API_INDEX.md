@@ -359,7 +359,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/admin/content/interview-sessions` | Phiên phỏng vấn AI gần đây + câu hỏi đã lưu (`?limit=30`) |
 | GET | `/api/admin/content/course-media` | Danh sách khóa + số bài video (`?scope=all\|published\|pending`) |
 | GET | `/api/moderator/content/stats` | `[MODERATOR]` Bản dùng cho hàng đợi duyệt (cùng handler với `/api/admin/content/stats`) |
-| GET | `/api/moderator/courses/pending` | `[MODERATOR]` Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) |
+| GET | `/api/moderator/courses/pending` | `[MODERATOR]` Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) + `aiPrescreen` (AI-08) `{ status pending \| done \| failed, score, summary, flags[] { code, severity, message, evidence, source rule \| ai }, target, model, promptVersion, error, at }` hoặc `null` |
 | GET | `/api/moderator/courses/published` | `[MODERATOR]` Khóa đã xuất bản (`?limit=50`, tối đa 100) + `stats` |
 | PATCH | `/api/moderator/courses/:id/approve` | `[MODERATOR]` Duyệt → `status: published`, xóa `adminReview` |
 | PATCH | `/api/moderator/courses/:id/reject` | `[MODERATOR]` Từ chối — body `{ reason }` (bắt buộc) → `draft`, lưu `adminReview`, thông báo mentor |
