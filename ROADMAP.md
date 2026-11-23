@@ -95,6 +95,7 @@ Khi merge xong một route: cập nhật **Phần A** trong `API_INDEX`, đổi 
 | GET | `/api/achievements`, `/api/achievements/:id` | Public — tin tức & hoạt động |
 | GET | `/api/admin/analytics/user-behavior` | `[ADMIN]` — funnel / hành vi nền tảng |
 | GET | `/api/admin/analytics/users/:id/journey` | `[ADMIN]` — hành trình từng user |
+| GET | `/api/admin/analytics/revenue` | `[ADMIN]` ✅ — doanh thu theo nguồn: booking, khóa, gói, lộ trình (N-08) |
 | PATCH | `/api/bookings/mentor/:id/check-in` | `[AUTH][MENTOR]` — webcam trước phòng họp |
 | POST | `/api/upload/achievement-image` | `[AUTH][ADMIN]` |
 

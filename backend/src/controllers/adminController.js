@@ -21,6 +21,7 @@ import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
 import { CVAnalysis } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
+import { bookingRevenueRow, courseRevenueRow } from "../services/revenueAnalyticsService.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
 const Booking = mongoose.model("Booking");
@@ -67,12 +68,6 @@ function serializeSubscriptionPayment(p) {
         }
       : null,
   };
-}
-
-function safeFeeRate(raw, fallback) {
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n <= 0 || n > 1) return fallback;
-  return n;
 }
 
 function parseMonthRange(rawMonth) {
@@ -818,18 +813,9 @@ export const AdminController = {
         : bookingRows;
       const booking = bookingRowsFiltered.reduce(
         (acc, row) => {
-          // partial_refund: trừ phần đã hoàn cho học viên — chỉ tính phần tiền THỰC SỰ còn giữ lại
-          // (nền tảng + mentor), tránh Tổng thu/Lợi nhuận/Chia mentor bị thổi phồng bằng số tiền đã hoàn.
-          const rawGross = Number(row.totalAmount ?? row.price ?? 0);
-          const refunded = Number(row.cancelRefundAmountVnd) || 0;
-          const gross = Math.round(Math.max(0, rawGross - refunded));
-          const rate = safeFeeRate(row.platformFeeRate, Number(process.env.BOOKING_PLATFORM_FEE_RATE) || 0.3);
-          const rawFee = Number.isFinite(Number(row.platformFee))
-            ? Math.round(Number(row.platformFee))
-            : Math.round(gross * rate);
-          // Kẹp fee trong [0, gross] — sau khi trừ hoàn tiền, gross có thể nhỏ hơn fee gốc; không để
-          // platformRevenue vượt quá số tiền thực sự còn giữ lại (giữ đúng platformRevenue + mentorNet = gross).
-          const fee = Math.max(0, Math.min(gross, rawFee));
+          // partial_refund: chỉ tính phần tiền THỰC SỰ còn giữ lại; fee kẹp trong [0, gross].
+          // Dùng chung công thức với analytics doanh thu theo nguồn (N-08) để hai trang ra cùng một số.
+          const { gross, fee } = bookingRevenueRow(row);
           acc.grossCollected += gross;
           acc.platformRevenue += fee;
           acc.mentorNet += gross - fee;
@@ -851,14 +837,11 @@ export const AdminController = {
         : enrollmentRows;
       const course = enrollmentRowsFiltered.reduce(
         (acc, row) => {
-          const gross = Math.round(Number(row.pricePaid || 0));
-          const rate = safeFeeRate(row.platformFeeRate, Number(process.env.COURSE_PLATFORM_FEE_RATE) || 0.35);
-          const fee = Number.isFinite(Number(row.platformFee))
-            ? Math.round(Number(row.platformFee))
-            : Math.round(gross * rate);
+          // Enrollment cũ chưa ghi platformFee (mặc định null) tính theo tỉ lệ, không coi là phí 0 (N-08).
+          const { gross, fee } = courseRevenueRow(row);
           acc.grossCollected += gross;
-          acc.platformRevenue += Math.max(0, fee);
-          acc.mentorNet += Math.max(0, gross - fee);
+          acc.platformRevenue += fee;
+          acc.mentorNet += gross - fee;
           acc.count += 1;
           return acc;
         },
