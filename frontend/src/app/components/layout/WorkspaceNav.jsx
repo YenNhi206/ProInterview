@@ -276,7 +276,7 @@ export function WorkspaceTopBar({ onToggleSidebar, theme, themeable, light, onNo
           <DropdownMenuContent align="end" className="w-36">
             <DropdownMenuItem
               onClick={() => setLang("vi")}
-              className="flex items-center justify-between text-xs font-bold text-blue-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b]"
+              className="flex items-center justify-between text-xs font-bold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b]"
             >
               <span className="flex items-center gap-1.5">
                 <span>🇻🇳</span>

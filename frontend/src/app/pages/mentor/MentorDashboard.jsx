@@ -521,17 +521,20 @@ export function MentorDashboard() {
       <div className="pointer-events-none absolute -top-40 left-1/4 h-[500px] w-[600px] rounded-full bg-violet-600/10 blur-[140px]" />
       <div className="pointer-events-none absolute top-40 right-10 h-[400px] w-[500px] rounded-full bg-[#93f72b]/05 blur-[150px]" />
 
-      {/* 1. Subheader Banner: Chào mừng (phong cách cổng thông tin FPT) */}
-      <div className="w-full border-b border-slate-200/90 bg-[#eef1f6] px-4 py-2 [html[data-workspace-theme=dark]_&]:border-white/10 [html[data-workspace-theme=dark]_&]:bg-[#14172b] sm:px-6">
+      {/* 1. Subheader Banner: Chào mừng (đồng bộ phong cách thương hiệu Tím & Lime) */}
+      <div className="w-full border-b border-violet-100 bg-gradient-to-r from-violet-50/70 via-white to-violet-50/40 px-4 py-2.5 [html[data-workspace-theme=dark]_&]:border-violet-500/20 [html[data-workspace-theme=dark]_&]:bg-[#120a22]/90 sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <h1 className="font-headline text-sm font-bold tracking-tight text-slate-800 [html[data-workspace-theme=dark]_&]:text-slate-100 sm:text-base">
-            Chào mừng
-          </h1>
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.6)]" />
+            <h1 className="font-headline text-sm font-bold tracking-tight text-slate-900 [html[data-workspace-theme=dark]_&]:text-white sm:text-base">
+              Chào mừng
+            </h1>
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => navigate("/mentor/schedule")}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:opacity-95 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-violet-600/30 transition hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 [html[data-workspace-theme=dark]_&]:shadow-[0_0_12px_rgba(147,247,43,0.3)]"
             >
               <CalendarBlank size={14} />
               <span className="hidden sm:inline">Tạo lịch trống mới</span>
@@ -540,7 +543,7 @@ export function MentorDashboard() {
             <button
               type="button"
               onClick={() => navigate("/mentor/requests")}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 [html[data-workspace-theme=dark]_&]:border-white/15 [html[data-workspace-theme=dark]_&]:bg-white/5 [html[data-workspace-theme=dark]_&]:text-slate-300 [html[data-workspace-theme=dark]_&]:hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-violet-50 hover:text-violet-700 hover:border-violet-300 [html[data-workspace-theme=dark]_&]:border-white/15 [html[data-workspace-theme=dark]_&]:bg-white/5 [html[data-workspace-theme=dark]_&]:text-slate-300 [html[data-workspace-theme=dark]_&]:hover:bg-white/10 [html[data-workspace-theme=dark]_&]:hover:text-white"
             >
               <ClipboardList size={14} />
               <span>Nhu cầu mentee</span>
@@ -558,18 +561,18 @@ export function MentorDashboard() {
           className="mb-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12"
         >
           {/* Card 1: Highlighted Profile Card */}
-          <div className="lg:col-span-4 rounded-2xl p-4 sm:p-5 flex items-center gap-4 bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] text-white shadow-md border border-blue-400/20 [html[data-workspace-theme=dark]_&]:bg-gradient-to-r [html[data-workspace-theme=dark]_&]:from-[#2b164f] [html[data-workspace-theme=dark]_&]:via-[#341a60] [html[data-workspace-theme=dark]_&]:to-[#1e0e3b] [html[data-workspace-theme=dark]_&]:border-violet-500/30">
+          <div className="lg:col-span-4 rounded-2xl p-4 sm:p-5 flex items-center gap-4 bg-gradient-to-r from-[#5b21b6] via-[#6d28d9] to-[#7c3aed] text-white shadow-md border border-violet-400/30 [html[data-workspace-theme=dark]_&]:from-[#240e44] [html[data-workspace-theme=dark]_&]:via-[#2f1357] [html[data-workspace-theme=dark]_&]:to-[#190a30] [html[data-workspace-theme=dark]_&]:border-violet-500/30">
             <div className="size-13 sm:size-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/25 shadow-inner">
-              <GraduationCap size={26} className="text-white" />
+              <GraduationCap size={26} className="text-[#93f72b] [html[data-workspace-theme=light]_&]:text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#93f72b]">
                 THÔNG TIN CỐ VẤN
               </p>
               <h2 className="text-base sm:text-lg font-bold text-white truncate mt-0.5 font-headline">
                 {displayName}
               </h2>
-              <p className="text-xs text-white/80 truncate mt-0.5">
+              <p className="text-xs text-violet-100/90 truncate mt-0.5 font-mono">
                 {user?.email || "Mentor ProInterview"}
               </p>
             </div>
@@ -588,9 +591,9 @@ export function MentorDashboard() {
           </div>
 
           {/* Card 3: Lĩnh vực / Chuyên môn */}
-          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-[#160f26]/80 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-4 flex flex-col justify-between">
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-[#160f26]/80 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-violet-100 [html[data-workspace-theme=light]_&]:shadow-sm p-4 flex flex-col justify-between">
             <div className="flex items-center gap-1.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-              <Code size={14} className="text-blue-500" />
+              <Code size={14} className="text-violet-500" />
               <span>Lĩnh vực</span>
             </div>
             <p className="text-sm font-bold text-violet-400 [html[data-workspace-theme=light]_&]:text-violet-700 truncate mt-2">
@@ -637,7 +640,7 @@ export function MentorDashboard() {
               {/* Header */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-100 pb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="size-8 rounded-lg bg-blue-500/15 [html[data-workspace-theme=light]_&]:bg-blue-50 text-blue-500 flex items-center justify-center">
+                  <div className="size-8 rounded-lg bg-violet-500/15 [html[data-workspace-theme=light]_&]:bg-violet-50 text-violet-600 [html[data-workspace-theme=dark]_&]:text-violet-400 flex items-center justify-center">
                     <CalendarClock size={16} />
                   </div>
                   <div>
@@ -650,7 +653,7 @@ export function MentorDashboard() {
                 <button
                   type="button"
                   onClick={() => navigate("/mentor/schedule")}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563eb] [html[data-workspace-theme=dark]_&]:text-[#93f72b] transition hover:underline self-start sm:self-auto"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b] transition hover:underline self-start sm:self-auto"
                 >
                   <span>Xem tất cả</span>
                   <ArrowRight size={13} />
@@ -664,8 +667,8 @@ export function MentorDashboard() {
                   onClick={() => setActiveTab("all")}
                   className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
                     activeTab === "all"
-                      ? "bg-[#2563eb] text-white shadow-sm [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
-                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-slate-200"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
+                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-violet-50 [html[data-workspace-theme=light]_&]:hover:text-violet-700"
                   }`}
                 >
                   Tất cả
@@ -675,8 +678,8 @@ export function MentorDashboard() {
                   onClick={() => setActiveTab("upcoming")}
                   className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
                     activeTab === "upcoming"
-                      ? "bg-[#2563eb] text-white shadow-sm [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
-                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-slate-200"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
+                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-violet-50 [html[data-workspace-theme=light]_&]:hover:text-violet-700"
                   }`}
                 >
                   Lịch sắp tới ({upcomingCount})
@@ -686,8 +689,8 @@ export function MentorDashboard() {
                   onClick={() => setActiveTab("completed")}
                   className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
                     activeTab === "completed"
-                      ? "bg-[#2563eb] text-white shadow-sm [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
-                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-slate-200"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
+                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-violet-50 [html[data-workspace-theme=light]_&]:hover:text-violet-700"
                   }`}
                 >
                   Đã hoàn thành ({recentCompleted.length})
@@ -720,7 +723,7 @@ export function MentorDashboard() {
                           <BookOpen size={16} />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs sm:text-sm font-semibold text-white [html[data-workspace-theme=light]_&]:text-slate-900 group-hover:text-[#2563eb] [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors truncate">
+                          <p className="text-xs sm:text-sm font-semibold text-white [html[data-workspace-theme=light]_&]:text-slate-900 group-hover:text-violet-600 [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors truncate">
                             {meeting.mentee?.name ? `[${meeting.sessionTypeLabel || "Tư vấn"}] Phỏng vấn cùng ${meeting.mentee.name}` : meeting.sessionTypeLabel || "Buổi phỏng vấn 1:1"}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">
@@ -738,7 +741,7 @@ export function MentorDashboard() {
                         <span className={`text-[10px] font-bold rounded-full px-2.5 py-0.5 ${
                           String(meeting.status).toLowerCase() === "completed"
                             ? "bg-emerald-500/15 text-emerald-400 [html[data-workspace-theme=light]_&]:bg-emerald-50 [html[data-workspace-theme=light]_&]:text-emerald-700"
-                            : "bg-blue-500/15 text-blue-400 [html[data-workspace-theme=light]_&]:bg-blue-50 [html[data-workspace-theme=light]_&]:text-blue-700"
+                            : "bg-violet-500/15 text-violet-400 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-violet-700"
                         }`}>
                           {String(meeting.status).toLowerCase() === "completed" ? "Hoàn thành" : "Đã xác nhận"}
                         </span>
@@ -769,7 +772,7 @@ export function MentorDashboard() {
                 <button
                   type="button"
                   onClick={() => navigate("/mentor/schedule")}
-                  className="text-xs font-semibold text-[#2563eb] [html[data-workspace-theme=dark]_&]:text-[#93f72b] hover:underline"
+                  className="text-xs font-semibold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b] hover:underline"
                 >
                   Mở trang lịch đầy đủ →
                 </button>
@@ -791,7 +794,7 @@ export function MentorDashboard() {
                       <button
                         type="button"
                         onClick={() => navigate("/mentor/schedule")}
-                        className="mt-2 text-xs font-bold text-[#2563eb] [html[data-workspace-theme=dark]_&]:text-[#93f72b] hover:underline"
+                        className="mt-2 text-xs font-bold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b] hover:underline"
                       >
                         + Tạo khung giờ trống ngay
                       </button>
@@ -808,7 +811,7 @@ export function MentorDashboard() {
                             <p className="text-xs font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900 truncate">{m.mentee?.name}</p>
                             <p className="text-[11px] text-slate-400 mt-0.5">{m.scheduledTime} - {m.scheduledDate}</p>
                           </div>
-                          <span className="text-xs font-bold text-[#2563eb] [html[data-workspace-theme=dark]_&]:text-[#93f72b]">Vào phòng →</span>
+                          <span className="text-xs font-bold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b]">Vào phòng →</span>
                         </div>
                       ))}
                     </div>
@@ -856,7 +859,7 @@ export function MentorDashboard() {
             >
               {/* Header: Menu Nhanh */}
               <div className="flex items-center gap-3 border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-100 pb-4">
-                <div className="size-10 rounded-xl bg-[#2563eb] text-white flex items-center justify-center shrink-0 shadow-sm">
+                <div className="size-10 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 flex items-center justify-center shrink-0 shadow-sm">
                   <LayoutGrid size={20} />
                 </div>
                 <div>
@@ -872,7 +875,7 @@ export function MentorDashboard() {
               {/* Group 1: Tác vụ cố vấn */}
               <div className="mt-4">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-400 px-2 mb-1.5 flex items-center gap-1.5">
-                  <span className="size-1 rounded-full bg-[#2563eb] [html[data-workspace-theme=dark]_&]:bg-[#93f72b]" />
+                  <span className="size-1 rounded-full bg-violet-600 [html[data-workspace-theme=dark]_&]:bg-[#93f72b]" />
                   <span>HỌC TẬP &amp; PHÒNG HỌP</span>
                 </p>
                 <div className="space-y-0.5">
@@ -888,10 +891,10 @@ export function MentorDashboard() {
                         key={item.path}
                         type="button"
                         onClick={() => navigate(item.path)}
-                        className="group flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700 hover:bg-white/5 [html[data-workspace-theme=light]_&]:hover:bg-violet-50/70 [html[data-workspace-theme=light]_&]:hover:text-[#2563eb] transition-all"
+                        className="group flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700 hover:bg-white/5 [html[data-workspace-theme=light]_&]:hover:bg-violet-50/70 [html[data-workspace-theme=light]_&]:hover:text-violet-700 transition-all"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="size-7 rounded-lg bg-white/5 [html[data-workspace-theme=light]_&]:bg-slate-100 flex items-center justify-center text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-600 group-hover:text-[#2563eb] [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors">
+                          <div className="size-7 rounded-lg bg-white/5 [html[data-workspace-theme=light]_&]:bg-slate-100 flex items-center justify-center text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-600 group-hover:text-violet-600 [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors">
                             <Icon size={14} />
                           </div>
                           <span className="truncate">{item.label}</span>
@@ -922,10 +925,10 @@ export function MentorDashboard() {
                         key={item.path}
                         type="button"
                         onClick={() => navigate(item.path)}
-                        className="group flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700 hover:bg-white/5 [html[data-workspace-theme=light]_&]:hover:bg-violet-50/70 [html[data-workspace-theme=light]_&]:hover:text-[#2563eb] transition-all"
+                        className="group flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700 hover:bg-white/5 [html[data-workspace-theme=light]_&]:hover:bg-violet-50/70 [html[data-workspace-theme=light]_&]:hover:text-violet-700 transition-all"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="size-7 rounded-lg bg-white/5 [html[data-workspace-theme=light]_&]:bg-slate-100 flex items-center justify-center text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-600 group-hover:text-[#2563eb] [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors">
+                          <div className="size-7 rounded-lg bg-white/5 [html[data-workspace-theme=light]_&]:bg-slate-100 flex items-center justify-center text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-600 group-hover:text-violet-600 [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors">
                             <Icon size={14} />
                           </div>
                           <span className="truncate">{item.label}</span>
@@ -963,7 +966,7 @@ export function MentorDashboard() {
               <button
                 type="button"
                 onClick={() => navigate("/mentor/finance")}
-                className="mt-4 w-full rounded-xl bg-[#2563eb] [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 py-2.5 text-xs font-bold text-white transition hover:opacity-95 shadow-sm"
+                className="mt-4 w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-md shadow-violet-600/30 border border-violet-400/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 [html[data-workspace-theme=dark]_&]:border-transparent [html[data-workspace-theme=dark]_&]:hover:bg-[#82e022] py-2.5 text-xs font-bold transition active:scale-[0.98]"
               >
                 Rút tiền về tài khoản →
               </button>
