@@ -6,6 +6,7 @@ import { cvAnalyzeLimiter } from "../middleware/rateLimiters.js";
 import { requireCvAnalysisQuota } from "../utils/planGuard.js";
 import { createStepTimer } from "../utils/stepTimer.js";
 import { startAnalysisRun, finishAnalysisRun, logAnalysisTiming } from "../services/cvAnalysisRunService.js";
+import { bestFitCvs } from "../services/cvBestFitService.js";
 
 export const cvMatchRouter = Router();
 
@@ -185,5 +186,18 @@ cvMatchRouter.post(
     const field = req.body?.field || "IT / Công nghệ";
     if (!resume) return res.status(400).json({ success: false, error: "Cần upload CV (PDF)" });
     await proxyToAnalyzer("/analyze/field", { resume }, req, res, { field });
+  }),
+);
+
+// PR-05: POST /api/cv/best-fit — xếp hạng 2–5 CV trong kho với một JD (jdText hoặc jobPostId).
+// Cần còn lượt phân tích CV (gọi LLM) nhưng không trừ lượt.
+cvMatchRouter.post(
+  "/best-fit",
+  authJwt,
+  cvAnalyzeLimiter,
+  requireCvAnalysisQuota,
+  asyncHandler(async (req, res) => {
+    const bestFit = await bestFitCvs(req.userId, req.body);
+    res.json({ success: true, bestFit });
   }),
 );

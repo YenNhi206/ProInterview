@@ -20,6 +20,9 @@ load_dotenv(_here.parent / "backend" / ".env")   # backend/.env làm fallback
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import json
+from typing import List, Optional
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Form
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -31,6 +34,7 @@ from scorer import score_resume
 from suggester import generate_suggestions, extract_bullets_from_text
 from llm_client import check_llm_health
 from field_analyzer import analyze_cv_by_field
+from best_fit import rank_cvs, docx_text, MIN_CVS, MAX_CVS
 import cache as cv_cache
 from cache import md5_of_bytes
 
@@ -335,3 +339,77 @@ async def extract_text(
     """
     data = await _process_upload("file", file)
     return {"text": data["text"], "page_count": data["page_count"]}
+
+# ── PR-05: best-fit nhiều CV với một JD ───────────────────────────────────────
+
+def _file_text(upload_name: str, data: bytes) -> str:
+    """Chữ trong file CV: PDF (parse_pdf, có cache), DOCX, TXT. Định dạng khác → ValueError."""
+    name = (upload_name or "").lower()
+    if name.endswith(".pdf"):
+        file_hash = md5_of_bytes(data)
+        cached = cv_cache.get("pdf_parse", file_hash)
+        if cached:
+            return cached["text"]
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+            tmp.write(data)
+            tmp_path = tmp.name
+        try:
+            parsed = parse_pdf(tmp_path)
+        finally:
+            os.unlink(tmp_path)
+        if parsed["error"]:
+            raise ValueError(f"Không đọc được PDF: {parsed['error']}")
+        cv_cache.set({"text": parsed["text"], "page_count": parsed["page_count"], "skills": extract_skills(parsed["text"])},
+                     "pdf_parse", file_hash)
+        return parsed["text"]
+    if name.endswith(".docx"):
+        try:
+            return docx_text(data)
+        except Exception as e:  # zip hỏng, thiếu document.xml
+            raise ValueError("Không đọc được file DOCX.") from e
+    if name.endswith(".txt"):
+        return data.decode("utf-8", errors="ignore")
+    raise ValueError("Định dạng file chưa hỗ trợ so khớp (chỉ PDF, DOCX, TXT).")
+
+
+@app.post("/best-fit")
+async def best_fit(
+    jd_text: str = Form(...),
+    items:   str = Form(..., description='JSON [{"id", "title", "text"?, "file_index"?}]'),
+    files:   Optional[List[UploadFile]] = File(default=None),
+    use_llm: bool = Form(default=True),
+):
+    """
+    PR-05: xếp hạng 2–5 CV với một JD. Mỗi item có `text` (CV soạn trong editor) hoặc `file_index`
+    trỏ vào `files` (PDF / DOCX / TXT). Một lượt LLM cho cả bộ; LLM lỗi thì xếp theo kỹ năng.
+    """
+    if len(jd_text.strip()) < 30:
+        raise HTTPException(400, "Mô tả công việc quá ngắn (tối thiểu 30 ký tự).")
+    try:
+        raw_items = json.loads(items)
+    except json.JSONDecodeError:
+        raise HTTPException(400, "items không phải JSON hợp lệ.")
+    if not isinstance(raw_items, list) or not (MIN_CVS <= len(raw_items) <= MAX_CVS):
+        raise HTTPException(400, f"Cần từ {MIN_CVS} đến {MAX_CVS} CV.")
+
+    uploads = files or []
+    cvs = []
+    seen = set()
+    for it in raw_items:
+        if not isinstance(it, dict) or not str(it.get("id", "")).strip():
+            raise HTTPException(400, "Mỗi CV cần có id.")
+        cid = str(it["id"])
+        if cid in seen:
+            raise HTTPException(400, f"CV {cid} bị trùng.")
+        seen.add(cid)
+        cv = {"id": cid, "title": str(it.get("title") or ""), "text": str(it.get("text") or ""), "error": None}
+        idx = it.get("file_index")
+        if not cv["text"].strip() and isinstance(idx, int) and 0 <= idx < len(uploads):
+            up = uploads[idx]
+            try:
+                cv["text"] = _file_text(up.filename, await up.read())
+            except ValueError as e:
+                cv["error"] = str(e)
+        cvs.append(cv)
+
+    return rank_cvs(jd_text, cvs, use_llm=use_llm)
