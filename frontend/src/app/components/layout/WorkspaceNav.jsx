@@ -247,7 +247,6 @@ export function WorkspaceShell({ nav, children, themeable = false, onNotificatio
     const root = document.documentElement;
     if (light) root.dataset.workspaceTheme = "light";
     else delete root.dataset.workspaceTheme;
-    return () => { delete root.dataset.workspaceTheme; };
   }, [light]);
 
   return (

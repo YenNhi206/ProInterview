@@ -16,9 +16,6 @@ export function AuthShell({ children, headerRight }) {
     const root = document.documentElement;
     if (light) root.dataset.workspaceTheme = "light";
     else delete root.dataset.workspaceTheme;
-    return () => {
-      delete root.dataset.workspaceTheme;
-    };
   }, [light]);
 
   return (

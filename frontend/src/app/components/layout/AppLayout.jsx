@@ -34,7 +34,6 @@ export function AppLayout() {
     const root = document.documentElement;
     if (light) root.dataset.workspaceTheme = "light";
     else delete root.dataset.workspaceTheme;
-    return () => { delete root.dataset.workspaceTheme; };
   }, [light]);
   const isMentor = user?.role === "mentor";
   const isCompany = COMPANY_ROLES.includes(user?.role);
