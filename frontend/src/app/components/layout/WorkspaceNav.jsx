@@ -94,7 +94,13 @@ function WorkspaceMenu({ config, onClose, active }) {
     <div className="flex h-full min-h-0 flex-1 flex-col justify-between overflow-hidden">
       {/* Brand Header: Logo + Role Badge (Cố định ở trên) */}
       <div className="mentor-workspace-brand-row mb-2 shrink-0 flex items-center justify-between px-2 pt-1 pb-1">
-        <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand flex w-full min-w-0 items-center justify-between gap-2">
+        <Link
+          to={homeUrl}
+          onClick={onClose}
+          className="mentor-workspace-brand flex w-full min-w-0 items-center justify-between gap-2"
+          title="Về bảng điều khiển"
+          aria-label="Về bảng điều khiển"
+        >
           <img
             src="/Logo.png"
             alt="ProInterview"
