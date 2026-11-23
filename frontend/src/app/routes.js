@@ -126,6 +126,7 @@ function roleHomeLoader() {
 }
 
 import { Jobs } from "./pages/jobs/Jobs.jsx";
+import { CvBestFit } from "./pages/cv/CvBestFit.jsx";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -184,6 +185,7 @@ export const router = createBrowserRouter([
           { path: "learning-paths/:id", loader: requireCustomerAuthLoader, Component: LearningPathDetail },
           // PR-11: kho CV (tải lên, nhân bản, đặt mặc định, xóa).
           { path: "cvs", loader: requireCustomerAuthLoader, Component: CvVault },
+          { path: "cv-analysis/best-fit", loader: requireCustomerAuthLoader, Component: CvBestFit },
           { path: "my-courses", Component: MyCourses },
           { path: "payment-history", loader: requireAuthLoader, Component: PaymentHistory },
       { path: "cart", loader: requireCustomerAuthLoader, Component: Cart },

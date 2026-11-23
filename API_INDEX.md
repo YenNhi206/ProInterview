@@ -253,6 +253,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/courses/:id/lessons/:lessonId/notes` | Bearer | Ghi chú bài học (học viên đã ghi danh) |
 | PUT | `/api/courses/:id/lessons/:lessonId/notes` | Bearer | Lưu ghi chú `{ content }` trên `Enrollment` |
 | POST | `/api/courses` | Bearer + Mentor | Tạo khóa học mới |
+| POST | `/api/courses/prescreen-preview` | Bearer + Mentor | **AI-09.** Xem trước cờ sàng lọc theo luật (`ruleFlags` của AI-08) trên nội dung đang soạn, body cùng dạng tạo / sửa khóa (`chapters`, `outcomes`). Trả `{ flags[] { code, severity, message, evidence, source: "rule" }, rules }`. Không gọi LLM, không ghi DB |
 | PUT | `/api/courses/:id` | Bearer + Mentor | Cập nhật khóa học |
 | PATCH | `/api/courses/:id/publish` | Bearer + Mentor | Xuất bản khóa học |
 | DELETE | `/api/courses/:id` | Bearer + Mentor | Lưu trữ / xóa mềm khóa học |

@@ -1,0 +1,46 @@
+/* PR-12: chọn CV hợp nhất cho JD — /cv-analysis/best-fit. Dựng trên khung `mr-*` + `cv-vault`. */
+.cv-best-fit .cv-bf-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.cv-best-fit .cv-bf-form h2 { font-size: 15px; font-weight: 600; margin: 4px 0 0; }
+.cv-best-fit .cv-bf-form h2 small { margin-left: 6px; font-size: 11px; font-weight: 500; opacity: .7; }
+.cv-bf-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cv-bf-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid rgba(185, 143, 255, .22); border-radius: 12px; cursor: pointer; transition: border-color .15s, background-color .15s; }
+.cv-bf-option:hover { border-color: rgba(185, 143, 255, .45); }
+.cv-bf-option.is-checked { border-color: #93f72b; background: rgba(147, 247, 43, .06); }
+.cv-bf-option.is-disabled { opacity: .5; cursor: not-allowed; }
+.cv-bf-option input { margin-top: 3px; accent-color: #93f72b; width: 16px; height: 16px; flex-shrink: 0; }
+.cv-bf-option-text { display: grid; gap: 2px; min-width: 0; }
+.cv-bf-option-text strong { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-bf-option-text span { font-size: 11px; opacity: .7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-best-fit textarea { width: 100%; min-height: 140px; resize: vertical; }
+.cv-bf-submit { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.cv-bf-hint { margin: 0; font-size: 12px; opacity: .75; }
+.cv-bf-empty-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; }
+.cv-bf-results h2 { font-size: 17px; font-weight: 600; margin: 0 0 12px; }
+.cv-bf-note { margin: 0 0 12px; font-size: 12px; color: #f7d27a; }
+.cv-bf-ranking { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.cv-bf-rank { display: flex; flex-direction: column; gap: 10px; }
+.cv-bf-rank.is-best { border-color: #93f72b88; box-shadow: 0 0 0 1px #93f72b33; }
+.cv-bf-rank-head { display: flex; align-items: center; gap: 12px; }
+.cv-bf-rank-no { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; border: 1px solid rgba(147, 247, 43, .45); color: #93f72b; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cv-bf-rank-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.cv-bf-rank-title h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.cv-bf-rank-title .mr-status { display: inline-flex; align-items: center; gap: 4px; }
+.cv-bf-score { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cv-bf-score small { font-size: 12px; font-weight: 500; opacity: .6; }
+.cv-bf-reason { margin: 0; font-size: 13px; line-height: 1.7; }
+.cv-bf-error { margin: 0; font-size: 12px; color: #fda4af; }
+.cv-bf-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.cv-bf-cols h4 { margin: 0 0 4px; font-size: 12px; font-weight: 600; opacity: .8; }
+.cv-bf-cols ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.7; }
+.cv-bf-skills { display: flex; flex-wrap: wrap; gap: 6px; }
+.cv-bf-skills span { padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; border: 1px solid; }
+.cv-bf-skills .is-match { color: #b9ee8c; border-color: #93f72b55; background: #93f72b0f; }
+.cv-bf-skills .is-missing { color: #fda4af; border-color: #fda4af55; background: #fda4af0f; }
+.cv-best-fit .cv-actions .mr-primary, .cv-best-fit .cv-actions .mr-secondary { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Giao diện sáng của trang ứng viên. */
+:root[data-workspace-theme="light"] .cv-bf-skills .is-match { color: #3f7a0a; }
+:root[data-workspace-theme="light"] .cv-bf-skills .is-missing { color: #be123c; }
+:root[data-workspace-theme="light"] .cv-bf-rank-no { color: #3f7a0a; }
+:root[data-workspace-theme="light"] .cv-bf-note { color: #a15c07; }
+:root[data-workspace-theme="light"] .cv-bf-error { color: #be123c; }

@@ -798,7 +798,8 @@
 }
 
 /* Per-page violet blobs from MentorPageShell would double up with the shared ambient. */
-.mentor-workspace .mentor-surface>.pointer-events-none.fixed {
+/* Chỉ ẩn đốm trang trí (`-z-[1]`), không ẩn thanh hành động cố định như "Lưu & gửi duyệt" ở trang sửa khóa (z-50). */
+.mentor-workspace .mentor-surface>.pointer-events-none.fixed[class*="-z-["] {
   display: none;
 }
 
