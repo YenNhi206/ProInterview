@@ -52,6 +52,7 @@ import {
    fetchCourseById,
    createCourseDraft,
    publishCourse,
+   previewCoursePrescreen,
    updateCourseDraft,
    archiveCourse,
    fetchCourseMentorStudents,
@@ -65,6 +66,7 @@ import { mapCourseAdminModerationNote } from "../../utils/admin/courseAdminRevie
 import { uploadFile, uploadVideoDirectly, shouldUseDirectUpload } from "../../api/uploadApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
+import { PrescreenConfirmDialog, PrescreenFlagList } from "../../components/courses/PrescreenFlags.jsx";
 import { CourseCreateStepper } from "../../components/mentor/course-create/CourseCreateStepper";
 import { CourseCreateStep1, CourseCreateFooter } from "../../components/mentor/course-create/CourseCreateStep1";
 import { CourseCreateStep2 } from "../../components/mentor/course-create/CourseCreateStep2";
@@ -692,6 +694,18 @@ function CreateCourseForm({ navigate }) {
    const [chapters, setChapters] = useState([]);
    const [thumbnailUrl, setThumbnailUrl] = useState("");
    const [thumbnailFileName, setThumbnailFileName] = useState("");
+   // AI-09: cờ sàng lọc theo luật cho bước "Xem lại & Gửi duyệt" (null = đang kiểm tra).
+   const [createPrescreen, setCreatePrescreen] = useState(null);
+   useEffect(() => {
+      if (step !== 3) return undefined;
+      let active = true;
+      setCreatePrescreen(null);
+      previewCoursePrescreen(buildCoursePayloadFromForm(form, chapters, thumbnailUrl)).then((res) => {
+         if (active) setCreatePrescreen(res.success ? { flags: res.flags } : { flags: [], error: res.error || "Chưa kiểm tra được." });
+      });
+      return () => { active = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [step]);
    const addChapter = () =>
       setChapters(prev => [
          ...prev,
@@ -861,6 +875,19 @@ function CreateCourseForm({ navigate }) {
                {step === 3 && (
                   <div className="space-y-6">
                      <div className={mentorSectionCardClass}>
+                        <h3 className="mb-1 text-lg font-bold text-white tracking-tight">Kiểm tra trước khi gửi</h3>
+                        <p className="mb-4 text-xs text-slate-400">
+                           Cùng bộ luật AI dùng khi sàng lọc. Platform Moderator sẽ thấy các cờ này; sửa trước để khóa được duyệt nhanh hơn.
+                        </p>
+                        {createPrescreen === null ? (
+                           <p className="text-xs text-slate-400">Đang kiểm tra…</p>
+                        ) : createPrescreen.error ? (
+                           <p className="text-xs text-slate-400">{createPrescreen.error}</p>
+                        ) : (
+                           <PrescreenFlagList flags={createPrescreen.flags} emptyText="Không phát hiện vấn đề nào." />
+                        )}
+                     </div>
+                     <div className={mentorSectionCardClass}>
                         <h3 className="mb-4 text-lg font-bold text-white tracking-tight">Xác nhận thông tin trước khi gửi duyệt</h3>
                         <dl className="grid gap-3 sm:grid-cols-2">
                            {[
@@ -956,6 +983,88 @@ export function MentorCourseEdit() {
    const [reviews, setReviews] = useState([]);
    const [reviewsSummary, setReviewsSummary] = useState(null);
    const [analyticsStats, setAnalyticsStats] = useState([]);
+
+   // AI-09: kiểm tra cờ sàng lọc theo luật trước khi gửi duyệt bản cập nhật.
+   const [submitBusy, setSubmitBusy] = useState(false);
+   const [prescreenConfirm, setPrescreenConfirm] = useState(null);
+
+   /** Dữ liệu gửi khi lưu & gửi duyệt: giữ nguyên cấu trúc chapter gốc, chỉ cập nhật nội dung từng bài. */
+   const buildEditPayload = () => {
+      const rawModules = course.raw?.modules || course.raw?.chapters || [];
+      const chapters = rawModules.length
+         ? rawModules.map((m) => ({
+              title: m.title || "Chương",
+              lessons: (m.lessons || []).map((orig) => {
+                 const edited = lessons.find((el) => el.id === (orig._id?.toString?.() || orig.id)) || orig;
+                 return {
+                    title: edited.title,
+                    duration: Number(edited.duration || 0),
+                    isPreview: Boolean(edited.isPreview),
+                    videoUrl: edited.videoUrl || edited.videoFileName || "",
+                 };
+              }),
+           }))
+         : [
+              {
+                 title: "Chương 1",
+                 lessons: lessons.map((l) => ({
+                    title: l.title,
+                    duration: Number(l.duration || 0),
+                    isPreview: Boolean(l.isPreview),
+                    videoUrl: l.videoUrl || l.videoFileName || "",
+                 })),
+              },
+           ];
+      return {
+         title: course.raw?.title || course.title,
+         description: course.raw?.description || "",
+         category: mapTopicToCategory(course.raw?.topics),
+         level: course.raw?.level || "basic",
+         price: course.raw?.price || 0,
+         outcomes: course.raw?.whatYoullLearn || [],
+         tags: course.raw?.tags || [],
+         thumbnail: normalizeStoredUploadUrl(thumbnailUrl) || normalizeStoredUploadUrl(course.raw?.thumbnail) || "",
+         chapters,
+      };
+   };
+
+   const submitUpdate = async (payload) => {
+      setSubmitBusy(true);
+      try {
+         const saved = await updateCourseDraft(course.id, payload);
+         if (!saved.success) {
+            toastApiError(saved.error, "Không thể lưu thay đổi trước khi gửi duyệt.");
+            return;
+         }
+         const pub = await publishCourse(course.id, payload);
+         if (!pub.success) {
+            toastApiError(pub.error, "Không thể gửi bản cập nhật.");
+            return;
+         }
+         toastApiSuccess("Đã gửi bản cập nhật để admin duyệt. Khóa hiện tại vẫn đang public.");
+         navigate("/mentor/courses");
+      } catch {
+         toastApiError("Lỗi kết nối khi gửi bản cập nhật.");
+      } finally {
+         setSubmitBusy(false);
+         setPrescreenConfirm(null);
+      }
+   };
+
+   /** Bấm "Lưu & gửi duyệt": có cờ nghiêm trọng / cảnh báo thì hỏi lại; kiểm tra lỗi thì vẫn cho gửi. */
+   const onSubmitClick = async () => {
+      if (submitBusy) return;
+      const payload = buildEditPayload();
+      setSubmitBusy(true);
+      const check = await previewCoursePrescreen(payload);
+      setSubmitBusy(false);
+      const serious = (check.flags || []).filter((f) => f.severity !== "info");
+      if (check.success && serious.length) {
+         setPrescreenConfirm({ payload, flags: check.flags });
+         return;
+      }
+      await submitUpdate(payload);
+   };
 
    const loadTabData = async (tab) => {
       if (!id || isCreateMode || tab === "lessons") return;
@@ -1320,67 +1429,8 @@ export function MentorCourseEdit() {
                   </button>
                   <button
                      type="button"
-                     onClick={async () => {
-                        try {
-                           // Giữ nguyên cấu trúc chapter gốc, chỉ cập nhật nội dung từng bài
-                           const rawModules = course.raw?.modules || course.raw?.chapters || [];
-                           const chapters = rawModules.length
-                              ? rawModules.map((m) => ({
-                                   title: m.title || "Chương",
-                                   lessons: (m.lessons || []).map((orig) => {
-                                      const edited = lessons.find(
-                                         (el) => el.id === (orig._id?.toString?.() || orig.id),
-                                      ) || orig;
-                                      return {
-                                         title: edited.title,
-                                         duration: Number(edited.duration || 0),
-                                         isPreview: Boolean(edited.isPreview),
-                                         videoUrl: edited.videoUrl || edited.videoFileName || "",
-                                      };
-                                   }),
-                                }))
-                              : [
-                                   {
-                                      title: "Chương 1",
-                                      lessons: lessons.map((l) => ({
-                                         title: l.title,
-                                         duration: Number(l.duration || 0),
-                                         isPreview: Boolean(l.isPreview),
-                                         videoUrl: l.videoUrl || l.videoFileName || "",
-                                      })),
-                                   },
-                                ];
-                           const payload = {
-                              title: course.raw?.title || course.title,
-                              description: course.raw?.description || "",
-                              category: mapTopicToCategory(course.raw?.topics),
-                              level: course.raw?.level || "basic",
-                              price: course.raw?.price || 0,
-                              outcomes: course.raw?.whatYoullLearn || [],
-                              tags: course.raw?.tags || [],
-                              thumbnail:
-                                 normalizeStoredUploadUrl(thumbnailUrl) ||
-                                 normalizeStoredUploadUrl(course.raw?.thumbnail) ||
-                                 "",
-                              chapters,
-                           };
-
-                           const saved = await updateCourseDraft(course.id, payload);
-                           if (!saved.success) {
-                              toastApiError(saved.error, "Không thể lưu thay đổi trước khi gửi duyệt.");
-                              return;
-                           }
-                           const pub = await publishCourse(course.id, payload);
-                           if (!pub.success) {
-                              toastApiError(pub.error, "Không thể gửi bản cập nhật.");
-                              return;
-                           }
-                           toastApiSuccess("Đã gửi bản cập nhật để admin duyệt. Khóa hiện tại vẫn đang public.");
-                           navigate("/mentor/courses");
-                        } catch {
-                           toastApiError("Lỗi kết nối khi gửi bản cập nhật.");
-                        }
-                     }}
+                     disabled={submitBusy}
+                     onClick={() => void onSubmitClick()}
                      className="min-h-[42px] rounded-xl bg-[#93f72b] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.3)] transition hover:bg-[#a8ff4e]"
                   >
                      Lưu & gửi duyệt
@@ -1389,6 +1439,14 @@ export function MentorCourseEdit() {
             </div>
             </div>
          </div>
+
+         <PrescreenConfirmDialog
+            open={Boolean(prescreenConfirm)}
+            flags={prescreenConfirm?.flags}
+            busy={submitBusy}
+            onCancel={() => setPrescreenConfirm(null)}
+            onConfirm={() => void submitUpdate(prescreenConfirm.payload)}
+         />
 
          <ArchiveCourseDialog
             open={showArchiveDialog}

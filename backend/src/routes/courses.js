@@ -115,6 +115,9 @@ coursesRouter.post("/:id/enroll", authJwt, asyncHandler(EnrollmentController.enr
 
 coursesRouter.post("/", authJwt, requireMentor, asyncHandler(CoursesController.create));
 
+// AI-09: xem trước cờ sàng lọc theo luật trước khi gửi duyệt (không gọi AI, không lưu).
+coursesRouter.post("/prescreen-preview", authJwt, requireMentor, asyncHandler(CoursesController.prescreenPreview));
+
 coursesRouter.put("/:id", authJwt, requireMentor, asyncHandler(CoursesController.update));
 
 coursesRouter.patch("/:id/publish", authJwt, requireMentor, asyncHandler(CoursesController.publish));
