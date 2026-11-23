@@ -532,7 +532,7 @@ export function MentorDashboard() {
         >
           <div>
             <h1 className="font-headline text-2xl font-black tracking-tight text-white [html[data-workspace-theme=light]_&]:text-slate-900 sm:text-3xl">
-              Chào mừng, <span className="text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#2563eb]">{displayName}</span>
+              Chào mừng
             </h1>
             <p className="text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 mt-0.5">
               Trung tâm điều phối phỏng vấn &amp; quản trị hoạt động cố vấn ProInterview
