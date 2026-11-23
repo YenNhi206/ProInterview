@@ -222,7 +222,7 @@ utils/        theo domain: auth/ (auth.js — authFetch, token; requireAuthLoade
 
 Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transactions`, `payouts`, `content/questions`, `settings`) đều gọi API thật; tên file là di sản cũ.
 
-⚠️ `/admin/analytics`, `/admin/users`, `/admin/users/:id`, `/admin/content/questions` và `components/admin/UserJourneyPanel.jsx` đang **bơm số liệu giả ở trình duyệt** qua `utils/analytics/mock*.js`. Không dùng các hàm này cho màn mới; gỡ ở task N-09.
+Các trang admin `/admin/analytics`, `/admin/users`, `/admin/users/:id`, `/admin/content/questions` và `UserJourneyPanel.jsx` hiển thị đúng số từ API (N-09 đã gỡ lớp bơm số liệu giả `utils/analytics/mock*.js`). `/admin/analytics` có mục doanh thu theo nguồn (`GET /api/admin/analytics/revenue`, N-08).
 
 ---
 
@@ -338,7 +338,6 @@ Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REG
 | `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |
 | `services/moderationQueueService.js:39, :83` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report`; danh sách hàng đợi không lọc `type` | Loại mới cần map riêng; hàng đợi HITL chỉ lấy 3 loại phỏng vấn |
 | `models/QuestionBank.js` | `orgId` đang `ref: "Organization"` (model không tồn tại); `status` đã có `draft`, `rejected`; `roleCategory` đã có index | Đổi ref sang `"Company"`; dùng lại field có sẵn, không thêm field mới |
-| `frontend/src/app/utils/analytics/mock*.js` | 4 trang admin + `UserJourneyPanel.jsx` bơm số liệu giả ở trình duyệt | Không dùng cho màn mới; gỡ ở N-09 |
 | `config/roleCategories.json` | Trước 22/11/2026 mỗi nơi tự đặt `roleCategory` (phỏng vấn AI dùng key của `ROLE_COMPETENCY_MAP`, khu công ty dùng danh sách riêng ở FE) nên câu hỏi, rubric, job không khớp nhau | BE kiểm bằng `isValidRoleCategory` (`services/roleCategories.js`), FE đọc `GET /api/role-categories` (hook `useRoleCategories`). Map sang phỏng vấn AI qua `interviewRole`. Không đặt danh sách vị trí riêng trong code |
 | `config/competencies.json` (LP-01) | Đặt danh sách năng lực riêng, hoặc chỉ kiểm key bằng regex, thì lưu được key không có trong bộ tiêu chí: chấm điểm, `suggestOutcome` và hồ sơ năng lực không tra được | Backend kiểm bằng `isValidCompetencyKey`; frontend đọc `GET /api/competencies`. Quy tắc đầy đủ: DECISIONS.md mục "Bộ tiêu chí năng lực SHRM/DDI (LP-01)" |
 | `InterviewSession` | 3 câu baseline có `competencyId = ""`; `moderatorOverride` và `evaluationIncomplete` nằm trên `answers[i]`, không nằm trên `feedback.perQuestion[i]`; `shrmLevel` có fallback `"proficient"` | Quy đổi điểm AI sang mức bằng `aiAnswerToLevel(item, { answer })`, không đọc `shrmLevel` (AI-13 sẽ bỏ fallback) |
