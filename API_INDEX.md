@@ -686,7 +686,7 @@ Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, t
 
 **Điều khoản dùng rubric ẩn danh (quyết định AI-18):** khi nhận lời mời, thời điểm và version đồng ý lưu ở `CompanyInvite.rubricTermsAcceptedAt` / `rubricTermsVersion`; lần đồng ý đầu tiên của công ty lưu ở `Company.rubricSharingConsent { acceptedAt, acceptedBy, termsVersion }`. Miner AI-18 chỉ lấy rubric của công ty có `rubricSharingConsent.acceptedAt`. Đổi nội dung điều khoản thì tăng `version` trong `config/rubricSharingTerms.js`.
 
-### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11)
+### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11, `/cvs/:id/edit` PR-13)
 
 **File:** `backend/src/routes/cvs.js` · **Model:** `CVDocument` · Chỉ chủ CV đọc/ghi được (lọc theo `userId`)
 

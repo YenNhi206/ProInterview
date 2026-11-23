@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
-import { Copy, ExternalLink, FileText, Loader2, RefreshCw, Star, Trash2, Upload } from "lucide-react";
+import { Copy, ExternalLink, FileText, PencilLine, Loader2, RefreshCw, Star, Trash2, Upload } from "lucide-react";
 import { cvsApi } from "../../api/cvsApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { CV_ACCEPT_ATTR, cvFileError, defaultCvTitle, formatFileSize, sortCvs } from "../../utils/cv/cvVault.js";
@@ -88,6 +88,9 @@ export function CvVault() {
                   {cv.fileSize ? <small>{formatFileSize(cv.fileSize)}</small> : null}
                 </p>
                 <div className="cv-actions">
+                  <Link className="mr-secondary" to={`/cvs/${cv.id}/edit`}>
+                    <PencilLine size={14} /> Sửa nội dung
+                  </Link>
                   {cv.fileUrl && (
                     <a className="mr-secondary" href={cv.fileUrl} target="_blank" rel="noreferrer">
                       <ExternalLink size={14} /> Xem tệp
