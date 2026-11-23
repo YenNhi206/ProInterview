@@ -127,7 +127,7 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `User.js` | `users` | Tài khoản, plan, quota, profile… |
 | `Mentor.js` | `mentors` | Hồ sơ mentor; `publicId` cho URL/seed |
 | `Booking.js` | `bookings` | Đặt lịch với mentor |
-| `CVAnalysis.js` | `cv_analyses` | Phân tích CV / JD |
+| `CVAnalysis.js` | `cv_analyses` | Phân tích CV / JD. N-11: một lần phân tích = một bản ghi, mở `processing` trước khi gọi Python rồi `completed`/`failed`; `meta.processingTimeMs` đo ở server; `quotaCharged` (Boolean) = đã trừ 1 lượt cho bản ghi này |
 | `InterviewSession.js` | `interview_sessions` | Phiên phỏng vấn AI |
 | `Course.js` | `courses` | Khóa học |
 | `Enrollment.js` | `enrollments` | Ghi danh; tiến độ; CK; `lessonNotes[]` ghi chú học viên theo `lessonId` |

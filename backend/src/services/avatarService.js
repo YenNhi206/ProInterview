@@ -25,6 +25,7 @@ import { cacheGet, cacheSet } from "./cacheService.js";
 import { logEvent } from "./langfuseService.js";
 import { calcTTSCost, calcAvatarVideoCost } from "./costCalculator.js";
 import { logger } from "../config/logger.js";
+import { createStepTimer } from "../utils/stepTimer.js";
 
 const DID_BASE = "https://api.d-id.com";
 
@@ -367,10 +368,14 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
   // Changing the ElevenLabs clone must bust the cache — otherwise stale videos get served.
   const elevenLabsVoiceId = isElevenLabsEnabled() ? getElevenLabsVoiceId(gender) : null;
 
+  // N-11: đo thời gian từng bước, ghi 1 dòng `avatar_video_timing` cho mỗi video (cả khi lỗi) để đo NFR-02.
+  const timing = createStepTimer();
+
   // 1. Cache lookup — key includes both Azure fallback voice AND ElevenLabs voice
   const cacheKey = buildCacheKey(questionText, resolvedAvatarUrl, resolvedVoiceId, elevenLabsVoiceId);
-  const cached   = await cacheGet(cacheKey);
+  const cached   = await timing.step("cacheLookupMs", () => cacheGet(cacheKey));
   if (cached) {
+    logger.info("avatar_video_timing", timing.summary({ fromCache: true, ok: true, textLen: questionText.length, persistVideo: Boolean(opts.persistVideo) }));
     const cacheCost = calcAvatarVideoCost(true);
     logEvent({
       traceId,
@@ -389,14 +394,31 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
 
   // 2. ElevenLabs TTS audio (if configured). Pass gender so the correct voice is selected.
   //    resolvedVoiceId is the Azure voice name — only used as D-ID text-script fallback (step 3).
-  const audioUrl = await generateAndUploadAudio(questionText, { gender, traceId });
+  let audioUrl;
+  let talkId;
+  let videoUrl;
+  try {
+    audioUrl = await timing.step("ttsMs", () => generateAndUploadAudio(questionText, { gender, traceId }));
 
-  // 3. Create D-ID talk — if audioUrl exists, D-ID lipsync with ElevenLabs audio;
-  //    otherwise D-ID uses its own Azure TTS with resolvedVoiceId.
-  const talkId = await createDIDTalk(resolvedAvatarUrl, audioUrl, questionText, { voiceId: resolvedVoiceId });
+    // 3. Create D-ID talk — if audioUrl exists, D-ID lipsync with ElevenLabs audio;
+    //    otherwise D-ID uses its own Azure TTS with resolvedVoiceId.
+    talkId = await timing.step("didCreateMs", () => createDIDTalk(resolvedAvatarUrl, audioUrl, questionText, { voiceId: resolvedVoiceId }));
 
-  // 4. Poll until done — pass signal so polling stops on client disconnect
-  let videoUrl = await pollDIDTalk(talkId, 120_000, signal);
+    // 4. Poll until done — pass signal so polling stops on client disconnect
+    videoUrl = await timing.step("didRenderMs", () => pollDIDTalk(talkId, 120_000, signal));
+  } catch (err) {
+    logger.warn("avatar_video_timing", timing.summary({
+      fromCache: false,
+      ok: false,
+      failedStep: timing.current,
+      error: err.message,
+      talkId,
+      ttsProvider: audioUrl ? "elevenlabs" : "did_azure",
+      textLen: questionText.length,
+      persistVideo: Boolean(opts.persistVideo),
+    }));
+    throw err;
+  }
   // result_url là presigned S3 URL của D-ID, tự hết hạn ~24h (X-Amz-Expires) — không bao giờ
   // cache nó với TTL dài (180 ngày). Chỉ link đã mirror sang Cloudinary mới cache vĩnh viễn.
   let cacheTtl = RAW_DID_URL_FALLBACK_TTL;
@@ -405,8 +427,9 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
   //    toàn hệ thống, không phụ thuộc D-ID giữ file CDN lâu dài). Cache vĩnh viễn vì mình
   //    kiểm soát file. Nếu mirror lỗi → giữ URL D-ID gốc với TTL ngắn ở trên, để lần gọi sau
   //    tự retry mirror thay vì phục vụ link đã hỏng.
+  let mirrored = null;
   if (opts.persistVideo) {
-    const mirrored = await mirrorVideoToCloudinary(videoUrl);
+    mirrored = await timing.step("mirrorMs", () => mirrorVideoToCloudinary(videoUrl));
     if (mirrored) {
       videoUrl = mirrored;
       cacheTtl = null;
@@ -414,9 +437,18 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
   }
 
   // 6. Cache result
-  await cacheSet(cacheKey, videoUrl, cacheTtl);
+  await timing.step("cacheWriteMs", () => cacheSet(cacheKey, videoUrl, cacheTtl));
 
   logger.info("avatar_video_generated", { talkId, fromCache: false, textLen: questionText.length });
+  logger.info("avatar_video_timing", timing.summary({
+    fromCache: false,
+    ok: true,
+    talkId,
+    ttsProvider: audioUrl ? "elevenlabs" : "did_azure",
+    mirrored: Boolean(mirrored),
+    textLen: questionText.length,
+    persistVideo: Boolean(opts.persistVideo),
+  }));
 
   const genCost = calcAvatarVideoCost(false);
   logEvent({

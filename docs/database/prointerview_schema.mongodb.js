@@ -405,6 +405,7 @@ ensureCollection("cv_analyses", {
     tier: en("suggestions", "full", "basic"),
     status: en("processing", "completed", "failed", "legacy_mock"),
     planAtTime: en("free", "pro", "enterprise"),
+    quotaCharged: { bsonType: "bool" }, // N-11
   },
 }, [
   [{ userId: 1 }],

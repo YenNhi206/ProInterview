@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import { MentorshipRequest } from "../models/MentorshipRequest.js";
-import { CVAnalysis } from "../models/CVAnalysis.js";
+import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { Booking } from "../models/Booking.js";
 import { httpError } from "../utils/apiErrors.js";
 
@@ -15,7 +15,7 @@ const errorMissing = () => httpError(410, "Tệp cũ không còn khả dụng. V
 export async function listOwnedDocuments(userId) {
   const [requests, analyses, bookings] = await Promise.all([
     MentorshipRequest.find({ userId }).select("cvName jdName createdAt").sort({ createdAt: -1 }).limit(50).lean(),
-    CVAnalysis.find({ userId }).select("cvFileName cvFileId cvFileUrl jdFileName jdFileId jdFileUrl createdAt").sort({ createdAt: -1 }).limit(100).lean(),
+    CVAnalysis.find({ userId, ...CV_ANALYSIS_DONE_FILTER }).select("cvFileName cvFileId cvFileUrl jdFileName jdFileId jdFileUrl createdAt").sort({ createdAt: -1 }).limit(100).lean(),
     Booking.find({ userId, $or: [{ cvFileUrl: { $gt: "" } }, { jdFileUrl: { $gt: "" } }] }).select("cvFileName cvFileUrl jdFileName jdFileUrl createdAt").sort({ createdAt: -1 }).limit(50).lean(),
   ]);
   const documents = [], seen = new Set();

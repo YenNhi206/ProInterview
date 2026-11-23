@@ -19,7 +19,7 @@ import {
 } from "../services/courseStatsService.js";
 import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
-import { CVAnalysis } from "../models/CVAnalysis.js";
+import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
@@ -1029,7 +1029,7 @@ export const AdminController = {
         freeInterviewUserIds,
       ] = await Promise.all([
         InterviewSession.countDocuments(),
-        CVAnalysis.countDocuments(),
+        CVAnalysis.countDocuments(CV_ANALYSIS_DONE_FILTER), // N-11: không đếm lần đang chạy / lỗi
         Course.countDocuments({ status: "published" }),
         InterviewSession.countDocuments({ status: "completed" }),
         InterviewSession.countDocuments({ createdAt: { $gte: since7d } }),

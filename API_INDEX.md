@@ -280,8 +280,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
 | GET | `/api/cv/quota` | Bearer | Kiểm tra quota phân tích CV |
-| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python) |
-| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích |
+| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python). N-11: gửi `analysisId` (từ `/api/cv/analyze*`) thì ghi đè vào bản ghi đó → `200`, không trừ lượt nếu đã trừ; không có `analysisId` → tạo mới `201` như cũ |
+| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích (chỉ bản đã xong; bỏ `processing`/`failed`) |
 | GET | `/api/cv/analyses/:id` | Bearer | Chi tiết bản phân tích |
 | DELETE | `/api/cv/analyses/:id` | Bearer | Xóa bản phân tích |
 
@@ -293,6 +293,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/cv/analyze/full` | Khớp + chấm điểm (LLM/Ollama) |
 | POST | `/api/cv/analyze/suggestions` | Pipeline đầy đủ + gợi ý (JD) |
 | POST | `/api/cv/analyze/field` | Phân tích theo ngành (`field` form field) |
+
+**N-11:** cả 4 route nhận form field `analysisId` (tùy chọn) và luôn trả `analysisId` (kể cả khi lỗi). Server mở `CVAnalysis` `processing` trước khi gọi Python; Python 2xx → `completed` + `result.match` + trừ 1 lượt quota; lỗi → `failed` + `error`. Mỗi lần gọi ghi `meta.processingTimeMs` và log `cv_analysis_timing` (`durationMs`, `pythonMs`, `endpoint`, `httpStatus`). FE gửi lại `analysisId` khi thử bậc thấp hơn (suggestions → full → basic) và khi lưu.
 
 **FE:** `cvApi.js` (lịch sử CRUD), `CVAnalysis.jsx` (phân tích qua `/api/cv/analyze*`). **Production:** Express + Python. **Supabase Edge:** chỉ khi `VITE_SUPABASE_PROJECT_ID` — fallback tùy env, không bắt buộc.
 
