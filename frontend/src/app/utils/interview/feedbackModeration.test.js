@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AI_REPORT_REASONS, effectiveEvaluation, reportableTargets } from "./feedbackModeration.js";
+import { AI_REPORT_REASONS, SHRM_NO_DATA_LABEL, effectiveEvaluation, reportableTargets, shrmLevelCounts } from "./feedbackModeration.js";
 
 const aiScores = { clarity: 2, structure: 2, relevance: 2, credibility: 2 };
 
@@ -41,4 +41,19 @@ test("AI_REPORT_REASONS chỉ dùng reasonCode backend chấp nhận", () => {
   for (const list of Object.values(AI_REPORT_REASONS)) {
     for (const r of list) assert.ok(allowed.has(r.id), r.id);
   }
+});
+
+test("AI-13: thiếu shrmLevel → \"\", không mặc định \"proficient\"", () => {
+  assert.equal(effectiveEvaluation({ overall: 3, scores: aiScores }).shrmLevel, "");
+  assert.equal(effectiveEvaluation({ overall: 3, shrmLevel: "" }).shrmLevel, "");
+  const withOverride = effectiveEvaluation({ overall: 3, moderatorOverride: { overall: 4, scores: {} } });
+  assert.equal(withOverride.shrmLevel, "");
+});
+
+test("AI-13: shrmLevelCounts đưa mức rỗng / lạ vào unknown", () => {
+  assert.deepEqual(
+    shrmLevelCounts([{ shrmLevel: "excellent" }, { shrmLevel: "" }, { shrmLevel: "Vững" }, {}, { shrmLevel: "proficient" }]),
+    { excellent: 1, proficient: 1, developing: 0, unknown: 3 },
+  );
+  assert.equal(SHRM_NO_DATA_LABEL, "Chưa đủ dữ liệu");
 });

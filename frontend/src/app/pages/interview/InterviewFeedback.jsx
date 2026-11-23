@@ -29,7 +29,7 @@ import {
   Hourglass,
 } from "lucide-react";
 import { ReportAiResultDialog } from "../../components/interview/ReportAiResultDialog";
-import { effectiveEvaluation, reportableTargets } from "../../utils/interview/feedbackModeration.js";
+import { SHRM_NO_DATA_LABEL, effectiveEvaluation, reportableTargets, shrmLevelCounts } from "../../utils/interview/feedbackModeration.js";
 import { CourseRecommendations } from "../../components/courses/CourseRecommendations";
 import { BehavioralRadarChart, behaviorScoreColor, emotionLabel } from "../../components/interview/BehavioralRadarChart";
 import { getPlans } from "../../utils/auth/auth.js";
@@ -447,13 +447,8 @@ export function InterviewFeedback() {
   if (speakingTips.length === 0) speakingTips.push("Luyện cấu trúc STAR để câu trả lời rõ ràng và thuyết phục hơn");
 
   // SHRM level distribution from real evaluation
-  const shrmDistribution = realFeedback
-    ? {
-        excellent:  allQuestions.filter(q => q.shrmLevel === "excellent").length,
-        proficient: allQuestions.filter(q => q.shrmLevel === "proficient").length,
-        developing: allQuestions.filter(q => q.shrmLevel === "developing").length,
-      }
-    : null;
+  // Câu thiếu mức SHRM (LLM trả lạ/thiếu) đếm vào `unknown`, hiện "Chưa đủ dữ liệu" (AI-13).
+  const shrmDistribution = realFeedback ? shrmLevelCounts(allQuestions) : null;
 
   const avgScores = STAR_LABELS.reduce((acc, key) => {
     acc[key] = visibleQuestions.length
@@ -644,6 +639,9 @@ export function InterviewFeedback() {
                   { key: "excellent", label: "Xuất sắc", color: "bg-[#b5e636]", cls: "bg-lime-50 text-violet-900" },
                   { key: "proficient", label: "Đạt yêu cầu", color: "bg-violet-300", cls: "bg-violet-100 text-violet-800" },
                   { key: "developing", label: "Cần cải thiện", color: "bg-violet-500/70", cls: "bg-violet-50 text-violet-700" },
+                  ...(shrmDistribution.unknown > 0
+                    ? [{ key: "unknown", label: SHRM_NO_DATA_LABEL, color: "bg-white/40", cls: "bg-white/80 text-violet-900" }]
+                    : []),
                 ].map(({ key, label, color, cls }) => {
                   const count = shrmDistribution[key];
                   const total = allQuestions.length || 1;
