@@ -32,6 +32,7 @@ import {
   findIncomplete,
   mergeRetry,
   isScoreValue,
+  SHRM_LEVELS,
 } from "../utils/evaluationCompleteness.js";
 
 // ── Prompt version ────────────────────────────────────────────────────────────
@@ -740,8 +741,8 @@ export async function evaluateTranscripts({ questions, answers, userId, sessionI
       questionIndex: idx,
       scores,
       overall:     clamp(isScoreValue(q.overall) ? q.overall : meanScore),
-      shrmLevel:   ["excellent", "proficient", "developing"].includes(q.shrm_level)
-                     ? q.shrm_level : "proficient",
+      // AI-13: giá trị lạ / thiếu → "" (FE hiện "Chưa đủ dữ liệu"), không gán "proficient".
+      shrmLevel:   SHRM_LEVELS.includes(q.shrm_level) ? q.shrm_level : "",
       strengths:    Array.isArray(q.strengths)    ? q.strengths    : [],
       improvements: Array.isArray(q.improvements) ? q.improvements : [],
       suggestion:   q.suggestion ?? "",

@@ -154,3 +154,35 @@ describe("Evaluation thiếu tiêu chí", () => {
     assert.equal(await ModerationItem.countDocuments({ "refs.sessionId": session._id, type: "evaluation_incomplete" }), 1);
   });
 });
+
+describe("AI-13: shrm_level lạ hoặc thiếu không thành \"proficient\"", () => {
+  it("LLM trả shrm_level lạ / thiếu → lưu \"\", không gắn badge \"Tốt\"; đọc lại feedback cache vẫn \"\"", async () => {
+    const { user, session } = await completedSession();
+    const q0 = { ...evalQ(0), shrm_level: "Vững" };
+    const { shrm_level: _omit, ...q1 } = evalQ(1);
+    llmQueue.push({ overall_comment: "Ổn", questions: [q0, q1] });
+
+    const first = await (await evaluate(user, session._id)).json();
+    for (const q of first.evaluation.perQuestion) assert.equal(q.shrmLevel, "");
+
+    const saved = await InterviewSession.findById(session._id).lean();
+    for (const q of saved.feedback.perQuestion) {
+      assert.equal(q.shrmLevel, "");
+      assert.equal(q.badge, undefined);
+    }
+
+    // Lần 2: trả feedback đã cache (không gọi LLM).
+    const cached = await (await evaluate(user, session._id)).json();
+    assert.equal(llmUserPrompts.length, 1);
+    for (const q of cached.evaluation.perQuestion) assert.equal(q.shrmLevel, "");
+  });
+
+  it("shrm_level hợp lệ giữ nguyên, badge đúng", async () => {
+    const { user, session } = await completedSession();
+    llmQueue.push({ overall_comment: "Ổn", questions: [{ ...evalQ(0), shrm_level: "excellent" }, { ...evalQ(1), shrm_level: "developing" }] });
+    const body = await (await evaluate(user, session._id)).json();
+    assert.deepEqual(body.evaluation.perQuestion.map((q) => q.shrmLevel), ["excellent", "developing"]);
+    const saved = await InterviewSession.findById(session._id).lean();
+    assert.deepEqual(saved.feedback.perQuestion.map((q) => q.badge), ["Xuất sắc", "Cần cải thiện"]);
+  });
+});

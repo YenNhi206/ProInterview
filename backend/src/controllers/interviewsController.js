@@ -53,6 +53,7 @@ function reportBankError(event, err, sessionId) {
   if (isSentryEnabled()) Sentry.captureException(err);
 }
 import { mergeInterviewAnswersForEval } from "../utils/mergeInterviewAnswers.js";
+import { SHRM_LEVELS } from "../utils/evaluationCompleteness.js";
 
 // ── Accumulation helper ───────────────────────────────────────────────────────
 /**
@@ -640,7 +641,7 @@ export const InterviewsController = {
               questionIndex: q.questionIndex,
               overall:       q.overall5 ?? (q.score / 20),
               scores:        q.scores ?? { clarity: 0, structure: 0, relevance: 0, credibility: 0 },
-              shrmLevel:     q.shrmLevel ?? "proficient",
+              shrmLevel:     SHRM_LEVELS.includes(q.shrmLevel) ? q.shrmLevel : "", // AI-13: không gán "proficient"
               strengths:     q.strengths ?? [],
               improvements:  q.improvements ?? [],
               suggestion:    q.suggestion ?? "",
@@ -712,7 +713,7 @@ export const InterviewsController = {
         perQuestion: evalResult.perQuestion.map(q => ({
           questionIndex: q.questionIndex,
           score:         Math.round(q.overall * 20),
-          badge:         BADGE_MAP[q.shrmLevel] ?? "Tốt",
+          badge:         BADGE_MAP[q.shrmLevel], // AI-13: thiếu mức SHRM thì không gắn nhãn "Tốt"
           strengths:     q.strengths,
           improvements:  q.improvements,
           scores:        q.scores,

@@ -39,7 +39,7 @@ export function effectiveEvaluation(evalQ = {}) {
     return {
       overall: override.overall,
       scores: { ...evalQ.scores, ...override.scores },
-      shrmLevel: override.shrmLevel || evalQ.shrmLevel || "proficient",
+      shrmLevel: override.shrmLevel || evalQ.shrmLevel || "",
       aiOverall,
       reviewedByModerator: true,
       moderatorNote: override.note || "",
@@ -50,7 +50,7 @@ export function effectiveEvaluation(evalQ = {}) {
   return {
     overall: aiOverall,
     scores: evalQ.scores ?? {},
-    shrmLevel: evalQ.shrmLevel || "proficient",
+    shrmLevel: evalQ.shrmLevel || "",
     aiOverall,
     reviewedByModerator: false,
     moderatorNote: "",
@@ -62,4 +62,18 @@ export function effectiveEvaluation(evalQ = {}) {
 /** Loại báo cáo ứng viên còn gửi được cho câu này (mỗi loại 1 lần/câu, backend trả 409 nếu trùng). */
 export function reportableTargets(openReports = []) {
   return Object.keys(AI_REPORT_TARGETS).filter((t) => !openReports.includes(t));
+}
+
+/** Nhãn khi câu không có mức SHRM hợp lệ (LLM trả lạ hoặc thiếu) — AI-13, không coi là "Đạt yêu cầu". */
+export const SHRM_NO_DATA_LABEL = "Chưa đủ dữ liệu";
+const SHRM_KNOWN_LEVELS = ["excellent", "proficient", "developing"];
+
+/** Đếm số câu theo mức SHRM; mức rỗng / lạ vào `unknown`. */
+export function shrmLevelCounts(questions = []) {
+  const counts = { excellent: 0, proficient: 0, developing: 0, unknown: 0 };
+  for (const q of questions) {
+    if (SHRM_KNOWN_LEVELS.includes(q?.shrmLevel)) counts[q.shrmLevel] += 1;
+    else counts.unknown += 1;
+  }
+  return counts;
 }
