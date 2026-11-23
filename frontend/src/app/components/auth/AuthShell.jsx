@@ -20,9 +20,8 @@ export function AuthShell({ children, headerRight }) {
   return (
     <WorkspaceThemeContext.Provider value={theme}>
       <div
-        className={`relative flex min-h-[100dvh] flex-col overflow-y-auto transition-colors duration-300 ${
-          light ? "bg-[#f8f6fc] text-[#1e1338]" : "bg-[#090414] text-white"
-        }`}
+        className={`relative flex min-h-[100dvh] flex-col overflow-y-auto transition-colors duration-300 ${light ? "bg-[#f8f6fc] text-[#1e1338]" : "bg-[#090414] text-white"
+          }`}
         style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
         {/* Background layer */}
