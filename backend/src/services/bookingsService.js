@@ -1160,6 +1160,9 @@ export function toPublicBooking(doc, mentorLean) {
     id: String(b._id),
     userId: cust?._id ? String(cust._id) : String(b.userId || ""),
     mentorshipRequestId: b.mentorshipRequestId ? String(b.mentorshipRequestId) : "",
+    /** LP-21: buổi lộ trình — trang chấm của mentor đọc để hiện form đạt / chưa đạt. */
+    learningPathId: b.learningPathId ? String(b.learningPathId?._id ?? b.learningPathId) : "",
+    learningPathSessionId: b.learningPathSessionId ? String(b.learningPathSessionId?._id ?? b.learningPathSessionId) : "",
     customerName: cust?.name || "",
     customerEmail: cust?.email || "",
     customerAvatar: resolveStoredUploadUrl(cust?.avatar || ""),

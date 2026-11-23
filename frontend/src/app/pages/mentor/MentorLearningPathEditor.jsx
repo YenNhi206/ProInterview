@@ -14,6 +14,8 @@ import {
 import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
 import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
+import { LearningPathTimeline } from "../../components/learningPath/LearningPathTimeline.jsx";
+import { canProposeSupplementary } from "../../utils/learningPath/learningPathTimeline.js";
 import "../../../styles/mentorship-requests.css";
 import "../../../styles/learning-paths.css";
 
@@ -297,6 +299,22 @@ export function MentorLearningPathEditor() {
                     <Plus size={16} />{state.sessions.length >= MAX_SESSIONS ? `Đã đủ ${MAX_SESSIONS} buổi` : "Thêm buổi"}
                   </button>
                 </>
+              ) : ["active", "completed"].includes(status) && path ? (
+                // LP-21: lộ trình đang học — tiến độ từng buổi, chấm buổi đã học, đề xuất buổi bổ sung.
+                <LearningPathTimeline
+                  path={path}
+                  framework={framework}
+                  renderAction={(s) => {
+                    if (!s.bookingId) return null;
+                    if (s.status === "scheduled") {
+                      return <Link className="mr-primary lp-attempt-action" to={`/mentor/session-feedback/${s.bookingId}`}><ClipboardCheck size={15} />Chấm buổi này</Link>;
+                    }
+                    if (status === "active" && canProposeSupplementary(path.sessions, s)) {
+                      return <Link className="mr-secondary lp-attempt-action" to={`/mentor/session-feedback/${s.bookingId}`}>Đề xuất buổi bổ sung có phí →</Link>;
+                    }
+                    return null;
+                  }}
+                />
               ) : (
                 <ol className="lp-sessions">
                   {state.sessions.map((s, i) => (
