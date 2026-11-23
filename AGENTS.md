@@ -9,7 +9,7 @@
 2. `docs/plan/START_HERE.md`: quy trình làm task và các prompt mẫu (Prompt 0, A đến F).
 3. Khi làm một task, đọc theo thứ tự: `docs/plan/REQUIREMENTS.md` (dòng REQ của task) → `docs/plan/TASKS.md` → `docs/plan/DECISIONS.md` → `docs/plan/DESIGN.md` (nhất là mục 7 "Bẫy trong code").
 
-Phạm vi chính thức của đồ án là `docs/plan/REGISTRATION_V2.md`. Bỏ qua `docs/report/REGISTRATION.md` và `docs/capstone/TASKS.md` (bản cũ).
+Phạm vi chính thức của đồ án là `docs/plan/REGISTRATION_V3.md` (thay V2 từ 23/11/2026). Bỏ qua `docs/plan/REGISTRATION_V2.md`, `docs/report/REGISTRATION.md` và `docs/capstone/TASKS.md` (bản cũ).
 
 ## 2. Luật kế hoạch capstone
 
