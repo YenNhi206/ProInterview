@@ -233,6 +233,7 @@ Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transac
 - Lịch sử/quota: `api/cvApi.js` → `GET/POST/DELETE /api/cv/analyses`, `GET /api/cv/quota`.
 - Phân tích: `POST /api/cv/analyze`, `/analyze/full`, `/analyze/suggestions`, `/analyze/field` (`cvMatch.js` proxy sang Python qua `CV_ANALYZER_URL`). Thiếu/sai → `503`.
 - Chế độ "theo lĩnh vực" tự rơi về `data/cvFieldAnalysisMock.js` khi API lỗi (ghi `fallbackTriggered`).
+- Một lần phân tích = một bản ghi `CVAnalysis` (N-11): `/api/cv/analyze*` mở bản ghi `processing` trước khi gọi Python, ghi `completed` (trừ 1 lượt, `quotaCharged`) hoặc `failed`, trả `analysisId`; FE gửi lại `analysisId` ở bậc thử sau và khi `POST /api/cv/analyses`. Đếm hoặc liệt kê phân tích thì trải `CV_ANALYSIS_DONE_FILTER` (`models/CVAnalysis.js`) để bỏ bản ghi đang chạy hoặc lỗi.
 
 ### D-ID / ElevenLabs / Cloudinary — Avatar phỏng vấn
 

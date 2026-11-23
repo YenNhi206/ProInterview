@@ -19,7 +19,7 @@ import {
 } from "../services/courseStatsService.js";
 import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
-import { CVAnalysis } from "../models/CVAnalysis.js";
+import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
 import { bookingRevenueRow, courseRevenueRow } from "../services/revenueAnalyticsService.js";
 const User = mongoose.model("User");
@@ -1011,9 +1011,9 @@ export const AdminController = {
         fewShotReadyCount,
         freeInterviewUserIds,
       ] = await Promise.all([
-        // N-07: buổi bỏ dở (abandoned) không tính vào thống kê.
+        // N-07: buổi bỏ dở (abandoned) không tính; N-11: không đếm lần phân tích CV đang chạy / lỗi.
         InterviewSession.countDocuments(EXCLUDE_ABANDONED_SESSIONS),
-        CVAnalysis.countDocuments(),
+        CVAnalysis.countDocuments(CV_ANALYSIS_DONE_FILTER),
         Course.countDocuments({ status: "published" }),
         InterviewSession.countDocuments({ status: "completed" }),
         InterviewSession.countDocuments({ ...EXCLUDE_ABANDONED_SESSIONS, createdAt: { $gte: since7d } }),

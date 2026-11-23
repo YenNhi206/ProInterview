@@ -90,6 +90,15 @@ describe("mapPythonCvPipelineToAnalysis", () => {
 });
 
 describe("buildCvAnalysisSavePayload", () => {
+  it("N-11: gửi analysisId hợp lệ để server ghi đè đúng bản ghi; id rỗng hoặc sai dạng thì bỏ", () => {
+    const analysis = { matchScore: 50, matchedKeywords: [], missingKeywords: [], suggestions: [] };
+    const base = { analysis, cvFileName: "cv.pdf", jdFileName: "jd.pdf", analyzeMode: "jd", tier: "basic" };
+    assert.equal(buildCvAnalysisSavePayload({ ...base, analysisId: "6b03e50e9026422fddbc9d62" }).analysisId, "6b03e50e9026422fddbc9d62");
+    assert.equal("analysisId" in buildCvAnalysisSavePayload(base), false);
+    assert.equal("analysisId" in buildCvAnalysisSavePayload({ ...base, analysisId: null }), false);
+    assert.equal("analysisId" in buildCvAnalysisSavePayload({ ...base, analysisId: "abc" }), false);
+  });
+
   it("field mode: mode field, tier suggestions", () => {
     const analysis = mapPythonCvPipelineToAnalysis(FIELD_PIPELINE_RAW, {
       field: "IT / Công nghệ",

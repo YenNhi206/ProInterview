@@ -109,6 +109,14 @@ const MetaSchema = new mongoose.Schema(
   { _id: false }
 );
 
+/**
+ * N-11: trạng thái của một lần phân tích chưa xong (đang gọi Python hoặc lỗi). Không hiện trong lịch sử
+ * ứng viên, không tính vào thống kê số lần phân tích; chỉ dùng để đo thời gian và tỉ lệ lỗi.
+ */
+export const CV_ANALYSIS_RUN_STATUSES = ["processing", "failed"];
+/** Điều kiện Mongo: bản phân tích đã xong (gồm cả `legacy_mock` cũ). Trải vào query: `{ userId, ...CV_ANALYSIS_DONE_FILTER }`. */
+export const CV_ANALYSIS_DONE_FILTER = Object.freeze({ status: { $nin: ["processing", "failed"] } });
+
 // ============================================================
 // MAIN SCHEMA
 // ============================================================
@@ -162,6 +170,8 @@ const CVAnalysisSchema = new mongoose.Schema(
       index: true,
     },
     error: { type: String },                          // populated khi status='failed'
+    /** N-11: đã trừ 1 lượt `quota.cvAnalysisUsed` cho bản ghi này (lúc Python trả kết quả) — FE lưu lại không trừ lần nữa. */
+    quotaCharged: { type: Boolean, default: false },
 
     // ----- Plan & metadata -----
     planAtTime: {
