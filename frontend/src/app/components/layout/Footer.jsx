@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router";
 import { Heart, Mail, ShieldCheck } from "lucide-react";
 import { BrandLogo } from "../brand/BrandLogo";
 import { FOOTER_TAGLINE } from "../../constants/brandVoice";
+import { WorkspaceThemeContext } from "./WorkspaceNav.jsx";
 
 
 /* ── Social icon SVGs ── */
@@ -223,7 +224,137 @@ function FooterDark() {
   );
 }
 
+/* ══════════════════════════════════════════════════════════════
+   LIGHT variant, cùng nền / chữ với trang sáng (chế độ sáng)
+══════════════════════════════════════════════════════════════ */
+function FooterLight() {
+  const [hoveredSocial, setHoveredSocial] = useState(null);
+
+  return (
+    <footer
+      className="relative overflow-hidden"
+      style={{
+        background: "linear-gradient(180deg, #fbfaff 0%, #f3effc 100%)",
+        borderTop: "1px solid var(--mw-border, #ddd3f5)",
+        boxShadow: "0 -4px 20px -2px rgba(99, 14, 212, 0.04)",
+      }}
+    >
+      {/* Ánh violet nhẹ ở góc */}
+      <div
+        className="pointer-events-none absolute z-0 h-[min(72vw,520px)] w-[min(72vw,520px)] rounded-full bg-violet-400/10 blur-[100px] sm:h-[520px] sm:w-[520px] sm:blur-[110px]"
+        style={{ left: "-14%", top: "38%" }}
+        aria-hidden
+      />
+
+      {/* Main body */}
+      <div className="relative z-[1] max-w-7xl mx-auto px-6 py-16">
+        <div className={FOOTER_MAIN_GRID}>
+          {/* Brand */}
+          <div className="sm:col-span-2 lg:col-span-1 flex flex-col items-center sm:items-start text-center sm:text-left">
+            <div className="mb-1 flex items-center justify-center sm:justify-start gap-3">
+              <BrandLogo size="footer" />
+            </div>
+            <p className="text-slate-600 text-sm leading-relaxed mb-6" style={{ maxWidth: 320 }}>
+              {FOOTER_TAGLINE}
+            </p>
+
+            <div className="mb-6 flex flex-col items-center sm:items-start">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-slate-400">Liên hệ</p>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="inline-flex max-w-[min(100%,320px)] items-center sm:items-start justify-center sm:justify-start gap-2 break-all text-sm font-semibold text-[#6d28d9] transition-colors hover:text-[#5b21b6]"
+              >
+                <Mail className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                {CONTACT_EMAIL}
+              </a>
+            </div>
+
+            {/* Social links */}
+            <div className="mb-6 flex flex-col items-center sm:items-start relative group">
+              <p className="text-slate-400 text-xs uppercase tracking-[0.15em] mb-4 font-bold relative z-10">Kết nối với ProInterview</p>
+              
+              <div className="flex justify-center sm:justify-start gap-[20px] relative z-10">
+                {SOCIAL_LINKS.map((s) => {
+                  const Icon = s.icon;
+                  const isHovered = hoveredSocial === s.name;
+                  return (
+                    <a 
+                      key={s.name} 
+                      href={s.href} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      title={s.name}
+                      onMouseEnter={() => setHoveredSocial(s.name)}
+                      onMouseLeave={() => setHoveredSocial(null)}
+                      className="w-[56px] h-[56px] rounded-full flex items-center justify-center transition-all duration-300"
+                      style={{ 
+                        background: isHovered ? "rgba(255, 255, 255, 0.98)" : "rgba(255, 255, 255, 0.8)",
+                        border: "1px solid var(--mw-border, #ddd3f5)",
+                        boxShadow: isHovered 
+                          ? "0 10px 30px rgba(99, 14, 212, 0.12), inset 0 1px 2px rgba(255, 255, 255, 1)" 
+                          : "0 4px 16px rgba(99, 14, 212, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.8)",
+                        color: isHovered ? (s.color || "#6d28d9") : "#4b4763",
+                        textDecoration: "none"
+                      }}
+                    >
+                      <Icon style={{ 
+                        width: 22, 
+                        height: 22,
+                        fill: "currentColor",
+                        transition: "transform 0.3s ease",
+                        transform: isHovered ? "scale(1.1)" : "none"
+                      }} />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+            
+          </div>
+
+          {Object.entries(NAV_LINKS).map(([section, links]) => (
+            <FooterNavColumn
+              key={section}
+              section={section}
+              links={links}
+              variant="light"
+            />
+          ))}
+        </div>
+      </div>
+
+      <div
+        className="relative z-[1]"
+        style={{
+          borderTop: "1px solid var(--mw-border, #ddd3f5)",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-slate-500 text-xs">
+            © {new Date().getFullYear()} ProInterview. All rights reserved.
+          </p>
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+            <span>Made with</span>
+            <Heart className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+            <span>in Vietnam</span>
+            <span className="ml-1">🇻🇳</span>
+          </div>
+          <div className="flex items-center gap-2 text-slate-500 text-xs">
+            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#16a34a]" />
+            <span>24/7 Support Available</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 /* Shared footer for all public pages. */
-export function Footer() {
-  return <FooterDark />;
+export function Footer({ variant, light: propLight }) {
+  const themeCtx = useContext(WorkspaceThemeContext);
+  const isLight = propLight ?? (themeCtx?.resolved === "light");
+
+  if (variant === "dark") return <FooterDark />;
+  if (variant === "light") return <FooterLight />;
+  return isLight ? <FooterLight /> : <FooterDark />;
 }
