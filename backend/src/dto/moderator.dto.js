@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { MODERATION_ITEM_TYPES, MODERATION_ITEM_STATUSES } from "../models/ModerationItem.js";
+import { HITL_QUEUE_TYPES, MODERATION_ITEM_STATUSES } from "../models/ModerationItem.js";
 import { QUESTION_SOURCES } from "../models/QuestionBank.js";
 import { COMPETENCY_LIBRARY } from "../services/competencyFramework.js";
 
@@ -45,7 +45,7 @@ export const bulkQuestionsBody = Joi.object({
 });
 
 export const listQueueQuery = Joi.object({
-  type: Joi.string().valid(...MODERATION_ITEM_TYPES),
+  type: Joi.string().valid(...HITL_QUEUE_TYPES),
   status: Joi.string().valid(...MODERATION_ITEM_STATUSES),
   priority: Joi.string().valid("low", "normal", "high"),
   assignee: Joi.string().valid("me", "unassigned"),

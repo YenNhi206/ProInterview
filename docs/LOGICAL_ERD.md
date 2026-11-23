@@ -336,6 +336,7 @@ erDiagram
         enum status "draft|pending_review|pending_update|published|archived"
         mixed pendingUpdate "bản sửa chờ duyệt"
         object adminReview "reason, reviewedBy → USER (moderator), lastAction"
+        object aiPrescreen "AI-08: status pending|done|failed, score, summary, flags[], target, model, promptVersion, contentHash, at"
         object settings "autoEnroll, certificateEnabled, qaEnabled"
         object stats
         int totalLessons "tự tính"
@@ -559,13 +560,14 @@ erDiagram
     }
     MODERATION_ITEM {
         ObjectId _id PK
-        enum type "question_report|evaluation_report|evaluation_incomplete"
+        enum type "question_report|evaluation_report|evaluation_incomplete|course_prescreen"
         enum status "open|in_review|resolved|dismissed"
         enum priority "low|normal|high"
         int priorityRank "tự tính"
         ObjectId refs_sessionId FK "→ INTERVIEW_SESSION"
         int refs_questionIndex
         ObjectId refs_questionBankId FK "→ QUESTION_BANK"
+        ObjectId refs_courseId FK "→ COURSE (course_prescreen)"
         ObjectId refs_reportId FK,UK "→ REPORT"
         ObjectId refs_userId FK "→ USER"
         object snapshot "questionText, transcript, aiEvaluation"
@@ -699,6 +701,7 @@ erDiagram
 | Mã chuyển khoản đang chờ | — | Partial unique `paymentRef` khi `paymentStatus=pending` (Booking, Enrollment) |
 | REPORT (AI) – câu hỏi | — | Partial unique `{reportedBy, targetType, targetId, questionIndex}` khi có `questionIndex` → mỗi user báo một câu một lần |
 | REPORT – MODERATION_ITEM | 1 – 0..1 | Partial unique `refs.reportId` |
+| COURSE – MODERATION_ITEM (course_prescreen) | 1 – 0..1 | Partial unique `{type, refs.courseId}` khi `type=course_prescreen` (`course_prescreen_per_course`) → mỗi lần gửi duyệt cập nhật lại item của khóa (AI-08) |
 | Đánh giá chưa đủ – MODERATION_ITEM | — | Partial unique `{type, refs.sessionId, refs.questionIndex}` khi `type=evaluation_incomplete` → upsert không nhân bản |
 | QUESTION_BANK nội dung | — | Unique `{textHash, orgId}`: chuẩn hóa chữ thường, gộp khoảng trắng, bỏ dấu câu cuối |
 | SEPAY_WEBHOOK_EVENT | — | Unique `sepayId` → webhook gửi lại không xử lý hai lần |

@@ -42,7 +42,7 @@ npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, t�
 npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)
 npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần trên production sau khi merge
 npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
-npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04)
+npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08)
 node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy
 npm test                       # node:test + jest DTO + unittest Python
 ```
@@ -110,6 +110,7 @@ SLACK_ALERT_WEBHOOK_URL=<https://hooks.slack.com/...>   # thiếu → alert ch�
 # Ngưỡng Slack theo ngày (UTC) cho CostEvent rubric_scoring / course_prescreen (AI-12); mặc định $2·300 lần / $1·50 lần
 COST_ALERT_RUBRIC_SCORING_DAILY_USD=  COST_ALERT_RUBRIC_SCORING_DAILY_COUNT=
 COST_ALERT_COURSE_PRESCREEN_DAILY_USD=  COST_ALERT_COURSE_PRESCREEN_DAILY_COUNT=
+LLM_PRESCREEN_MODEL=  ANTHROPIC_PRESCREEN_MODEL=   # model rẻ cho AI sàng lọc khóa học (AI-08); trống → LLM_MODEL / claude-haiku-4-5
 AI_IMPROVEMENT_MIN_EVIDENCE=   # số lượt kiểm duyệt cùng nhóm để miner tạo đề xuất cải tiến AI (AI-03), mặc định 5
 ```
 
@@ -336,7 +337,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REG
 | `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription, learning_path (LP-10); `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng, thêm vào `TRANSFER_REFERENCE_MODELS` (`paymentsService.js`), `PAYMENT_TYPES` (`Payment.js`), `SEPAY_ENTITY_TYPES` (`SepayWebhookEvent.js`), và sinh mã bằng `generatePiOrderRef()` (`utils/orderRef.js`). Mẫu đầy đủ: `services/learningPathPaymentService.js` |
 | `services/mentorshipRequestsService.js` `resolveRequestBooking` | Trước LP-05 chỉ cho tạo booking khi `request.status === "selected"` | Đã sửa ở LP-05: dùng `REQUEST_MENTOR_CHOSEN_STATUSES` (`selected`, `assessing`, `path_proposed`). Thêm status mới sau khi chọn mentor thì thêm vào hằng số này |
 | `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |
-| `services/moderationQueueService.js:39, :83` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report`; danh sách hàng đợi không lọc `type` | Loại mới cần map riêng; hàng đợi HITL chỉ lấy 3 loại phỏng vấn |
+| `services/moderationQueueService.js:39` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report` | Loại mới cần map riêng. Hàng đợi HITL (`listQueue`, `getQueueItem`, `claimItem`, `resolveItem`, KPI hàng đợi) đã lọc theo `HITL_QUEUE_TYPES` (AI-08); loại ModerationItem mới không thuộc hàng đợi phỏng vấn thì không thêm vào hằng số này |
 | `models/QuestionBank.js` | `orgId` đang `ref: "Organization"` (model không tồn tại); `status` đã có `draft`, `rejected`; `roleCategory` đã có index | Đổi ref sang `"Company"`; dùng lại field có sẵn, không thêm field mới |
 | `config/roleCategories.json` | Trước 22/11/2026 mỗi nơi tự đặt `roleCategory` (phỏng vấn AI dùng key của `ROLE_COMPETENCY_MAP`, khu công ty dùng danh sách riêng ở FE) nên câu hỏi, rubric, job không khớp nhau | BE kiểm bằng `isValidRoleCategory` (`services/roleCategories.js`), FE đọc `GET /api/role-categories` (hook `useRoleCategories`). Map sang phỏng vấn AI qua `interviewRole`. Không đặt danh sách vị trí riêng trong code |
 | `config/competencies.json` (LP-01) | Đặt danh sách năng lực riêng, hoặc chỉ kiểm key bằng regex, thì lưu được key không có trong bộ tiêu chí: chấm điểm, `suggestOutcome` và hồ sơ năng lực không tra được | Backend kiểm bằng `isValidCompetencyKey`; frontend đọc `GET /api/competencies`. Quy tắc đầy đủ: DECISIONS.md mục "Bộ tiêu chí năng lực SHRM/DDI (LP-01)" |

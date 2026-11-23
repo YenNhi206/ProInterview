@@ -69,6 +69,39 @@ const courseSchema = new Schema(
       lastAction: { type: String, enum: ["reject", "archive", ""], default: "" },
     },
     publishedAt: { type: Date },
+    /**
+     * AI-08: kết quả AI sàng lọc lần gửi duyệt gần nhất (`coursePrescreenService.js`). Chỉ là gợi ý cho
+     * Platform Moderator, không tự duyệt / từ chối. `contentHash` = băm nội dung đã sàng lọc: gửi lại
+     * nội dung y hệt thì không gọi LLM lần nữa.
+     */
+    aiPrescreen: {
+      type: new Schema(
+        {
+          status: { type: String, enum: ["pending", "done", "failed"], default: "pending" },
+          score: { type: Number, min: 0, max: 100, default: null },
+          summary: { type: String, default: "" },
+          flags: [
+            {
+              _id: false,
+              code: { type: String, required: true },
+              severity: { type: String, enum: ["info", "warning", "critical"], default: "warning" },
+              message: { type: String, default: "" },
+              evidence: { type: String, default: "" },
+              source: { type: String, enum: ["rule", "ai"], default: "rule" },
+            },
+          ],
+          /** `course` = khóa mới (pending_review); `pending_update` = bản chỉnh sửa của khóa đang bán. */
+          target: { type: String, enum: ["course", "pending_update"], default: "course" },
+          model: { type: String, default: "" },
+          promptVersion: { type: String, default: "" },
+          contentHash: { type: String, default: "" },
+          error: { type: String, default: "" },
+          at: { type: Date, default: null },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
     totalLessons: { type: Number, default: 0 },
     totalDurationMinutes: { type: Number, default: 0 },
   },
