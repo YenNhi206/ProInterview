@@ -185,6 +185,9 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
 :root[data-workspace-theme="light"] :is([class~="bg-[#8037f4]"], [class~="bg-[#6E35E8]"], .bg-violet-600, .bg-violet-700, .bg-purple-600, .bg-slate-900, .bg-slate-800, .bg-black, .bg-emerald-600, .bg-red-600, .bg-rose-600) .text-white { color: #ffffff; }
 /* Nền lime luôn chữ tối. */
 :root[data-workspace-theme="light"] :is([class~="bg-[#93f72b]"], [class~="bg-[#a8ff4e]"], .bg-lime-400) :is(.text-white, h1, h2, h3, p, span, svg) { color: #17210b; }
+/* Nút chính trong workspace đã đổi sang nền lime (mentor-workspace.css: `.mentor-workspace button:is(.bg-violet-600…)`)
+   nên giữ chữ tối như chế độ tối; quy tắc chữ trắng ở trên chỉ đúng cho nút còn nền tím (phát hiện ở JB-15). */
+:root[data-workspace-theme="light"] .mentor-workspace :is(button:is(.bg-violet-600, .bg-purple-600, .bg-slate-900), [data-mentor-primary], button[class~="bg-[#6E35E8]"], button[class~="bg-[#8037f4]"]):is(.text-white, [class~="text-white/80"], [class~="text-white/90"]) { color: #17210b; }
 
 :root[data-workspace-theme="light"] .recharts-cartesian-grid line { stroke: var(--mw-border); }
 :root[data-workspace-theme="light"] .recharts-text { fill: #6b6785; }
@@ -209,6 +212,13 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
 :root[data-workspace-theme="light"] .mr-eyebrow { color:#467811; }
 :root[data-workspace-theme="light"] .mr-form-intro p { color:#56416d; }
 :root[data-workspace-theme="light"] .mr-page label { color:#442268; }
+/* Ô nhập trong workspace: mentor-workspace.css tô nền tím đậm cho mọi input/select/textarea (đúng ở chế độ tối);
+   chế độ sáng chưa có quy tắc tương ứng nên ra chữ tối trên nền tối, không đọc được (phát hiện ở JB-15). */
+:root[data-workspace-theme="light"] .mentor-workspace :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  background-color: var(--mw-surface);
+  border-color: var(--mw-border);
+  color: var(--mw-text);
+}
 :root[data-workspace-theme="light"] .mr-page :is(input,select,textarea) { background:var(--mw-surface); border:1px solid var(--mw-border); color:#1e1b2e; }
 :root[data-workspace-theme="light"] .mr-page :is(input,select,textarea):focus { box-shadow:0 0 12px rgba(30, 27, 46, 0.12); }
 :root[data-workspace-theme="light"] .mr-divider { background:rgba(30, 27, 46, 0.045); }
@@ -500,12 +510,14 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
   border-color: var(--mw-border) !important;
   box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
 }
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class*="bg-amber-50"], [class*="bg-amber-100"], [class*="bg-yellow-50"], [class*="bg-emerald-50"], [class*="bg-emerald-100"], [class*="bg-green-50"], [class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-orange-50"], [class*="bg-orange-100"]) {
+/* Ô nền nhạt (bg-*-50 / bg-*-100, kể cả biến thể /opacity) → màu bề mặt. Khớp NGUYÊN class: `[class*="bg-violet-50"]` (khớp chuỗi con)
+   từng bắt nhầm `hover:bg-violet-500`, `bg-emerald-500/10`… làm nút chính và huy hiệu trạng thái mất màu (phát hiện ở JB-15). */
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class~="bg-amber-50"], [class*="bg-amber-50/"], [class~="bg-amber-100"], [class*="bg-amber-100/"], [class~="bg-yellow-50"], [class*="bg-yellow-50/"], [class~="bg-emerald-50"], [class*="bg-emerald-50/"], [class~="bg-emerald-100"], [class*="bg-emerald-100/"], [class~="bg-green-50"], [class*="bg-green-50/"], [class~="bg-sky-50"], [class*="bg-sky-50/"], [class~="bg-sky-100"], [class*="bg-sky-100/"], [class~="bg-blue-50"], [class*="bg-blue-50/"], [class~="bg-violet-50"], [class*="bg-violet-50/"], [class~="bg-violet-100"], [class*="bg-violet-100/"], [class~="bg-purple-50"], [class*="bg-purple-50/"], [class~="bg-orange-50"], [class*="bg-orange-50/"], [class~="bg-orange-100"], [class*="bg-orange-100/"]) {
   background-color: var(--mw-surface) !important;
   border-color: var(--mw-border) !important;
   box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
 }
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-2xl, .text-3xl, .text-4xl) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class~="bg-amber-50"], [class*="bg-amber-50/"], [class~="bg-emerald-50"], [class*="bg-emerald-50/"], [class~="bg-sky-50"], [class*="bg-sky-50/"], [class~="bg-violet-50"], [class*="bg-violet-50/"], [class~="bg-orange-50"], [class*="bg-orange-50/"]) :is(.text-2xl, .text-3xl, .text-4xl) {
   color: var(--mw-text) !important;
 }
 :root[data-workspace-theme="light"] .admin-shell .pi-select-trigger,
@@ -527,7 +539,7 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
 :root[data-workspace-theme="light"] [data-admin-content] .pi-select-trigger svg {
   color: var(--mw-muted) !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]) {
+:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class~="bg-slate-50"], [class*="bg-slate-50/"], [class~="bg-slate-100"], [class*="bg-slate-100/"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]) {
   background-color: var(--mw-surface) !important;
   border-color: var(--mw-border) !important;
   color: #4b4763 !important;
