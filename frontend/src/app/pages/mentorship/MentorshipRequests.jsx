@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import {
-  ArrowLeft,
+  ListFilter,
   ArrowRight,
   Briefcase,
   CheckCircle2,
@@ -15,17 +15,12 @@ import {
   RefreshCw,
   Users,
   Search,
-  Sparkles,
-  TrendingUp,
   Award,
   Calendar,
   Send,
   AlertCircle,
   HelpCircle,
   X,
-  Compass,
-  Filter,
-  Inbox,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { mentorshipBackTarget } from "../../utils/mentor/mentorshipNavigation.js";
@@ -43,8 +38,8 @@ import {
   acceptMentorshipAssessment,
 } from "../../api/mentorshipRequestsApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
-import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
-import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
+import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
+import { mentorRequestStats } from "../../utils/mentor/mentorRequestStats.js";
 import "../../../styles/mentorship-requests.css";
 
 const TYPES = {
@@ -97,8 +92,8 @@ export function MentorshipRequests() {
 
   const [scope, setScope] = useState("open");
   const [rows, setRows] = useState([]);
-  const [openCount, setOpenCount] = useState(0);
-  const [myCount, setMyCount] = useState(0);
+  /** Số liệu đầu trang của mentor: luôn tính từ cả 2 danh sách, không đổi theo tab. */
+  const [summaryRows, setSummaryRows] = useState({ open: [], mine: [] });
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -119,12 +114,15 @@ export function MentorshipRequests() {
 
   const [reload, setReload] = useState(0);
   const isNew = requestId === "new" && !mentor;
+  const isListView = !requestId && !isNew;
+  const listLoadedOnce = useRef(false);
   const backTarget = mentorshipBackTarget({
     returnTo: location.state?.returnTo,
     mentor,
     detail: !!requestId && !isNew,
   });
   const entryState = { returnTo: `${location.pathname}${location.search}` };
+  const requestTitle = request?.title || location.state?.title || "";
 
   const [documentMode, setDocumentMode] = useState({ cv: "upload", jd: "upload" });
   const [documents, setDocuments] = useState([]);
@@ -172,10 +170,8 @@ export function MentorshipRequests() {
         if (requestId) {
           setRequest(body?.request || null);
         } else {
-          const list = body?.requests || [];
-          setRows(list);
-          if (scope === "open") setOpenCount(list.length);
-          if (scope === "mine") setMyCount(list.length);
+          setRows(body?.requests || []);
+          listLoadedOnce.current = true;
         }
       })
       .catch((e) => {
@@ -191,24 +187,19 @@ export function MentorshipRequests() {
   }, [requestId, scope, reload, isNew]);
 
   useEffect(() => {
-    if (!mentor || requestId || isNew) return;
+    if (!mentor || requestId) return undefined;
     let active = true;
-    Promise.allSettled([
-      listMentorshipRequests("open"),
-      listMentorshipRequests("mine"),
-    ]).then(([openRes, mineRes]) => {
-      if (!active) return;
-      if (openRes.status === "fulfilled") {
-        setOpenCount(openRes.value?.requests?.length || 0);
-      }
-      if (mineRes.status === "fulfilled") {
-        setMyCount(mineRes.value?.requests?.length || 0);
-      }
-    });
+    Promise.all([listMentorshipRequests("open"), listMentorshipRequests("mine")])
+      .then(([open, mine]) => {
+        if (active) setSummaryRows({ open: open?.requests || [], mine: mine?.requests || [] });
+      })
+      .catch(() => {
+        /* Lỗi tải đã hiện ở danh sách chính; ô số liệu giữ giá trị cũ. */
+      });
     return () => {
       active = false;
     };
-  }, [mentor, requestId, isNew, reload]);
+  }, [mentor, requestId, reload]);
 
   const action = async (fn, message) => {
     if (busy) return;
@@ -252,7 +243,7 @@ export function MentorshipRequests() {
       const body = await createMentorshipRequest(form);
       navigate(`${base}/${body.request.id}`, {
         replace: true,
-        state: { returnTo: backTarget.to },
+        state: { returnTo: backTarget.to, title: body.request?.title },
       });
     } catch (e) {
       setError(e.message);
@@ -309,71 +300,101 @@ export function MentorshipRequests() {
     });
   }, [rows, sessionFilter, searchQuery]);
 
-  // Dynamic statistics
-  const stats = useMemo(() => {
-    const total = rows?.length || 0;
-    const withBudget = (rows || []).filter((r) => r.budget != null && r.budget > 0);
-    const avgBudget = withBudget.length
-      ? Math.round(withBudget.reduce((sum, r) => sum + r.budget, 0) / withBudget.length)
-      : null;
-
-    return {
-      openCount: scope === "open" ? total : openCount,
-      myOffers: scope === "mine" ? total : myCount,
-      avgBudgetLabel: avgBudget ? `${(avgBudget / 1000).toLocaleString("vi-VN")}k` : "Linh hoạt",
-    };
-  }, [rows, scope, openCount, myCount]);
+  const mentorStats = useMemo(() => mentorRequestStats(summaryRows.open, summaryRows.mine), [summaryRows]);
 
   const content = (
     <div className={`mr-page ${mentor ? "mr-page-mentor" : ""} ${isNew ? "mr-page-new" : requestId ? "mr-page-detail" : ""}`}>
       {/* Top Header */}
-      <MentorPageHeader
-        backTo={(isNew || requestId) ? backTarget.to : undefined}
-        backLabel={(isNew || requestId) ? backTarget.label : undefined}
-        title={
-          isNew
-            ? "Đăng nhu cầu"
-            : requestId
-            ? "Chi tiết"
-            : mentor
-            ? "Nhu cầu"
-            : "Yêu cầu"
-        }
-        highlight={
-          isNew
-            ? "tìm Mentor"
-            : requestId
-            ? "yêu cầu hỗ trợ"
-            : mentor
-            ? "từ mentee"
-            : "của tôi"
-        }
-        actions={
-          <>
-            {!isNew && (
-              <button
-                type="button"
-                disabled={busy || loading}
-                onClick={() => setReload((v) => v + 1)}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#160f26]/90 px-4 py-2 text-xs font-bold text-slate-200 backdrop-blur-xl transition hover:border-violet-500/50 hover:bg-[#1f1435] hover:text-white disabled:opacity-50 shadow-sm"
-              >
-                <RefreshCw size={13} className={loading ? "animate-spin text-violet-400" : ""} />
-                <span>Làm mới</span>
-              </button>
-            )}
-            {!requestId && !mentor && (
+      <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          {!isListView && backTarget ? (
+            <nav
+              aria-label="Đường dẫn điều hướng"
+              className="mb-3.5 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-400"
+            >
               <Link
-                to={`${base}/new`}
-                state={entryState}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500"
+                to={backTarget.to}
+                title={`Quay lại ${backTarget.label}`}
+                className="mr-breadcrumb-link"
               >
-                <Plus size={15} />
-                <span>Đăng nhu cầu mới</span>
+                {backTarget.label}
               </Link>
+              {requestId && requestTitle ? (
+                <>
+                  <span className="text-slate-500" aria-hidden>
+                    /
+                  </span>
+                  <span
+                    className="max-w-[260px] truncate font-medium text-slate-200 sm:max-w-md"
+                    title={requestTitle}
+                  >
+                    {requestTitle}
+                  </span>
+                </>
+              ) : null}
+            </nav>
+          ) : null}
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.8)]" />
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#93f72b]">
+              {mentor ? "Kết nối 1:1 với mentee" : "Đồng hành cùng chuyên gia"}
+            </span>
+          </div>
+          <h1 className="font-headline mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
+            {isNew ? (
+              <>
+                Đăng nhu cầu <span className="text-[#93f72b]">tìm Mentor</span>
+              </>
+            ) : requestId ? (
+              <>
+                Chi tiết <span className="text-[#93f72b]">nhu cầu</span>
+              </>
+            ) : mentor ? (
+              <>
+                Nhu cầu <span className="text-[#93f72b]">của mentee</span>
+              </>
+            ) : (
+              <>
+                Yêu cầu <span className="text-[#93f72b]">của tôi</span>
+              </>
             )}
-          </>
-        }
-      />
+          </h1>
+          <p className="mt-2 text-sm text-slate-400">
+            {isNew
+              ? "Chia sẻ mục tiêu nghề nghiệp và đính kèm hồ sơ để nhận đề nghị từ Mentor chuyên gia."
+              : requestId
+              ? mentor
+                ? "Đọc mentee cần gì và tài liệu đính kèm. Nếu bạn giúp được, gửi đề nghị ở bên dưới."
+                : "Xem các đề nghị mentor gửi và chọn người phù hợp với bạn."
+              : mentor
+              ? "Mentee đăng nhu cầu cần hỗ trợ. Chọn nhu cầu hợp với chuyên môn của bạn và gửi đề nghị."
+              : "Đăng nhu cầu, nhận đề xuất giải pháp và lựa chọn Mentor phù hợp nhất."}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {!isNew && (
+            <button
+              type="button"
+              disabled={busy || loading}
+              onClick={() => setReload((v) => v + 1)}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#160f26]/80 px-4 py-2.5 text-xs font-bold text-slate-300 backdrop-blur-xl transition hover:border-[#93f72b]/50 hover:bg-[#1a1230] hover:text-[#93f72b] disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={loading ? "animate-spin text-[#93f72b]" : ""} />
+              Làm mới
+            </button>
+          )}
+          {!requestId && !mentor && (
+            <Link
+              to={`${base}/new`}
+              state={entryState}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
+            >
+              <Plus size={16} />
+              Đăng nhu cầu mới
+            </Link>
+          )}
+        </div>
+      </header>
 
       {/* Global Alerts */}
       <AnimatePresence>
@@ -413,15 +434,14 @@ export function MentorshipRequests() {
         )}
       </AnimatePresence>
 
-      {/* Loading Skeleton */}
-      {loading ? (
+      {/* Loading Skeleton: chỉ lần tải đầu. Đổi tab ở danh sách thì tải tại chỗ (xem khối Requests Grid). */}
+      {loading && !(isListView && listLoadedOnce.current) ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#140c24]/80 p-16 text-center backdrop-blur-xl">
           <div className="relative mb-4">
             <RefreshCw size={36} className="animate-spin text-[#93f72b]" />
             <div className="absolute inset-0 rounded-full blur-md bg-[#93f72b]/30" />
           </div>
-          <p className="text-sm font-semibold text-slate-300">Đang đồng bộ danh sách nhu cầu...</p>
-          <p className="mt-1 text-xs text-slate-500">Vui lòng chờ trong giây lát</p>
+          <p className="text-sm font-semibold text-slate-300">Đang tải danh sách nhu cầu…</p>
         </div>
       ) : isNew ? (
         /* Create Request View (Candidate only) */
@@ -621,7 +641,7 @@ export function MentorshipRequests() {
                   <span className="text-[#93f72b] font-medium">{TYPES[request.sessionType]}</span>
                 </div>
                 <div className="mr-detail-goal">
-                  <h3>{mentor ? "MỤC TIÊU MENTEE MUỐN ĐẠT ĐƯỢC" : "MỤC TIÊU CỦA BẠN"}</h3>
+                  <h3>{mentor ? "Mentee cần hỗ trợ gì" : "MỤC TIÊU CỦA BẠN"}</h3>
                   <p className="mr-description">{request.description}</p>
                 </div>
               </section>
@@ -631,7 +651,7 @@ export function MentorshipRequests() {
                 <div className="mr-section-heading">
                   <div>
                     <span className="mr-eyebrow">
-                      {mentor ? "CÁCH BẠN CÓ THỂ ĐỒNG HÀNH" : "CHỌN NGƯỜI PHÙ HỢP NHẤT VỚI MỤC TIÊU"}
+                      {mentor ? "Gửi cho mentee" : "CHỌN NGƯỜI PHÙ HỢP NHẤT VỚI MỤC TIÊU"}
                     </span>
                     <h2 className="text-xl font-bold text-white">
                       {mentor
@@ -709,11 +729,11 @@ export function MentorshipRequests() {
                   <div className="mr-empty">
                     <Users size={30} className="text-[#93f72b]" />
                     <h3 className="text-base font-bold text-white">
-                      {mentor ? "Bạn chưa gửi đề nghị hỗ trợ" : "Chưa có đề nghị nào từ Mentor"}
+                      {mentor ? "Bạn chưa gửi đề nghị" : "Chưa có đề nghị nào từ Mentor"}
                     </h3>
                     <p className="text-xs text-slate-400">
                       {mentor
-                        ? "Hãy giới thiệu chuyên môn và đề xuất khung giờ gặp phù hợp trong biểu mẫu bên dưới."
+                        ? "Điền form bên dưới: bạn giúp mentee được gì và rảnh lúc nào."
                         : "Các Mentor uy tín trên hệ thống đang xem xét yêu cầu và sẽ gửi đề nghị sớm nhất cho bạn."}
                     </p>
                     {!mentor && (
@@ -729,21 +749,21 @@ export function MentorshipRequests() {
                   <form className="mr-offer-form" onSubmit={submitOffer}>
                     <div className="flex items-center gap-2 mb-2">
                       <Send size={16} className="text-[#93f72b]" />
-                      <h3 className="text-base font-bold text-white">Gửi đề nghị hỗ trợ tới mentee</h3>
+                      <h3 className="text-base font-bold text-white">Gửi đề nghị</h3>
                     </div>
                     <label>
-                      Bạn có thể hỗ trợ mentee như thế nào?
+                      Bạn sẽ giúp mentee thế nào?
                       <textarea
                         name="message"
                         required
                         minLength={20}
                         maxLength={3000}
                         rows={4}
-                        placeholder="Nêu rõ chuyên môn phù hợp, lộ trình giải quyết vấn đề và giá trị cụ thể mentee sẽ nhận được sau buổi..."
+                        placeholder="Ví dụ: Mình làm Business Analyst 5 năm. Buổi này mình sẽ hỏi thử 5–6 câu hay gặp, góp ý cách trả lời và chỉ chỗ cần sửa trong CV."
                       />
                     </label>
                     <label>
-                      Thời gian bạn có thể gặp 1:1
+                      Bạn rảnh lúc nào?
                       <input
                         name="availability"
                         required
@@ -752,10 +772,10 @@ export function MentorshipRequests() {
                       />
                     </label>
                     <p className="mr-muted">
-                      Mức phí tham khảo lấy từ hồ sơ của bạn cho loại buổi này. Giá cuối cùng và ưu đãi hiển thị tại checkout; thời gian được chốt theo lịch trống. Một đề nghị tương ứng một buổi 60 phút.
+                      Mỗi đề nghị là 1 buổi 60 phút, phí lấy theo giá trong hồ sơ của bạn. Nếu mentee chọn bạn, họ sẽ đặt giờ theo lịch trống của bạn và thanh toán.
                     </p>
                     <button data-button-surface="none" className="mr-primary" disabled={busy}>
-                      {busy ? "Đang gửi đề nghị…" : "Gửi đề nghị hỗ trợ"}
+                      {busy ? "Đang gửi…" : "Gửi đề nghị"}
                       <ArrowRight size={16} />
                     </button>
                   </form>
@@ -764,7 +784,7 @@ export function MentorshipRequests() {
             </div>
 
             {/* Sidebar */}
-            <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu yêu cầu">
+            <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu của nhu cầu">
               {CHOSEN_STATUSES.includes(request.status) && chosen && (request.assessment || canScheduleAssessment) && (
                 <section className="mr-panel mr-detail-assessment">
                   <div className="mr-detail-section-label">
@@ -920,7 +940,7 @@ export function MentorshipRequests() {
                     </dd>
                   </div>
                   <div>
-                    <dt>Hình thức</dt>
+                    <dt>{mentor ? "Loại hỗ trợ" : "Hình thức"}</dt>
                     <dd className="font-semibold text-[#93f72b]">{TYPES[request.sessionType]}</dd>
                   </div>
                 </dl>
@@ -964,7 +984,7 @@ export function MentorshipRequests() {
                   )}
                   <p className="mr-detail-private">
                     <LockKeyhole size={13} className="text-[#93f72b]" />
-                    <span>Chỉ mentee và Mentor được chọn có quyền tải tài liệu này.</span>
+                    <span>Chỉ mentee và mentor được chọn mới tải được tài liệu này.</span>
                   </p>
                 </div>
               </section>
@@ -974,7 +994,7 @@ export function MentorshipRequests() {
                   <MessageSquare size={16} className="text-[#93f72b]" />
                   <p>
                     {mentor
-                      ? "Đọc kỹ mục tiêu và đề xuất thời gian rõ ràng để mentee dễ dàng đưa ra quyết định."
+                      ? "Mẹo: nói rõ bạn giúp được gì và rảnh lúc nào, mentee sẽ dễ chọn bạn hơn."
                       : "Khi nhận được đề nghị, bạn có thể xem xét profile, lịch rảnh và chi phí trước khi quyết định chọn."}
                   </p>
                 </div>
@@ -1045,72 +1065,62 @@ export function MentorshipRequests() {
         <>
           {/* Bento KPI Summary Frames (Mentor only) */}
           {mentor && (
-            <MentorStatMiniGrid className="mb-6">
+            <MentorStatPanel className="mb-8">
               <MentorStatFrame
                 index={1}
-                value={scope === "open" ? rows.length : openCount}
+                value={mentorStats.openCount}
                 title="Nhu cầu đang mở"
+                subtitle="Mentee đang tìm mentor"
                 cornerIcon={Briefcase}
-                accent="purple"
+                accent="lime"
                 compact
               />
               <MentorStatFrame
                 index={2}
-                value={scope === "mine" ? rows.length : myCount}
-                title="Đề nghị của bạn"
+                value={mentorStats.waiting}
+                title="Đề nghị chờ phản hồi"
+                subtitle="Bạn đã gửi, mentee chưa chọn"
                 cornerIcon={Send}
                 accent="purple"
                 compact
               />
               <MentorStatFrame
                 index={3}
-                value="100%"
-                title="Tỷ lệ kết nối"
-                cornerIcon={TrendingUp}
+                value={mentorStats.chosen}
+                title="Được mentee chọn"
+                subtitle="Đề nghị của bạn được nhận"
+                cornerIcon={CheckCircle2}
                 accent="purple"
                 compact
               />
-              <MentorStatFrame
-                index={4}
-                value={stats.avgBudgetLabel}
-                title="Ngân sách TB"
-                cornerIcon={Sparkles}
-                accent="purple"
-                compact
-              />
-            </MentorStatMiniGrid>
+            </MentorStatPanel>
           )}
 
-          {/* Filter & Search Toolbar */}
-          <div className="mb-6 rounded-2xl border border-white/10 bg-[#160f26]/85 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl space-y-3.5">
-            {/* Top Row: Scope Tabs (Left) + Search Box (Right) */}
+          {/* Thanh lọc: hàng 1 = tab (mentor) + ô tìm kiếm; hàng 2 = biểu tượng lọc + loại hỗ trợ. Chữ không xuống dòng. */}
+          <div className="mb-6 rounded-2xl border border-white/10 bg-[#160f26]/85 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              {/* Scope Segmented Control */}
               {mentor && (
-                <div className="inline-flex items-center rounded-xl border border-white/10 bg-white/[0.04] p-1 shadow-inner">
+                <div className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1" role="tablist" aria-label="Danh sách">
                   {[
-                    ["open", "Nhu cầu đang mở", scope === "open" ? rows.length : openCount, Briefcase],
-                    ["mine", "Đề nghị của tôi", scope === "mine" ? rows.length : myCount, Send],
-                  ].map(([val, label, count, TabIcon]) => {
+                    ["open", "Nhu cầu đang mở", summaryRows.open.length],
+                    ["mine", "Đề nghị của tôi", summaryRows.mine.length],
+                  ].map(([val, label, count]) => {
                     const active = scope === val;
                     return (
                       <button
                         key={val}
                         type="button"
+                        role="tab"
+                        aria-selected={active}
                         onClick={() => setScope(val)}
-                        className={`relative inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                          active
-                            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/30 border border-violet-400/30"
-                            : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
+                        className={`inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-xs font-bold transition-colors ${
+                          active ? "bg-[#93f72b] text-slate-950" : "text-slate-400 hover:text-white"
                         }`}
                       >
-                        <TabIcon size={13} className={active ? "text-white" : "text-slate-400"} />
-                        <span>{label}</span>
+                        {label}
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                            active
-                              ? "bg-white/20 text-white"
-                              : "bg-white/10 text-slate-400"
+                          className={`min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-black tabular-nums ${
+                            active ? "bg-slate-950/15 text-slate-950" : "bg-white/10 text-slate-400"
                           }`}
                         >
                           {count}
@@ -1121,78 +1131,64 @@ export function MentorshipRequests() {
                 </div>
               )}
 
-              {/* Search Box */}
-              <div className="relative w-full sm:w-80 shrink-0">
+              <div className="relative w-full sm:max-w-xs">
                 <Search
-                  size={15}
+                  size={14}
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
                 <input
-                  type="search"
+                  type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Tìm theo vị trí, chủ đề, mục tiêu..."
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2 pl-10 pr-9 text-xs text-white placeholder-slate-400 outline-none transition focus:border-violet-500/60 focus:bg-white/[0.06] focus:ring-1 focus:ring-violet-500/30"
+                  placeholder="Tìm vị trí, từ khóa..."
+                  aria-label="Tìm nhu cầu"
+                  /* .mr-page input đặt padding 11px 14px (độ ưu tiên cao hơn pl-9) → chữ đè kính lúp; ghi đè bằng style. */
+                  style={{ paddingLeft: "2.25rem", paddingRight: "2rem", paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+                  className="w-full rounded-xl border border-white/10 bg-[#120a20] text-xs text-white placeholder-slate-500 transition focus:border-[#93f72b] focus:outline-none"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
+                    aria-label="Xóa tìm kiếm"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                   >
-                    <X size={14} />
+                    <X size={13} />
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Bottom Row: Session Type Filter Pills (Always single line scrollable) */}
-            <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-3">
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 pr-1 shrink-0 flex items-center gap-1.5">
-                  <Filter size={11} className="text-violet-400" />
-                  Hình thức:
-                </span>
-                {[
-                  ["all", "Tất cả"],
-                  ["mock_interview", "Phỏng vấn thử", Users],
-                  ["cv_review", "Review CV", FileText],
-                  ["career_consulting", "Tư vấn nghề nghiệp", Compass],
-                ].map(([key, label, FilterIcon]) => {
-                  const active = sessionFilter === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setSessionFilter(key)}
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
-                        active
-                          ? "border border-violet-500/50 bg-violet-600/30 text-white shadow-[0_0_12px_rgba(124,58,237,0.3)]"
-                          : "border border-white/5 bg-white/[0.03] text-slate-400 hover:border-white/15 hover:bg-white/[0.06] hover:text-white"
-                      }`}
-                    >
-                      {FilterIcon && <FilterIcon size={12} className={active ? "text-violet-300" : "text-slate-400"} />}
-                      <span>{label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {(searchQuery || sessionFilter !== "all") && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSessionFilter("all");
-                  }}
-                  className="shrink-0 text-[11px] font-semibold text-violet-400 hover:text-violet-300 transition"
-                >
-                  Xóa bộ lọc
-                </button>
-              )}
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+              <ListFilter size={15} className="mr-0.5 shrink-0 text-slate-500" aria-label="Lọc theo loại hỗ trợ" />
+              {[
+                ["all", "Tất cả"],
+                ["mock_interview", "Phỏng vấn thử"],
+                ["cv_review", "Review CV"],
+                ["career_consulting", "Tư vấn nghề nghiệp"],
+              ].map(([key, label]) => {
+                const active = sessionFilter === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setSessionFilter(key)}
+                    className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                      active
+                        ? "border border-[#93f72b]/50 bg-[#93f72b]/15 text-[#93f72b]"
+                        : "border border-white/10 bg-transparent text-slate-400 hover:border-white/20 hover:text-slate-200"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
+          {/* Đổi tab: giữ danh sách cũ (mờ) tại chỗ trong lúc tải, không thay cả trang bằng khung tải → không nhảy. */}
+          <div className={`transition-opacity duration-200 ${loading ? "pointer-events-none opacity-50" : ""}`} aria-busy={loading}>
           {/* Requests Grid */}
           {filteredRows.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -1204,9 +1200,9 @@ export function MentorshipRequests() {
                 return (
                   <Link
                     to={`${base}/${row.id}`}
-                    state={entryState}
+                    state={{ ...entryState, title: row.title }}
                     key={row.id}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 p-6 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/40 hover:shadow-[0_0_24px_rgba(124,58,237,0.2)]"
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 p-6 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#93f72b]/50 hover:shadow-[0_0_30px_rgba(147,247,43,0.15)]"
                   >
                     {/* Top hairline light */}
                     <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -1217,9 +1213,9 @@ export function MentorshipRequests() {
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
                             isMock
-                              ? "border border-violet-500/30 bg-violet-500/15 text-violet-300"
+                              ? "border border-[#93f72b]/30 bg-[#93f72b]/15 text-[#93f72b]"
                               : isCv
-                              ? "border border-indigo-500/30 bg-indigo-500/15 text-indigo-300"
+                              ? "border border-violet-500/30 bg-violet-500/15 text-violet-300"
                               : "border border-cyan-500/30 bg-cyan-500/15 text-cyan-300"
                           }`}
                         >
@@ -1234,7 +1230,7 @@ export function MentorshipRequests() {
                         </span>
 
                         <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#93f72b]" />
                           <span>{STATUS[row.status]}</span>
                           <span className="text-slate-600">·</span>
                           <span>{date(row.createdAt)}</span>
@@ -1242,11 +1238,11 @@ export function MentorshipRequests() {
                       </div>
 
                       {/* Title & Target Position */}
-                      <h2 className="text-lg font-bold text-white transition-colors group-hover:text-violet-300 line-clamp-2">
+                      <h2 className="text-lg font-bold text-white transition-colors group-hover:text-[#93f72b] line-clamp-2">
                         {row.title}
                       </h2>
                       <div className="mt-2 flex items-center gap-2 text-xs font-medium text-slate-300">
-                        <Briefcase size={13} className="text-violet-400" />
+                        <Briefcase size={13} className="text-[#93f72b]" />
                         <span>Vị trí: <strong>{row.position}</strong></span>
                       </div>
 
@@ -1260,21 +1256,21 @@ export function MentorshipRequests() {
                     <div className="mt-6 border-t border-white/10 pt-4">
                       <div className="flex items-center justify-between gap-3 text-xs">
                         <span className="flex items-center gap-1.5 text-slate-400">
-                          <Clock size={13} className="text-violet-400" />
+                          <Clock size={13} className="text-[#93f72b]" />
                           <span>{row.availability || "Thời gian linh hoạt"}</span>
                         </span>
                         <div className="text-right">
                           <span className="text-xs text-slate-400">Ngân sách: </span>
-                          <strong className="text-sm font-bold text-violet-300">
+                          <strong className="text-sm font-bold text-[#93f72b]">
                             {row.budget == null ? "Thương lượng" : money(row.budget)}
                           </strong>
                         </div>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5 text-xs font-bold text-violet-300 transition group-hover:border-violet-500/30 group-hover:bg-violet-500/10">
+                      <div className="mt-4 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5 text-xs font-bold text-[#93f72b] transition group-hover:border-[#93f72b]/30 group-hover:bg-[#93f72b]/10">
                         <span>
                           {mentor
-                            ? "Xem nhu cầu & Đề xuất hỗ trợ"
+                            ? scope === "mine" ? "Xem đề nghị của bạn" : "Xem chi tiết và gửi đề nghị"
                             : `${row.offerCount ?? 0} đề nghị từ Mentor`}
                         </span>
                         <ArrowRight
@@ -1289,51 +1285,35 @@ export function MentorshipRequests() {
             </div>
           ) : (
             /* Luxury Empty State */
-            <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#18112a]/90 via-[#130b22]/90 to-[#0e071a]/95 px-6 py-16 sm:py-20 text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-              {/* Soft atmospheric glow */}
-              <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-64 w-[28rem] rounded-full bg-violet-600/15 blur-3xl" />
-              <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.08)_0%,transparent_70%)]" />
+            <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#140c24]/85 px-6 py-16 text-center shadow-[0_16px_40px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+              {/* Radial background glow */}
+              <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(147,247,43,0.08)_0%,transparent_70%)]" />
 
-              {/* Glowing Icon Stack */}
-              <div className="relative mb-5 flex items-center justify-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-violet-500/30 bg-violet-500/10 shadow-[0_0_32px_rgba(124,58,237,0.25)]">
-                  {searchQuery || sessionFilter !== "all" ? (
-                    <Search size={32} className="text-violet-300" />
-                  ) : scope === "mine" ? (
-                    <Send size={32} className="text-violet-300" />
-                  ) : (
-                    <Inbox size={32} className="text-violet-300" />
-                  )}
-                </div>
-                <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-violet-400/40 bg-violet-600 text-white shadow-md shadow-violet-600/50">
-                  <Sparkles size={13} />
-                </div>
+              <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-[#93f72b]/30 bg-[#93f72b]/10 shadow-[0_0_24px_rgba(147,247,43,0.2)]">
+                <MessageSquare size={28} className="text-[#93f72b]" />
               </div>
 
-              {/* Headline */}
-              <h2 className="font-headline text-xl sm:text-2xl font-black tracking-tight text-white">
+              <h2 className="font-headline text-xl font-bold text-white">
                 {searchQuery || sessionFilter !== "all"
-                  ? "Không tìm thấy yêu cầu phù hợp"
+                  ? "Không có nhu cầu nào khớp bộ lọc"
                   : mentor
                   ? scope === "mine"
                     ? "Bạn chưa gửi đề nghị nào"
-                    : "Chưa có nhu cầu mới từ Mentee"
+                    : "Chưa có nhu cầu nào đang mở"
                   : "Bạn chưa đăng nhu cầu nào"}
               </h2>
 
-              {/* Helpful descriptive subtitle */}
-              <p className="mt-2.5 max-w-md text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="mt-2 max-w-md text-xs leading-relaxed text-slate-400">
                 {searchQuery || sessionFilter !== "all"
-                  ? "Hãy thử tìm kiếm với từ khóa khác hoặc điều chỉnh bộ lọc hình thức."
+                  ? "Thử từ khóa khác, hoặc chọn 'Tất cả' để xem hết."
                   : mentor
                   ? scope === "mine"
-                    ? "Khi bạn gửi đề nghị hỗ trợ cho một ứng viên, trạng thái trao đổi và phản hồi sẽ xuất hiện tại đây."
-                    : "Các yêu cầu tư vấn 1:1, phỏng vấn thử hoặc review CV từ ứng viên sẽ xuất hiện tự động tại đây ngay khi được gửi."
-                  : "Tạo yêu cầu để kết nối với các Mentor hàng đầu sẵn sàng hỗ trợ bạn."}
+                    ? "Vào tab 'Nhu cầu đang mở', chọn một nhu cầu hợp với bạn và gửi đề nghị."
+                    : "Khi mentee đăng nhu cầu mới, nhu cầu sẽ hiện ở đây."
+                  : "Hãy đính kèm CV, JD mục tiêu và mô tả ngắn để các chuyên gia phù hợp chủ động đề xuất hỗ trợ."}
               </p>
 
-              {/* Action buttons */}
-              <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-6 flex flex-wrap items-center gap-3">
                 {searchQuery || sessionFilter !== "all" ? (
                   <button
                     type="button"
@@ -1341,65 +1321,51 @@ export function MentorshipRequests() {
                       setSearchQuery("");
                       setSessionFilter("all");
                     }}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
                   >
-                    <RefreshCw size={13} />
-                    <span>Đặt lại bộ lọc</span>
+                    Đặt lại bộ lọc
                   </button>
                 ) : mentor ? (
                   scope === "mine" ? (
                     <button
                       type="button"
                       onClick={() => setScope("open")}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500"
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
                     >
-                      <span>Khám phá nhu cầu đang mở</span>
-                      <ArrowRight size={14} />
+                      Xem nhu cầu đang mở →
                     </button>
                   ) : (
                     <button
                       type="button"
-                      disabled={loading || busy}
                       onClick={() => setReload((v) => v + 1)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-xs font-bold text-white transition hover:border-[#93f72b]/50 hover:text-[#93f72b]"
                     >
-                      <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
-                      <span>Làm mới danh sách</span>
+                      <RefreshCw size={13} />
+                      Làm mới danh sách
                     </button>
                   )
                 ) : (
                   <Link
                     to={`${base}/new`}
                     state={entryState}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
                   >
                     <Plus size={16} />
-                    <span>Đăng nhu cầu đầu tiên</span>
+                    Đăng nhu cầu đầu tiên
                   </Link>
                 )}
               </div>
-
-              {/* Bottom Mentor Pro-Tip pill */}
-              {mentor && !searchQuery && sessionFilter === "all" && (
-                <div className="mt-8 inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[11px] text-slate-300 backdrop-blur-md">
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-violet-500/20 text-violet-300 font-bold text-[10px]">
-                    i
-                  </span>
-                  <span>Mentor gửi đề nghị nhanh trong vòng 2 giờ có tỷ lệ mentee chốt lịch cao hơn 75%.</span>
-                </div>
-              )}
             </div>
           )}
+          </div>
         </>
       ) : null}
     </div>
   );
 
   return mentor ? (
-    <MentorPageShell mentorRole bottomPad="pb-16" className="bg-transparent">
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5">
-        {content}
-      </div>
+    <MentorPageShell mentorRole className="p-4 sm:p-6 lg:p-8">
+      {content}
     </MentorPageShell>
   ) : (
     content

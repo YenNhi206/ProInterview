@@ -10,15 +10,12 @@ import {
   BarChart3 as ChartBar,
   CalendarClock,
   Landmark,
-  BadgeCheck as SealCheck,
   Target,
   Zap as Lightning,
   Wallet,
   Users,
   Quote,
-  User,
   FileBadge,
-  Sparkles,
   Video,
 } from "lucide-react";
 import { getUser, getDisplayName } from "../../utils/auth/auth.js";
@@ -493,7 +490,6 @@ export function MentorDashboard() {
   };
 
   const displayName = getDisplayName(user, "Mentor");
-  const mentorAvatar = avatarSrc(user?.avatar) || "";
   const featuredReview = pickFeaturedTestimonial(mentorBookings);
   const monthHint =
     stats.thisMonthSessions > 0
@@ -554,52 +550,6 @@ export function MentorDashboard() {
               </button>
             </div>
           </div>
-
-          {/* Right Side: Mentor ID Badge Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-            className="shrink-0"
-          >
-            <div className="relative group rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 p-4 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.4)] flex items-center gap-4">
-              <div className="relative shrink-0">
-                <div className="h-16 w-16 overflow-hidden rounded-2xl border border-white/15 bg-black/40 shadow-inner">
-                  {mentorAvatar ? (
-                    <img
-                      src={mentorAvatar}
-                      alt={displayName}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-slate-400">
-                      <User size={28} />
-                    </div>
-                  )}
-                </div>
-                {user?.role === "mentor" && (
-                  <div
-                    title="Mentor đã xác minh"
-                    className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_0_10px_rgba(124,58,237,0.5)] ring-2 ring-[#120a20]"
-                  >
-                    <SealCheck size={13} strokeWidth={2.5} />
-                  </div>
-                )}
-              </div>
-              <div className="min-w-0 pr-3">
-                <p className="truncate text-sm font-bold text-white">{displayName}</p>
-                <p className="text-xs text-violet-300 font-medium">Chuyên gia Phỏng vấn</p>
-                <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-amber-400">
-                  <span className="flex items-center gap-1">
-                    <Star size={12} className="fill-current" />
-                    5.0
-                  </span>
-                  <span className="text-slate-600">·</span>
-                  <span className="text-slate-400 font-medium">{stats.totalSessions} buổi</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
         </motion.header>
 
         {/* Stats Grid — 3 Bento KPI Cards */}
@@ -690,7 +640,7 @@ export function MentorDashboard() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-8 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-violet-950/40 via-[#160f26]/85 to-[#120a20]/85 p-5 sm:px-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl"
+            className="mentor-quote-card mb-8 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-violet-950/40 via-[#160f26]/85 to-[#120a20]/85 p-5 sm:px-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl"
           >
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/20 text-[#93f72b] border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.2)]">

@@ -4,8 +4,8 @@ export function mentorshipBackTarget({ returnTo, mentor = false, detail = false 
     const pathname = returnTo.split(/[?#]/)[0];
     if (pathname === "/mentors") return { to: returnTo, label: "Tìm Mentor" };
     if (!mentor && pathname === "/mentor-requests") return { to: returnTo, label: "Yêu cầu của tôi" };
-    if (mentor && pathname === "/mentor/requests") return { to: returnTo, label: "Nhu cầu từ mentee" };
+    if (mentor && pathname === "/mentor/requests") return { to: returnTo, label: "Nhu cầu mentee" };
   }
-  if (mentor) return detail ? { to: "/mentor/requests", label: "Nhu cầu từ mentee" } : { to: "/mentor/dashboard", label: "Bảng điều khiển" };
+  if (mentor) return detail ? { to: "/mentor/requests", label: "Nhu cầu mentee" } : { to: "/mentor/dashboard", label: "Bảng điều khiển" };
   return detail ? { to: "/mentor-requests", label: "Yêu cầu của tôi" } : { to: "/mentors", label: "Tìm Mentor" };
 }

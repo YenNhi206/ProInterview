@@ -625,7 +625,7 @@ erDiagram
     SECURITY_LOG {
         ObjectId _id PK
         ObjectId userId FK "→ USER"
-        enum type "prompt_injection_attempt|rate_limit_hit|suspicious_output|admin_action"
+        enum type "prompt_injection_attempt|rate_limit_hit|suspicious_output|admin_action|moderator_action|company_moderator_action|mentor_action"
         object details
         string ipAddress
     }

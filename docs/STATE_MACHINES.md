@@ -377,7 +377,7 @@ stateDiagram-v2
 | `scheduled` → `done` (+ `outcome`) | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` (`recordLearningPathSessionOutcome`) | LP-13 |
 | → `planned` (buổi học lại 0đ, `attempt` 2) | Tự tạo khi lần đầu `not_passed` | LP-13 |
 | → `pending_payment` (buổi bổ sung, `attempt ≥ 3`) | `POST /api/learning-paths/:id/sessions/:sid/supplementary` (`proposeSupplementarySession`) | LP-13 |
-| `pending_payment` → `planned` | Thanh toán buổi bổ sung — chưa làm, đề xuất (n) | — |
+| `pending_payment` → `planned` | Thanh toán buổi bổ sung — chưa làm, đề xuất (s) | — |
 | → `cancelled` | Hủy lộ trình | LP-15 |
 
 **Đã code (LP-13):** mentor ghi kết quả khi booking của buổi đã `completed`; ghi có điều kiện (`status: scheduled`) nên chỉ một lần thắng. Bước kế tính bằng `resolveOutcomeNextStep` (`utils/learningPathOutcome.js`): đạt và mọi `order` có lần học mới nhất đạt → `LearningPath` `active → completed`; lần đầu chưa đạt → tạo buổi học lại 0đ ở `planned` (mở đặt lịch ngay); từ lần học lại trở đi chưa đạt → không tạo gì, mentor đề xuất buổi bổ sung có phí ở `pending_payment` (`findSchedulableSession` không mở buổi đó và chặn mọi buổi sau).

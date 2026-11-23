@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { SidebarProvider, SidebarInset } from "../ui/sidebar";
 import { AppSidebar } from "./Sidebar";
 import { MentorWorkspaceNav } from "./MentorWorkspaceNav";
 import { CompanyWorkspaceNav, COMPANY_ROLES } from "./CompanyWorkspaceNav.jsx";
 import { ModeratorWorkspaceNav } from "./ModeratorWorkspaceNav.jsx";
-import { WorkspaceShell } from "./WorkspaceNav.jsx";
+import { WorkspaceShell, WorkspaceThemeContext } from "./WorkspaceNav.jsx";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { PromoBanner } from "./PromoBanner";
@@ -14,6 +14,10 @@ import { resolveDocumentTitle } from "../../utils/shared/documentTitle.js";
 import { getUser } from "../../utils/auth/auth.js";
 import { useUserPresence } from "../../hooks/useUserPresence.js";
 import { usePageAnalytics } from "../../hooks/usePageAnalytics.js";
+import { useWorkspaceTheme } from "../../hooks/useWorkspaceTheme.js";
+import { SelectThemeContext } from "../ui/AppSelect";
+import "../../../styles/mentor-workspace.css";
+import "../../../styles/mentor-workspace-light.css";
 
 const PROMO_BANNER_KEY = "pi_promo_banner_dismissed_v1";
 const PROMO_BANNER_HEIGHT = 40;
@@ -23,6 +27,15 @@ export function AppLayout() {
   const user = getUser();
   useUserPresence();
   usePageAnalytics();
+  const theme = useWorkspaceTheme(true);
+  const light = theme.resolved === "light";
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (light) root.dataset.workspaceTheme = "light";
+    else delete root.dataset.workspaceTheme;
+    return () => { delete root.dataset.workspaceTheme; };
+  }, [light]);
   const isMentor = user?.role === "mentor";
   const isCompany = COMPANY_ROLES.includes(user?.role);
   const isModerator = user?.role === "moderator";
@@ -106,11 +119,11 @@ export function AppLayout() {
       : isAbout
         ? "bg-[#F9F6F0] text-slate-900"
         : isHome
-          ? "overflow-x-clip bg-transparent text-white"
+          ? (light ? "overflow-x-clip bg-transparent text-slate-900" : "overflow-x-clip bg-transparent text-white")
           : allowHorizontalScroll
             ? "bg-transparent text-slate-900"
             : usesDarkPalette
-              ? "overflow-x-hidden bg-transparent text-white"
+              ? (light ? "overflow-x-hidden bg-transparent text-slate-900" : "overflow-x-hidden bg-transparent text-white")
               : "overflow-x-hidden bg-[#f3f0f9] text-slate-900"
     }`;
 
@@ -120,10 +133,10 @@ export function AppLayout() {
 
   const pageAmbient = (
     <div
-      className={`app-shell-ambient${ambientModifier}`}
+      className={`app-shell-ambient${ambientModifier}${light ? " mw-light-ambient" : ""}`}
       aria-hidden
     >
-      {(usesDarkPalette || isHome) && (
+      {(usesDarkPalette || isHome) && !light && (
         <>
           <span className="commerce-glow commerce-glow--top-left" />
           <span className="commerce-glow commerce-glow--top-right" />
@@ -137,38 +150,42 @@ export function AppLayout() {
   if (isMentor || isCompany || isModerator) {
     const nav = isMentor ? <MentorWorkspaceNav /> : isCompany ? <CompanyWorkspaceNav /> : <ModeratorWorkspaceNav />;
     return (
-      <WorkspaceShell nav={nav}>
+      <WorkspaceShell nav={nav} themeable>
         <Outlet />
       </WorkspaceShell>
     );
   }
 
   return (
-    <div className={`${shellClass}${usesDarkPalette ? " commerce-theme" : ""}`} style={shellStyle}>
-      {pageAmbient}
-      <div
-        className="relative z-[1] flex min-h-svh w-full max-w-full min-w-0 flex-col"
-      >
-        {showPromoBanner && (
-          <PromoBanner onClose={dismissPromoBanner} onOpenPromoModal={handleOpenPromoModal} />
-        )}
-        {!hideNavbar && <Navbar variant="customer" />}
-        <main
-          className={`relative z-[1] min-h-0 flex-1 ${hideNavbar
-            ? "flex min-h-svh flex-col pt-0"
-            : `pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem] ${isHome ? "overflow-x-clip" : "overflow-x-hidden"}`
-            }`}
-        >
-          {showPromoBanner && <div style={{ height: PROMO_BANNER_HEIGHT }} aria-hidden />}
-          <Outlet />
-        </main>
-        {showSiteFooter ? <Footer /> : null}
-      </div>
-      <DiscountPromoModal
-        open={promoModalOpen}
-        onClose={() => setPromoModalOpen(false)}
-        pulseSignal={promoModalPulse}
-      />
-    </div>
+    <WorkspaceThemeContext.Provider value={theme}>
+      <SelectThemeContext.Provider value={light ? "light" : "dark"}>
+        <div className={`${shellClass}${usesDarkPalette && !light ? " commerce-theme" : ""}`} style={shellStyle}>
+          {pageAmbient}
+          <div
+            className="relative z-[1] flex min-h-svh w-full max-w-full min-w-0 flex-col"
+          >
+            {showPromoBanner && (
+              <PromoBanner onClose={dismissPromoBanner} onOpenPromoModal={handleOpenPromoModal} />
+            )}
+            {!hideNavbar && <Navbar variant="customer" />}
+            <main
+              className={`relative z-[1] min-h-0 flex-1 ${hideNavbar
+                ? "flex min-h-svh flex-col pt-0"
+                : `pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem] ${isHome ? "overflow-x-clip" : "overflow-x-hidden"}`
+                }`}
+            >
+              {showPromoBanner && <div style={{ height: PROMO_BANNER_HEIGHT }} aria-hidden />}
+              <Outlet />
+            </main>
+            {showSiteFooter ? <Footer /> : null}
+          </div>
+          <DiscountPromoModal
+            open={promoModalOpen}
+            onClose={() => setPromoModalOpen(false)}
+            pulseSignal={promoModalPulse}
+          />
+        </div>
+      </SelectThemeContext.Provider>
+    </WorkspaceThemeContext.Provider>
   );
 }

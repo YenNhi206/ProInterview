@@ -43,6 +43,7 @@ import {
 } from "../ui/dropdown-menu";
 import { getUser, logout, getInitials, getDisplayName } from "../../utils/auth/auth.js";
 import { SidebarBrandButton } from "./SidebarBrandButton";
+import { WorkspaceThemeSwitch, WorkspaceThemeContext } from "./WorkspaceNav.jsx";
 
 /** Thứ tự nhóm & mục: ưu tiên vận hành hàng ngày → tiền → người dùng → nội dung → báo cáo */
 const MAIN_GROUPS = [
@@ -97,7 +98,7 @@ const MAIN_GROUPS = [
     items: [
       { to: "/admin/reviews", label: "Đánh giá", icon: Star },
       { to: "/admin/analytics", label: "Phân tích", icon: LineChart },
-      { to: "/admin/audit-log", label: "Nhật ký admin", icon: BookOpen },
+      { to: "/admin/audit-log", label: "Nhật ký thao tác", icon: BookOpen },
     ],
   },
 ];
@@ -130,6 +131,8 @@ export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const contentRef = React.useRef(null);
+  const theme = React.useContext(WorkspaceThemeContext);
+  const light = theme?.resolved === "light";
 
   const user = getUser();
   const displayName = getDisplayName(user, "Admin");
@@ -145,7 +148,14 @@ export function AdminSidebar() {
   }, [location.pathname]);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-white/10 bg-[#0a0416]/95 backdrop-blur-xl">
+    <Sidebar
+      collapsible="icon"
+      className={
+        light
+          ? "border-r border-[#ddd3f5] !bg-[#faf8ff] text-[#23252f]"
+          : "border-r border-white/10 bg-[#0a0416]/95 backdrop-blur-xl text-white"
+      }
+    >
       <SidebarHeader className="overflow-hidden p-0">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -153,21 +163,27 @@ export function AdminSidebar() {
               tooltip="ProInterview, Quản trị"
               onClick={() => navigate("/admin")}
               badge={
-                <span className="shrink-0 rounded-full border border-lime-400/40 bg-lime-400/15 px-2 py-0.5 text-[8px] font-black tracking-wider text-lime-400 shadow-[0_0_10px_rgba(147,247,43,0.2)]">
+                <span
+                  className={
+                    light
+                      ? "shrink-0 rounded-full border border-emerald-600/30 bg-emerald-500/15 px-2 py-0.5 text-[8px] font-black tracking-wider text-emerald-800"
+                      : "shrink-0 rounded-full border border-lime-400/40 bg-lime-400/15 px-2 py-0.5 text-[8px] font-black tracking-wider text-lime-400 shadow-[0_0_10px_rgba(147,247,43,0.2)]"
+                  }
+                >
                   ADMIN
                 </span>
               }
             />
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="mx-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-2" />
+        <div className={`mx-3 h-px group-data-[collapsible=icon]:mx-2 ${light ? "bg-[#ddd3f5]" : "bg-white/10"}`} />
       </SidebarHeader>
 
       <SidebarContent className="min-h-0 flex-1 gap-0 overflow-hidden px-2 py-3">
         <div ref={contentRef} className="flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto overflow-x-hidden">
         <SidebarGroup className="p-0">
           <SidebarGroupLabel
-            className="mb-1.5 px-3 uppercase text-slate-400 font-bold group-data-[collapsible=icon]:hidden"
+            className={`mb-1.5 px-3 uppercase font-bold group-data-[collapsible=icon]:hidden ${light ? "text-[#5b5772]" : "text-slate-400"}`}
             style={{ fontSize: "0.625rem", letterSpacing: "0.12em" }}
           >
             Menu chính
@@ -177,7 +193,7 @@ export function AdminSidebar() {
               {MAIN_GROUPS.map((group) => (
                 <SidebarGroup key={group.title} className="p-0">
                   <SidebarGroupLabel
-                    className="mb-1.5 px-3 uppercase text-slate-400 font-bold group-data-[collapsible=icon]:hidden"
+                    className={`mb-1.5 px-3 uppercase font-bold group-data-[collapsible=icon]:hidden ${light ? "text-[#5b5772]" : "text-slate-400"}`}
                     style={{ fontSize: "0.5625rem", letterSpacing: "0.14em" }}
                   >
                     {group.title}
@@ -193,14 +209,19 @@ export function AdminSidebar() {
                               tooltip={label}
                               data-button-surface="none"
                               onClick={() => navigate(to)}
-                              className="
-                                h-9 rounded-xl gap-3 transition-all text-slate-300
-                                hover:bg-white/[0.08] hover:text-white
+                              className={`
+                                h-9 rounded-xl gap-3 transition-all
                                 group-data-[collapsible=icon]:!justify-center
                                 group-data-[collapsible=icon]:!w-9
                                 group-data-[collapsible=icon]:!mx-auto
                                 group-data-[collapsible=icon]:px-0
-                              "
+                                ${active
+                                  ? ""
+                                  : light
+                                    ? "text-[#4b4763] hover:bg-[#efe9fc] hover:text-[#5b21b6]"
+                                    : "text-slate-300 hover:bg-white/[0.08] hover:text-white"
+                                }
+                              `}
                               style={
                                 active
                                   ? {
@@ -213,10 +234,10 @@ export function AdminSidebar() {
                               }
                             >
                               <Icon
-                                className={`size-[17px] shrink-0 ${active ? "text-white" : "text-slate-400"}`}
+                                className={`size-[17px] shrink-0 ${active ? "text-white" : light ? "text-[#7c5bc4]" : "text-slate-400"}`}
                               />
                               <span
-                                className="truncate text-[0.8125rem] group-data-[collapsible=icon]:hidden"
+                                className={`truncate text-[0.8125rem] group-data-[collapsible=icon]:hidden ${active ? "text-white" : light ? "text-[#23252f]" : ""}`}
                                 data-admin-nav-label
                                 data-active={active ? "true" : "false"}
                                 style={{ fontWeight: active ? 700 : 500 }}
@@ -243,11 +264,11 @@ export function AdminSidebar() {
 
         {SECONDARY_ITEMS.length > 0 ? (
           <>
-        <div className="mx-1 my-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-0" />
+        <div className={`mx-1 my-3 h-px group-data-[collapsible=icon]:mx-0 ${light ? "bg-[#ddd3f5]" : "bg-white/10"}`} />
 
         <SidebarGroup className="p-0">
           <SidebarGroupLabel
-            className="mb-1.5 px-3 uppercase text-slate-400 font-bold group-data-[collapsible=icon]:hidden"
+            className={`mb-1.5 px-3 uppercase font-bold group-data-[collapsible=icon]:hidden ${light ? "text-[#5b5772]" : "text-slate-400"}`}
             style={{ fontSize: "0.625rem", letterSpacing: "0.12em" }}
           >
             Khác
@@ -263,14 +284,19 @@ export function AdminSidebar() {
                       tooltip={label}
                       data-button-surface="none"
                       onClick={() => navigate(to)}
-                      className="
-                        h-9 rounded-xl gap-3 transition-all text-slate-300
-                        hover:bg-white/[0.08] hover:text-white
+                      className={`
+                        h-9 rounded-xl gap-3 transition-all
                         group-data-[collapsible=icon]:!justify-center
                         group-data-[collapsible=icon]:!w-9
                         group-data-[collapsible=icon]:!mx-auto
                         group-data-[collapsible=icon]:px-0
-                      "
+                        ${active
+                          ? ""
+                          : light
+                            ? "text-[#4b4763] hover:bg-[#efe9fc] hover:text-[#5b21b6]"
+                            : "text-slate-300 hover:bg-white/[0.08] hover:text-white"
+                        }
+                      `}
                       style={
                         active
                           ? {
@@ -283,10 +309,10 @@ export function AdminSidebar() {
                       }
                     >
                       <Icon
-                        className={`size-[17px] shrink-0 ${active ? "text-white" : "text-slate-400"}`}
+                        className={`size-[17px] shrink-0 ${active ? "text-white" : light ? "text-[#7c5bc4]" : "text-slate-400"}`}
                       />
                       <span
-                        className="truncate text-[0.8125rem] group-data-[collapsible=icon]:hidden"
+                        className={`truncate text-[0.8125rem] group-data-[collapsible=icon]:hidden ${active ? "text-white" : light ? "text-[#23252f]" : ""}`}
                         style={{ fontWeight: active ? 700 : 500 }}
                       >
                         {label}
@@ -303,7 +329,11 @@ export function AdminSidebar() {
         </div>
       </SidebarContent>
 
-      <div className="mx-2 h-px bg-white/10" />
+      <div className={`mx-2 h-px ${light ? "bg-[#ddd3f5]" : "bg-white/10"}`} />
+
+      <div className="px-2 pt-2 group-data-[collapsible=icon]:hidden">
+        <WorkspaceThemeSwitch />
+      </div>
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
@@ -313,15 +343,19 @@ export function AdminSidebar() {
                 <button
                   type="button"
                   data-button-surface="none"
-                  className="
+                  className={`
                     flex h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2
                     transition-all focus:outline-none
-                    border border-white/10 bg-white/[0.04] hover:bg-white/[0.08]
+                    border
+                    ${light
+                      ? "border-[#ddd3f5] bg-white hover:bg-[#efe9fc]"
+                      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
+                    }
                     group-data-[collapsible=icon]:mx-auto
                     group-data-[collapsible=icon]:w-10
                     group-data-[collapsible=icon]:justify-center
                     group-data-[collapsible=icon]:px-0
-                  "
+                  `}
                 >
                   <div
                     className="flex size-7 shrink-0 items-center justify-center rounded-lg font-bold text-white shadow-md shadow-violet-600/30"
@@ -333,17 +367,23 @@ export function AdminSidebar() {
                     {initials}
                   </div>
                   <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
-                    <p className="truncate font-semibold text-white text-xs">
+                    <p className={`truncate font-semibold text-xs ${light ? "text-[#23252f]" : "text-white"}`}>
                       {displayName}
                     </p>
-                    <p className="truncate text-slate-400 text-[11px]">
+                    <p className={`truncate text-[11px] ${light ? "text-[#5b5772]" : "text-slate-400"}`}>
                       {user?.email || ""}
                     </p>
                   </div>
-                  <ChevronsUpDown className="size-3.5 shrink-0 text-slate-400 group-data-[collapsible=icon]:hidden" />
+                  <ChevronsUpDown className={`size-3.5 shrink-0 group-data-[collapsible=icon]:hidden ${light ? "text-[#5b5772]" : "text-slate-400"}`} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="end" className="mb-1 w-56 border border-white/10 bg-[#120a26] text-white backdrop-blur-xl">
+              <DropdownMenuContent
+                side="top"
+                align="end"
+                className={`mb-1 w-56 border backdrop-blur-xl ${
+                  light ? "border-[#ddd3f5] bg-white text-[#23252f] shadow-xl" : "border-white/10 bg-[#120a26] text-white"
+                }`}
+              >
                 <DropdownMenuItem
                   onClick={handleLogout}
                   variant="destructive"

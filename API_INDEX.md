@@ -19,7 +19,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 **Duyệt khóa học đã chuyển sang moderator:** `/api/admin/courses/*` không còn tồn tại (trả 404),
 thay bằng `/api/moderator/courses/*`. Router moderator vẫn gắn `adminAuditLog` nên mọi thao tác
-duyệt vẫn ghi vào `SecurityLog` (`type: admin_action`) và hiện ở trang `/admin/audit-log`.
+duyệt vẫn ghi vào `SecurityLog` (`type: moderator_action`; trước 22/11/2026 là `admin_action`) và hiện ở trang `/admin/audit-log` (lọc `?actor=moderator`).
 
 Gán role: `PATCH /api/users/:id/role` — `ASSIGNABLE_ROLES` = `customer | mentor | moderator | enterprise`.
 Không nâng `admin` qua API (phải sửa trực tiếp DB).
@@ -543,7 +543,7 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 
 **Xác nhận tiền lộ trình (LP-10):** SePay webhook khớp mã `PI…` của Payment `learning_path` đang chờ và **đúng** `totalAmount` → `confirmLearningPathTransfer`: Payment `success`, lộ trình `pending_payment → active` (`paidAt`), thông báo `learning_path_paid` cho mentee và mentor. Sai tiền / mã hết hạn / mã cũ → `SepayWebhookEvent.status = unmatched`, lộ trình giữ nguyên. Webhook trùng `id` → idempotent. Tài khoản ứng viên ngừng hoạt động → `held_inactive_account`, không kích hoạt. Admin xác nhận tay (LP-11): A.10 `/api/admin/payments/learning-path-transfers`, `/api/admin/payments/:id/confirm-learning-path-transfer`.
 
-Sắp có: `cancel` (LP-15); thanh toán buổi bổ sung có phí (đề xuất (n) trong `docs/plan/TASKS.md`). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
+Sắp có: `cancel` (LP-15); thanh toán buổi bổ sung có phí (đề xuất (s) trong `docs/plan/TASKS.md`). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
 
 ---
 
@@ -602,6 +602,15 @@ Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/
 | GET | `/api/competencies` | Bearer; role `customer`, `mentor`, `admin`, `moderator`, `enterprise` / `company_moderator` | Trả `{ success, framework }`: `version`, `scale {min, max}`, `passThreshold`, `aiCalibration {offset, maxLevel, status}`, `levels[] {score, label, descriptor}`, `nullLabel`, `competencies[] {key, nameVi, nameEn, shrm, ddi, definition, indicators, anchors {1,3,5}, deprecated, ...}`. Header `Cache-Control: private, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). Không token → 401 |
 
 **Quy tắc:** key năng lực giữ nguyên 20 key cũ; bỏ key thì đặt `deprecated: true` (vẫn hiện tên cho dữ liệu cũ, form mentor/rubric không cho chọn). Mức `null` = "Chưa đủ dữ liệu", khác mức 0. BE dùng `isValidCompetencyKey`, `aiAnswerToLevel`, `suggestOutcome`, `toDisplayLevel` trong `competencyFramework.js`.
+
+
+### A.18. AI sinh bộ câu nháp cho công ty — `POST /api/company/questions/generate` (CO-04)
+
+| Method | Endpoint | Auth | Mô tả |
+|:-------|:---------|:-----|:------|
+| POST | `/api/company/questions/generate` | Company Moderator; rate limit 10 lần / 15 phút / user | Body `{ roleCategory, count? }`: `roleCategory` là key trong `GET /api/role-categories`, `count` nguyên 8–12 (mặc định 10); sai → **400**, không gọi LLM. AI sinh câu theo năng lực của vị trí (`interviewRole` → `ROLE_COMPETENCY_MAP`, chỉ key bộ tiêu chí LP-01). Lưu vào `QuestionBank`: `orgId = companyId`, `source: "org_template"`, `status: "draft"`, `provenance.promptVersion` / `generatedBy.promptVersion` = version prompt thực sự chạy (`companyq-vN`). Câu trùng `textHash` với câu đã có của công ty (mọi trạng thái) hoặc trùng nhau trong lượt bị bỏ qua. **201** `{ success, message, count, skippedDuplicates, promptVersion, questions }`. Chưa cấu hình LLM → **503**; LLM trả kết quả không dùng được sau 1 lần sửa JSON → **502** (không lưu gì) |
+
+Prompt key `company_question_gen` (PromptVersion, tiền tố `companyq`), bản mặc định `companyq-v1` trong `prompts/companyQuestionGenPrompt.js`. Câu đã có (chưa bị từ chối) của cùng vị trí được đưa vào prompt (tối đa 30) để tránh lặp ý. Trang câu hỏi của Platform Moderator (`GET /api/moderator/questions`) chỉ đọc `orgId: null` nên không thấy các câu này. Duyệt / sửa / từ chối: `PATCH /api/company/questions/:id`, `POST /api/company/questions/:id/approve|reject`, `batch-approve`, `batch-reject` (CO-05).
 
 
 ### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)
@@ -1090,7 +1099,7 @@ Field presence trên `User`: `lastSeenAt` (heartbeat `/api/auth/presence` + `aut
 | GET | `/api/bookings/:id/invoice` | Chủ giao dịch hoặc admin; PDF booking đã thanh toán |
 | GET | `/api/enrollments/:id/invoice` | Chủ giao dịch hoặc admin; PDF học phí |
 | GET | `/api/cart/orders/:id/invoice` | Chủ đơn hoặc admin; PDF toàn đơn đã hoàn tất |
-| GET | `/api/admin/audit-log` | Admin; phân trang, lọc `adminId`, `method`, `success`, `from`, `to` |
+| GET | `/api/admin/audit-log` | Admin; phân trang, lọc `actor` (`admin`, `moderator` = Platform Moderator (`moderator_action`, kèm dòng `admin_action` cũ trên `/api/moderator/*`), `company_moderator` = Company Moderator (`company_moderator_action`, ghi ở mọi thao tác ghi trên `/api/company/*`; `userId.companyId.name` cho biết công ty), `mentor` = thao tác tiền của mentor; bỏ trống = tất cả, giá trị khác → 400), `adminId`, `method`, `success`, `from`, `to`. Mentor ghi `SecurityLog` `type: mentor_action` ở `POST /api/mentor/payout`, `PATCH /api/mentor/payout-account`, `POST /api/mentor/request-price-change`; `accountNumber` chỉ giữ 4 số cuối (`****1234`) |
 | GET | `/api/admin/finance/reconciliation` | Admin; `report.mismatches`, `payoutMismatches`, `alerts`; chỉ đọc |
 | POST | `/api/admin/finance/release-earnings` | Admin; giải phóng khoản đủ 3 ngày, không có report mở |
 | GET | `/api/admin/users/:id/impact` | Admin; số dư, nghĩa vụ, `canClose`, `blockers` |

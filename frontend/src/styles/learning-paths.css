@@ -23,9 +23,15 @@
 .lp-ready-assess svg { flex-shrink: 0; }
 .lp-ready-assess.is-done { color: #b9ee8c; }
 
-.lp-page .mr-tabs { flex-wrap: wrap; gap: 18px 22px; }
-.lp-page .mr-tabs button span { margin-left: 6px; font-size: 10px; color: #8f86a8; }
-.lp-page .mr-tabs button.active span { color: #93f72b; }
+.lp-page .mr-tabs { flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+.lp-page .mr-tabs button { padding: 10px 16px 14px 16px; margin-bottom: -1px; font-size: 13.5px; line-height: 1.4; }
+.lp-page .mr-tabs button span {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px;
+  border-radius: 999px; font-size: 11px; font-weight: 700;
+  background: rgba(255, 255, 255, 0.08); color: #af99c4;
+}
+.lp-page .mr-tabs button.active span { background: rgba(147, 247, 43, 0.18); color: #93f72b; }
 
 .mr-status.draft { color: #d4bbf2; border-color: #c6a0ec40; background: #c6a0ec08; }
 .mr-status.proposed, .mr-status.pending_payment { color: #f7d27a; border-color: #f7d27a40; background: #f7d27a0a; }
@@ -221,3 +227,35 @@
   .lp-outcome-choice, .lp-two-col { grid-template-columns: 1fr; }
   .lp-timeline-item { grid-template-columns: 1fr; gap: 8px; }
 }
+
+/* LP-19 / LP-21 ở giao diện sáng — cùng quy ước với mentor-workspace-light.css (`:root[data-workspace-theme="light"]`,
+   biến --mw-*): nền tối đặc → bề mặt sáng, chữ sáng → tím đậm, sắc trạng thái đậm hơn để đủ tương phản trên nền trắng. */
+:root[data-workspace-theme="light"] .lp-tone-ok { --lp-tone: #3f7a0f; }
+:root[data-workspace-theme="light"] .lp-tone-bad { --lp-tone: #b4233a; }
+:root[data-workspace-theme="light"] .lp-tone-info { --lp-tone: #1d5fb8; }
+:root[data-workspace-theme="light"] .lp-tone-warn { --lp-tone: #8a5a00; }
+:root[data-workspace-theme="light"] .lp-tone-open { --lp-tone: #6d28d9; }
+:root[data-workspace-theme="light"] .lp-tone-muted { --lp-tone: #7a7494; }
+:root[data-workspace-theme="light"] .lp-page .lp-timeline-head h3,
+:root[data-workspace-theme="light"] .lp-detail-title,
+:root[data-workspace-theme="light"] .lp-picker-head strong { color: #1e1b2e; }
+:root[data-workspace-theme="light"] .lp-attempt { border-color: var(--mw-border); border-left-color: var(--lp-tone); background: var(--mw-surface); }
+:root[data-workspace-theme="light"] .lp-attempt-name { color: #442268; }
+:root[data-workspace-theme="light"] .lp-attempt-name em { color: #8a5a00; }
+:root[data-workspace-theme="light"] .lp-feedback { background: var(--mw-raised); color: #3d3352; }
+:root[data-workspace-theme="light"] .lp-feedback-summary { color: #1e1b2e; }
+:root[data-workspace-theme="light"] .lp-feedback strong { color: #4d2489; }
+:root[data-workspace-theme="light"] .lp-feedback-scores dt { color: #5b5772; }
+:root[data-workspace-theme="light"] .lp-feedback-scores dd { color: #1e1b2e; }
+:root[data-workspace-theme="light"] .lp-picker { border-color: #c4b5fd; background: var(--mw-raised); }
+:root[data-workspace-theme="light"] .lp-pay-ref { color: #4d2489; }
+:root[data-workspace-theme="light"] .lp-pay-qr { border: 1px solid var(--mw-border); }
+:root[data-workspace-theme="light"] .lp-pay-expired { color: #b4233a !important; }
+:root[data-workspace-theme="light"] .lp-page .lp-copy { border-color: var(--mw-border); color: #573479; }
+:root[data-workspace-theme="light"] .lp-page .lp-copy:hover { color: #1e1b2e; border-color: #a78bfa; }
+:root[data-workspace-theme="light"] .lp-score-grid { border-color: var(--mw-border); background: var(--mw-surface); }
+:root[data-workspace-theme="light"] .lp-suggest { color: #6d28d9; }
+:root[data-workspace-theme="light"] .lp-suggest strong { color: #1e1b2e; }
+:root[data-workspace-theme="light"] .lp-page .lp-choice { border-color: var(--mw-border); background: var(--mw-surface); color: #442268; }
+:root[data-workspace-theme="light"] .lp-page .lp-choice.is-pass[aria-checked="true"] { border-color: #3f7a0f; background: #ecfccb; color: #2f5d0a; }
+:root[data-workspace-theme="light"] .lp-page .lp-choice.is-fail[aria-checked="true"] { border-color: #b4233a; background: #ffe4e6; color: #8f1d30; }
