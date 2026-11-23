@@ -98,6 +98,7 @@ import { ModeratorQueue } from "./pages/moderator/ModeratorQueue.jsx";
 import { ModeratorQueueItem } from "./pages/moderator/ModeratorQueueItem.jsx";
 import { ModeratorQuality } from "./pages/moderator/ModeratorQuality.jsx";
 import { ModeratorRubrics } from "./pages/moderator/ModeratorRubrics.jsx";
+import { ModeratorCompanyQuestions } from "./pages/moderator/ModeratorCompanyQuestions.jsx";
 import { AdminCompanies } from "./pages/admin/AdminCompanies.jsx";
 import { CompanyInviteAccept } from "./pages/auth/CompanyInviteAccept.jsx";
 import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
@@ -281,6 +282,7 @@ export const router = createBrowserRouter([
       { index: true, loader: () => redirect("/moderator/queue") },
       { path: "courses", Component: AdminContentCourses },
       { path: "questions", Component: ModeratorQuestions },
+      { path: "company-questions", Component: ModeratorCompanyQuestions },
       { path: "rubrics", Component: ModeratorRubrics },
       { path: "queue", Component: ModeratorQueue },
       { path: "queue/:id", Component: ModeratorQueueItem },

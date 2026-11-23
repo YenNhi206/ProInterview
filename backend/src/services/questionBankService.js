@@ -375,9 +375,13 @@ export async function editQuestion(id, { text, competencyId, reason }, moderator
   return { ok: true, question: doc.toObject() };
 }
 
+/**
+ * Duyệt câu của pool chung. Câu doanh nghiệp (`orgId != null`) đi luồng riêng CO-16
+ * (`/api/moderator/company-questions`) nên ở đây coi như không tồn tại.
+ */
 export async function approveQuestion(id, { note = "" } = {}, moderatorId) {
-  const doc = await QuestionBank.findByIdAndUpdate(
-    id,
+  const doc = await QuestionBank.findOneAndUpdate(
+    { _id: id, orgId: null },
     {
       $set: { status: "approved", review: { by: moderatorId, at: new Date(), note } },
       $push: { history: { action: "approve", actorId: moderatorId, reason: note } },
@@ -414,8 +418,9 @@ export async function bulkUpdateQuestions({ ids, action, reason = "" }, moderato
           $set: { status: "deprecated", deprecation: { by: moderatorId, at: now, reason } },
           $push: { history: { action: "deprecate", actorId: moderatorId, reason } },
         };
-  const res = await QuestionBank.updateMany({ _id: { $in: ids } }, update);
-  const found = await QuestionBank.find({ _id: { $in: ids } }, { _id: 1 }).lean();
+  // Chỉ pool chung: câu doanh nghiệp duyệt ở luồng CO-16 (tính là notFound ở đây).
+  const res = await QuestionBank.updateMany({ _id: { $in: ids }, orgId: null }, update);
+  const found = await QuestionBank.find({ _id: { $in: ids }, orgId: null }, { _id: 1 }).lean();
   const foundSet = new Set(found.map((d) => String(d._id)));
   return { ok: true, updated: res.modifiedCount, notFound: ids.filter((i) => !foundSet.has(String(i))) };
 }

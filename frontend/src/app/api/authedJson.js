@@ -33,7 +33,12 @@ export function authedFetch(path, options = {}) {
   })
     .then(async (res) => {
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) return { success: false, error: normalizeApiError(body, res.status) };
+      if (!res.ok) {
+        const out = { success: false, error: normalizeApiError(body, res.status) };
+        // Lỗi theo từng dòng (ví dụ tải câu hỏi hàng loạt, CO-05) để UI chỉ ra dòng sai.
+        if (Array.isArray(body?.errors)) out.errors = body.errors;
+        return out;
+      }
       return { success: true, ...body };
     })
     .catch(() => ({ success: false, error: ERROR_MESSAGES.NETWORK }));
