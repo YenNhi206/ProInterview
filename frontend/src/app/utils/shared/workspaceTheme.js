@@ -4,6 +4,7 @@
  */
 export const WORKSPACE_THEME_STORAGE_KEY = "prointerview_workspace_theme";
 export const WORKSPACE_THEME_MODES = ["light", "dark", "system"];
+export const THEME_CHANGE_EVENT = "prointerview_workspace_theme_changed";
 /** Mặc định giữ giao diện tối như trước khi có lựa chọn. */
 export const DEFAULT_WORKSPACE_THEME = "dark";
 
@@ -26,10 +27,28 @@ export function readWorkspaceTheme() {
   }
 }
 
+export function applyWorkspaceTheme(mode) {
+  if (typeof document === "undefined") return;
+  const prefersDark =
+    typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches === true;
+  const resolved = resolveWorkspaceTheme(mode, prefersDark);
+  const root = document.documentElement;
+  if (resolved === "light") {
+    root.dataset.workspaceTheme = "light";
+  } else {
+    delete root.dataset.workspaceTheme;
+  }
+}
+
 export function writeWorkspaceTheme(mode) {
+  const normalized = normalizeWorkspaceTheme(mode);
   try {
-    window.localStorage.setItem(WORKSPACE_THEME_STORAGE_KEY, normalizeWorkspaceTheme(mode));
+    window.localStorage.setItem(WORKSPACE_THEME_STORAGE_KEY, normalized);
   } catch {
     /* Trình duyệt chặn lưu trữ: lựa chọn chỉ giữ trong phiên hiện tại. */
+  }
+  applyWorkspaceTheme(normalized);
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT, { detail: normalized }));
   }
 }

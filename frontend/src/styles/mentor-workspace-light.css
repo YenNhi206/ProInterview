@@ -34,7 +34,7 @@
 /* Có nền riêng thì sidebar phải dính mép trái, cao hết màn hình (bản tối nền trong suốt nên được đặt lơ lửng
    cách mép 16px). Padding bù lại để nội dung bên trong giữ đúng vị trí cũ; rộng 230px = margin-left của nội dung. */
 @media (min-width: 1024px) {
-  :root[data-workspace-theme="light"] .mentor-workspace-nav { top: 0; left: 0; bottom: 0; width: 230px; padding: 32px 18px 38px 24px; }
+  :root[data-workspace-theme="light"] .mentor-workspace-nav { top: 0; left: 0; bottom: 0; width: 230px; padding: 24px 16px 24px 20px; overflow: hidden; }
 }
 .mentor-workspace.mw-light.mentor-workspace-mobile-nav { background-color: var(--mw-surface); }
 :root[data-workspace-theme="light"] .mentor-workspace-nav-heading { color: var(--mw-muted); }
