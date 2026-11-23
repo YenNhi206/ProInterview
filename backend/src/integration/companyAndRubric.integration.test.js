@@ -315,7 +315,8 @@ describe("CO-01 đến CO-08: Quản lý Công ty, Lời mời, Phân quyền v�
 
     assert.equal(approveRes.status, 200);
     const approveData = await approveRes.json();
-    assert.equal(approveData.question.status, "approved");
+    // Quyết định CO-16: Company Mod duyệt xong thì chờ Platform Mod, chưa `approved`
+    assert.equal(approveData.question.status, "pending_platform_review");
     assert.equal(approveData.question.history.pop().action, "approve");
   });
 
