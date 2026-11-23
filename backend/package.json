@@ -49,6 +49,8 @@
     "db:sync-prompt-versions:dry": "node src/scripts/syncPromptVersions.js --dry-run",
     "db:sync-fallback-questions": "node src/scripts/syncFallbackQuestions.js",
     "warmup:baseline-videos": "node src/scripts/warmupBaselineVideos.js",
+    "warmup:company-videos": "node src/scripts/warmupCompanyQuestionVideos.js",
+    "warmup:company-videos:dry": "node src/scripts/warmupCompanyQuestionVideos.js --dry-run",
     "test": "npm run test:node && npm run test:dto && npm run test:python-cv",
     "test:node": "node --test --test-concurrency=1 \"src/**/*.test.js\"",
     "test:cart": "node --test src/integration/cart-booking-sweep.integration.test.js",

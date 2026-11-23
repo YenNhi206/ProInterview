@@ -35,6 +35,8 @@ npm run seed:samples           # mentor + khóa học mẫu
 npm run sync:mentor-profiles   # đồng bộ Mentor với User role mentor
 npm run db:prune-fake-mentors  # xóa Mentor không có User tương ứng
 npm run warmup:baseline-videos # làm nóng cache video 3 câu baseline
+npm run warmup:company-videos:dry  # đếm câu công ty đã duyệt cần render video (CO-06, không render)
+npm run warmup:company-videos      # render video câu công ty đã duyệt × 2 giới tính; chạy lại sau khi đổi provider video (AI-15)
 npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (không ghi DB)
 npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
 npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)

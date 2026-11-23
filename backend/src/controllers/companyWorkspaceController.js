@@ -5,6 +5,10 @@ import { assertSameCompany } from "../utils/assertSameCompany.js";
 import { isValidCompetencyKey } from "../services/competencyFramework.js";
 import { isValidRoleCategory } from "../services/roleCategories.js";
 import { COMPANY_QUESTION_COUNT, generateCompanyQuestionDrafts } from "../services/companyQuestionGenService.js";
+import {
+  scheduleCompanyQuestionVideoWarm,
+  scheduleCompanyQuestionVideoWarmByIds,
+} from "../services/companyQuestionVideoService.js";
 
 /** Thang mô tả của mỗi tiêu chí rubric: 6 mức 0–5 (CO-07). */
 const RUBRIC_LEVELS = ["0", "1", "2", "3", "4", "5"];
@@ -209,6 +213,7 @@ export const CompanyWorkspaceController = {
       ],
     });
 
+    scheduleCompanyQuestionVideoWarm([question]); // CO-06: câu tự thêm mặc định đã duyệt
     return res.status(201).json({ success: true, question });
   },
 
@@ -223,8 +228,9 @@ export const CompanyWorkspaceController = {
     const { difficulty, roleCategory, competencyId, reason } = req.body;
     const cleanText = (req.body.text || req.body.questionText || req.body.question || "").trim();
     const previousQuestion = question.text;
+    const textChanged = Boolean(cleanText) && cleanText !== question.text;
 
-    if (cleanText && cleanText !== question.text) {
+    if (textChanged) {
       question.text = cleanText;
       question.textHash = hashQuestionText(question.text);
     }
@@ -249,6 +255,8 @@ export const CompanyWorkspaceController = {
     });
 
     await question.save();
+    // CO-06: sửa chữ câu đã duyệt → text mới là cache key mới, render trước cho buổi luyện theo job
+    if (textChanged) scheduleCompanyQuestionVideoWarm([question]);
     return res.json({ success: true, message: "Cập nhật câu hỏi thành công.", question });
   },
 
@@ -274,6 +282,7 @@ export const CompanyWorkspaceController = {
     });
 
     await question.save();
+    scheduleCompanyQuestionVideoWarm([question]); // CO-06
     return res.json({ success: true, message: "Đã duyệt câu hỏi.", question });
   },
 
@@ -452,6 +461,7 @@ export const CompanyWorkspaceController = {
         },
       }
     );
+    scheduleCompanyQuestionVideoWarmByIds(ids, companyId); // CO-06
 
     return res.json({
       success: true,

@@ -612,6 +612,8 @@ Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/
 
 Prompt key `company_question_gen` (PromptVersion, tiền tố `companyq`), bản mặc định `companyq-v1` trong `prompts/companyQuestionGenPrompt.js`. Câu đã có (chưa bị từ chối) của cùng vị trí được đưa vào prompt (tối đa 30) để tránh lặp ý. Trang câu hỏi của Platform Moderator (`GET /api/moderator/questions`) chỉ đọc `orgId: null` nên không thấy các câu này. Duyệt / sửa / từ chối: `PATCH /api/company/questions/:id`, `POST /api/company/questions/:id/approve|reject`, `batch-approve`, `batch-reject` (CO-05).
 
+Video avatar câu công ty (CO-06): khi một câu công ty chuyển sang `approved` (tự thêm, duyệt, duyệt hàng loạt, hoặc sửa chữ câu đã duyệt), backend xếp hàng render nền video avatar cho cả 2 giới tính (`persistVideo: true`, mirror Cloudinary), không chặn response. Cache tính theo nội dung câu, nên buổi luyện theo job gọi `POST /api/ai/interview/pregenerate` với câu này sẽ trúng cache, không gọi provider video. Backfill hoặc render lại sau khi đổi provider: `npm run warmup:company-videos`.
+
 
 ### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)
 
