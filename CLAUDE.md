@@ -156,7 +156,7 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
-`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
+`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
 ### Models (`models/`) — 38 schema
 
@@ -219,7 +219,7 @@ utils/        theo domain: auth/ (auth.js — authFetch, token; requireAuthLoade
 | Mentor (`MentorArea`) | `/mentor/dashboard`, `schedule`, `requests`, `learning-paths`, `learning-paths/new`, `learning-paths/:pathId/edit`, `finance`, `analytics`, `reviews`, `courses`, `courses/:id/edit`, `peer-review`, `meeting-detail/:id`; `/mentor/session-feedback/:sessionId` | như trên |
 | Toàn màn hình | `/checkout`, `/courses/:id/learn`, `/meeting/:sessionId`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, `/payment-*` | tùy trang |
 | Admin | `/admin`, `users`, `users/:id`, `mentors`, `mentors/pending`, `mentors/:id`, `bookings`, `bookings/check-ins`, `bookings/:id`, `finance`, `finance/operations`, `transactions`, `payouts`, `course-payments`, `subscription-payments`, `learning-path-payments`, `audit-log`, `analytics`, `content/questions`, `reviews`, `support`, `achievements`, `settings` | `adminLoader` |
-| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `quality`, `courses` | `createRoleLoader("moderator")` |
+| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `company-questions` (CO-16), `rubrics`, `quality`, `courses` | `createRoleLoader("moderator")` |
 
 Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transactions`, `payouts`, `content/questions`, `settings`) đều gọi API thật; tên file là di sản cũ.
 

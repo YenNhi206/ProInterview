@@ -912,11 +912,15 @@ sequenceDiagram
     participant CompanyRouter as /api/company/*
     participant DB as MongoDB (User / CompanyInvite / Company)
 
-    HR->>InviteCtrl: POST /api/company-invites/accept (token, name, password)
-    InviteCtrl->>DB: CompanyInvite.findOne({ tokenHash, isAccepted: false, expiresAt > now })
+    HR->>InviteCtrl: GET /api/company-invites/verify/:token
+    InviteCtrl-->>HR: { invite, terms { version, title, points } }
+    HR->>InviteCtrl: POST /api/company-invites/accept (token, name, password, acceptRubricTerms, termsVersion)
+    InviteCtrl->>DB: CompanyInvite.findOne({ tokenHash, status: "pending" }) + kiểm expiresAt
+    Note over InviteCtrl: acceptRubricTerms !== true → 400<br/>termsVersion khác bản hiện tại → 409 (CO-02)
+    InviteCtrl->>DB: findOneAndUpdate({ _id, status: "pending" } → accepted, rubricTermsAcceptedAt, rubricTermsVersion)
     InviteCtrl->>DB: User.create({ email, name, role: "company_moderator", companyId })
-    InviteCtrl->>DB: invite.isAccepted = true
-    InviteCtrl-->>HR: 200 OK { success: true, token: jwt }
+    InviteCtrl->>DB: Company.rubricSharingConsent (chỉ ghi lần đồng ý đầu tiên)
+    InviteCtrl-->>HR: 201 Created { success: true, user, token }
 
     HR->>CompanyRouter: GET /api/company/questions (Bearer Token)
     CompanyRouter->>Middleware: requireCompanyModerator(req, res, next)

@@ -123,6 +123,17 @@ const DeprecationSchema = new Schema(
 export const QUESTION_SOURCES = ["baseline", "llm_followup", "moderator", "org_template"];
 const LEGACY_QUESTION_SOURCES = ["ai_generated", "moderator_authored", "enterprise_template"];
 
+export const QUESTION_STATUSES = [
+  "draft",
+  "pending_review",
+  "pending_platform_review",
+  "approved",
+  "rejected",
+  "deprecated",
+];
+/** Câu doanh nghiệp Company Moderator đã duyệt: đang chờ hoặc đã qua Platform Moderator (CO-16). */
+export const COMPANY_REVIEWED_STATUSES = ["pending_platform_review", "approved"];
+
 const questionBankSchema = new Schema(
   {
     // ----- Nội dung câu hỏi (khớp InterviewSession.questions[]) -----
@@ -159,11 +170,18 @@ const questionBankSchema = new Schema(
      * Có giá trị = câu hỏi riêng của công ty (Enterprise template), không phục vụ user ngoài công ty.
      */
     orgId: { type: Schema.Types.ObjectId, ref: "Company", default: null, index: true },
+    /**
+     * Tin tuyển dụng mà câu doanh nghiệp được tải lên cho (CO-05, quyết định CO-16). Chỉ có ở câu
+     * `orgId != null`; null = câu dùng chung cho mọi job cùng `roleCategory` của công ty.
+     */
+    jobPostId: { type: Schema.Types.ObjectId, ref: "JobPost", default: null },
 
     // ----- Vòng đời kiểm duyệt -----
+    // Câu doanh nghiệp (CO-05, CO-16): draft → pending_platform_review (Company Mod duyệt)
+    // → approved | rejected (Platform Mod). Chỉ câu `approved` mới vào buổi phỏng vấn.
     status: {
       type: String,
-      enum: ["draft", "pending_review", "approved", "rejected", "deprecated"],
+      enum: QUESTION_STATUSES,
       default: "pending_review",
       required: true,
       index: true,
@@ -206,6 +224,8 @@ questionBankSchema.index({ status: 1, competencyId: 1, updatedAt: -1 });
 questionBankSchema.index({ status: 1, orgId: 1, roleCategory: 1, competencyId: 1 });
 // Chống trùng: cùng text trong cùng phạm vi (global hoặc 1 tổ chức) chỉ tồn tại một bản.
 questionBankSchema.index({ textHash: 1, orgId: 1 }, { unique: true });
+// Trang /company/questions lọc theo job (CO-05, CO-13).
+questionBankSchema.index({ orgId: 1, jobPostId: 1, status: 1 });
 // Quality dashboard: câu bị gắn cờ nhiều nhất.
 questionBankSchema.index({ flagCount: -1 });
 

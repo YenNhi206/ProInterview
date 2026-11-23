@@ -21,7 +21,7 @@ companyRouter.get("/dashboard", asyncHandler(CompanyWorkspaceController.getDashb
 companyRouter.get("/questions", asyncHandler(CompanyWorkspaceController.listQuestions));
 companyRouter.post("/questions", asyncHandler(CompanyWorkspaceController.createQuestion));
 companyRouter.post("/questions/generate", companyQuestionGenLimiter, asyncHandler(CompanyWorkspaceController.generateQuestions));
-companyRouter.post("/questions/generate-starter",asyncHandler(CompanyWorkspaceController.generateStarterQuestions));
+companyRouter.post("/questions/upload", asyncHandler(CompanyWorkspaceController.uploadQuestions));
 companyRouter.post("/questions/batch-approve", asyncHandler(CompanyWorkspaceController.batchApproveQuestions));
 companyRouter.post("/questions/batch-reject", asyncHandler(CompanyWorkspaceController.batchRejectQuestions));
 companyRouter.patch("/questions/:id", asyncHandler(CompanyWorkspaceController.editQuestion));
