@@ -11,6 +11,7 @@ export const CUSTOMER_NAV_ITEMS = [
   { title: "Phỏng vấn AI", url: "/interview" },
   { title: "Tìm Mentor", url: "/mentors" },
   { title: "Khóa học", url: "/courses" },
+  { title: "Việc làm", url: "/jobs" },
   { title: "Bảng giá", url: "/pricing" },
 ];
 

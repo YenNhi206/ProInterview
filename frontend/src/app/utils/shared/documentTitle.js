@@ -31,6 +31,7 @@ const ROUTE_TITLES = {
   "/interview": "Phỏng vấn AI",
   "/mentors": "Tìm mentor",
   "/courses": "Khóa học",
+  "/jobs": "Việc làm",
   "/pricing": "Bảng giá",
   "/profile": "Hồ sơ",
   "/settings": "Cài đặt",
