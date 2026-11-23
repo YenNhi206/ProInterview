@@ -241,7 +241,7 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | AI-06 | PM-04 | Todo | FE `/moderator/ai-improvements` dạng bảng: bằng chứng, trước/sau, duyệt, từ chối, rollback | Janet | AI-05 | Duyệt được một đề xuất trên UI | P0 |
 | AI-07 | PM-06 | Todo | Quality Dashboard thêm: rubric chờ duyệt, thời gian duyệt rubric, tỉ lệ bị sửa trước/sau mỗi lần đổi version (BE + FE) | Janet | AI-05, CO-08 | Số khớp truy vấn tay | P1 |
 | AI-08 | AIS-08 | Review · Janet · PR #249 | AI sàng lọc khóa học khi mentor gửi duyệt: đủ nội dung, video, mô tả, dấu hiệu vi phạm; ghi `Course.aiPrescreen` + ModerationItem `course_prescreen`; model rẻ; CostEvent `course_prescreen` | Janet | AI-12 | Mỗi khóa gửi duyệt có kết quả và cờ cụ thể | P1 |
-| AI-09 | PM-05 | Todo | FE: nhãn sàng lọc trên `/moderator/courses`; mentor thấy cảnh báo trước khi gửi | Janet | AI-08 | Hiện đúng cờ từ API | P1 |
+| AI-09 | PM-05 | Doing · Nhi | FE: nhãn sàng lọc trên `/moderator/courses`; mentor thấy cảnh báo trước khi gửi | Janet | AI-08 | Hiện đúng cờ từ API | P1 |
 | AI-10 | AIS-07 (+C-09) | Review · Janet · PR #252 | API `GET /api/recommendations/me`: khóa học, mentor (chuyên môn khớp năng lực còn thiếu, đánh giá), job (năng lực khớp yêu cầu); chấm theo luật có trọng số | Janet | PR-07, JB-03 | Mỗi gợi ý kèm một dòng lý do | P1 |
 | AI-11 | C-09 | Todo | FE khối gợi ý trên `/dashboard` (mentor, khóa, job) | Janet | AI-10 | Bấm vào được trang chi tiết | P1 |
 | AI-12 | AIS-08 | Done | Thêm kind `rubric_scoring`, `course_prescreen` vào `CostEvent`; ngưỡng cảnh báo Slack cho hai loại | Janet |  | Lưu được CostEvent mới; làm trước JB-07 và AI-08 | P0 |
