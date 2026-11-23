@@ -109,12 +109,34 @@
     padding: 16px 8px;
     z-index: 30;
     border-right: 1px solid var(--mw-border);
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   .mentor-workspace-main {
     margin-left: 230px;
     padding-top: 16px;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.25) transparent;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.25);
+    border-radius: 4px;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.45);
   }
 }
 

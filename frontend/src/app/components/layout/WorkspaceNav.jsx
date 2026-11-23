@@ -91,50 +91,48 @@ function WorkspaceMenu({ config, onClose, active }) {
   const badgeText = badge || (label || "Mentor").toUpperCase();
 
   return (
-    <div className="flex h-full min-h-full flex-col justify-between">
-      <div>
-        {/* Brand Header: Logo + Role Badge */}
-        <div className="mentor-workspace-brand-row mb-2 flex items-center justify-between px-2 pt-1 pb-1">
-          <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand flex w-full min-w-0 items-center justify-between gap-2">
-            <img
-              src="/Logo.png"
-              alt="ProInterview"
-              className="h-6.5 w-auto max-w-[104px] shrink-0 object-contain object-left contrast-[1.12] brightness-[0.94]"
-            />
-            <span className="mentor-workspace-badge shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[8px] font-black tracking-wider shadow-[0_0_10px_rgba(139,92,246,0.25)]">
-              {badgeText}
-            </span>
-          </Link>
-        </div>
-
-        {/* Navigation Groups or Main Nav */}
-        <div className="flex flex-col gap-4">
-          {groups ? (
-            groups.map((group) => (
-              <div key={group.title} className="flex flex-col gap-1">
-                <div
-                  className="px-2.5 uppercase text-slate-400 font-bold"
-                  style={{ fontSize: "0.5625rem", letterSpacing: "0.14em" }}
-                >
-                  {group.title}
-                </div>
-                <nav className="flex flex-col gap-0.5" aria-label={group.title}>
-                  {group.items.map(renderLink)}
-                </nav>
-              </div>
-            ))
-          ) : (
-            <div className="flex flex-col gap-1">
-              <nav className="flex flex-col gap-0.5" aria-label={label}>
-                {mainNav.map(renderLink)}
-              </nav>
-            </div>
-          )}
-        </div>
+    <div className="flex h-full min-h-0 flex-1 flex-col justify-between overflow-hidden">
+      {/* Brand Header: Logo + Role Badge (Cố định ở trên) */}
+      <div className="mentor-workspace-brand-row mb-2 shrink-0 flex items-center justify-between px-2 pt-1 pb-1">
+        <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand flex w-full min-w-0 items-center justify-between gap-2">
+          <img
+            src="/Logo.png"
+            alt="ProInterview"
+            className="h-6.5 w-auto max-w-[104px] shrink-0 object-contain object-left contrast-[1.12] brightness-[0.94]"
+          />
+          <span className="mentor-workspace-badge shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[8px] font-black tracking-wider shadow-[0_0_10px_rgba(139,92,246,0.25)]">
+            {badgeText}
+          </span>
+        </Link>
       </div>
 
-      {/* Bottom Footer: Theme Switch + Single Sleek User Profile Card */}
-      <div className="mt-auto flex flex-col gap-2.5 px-1 pt-3">
+      {/* Navigation Groups or Main Nav (Vùng cuộn riêng) */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1 flex flex-col gap-4">
+        {groups ? (
+          groups.map((group) => (
+            <div key={group.title} className="flex flex-col gap-1">
+              <div
+                className="px-2.5 uppercase text-slate-400 font-bold"
+                style={{ fontSize: "0.5625rem", letterSpacing: "0.14em" }}
+              >
+                {group.title}
+              </div>
+              <nav className="flex flex-col gap-0.5" aria-label={group.title}>
+                {group.items.map(renderLink)}
+              </nav>
+            </div>
+          ))
+        ) : (
+          <div className="flex flex-col gap-1">
+            <nav className="flex flex-col gap-0.5" aria-label={label}>
+              {mainNav.map(renderLink)}
+            </nav>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Footer: Theme Switch + Single Sleek User Profile Card (Cố định ở đáy) */}
+      <div className="mt-auto shrink-0 flex flex-col gap-2.5 px-1 pt-3">
         <WorkspaceThemeSwitch />
         <div className="border-t border-white/10 pt-2.5">
           <DropdownMenu>
