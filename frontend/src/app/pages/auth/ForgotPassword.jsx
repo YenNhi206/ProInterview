@@ -1,52 +1,24 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { CheckCircle2, AlertCircle, Info, Mail } from "lucide-react";
-import { BrandLogo } from "../../components/brand/BrandLogo";
-import { SparkleGlyph } from "../../components/decor/SparkleGlyph.jsx";
-import { AuthPurpleBackdrop } from "../../components/auth/AuthPurpleBackdrop";
-import { getBrandClickPath, requestPasswordReset } from "../../utils/auth/auth.js";
+import { Link } from "react-router";
+import { CheckCircle2, AlertCircle, Mail } from "lucide-react";
+import { AuthShell } from "../../components/auth/AuthShell.jsx";
+import { useWorkspaceTheme } from "../../hooks/useWorkspaceTheme.js";
+import { requestPasswordReset } from "../../utils/auth/auth.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
 import { AUTH_COPY } from "../../constants/brandVoice";
 
-const INPUT_CLS =
-  "w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base outline-none transition-all " +
-  "focus:border-[#8037f4] focus:ring-2 focus:ring-[#8037f4]/15 text-gray-900 placeholder-gray-400 " +
-  "bg-white hover:bg-gray-50/50";
+const BRAND_LIME = "#93f72b";
 
-const AUTH_STICKS = [
-  { x: 12, y: 24, size: 24 },
-  { x: 84, y: 18, size: 32 },
-  { x: 16, y: 78, size: 20 },
-  { x: 78, y: 76, size: 28 },
-];
-
-const PRIMARY_BTN =
-  "flex w-full items-center justify-center rounded-full py-3.5 text-base font-bold text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-60";
-
-function AuthTopBar({ right }) {
-  const navigate = useNavigate();
-  return (
-    <div
-      className="relative z-10 flex h-20 flex-shrink-0 items-center justify-between border-b px-6 backdrop-blur-md sm:px-10"
-      style={{
-        borderColor: "rgba(128,55,244,0.12)",
-        background: "rgba(255,255,255,0.75)",
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => navigate(getBrandClickPath())}
-        className="group flex items-center gap-2.5"
-        aria-label="Về trang chủ"
-      >
-        <BrandLogo size="auth" />
-      </button>
-      {right}
-    </div>
-  );
-}
+const AUTH_CTA_STYLE = {
+  background: BRAND_LIME,
+  color: "#0f172a",
+  boxShadow: "0 4px 14px rgba(147, 247, 43, 0.12)",
+};
 
 export function ForgotPassword() {
+  const theme = useWorkspaceTheme(true);
+  const light = theme.resolved === "light";
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -71,171 +43,161 @@ export function ForgotPassword() {
     setDevResetUrl(res.resetUrl || "");
   };
 
+  const inputClass = light
+    ? "w-full px-4 py-3.5 rounded-xl border border-[#ddd3f5] text-sm sm:text-base outline-none transition-all focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/20 text-[#1e1338] placeholder:text-[#9d98b3] bg-[#fbfaff] hover:bg-white"
+    : "w-full px-4 py-3.5 rounded-xl border border-white/15 text-sm sm:text-base outline-none transition-all focus:border-[#b79ae8] focus:ring-2 focus:ring-[#b79ae8]/20 text-white placeholder:text-[#a59bb8] bg-[#171226] hover:bg-[#1b152d]";
+
+  const cardClass = light
+    ? "w-full max-w-md rounded-3xl border border-[#ddd3f5] bg-white/95 p-8 shadow-[0_24px_64px_rgba(124,58,237,0.08)] sm:p-10 backdrop-blur-xl"
+    : "w-full max-w-md rounded-3xl border border-[#a998d0]/25 bg-[#211a36] p-8 shadow-[0_24px_64px_rgba(5,3,18,0.35)] sm:p-10";
+
   return (
-    <div
-      className="relative flex min-h-[100dvh] flex-col overflow-y-auto bg-[#dcd2eb]"
-      style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
+    <AuthShell
+      headerRight={
+        <Link
+          to="/login"
+          className={`text-xs sm:text-sm font-semibold transition-colors ${
+            light ? "text-[#6d28d9] hover:text-[#5b21b6]" : "text-violet-300 hover:text-white"
+          }`}
+        >
+          Đăng nhập
+        </Link>
+      }
     >
-      <AuthPurpleBackdrop />
+      <div className={cardClass}>
+        {sent ? (
+          <div className="text-center">
+            <div
+              className={`mx-auto mb-5 flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full ${
+                light ? "bg-violet-100 text-[#7c3aed]" : "bg-violet-500/20 text-[#93f72b]"
+              }`}
+            >
+              <CheckCircle2 className="h-9 w-9" strokeWidth={2.25} />
+            </div>
 
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
-        <div className="pointer-events-none absolute inset-4 z-0 hidden md:block md:inset-6" aria-hidden>
-          {AUTH_STICKS.map((s, idx) => (
-            <SparkleGlyph
-              key={`fp-stick-${idx}`}
-              className="absolute"
-              style={{
-                left: `${s.x}%`,
-                top: `${s.y}%`,
-                width: `${s.size}px`,
-                height: `${s.size}px`,
-                filter: "drop-shadow(0 1px 2px rgba(15,23,42,0.12)) drop-shadow(0 0 8px rgba(95,0,240,0.35))",
-                transform: `translate(-50%, -50%) rotate(${idx % 2 === 0 ? 12 : -20}deg)`,
-              }}
-            />
-          ))}
-        </div>
+            <h1
+              className={`mb-2 font-black tracking-tight ${light ? "text-[#1e1338]" : "text-white"}`}
+              style={{ fontSize: "1.75rem", letterSpacing: "-0.025em" }}
+            >
+              {AUTH_COPY.forgotPasswordSentTitle}
+            </h1>
 
-        <AuthTopBar
-          right={
-            <p className="text-sm text-gray-500">
+            <p className={`mx-auto mb-3 max-w-sm text-sm leading-relaxed ${light ? "text-[#5e5875]" : "text-white/80"}`}>
+              {AUTH_COPY.forgotPasswordSentBody}
+            </p>
+
+            {email && (
+              <p
+                className={`mx-auto mb-6 inline-flex max-w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${
+                  light
+                    ? "border-violet-200 bg-violet-50 text-[#6d28d9]"
+                    : "border-white/15 bg-white/5 text-violet-300"
+                }`}
+              >
+                <Mail className="h-4 w-4 shrink-0 text-violet-500" aria-hidden />
+                <span className="truncate">{email}</span>
+              </p>
+            )}
+
+            {import.meta.env.DEV && devResetUrl ? (
+              <details
+                className={`mb-5 rounded-2xl border border-dashed px-4 py-3 text-left ${
+                  light ? "border-violet-300 bg-violet-50/50" : "border-white/20 bg-white/5"
+                }`}
+              >
+                <summary className={`cursor-pointer text-xs font-semibold ${light ? "text-violet-700" : "text-violet-300"}`}>
+                  Dev: link đặt lại (không gửi email)
+                </summary>
+                <a
+                  href={devResetUrl}
+                  className="mt-2 block break-all text-xs font-medium text-[#7c3aed] hover:underline"
+                >
+                  {devResetUrl}
+                </a>
+              </details>
+            ) : null}
+
+            <Link
+              to="/login"
+              className="flex w-full items-center justify-center rounded-full py-3.5 text-base font-bold transition-all hover:brightness-105 active:scale-[0.98]"
+              style={AUTH_CTA_STYLE}
+            >
+              Về trang đăng nhập
+            </Link>
+          </div>
+        ) : (
+          <>
+            <h1
+              className={`mb-1 font-black tracking-tight ${light ? "text-[#1e1338]" : "text-white"}`}
+              style={{ fontSize: "1.875rem", letterSpacing: "-0.025em" }}
+            >
+              Quên mật khẩu
+            </h1>
+            <p className={`mb-6 text-sm leading-relaxed ${light ? "text-[#5e5875]" : "text-white/80"}`}>
+              {AUTH_COPY.forgotPasswordSubtitle}
+            </p>
+
+            {error && (
+              <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-300/40 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" />
+                <p className="font-medium">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="fp-email"
+                  className={`mb-1.5 block text-sm font-semibold ${light ? "text-[#2b1f47]" : "text-white"}`}
+                >
+                  Email tài khoản
+                </label>
+                <input
+                  id="fp-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  placeholder="email@example.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError("");
+                  }}
+                  className={inputClass}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex w-full items-center justify-center rounded-full py-3.5 text-base font-bold transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-60"
+                style={AUTH_CTA_STYLE}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-900/30 border-t-slate-900" />
+                    Đang gửi yêu cầu...
+                  </span>
+                ) : (
+                  "Gửi link đặt lại mật khẩu"
+                )}
+              </button>
+            </form>
+
+            <p className={`mt-6 text-center text-xs sm:text-sm ${light ? "text-[#5e5875]" : "text-white/80"}`}>
               Nhớ mật khẩu?{" "}
-              <Link to="/login" className="font-semibold hover:underline" style={{ color: "#8037f4" }}>
-                Đăng nhập
+              <Link
+                to="/login"
+                className={`font-bold transition-colors ${
+                  light ? "text-[#6d28d9] hover:underline" : "text-[#93f72b] hover:underline"
+                }`}
+              >
+                Đăng nhập ngay
               </Link>
             </p>
-          }
-        />
-
-        <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-8 sm:px-10">
-          <div className="w-full max-w-md rounded-3xl border border-violet-100/80 bg-white p-8 shadow-[0_12px_40px_rgba(128,55,244,0.08)] sm:p-10">
-            {sent ? (
-              <div className="text-center">
-                <div
-                  className="mx-auto mb-5 flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full"
-                  style={{ background: "rgba(128,55,244,0.1)" }}
-                >
-                  <CheckCircle2 className="h-9 w-9" style={{ color: "#8037f4" }} strokeWidth={2.25} />
-                </div>
-
-                <h1
-                  className="mb-2 text-gray-900"
-                  style={{ fontSize: "1.75rem", fontWeight: 750, letterSpacing: "-0.025em" }}
-                >
-                  {AUTH_COPY.forgotPasswordSentTitle}
-                </h1>
-
-                <p className="mx-auto mb-1 max-w-sm text-sm leading-relaxed text-gray-600">
-                  {AUTH_COPY.forgotPasswordSentBody}
-                </p>
-
-                {email ? (
-                  <p className="mx-auto mb-6 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-violet-200/80 bg-violet-50/60 px-4 py-2 text-sm font-semibold text-violet-900">
-                    <Mail className="h-4 w-4 shrink-0 text-violet-600" aria-hidden />
-                    <span className="truncate">{email}</span>
-                  </p>
-                ) : (
-                  <div className="mb-6" />
-                )}
-
-                {import.meta.env.DEV && devResetUrl ? (
-                  <details className="mb-5 rounded-2xl border border-dashed border-violet-200/90 bg-violet-50/40 px-4 py-3 text-left">
-                    <summary className="cursor-pointer text-xs font-semibold text-violet-700">
-                      Dev, link đặt lại (không gửi email)
-                    </summary>
-                    <a
-                      href={devResetUrl}
-                      className="mt-2 block break-all text-xs font-medium text-[#8037f4] hover:underline"
-                    >
-                      {devResetUrl}
-                    </a>
-                  </details>
-                ) : null}
-
-                <Link
-                  to="/login"
-                  className={PRIMARY_BTN}
-                  style={{
-                    background: "#8037f4",
-                    boxShadow: "0 4px 20px rgba(128,55,244,0.3)",
-                  }}
-                >
-                  Về trang đăng nhập
-                </Link>
-              </div>
-            ) : (
-              <>
-                <h1
-                  className="mb-1 text-gray-900"
-                  style={{ fontSize: "1.875rem", fontWeight: 750, letterSpacing: "-0.025em" }}
-                >
-                  Quên mật khẩu
-                </h1>
-                <p className="mb-6 text-sm leading-relaxed text-gray-500">{AUTH_COPY.forgotPasswordSubtitle}</p>
-
-                {error && (
-                  <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-300/40 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" />
-                    <p className="font-medium">{error}</p>
-                  </div>
-                )}
-
-                <form onSubmit={onSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="fp-email" className="mb-1.5 block text-sm font-semibold text-gray-700">
-                      Email
-                    </label>
-                    <input
-                      id="fp-email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      className={INPUT_CLS}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="email@example.com"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={PRIMARY_BTN}
-                    style={{
-                      background: "#8037f4",
-                      boxShadow: "0 4px 20px rgba(128,55,244,0.3)",
-                    }}
-                  >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                        Đang gửi...
-                      </span>
-                    ) : (
-                      "Gửi link đặt lại"
-                    )}
-                  </button>
-
-                  <div
-                    className="flex items-start gap-2.5 rounded-2xl border px-4 py-3"
-                    style={{
-                      background: "rgba(128,55,244,0.04)",
-                      borderColor: "rgba(128,55,244,0.12)",
-                    }}
-                  >
-                    <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-violet-500" />
-                    <p className="text-xs leading-relaxed text-gray-600">
-                      Nếu bạn đăng nhập bằng Google và chưa đặt mật khẩu, dùng nút Google ở trang đăng nhập hoặc đặt
-                      mật khẩu trong{" "}
-                      <span className="font-semibold text-gray-800">Cài đặt → Bảo mật</span>.
-                    </p>
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
-    </div>
+    </AuthShell>
   );
 }
