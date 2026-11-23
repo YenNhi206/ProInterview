@@ -10,29 +10,27 @@ import { MentorPageShell } from "../../components/mentor/MentorPageShell";
  */
 function CompanyPage({ title, accent, subtitle, children }) {
   return (
-    <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent">
-      <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
-        <header className="mb-6 pt-2 sm:mb-8">
-          <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-slate-900">
-            {title} {accent ? <span className="text-[#8037f4]">{accent}</span> : null}
-          </h1>
-          {subtitle ? <p className="mt-2 max-w-xl text-sm text-slate-500">{subtitle}</p> : null}
-        </header>
-        {children}
-      </div>
-    </MentorPageShell>
+    <div>
+      <header className="mb-6 pt-2 sm:mb-8">
+        <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-white">
+          {title} {accent ? <span className="text-violet-400">{accent}</span> : null}
+        </h1>
+        {subtitle ? <p className="mt-2 max-w-xl text-sm text-slate-300">{subtitle}</p> : null}
+      </header>
+      {children}
+    </div>
   );
 }
 
 function PendingState({ icon: Icon, title, description, task }) {
   return (
-    <section className="glass-card flex flex-col items-center px-6 py-14 text-center">
-      <span className="flex size-12 items-center justify-center rounded-2xl bg-violet-50 text-[#8037f4]">
+    <section className="glass-card flex flex-col items-center px-6 py-14 text-center rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+      <span className="flex size-12 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-400">
         <Icon className="size-6" aria-hidden />
       </span>
-      <h2 className="mt-4 text-base font-bold text-slate-900">{title}</h2>
-      <p className="mt-1 max-w-md text-sm text-slate-500">{description}</p>
-      <span className="mt-4 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+      <h2 className="mt-4 text-base font-bold text-white">{title}</h2>
+      <p className="mt-1 max-w-md text-sm text-slate-300">{description}</p>
+      <span className="mt-4 rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-400">
         Đang phát triển · {task}
       </span>
     </section>

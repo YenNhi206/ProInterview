@@ -846,12 +846,21 @@
 }
 
 .mentor-workspace-brand-row .mentor-workspace-brand {
-  padding: 0;
-  flex: none;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  flex: 1 1 0% !important;
+  gap: 8px !important;
+  padding: 0 !important;
 }
 
 .mentor-workspace .mentor-workspace-brand-row .mentor-workspace-brand img {
-  width: 110px;
+  width: 104px;
+  max-width: 104px;
+  height: auto;
+  flex-shrink: 0;
+  display: block;
 }
 
 /* Nền tối của mentor là tím (admin gần đen): logo tím sẽ chìm → giữ logo trắng ở chế độ tối. */

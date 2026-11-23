@@ -15,7 +15,7 @@ export function ModeratorLayout() {
     <WorkspaceShell nav={<ModeratorWorkspaceNav />} themeable>
       <div className="mentor-role-shell min-w-0" data-mentor-content>
         <MentorPageShell bottomPad="pb-8" showAmbient={false} className="bg-transparent">
-          <div className="relative z-10 mx-auto w-full min-w-0 max-w-[1280px] px-4 pb-10 pt-2 sm:px-6 lg:px-10">
+          <div className="relative z-10 mx-auto w-full min-w-0 max-w-7xl px-4 pb-12 pt-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </MentorPageShell>

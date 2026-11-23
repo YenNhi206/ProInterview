@@ -95,13 +95,13 @@ function WorkspaceMenu({ config, onClose, active }) {
       <div>
         {/* Brand Header: Logo + Role Badge */}
         <div className="mentor-workspace-brand-row mb-2 flex items-center justify-between px-2 pt-1 pb-1">
-          <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand flex items-center justify-between w-full min-w-0">
+          <Link to={homeUrl} onClick={onClose} className="mentor-workspace-brand flex w-full min-w-0 items-center justify-between gap-2">
             <img
               src="/Logo.png"
               alt="ProInterview"
-              className="h-6.5 w-auto max-w-[108px] object-contain object-left contrast-[1.12] brightness-[0.94]"
+              className="h-6.5 w-auto max-w-[104px] shrink-0 object-contain object-left contrast-[1.12] brightness-[0.94]"
             />
-            <span className="mentor-workspace-badge shrink-0 rounded-full px-2 py-0.5 text-[8px] font-black tracking-wider shadow-[0_0_10px_rgba(139,92,246,0.25)]">
+            <span className="mentor-workspace-badge shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[8px] font-black tracking-wider shadow-[0_0_10px_rgba(139,92,246,0.25)]">
               {badgeText}
             </span>
           </Link>

@@ -177,7 +177,7 @@ export function AppLayout() {
               {showPromoBanner && <div style={{ height: PROMO_BANNER_HEIGHT }} aria-hidden />}
               <Outlet />
             </main>
-            {showSiteFooter ? <Footer /> : null}
+            {showSiteFooter ? <Footer light={light} /> : null}
           </div>
           <DiscountPromoModal
             open={promoModalOpen}
