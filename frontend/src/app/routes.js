@@ -104,10 +104,8 @@ import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
 import { CompanyDashboard } from "./pages/company/CompanyDashboard.jsx";
 import { CompanyQuestions } from "./pages/company/CompanyQuestions.jsx";
 import { CompanyRubrics } from "./pages/company/CompanyRubrics.jsx";
-import {
-  CompanyJobs,
-  CompanyApplications,
-} from "./pages/company/CompanyPages.jsx";
+import { CompanyApplications } from "./pages/company/CompanyPages.jsx";
+import { CompanyJobs } from "./pages/company/CompanyJobs.jsx";
 import { COMPANY_ROLES } from "./components/layout/CompanyWorkspaceNav.jsx";
 import { createRoleLoader } from "./utils/auth/roleLoader.js";
 

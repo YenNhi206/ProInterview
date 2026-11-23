@@ -130,19 +130,6 @@ export function CompanyRubrics() {
   );
 }
 
-export function CompanyJobs() {
-  return (
-    <CompanyPage title="Tin" accent="tuyển dụng" subtitle="Đăng và quản lý tin tuyển dụng của công ty.">
-      <PendingState
-        icon={Briefcase}
-        title="Chưa có tin tuyển dụng"
-        description="Đăng tin với năng lực yêu cầu, kỹ năng, rubric áp dụng và ngày đóng."
-        task="JB-15"
-      />
-    </CompanyPage>
-  );
-}
-
 export function CompanyApplications() {
   return (
     <CompanyPage title="Đơn" accent="ứng tuyển" subtitle="Ứng viên đã nộp đơn và đồng ý chia sẻ hồ sơ.">

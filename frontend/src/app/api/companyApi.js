@@ -95,6 +95,26 @@ export const companyApi = {
       method: "POST",
     }),
 
+  // Tin tuyển dụng (JB-01 API, JB-15 UI) — `status`: draft | published | hidden | closed.
+  listJobs: (params = {}) => authedFetch(`/api/company/jobs${toQuery(params)}`),
+  getJob: (id) => authedFetch(`/api/company/jobs/${encodeURIComponent(id)}`),
+  createJob: (data) =>
+    authedFetch("/api/company/jobs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateJob: (id, data) =>
+    authedFetch(`/api/company/jobs/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  /** `status`: "published" (đăng bản nháp) hoặc "closed" (đóng tin đang đăng / bị ẩn). */
+  changeJobStatus: (id, status) =>
+    authedFetch(`/api/company/jobs/${encodeURIComponent(id)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+
   // ── Platform Moderator: Duyệt Rubric (CO-08 & CO-15) ──
   listModeratorRubrics: (params = {}) => authedFetch(`/api/moderator/rubrics${toQuery(params)}`),
   getModeratorRubric: (id) => authedFetch(`/api/moderator/rubrics/${id}`),
