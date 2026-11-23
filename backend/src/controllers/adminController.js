@@ -21,6 +21,7 @@ import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
 import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
+import { closePrescreenItem } from "../services/coursePrescreenService.js";
 import { bookingRevenueRow, courseRevenueRow } from "../services/revenueAnalyticsService.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
@@ -1269,6 +1270,7 @@ export const AdminController = {
       course.publishedAt = new Date();
       course.adminReview = { reason: "", reviewedAt: null, reviewedBy: null, lastAction: "" };
       await course.save();
+      await closePrescreenItem(course._id, { decision: "approve", moderatorId: req.userId });
       res.json({ success: true, course: serializePendingCourseForAdmin(course) });
     } catch (error) {
       next(error);
@@ -1311,6 +1313,7 @@ export const AdminController = {
         lastAction: "reject",
       };
       await course.save();
+      await closePrescreenItem(course._id, { decision: "reject", moderatorId: req.userId, note: reason });
 
       const mentorUserId = course.mentorId?.userId?._id || course.mentorId?.userId;
       if (mentorUserId) {
@@ -1919,5 +1922,22 @@ export function serializePendingCourseForAdmin(course) {
           lastAction: doc.adminReview.lastAction || "",
         }
       : null,
+    aiPrescreen: publicPrescreen(doc.aiPrescreen),
+  };
+}
+
+/** AI-08: kết quả sàng lọc cho Platform Moderator (bỏ `contentHash` nội bộ). */
+export function publicPrescreen(p) {
+  if (!p) return null;
+  return {
+    status: p.status,
+    score: p.score ?? null,
+    summary: p.summary || "",
+    flags: p.flags ?? [],
+    target: p.target || "course",
+    model: p.model || "",
+    promptVersion: p.promptVersion || "",
+    error: p.error || "",
+    at: p.at ?? null,
   };
 }

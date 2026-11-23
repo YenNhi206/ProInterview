@@ -129,7 +129,7 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `Booking.js` | `bookings` | Đặt lịch với mentor |
 | `CVAnalysis.js` | `cv_analyses` | Phân tích CV / JD. N-11: một lần phân tích = một bản ghi, mở `processing` trước khi gọi Python rồi `completed`/`failed`; `meta.processingTimeMs` đo ở server; `quotaCharged` (Boolean) = đã trừ 1 lượt cho bản ghi này |
 | `InterviewSession.js` | `interview_sessions` | Phiên phỏng vấn AI |
-| `Course.js` | `courses` | Khóa học |
+| `Course.js` | `courses` | Khóa học. `aiPrescreen` (AI-08): kết quả AI sàng lọc lần gửi duyệt gần nhất `{status pending \| done \| failed, score 0–100, summary, flags[] {code, severity info \| warning \| critical, message, evidence, source rule \| ai}, target course \| pending_update, model, promptVersion, contentHash, error, at}`; chỉ là gợi ý cho Platform Moderator |
 | `Enrollment.js` | `enrollments` | Ghi danh; tiến độ; CK; `lessonNotes[]` ghi chú học viên theo `lessonId` |
 | `Review.js` | `reviews` | Đánh giá mentor/course |
 | `Notification.js` | `notifications` | Thông báo |

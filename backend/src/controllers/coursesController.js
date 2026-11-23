@@ -15,6 +15,7 @@ import {
   isAllowedMediaUrl,
 } from "../utils/resolveStoredUploadUrl.js";
 import * as courseMentorInsights from "../services/courseMentorInsightsService.js";
+import { schedulePrescreen } from "../services/coursePrescreenService.js";
 import * as reviewsService from "../services/reviewsService.js";
 import {
   getCourseArchiveEligibility,
@@ -278,6 +279,7 @@ export const CoursesController = {
         course.pendingUpdate = payload;
         course.status = "pending_update";
         await course.save();
+        schedulePrescreen(course._id, req.userId); // AI-08
         return res.json({
           success: true,
           course: serializeCourseForApi(course),
@@ -326,6 +328,7 @@ export const CoursesController = {
         course.pendingUpdate = pendingPayload;
         course.status = "pending_update";
         await course.save();
+        schedulePrescreen(course._id, req.userId); // AI-08
         return res.json({
           success: true,
           course,
@@ -343,6 +346,7 @@ export const CoursesController = {
       course.status = "pending_review";
       course.publishedAt = null;
       await course.save();
+      schedulePrescreen(course._id, req.userId); // AI-08
 
       return res.json({ success: true, course, message: "Đã gửi khóa học để admin duyệt." });
     } catch (error) {

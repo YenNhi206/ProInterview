@@ -482,7 +482,7 @@ ensureCollection("reports", {
 ensureCollection("moderation_items", {
   required: ["type"],
   properties: {
-    type: en("question_report", "evaluation_report", "evaluation_incomplete"),
+    type: en("question_report", "evaluation_report", "evaluation_incomplete", "course_prescreen"),
     status: en("open", "in_review", "resolved", "dismissed"),
     priority: en("low", "normal", "high"),
     priorityRank: num,
@@ -494,6 +494,12 @@ ensureCollection("moderation_items", {
   [{ type: 1, "refs.sessionId": 1, "refs.questionIndex": 1 }, {
     unique: true,
     partialFilterExpression: { type: "evaluation_incomplete" },
+  }],
+  // AI-08: 1 item course_prescreen / khóa.
+  [{ type: 1, "refs.courseId": 1 }, {
+    unique: true,
+    partialFilterExpression: { type: "course_prescreen" },
+    name: "course_prescreen_per_course",
   }],
 ]);
 
