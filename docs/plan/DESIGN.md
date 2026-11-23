@@ -107,5 +107,5 @@ Two-tier HITL trong đơn: Company Mod duyệt câu theo công ty, Platform Mod 
 | Frontend tự lưu `CVAnalysis` sau khi phân tích xong | Không ghi được `processing`, dễ tạo bản ghi trùng | N-11 |
 | `_devOnlyGuard.js` chặn chạy trên production | Seed demo không chạy được trên production | QA-05 (demo trên staging) |
 | `node --test` chỉ nhận glob từ Node 21; `render.yaml` chưa cố định Node | Test glob hỏng trên Render | N-05 |
-| User free luyện theo job tạo video D-ID riêng mỗi buổi | Tốn credit D-ID | CO-06 |
+| Câu doanh nghiệp chèn vào phỏng vấn AI (mọi gói, quyết định JB-06 ngày 23/11/2026) tạo video avatar riêng mỗi buổi | Tốn credit provider video | CO-06 (đã làm, PR #234: render trước khi câu được duyệt) |
 | Trang câu hỏi của moderator đã lọc `orgId: null` (`questionBankService.js:272`) | Tin tốt: câu công ty không lẫn vào | |
