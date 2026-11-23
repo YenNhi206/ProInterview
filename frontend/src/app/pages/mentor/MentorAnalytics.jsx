@@ -294,7 +294,7 @@ export function MentorAnalytics() {
 
   return (
     <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent text-white">
-      <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         <MentorPageHeader
           title="Phân tích &"
           highlight="thống kê"

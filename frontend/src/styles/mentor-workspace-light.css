@@ -478,34 +478,34 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
   color: var(--mw-text) !important;
 }
 
-/* ── Overrides for Admin Content (defeating admin-typography dark overrides) ── */
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] {
+/* ── Overrides for Admin & Role Content (defeating admin-typography dark overrides) ── */
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) {
   color: var(--mw-text) !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(h1, h2, h3, h4) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(h1, h2, h3, h4) {
   color: var(--mw-text) !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-zinc-900) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-zinc-900) {
   color: var(--mw-text) !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
   color: #4b4763 !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(.text-slate-500, .text-slate-400, .text-gray-500, .text-gray-400) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-500, .text-slate-400, .text-gray-500, .text-gray-400) {
   color: var(--mw-muted) !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] .glass-card,
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) .glass-card,
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
   background-color: var(--mw-surface) !important;
   border-color: var(--mw-border) !important;
   box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-amber-100"], [class*="bg-yellow-50"], [class*="bg-emerald-50"], [class*="bg-emerald-100"], [class*="bg-green-50"], [class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-orange-50"], [class*="bg-orange-100"]) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class*="bg-amber-50"], [class*="bg-amber-100"], [class*="bg-yellow-50"], [class*="bg-emerald-50"], [class*="bg-emerald-100"], [class*="bg-green-50"], [class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-orange-50"], [class*="bg-orange-100"]) {
   background-color: var(--mw-surface) !important;
   border-color: var(--mw-border) !important;
   box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
 }
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-2xl, .text-3xl, .text-4xl) {
+:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-2xl, .text-3xl, .text-4xl) {
   color: var(--mw-text) !important;
 }
 :root[data-workspace-theme="light"] .admin-shell .pi-select-trigger,

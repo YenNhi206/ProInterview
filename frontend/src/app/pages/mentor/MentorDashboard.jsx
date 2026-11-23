@@ -510,7 +510,7 @@ export function MentorDashboard() {
       <div className="pointer-events-none absolute -top-40 left-1/4 h-[500px] w-[600px] rounded-full bg-violet-600/10 blur-[140px]" />
       <div className="pointer-events-none absolute top-40 right-10 h-[400px] w-[500px] rounded-full bg-[#93f72b]/05 blur-[150px]" />
 
-      <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
 
         {/* Hero Section */}
         <motion.header

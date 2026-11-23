@@ -22,6 +22,7 @@ export function CompanyWorkspaceNav() {
     <WorkspaceNav
       homeUrl="/company/overview"
       heading="Không gian Công ty"
+      badge="COMPANY"
       label="Doanh nghiệp"
       mainNav={COMPANY_MAIN_NAV}
       secondaryNav={COMPANY_SECONDARY_NAV}
