@@ -7,6 +7,7 @@ import { before, after, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import { applyTestEnv, startMongoHarness, stopMongoHarness, mintAccessToken, startHttpServer, stopHttpServer } from "../test_helpers/mongoTestHarness.js";
+import { resetAssessmentQuota } from "../test_helpers/assessmentQuota.js";
 
 applyTestEnv();
 process.env.MAIL_USER = "";
@@ -128,6 +129,7 @@ describe("POST /api/mentorship-requests/:id/accept-assessment (LP-05)", () => {
 
   it("đang có buổi 0đ chưa diễn ra → 409; buổi trước bị hủy thì hẹn lại được; đã hoàn thành → 409", async () => {
     const request = await selectedRequest();
+    await resetAssessmentQuota(mentee._id); // LP-06: một mentee dựng nhiều buổi 0đ trong file test
     const mentor = await actor(mentors[0].user);
     const first = await service.acceptAssessment(mentor, String(request._id), slot(3));
     await assert.rejects(service.acceptAssessment(mentor, String(request._id), slot(5)), { status: 409 });
@@ -153,7 +155,10 @@ describe("Luồng đặt lịch thường từ yêu cầu với status mới (LP
   for (const status of ["assessing", "path_proposed"]) {
     it(`request ${status}: mentee vẫn đặt được booking thường, không bị 403`, async () => {
       const request = await selectedRequest();
-      if (status === "assessing") await service.acceptAssessment(await actor(mentors[0].user), String(request._id), slot(3));
+      if (status === "assessing") {
+        await resetAssessmentQuota(mentee._id); // LP-06
+        await service.acceptAssessment(await actor(mentors[0].user), String(request._id), slot(3));
+      }
       else await models.MentorshipRequest.updateOne({ _id: request._id }, { $set: { status } });
       const d = new Date(Date.now() + 14 * 86400000);
       const payload = {

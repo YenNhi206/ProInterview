@@ -128,7 +128,7 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `Mentor.js` | `mentors` | Hồ sơ mentor; `publicId` cho URL/seed |
 | `Booking.js` | `bookings` | Đặt lịch với mentor |
 | `CVAnalysis.js` | `cv_analyses` | Phân tích CV / JD |
-| `InterviewSession.js` | `interview_sessions` | Phiên phỏng vấn AI |
+| `InterviewSession.js` | `interview_sessions` | Phiên phỏng vấn AI. N-07: `in_progress` quá 24 giờ → `abandoned` + `abandonedAt` (job 20 phút), không tính vào thống kê |
 | `Course.js` | `courses` | Khóa học |
 | `Enrollment.js` | `enrollments` | Ghi danh; tiến độ; CK; `lessonNotes[]` ghi chú học viên theo `lessonId` |
 | `Review.js` | `reviews` | Đánh giá mentor/course |

@@ -6,6 +6,7 @@ import { User } from "../models/User.js";
 import { deliverNotification } from "../services/notificationDeliveryService.js";
 import { parseBookingStartMs } from "../utils/bookingSchedule.js";
 import { closeExpiredJobPosts } from "../services/jobPostsService.js";
+import { markAbandonedInterviewSessions } from "../services/interviewSessionCleanupService.js";
 
 export const STALE_GRACE_MS = 60 * 60 * 1000;
 const INTERVAL_MS = 20 * 60 * 1000;
@@ -76,6 +77,13 @@ export function startBookingStaleSweepJob() {
         if (closed) console.log(`[bookingStaleSweepJob] Đã đóng ${closed} tin tuyển dụng quá hạn.`);
       }
     } catch (error) { console.error("[bookingStaleSweepJob] job posts:", error.message); }
+    // N-07: cùng nhịp, đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24 giờ.
+    try {
+      if (mongoose.connection.readyState === 1) {
+        const { abandoned } = await markAbandonedInterviewSessions();
+        if (abandoned) console.log(`[bookingStaleSweepJob] Đã đánh dấu ${abandoned} buổi phỏng vấn AI bỏ dở.`);
+      }
+    } catch (error) { console.error("[bookingStaleSweepJob] interview sessions:", error.message); }
     if (!stopped) {
       timer = setTimeout(tick, INTERVAL_MS);
       timer.unref?.();
