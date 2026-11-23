@@ -112,7 +112,23 @@ export function emptyJobForm(roleCategory = "") {
     requiredSkills: [],
     rubricId: "",
     closesAt: "",
+    originalRoleCategory: "",
   };
+}
+
+/** Hôm nay theo giờ Việt Nam (`YYYY-MM-DD`) — `min` của ô hạn nhận hồ sơ. */
+export const todayDateInput = (now = new Date()) => isoToDateInput(now.toISOString());
+
+/**
+ * Danh sách nhóm vị trí cho ô chọn. `GET /api/role-categories` bỏ nhóm đã `deprecated`, nên tin cũ thuộc nhóm đó
+ * phải thêm lại chính giá trị hiện tại (đánh dấu `stale`) để ô chọn hiện đúng và không âm thầm đổi vị trí.
+ */
+export function roleOptionsWithCurrent(options, current, currentLabel = "") {
+  const list = [...(options || [])];
+  if (current && !list.some((o) => o.id === current)) {
+    list.unshift({ id: current, label: `${currentLabel || current} (ngừng dùng)`, stale: true });
+  }
+  return list;
 }
 
 /** Job từ API (DTO `jobPostDTO`) → state form. `null` → form trống. */
@@ -133,12 +149,17 @@ export function toJobForm(job, defaultRole = "") {
     requiredSkills: [...(job.requiredSkills || [])],
     rubricId: job.rubricId ? String(job.rubricId) : "",
     closesAt: isoToDateInput(job.closesAt),
+    // Vị trí lúc mở form: sửa tin mà không đổi vị trí thì không gửi lại (vị trí cũ có thể đã ngừng dùng → backend 400).
+    originalRoleCategory: job.roleCategory || "",
   };
 }
 
-/** State form → body `POST /api/company/jobs` / `PATCH /api/company/jobs/:id`. */
+/**
+ * State form → body `POST /api/company/jobs` / `PATCH /api/company/jobs/:id`.
+ * Sửa tin (`form.id`) mà giữ nguyên vị trí thì bỏ `roleCategory` khỏi body.
+ */
 export function toJobPayload(form) {
-  return {
+  const payload = {
     title: form.title.trim(),
     roleCategory: form.roleCategory,
     level: form.level,
@@ -154,6 +175,8 @@ export function toJobPayload(form) {
     rubricId: form.rubricId || null,
     closesAt: dateInputToIso(form.closesAt),
   };
+  if (form.id && form.originalRoleCategory && form.roleCategory === form.originalRoleCategory) delete payload.roleCategory;
+  return payload;
 }
 
 /**

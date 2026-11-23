@@ -43,6 +43,8 @@ import {
   jobPublishErrors,
   jobSaveErrors,
   levelLabel,
+  roleOptionsWithCurrent,
+  todayDateInput,
   toJobForm,
   toJobPayload,
   workModeLabel,
@@ -52,10 +54,10 @@ const STATUS_STYLE = {
   draft: "bg-slate-700/50 text-slate-300",
   published: "bg-emerald-500/10 text-emerald-400",
   hidden: "bg-rose-500/10 text-rose-400",
-  closed: "bg-slate-800 text-slate-500",
+  closed: "bg-slate-500/15 text-slate-400",
 };
 const PAGE_SIZE = 20;
-const inputCls = "rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-violet-500 focus:outline-none";
+const inputCls = "rounded-lg border border-slate-800 bg-[#120c22] px-3 py-1.5 text-xs text-white focus:border-violet-500 focus:outline-none";
 const labelCls = "block text-xs font-semibold uppercase tracking-wider text-slate-400";
 const fieldCls = `${inputCls} mt-1.5 w-full py-2 normal-case tracking-normal`;
 
@@ -161,7 +163,7 @@ export function CompanyJobs() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-3.5 backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-[#120c22]/60 p-3.5 backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Lọc theo trạng thái">
           {JOB_STATUS_TABS.map((s) => {
             const active = status === s;
@@ -172,7 +174,7 @@ export function CompanyJobs() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => changeTab(s)}
-                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${active ? "bg-violet-600 text-white" : "border border-slate-800 bg-slate-950 text-slate-400 hover:text-white"}`}
+                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${active ? "bg-violet-600 text-white" : "border border-slate-800 bg-[#0b0716] text-slate-400 hover:text-white"}`}
               >
                 {s ? JOB_STATUS[s] : "Tất cả"} <span className="ml-1 opacity-70">{n}</span>
               </button>
@@ -184,18 +186,18 @@ export function CompanyJobs() {
             value={roleFilter}
             onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
             aria-label="Lọc theo vị trí"
-            className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 focus:border-violet-500 focus:outline-none"
+            className="rounded-xl border border-slate-800 bg-[#0b0716] px-3 py-1.5 text-xs text-slate-300 focus:border-violet-500 focus:outline-none"
           >
             <option value="">Tất cả vị trí</option>
             {roles.options.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
           </select>
-          <button onClick={fetchJobs} title="Làm mới" aria-label="Làm mới" className="rounded-xl border border-slate-800 bg-slate-950 p-2 text-slate-400 transition hover:text-white">
+          <button onClick={fetchJobs} title="Làm mới" aria-label="Làm mới" className="rounded-xl border border-slate-800 bg-[#0b0716] p-2 text-slate-400 transition hover:text-white">
             <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl">
+      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-[#120c22]/60 backdrop-blur-xl">
         {loading && !jobs.length ? (
           <div className="py-12 text-center text-slate-400">
             <Loader2 className="mx-auto size-6 animate-spin text-violet-500" />
@@ -210,7 +212,7 @@ export function CompanyJobs() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-800 bg-slate-950/60 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              <thead className="border-b border-slate-800 bg-[#0b0716]/60 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 <tr>
                   <th className="min-w-[260px] px-4 py-3">Tin tuyển dụng</th>
                   <th className="px-3 py-3">Vị trí</th>
@@ -316,6 +318,9 @@ function JobEditorModal({ job, framework, defaultRole, onClose, onSaved }) {
   const blocking = isPublished ? publishBlocking : saveBlocking;
   const descLength = form.description.trim().length;
   const rubricChoices = attachableRubrics(rubrics, form.roleCategory);
+  // Tin cũ có thể thuộc nhóm vị trí đã ngừng dùng (API không trả) — vẫn hiện đúng giá trị hiện tại.
+  const roleChoices = roleOptionsWithCurrent(roles.options, form.roleCategory, job?.roleCategoryName);
+  const staleRole = roleChoices.find((r) => r.id === form.roleCategory)?.stale;
   const staleRubric = form.rubricId && !rubricChoices.some((r) => String(r._id) === form.rubricId);
 
   useEffect(() => {
@@ -365,7 +370,7 @@ function JobEditorModal({ job, framework, defaultRole, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="job-editor-title">
+      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-slate-800 bg-[#120c22] p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="job-editor-title">
         <div className="flex items-start justify-between gap-3">
           <h3 id="job-editor-title" className="flex items-center gap-2 text-lg font-bold text-white">
             <Briefcase className="size-5 text-violet-400" />
@@ -389,8 +394,13 @@ function JobEditorModal({ job, framework, defaultRole, onClose, onSaved }) {
             <label className={labelCls}>
               Nhóm vị trí *
               <select className={fieldCls} value={form.roleCategory} onChange={(e) => changeRole(e.target.value)}>
-                {roles.options.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+                {roleChoices.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
               </select>
+              {staleRole && (
+                <span className="mt-1 block normal-case tracking-normal text-[11px] font-normal text-amber-400">
+                  Vị trí này đã ngừng dùng. Tin vẫn lưu được; nếu đổi sang vị trí khác thì không chọn lại được vị trí cũ.
+                </span>
+              )}
             </label>
             <label className={labelCls}>
               Cấp độ *
@@ -463,7 +473,7 @@ function JobEditorModal({ job, framework, defaultRole, onClose, onSaved }) {
                 {form.requiredCompetencies.map((c, idx) => {
                   const stale = c.shrmKey && selectableKeys && !selectableKeys.has(c.shrmKey);
                   return (
-                    <div key={idx} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/70 p-2.5">
+                    <div key={idx} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-[#0b0716]/70 p-2.5">
                       <select className={`${inputCls} min-w-[14rem] flex-1`} aria-label={`Năng lực ${idx + 1}`} value={c.shrmKey} onChange={(e) => setCompetency(idx, { shrmKey: e.target.value })}>
                         <option value="">{framework ? "Chọn năng lực…" : "Đang tải bộ tiêu chí…"}</option>
                         {stale && <option value={c.shrmKey}>{shrmLabel(c.shrmKey, framework)} (không còn dùng)</option>}
@@ -527,7 +537,7 @@ function JobEditorModal({ job, framework, defaultRole, onClose, onSaved }) {
             </label>
             <label className={labelCls}>
               Hạn nhận hồ sơ
-              <input type="date" className={fieldCls} value={form.closesAt} onChange={(e) => set({ closesAt: e.target.value })} />
+              <input type="date" min={todayDateInput()} className={fieldCls} value={form.closesAt} onChange={(e) => set({ closesAt: e.target.value })} />
               <span className="mt-1 block normal-case tracking-normal text-[11px] font-normal text-slate-500">
                 Hết hạn lúc 23:59 ngày đã chọn, tin tự đóng. Để trống = không hạn.
               </span>
@@ -595,7 +605,7 @@ function JobDetailModal({ job, framework, onClose }) {
   ];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="job-detail-title">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-800 bg-[#120c22] p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="job-detail-title">
         <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
           <h3 id="job-detail-title" className="text-lg font-bold text-white">{job.title}</h3>
           <StatusBadge status={job.status} />
@@ -606,13 +616,13 @@ function JobDetailModal({ job, framework, onClose }) {
           </p>
         )}
         {job.status === "closed" && job.closedReason && (
-          <p className="mt-4 rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
+          <p className="mt-4 rounded-xl border border-slate-800 bg-[#0b0716]/60 p-3 text-xs text-slate-400">
             Đã đóng {job.closedReason === "expired" ? "tự động do quá hạn nhận hồ sơ" : "bởi công ty"}{job.closedAt ? ` ngày ${formatJobDate(job.closedAt)}` : ""}.
           </p>
         )}
         <dl className="mt-4 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
           {meta.map(([k, v]) => (
-            <div key={k} className="rounded-xl border border-slate-800 bg-slate-950/60 p-2.5">
+            <div key={k} className="rounded-xl border border-slate-800 bg-[#0b0716]/60 p-2.5">
               <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{k}</dt>
               <dd className="mt-0.5 text-slate-200">{v}</dd>
             </div>
@@ -636,7 +646,7 @@ function JobDetailModal({ job, framework, onClose }) {
         </div>
         <div className="mt-4">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mô tả công việc</p>
-          <p className="mt-1.5 whitespace-pre-line rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-xs leading-relaxed text-slate-300">{job.description || "Chưa có mô tả"}</p>
+          <p className="mt-1.5 whitespace-pre-line rounded-xl border border-slate-800 bg-[#0b0716]/60 p-3 text-xs leading-relaxed text-slate-300">{job.description || "Chưa có mô tả"}</p>
         </div>
         <div className="mt-6 flex justify-end border-t border-slate-800 pt-4">
           <button onClick={onClose} className="rounded-xl border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800">Đóng</button>

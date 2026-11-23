@@ -14,6 +14,8 @@ import {
   jobActions,
   jobPublishErrors,
   jobSaveErrors,
+  roleOptionsWithCurrent,
+  todayDateInput,
   toJobForm,
   toJobPayload,
 } from "./jobPostEditor.js";
@@ -150,5 +152,29 @@ describe("attachableRubrics", () => {
       { _id: "c", status: "approved", roleCategory: "frontend" },
     ];
     assert.deepEqual(attachableRubrics(rubrics, "backend").map((r) => r._id), ["a"]);
+  });
+});
+
+describe("nhóm vị trí đã ngừng dùng (tin cũ)", () => {
+  const options = [{ id: "backend", label: "Backend" }, { id: "frontend", label: "Frontend" }];
+  it("ô chọn thêm lại vị trí hiện tại kèm nhãn ngừng dùng; vị trí còn dùng thì giữ nguyên danh sách", () => {
+    const list = roleOptionsWithCurrent(options, "legacy_role", "Vị trí cũ");
+    assert.deepEqual(list[0], { id: "legacy_role", label: "Vị trí cũ (ngừng dùng)", stale: true });
+    assert.equal(list.length, 3);
+    assert.equal(roleOptionsWithCurrent(options, "backend").length, 2);
+    assert.equal(roleOptionsWithCurrent(options, "").length, 2);
+  });
+  it("sửa tin không đổi vị trí → không gửi roleCategory; đổi vị trí → gửi; tạo mới → luôn gửi", () => {
+    const form = toJobForm({ id: "j1", title: "Tin cũ", roleCategory: "legacy_role", level: "junior", description: DESC });
+    assert.equal("roleCategory" in toJobPayload(form), false);
+    assert.equal(toJobPayload({ ...form, roleCategory: "backend" }).roleCategory, "backend");
+    assert.equal(toJobPayload(emptyJobForm("backend")).roleCategory, "backend");
+  });
+});
+
+describe("todayDateInput", () => {
+  it("ngày hôm nay theo giờ VN (qua nửa đêm UTC+7 là sang ngày mới)", () => {
+    assert.equal(todayDateInput(new Date("2026-11-23T16:59:00Z")), "2026-11-23");
+    assert.equal(todayDateInput(new Date("2026-11-23T17:00:00Z")), "2026-11-24");
   });
 });
