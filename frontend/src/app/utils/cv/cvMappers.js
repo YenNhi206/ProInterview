@@ -423,6 +423,7 @@ export function buildCvAnalysisSavePayload({
   tier = "suggestions",
   planAtTime = "free",
   meta = {},
+  analysisId = null,
 }) {
   const matched = analysis.matchedKeywords || [];
   const missing = analysis.missingKeywords || [];
@@ -436,6 +437,8 @@ export function buildCvAnalysisSavePayload({
       : "";
 
   const payload = {
+    // N-11: id bản ghi server đã mở ở POST /api/cv/analyze* — lưu đè vào đó thay vì tạo bản ghi mới.
+    ...(/^[a-f0-9]{24}$/i.test(String(analysisId || "")) ? { analysisId: String(analysisId) } : {}),
     cvFileName: cvFileName || "cv.pdf",
     jdFileName: mode === "jd" ? jdFileName || "" : "",
     ...(cvFileUrl ? { cvFileUrl } : {}),

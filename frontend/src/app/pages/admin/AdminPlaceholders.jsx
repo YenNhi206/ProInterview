@@ -39,13 +39,7 @@ import {
   adminThCell,
 } from "../../components/admin/AdminPageShell.jsx";
 import { adminApi } from "../../api/adminApi.js";
-import {
-  buildSyntheticFreeSessions,
-  computeFreeInterviewTarget,
-  isInternalTestEmail,
-  resolveDisplayStatus,
-} from "../../utils/analytics/mockInterviewSessions.js";
-import { ensureMinQuotaUsage } from "../../utils/analytics/mockQuota.js";
+import { isInternalTestEmail, resolveDisplayStatus } from "../../utils/analytics/interviewSessionDisplay.js";
 import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiToast.js";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -86,16 +80,11 @@ export function AdminUserDetail() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // Có thể được UserJourneyPanel nới rộng hơn user.lastSeenAt thật (xem
-  // effectiveLastSeenAt trong ensureRichJourney) khi cửa sổ thời gian thật quá hẹp để
-  // chứa đủ phiên bù — dùng giá trị này để khối "Trực tuyến" khớp với Timeline.
-  const [displayLastSeenAt, setDisplayLastSeenAt] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       setLoading(true);
-      setDisplayLastSeenAt(null);
       const res = await tryApi(() => adminApi.getUserById(id), {
         fallback: "Không tải được người dùng.",
         silent: true,
@@ -125,21 +114,9 @@ export function AdminUserDetail() {
     if (res.success) setUser({ ...user, isActive: user.isActive === false });
   };
 
-  // Tính 1 lần duy nhất — dùng chung cho khối hiển thị quota bên dưới VÀ truyền
-  // xuống UserJourneyPanel, để số phiên phỏng vấn/CV trong Timeline khớp đúng với
-  // số quota đã dùng hiển thị ở đây (trước đây 2 chỗ bù độc lập nên bị lệch số).
-  const cvUsed = user
-    ? ensureMinQuotaUsage(user._id, user.quota?.cvAnalysisUsed ?? 0, user.quota?.cvAnalysisLimit ?? 3, user.plan, "cvAnalysis")
-    : 0;
-  const interviewUsed = user
-    ? ensureMinQuotaUsage(
-        user._id,
-        user.quota?.interviewUsed ?? 0,
-        user.quota?.interviewLimit ?? user.quota?.interviewQuestionsAllowed ?? 1,
-        user.plan,
-        "interview",
-      )
-    : 0;
+  // N-09: số lượt đã dùng lấy thẳng từ quota thật, không bù.
+  const cvUsed = user?.quota?.cvAnalysisUsed ?? 0;
+  const interviewUsed = user?.quota?.interviewUsed ?? 0;
 
   return (
     <AdminPanel title="Chi tiết người dùng" description="Thông tin tài khoản, quota và hành trình trên nền tảng.">
@@ -167,8 +144,8 @@ export function AdminUserDetail() {
                 : user.isOnline
                   ? "Đang online"
                   : `Không online · ${
-                      displayLastSeenAt || user.lastSeenAt
-                        ? new Date(displayLastSeenAt || user.lastSeenAt).toLocaleString("vi-VN")
+                      user.lastSeenAt
+                        ? new Date(user.lastSeenAt).toLocaleString("vi-VN")
                         : "chưa từng"
                     }`}
             </p>
@@ -191,16 +168,7 @@ export function AdminUserDetail() {
           className="rounded-2xl border border-slate-200 bg-white p-6"
         >
           <h3 className="mb-4 text-lg font-black text-slate-900">Hành trình người dùng</h3>
-          <UserJourneyPanel
-            userId={user._id}
-            plan={user.plan}
-            createdAt={user.createdAt}
-            planExpiresAt={user.planExpiresAt}
-            interviewUsed={interviewUsed}
-            cvUsed={cvUsed}
-            lastSeenAt={user.lastSeenAt}
-            onResolvedLastSeenAt={setDisplayLastSeenAt}
-          />
+          <UserJourneyPanel userId={user._id} />
         </motion.div>
       )}
     <AccountClosurePanel userId={id} />
@@ -1457,7 +1425,7 @@ export function AdminContentQuestions() {
 
   const loadAll = useCallback(async () => {
     setLoading(true);
-    const [statsRes, sessionsRes, usersRes] = await Promise.all([
+    const [statsRes, sessionsRes] = await Promise.all([
       tryApi(() => adminApi.getContentStats(), {
         fallback: "Không tải được thống kê nội dung.",
         silent: true,
@@ -1465,7 +1433,6 @@ export function AdminContentQuestions() {
       tryApi(() => adminApi.getRecentInterviewSessions(100), {
         fallback: "Không tải được danh sách phiên phỏng vấn.",
       }),
-      tryApi(() => adminApi.getUsers(), { fallback: "", silent: true }),
     ]);
     // Tài khoản nội bộ (admin@dev.local, mentor@dev.local...) không phải khách hàng
     // thật — loại khỏi danh sách/thống kê ở trang này. "Đang diễn ra" nhưng tạo đã
@@ -1475,46 +1442,9 @@ export function AdminContentQuestions() {
       .map((s) => ({ ...s, status: resolveDisplayStatus(s.status, s.createdAt) }));
     const content = statsRes.success ? statsRes.content || null : null;
 
-    // "Tài khoản free đã thử phỏng vấn AI" nâng lên mục tiêu hợp lý (100-150) —
-    // nếu chỉ nâng ô KPI mà không thêm dòng vào bảng bên dưới, lọc "Gói = Free" sẽ
-    // chỉ thấy đúng số dòng thật ít hơn hẳn, lệch ngay trên cùng 1 trang. Bù thêm
-    // dòng phiên gắn user FREE THẬT (từ danh sách user, chưa có phiên thật trong
-    // danh sách đang tải) để bảng khớp với KPI — chỉ hiển thị, không ghi DB.
-    const target = computeFreeInterviewTarget();
-    let mergedSessions = realSessions;
-    let freeInterviewUsers = Number(content?.freeInterviewUsers) || 0;
-    if (usersRes.success) {
-      const realFreeEmails = new Set(
-        realSessions
-          .filter((s) => String(s.plan || "free").toLowerCase() === "free")
-          .map((s) => String(s.user?.email || "").toLowerCase())
-          .filter(Boolean),
-      );
-      const candidates = (usersRes.users || []).filter(
-        (u) =>
-          u.plan === "free" &&
-          !isInternalTestEmail(u.email) &&
-          !realFreeEmails.has(String(u.email || "").toLowerCase()),
-      );
-      const needed = Math.max(0, target - freeInterviewUsers);
-      const syntheticRows = buildSyntheticFreeSessions(candidates, needed);
-      mergedSessions = [...realSessions, ...syntheticRows].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-      );
-      freeInterviewUsers = Math.max(freeInterviewUsers, realFreeEmails.size + syntheticRows.length);
-
-      // Dòng giả vừa thêm cũng phải cộng vào "Phiên phỏng vấn AI"/"Đã hoàn thành" ở
-      // trên — không thì tổng phiên (168) thấp hơn số dòng thật+giả đang hiện trong
-      // bảng bên dưới, lại lệch tiếp giữa 2 chỗ trên cùng trang.
-      if (content && syntheticRows.length > 0) {
-        const syntheticCompleted = syntheticRows.filter((r) => r.status === "completed").length;
-        content.interviewSessions = (Number(content.interviewSessions) || 0) + syntheticRows.length;
-        content.completedInterviews = (Number(content.completedInterviews) || 0) + syntheticCompleted;
-      }
-    }
-
-    if (statsRes.success) setStats(content ? { ...content, freeInterviewUsers } : null);
-    setSessions(mergedSessions);
+    // N-09: chỉ hiện phiên thật; không bù dòng phiên hay nâng KPI "Tài khoản free đã thử".
+    if (statsRes.success) setStats(content);
+    setSessions(realSessions);
     setLoading(false);
   }, []);
 

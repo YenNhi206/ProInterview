@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 
 export const MENTOR_MAIN_NAV = [
-  { title: "Bảng điều khiển", url: "/mentor/dashboard", icon: LayoutGrid },
   { title: "Nhu cầu mentee", url: "/mentor/requests", icon: ClipboardList },
   { title: "Lộ trình học", url: "/mentor/learning-paths", icon: Route },
   { title: "Lịch họp", url: "/mentor/schedule", icon: Calendar },
@@ -27,7 +26,6 @@ export const MENTOR_NAV_GROUPS = [
   {
     title: "Tổng quan",
     items: [
-      { title: "Bảng điều khiển", url: "/mentor/dashboard", icon: LayoutGrid },
       { title: "Nhu cầu mentee", url: "/mentor/requests", icon: ClipboardList },
       { title: "Lịch họp", url: "/mentor/schedule", icon: Calendar },
     ],

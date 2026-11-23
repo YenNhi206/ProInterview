@@ -1,6 +1,5 @@
 import React, { useLayoutEffect } from "react";
 import { useNavigate } from "react-router";
-import { Sun, Moon } from "lucide-react";
 import { BrandLogo } from "../brand/BrandLogo";
 import { getBrandClickPath } from "../../utils/auth/auth.js";
 import { useWorkspaceTheme } from "../../hooks/useWorkspaceTheme.js";
@@ -16,17 +15,13 @@ export function AuthShell({ children, headerRight }) {
     const root = document.documentElement;
     if (light) root.dataset.workspaceTheme = "light";
     else delete root.dataset.workspaceTheme;
-    return () => {
-      delete root.dataset.workspaceTheme;
-    };
   }, [light]);
 
   return (
     <WorkspaceThemeContext.Provider value={theme}>
       <div
-        className={`relative flex min-h-[100dvh] flex-col overflow-y-auto transition-colors duration-300 ${
-          light ? "bg-[#f8f6fc] text-[#1e1338]" : "bg-[#090414] text-white"
-        }`}
+        className={`relative flex min-h-[100dvh] flex-col overflow-y-auto transition-colors duration-300 ${light ? "bg-[#f8f6fc] text-[#1e1338]" : "bg-[#090414] text-white"
+          }`}
         style={{ fontFamily: "'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
         {/* Background layer */}
@@ -52,24 +47,11 @@ export function AuthShell({ children, headerRight }) {
               <BrandLogo size="auth" />
             </button>
 
-            <div className="flex items-center gap-3">
-              {/* Theme Toggle Button */}
-              <button
-                type="button"
-                onClick={() => theme.setMode(light ? "dark" : "light")}
-                aria-label={light ? "Chuyển sang giao diện tối" : "Chuyển sang giao diện sáng"}
-                title={light ? "Giao diện: Sáng (bấm để đổi tối)" : "Giao diện: Tối (bấm để đổi sáng)"}
-                className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
-                  light
-                    ? "border-[#ddd3f5] bg-white text-[#5b21b6] shadow-sm hover:bg-[#efe9fc]"
-                    : "border-white/10 bg-white/5 text-white/80 hover:bg-white/15 hover:text-white"
-                }`}
-              >
-                {light ? <Moon size={18} strokeWidth={2} /> : <Sun size={18} strokeWidth={2} />}
-              </button>
-
-              {headerRight}
-            </div>
+            {headerRight ? (
+              <div className="flex items-center gap-3">
+                {headerRight}
+              </div>
+            ) : null}
           </header>
 
           {/* Main content */}

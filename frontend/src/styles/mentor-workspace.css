@@ -105,28 +105,65 @@
     top: 16px;
     left: 16px;
     bottom: 22px;
-    width: 204px;
+    width: 208px;
     padding: 16px 8px;
     z-index: 30;
     border-right: 1px solid var(--mw-border);
-    overflow-y: auto;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  }
+
+  .mentor-workspace.is-sidebar-collapsed .mentor-workspace-nav {
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .mentor-workspace-main {
     margin-left: 230px;
-    padding-top: 16px;
+    padding-top: 0;
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mentor-workspace.is-sidebar-collapsed .mentor-workspace-main {
+    margin-left: 0;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.25) transparent;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.25);
+    border-radius: 4px;
+  }
+
+  .mentor-workspace-nav .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.45);
   }
 }
 
 @media(max-width:1023px) {
   .mentor-workspace-main {
-    padding-top: 72px;
+    padding-top: 0;
+  }
+  .mentor-workspace-menu-toggle {
+    display: none;
   }
 }
 
 @media(max-width:639px) {
   .mentor-workspace-main {
-    padding-top: 72px;
+    padding-top: 0;
   }
 }
 
@@ -839,9 +876,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin: 0 0 18px;
-  padding: 10px 2px 18px 8px;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 8px 4px 16px 6px;
   border-bottom: 1px solid var(--mw-border);
 }
 
@@ -851,13 +888,13 @@
   justify-content: space-between !important;
   width: 100% !important;
   flex: 1 1 0% !important;
-  gap: 8px !important;
+  gap: 6px !important;
   padding: 0 !important;
 }
 
 .mentor-workspace .mentor-workspace-brand-row .mentor-workspace-brand img {
-  width: 104px;
-  max-width: 104px;
+  width: 124px;
+  max-width: 128px;
   height: auto;
   flex-shrink: 0;
   display: block;

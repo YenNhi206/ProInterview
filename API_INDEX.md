@@ -280,8 +280,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
 | GET | `/api/cv/quota` | Bearer | Kiểm tra quota phân tích CV |
-| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python) |
-| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích |
+| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python). N-11: gửi `analysisId` (từ `/api/cv/analyze*`) thì ghi đè vào bản ghi đó → `200`, không trừ lượt nếu đã trừ; không có `analysisId` → tạo mới `201` như cũ |
+| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích (chỉ bản đã xong; bỏ `processing`/`failed`) |
 | GET | `/api/cv/analyses/:id` | Bearer | Chi tiết bản phân tích |
 | DELETE | `/api/cv/analyses/:id` | Bearer | Xóa bản phân tích |
 
@@ -293,6 +293,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/cv/analyze/full` | Khớp + chấm điểm (LLM/Ollama) |
 | POST | `/api/cv/analyze/suggestions` | Pipeline đầy đủ + gợi ý (JD) |
 | POST | `/api/cv/analyze/field` | Phân tích theo ngành (`field` form field) |
+
+**N-11:** cả 4 route nhận form field `analysisId` (tùy chọn) và luôn trả `analysisId` (kể cả khi lỗi). Server mở `CVAnalysis` `processing` trước khi gọi Python; Python 2xx → `completed` + `result.match` + trừ 1 lượt quota; lỗi → `failed` + `error`. Mỗi lần gọi ghi `meta.processingTimeMs` và log `cv_analysis_timing` (`durationMs`, `pythonMs`, `endpoint`, `httpStatus`). FE gửi lại `analysisId` khi thử bậc thấp hơn (suggestions → full → basic) và khi lưu.
 
 **FE:** `cvApi.js` (lịch sử CRUD), `CVAnalysis.jsx` (phân tích qua `/api/cv/analyze*`). **Production:** Express + Python. **Supabase Edge:** chỉ khi `VITE_SUPABASE_PROJECT_ID` — fallback tùy env, không bắt buộc.
 
@@ -579,7 +581,7 @@ Sắp có: ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
 
 **File:** `backend/src/routes/jobs.js`, `routes/roleCategories.js` · **Service:** `publicJobsService.js`, `roleCategories.js` · **Dữ liệu nhóm vị trí:** `backend/src/config/roleCategories.json` (nguồn duy nhất)
 
-Không cần đăng nhập. Job **đang mở** = `status: published`, `closesAt` null hoặc ở tương lai, công ty không `suspended`. Không bao giờ trả `draft`, `closed`, `hidden`.
+Không cần đăng nhập (trừ `/:id/gap`). Job **đang mở** = `status: published`, `closesAt` null hoặc ở tương lai, công ty không `suspended`. Không bao giờ trả `draft`, `closed`, `hidden`.
 
 **DTO công khai `job`:** `id, title, roleCategory, roleCategoryName, level, employmentType, workMode, location, salaryRange, summary (≤ 280 ký tự), description (chỉ ở chi tiết), requiredCompetencies[] { shrmKey, minLevel, name }, requiredSkills[], hasRubric, closesAt, publishedAt, company { id, name, slug, logo, industry, website, size, address }`. Không có `createdBy`, `rubricId`, nội dung rubric, `status`.
 
@@ -587,11 +589,12 @@ Không cần đăng nhập. Job **đang mở** = `status: published`, `closesAt`
 |:-------|:-----|:--------|
 | GET | `/api/jobs` | Query: `q?` (≤ 100 ký tự, tìm trong tiêu đề, kỹ năng, địa điểm, không phân biệt hoa thường), `roleCategory?`, `level?`, `employmentType?`, `workMode?`, `company?` (slug; công ty không có / bị khóa → danh sách rỗng), `page` (mặc định 1), `limit` (1–50, mặc định 12). Mới đăng trước (`publishedAt`). Trả `{ success, jobs, pagination { page, limit, total, totalPages } }`. Bộ lọc sai → 400 |
 | GET | `/api/jobs/:id` | `{ success, job }` có `description` đầy đủ. Không mở → 404; id sai → 400 |
+| GET | `/api/jobs/:id/gap` | `[AUTH][customer]` khoảng thiếu (JB-05, `jobGapService.js`, chỉ đọc). `{ success, gap: { job { id, title, company }, competencies[], skills { cv { id, title } \| null, matched[], missing[] { skill, nextStep } }, summary { competenciesMet, competenciesTotal, competenciesNoEvidence, skillsMatched, skillsTotal } } }`. Mỗi `competencies[]`: `shrmKey, name, requiredLevel, currentLevel \| null, evidenceCount, gap \| null, status met \| below \| no_evidence, severity null \| medium (thiếu 1 bậc) \| high (≥ 2 bậc) \| unknown (chưa có bằng chứng), nextStep { type ai_interview \| mentor_request, label, actionUrl } \| null`. Năng lực có `evidenceCount = 0` trong `CandidateProfile` tính là `no_evidence`, không tính level mặc định. Kỹ năng so với CV mặc định (`defaultCvId` của hồ sơ, hoặc CV `isDefault`): `skills`, `content.skills`, `content.projects[].technologies`, so sau khi bỏ dấu, hoa/thường, ký tự đặc biệt, đuôi `js`; `nextStep.type` `course` (có CV) hoặc `update_cv` (chưa có CV). Chưa đăng nhập 401, không phải ứng viên 403, job không mở 404, id sai 400 |
 | GET | `/api/role-categories` | `{ success, version, roleCategories: [{ key, nameVi, nameEn, interviewRole, suggestedCompetencies[] }] }`. `interviewRole` = key trong `ROLE_COMPETENCY_MAP` (phỏng vấn AI, JB-06); `suggestedCompetencies` = năng lực ưu tiên của vị trí (gợi ý khi soạn job). `Cache-Control: public, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). FE: `api/roleCategoriesApi.js`, hook `useRoleCategories()` |
 
 **`jobPostSummary`** (DTO `jobPost` trong yêu cầu mentor và lộ trình): `id, title, roleCategory, roleCategoryName, level, isOpen, company { name, slug } | null, requiredCompetencies[], requiredSkills[]`. Đọc cả job đã đóng (`isOpen: false`) vì job có thể đóng sau khi gửi yêu cầu.
 
-Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/apply` (JB-08). Luồng ứng viên cần job hợp lệ dùng `findPublicJob(id)` của `publicJobsService.js`.
+Sắp có trên `/api/jobs`: `/:id/apply` (JB-08). Luồng ứng viên cần job hợp lệ dùng `findPublicJob(id)` của `publicJobsService.js`.
 
 ---
 
