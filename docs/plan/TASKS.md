@@ -170,7 +170,7 @@ Lý do trừ 1: đối chiếu prompt hiện tại cho thấy AI chấm dễ hơ
 | CO-11 | A-02 | Done | FE trang nhận lời mời `/company-invite/:token` (đặt mật khẩu) | Nhi | CO-02 | Vào thẳng `/company` sau khi nhận | P0 |
 | CO-12 | NEN (CM-01) | Done | FE layout `/company` (sidebar, loader theo role), dashboard tóm tắt; thêm nhánh `company_moderator` vào `roleHomeLoader` trong `routes.js` | Văn | CO-03 | Role khác bị đẩy ra; Company Mod vào `/` được chuyển về `/company` | P0 |
 | CO-13 | CM-01 | Todo | Đã xong: FE `/company/questions` dạng bảng, nút sinh bộ câu, lọc theo vị trí, duyệt, sửa, từ chối, thêm câu. **Bổ sung 23/11/2026 (đề xuất z)**: nút tải câu lên theo job, lọc theo job, hiện trạng thái chờ Platform Mod duyệt | Văn | CO-05, CO-12 | Thao tác hàng loạt được; tải lên được bộ câu cho một job | P0 |
-| CO-14 | CM-02 | Review · Nhi · PR #211 | FE `/company/rubrics` và trình soạn rubric (tiêu chí, trọng số, chọn SHRM, mô tả từng mức, gắn câu hỏi) | Nhi | CO-07, CO-12 | Gửi duyệt được, thấy lý do bị từ chối | P0 |
+| CO-14 | CM-02 | Done | FE `/company/rubrics` và trình soạn rubric (tiêu chí, trọng số, chọn SHRM, mô tả từng mức, gắn câu hỏi) | Nhi | CO-07, CO-12 | Gửi duyệt được, thấy lý do bị từ chối | P0 |
 | CO-15 | PM-02 | Done | FE `/moderator/rubrics` dạng bảng: danh sách `pending_review`, xem chi tiết, duyệt/từ chối | Văn | CO-08 | Duyệt xong công ty thấy trạng thái mới | P0 |
 | CO-16 | CM-01 (+PM-01) | Todo | API và màn hình Platform Moderator duyệt câu doanh nghiệp: `pending_platform_review` → `approved` hoặc `rejected`, tách khỏi ngân hàng câu chung `/moderator/questions` (quyết định CO-16). Chuyển chỗ render video của CO-06 sang lúc Platform Mod duyệt. Thêm trạng thái vào `STATE_MACHINES.md` | Văn | CO-05 | Câu doanh nghiệp chỉ vào phỏng vấn sau khi Platform Mod duyệt; trang ngân hàng câu chung không lẫn câu doanh nghiệp; video chỉ render cho câu Platform Mod đã duyệt; test | P0 |
 
@@ -191,8 +191,8 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | PR-07 | C-02 (+CM-04) | Done | API `GET /api/profile/me/competencies` và DTO rút gọn dùng cho Application snapshot | Văn | PR-06 | Đúng định dạng DTO, có test | P0 |
 | PR-08 | C-04 | Todo | Trích nội dung PDF đã tải lên thành `content` JSON để mở trong editor | Janet | PR-02 | CV mẫu tách đúng các mục chính | P1 |
 | PR-09 | C-04 | Done | Xuất PDF ở backend: `POST /api/cvs/:id/export-pdf` bằng `pdfkit` + font DejaVu đang dùng cho hóa đơn (`react-pdf` chỉ xem được, không tạo được PDF) | Văn | PR-02 | PDF mở được, tiếng Việt đúng dấu, 1 mẫu chuẩn ATS | P1 |
-| PR-10 | C-02 | Review · Nhi · PR #214 | FE `/profile` viết lại: thông tin, vị trí mục tiêu, CV mặc định, thẻ năng lực "đã xác thực" bấm ra xem nguồn | Nhi | PR-01, PR-07 | Hiện đúng dữ liệu tài khoản seed | P0 |
-| PR-11 | C-02 | Review · Nhi · PR #213 | FE `/cvs`: kho CV, tải lên, nhân bản, đặt mặc định, xóa | Nhi | PR-02 | Thao tác đủ 4 việc trên UI | P0 |
+| PR-10 | C-02 | Done | FE `/profile` viết lại: thông tin, vị trí mục tiêu, CV mặc định, thẻ năng lực "đã xác thực" bấm ra xem nguồn | Nhi | PR-01, PR-07 | Hiện đúng dữ liệu tài khoản seed | P0 |
+| PR-11 | C-02 | Done | FE `/cvs`: kho CV, tải lên, nhân bản, đặt mặc định, xóa | Nhi | PR-02 | Thao tác đủ 4 việc trên UI | P0 |
 | PR-12 | C-04 | Todo | FE best-fit trong `CVAnalysisHub`: chọn nhiều CV, dán JD, xem xếp hạng và khoảng thiếu | Nhi | PR-05 | Chọn CV hợp nhất rồi sang phân tích chi tiết | P1 |
 | PR-13 | C-04 | Todo | FE CV editor `/cvs/:id/edit`: sửa theo mục, áp gợi ý AI vào bullet, lưu version, nút tải PDF gọi PR-09 | Văn | PR-09 | Sửa, lưu và tải được | P1 |
 
