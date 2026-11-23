@@ -19,6 +19,9 @@ import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { fetchMentorBookingById, updateMentorNotes } from "../../api/bookingsApi.js";
 import { avatarSrc, DEFAULT_AVATAR } from "../../utils/shared/mediaUrl.js";
 import { sessionTypeLabel } from "../../utils/booking/sessionTypeLabels.js";
+import { SessionOutcomeForm } from "../../components/learningPath/SessionOutcomeForm.jsx";
+import "../../../styles/mentorship-requests.css";
+import "../../../styles/learning-paths.css";
 
 export function MentorSessionFeedback() {
   const { sessionId } = useParams();
@@ -92,6 +95,26 @@ ${generalNotes || "Không có ghi chú thêm."}
     return (
       <MentorPageShell mentorRole>
         <div className="p-20 text-center font-semibold text-slate-400">Đang tải thông tin...</div>
+      </MentorPageShell>
+    );
+  }
+
+  // LP-21: buổi thuộc lộ trình → chấm đạt / chưa đạt + nhận xét theo LP-01 thay cho form ghi chú chung.
+  if (booking?.learningPathId) {
+    return (
+      <MentorPageShell bottomPad="pb-32" mentorRole>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 pb-10 sm:px-10">
+          <MentorPageHeader
+            backTo={`/mentor/meeting-detail/${sessionId}`}
+            backLabel="Quay lại chi tiết buổi hẹn"
+            title="Chấm buổi"
+            highlight="lộ trình"
+            subtitle="Kết quả quyết định mentee được học buổi tiếp theo hay học lại."
+          />
+          <div className="mr-page mr-page-mentor lp-page">
+            <SessionOutcomeForm booking={booking} onBookingChange={setBooking} />
+          </div>
+        </div>
       </MentorPageShell>
     );
   }

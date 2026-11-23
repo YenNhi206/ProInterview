@@ -6,7 +6,8 @@
  * - Đi lần lượt theo `order`. Với mỗi `order`, chỉ xét lần học mới nhất (`attempt` lớn nhất, bỏ buổi `cancelled`):
  *   - `done` + `passed` → sang `order` kế tiếp;
  *   - `planned` → đây là buổi mở đặt lịch (lần đầu, hoặc buổi học lại `retakeOf` do LP-13 tạo);
- *   - `scheduled`, hoặc `done` + `not_passed` mà chưa có buổi học lại → chưa mở buổi nào.
+ *   - `scheduled`, `pending_payment` (buổi bổ sung có phí chưa trả tiền, LP-13), hoặc `done` + `not_passed`
+ *     mà chưa có buổi học lại → chưa mở buổi nào.
  * - Hệ quả: mỗi lúc lộ trình có tối đa 1 buổi mở đặt lịch và 1 buổi `scheduled`; không đặt được buổi 3
  *   khi buổi 2 chưa đạt.
  *
@@ -17,6 +18,8 @@ export const LEARNING_PATH_SCHEDULE_BLOCK = Object.freeze({
   PATH_NOT_ACTIVE: "path_not_active",
   SESSION_NOT_FOUND: "session_not_found",
   SESSION_NOT_PLANNED: "session_not_planned",
+  /** LP-13: buổi bổ sung có phí chưa thanh toán thì không đặt lịch được (tránh học miễn phí). */
+  AWAITING_PAYMENT: "awaiting_payment",
   SUPERSEDED: "superseded",
   PREVIOUS_NOT_PASSED: "previous_not_passed",
   ALL_DONE: "all_done",
@@ -62,6 +65,7 @@ export function checkSessionSchedulable(path, sessions, sessionId) {
   const target = (sessions || []).find((s) => sessionKey(s) === String(sessionId));
   if (!target) return { ok: false, reason: LEARNING_PATH_SCHEDULE_BLOCK.SESSION_NOT_FOUND };
   if (path?.status !== "active") return { ok: false, reason: LEARNING_PATH_SCHEDULE_BLOCK.PATH_NOT_ACTIVE };
+  if (target.status === "pending_payment") return { ok: false, reason: LEARNING_PATH_SCHEDULE_BLOCK.AWAITING_PAYMENT };
   if (target.status !== "planned") return { ok: false, reason: LEARNING_PATH_SCHEDULE_BLOCK.SESSION_NOT_PLANNED };
 
   const latest = latestAttemptsByOrder(sessions);

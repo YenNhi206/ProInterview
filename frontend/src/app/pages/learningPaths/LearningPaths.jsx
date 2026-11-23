@@ -18,7 +18,7 @@ const date = (value) => (value ? new Date(value).toLocaleDateString("vi-VN") : "
 
 /**
  * LP-18: ứng viên xem các lộ trình mentor đã gửi cho mình (backend không trả bản nháp).
- * Chi tiết, chấp nhận / yêu cầu sửa, thanh toán và đặt lịch từng buổi ở `/learning-paths/:id` (LP-19).
+ * Bấm vào thẻ để sang `/learning-paths/:id` (LP-19): chấp nhận / yêu cầu sửa, thanh toán, đặt lịch từng buổi.
  */
 export function LearningPaths() {
   const [paths, setPaths] = useState([]);
@@ -98,8 +98,8 @@ export function LearningPaths() {
                       )}
                     </div>
                     <p className="lp-next-step">{CANDIDATE_NEXT_STEP[p.status]}</p>
-                    <Link to={`/mentor-requests/${p.mentorshipRequestId}`} className="mr-list-link">
-                      Xem yêu cầu mentor <ArrowRight size={16} />
+                    <Link to={`/learning-paths/${p.id}`} className="mr-list-link">
+                      {p.status === "proposed" ? "Xem và phản hồi lộ trình" : p.status === "pending_payment" ? "Thanh toán trọn gói" : p.status === "active" ? "Vào lộ trình, đặt lịch buổi học" : "Xem chi tiết lộ trình"} <ArrowRight size={16} />
                     </Link>
                   </article>
                 );

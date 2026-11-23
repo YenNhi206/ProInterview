@@ -358,7 +358,10 @@ Model và enum có từ LP-03. **Đã code (LP-07):** `→ draft` (`createLearni
 stateDiagram-v2
     [*] --> planned : Mentor thêm buổi vào lộ trình
     planned --> scheduled : Ứng viên đặt lịch<br/>[buổi trước passed] (tạo Booking)
-    scheduled --> done : Mentor ghi kết quả
+    scheduled --> done : Mentor ghi kết quả<br/>[booking completed]
+    [*] --> pending_payment : Mentor đề xuất buổi bổ sung có phí<br/>[buổi học lại vẫn not_passed]
+    pending_payment --> planned : Ứng viên thanh toán (chưa làm)
+    pending_payment --> cancelled : Lộ trình bị hủy
     planned --> cancelled : Lộ trình bị hủy
     scheduled --> cancelled : Lộ trình bị hủy
     done --> [*]
@@ -371,8 +374,13 @@ stateDiagram-v2
 |:-------|:---------------|:-----|
 | `planned` → `scheduled` | `POST /api/learning-paths/:id/sessions/:sid/schedule` | LP-12 |
 | `scheduled` → `planned` | Hủy / vắng mặt booking của buổi (`closeLearningPathOrAssessmentBooking`) | LP-22 |
-| `scheduled` → `done` (+ `outcome`) | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` | LP-13 |
+| `scheduled` → `done` (+ `outcome`) | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` (`recordLearningPathSessionOutcome`) | LP-13 |
+| → `planned` (buổi học lại 0đ, `attempt` 2) | Tự tạo khi lần đầu `not_passed` | LP-13 |
+| → `pending_payment` (buổi bổ sung, `attempt ≥ 3`) | `POST /api/learning-paths/:id/sessions/:sid/supplementary` (`proposeSupplementarySession`) | LP-13 |
+| `pending_payment` → `planned` | Thanh toán buổi bổ sung — chưa làm, đề xuất (s) | — |
 | → `cancelled` | Hủy lộ trình | LP-15 |
+
+**Đã code (LP-13):** mentor ghi kết quả khi booking của buổi đã `completed`; ghi có điều kiện (`status: scheduled`) nên chỉ một lần thắng. Bước kế tính bằng `resolveOutcomeNextStep` (`utils/learningPathOutcome.js`): đạt và mọi `order` có lần học mới nhất đạt → `LearningPath` `active → completed`; lần đầu chưa đạt → tạo buổi học lại 0đ ở `planned` (mở đặt lịch ngay); từ lần học lại trở đi chưa đạt → không tạo gì, mentor đề xuất buổi bổ sung có phí ở `pending_payment` (`findSchedulableSession` không mở buổi đó và chặn mọi buổi sau).
 
 **Đã code (LP-12):** `planned → scheduled` (`scheduleLearningPathSession` trong `learningPathSessionsService.js`). Buổi mở đặt lịch tính bằng `findSchedulableSession` (`utils/learningPathSchedule.js`): lộ trình `active`; đi theo `order`, mỗi `order` lấy lần học mới nhất (bỏ `cancelled`); gặp buổi `planned` đầu tiên chưa đạt thì mở buổi đó, gặp buổi `scheduled` hoặc `not_passed` thì không mở buổi nào. Nên mỗi lúc chỉ có tối đa 1 buổi `scheduled`. Giữ buổi bằng cập nhật có điều kiện (`status: planned`, `bookingId: null`) trước khi tạo Booking; tạo Booking lỗi thì trả buổi về `planned`.
 

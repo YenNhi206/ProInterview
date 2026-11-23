@@ -104,3 +104,32 @@ describe("checkSessionSchedulable", () => {
     assert.equal(checkSessionSchedulable(active, [{ id: "x", order: 1, attempt: 1, status: "planned" }], "x").ok, true);
   });
 });
+
+describe("LP-13: buổi bổ sung có phí chờ thanh toán (pending_payment)", () => {
+  const rows = [
+    failed("a1", 1),
+    failed("a2", 1, { attempt: 2, retakeOf: "a1" }),
+    s("a3", 1, "pending_payment", { attempt: 3, retakeOf: "a2", shareAmount: 250000 }),
+    s("b", 2, "planned"),
+  ];
+
+  it("không mở buổi nào: buổi bổ sung chưa trả tiền và buổi sau đều khóa", () => {
+    assert.equal(findSchedulableSession(active, rows), null);
+  });
+
+  it("đặt lịch chính buổi bổ sung → AWAITING_PAYMENT", () => {
+    assert.equal(checkSessionSchedulable(active, rows, "a3").reason, BLOCK.AWAITING_PAYMENT);
+  });
+
+  it("đặt buổi 2 → PREVIOUS_NOT_PASSED, buổi chặn là buổi bổ sung pending_payment", () => {
+    const check = checkSessionSchedulable(active, rows, "b");
+    assert.equal(check.reason, BLOCK.PREVIOUS_NOT_PASSED);
+    assert.equal(check.blockingSession._id, "a3");
+  });
+
+  it("sau khi trả tiền (planned) thì buổi bổ sung mở đặt lịch", () => {
+    const paid = rows.map((r) => (r._id === "a3" ? { ...r, status: "planned" } : r));
+    assert.equal(findSchedulableSession(active, paid)._id, "a3");
+    assert.equal(checkSessionSchedulable(active, paid, "a3").ok, true);
+  });
+});

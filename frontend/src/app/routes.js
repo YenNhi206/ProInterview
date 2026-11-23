@@ -20,6 +20,7 @@ import { InterviewTrial } from "./pages/interview/InterviewTrial";
 import { InterviewTrialDone } from "./pages/interview/InterviewTrialDone";
 import { MentorshipRequests } from "./pages/mentorship/MentorshipRequests";
 import { LearningPaths } from "./pages/learningPaths/LearningPaths";
+import { LearningPathDetail } from "./pages/learningPaths/LearningPathDetail";
 import { CvVault } from "./pages/cv/CvVault";
 import { Mentors } from "./pages/mentors/Mentors";
 import { MentorProfile } from "./pages/mentors/MentorProfile";
@@ -176,6 +177,8 @@ export const router = createBrowserRouter([
           { path: "mentor-requests/:requestId", loader: requireCustomerAuthLoader, Component: MentorshipRequests },
           // LP-18: lộ trình mentor đã gửi cho ứng viên (chi tiết /learning-paths/:id ở LP-19).
           { path: "learning-paths", loader: requireCustomerAuthLoader, Component: LearningPaths },
+          // LP-19: chi tiết lộ trình — chấp nhận / yêu cầu sửa, thanh toán, đặt lịch từng buổi, xem kết quả.
+          { path: "learning-paths/:id", loader: requireCustomerAuthLoader, Component: LearningPathDetail },
           // PR-11: kho CV (tải lên, nhân bản, đặt mặc định, xóa).
           { path: "cvs", loader: requireCustomerAuthLoader, Component: CvVault },
           { path: "my-courses", Component: MyCourses },

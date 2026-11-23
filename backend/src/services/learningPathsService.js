@@ -69,7 +69,8 @@ function assertPathId(value) {
   if (!mongoose.isValidObjectId(value)) throw httpError(400, "Mã lộ trình không hợp lệ.");
 }
 
-async function loadPathForMentor(actor, pathId) {
+/** Mentor của lộ trình (404 nếu không phải). Dùng lại ở LP-13 (`learningPathSessionsService`). */
+export async function loadPathForMentor(actor, pathId) {
   requireMentor(actor);
   assertPathId(pathId);
   const path = await LearningPath.findById(pathId).lean();
@@ -158,6 +159,18 @@ export async function learningPathDTO(pathOrId) {
         outcome: s.outcome,
         bookingId: s.bookingId ? String(s.bookingId) : "",
         retakeOf: s.retakeOf ? String(s.retakeOf) : "",
+        /** LP-13: nhận xét mentor và điểm năng lực theo LP-01 (rỗng tới khi buổi `done`). */
+        feedback: {
+          summary: s.feedback?.summary || "",
+          strengths: s.feedback?.strengths || [],
+          improvements: s.feedback?.improvements || [],
+          scores: (s.feedback?.scores || []).map((r) => ({ shrmKey: r.shrmKey, score: r.score ?? null, note: r.note || "" })),
+          frameworkVersion: s.feedback?.frameworkVersion || "",
+          suggestedOutcome: s.feedback?.suggestedOutcome ?? null,
+        },
+        doneAt: s.doneAt ?? null,
+        /** LP-13: buổi bổ sung có phí (attempt ≥ 3) — ghi chú mentor, chờ thanh toán khi `status = pending_payment`. */
+        supplementaryNote: s.supplementaryNote || "",
         /** LP-12: true ở đúng một buổi khi lộ trình `active` và mọi buổi trước đã `passed`. */
         canSchedule: String(s._id) === schedulableId,
         booking: booking

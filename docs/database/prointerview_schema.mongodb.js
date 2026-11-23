@@ -193,7 +193,7 @@ ensureCollection("learning_path_sessions", {
     title: str,
     shrmKeys: { bsonType: "array", items: str },
     shareAmount: num,
-    status: en("planned", "scheduled", "done", "cancelled"),
+    status: en("planned", "pending_payment", "scheduled", "done", "cancelled"), // pending_payment: buổi bổ sung có phí (LP-13)
     bookingId: oidOrNull,
     attempt: num,
     retakeOf: oidOrNull,
