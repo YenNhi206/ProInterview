@@ -18,6 +18,13 @@
   <script>
     // Fix ReferenceError: timer is not defined in custom.min.js
     window.timer = window.timer || null;
+    try {
+      var savedTheme = localStorage.getItem("prointerview_workspace_theme");
+      var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (savedTheme === "light" || (savedTheme === "system" && !prefersDark)) {
+        document.documentElement.dataset.workspaceTheme = "light";
+      }
+    } catch (e) {}
   </script>
 </head>
 

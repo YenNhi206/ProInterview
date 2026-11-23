@@ -717,7 +717,7 @@ export function MentorSchedule() {
                           : String(meeting.status || "").toLowerCase() === "pending"
                             ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
                             : String(meeting.status || "").toLowerCase() === "completed"
-                              ? "bg-blue-500/10 border-blue-500/30 text-blue-300"
+                              ? "bg-violet-500/10 border-violet-500/30 text-violet-300"
                               : "bg-white/5 border-white/10 text-slate-400"
                         }`}
                     >

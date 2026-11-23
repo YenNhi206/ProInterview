@@ -95,6 +95,7 @@ Khi merge xong một route: cập nhật **Phần A** trong `API_INDEX`, đổi 
 | GET | `/api/achievements`, `/api/achievements/:id` | Public — tin tức & hoạt động |
 | GET | `/api/admin/analytics/user-behavior` | `[ADMIN]` — funnel / hành vi nền tảng |
 | GET | `/api/admin/analytics/users/:id/journey` | `[ADMIN]` — hành trình từng user |
+| GET | `/api/admin/analytics/revenue` | `[ADMIN]` ✅ — doanh thu theo nguồn: booking, khóa, gói, lộ trình (N-08) |
 | PATCH | `/api/bookings/mentor/:id/check-in` | `[AUTH][MENTOR]` — webcam trước phòng họp |
 | POST | `/api/upload/achievement-image` | `[AUTH][ADMIN]` |
 
@@ -286,6 +287,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | PATCH | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` sửa khi `draft` / `published` |
 | ✅ | PATCH | `/api/company/jobs/:id/status` | `[AUTH][COMPANY_MOD]` `published` (đăng) / `closed` (đóng) |
 | ✅ | GET | `/api/jobs` · `/api/jobs/:id` | Công khai — chỉ job đang mở, lọc vị trí / cấp độ / công ty / từ khóa (JB-03) |
+| ✅ | GET | `/api/jobs/:id/gap` | `[AUTH][customer]` khoảng thiếu: hồ sơ năng lực so với `requiredCompetencies`, CV mặc định so với `requiredSkills`, kèm mức độ và gợi ý bước tiếp (JB-05) |
 | ✅ | GET | `/api/role-categories` | Công khai — danh sách nhóm vị trí dùng chung (`config/roleCategories.json`) |
 
 ### Câu hỏi công ty — AI sinh bộ câu nháp (CO-04)

@@ -149,6 +149,14 @@ export const adminApi = {
     }),
   getUserBehavior: (days = 7) =>
     authedFetch(`/api/admin/analytics/user-behavior?days=${encodeURIComponent(days)}`),
+  /** N-08: doanh thu theo nguồn. `{ days }` (1–366, mặc định 30) hoặc `{ month: "YYYY-MM" }`. */
+  getRevenueBySource: (params = {}) => {
+    const q = new URLSearchParams();
+    if (params.month) q.set("month", String(params.month));
+    else if (params.days) q.set("days", String(params.days));
+    const qs = q.toString();
+    return authedFetch(`/api/admin/analytics/revenue${qs ? `?${qs}` : ""}`);
+  },
   getUserJourney: (userId, params = {}) => {
     const q = new URLSearchParams();
     if (params.days) q.set("days", String(params.days));

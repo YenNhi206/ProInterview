@@ -280,8 +280,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
 | GET | `/api/cv/quota` | Bearer | Kiểm tra quota phân tích CV |
-| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python) |
-| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích |
+| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python). N-11: gửi `analysisId` (từ `/api/cv/analyze*`) thì ghi đè vào bản ghi đó → `200`, không trừ lượt nếu đã trừ; không có `analysisId` → tạo mới `201` như cũ |
+| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích (chỉ bản đã xong; bỏ `processing`/`failed`) |
 | GET | `/api/cv/analyses/:id` | Bearer | Chi tiết bản phân tích |
 | DELETE | `/api/cv/analyses/:id` | Bearer | Xóa bản phân tích |
 
@@ -293,6 +293,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/cv/analyze/full` | Khớp + chấm điểm (LLM/Ollama) |
 | POST | `/api/cv/analyze/suggestions` | Pipeline đầy đủ + gợi ý (JD) |
 | POST | `/api/cv/analyze/field` | Phân tích theo ngành (`field` form field) |
+
+**N-11:** cả 4 route nhận form field `analysisId` (tùy chọn) và luôn trả `analysisId` (kể cả khi lỗi). Server mở `CVAnalysis` `processing` trước khi gọi Python; Python 2xx → `completed` + `result.match` + trừ 1 lượt quota; lỗi → `failed` + `error`. Mỗi lần gọi ghi `meta.processingTimeMs` và log `cv_analysis_timing` (`durationMs`, `pythonMs`, `endpoint`, `httpStatus`). FE gửi lại `analysisId` khi thử bậc thấp hơn (suggestions → full → basic) và khi lưu.
 
 **FE:** `cvApi.js` (lịch sử CRUD), `CVAnalysis.jsx` (phân tích qua `/api/cv/analyze*`). **Production:** Express + Python. **Supabase Edge:** chỉ khi `VITE_SUPABASE_PROJECT_ID` — fallback tùy env, không bắt buộc.
 
@@ -387,6 +389,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/admin/interview-metrics` | Metric phỏng vấn AI |
 | GET | `/api/admin/analytics/user-behavior` | Hành vi nền tảng — query `?days=` (1–90, mặc định 7) → `{ behavior }` |
 | GET | `/api/admin/analytics/users/:id/journey` | Hành trình user — query `?days=`, `?limit=` → `{ journey }` |
+| GET | `/api/admin/analytics/revenue` | Doanh thu theo nguồn (N-08) — query `?days=` (1–366, mặc định 30, tính cả hôm nay) hoặc `?month=YYYY-MM` (giờ VN) → `{ revenue: { period, totals, sources[], series[] } }`. `sources[]`: `booking` (Booking `paid`/`partial_refund`, loại booking lộ trình và buổi 0đ), `course` (Enrollment `paid`, `pricePaid > 0`), `subscription` (Payment `subscription` `success`), `learning_path` (Payment `learning_path` `success`/`partial_refund`); mỗi nguồn `{ key, label, grossCollected, platformRevenue, mentorNet, count, sharePct }`, `grossCollected` đã trừ tiền hoàn; mốc thời gian `paidAt` ?? `createdAt`; bỏ Payment demo `UIMOCK-`. `series[]`: mỗi ngày `{ date, booking, course, subscription, learning_path, total }` |
 
 **Online presence:** `isOnline` = `lastSeenAt` trong cửa sổ **3 phút** (`backend/src/utils/userPresence.js`). Heartbeat FE: `POST /api/auth/presence` + `authJwt` tự touch mỗi request.
 
@@ -465,6 +468,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 |:-------|:-----|:-------------|
 | GET | `/api/admin/analytics/user-behavior` | `behavior` — funnel, top routes, recent actions |
 | GET | `/api/admin/analytics/users/:id/journey` | `journey` — timeline, `topRoutes`, `lastStop`, `lastAction` |
+| GET | `/api/admin/analytics/revenue` | `revenue` — doanh thu theo nguồn (booking, khóa, gói, lộ trình) + chuỗi theo ngày (N-08) |
 
 **FE:** `usePageAnalytics.js`, `analyticsApi.js`, `trackAction`, `AdminAnalytics.jsx`, `UserJourneyPanel.jsx`.
 
@@ -513,7 +517,7 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 | POST | `/api/mentorship-requests/:id/offers` | Mentor | Gửi đề nghị (`message`, `availability`) |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/select` | Mentee | `open → selected` |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/withdraw` | Mentor | Rút đề nghị |
-| POST | **`/api/mentorship-requests/:id/accept-assessment`** | Mentor được chọn | **LP-05.** Body `{ date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?: 30–120 (mặc định 60), note? }`. Tạo Booking `sessionType: "assessment"` (mọi field tiền 0, `paid`, `confirmed`), request `selected\|assessing → assessing`, thông báo `booking_confirmed` cho mentee. **201** `{ success, request }`. Lỗi: 400 sai định dạng / giờ đã qua; 403 không phải Mentor được chọn; 409 đang có buổi 0đ chưa diễn ra, buổi 0đ đã hoàn thành, đã `path_proposed`, trùng khung giờ của mentor, hoặc mentee đã có buổi khác chồng giờ (thông báo không lộ lịch của mentee). Hẹn lại được khi buổi trước `cancelled`/`no_show` |
+| POST | **`/api/mentorship-requests/:id/accept-assessment`** | Mentor được chọn | **LP-05.** Body `{ date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?: 30–120 (mặc định 60), note? }`. Tạo Booking `sessionType: "assessment"` (mọi field tiền 0, `paid`, `confirmed`), request `selected\|assessing → assessing`, thông báo `booking_confirmed` cho mentee. **201** `{ success, request }`. Lỗi: 400 sai định dạng / giờ đã qua; 403 không phải Mentor được chọn; 409 đang có buổi 0đ chưa diễn ra, buổi 0đ đã hoàn thành, đã `path_proposed`, trùng khung giờ của mentor, hoặc mentee đã có buổi khác chồng giờ (thông báo không lộ lịch của mentee). Hẹn lại được khi buổi trước `cancelled`/`no_show`. **LP-06 (quyết định 13):** 409 khi ứng viên (gộp mọi yêu cầu, mọi mentor) đang có 1 buổi 0đ chưa xong, hoặc đã dùng 2 buổi 0đ trong 30 ngày (tính theo lúc tạo buổi; tính buổi đang mở, `completed`, `no_show` do ứng viên; không tính `no_show` do mentor và buổi `cancelled`) — thông báo kèm ngày được hẹn lại |
 | POST | `/api/mentorship-requests/:id/close` | Mentee | `open → closed` |
 | GET | `/api/mentorship-requests/:id/files/:kind` | Mentee / Mentor được chọn | Tải CV/JD (`kind` = `cv` \| `jd`) |
 
@@ -582,7 +586,7 @@ Sắp có: ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
 
 **File:** `backend/src/routes/jobs.js`, `routes/roleCategories.js` · **Service:** `publicJobsService.js`, `roleCategories.js` · **Dữ liệu nhóm vị trí:** `backend/src/config/roleCategories.json` (nguồn duy nhất)
 
-Không cần đăng nhập. Job **đang mở** = `status: published`, `closesAt` null hoặc ở tương lai, công ty không `suspended`. Không bao giờ trả `draft`, `closed`, `hidden`.
+Không cần đăng nhập (trừ `/:id/gap`). Job **đang mở** = `status: published`, `closesAt` null hoặc ở tương lai, công ty không `suspended`. Không bao giờ trả `draft`, `closed`, `hidden`.
 
 **DTO công khai `job`:** `id, title, roleCategory, roleCategoryName, level, employmentType, workMode, location, salaryRange, summary (≤ 280 ký tự), description (chỉ ở chi tiết), requiredCompetencies[] { shrmKey, minLevel, name }, requiredSkills[], hasRubric, closesAt, publishedAt, company { id, name, slug, logo, industry, website, size, address }`. Không có `createdBy`, `rubricId`, nội dung rubric, `status`.
 
@@ -590,11 +594,12 @@ Không cần đăng nhập. Job **đang mở** = `status: published`, `closesAt`
 |:-------|:-----|:--------|
 | GET | `/api/jobs` | Query: `q?` (≤ 100 ký tự, tìm trong tiêu đề, kỹ năng, địa điểm, không phân biệt hoa thường), `roleCategory?`, `level?`, `employmentType?`, `workMode?`, `company?` (slug; công ty không có / bị khóa → danh sách rỗng), `page` (mặc định 1), `limit` (1–50, mặc định 12). Mới đăng trước (`publishedAt`). Trả `{ success, jobs, pagination { page, limit, total, totalPages } }`. Bộ lọc sai → 400 |
 | GET | `/api/jobs/:id` | `{ success, job }` có `description` đầy đủ. Không mở → 404; id sai → 400 |
+| GET | `/api/jobs/:id/gap` | `[AUTH][customer]` khoảng thiếu (JB-05, `jobGapService.js`, chỉ đọc). `{ success, gap: { job { id, title, company }, competencies[], skills { cv { id, title } \| null, matched[], missing[] { skill, nextStep } }, summary { competenciesMet, competenciesTotal, competenciesNoEvidence, skillsMatched, skillsTotal } } }`. Mỗi `competencies[]`: `shrmKey, name, requiredLevel, currentLevel \| null, evidenceCount, gap \| null, status met \| below \| no_evidence, severity null \| medium (thiếu 1 bậc) \| high (≥ 2 bậc) \| unknown (chưa có bằng chứng), nextStep { type ai_interview \| mentor_request, label, actionUrl } \| null`. Năng lực có `evidenceCount = 0` trong `CandidateProfile` tính là `no_evidence`, không tính level mặc định. Kỹ năng so với CV mặc định (`defaultCvId` của hồ sơ, hoặc CV `isDefault`): `skills`, `content.skills`, `content.projects[].technologies`, so sau khi bỏ dấu, hoa/thường, ký tự đặc biệt, đuôi `js`; `nextStep.type` `course` (có CV) hoặc `update_cv` (chưa có CV). Chưa đăng nhập 401, không phải ứng viên 403, job không mở 404, id sai 400 |
 | GET | `/api/role-categories` | `{ success, version, roleCategories: [{ key, nameVi, nameEn, interviewRole, suggestedCompetencies[] }] }`. `interviewRole` = key trong `ROLE_COMPETENCY_MAP` (phỏng vấn AI, JB-06); `suggestedCompetencies` = năng lực ưu tiên của vị trí (gợi ý khi soạn job). `Cache-Control: public, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). FE: `api/roleCategoriesApi.js`, hook `useRoleCategories()` |
 
 **`jobPostSummary`** (DTO `jobPost` trong yêu cầu mentor và lộ trình): `id, title, roleCategory, roleCategoryName, level, isOpen, company { name, slug } | null, requiredCompetencies[], requiredSkills[]`. Đọc cả job đã đóng (`isOpen: false`) vì job có thể đóng sau khi gửi yêu cầu.
 
-Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/apply` (JB-08). Luồng ứng viên cần job hợp lệ dùng `findPublicJob(id)` của `publicJobsService.js`.
+Sắp có trên `/api/jobs`: `/:id/apply` (JB-08). Luồng ứng viên cần job hợp lệ dùng `findPublicJob(id)` của `publicJobsService.js`.
 
 ---
 
@@ -928,6 +933,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | GET | `/api/admin/interview-metrics` |
 | GET | `/api/admin/analytics/user-behavior` |
 | GET | `/api/admin/analytics/users/:id/journey` |
+| GET | `/api/admin/analytics/revenue` |
 
 ### C.15. AI providers — `/api/ai`
 
@@ -951,6 +957,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | POST | `/api/analytics/events` | Bearer |
 | GET | `/api/admin/analytics/user-behavior` | Admin — `?days=` |
 | GET | `/api/admin/analytics/users/:id/journey` | Admin — `?days=`, `?limit=` |
+| GET | `/api/admin/analytics/revenue` | Admin — `?days=` hoặc `?month=YYYY-MM` |
 
 ### C.17. Achievements — `/api/achievements`
 

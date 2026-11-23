@@ -23,7 +23,6 @@ import {
 import { WorkspaceNav } from "./WorkspaceNav.jsx";
 
 export const ADMIN_MAIN_NAV = [
-  { title: "Bảng điều khiển", url: "/admin", icon: LayoutDashboard, end: true },
   { section: "Vận hành" },
   {
     title: "Lịch hẹn & thanh toán",

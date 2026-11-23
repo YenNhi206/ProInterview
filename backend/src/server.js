@@ -108,6 +108,8 @@ export async function startServer() {
         startBookingStaleSweepJob();
         const { startEarningsClearanceJob } = await import("./jobs/earningsClearanceJob.js");
         startEarningsClearanceJob();
+        const { startAiImprovementMinerJob } = await import("./jobs/aiImprovementMinerJob.js");
+        startAiImprovementMinerJob();
       }
     } else {
       console.warn("MONGO_URI is missing. Một số route sẽ trả 503 cho đến khi MongoDB được cấu hình.");

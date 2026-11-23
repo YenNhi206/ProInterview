@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { User } from "../models/User.js";
 import { Booking } from "../models/Booking.js";
-import { CVAnalysis } from "../models/CVAnalysis.js";
+import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { InterviewSession } from "../models/InterviewSession.js";
 import { Enrollment } from "../models/Enrollment.js";
 import { Activity } from "../models/Activity.js";
@@ -24,7 +24,7 @@ export async function getDashboardStats(userId) {
   if (user) user = await enforceExpiry(user);
 
   const [cvCount, interviewCompleted, completedSessions, bookingsTotal, bookingsUpcoming] = await Promise.all([
-    CVAnalysis.countDocuments({ userId: uid }),
+    CVAnalysis.countDocuments({ userId: uid, ...CV_ANALYSIS_DONE_FILTER }),
     InterviewSession.countDocuments({ userId: uid, status: "completed" }),
     InterviewSession.find({ userId: uid, status: "completed" })
       .select("feedback.overallScore")
@@ -47,7 +47,7 @@ export async function getDashboardStats(userId) {
     if (scores.length) avgInterviewScore = Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
   }
 
-  const bestCv = await CVAnalysis.findOne({ userId: uid, "result.match.score": { $exists: true } })
+  const bestCv = await CVAnalysis.findOne({ userId: uid, ...CV_ANALYSIS_DONE_FILTER, "result.match.score": { $exists: true } })
     .sort({ "result.match.score": -1 })
     .select("result.match.score")
     .lean();
@@ -89,7 +89,7 @@ async function collectLearningActiveDays(userId) {
       .select("completedAt updatedAt")
       .lean()
       .limit(400),
-    CVAnalysis.find({ userId }).select("createdAt").lean().limit(400),
+    CVAnalysis.find({ userId, ...CV_ANALYSIS_DONE_FILTER }).select("createdAt").lean().limit(400),
     Enrollment.find({ userId, lastAccessedAt: { $ne: null } })
       .select("lastAccessedAt")
       .lean()

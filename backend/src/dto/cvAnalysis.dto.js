@@ -53,6 +53,9 @@ const dimensionScoresSchema = Joi.object({
 // không phải DB format (nested match.score).
 // Controller chịu trách nhiệm transform sau khi validate.
 const saveAnalysisSchema = Joi.object({
+  // ----- N-11: id bản ghi `processing`/`completed` do POST /api/cv/analyze* tạo — ghi đè thay vì tạo mới -----
+  analysisId: Joi.string().hex().length(24).optional(),
+
   // ----- File metadata -----
   cvFileName: Joi.string().trim().min(1).max(500).required(),
   cvFileId:   Joi.string().max(200).optional(),

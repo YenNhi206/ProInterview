@@ -17,16 +17,23 @@ import {
   Quote,
   FileBadge,
   Video,
+  GraduationCap,
+  ShieldCheck,
+  Mail,
+  BookOpen,
+  GitBranch,
+  LayoutGrid,
+  Sparkles,
+  ClipboardList,
+  CheckCircle2,
+  Clock,
+  User,
+  Code,
+  Briefcase,
 } from "lucide-react";
 import { getUser, getDisplayName } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
-import {
-  MentorStatPanel,
-  MentorStatMiniGrid,
-  MentorStatFrame,
-  MentorSessionActivityBlocks,
-} from "../../components/mentor/MentorStatFrames";
 import { listMentorBookings } from "../../api/bookingsApi.js";
 import { fetchMentorDashboard } from "../../api/mentorApi.js";
 import { toastApiError } from "../../utils/shared/apiToast.js";
@@ -460,6 +467,8 @@ export function MentorDashboard() {
     };
   }, []);
 
+  const [activeTab, setActiveTab] = useState("all");
+
   if (!user || user.role !== "mentor") return null;
 
   const now = Date.now();
@@ -474,10 +483,10 @@ export function MentorDashboard() {
   const dashboardUpcoming = Array.isArray(dashboard?.upcomingBookings)
     ? dashboard.upcomingBookings.map((b) => toMentorMeeting(b, ratingMap))
     : [];
-  const upcomingMeetings = (dashboardUpcoming.length ? dashboardUpcoming : apiUpcoming).slice(0, 3);
+  const upcomingMeetings = (dashboardUpcoming.length ? dashboardUpcoming : apiUpcoming).slice(0, 5);
   const recentCompleted = mentorBookings
     .filter((m) => String(m.status || "").toLowerCase() === "completed")
-    .slice(0, 5);
+    .slice(0, 6);
   const finance = dashboard?.finance || {};
   const totalEarned = Number(finance.totalEarned || 0);
   const availableBalance = Number(finance.availableBalance || 0);
@@ -491,10 +500,6 @@ export function MentorDashboard() {
 
   const displayName = getDisplayName(user, "Mentor");
   const featuredReview = pickFeaturedTestimonial(mentorBookings);
-  const monthHint =
-    stats.thisMonthSessions > 0
-      ? `${stats.thisMonthSessions} buổi mới tháng này`
-      : "Chưa có buổi mới tháng này";
 
   const meetingDayKeys = new Set();
   mentorBookings.forEach((m) => {
@@ -504,427 +509,454 @@ export function MentorDashboard() {
 
   const upcomingCount = upcomingMeetings.length;
 
+  const tabSessions = (() => {
+    if (activeTab === "upcoming") return upcomingMeetings;
+    if (activeTab === "completed") return recentCompleted;
+    return [...upcomingMeetings, ...recentCompleted].slice(0, 7);
+  })();
+
   return (
-    <MentorPageShell bottomPad="pb-24" showAmbient={false} className="relative bg-transparent text-white overflow-hidden">
+    <MentorPageShell bottomPad="pb-24" showAmbient={false} className="relative bg-transparent text-white [html[data-workspace-theme=light]_&]:text-slate-900 overflow-hidden">
       {/* Background Lighting Depth */}
       <div className="pointer-events-none absolute -top-40 left-1/4 h-[500px] w-[600px] rounded-full bg-violet-600/10 blur-[140px]" />
       <div className="pointer-events-none absolute top-40 right-10 h-[400px] w-[500px] rounded-full bg-[#93f72b]/05 blur-[150px]" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-
-        {/* Hero Section */}
-        <motion.header
-          initial={{ opacity: 0, y: -14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 flex flex-col gap-6 pt-2 lg:flex-row lg:items-center lg:justify-between lg:gap-8"
-        >
-          <div className="lg:max-w-2xl lg:flex-1">
-            <h1 className="font-headline text-3xl font-black leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.65rem]">
-              Xin chào,{" "}
-              <span className="text-white font-black drop-shadow-sm">
-                {displayName}
-              </span>
+      {/* 1. Subheader Banner: Chào mừng (phong cách cổng thông tin tối giản chuẩn mẫu) */}
+      <div className="w-full border-b border-violet-100 bg-gradient-to-r from-violet-50/70 via-white to-violet-50/40 px-4 py-2.5 [html[data-workspace-theme=dark]_&]:border-violet-500/20 [html[data-workspace-theme=dark]_&]:bg-[#120a22]/90 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.6)]" />
+            <h1 className="font-headline text-sm font-bold tracking-tight text-slate-900 [html[data-workspace-theme=dark]_&]:text-white sm:text-base">
+              Chào mừng
             </h1>
+          </div>
+        </div>
+      </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <motion.button
-                type="button"
-                onClick={() => navigate("/mentor/schedule")}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="group inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-2.5 pl-5 pr-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_18px_rgba(124,58,237,0.45)] border border-violet-400/30 transition-all hover:from-violet-500 hover:to-indigo-500"
-              >
-                <span>Tạo lịch trống mới</span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 transition-transform group-hover:translate-x-0.5">
-                  <ArrowRight size={14} strokeWidth={2.5} />
-                </span>
-              </motion.button>
-              <button
-                type="button"
-                onClick={() => navigate("/mentor/schedule")}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-200 transition-all hover:border-white/30 hover:bg-white/10 hover:text-white"
-              >
-                <CalendarBlank size={15} strokeWidth={2} aria-hidden />
-                Xem lịch trình
-              </button>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-4 pb-12 sm:px-6 lg:px-8">
+        {/* 2. Top Bento Info Strip (Matching the Student/Mentor Portal Reference) */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.05 }}
+          className="mb-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12"
+        >
+          {/* Card 1: Highlighted Profile Card */}
+          <div className="lg:col-span-4 rounded-2xl p-4 sm:p-5 flex items-center gap-4 bg-gradient-to-r from-[#5b21b6] via-[#6d28d9] to-[#7c3aed] text-white shadow-md border border-violet-400/30 [html[data-workspace-theme=dark]_&]:from-[#240e44] [html[data-workspace-theme=dark]_&]:via-[#2f1357] [html[data-workspace-theme=dark]_&]:to-[#190a30] [html[data-workspace-theme=dark]_&]:border-violet-500/30">
+            <div className="size-13 sm:size-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/25 shadow-inner">
+              <GraduationCap size={26} className="text-[#93f72b] [html[data-workspace-theme=light]_&]:text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#93f72b]">
+                THÔNG TIN CỐ VẤN
+              </p>
+              <h2 className="text-base sm:text-lg font-bold text-white truncate mt-0.5 font-headline">
+                {displayName}
+              </h2>
+              <p className="text-xs text-violet-100/90 truncate mt-0.5 font-mono">
+                {user?.email || "Mentor ProInterview"}
+              </p>
             </div>
           </div>
-        </motion.header>
 
-        {/* Stats Grid — 3 Bento KPI Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="lg:hidden"
-        >
-          <MentorStatMiniGrid>
-            <MentorStatFrame
-              index={1}
-              compact
-              accent="purple"
-              value={String(stats.totalSessions)}
-              title="Tổng buổi mentor"
-              cornerIcon={Users}
-            />
-            <MentorStatFrame
-              index={2}
-              compact
-              accent="lime"
-              value={String(stats.upcomingMeetings)}
-              title="Lịch hẹn sắp tới"
-              cornerIcon={CalendarClock}
-            />
-            <MentorStatFrame
-              index={3}
-              compact
-              accent="purple"
-              value={formatVndCompact(stats.totalEarned)}
-              title="Tổng thu nhập"
-              cornerIcon={Landmark}
-            />
-            <MentorStatFrame
-              index={4}
-              compact
-              accent="lime"
-              value={formatVnd(stats.availableBalance)}
-              title="Khả dụng rút"
-              cornerIcon={Wallet}
-            />
-          </MentorStatMiniGrid>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="hidden lg:block"
-        >
-          <MentorStatPanel>
-            <MentorStatFrame
-              index={1}
-              accent="purple"
-              value={String(stats.totalSessions)}
-              title="Tổng buổi mentor"
-              subtitle={monthHint}
-              cornerIcon={Users}
-              footer={
-                <MentorSessionActivityBlocks
-                  activeCount={stats.thisMonthSessions > 0 ? Math.min(5, stats.thisMonthSessions) : 0}
-                />
-              }
-            />
-            <MentorStatFrame
-              index={2}
-              accent="lime"
-              value={String(stats.upcomingMeetings)}
-              title="Lịch hẹn sắp tới"
-              subtitle="Trong 7 ngày tới"
-              cornerIcon={CalendarClock}
-            />
-            <MentorStatFrame
-              index={3}
-              accent="purple"
-              value={formatVndCompact(stats.totalEarned)}
-              title="Tổng thu nhập"
-              subtitle={`Khả dụng để rút: ${formatVnd(stats.availableBalance)}`}
-              cornerIcon={Landmark}
-            />
-          </MentorStatPanel>
-        </motion.div>
-
-        {/* Testimonial / Feedback highlight Ribbon */}
-        {featuredReview?.quote && (
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="mentor-quote-card mb-8 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-violet-950/40 via-[#160f26]/85 to-[#120a20]/85 p-5 sm:px-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl"
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/20 text-[#93f72b] border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.2)]">
-                <Quote size={18} fill="currentColor" strokeWidth={0} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-normal leading-relaxed text-slate-200 sm:text-[15px] italic">
-                  &ldquo;{featuredReview.quote}&rdquo;
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-                  <span className="font-bold text-white">{featuredReview.author}</span>
-                  <span className="text-slate-600">•</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-bold text-amber-300">
-                    ★ {featuredReview.rating} / 5.0
-                  </span>
-                  <span className="text-slate-400">Nhận xét học viên thực tế</span>
-                </div>
-              </div>
+          {/* Card 2: Trạng thái */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-[#160f26]/80 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-4 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+              <ShieldCheck size={14} className="text-emerald-500" />
+              <span>Trạng thái</span>
             </div>
-          </motion.div>
-        )}
+            <p className="text-sm font-black text-white [html[data-workspace-theme=light]_&]:text-slate-900 mt-2 flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Sẵn sàng nhận lịch</span>
+            </p>
+          </div>
 
-        {/* Main Bento Grid */}
-        <motion.div
-          variants={dashboardStagger}
-          initial="hidden"
-          animate="visible"
-          className="grid gap-6 lg:grid-cols-12 lg:items-start"
-        >
-          {/* Left Column (8 cols): Calendar & Schedule */}
+          {/* Card 3: Lĩnh vực / Chuyên môn */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-[#160f26]/80 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-violet-100 [html[data-workspace-theme=light]_&]:shadow-sm p-4 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+              <Code size={14} className="text-violet-500" />
+              <span>Lĩnh vực</span>
+            </div>
+            <p className="text-sm font-bold text-violet-400 [html[data-workspace-theme=light]_&]:text-violet-700 truncate mt-2">
+              IT &amp; Phỏng vấn AI
+            </p>
+          </div>
+
+          {/* Card 4: Tổng buổi mentor */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-[#160f26]/80 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-4 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+              <CalendarClock size={14} className="text-amber-500" />
+              <span>Buổi đã mentor</span>
+            </div>
+            <p className="text-sm font-black text-white [html[data-workspace-theme=light]_&]:text-slate-900 mt-2">
+              {stats.totalSessions} <span className="text-xs font-normal text-slate-400">buổi</span>
+            </p>
+          </div>
+
+          {/* Card 5: Số dư khả dụng */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-[#160f26]/80 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-4 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+              <Wallet size={14} className="text-emerald-500" />
+              <span>Khả dụng rút</span>
+            </div>
+            <p className="text-sm font-black text-[#93f72b] [html[data-workspace-theme=light]_&]:text-emerald-700 mt-2 truncate">
+              {formatVnd(stats.availableBalance)}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* 3. Main 2-Column Body (Left: News & Schedules, Right: Menu Nhanh) */}
+        <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
+          
+          {/* Left Column (8 cols): Lịch & Hoạt động gần đây */}
           <div className="space-y-6 lg:col-span-8">
+            
+            {/* Card: Lịch phỏng vấn & Hoạt động mới nhất (Kiểu "Tin tức mới nhất") */}
             <motion.div
               variants={dashboardFadeUp}
-              className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#160f26]/90 to-[#10091e]/90 shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl"
+              initial="hidden"
+              animate="visible"
+              className="rounded-2xl border border-white/10 bg-[#160f26]/85 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-5 sm:p-6"
             >
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/[0.02] px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-6 items-center justify-center rounded-full bg-[#93f72b] px-2.5 text-xs font-bold text-slate-950 shadow-[0_0_12px_rgba(147,247,43,0.4)]">
-                    {padStat(upcomingCount)}
-                  </span>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-white">
-                    Lịch phỏng vấn sắp tới
-                  </h2>
+              {/* Header */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-100 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-lg bg-violet-500/15 [html[data-workspace-theme=light]_&]:bg-violet-50 text-violet-600 [html[data-workspace-theme=dark]_&]:text-violet-400 flex items-center justify-center">
+                    <CalendarClock size={16} />
+                  </div>
+                  <div>
+                    <h2 className="text-sm sm:text-base font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900 font-headline">
+                      Lịch phỏng vấn &amp; Hoạt động gần đây
+                    </h2>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/mentor/schedule")}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b] transition hover:underline self-start sm:self-auto"
+                >
+                  <span>Xem tất cả</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+
+              {/* Filter Pills */}
+              <div className="flex items-center gap-2 mt-4 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("all")}
+                  className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
+                    activeTab === "all"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
+                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-violet-50 [html[data-workspace-theme=light]_&]:hover:text-violet-700"
+                  }`}
+                >
+                  Tất cả
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("upcoming")}
+                  className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
+                    activeTab === "upcoming"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
+                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-violet-50 [html[data-workspace-theme=light]_&]:hover:text-violet-700"
+                  }`}
+                >
+                  Lịch sắp tới ({upcomingCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("completed")}
+                  className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
+                    activeTab === "completed"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950"
+                      : "bg-white/5 text-slate-400 hover:text-white [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-violet-50 [html[data-workspace-theme=light]_&]:hover:text-violet-700"
+                  }`}
+                >
+                  Đã hoàn thành ({recentCompleted.length})
+                </button>
+              </div>
+
+              {/* Items List */}
+              <div className="mt-4 divide-y divide-white/5 [html[data-workspace-theme=light]_&]:divide-slate-100">
+                {tabSessions.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <p className="text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">
+                      Không có hoạt động nào trong mục này.
+                    </p>
+                  </div>
+                ) : (
+                  tabSessions.map((meeting) => (
+                    <div
+                      key={meeting.id}
+                      onClick={() => {
+                        if (String(meeting.status || "").toLowerCase() === "completed") {
+                          setSelectedMeeting(meeting);
+                        } else {
+                          navigate(`/mentor/meeting-detail/${meeting.id}`);
+                        }
+                      }}
+                      className="group flex cursor-pointer items-center justify-between gap-3 py-3 px-2 rounded-xl transition hover:bg-white/5 [html[data-workspace-theme=light]_&]:hover:bg-slate-50"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-9 rounded-xl bg-violet-500/15 text-violet-400 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-violet-600 flex items-center justify-center shrink-0">
+                          <BookOpen size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-semibold text-white [html[data-workspace-theme=light]_&]:text-slate-900 group-hover:text-violet-600 [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors truncate">
+                            {meeting.mentee?.name ? `[${meeting.sessionTypeLabel || "Tư vấn"}] Phỏng vấn cùng ${meeting.mentee.name}` : meeting.sessionTypeLabel || "Buổi phỏng vấn 1:1"}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock size={11} />
+                              {meeting.scheduledTime} - {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
+                            </span>
+                            <span>•</span>
+                            <span className="truncate">{meeting.position || "Candidate"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-[10px] font-bold rounded-full px-2.5 py-0.5 ${
+                          String(meeting.status).toLowerCase() === "completed"
+                            ? "bg-emerald-500/15 text-emerald-400 [html[data-workspace-theme=light]_&]:bg-emerald-50 [html[data-workspace-theme=light]_&]:text-emerald-700"
+                            : "bg-violet-500/15 text-violet-400 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-violet-700"
+                        }`}>
+                          {String(meeting.status).toLowerCase() === "completed" ? "Hoàn thành" : "Đã xác nhận"}
+                        </span>
+                        <ChevronRight size={14} className="text-slate-400 group-hover:translate-x-0.5 transition" />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+
+            {/* Card: Lịch trình tháng (Mini Calendar) */}
+            <motion.div
+              variants={dashboardFadeUp}
+              initial="hidden"
+              animate="visible"
+              className="rounded-2xl border border-white/10 bg-[#160f26]/85 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-5 sm:p-6"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-100 pb-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="size-8 rounded-lg bg-emerald-500/15 [html[data-workspace-theme=light]_&]:bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                    <CalendarBlank size={16} />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900 font-headline">
+                    Lịch tháng &amp; Khung giờ
+                  </h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => navigate("/mentor/schedule")}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 transition hover:text-[#93f72b]"
+                  className="text-xs font-semibold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b] hover:underline"
                 >
-                  Toàn bộ lịch trình
-                  <span aria-hidden="true">→</span>
+                  Mở trang lịch đầy đủ →
                 </button>
               </div>
 
-              <div className="flex flex-col gap-6 p-6 sm:p-7 lg:flex-row lg:gap-0">
+              <div className="flex flex-col lg:flex-row gap-6 items-start">
                 <MentorMiniCalendar
                   highlightedDays={meetingDayKeys}
                   viewDate={calendarView}
                   onViewDateChange={setCalendarView}
                 />
-
-                {upcomingMeetings.length === 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.4 }}
-                    className="flex min-h-[220px] flex-1 flex-col items-center justify-center p-6 text-center lg:pl-8"
-                  >
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-[#93f72b]">
-                      <CalendarClock size={26} strokeWidth={1.8} />
-                    </div>
-                    <p className="mt-4 text-sm font-bold text-white">
-                      Chưa có buổi phỏng vấn nào được lên lịch
-                    </p>
-                    <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-slate-400">
-                      Hãy mở các khung giờ rảnh để mentee có thể nhanh chóng đặt lịch tư vấn 1:1 cùng bạn.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => navigate("/mentor/schedule")}
-                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-[0_4px_18px_rgba(124,58,237,0.45)] border border-violet-400/30 transition-all hover:from-violet-500 hover:to-indigo-500"
-                    >
-                      Tạo lịch mới ngay →
-                    </button>
-                  </motion.div>
-                ) : (
-                  <div className="min-w-0 flex-1 space-y-3 lg:pl-8">
-                    {upcomingMeetings.map((meeting, idx) => (
-                      <motion.div
-                        key={meeting.id}
-                        custom={idx}
-                        variants={meetingRowFade}
-                        initial="hidden"
-                        animate="visible"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => navigate(`/mentor/meeting-detail/${meeting.id}`)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") navigate(`/mentor/meeting-detail/${meeting.id}`);
-                        }}
-                        className="group flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-3.5 transition-all duration-200 hover:border-[#93f72b]/30 hover:bg-white/[0.06]"
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 mb-2">
+                    Lịch hẹn 7 ngày tới ({upcomingCount})
+                  </p>
+                  {upcomingMeetings.length === 0 ? (
+                    <div className="py-6 text-center border border-dashed border-white/10 [html[data-workspace-theme=light]_&]:border-slate-200 rounded-xl">
+                      <p className="text-xs text-slate-400">Không có lịch hẹn nào trong 7 ngày tới</p>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/mentor/schedule")}
+                        className="mt-2 text-xs font-bold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b] hover:underline"
                       >
-                        <div className="flex min-w-0 items-center gap-3">
-                          <img
-                            src={meeting.mentee.avatar}
-                            alt=""
-                            className="h-10 w-10 shrink-0 rounded-xl object-cover border border-white/15"
-                          />
+                        + Tạo khung giờ trống ngay
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {upcomingMeetings.slice(0, 3).map((m) => (
+                        <div
+                          key={m.id}
+                          onClick={() => navigate(`/mentor/meeting-detail/${m.id}`)}
+                          className="flex items-center justify-between p-3 rounded-xl border border-white/10 bg-white/[0.02] [html[data-workspace-theme=light]_&]:bg-slate-50 [html[data-workspace-theme=light]_&]:border-slate-200 cursor-pointer hover:border-violet-500/40 transition"
+                        >
                           <div className="min-w-0">
-                            <p className="truncate text-xs font-bold text-white group-hover:text-[#93f72b] transition-colors">{meeting.mentee.name}</p>
-                            <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                              {meeting.sessionTypeLabel || meeting.position}
-                            </p>
+                            <p className="text-xs font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900 truncate">{m.mentee?.name}</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">{m.scheduledTime} - {m.scheduledDate}</p>
                           </div>
+                          <span className="text-xs font-bold text-violet-600 [html[data-workspace-theme=dark]_&]:text-[#93f72b]">Vào phòng →</span>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-xs font-bold text-white">{meeting.scheduledTime}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
-                            {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
 
-            {/* Quick Action Bento Cards */}
-            <motion.div variants={dashboardFadeUp} className="grid gap-4 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => navigate("/mentor/schedule")}
-                className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-[#160f26]/85 p-5 text-left transition-all duration-300 hover:border-[#93f72b]/40 hover:bg-[#160f26] shadow-lg"
+            {/* Testimonial Ribbon */}
+            {featuredReview?.quote && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-r from-violet-950/40 via-[#160f26]/85 to-[#120a20]/85 [html[data-workspace-theme=light]_&]:bg-gradient-to-r [html[data-workspace-theme=light]_&]:from-violet-50 [html[data-workspace-theme=light]_&]:via-white [html[data-workspace-theme=light]_&]:to-violet-50/50 [html[data-workspace-theme=light]_&]:border-violet-200 p-5"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#93f72b]/30 bg-[#93f72b]/10 text-[#93f72b] transition-transform group-hover:scale-105">
-                  <CalendarBlank size={20} />
+                <div className="flex items-start gap-3">
+                  <div className="size-9 rounded-xl bg-violet-500/20 text-[#93f72b] [html[data-workspace-theme=light]_&]:text-violet-600 flex items-center justify-center shrink-0">
+                    <Quote size={16} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm italic text-slate-200 [html[data-workspace-theme=light]_&]:text-slate-700 leading-relaxed">
+                      &ldquo;{featuredReview.quote}&rdquo;
+                    </p>
+                    <div className="mt-2 flex items-center gap-2 text-xs">
+                      <span className="font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900">{featuredReview.author}</span>
+                      <span className="text-slate-500">•</span>
+                      <span className="text-amber-400 font-bold">★ {featuredReview.rating} / 5.0</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-white group-hover:text-[#93f72b] transition-colors">Lịch trình & Khung giờ</p>
-                  <p className="mt-0.5 text-xs text-slate-400">Điều phối phòng họp và khung giờ rảnh</p>
-                </div>
-                <ChevronRight size={16} className="shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-white" />
-              </button>
+              </motion.div>
+            )}
 
-              <button
-                type="button"
-                onClick={() => navigate("/mentor/courses")}
-                className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-[#160f26]/85 p-5 text-left transition-all duration-300 hover:border-violet-500/40 hover:bg-[#160f26] shadow-lg"
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-500/10 text-violet-300 transition-transform group-hover:scale-105">
-                  <Video size={20} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-white group-hover:text-violet-300 transition-colors">Studio Khóa học & Video</p>
-                  <p className="mt-0.5 text-xs text-slate-400">Soạn bài giảng, đăng tải video mới</p>
-                </div>
-                <ChevronRight size={16} className="shrink-0 text-slate-500 transition group-hover:translate-x-1 group-hover:text-white" />
-              </button>
-            </motion.div>
           </div>
 
-          {/* Right Column (4 cols): Wallet & Recent Activities */}
+          {/* Right Column (4 cols): Menu Nhanh (Matching FPT Portal Reference) */}
           <div className="space-y-6 lg:col-span-4">
-            {/* Total Earnings Wallet */}
+            
+            {/* Card: Menu Nhanh */}
             <motion.div
               variants={dashboardFadeUp}
-              className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#10081d]/95 p-6 shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl"
+              initial="hidden"
+              animate="visible"
+              className="rounded-2xl border border-white/10 bg-[#160f26]/85 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-5 sm:p-6"
             >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#93f72b]/30 to-transparent" />
-              
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Ví hoa hồng
+              {/* Header: Menu Nhanh */}
+              <div className="flex items-center gap-3 border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-100 pb-4">
+                <div className="size-10 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 flex items-center justify-center shrink-0 shadow-sm">
+                  <LayoutGrid size={20} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900 font-headline">
+                    Menu nhanh
+                  </h3>
+                  <p className="text-[11px] text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">
+                    Truy cập nhanh các chức năng thường dùng
+                  </p>
+                </div>
+              </div>
+
+              {/* Group 1: Tác vụ cố vấn */}
+              <div className="mt-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-400 px-2 mb-1.5 flex items-center gap-1.5">
+                  <span className="size-1 rounded-full bg-violet-600 [html[data-workspace-theme=dark]_&]:bg-[#93f72b]" />
+                  <span>HỌC TẬP &amp; PHÒNG HỌP</span>
                 </p>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/15 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
+                <div className="space-y-0.5">
+                  {[
+                    { label: "Lịch trình & Khung giờ rảnh", path: "/mentor/schedule", icon: CalendarBlank },
+                    { label: "Nhu cầu mentee mới", path: "/mentor/requests", icon: ClipboardList },
+                    { label: "Lộ trình học viên", path: "/mentor/learning-paths", icon: GitBranch },
+                    { label: "Studio Khóa học & Video", path: "/mentor/courses", icon: BookOpen },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => navigate(item.path)}
+                        className="group flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700 hover:bg-white/5 [html[data-workspace-theme=light]_&]:hover:bg-violet-50/70 [html[data-workspace-theme=light]_&]:hover:text-violet-700 transition-all"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="size-7 rounded-lg bg-white/5 [html[data-workspace-theme=light]_&]:bg-slate-100 flex items-center justify-center text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-600 group-hover:text-violet-600 [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors">
+                            <Icon size={14} />
+                          </div>
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        <ChevronRight size={13} className="text-slate-500 group-hover:translate-x-0.5 transition-transform" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Group 2: Tài chính & Uy tín */}
+              <div className="mt-4 pt-3 border-t border-white/5 [html[data-workspace-theme=light]_&]:border-slate-100">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-400 px-2 mb-1.5 flex items-center gap-1.5">
+                  <span className="size-1 rounded-full bg-emerald-500" />
+                  <span>TÀI CHÍNH &amp; UY TÍN</span>
+                </p>
+                <div className="space-y-0.5">
+                  {[
+                    { label: "Ví hoa hồng & Rút tiền", path: "/mentor/finance", icon: Wallet },
+                    { label: "Đánh giá & Báo cáo", path: "/mentor/reviews", icon: Star },
+                    { label: "Đánh giá chéo bài giảng", path: "/mentor/peer-review", icon: FileBadge },
+                    { label: "Hồ sơ cố vấn công khai", path: "/profile", icon: User },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => navigate(item.path)}
+                        className="group flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700 hover:bg-white/5 [html[data-workspace-theme=light]_&]:hover:bg-violet-50/70 [html[data-workspace-theme=light]_&]:hover:text-violet-700 transition-all"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="size-7 rounded-lg bg-white/5 [html[data-workspace-theme=light]_&]:bg-slate-100 flex items-center justify-center text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-600 group-hover:text-violet-600 [html[data-workspace-theme=dark]_&]:group-hover:text-[#93f72b] transition-colors">
+                            <Icon size={14} />
+                          </div>
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        <ChevronRight size={13} className="text-slate-500 group-hover:translate-x-0.5 transition-transform" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Card: Ví hoa hồng cố vấn */}
+            <motion.div
+              variants={dashboardFadeUp}
+              initial="hidden"
+              animate="visible"
+              className="rounded-2xl border border-white/10 bg-[#160f26]/85 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#e5dfef] [html[data-workspace-theme=light]_&]:shadow-sm p-5 sm:p-6"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">
+                  Ví hoa hồng
+                </span>
+                <span className="size-8 rounded-lg bg-emerald-500/15 text-emerald-400 [html[data-workspace-theme=light]_&]:bg-emerald-50 [html[data-workspace-theme=light]_&]:text-emerald-600 flex items-center justify-center">
                   <Landmark size={15} />
                 </span>
               </div>
-              <p className="mt-4 text-3xl font-black tracking-tight text-white">
+              <p className="mt-3 text-2xl sm:text-3xl font-black text-white [html[data-workspace-theme=light]_&]:text-slate-900 font-headline">
                 <MentorMoneyText amount={stats.totalEarned} />
               </p>
-              <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5">
-                <span className="text-xs text-slate-400 font-medium">Khả dụng để rút:</span>
-                <MentorMoneyText amount={stats.availableBalance} className="text-xs font-bold text-[#93f72b]" />
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/10 [html[data-workspace-theme=light]_&]:bg-slate-50 [html[data-workspace-theme=light]_&]:border-slate-200 px-3 py-2 text-xs">
+                <span className="text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">Khả dụng:</span>
+                <MentorMoneyText amount={stats.availableBalance} className="font-bold text-[#93f72b] [html[data-workspace-theme=light]_&]:text-emerald-600" />
               </div>
-              <motion.button
-                type="button"
-                onClick={() => navigate("/mentor/finance")}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#93f72b] px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.3)] transition hover:bg-[#a8ff4e]"
-              >
-                <Wallet size={15} />
-                <span>Rút tiền về tài khoản</span>
-              </motion.button>
-            </motion.div>
-
-            {/* Recent Completed Sessions */}
-            <motion.div
-              variants={dashboardFadeUp}
-              className="rounded-2xl border border-white/10 bg-[#160f26]/85 backdrop-blur-xl p-6 shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-            >
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Hoàn thành gần đây
-              </h3>
-              {recentCompleted.length === 0 ? (
-                <p className="mt-4 text-xs text-slate-400">Chưa có buổi phỏng vấn nào hoàn thành gần đây</p>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  {recentCompleted.map((meeting, idx) => (
-                    <motion.div
-                      key={meeting.id}
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.15 + idx * 0.05, duration: 0.35 }}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedMeeting(meeting)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") setSelectedMeeting(meeting);
-                      }}
-                      className="group flex cursor-pointer items-center gap-3 rounded-xl p-2.5 transition-all duration-200 hover:bg-white/5"
-                    >
-                      <img
-                        src={meeting.mentee.avatar}
-                        alt=""
-                        className="h-9 w-9 rounded-xl object-cover border border-white/10"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-bold text-white group-hover:text-[#93f72b] transition-colors">{meeting.mentee.name}</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1 text-[#93f72b]">
-                        <Star size={12} className="fill-current" />
-                        <span className="text-xs font-bold">
-                          {meeting.overallScore > 0 ? meeting.overallScore.toFixed(1) : "—"}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
               <button
                 type="button"
-                onClick={() => navigate("/mentor/analytics")}
-                className="mt-5 text-xs font-bold uppercase tracking-wider text-slate-400 transition hover:text-[#93f72b]"
+                onClick={() => navigate("/mentor/finance")}
+                className="mt-4 w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-md shadow-violet-600/30 border border-violet-400/30 [html[data-workspace-theme=dark]_&]:bg-[#93f72b] [html[data-workspace-theme=dark]_&]:text-slate-950 [html[data-workspace-theme=dark]_&]:border-transparent [html[data-workspace-theme=dark]_&]:hover:bg-[#82e022] py-2.5 text-xs font-bold transition active:scale-[0.98]"
               >
-                Xem toàn bộ lịch sử →
+                Rút tiền về tài khoản →
               </button>
             </motion.div>
 
-            {/* Peer Review Callout — Dark Luxury */}
-            <motion.div
-              variants={dashboardFadeUp}
-              className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-violet-950/40 via-[#160f26]/90 to-[#10091e]/90 p-6 shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl group"
-            >
-              <div className="mb-4 flex h-20 items-center justify-center rounded-xl border border-dashed border-white/15 bg-white/[0.02]">
-                <FileBadge size={32} className="text-[#93f72b]/60 transition-transform group-hover:scale-110" strokeWidth={1.5} />
-              </div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#93f72b]">
-                ● Đánh giá chéo khóa học
-              </p>
-              <h3 className="mt-2 text-base font-bold text-white">
-                Góp ý &amp; nhận điểm thưởng
-              </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
-                Đánh giá chéo nội dung bài giảng cho đồng nghiệp và nhận điểm thưởng uy tín từ ProInterview.
-              </p>
-              <motion.button
-                type="button"
-                onClick={() => navigate("/mentor/peer-review")}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:border-[#93f72b]/50 hover:bg-[#93f72b]/10 hover:text-[#93f72b]"
-              >
-                Bắt đầu đánh giá ngay
-                <ArrowRight size={14} />
-              </motion.button>
-            </motion.div>
           </div>
-        </motion.div>
+
+        </div>
+
       </div>
 
       <AnimatePresence>

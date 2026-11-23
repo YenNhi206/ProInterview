@@ -405,6 +405,7 @@ ensureCollection("cv_analyses", {
     tier: en("suggestions", "full", "basic"),
     status: en("processing", "completed", "failed", "legacy_mock"),
     planAtTime: en("free", "pro", "enterprise"),
+    quotaCharged: { bsonType: "bool" }, // N-11
   },
 }, [
   [{ userId: 1 }],
@@ -516,6 +517,32 @@ ensureCollection("prompt_versions", {
   [{ key: 1, version: 1 }, { unique: true }],
   [{ version: 1 }, { unique: true, name: "version_unique" }],
   [{ key: 1 }, { unique: true, partialFilterExpression: { active: true }, name: "key_single_active" }],
+]);
+
+// AI-03: đề xuất cải tiến AI do aiImprovementMinerJob sinh từ moderation_items đã xử lý.
+ensureCollection("ai_improvement_proposals", {
+  required: ["target", "kind", "groupKey"],
+  properties: {
+    target: en("question_gen", "evaluation"),
+    kind: en("few_shot", "prompt_change", "calibration", "rubric_anchor"),
+    groupKey: str,
+    status: en("proposed", "approved", "rejected", "rolled_back"),
+    evidence: { bsonType: "object" },
+    before: { bsonType: "object" },
+    after: { bsonType: "object" },
+  },
+}, [
+  [{ status: 1, createdAt: -1 }],
+  [{ "evidence.moderationItemIds": 1 }, {
+    unique: true,
+    partialFilterExpression: { "evidence.moderationItemIds": { $type: "objectId" } },
+    name: "evidence_item_unique",
+  }],
+  [{ target: 1, kind: 1, groupKey: 1 }, {
+    unique: true,
+    partialFilterExpression: { status: "proposed" },
+    name: "group_single_proposed",
+  }],
 ]);
 
 // ─────────────────────────────────────────────────────────────
