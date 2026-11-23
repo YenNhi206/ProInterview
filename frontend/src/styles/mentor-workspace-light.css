@@ -646,3 +646,375 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
 :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .text-white\/50 {
   color: var(--mw-muted) !important;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   USER / CANDIDATE WORKSPACE — HOME & LANDING PAGES (LIGHT THEME)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Hero Section (.home-product-hero) ─────────────────── */
+:root[data-workspace-theme="light"] .home-product-hero {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .home-product-hero-copy::before {
+  background: radial-gradient(ellipse at 50% 35%, rgba(139, 92, 246, 0.14) 0%, rgba(124, 58, 237, 0.04) 40%, transparent 70%) !important;
+}
+
+/* Badge "Nền tảng dành cho sinh viên IT" */
+:root[data-workspace-theme="light"] .home-product-hero-badge {
+  color: #6d28d9 !important;
+  background: rgba(124, 58, 237, 0.08) !important;
+  border: 1px solid rgba(124, 58, 237, 0.22) !important;
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.06) !important;
+}
+
+:root[data-workspace-theme="light"] .home-product-hero-badge svg {
+  color: #7c3aed !important;
+}
+
+/* Headline "Chuẩn bị vững vàng." */
+:root[data-workspace-theme="light"] .home-product-hero-copy h1,
+:root[data-workspace-theme="light"] .home-product-hero-copy h1 > span {
+  color: #1e1338 !important;
+}
+
+/* "Tự tin" & highlight accents */
+:root[data-workspace-theme="light"] .home-product-hero-copy h1 .home-product-hero-highlight,
+:root[data-workspace-theme="light"] .home-product-hero-copy em {
+  color: #6d28d9 !important;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #4f46e5 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+/* Subtitle description */
+:root[data-workspace-theme="light"] .home-product-hero-copy p {
+  color: #4b4763 !important;
+}
+
+/* Benefits below CTAs ("Lộ trình rõ ràng", etc.) */
+:root[data-workspace-theme="light"] .home-product-hero-benefits,
+:root[data-workspace-theme="light"] .home-product-hero-benefits li {
+  color: #4b4763 !important;
+}
+
+:root[data-workspace-theme="light"] .home-product-hero-benefits svg {
+  color: #16a34a !important;
+}
+
+/* Hero Action Buttons */
+:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-primary {
+  background-color: #1e1338 !important;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #1e1338 !important;
+  box-shadow: 0 4px 16px rgba(30, 19, 56, 0.22) !important;
+}
+
+:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-primary:hover {
+  background-color: #311e54 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 19, 56, 0.3) !important;
+}
+
+:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-secondary {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #3b2d54 !important;
+  border: 1px solid #ddd3f5 !important;
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.08) !important;
+}
+
+:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-secondary:hover {
+  background-color: #f6f1ff !important;
+  border-color: #7c3aed !important;
+  color: #6d28d9 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.15) !important;
+}
+
+/* ── 2. Feature Summary Section (.feature-summary-section) ─ */
+:root[data-workspace-theme="light"] .feature-summary-heading span {
+  color: #6b6785 !important;
+}
+
+:root[data-workspace-theme="light"] .feature-summary-heading h2 {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .feature-summary-heading h2 span {
+  color: #7c3aed !important;
+}
+
+:root[data-workspace-theme="light"] .feature-window {
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #1e1338 !important;
+  border: 1px solid rgba(124, 58, 237, 0.18) !important;
+  border-bottom: 3px solid #7c3aed !important;
+  box-shadow: 0 10px 30px -4px rgba(99, 14, 212, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+}
+
+:root[data-workspace-theme="light"] .feature-window:is(:hover, :focus-within) {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: #7c3aed !important;
+  box-shadow: 0 16px 40px -4px rgba(99, 14, 212, 0.14) !important;
+}
+
+:root[data-workspace-theme="light"] .feature-cv-heading h3 {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .feature-cv-number,
+:root[data-workspace-theme="light"] .feature-interview-number {
+  color: #7c3aed !important;
+}
+
+:root[data-workspace-theme="light"] .feature-cv-icon,
+:root[data-workspace-theme="light"] .feature-interview-icon,
+:root[data-workspace-theme="light"] .feature-course-icon {
+  background: rgba(124, 58, 237, 0.08) !important;
+  border-color: rgba(124, 58, 237, 0.25) !important;
+  color: #7c3aed !important;
+}
+
+:root[data-workspace-theme="light"] .feature-window p,
+:root[data-workspace-theme="light"] .feature-window-grid--horizontal .feature-window p {
+  color: #4b4763 !important;
+}
+
+:root[data-workspace-theme="light"] .feature-window-connector {
+  color: #a78bfa !important;
+}
+
+/* ── 3. Section Flow & Typography Tokens (homeTypography.js) */
+:root[data-workspace-theme="light"] .landing-section-flow h2:not([class*="text-violet"]),
+:root[data-workspace-theme="light"] .landing-section-flow .font-headline {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .landing-section-flow :is(.text-white, .text-white\/90, .text-white\/80) {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .landing-section-flow :is(.text-white\/70, .text-white\/60, .text-white\/50) {
+  color: #4b4763 !important;
+}
+
+/* Neon lime text on landing sections converts to high-contrast brand purple in light mode */
+:root[data-workspace-theme="light"] .landing-section-flow :is(.text-\[\#c7f36b\], .text-\[\#a3e635\]):not(button):not(a):not(svg) {
+  color: #6d28d9 !important;
+}
+
+:root[data-workspace-theme="light"] .landing-section-flow svg:is(.text-\[\#c7f36b\], .text-\[\#a3e635\]) {
+  color: #16a34a !important;
+}
+
+/* Badges across sections */
+:root[data-workspace-theme="light"] .landing-section-flow .liquid-glass:is(span) {
+  color: #6d28d9 !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid var(--mw-border) !important;
+}
+
+:root[data-workspace-theme="light"] .landing-section-flow .liquid-glass:is(span) svg {
+  color: #7c3aed !important;
+}
+
+/* CTAs across sections */
+:root[data-workspace-theme="light"] .landing-section-flow :is(button, a).liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid var(--mw-border) !important;
+  color: #1e1338 !important;
+  box-shadow: 0 4px 16px rgba(99, 14, 212, 0.08) !important;
+}
+
+:root[data-workspace-theme="light"] .landing-section-flow :is(button, a).liquid-glass-strong:hover {
+  background: #efe9fc !important;
+  color: #5b21b6 !important;
+}
+
+/* ── 4. CV Analysis Showcase & Score Breakdown ───────────── */
+:root[data-workspace-theme="light"] .cv-analysis-glass-card {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid var(--mw-border) !important;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08) !important;
+}
+
+:root[data-workspace-theme="light"] .cv-score-card-reveal .liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid var(--mw-border) !important;
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .cv-score-card-reveal h3 {
+  color: #1e1338 !important;
+}
+
+/* ── 5. Testimonials & Statistics (#testimonials) ─────────── */
+:root[data-workspace-theme="light"] #testimonials .liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid var(--mw-border) !important;
+  box-shadow: 0 8px 30px -4px rgba(99, 14, 212, 0.08) !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials .liquid-glass {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid var(--mw-border) !important;
+  box-shadow: 0 2px 12px rgba(99, 14, 212, 0.04) !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials h3 {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials h3.text-\[\#a3e635\] {
+  color: #6d28d9 !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials div.text-\[\#a3e635\] {
+  color: #7c3aed !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials h4 {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials p {
+  color: #4b4763 !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials .text-slate-300 {
+  color: #4b4763 !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials .text-slate-400 {
+  color: #6b6785 !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials .grid .text-white {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] #testimonials .grid .text-white\/80 {
+  color: #4b4763 !important;
+}
+
+/* Revert logo invert in light mode so logo stays dark instead of white-on-white */
+:root[data-workspace-theme="light"] #testimonials img.brightness-0.invert,
+:root[data-workspace-theme="light"] .app-user-shell img.brightness-0.invert {
+  filter: none !important;
+}
+
+/* ── 6. Achievements / News Section ──────────────────────── */
+:root[data-workspace-theme="light"] .app-user-shell article.liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid var(--mw-border) !important;
+  box-shadow: 0 4px 20px -2px rgba(99, 14, 212, 0.06) !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell article.liquid-glass-strong:hover {
+  box-shadow: 0 16px 40px -8px rgba(99, 14, 212, 0.16) !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell article.liquid-glass-strong h3 {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell article.liquid-glass-strong:hover h3 {
+  color: #6d28d9 !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell article.liquid-glass-strong span.text-white\/90 {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell article.liquid-glass-strong span.text-\[\#c7f36b\] {
+  color: #6d28d9 !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell button.liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid var(--mw-border) !important;
+  color: #1e1338 !important;
+  box-shadow: 0 4px 16px rgba(99, 14, 212, 0.08) !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell button.liquid-glass-strong:hover {
+  background: #efe9fc !important;
+  color: #5b21b6 !important;
+}
+
+:root[data-workspace-theme="light"] .app-user-shell button.liquid-glass-strong span {
+  background: rgba(124, 58, 237, 0.1) !important;
+  color: #6d28d9 !important;
+}
+
+/* ── 7. CV Analysis Hub Page (/cv-analysis) ──────────────── */
+:root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-white {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-\[\#c7f36b\] {
+  color: #6d28d9 !important;
+}
+
+:root[data-workspace-theme="light"] .cv-hub-unified-col--copy p {
+  color: #4b4763 !important;
+}
+
+:root[data-workspace-theme="light"] .cv-hub-cta {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--mw-border) !important;
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .cv-hub-cta:hover {
+  background-color: #efe9fc !important;
+  border-color: #7c3aed !important;
+  color: #5b21b6 !important;
+}
+
+/* ── 8. Pricing & Glass Cards (MentorPageShell / pricing) ── */
+:root[data-workspace-theme="light"] .pricing-plan-card .pricing-border-beam-wrap::after {
+  background: var(--card-inner-bg, rgba(255, 255, 255, 0.96)) !important;
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card :is(.text-white, .text-white\/90, .text-white\/80) {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card :is(.text-slate-300, .text-slate-400, .text-white\/70, .text-white\/60) {
+  color: #4b4763 !important;
+}
+
+:root[data-workspace-theme="light"] .glass-card {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid var(--mw-border) !important;
+  box-shadow: 0 4px 20px rgba(99, 14, 212, 0.06) !important;
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .mentor-stat-num {
+  color: #1e1338 !important;
+}
+
+:root[data-workspace-theme="light"] .mentor-label {
+  color: #6b6785 !important;
+}
+
+/* Maintain light text on inherently dark cards like mentor ring */
+:root[data-workspace-theme="light"] .mentor-ring-card :is(.mrk-name, .mrk-title, .mrk-rating, .mrk-avatar-initials) {
+  color: #ffffff !important;
+}
+
+:root[data-workspace-theme="light"] .mentor-ring-card .mrk-title {
+  color: rgba(221, 214, 254, 0.9) !important;
+}
+
