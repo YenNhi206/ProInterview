@@ -248,7 +248,18 @@ export function detectRoleCategory(position = "", field = "") {
 // - Normalized synonym match: score += 2
 
 export function detectCompetenciesFromText(cvText = "", jdText = "") {
-  const combined = `${cvText} ${jdText}`;
+  return Object.entries(scoreCompetenciesInText(`${cvText} ${jdText}`))
+    .sort(([, a], [, b]) => b - a)
+    .map(([id]) => id);
+}
+
+/**
+ * Điểm khớp từ khóa của từng năng lực (không deprecated) trong một đoạn chữ, cùng quy tắc với
+ * `detectCompetenciesFromText`. Dùng cho gợi ý mentor / khóa học (AI-10).
+ * @returns {Record<string, number>}
+ */
+export function scoreCompetenciesInText(text = "") {
+  const combined = String(text ?? "");
   const combinedNorm = normalizeForDetection(combined);
   const scores = {};
 
@@ -290,9 +301,7 @@ export function detectCompetenciesFromText(cvText = "", jdText = "") {
     scores[id] = score;
   }
 
-  return Object.entries(scores)
-    .sort(([, a], [, b]) => b - a)
-    .map(([id]) => id);
+  return scores;
 }
 
 // ── 5. MERGE: ROLE MAP + TEXT DETECTION ──────────────────────────────────────

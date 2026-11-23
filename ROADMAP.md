@@ -395,6 +395,7 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | POST | `/api/ai/interview/pregenerate`, `/api/ai/interview/pregen/start` | `[AUTH]` |
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
 | ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
+| ✅ | GET | `/api/recommendations/me` — gợi ý mentor, khóa học, job kèm một dòng lý do (AI-10) | `[AUTH]` customer |
 
 ### Upload, mentor, courses, admin
 

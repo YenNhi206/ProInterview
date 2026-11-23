@@ -152,7 +152,7 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Mentor & đặt lịch | `/api/mentors`, `/api/mentor` (khu vực mentor), `/api/bookings`, `/api/mentorship-requests`, `/api/learning-paths` (capstone), `/api/reviews`, `/api/reports` |
 | Công ty & tuyển dụng (capstone) | `/api/company` (Company Mod: câu hỏi, rubric, `jobs`), `/api/company-invites`, `/api/jobs` (công khai, JB-03), `/api/role-categories` (nhóm vị trí từ `config/roleCategories.json`), `/api/profile`, `/api/cvs` |
 | Khóa học & bán hàng | `/api/courses`, `/api/enrollments`, `/api/cart`, `/api/coupons`, `/api/plans`, `/api/payments` |
-| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01) |
+| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01), `/api/recommendations` (gợi ý mentor/khóa/job, AI-10) |
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 

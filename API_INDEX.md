@@ -656,6 +656,14 @@ Video avatar câu công ty (CO-06): khi một câu công ty chuyển sang `appro
 | DELETE | `/api/cvs/:id` | Bearer | Xóa; xóa CV mặc định thì CV mới cập nhật gần nhất thành mặc định |
 | GET / POST | `/api/cvs/:id/export-pdf` | Bearer | Xuất PDF (pdfkit + DejaVu) — PR-09 |
 
+### A.20. Gợi ý mentor, khóa học, job — `/api/recommendations` (AI-10)
+
+**File:** `backend/src/routes/recommendations.js` · **Service:** `recommendationsService.js` · Chấm theo luật có trọng số (`RECOMMENDATION_WEIGHTS`), không gọi LLM, không ghi DB.
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| GET | `/api/recommendations/me` | `[AUTH][customer]` | Query `limit?` 1–10 (mặc định 5; sai → 400). `{ success, recommendations: { basis { gaps[] { key, name, level }, targetRoles[], passThreshold }, mentors[], courses[], jobs[] } }`. Mỗi gợi ý có `score` (0–1), `reason` (một dòng) và `actionUrl`. **Năng lực còn thiếu** = năng lực trong `CandidateProfile` có bằng chứng, key có trong bộ tiêu chí LP-01, `level < passThreshold`. **Mentor** (đã xác minh, đang hoạt động; `id` = `publicId`, `actionUrl /mentors/:id`): 0,6 × khớp năng lực thiếu (đã dạy buổi lộ trình `done` có `shrmKeys` đó = 1, khớp từ khóa năng lực trong chức danh / lĩnh vực / chuyên môn / giới thiệu = 0,7; trọng số theo độ thiếu) + 0,3 × sao + 0,1 × số lượt đánh giá. **Khóa** (`published`, `pending_update`; bỏ khóa đã ghi danh; `actionUrl /courses/:id`): như mentor, khớp từ khóa trong tiêu đề / thẻ / mô tả / "bạn sẽ học được". **Job** (đang mở; `actionUrl /jobs/:id`): 0,7 × tỉ lệ năng lực yêu cầu đã đạt + 0,3 × đúng vị trí mục tiêu của hồ sơ. Mục khớp đứng trước, thiếu thì lấp bằng mục còn lại theo điểm. Chưa có hồ sơ → gợi ý theo đánh giá / tin mới |
+
 ---
 
 ## Phần B — Tích hợp ngoài (FE gọi trực tiếp)
