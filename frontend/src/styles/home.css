@@ -746,3 +746,29 @@
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 22px #c7f36b30);
 }
+
+/* Light Mode Overrides for Home Hero */
+:root[data-workspace-theme="light"] .home-product-hero-copy h1,
+:root[data-workspace-theme="light"] .home-product-hero-copy h1 > span {
+  color: #1e1338 !important;
+}
+:root[data-workspace-theme="light"] .home-product-hero-copy p {
+  color: #4b4763 !important;
+}
+:root[data-workspace-theme="light"] .home-product-hero-copy h1 .home-product-hero-highlight,
+:root[data-workspace-theme="light"] .home-product-hero-copy em {
+  color: #6d28d9 !important;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #4f46e5 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+:root[data-workspace-theme="light"] .home-product-hero-benefits,
+:root[data-workspace-theme="light"] .home-product-hero-benefits li {
+  color: #4b4763 !important;
+}
+:root[data-workspace-theme="light"] .home-product-hero-benefits svg {
+  color: #16a34a !important;
+}
