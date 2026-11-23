@@ -44,6 +44,7 @@ import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiTo
 import { AnimatePresence, motion } from "motion/react";
 
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { roleLabel } from "../../utils/auth/roleLabels.js";
 
 function vnd(amount) {
   return formatVnd(amount);
@@ -127,7 +128,7 @@ export function AdminUserDetail() {
           <p className="text-xl font-black text-slate-900">{user.name}</p>
           <p className="text-sm text-slate-600">{user.email}</p>
           <div className="grid gap-3 sm:grid-cols-2 text-sm">
-            <p><span className="font-semibold">Vai trò:</span> {user.role}</p>
+            <p><span className="font-semibold">Vai trò:</span> {roleLabel(user.role)}</p>
             <p><span className="font-semibold">Gói:</span> {user.plan || "free"}</p>
             <p>
               <span className="font-semibold">CV đã dùng:</span> {cvUsed} / {user.quota?.cvAnalysisLimit ?? 3}

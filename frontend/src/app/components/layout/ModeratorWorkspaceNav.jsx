@@ -21,7 +21,7 @@ export function ModeratorWorkspaceNav() {
     <WorkspaceNav
       homeUrl="/moderator/queue"
       heading="Khu Kiểm duyệt"
-      badge="MODERATOR"
+      badge="PLATFORM MOD"
       label="Kiểm duyệt"
       mainNav={MODERATOR_MAIN_NAV}
       secondaryNav={MODERATOR_SECONDARY_NAV}
