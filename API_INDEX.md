@@ -578,7 +578,7 @@ Mọi route `/api/company/*` gắn `authJwt` + `requireCompanyModerator` (CO-03)
 
 **Tự đóng (JB-02):** job `published` / `hidden` có `closesAt <= now` chuyển `closed`, `closedReason: "expired"`, trong nhịp 20 phút của `bookingStaleSweepJob` (`closeExpiredJobPosts`). API công khai đã loại job quá hạn ngay lúc truy vấn.
 
-**Kiểm tra key ở API công ty khác (đề xuất (l)):** `POST/PATCH /api/company/questions`, `POST /api/company/questions/generate-starter`, `POST /api/company/rubrics` nhận `roleCategory` trong `GET /api/role-categories` (khác → 400). `competencyId` của câu hỏi và `criteria[].shrmKey` của rubric (`POST`, `PATCH`, `submit`) phải là key bộ tiêu chí LP-01 (khác → 400). `competencyId` mặc định của câu hỏi công ty là `technical_learning`.
+**Kiểm tra key ở API công ty khác (đề xuất (l)):** `POST/PATCH /api/company/questions`, `POST /api/company/questions/upload` (job), `POST /api/company/rubrics` nhận `roleCategory` trong `GET /api/role-categories` (khác → 400). `competencyId` của câu hỏi và `criteria[].shrmKey` của rubric (`POST`, `PATCH`, `submit`) phải là key bộ tiêu chí LP-01 (khác → 400). `competencyId` mặc định của câu hỏi công ty là `technical_learning`.
 
 Sắp có: ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
 

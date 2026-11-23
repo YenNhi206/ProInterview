@@ -187,7 +187,7 @@ Quyết định CO-16 (23/11/2026): câu Company Moderator đã duyệt phải q
 
 ```mermaid
 stateDiagram-v2
-    [*] --> draft : AI sinh bộ câu nháp (CO-04)<br/>· bộ câu mẫu · tự thêm / tải lên với status=draft
+    [*] --> draft : AI sinh bộ câu nháp (CO-04)<br/>· tự thêm / tải lên với status=draft
     [*] --> pending_platform_review : Company Mod tự thêm câu<br/>hoặc tải lên theo job (CO-05)
 
     draft --> pending_platform_review : Company Mod duyệt<br/>(đơn lẻ hoặc hàng loạt)
@@ -202,7 +202,7 @@ stateDiagram-v2
 
 | Chuyển | Hàm | Endpoint |
 |:-------|:----|:---------|
-| `[*] → draft` | `generateCompanyQuestionDrafts`, `generateStarterQuestions` | `POST /api/company/questions/generate`, `/generate-starter` |
+| `[*] → draft` | `generateCompanyQuestionDrafts` | `POST /api/company/questions/generate` |
 | `[*] → pending_platform_review` (hoặc `draft`) | `createQuestion`, `uploadQuestions` (`companyWorkspaceController.js`) | `POST /api/company/questions`, `/questions/upload` |
 | `draft \| rejected → pending_platform_review` | `approveQuestion`, `batchApproveQuestions` | `POST /api/company/questions/:id/approve`, `/batch-approve` |
 | `→ rejected` (Company Mod) | `rejectQuestion`, `batchRejectQuestions` | `POST /api/company/questions/:id/reject`, `/batch-reject` |
