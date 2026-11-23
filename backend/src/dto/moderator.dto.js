@@ -54,7 +54,7 @@ export const listQueueQuery = Joi.object({
 });
 
 export const resolveQueueBody = Joi.object({
-  action: Joi.string().valid("dismiss", "deprecate_question", "edit_question", "override_score").required(),
+  action: Joi.string().valid("dismiss", "deprecate_question", "edit_question", "override_score", "hide_job").required(),
   note: Joi.string().trim().max(1000).allow("").default(""),
   payload: Joi.alternatives().conditional("action", [
     {
@@ -76,6 +76,8 @@ export const resolveQueueBody = Joi.object({
     },
     { is: "deprecate_question", then: Joi.object({ reason }).default({}) },
     { is: "dismiss", then: Joi.object().max(0).default({}) },
+    // JB-04: lý do ẩn tin lấy từ `note` (≥ 5 ký tự, kiểm ở service).
+    { is: "hide_job", then: Joi.object().max(0).default({}) },
   ]),
 });
 
@@ -90,3 +92,18 @@ export function validate(schema, input) {
   if (error) return { error: error.details.map((d) => d.message).join("; ") };
   return { value };
 }
+
+/** JB-04 / JB-17: danh sách tin cho Platform Moderator. */
+export const listModeratorJobsQuery = Joi.object({
+  status: Joi.string().valid("published", "hidden"),
+  reported: Joi.boolean(),
+  q: Joi.string().trim().max(150).allow(""),
+  page,
+  limit,
+});
+
+/** JB-04: ẩn / bỏ ẩn tin. Ẩn bắt buộc lý do (≥ 5 ký tự). */
+export const jobVisibilityBody = Joi.object({
+  hidden: Joi.boolean().required(),
+  reason: Joi.when("hidden", { is: true, then: Joi.string().trim().min(5).max(1000).required(), otherwise: Joi.string().trim().max(1000).allow("").default("") }),
+});

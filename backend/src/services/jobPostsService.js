@@ -188,6 +188,9 @@ export async function jobPostDTO(job) {
     publishedAt: job.publishedAt ?? null,
     closedAt: job.closedAt ?? null,
     closedReason: job.closedReason || "",
+    /** JB-04: lý do Platform Moderator ẩn tin (chỉ có khi `hidden`). */
+    hiddenAt: job.hiddenAt ?? null,
+    hiddenReason: job.hiddenReason || "",
     createdAt: job.createdAt,
     updatedAt: job.updatedAt,
   };

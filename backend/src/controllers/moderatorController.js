@@ -13,7 +13,20 @@ import {
   listQueueQuery,
   resolveQueueBody,
   qualityStatsQuery,
+  listModeratorJobsQuery,
+  jobVisibilityBody,
 } from "../dto/moderator.dto.js";
+import { listJobsForModerator, setJobVisibility } from "../services/jobPostModerationService.js";
+
+/** Service ném `httpError` → kết quả `{ ok, status, error }` mà `send` hiểu. */
+async function toResult(promise) {
+  try {
+    return { ok: true, ...(await promise) };
+  } catch (error) {
+    if (error?.status) return { ok: false, status: error.status, error: error.message };
+    throw error;
+  }
+}
 
 /**
  * /api/moderator/* — HITL kiểm định chất lượng AI (spec S1 §3).
@@ -59,6 +72,10 @@ export const ModeratorController = {
   getQueueItem: handle(null, null, (_v, req) => moderationQueueService.getQueueItem(req.params.id), { needsId: true }),
   claimQueueItem: handle(null, null, (_v, req) => moderationQueueService.claimItem(req.params.id, req.userId), { needsId: true }),
   resolveQueueItem: handle(resolveQueueBody, "body", (b, req) => moderationQueueService.resolveItem(req.params.id, b, req.userId), { needsId: true }),
+
+  // ── JB-04: tin tuyển dụng (Platform Moderator) ──
+  listJobs: handle(listModeratorJobsQuery, "query", (q) => toResult(listJobsForModerator(q))),
+  setJobVisibility: handle(jobVisibilityBody, "body", (b, req) => toResult(setJobVisibility(req.params.id, b, req.userId)), { needsId: true }),
 
   // ── Quality ──
   qualityStats: handle(qualityStatsQuery, "query", (q) => getQualityStats(q)),

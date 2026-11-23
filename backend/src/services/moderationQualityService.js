@@ -10,7 +10,7 @@
  *  - bank, byCompetency: trạng thái hiện tại toàn kho (flagCount là bộ đếm cộng dồn).
  */
 import { QuestionBank } from "../models/QuestionBank.js";
-import { ModerationItem } from "../models/ModerationItem.js";
+import { ModerationItem, INTERVIEW_MODERATION_ITEM_TYPES } from "../models/ModerationItem.js";
 import { Report, AI_REPORT_TARGET_TYPES } from "../models/Report.js";
 import { InterviewSession } from "../models/InterviewSession.js";
 import { cacheGetOrSet } from "./cacheService.js";
@@ -54,10 +54,11 @@ async function bankStats(now) {
 
 async function queueStats(range) {
   const [open, inReview, resolvedRows] = await Promise.all([
-    ModerationItem.countDocuments({ status: "open" }),
-    ModerationItem.countDocuments({ status: "in_review" }),
+    // JB-04: KPI hàng đợi HITL chỉ tính 3 loại phỏng vấn, không lẫn báo cáo tin tuyển dụng.
+    ModerationItem.countDocuments({ status: "open", type: { $in: INTERVIEW_MODERATION_ITEM_TYPES } }),
+    ModerationItem.countDocuments({ status: "in_review", type: { $in: INTERVIEW_MODERATION_ITEM_TYPES } }),
     ModerationItem.find(
-      { status: { $in: ["resolved", "dismissed"] }, "resolution.at": { $gte: range.from, $lte: range.to } },
+      { status: { $in: ["resolved", "dismissed"] }, type: { $in: INTERVIEW_MODERATION_ITEM_TYPES }, "resolution.at": { $gte: range.from, $lte: range.to } },
       { createdAt: 1, "resolution.at": 1 },
     ).lean(),
   ]);

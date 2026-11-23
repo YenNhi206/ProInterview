@@ -4,7 +4,8 @@
  *  - Đọc / nhận / xử lý item: /api/moderator/queue*.
  */
 import mongoose from "mongoose";
-import { ModerationItem, PRIORITY_RANK } from "../models/ModerationItem.js";
+import { ModerationItem, PRIORITY_RANK, INTERVIEW_MODERATION_ITEM_TYPES, JOB_POST_REPORT_ITEM_TYPE } from "../models/ModerationItem.js";
+import { setJobVisibility, closeJobReport } from "./jobPostModerationService.js";
 import { Report } from "../models/Report.js";
 import { InterviewSession } from "../models/InterviewSession.js";
 import { QuestionBank } from "../models/QuestionBank.js";
@@ -32,11 +33,16 @@ export function buildSessionSnapshot(session, questionIndex) {
   };
 }
 
+/** Report AI → loại item. Loại khác phải map riêng (JB-04: tin tuyển dụng ở `jobPostModerationService`). */
+const AI_REPORT_ITEM_TYPE = { interview_question: "question_report", interview_evaluation: "evaluation_report" };
+
 /** Report AI → 1 ModerationItem. reasonCode "offensive" luôn priority high. */
 export async function createItemForReport({ report, session }) {
+  const type = AI_REPORT_ITEM_TYPE[report.targetType];
+  if (!type) throw new Error(`createItemForReport chỉ nhận report AI, nhận targetType "${report.targetType}".`);
   const priority = report.reasonCode === "offensive" ? "high" : "normal";
   return ModerationItem.create({
-    type: report.targetType === "interview_question" ? "question_report" : "evaluation_report",
+    type,
     priority,
     refs: {
       sessionId: session._id,
@@ -84,7 +90,8 @@ export async function upsertIncompleteEvaluationItem({ session, questionIndex })
  */
 export async function listQueue({ type, status, priority, assignee, page = 1, limit = 20 }, moderatorId) {
   const filter = { status: status ?? { $in: ["open", "in_review"] } };
-  if (type) filter.type = type;
+  // JB-04: không chỉ định `type` thì chỉ lấy 3 loại phỏng vấn — báo cáo tin tuyển dụng có màn riêng (JB-17).
+  filter.type = type ?? { $in: INTERVIEW_MODERATION_ITEM_TYPES };
   if (priority) filter.priority = priority;
   if (assignee === "me") filter.assignee = moderatorId;
   if (assignee === "unassigned") filter.assignee = null;
@@ -133,6 +140,7 @@ export async function claimItem(id, moderatorId) {
 
 const RESOLVED_MESSAGE = {
   dismiss: "Đội kiểm định đã xem xét báo cáo của bạn và giữ nguyên kết quả.",
+  hide_job: "Tin tuyển dụng bạn báo cáo đã bị ẩn. Cảm ơn bạn!",
   deprecate_question: "Câu hỏi bạn báo cáo đã bị loại khỏi ngân hàng câu hỏi. Cảm ơn bạn!",
   edit_question: "Câu hỏi bạn báo cáo đã được chỉnh sửa. Cảm ơn bạn!",
   override_score: "Điểm câu trả lời của bạn đã được moderator chấm lại.",
@@ -180,6 +188,16 @@ export async function resolveItem(id, { action, note = "", payload = {} }, moder
   if (item.assignee && String(item.assignee) !== String(moderatorId)) {
     return { ok: false, status: 409, error: "Mục này đang được moderator khác xử lý." };
   }
+
+  // JB-04: báo cáo tin tuyển dụng chỉ nhận `dismiss` / `hide_job`; item phỏng vấn không nhận `hide_job`.
+  const isJobItem = item.type === JOB_POST_REPORT_ITEM_TYPE;
+  if (isJobItem && !["dismiss", "hide_job"].includes(action)) {
+    return { ok: false, status: 400, error: "Báo cáo tin tuyển dụng chỉ xử lý bằng dismiss hoặc hide_job." };
+  }
+  if (!isJobItem && action === "hide_job") {
+    return { ok: false, status: 400, error: "hide_job chỉ dùng cho báo cáo tin tuyển dụng." };
+  }
+  if (isJobItem) return resolveJobItem(item, { action, note }, moderatorId);
 
   let outcome = { ok: true };
   if (action === "deprecate_question" || action === "edit_question") {
@@ -231,4 +249,39 @@ export async function resolveItem(id, { action, note = "", payload = {} }, moder
   }
 
   return { ok: true, item: item.toObject(), ...(outcome.override && { moderatorOverride: outcome.override }) };
+}
+
+/**
+ * JB-04: xử lý báo cáo tin tuyển dụng. `hide_job` ẩn tin (lý do = `note`) rồi đóng item này cùng mọi báo cáo
+ * đang mở khác của tin; tin đã bị ẩn từ trước thì chỉ đóng item. `dismiss` giữ nguyên tin.
+ */
+async function resolveJobItem(item, { action, note }, moderatorId) {
+  const jobPostId = item.refs?.jobPostId;
+  if (!jobPostId) return { ok: false, status: 400, error: "Mục này không gắn với tin tuyển dụng nào." };
+  if (action === "hide_job") {
+    try {
+      await setJobVisibility(jobPostId, { hidden: true, reason: note }, moderatorId, { exceptItemId: item._id });
+    } catch (error) {
+      // Tin đã bị ẩn (bởi báo cáo khác / thao tác trực tiếp) thì vẫn đóng được item này.
+      if (!(error?.status === 409 && /đã bị ẩn/.test(error.message))) {
+        return { ok: false, status: error?.status || 500, error: error?.message || "Không ẩn được tin." };
+      }
+    }
+  }
+  const closed = await ModerationItem.findOneAndUpdate(
+    { _id: item._id, status: { $nin: CLOSED } },
+    {
+      $set: {
+        status: action === "dismiss" ? "dismissed" : "resolved",
+        assignee: item.assignee ?? moderatorId,
+        resolution: { action, note, by: moderatorId, at: new Date() },
+      },
+    },
+    { returnDocument: "after" },
+  ).lean();
+  if (!closed) return { ok: false, status: 409, error: "Mục này đã được xử lý." };
+  if (item.refs?.reportId) {
+    await closeJobReport(item.refs.reportId, { status: action === "dismiss" ? "dismissed" : "resolved", moderatorId, note, jobPostId });
+  }
+  return { ok: true, item: closed };
 }

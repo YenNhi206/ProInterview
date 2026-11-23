@@ -13,9 +13,13 @@ const { Schema } = mongoose;
  * `snapshot` chụp câu hỏi / transcript / điểm AI tại thời điểm tạo để moderator review đúng
  * thứ người dùng đã thấy, kể cả khi câu hỏi trong bank bị sửa sau đó.
  */
-export const MODERATION_ITEM_TYPES = ["question_report", "evaluation_report", "evaluation_incomplete"];
+/** 3 loại của hàng đợi HITL phỏng vấn (`/moderator/queue` mặc định chỉ lấy các loại này). */
+export const INTERVIEW_MODERATION_ITEM_TYPES = ["question_report", "evaluation_report", "evaluation_incomplete"];
+/** JB-04: báo cáo tin tuyển dụng — màn riêng (JB-17), không lẫn vào hàng đợi phỏng vấn. */
+export const JOB_POST_REPORT_ITEM_TYPE = "job_post_report";
+export const MODERATION_ITEM_TYPES = [...INTERVIEW_MODERATION_ITEM_TYPES, JOB_POST_REPORT_ITEM_TYPE];
 export const MODERATION_ITEM_STATUSES = ["open", "in_review", "resolved", "dismissed"];
-export const MODERATION_RESOLUTION_ACTIONS = ["dismiss", "deprecate_question", "edit_question", "override_score"];
+export const MODERATION_RESOLUTION_ACTIONS = ["dismiss", "deprecate_question", "edit_question", "override_score", "hide_job"];
 /** Sort theo chuỗi "priority" ra normal > low > high (alphabet) — sắp xếp hàng đợi bằng rank số. */
 export const PRIORITY_RANK = { low: 1, normal: 2, high: 3 };
 
@@ -34,6 +38,9 @@ const moderationItemSchema = new Schema(
       reportId: { type: Schema.Types.ObjectId, ref: "Report", default: null },
       /** User liên quan: người báo (report) hoặc chủ session (evaluation_incomplete). */
       userId: { type: Schema.Types.ObjectId, ref: "User", default: null },
+      /** JB-04: tin tuyển dụng bị báo cáo (`job_post_report`). */
+      jobPostId: { type: Schema.Types.ObjectId, ref: "JobPost", default: null },
+      companyId: { type: Schema.Types.ObjectId, ref: "Company", default: null },
     },
 
     snapshot: {
@@ -41,6 +48,9 @@ const moderationItemSchema = new Schema(
       transcript: { type: String, default: "" },
       /** perQuestion evaluation tại thời điểm tạo: { scores, overall, shrmLevel, incompleteFields, … } */
       aiEvaluation: { type: Schema.Types.Mixed, default: null },
+      /** JB-04: tiêu đề tin và tên công ty lúc bị báo cáo. */
+      jobTitle: { type: String, default: "" },
+      companyName: { type: String, default: "" },
     },
 
     assignee: { type: Schema.Types.ObjectId, ref: "User", default: null },
@@ -70,6 +80,11 @@ moderationItemSchema.index(
   { unique: true, partialFilterExpression: { "refs.reportId": { $type: "objectId" } } },
 );
 // evaluation_incomplete idempotent: gọi evaluate nhiều lần vẫn chỉ 1 item / (session, câu).
+// JB-04: các báo cáo đang mở của một tin (đóng hàng loạt khi tin bị ẩn).
+moderationItemSchema.index(
+  { "refs.jobPostId": 1, status: 1 },
+  { partialFilterExpression: { type: "job_post_report" } },
+);
 moderationItemSchema.index(
   { type: 1, "refs.sessionId": 1, "refs.questionIndex": 1 },
   { unique: true, partialFilterExpression: { type: "evaluation_incomplete" } },
