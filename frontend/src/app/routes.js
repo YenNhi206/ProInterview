@@ -22,6 +22,7 @@ import { MentorshipRequests } from "./pages/mentorship/MentorshipRequests";
 import { LearningPaths } from "./pages/learningPaths/LearningPaths";
 import { LearningPathDetail } from "./pages/learningPaths/LearningPathDetail";
 import { CvVault } from "./pages/cv/CvVault";
+import { CvEditor } from "./pages/cv/CvEditor";
 import { Mentors } from "./pages/mentors/Mentors";
 import { MentorProfile } from "./pages/mentors/MentorProfile";
 import { Booking } from "./pages/booking/Booking";
@@ -183,6 +184,7 @@ export const router = createBrowserRouter([
           { path: "learning-paths/:id", loader: requireCustomerAuthLoader, Component: LearningPathDetail },
           // PR-11: kho CV (tải lên, nhân bản, đặt mặc định, xóa).
           { path: "cvs", loader: requireCustomerAuthLoader, Component: CvVault },
+          { path: "cvs/:id/edit", loader: requireCustomerAuthLoader, Component: CvEditor },
           { path: "my-courses", Component: MyCourses },
           { path: "payment-history", loader: requireAuthLoader, Component: PaymentHistory },
       { path: "cart", loader: requireCustomerAuthLoader, Component: Cart },
