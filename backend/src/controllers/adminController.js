@@ -8,7 +8,7 @@ import { runInTransaction } from "../helpers/dbHelper.js";
 
 import { PayoutRequest } from "../models/PayoutRequest.js";
 import { Enrollment } from "../models/Enrollment.js";
-import { InterviewSession } from "../models/InterviewSession.js";
+import { InterviewSession, EXCLUDE_ABANDONED_SESSIONS } from "../models/InterviewSession.js";
 import { Notification } from "../models/index.js";
 import { deliverNotification } from "../services/notificationDeliveryService.js";
 import { activateMentorCommissionPolicy } from "../services/mentorCommissionService.js";
@@ -1032,7 +1032,7 @@ export const AdminController = {
         CVAnalysis.countDocuments(CV_ANALYSIS_DONE_FILTER), // N-11: không đếm lần đang chạy / lỗi
         Course.countDocuments({ status: "published" }),
         InterviewSession.countDocuments({ status: "completed" }),
-        InterviewSession.countDocuments({ createdAt: { $gte: since7d } }),
+        InterviewSession.countDocuments({ ...EXCLUDE_ABANDONED_SESSIONS, createdAt: { $gte: since7d } }),
         InterviewSession.countDocuments({ status: "completed", createdAt: { $gte: since7d } }),
         InterviewSession.aggregate([
           {
@@ -1721,9 +1721,9 @@ export const AdminController = {
           }},
         ]),
 
-        // Daily session count — last 7 days
+        // Daily session count — last 7 days (N-07: bỏ buổi abandoned)
         InterviewSession.aggregate([
-          { $match: { createdAt: { $gte: since } } },
+          { $match: { ...EXCLUDE_ABANDONED_SESSIONS, createdAt: { $gte: since } } },
           { $group: {
             _id:   { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
             count: { $sum: 1 },
@@ -1752,8 +1752,8 @@ export const AdminController = {
           "feedback.overallScore": { $gte: 80 },
         }),
 
-        // All-time total
-        InterviewSession.countDocuments(),
+        // All-time total (N-07: bỏ buổi abandoned)
+        InterviewSession.countDocuments(EXCLUDE_ABANDONED_SESSIONS),
       ]);
 
       res.json({

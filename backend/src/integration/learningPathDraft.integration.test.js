@@ -5,6 +5,7 @@
 import { before, after, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { applyTestEnv, startMongoHarness, stopMongoHarness, mintAccessToken, startHttpServer, stopHttpServer } from "../test_helpers/mongoTestHarness.js";
+import { resetAssessmentQuota } from "../test_helpers/assessmentQuota.js";
 
 applyTestEnv();
 process.env.MAIL_USER = "";
@@ -46,6 +47,7 @@ async function requestReady(assessment = "completed") {
   const offered = await mrService.sendOffer(await actor(mentors[0].user), String(request._id), offerBody);
   let row = await mrService.selectOffer(await actor(mentee), String(request._id), String(offered.offers[0]._id));
   if (assessment !== "none") {
+    await resetAssessmentQuota(mentee._id); // LP-06: một mentee dựng nhiều buổi 0đ trong file test
     row = await mrService.acceptAssessment(await actor(mentors[0].user), String(request._id), slot(2));
     if (assessment === "completed") await models.Booking.updateOne({ _id: row.assessmentBookingId }, { $set: { status: "completed", completedAt: new Date() } });
   }

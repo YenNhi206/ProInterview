@@ -164,7 +164,7 @@ Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed
 
 ### Jobs (`jobs/`)
 
-`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob`.
+`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob`.
 
 ### Middleware
 
