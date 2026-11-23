@@ -7,6 +7,7 @@ import { User } from "../models/User.js";
 import { Booking } from "../models/Booking.js";
 import { httpError } from "../utils/apiErrors.js";
 import { assessmentBookingMoney } from "../utils/learningPathBookingMoney.js";
+import { checkAssessmentLimit, ASSESSMENT_WINDOW_DAYS, ASSESSMENT_MAX_PER_WINDOW } from "../utils/assessmentLimits.js";
 import { isBookingSlotInFuture } from "../utils/bookingSchedule.js";
 import { MENTEE_BUSY_MESSAGE, findCandidateBookingConflict } from "./bookingConflictService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
@@ -161,6 +162,29 @@ export async function resolveRequestBooking(userId, requestId, mentor) {
  * `paid`, `confirmed`) cho yêu cầu đã chọn mentor; yêu cầu chuyển sang `assessing`.
  * Tạo lại được khi buổi trước đã bị hủy / vắng mặt. Giới hạn số buổi 0đ của ứng viên làm ở LP-06.
  */
+/**
+ * LP-06 (quyết định 13): ứng viên tối đa 1 buổi 0đ chưa xong và 2 buổi 0đ trong 30 ngày (gộp mọi mentor).
+ * `excludeBookingId`: bỏ qua buổi vừa tạo khi kiểm lại sau khi tạo.
+ */
+async function assertCandidateAssessmentLimit(candidateId, { excludeBookingId = null, now = new Date() } = {}) {
+  const since = new Date(now.getTime() - ASSESSMENT_WINDOW_DAYS * 86_400_000);
+  const rows = await Booking.find({
+    userId: candidateId,
+    sessionType: "assessment",
+    ...(excludeBookingId ? { _id: { $ne: excludeBookingId } } : {}),
+    $or: [{ createdAt: { $gt: since } }, { status: { $in: ACTIVE_ASSESSMENT_STATUSES } }],
+  })
+    .select("status cancelledBy createdAt")
+    .lean();
+  const verdict = checkAssessmentLimit(rows, now);
+  if (verdict.ok) return;
+  if (verdict.reason === "open") {
+    throw httpError(409, "Ứng viên đang có một buổi đánh giá 0đ khác chưa diễn ra. Mỗi ứng viên chỉ có 1 buổi 0đ chưa xong cùng lúc.");
+  }
+  const reopens = verdict.reopensAt.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+  throw httpError(409, `Ứng viên đã dùng ${ASSESSMENT_MAX_PER_WINDOW} buổi đánh giá 0đ trong ${ASSESSMENT_WINDOW_DAYS} ngày. Có thể hẹn buổi mới từ ngày ${reopens}.`);
+}
+
 export async function acceptAssessment(actor, requestId, body) {
   requireMentor(actor);
   const input = validate(assessmentInput, body ?? {});
@@ -177,6 +201,7 @@ export async function acceptAssessment(actor, requestId, body) {
   }
   if (!isBookingSlotInFuture(input.date, input.timeSlot)) throw httpError(400, "Chọn thời gian trong tương lai cho buổi đánh giá.");
   if (await findCandidateBookingConflict(request.userId, input)) throw httpError(409, MENTEE_BUSY_MESSAGE);
+  await assertCandidateAssessmentLimit(request.userId);
 
   let booking;
   try {
@@ -196,6 +221,13 @@ export async function acceptAssessment(actor, requestId, body) {
     });
   } catch (error) {
     if (error?.code === 11000) throw httpError(409, "Khung giờ này đã có lịch hẹn. Vui lòng chọn giờ khác.");
+    throw error;
+  }
+  // Hai mentor hẹn cùng lúc cho một ứng viên: kiểm lại sau khi tạo, vượt giới hạn thì gỡ buổi vừa tạo.
+  try {
+    await assertCandidateAssessmentLimit(request.userId, { excludeBookingId: booking._id });
+  } catch (error) {
+    await Booking.deleteOne({ _id: booking._id });
     throw error;
   }
 
