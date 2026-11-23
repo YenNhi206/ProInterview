@@ -222,8 +222,10 @@ stateDiagram-v2
     [*] --> in_progress : POST /sessions<br/>(3 câu baseline)
     in_progress --> in_progress : Ghi câu trả lời (PATCH)<br/>· sinh 2 follow-up [Pro]
     in_progress --> completed : POST complete
+    in_progress --> abandoned : job 20 phút<br/>[createdAt ≤ now − 24h] (N-07)
     completed --> completed : POST /evaluate<br/>(sinh feedback)
     completed --> [*]
+    abandoned --> [*]
 
     state "Đánh giá mỗi câu trả lời" as Eval {
         [*] --> scored : LLM trả đủ trường
@@ -233,7 +235,7 @@ stateDiagram-v2
     }
 ```
 
-- `abandoned` có trong enum nhưng **chưa có job/handler nào ghi** — buổi bỏ dở hiện nằm mãi ở `in_progress`. Ứng viên cho job dọn dẹp sau này.
+- `abandoned` (N-07): `markAbandonedInterviewSessions` (`services/interviewSessionCleanupService.js`) chạy trong nhịp 20 phút của `jobs/bookingStaleSweepJob.js`, đánh buổi `in_progress` có `createdAt ≤ now − 24h` (`INTERVIEW_ABANDON_AFTER_MS`), ghi `abandonedAt`. Cập nhật có điều kiện theo `status`, chạy lại không đổi gì; không hoàn lượt `interviewUsed`. `POST /sessions/:id/complete` trả 409 với buổi `abandoned`; `PATCH /sessions/:id` vốn chỉ nhận `in_progress`. Thống kê (`/api/admin/content/stats`, `/api/admin/interview-metrics` trừ bảng theo trạng thái, `/api/public/home-data`) trải `EXCLUDE_ABANDONED_SESSIONS`; hồ sơ năng lực chỉ đọc `completed`.
 - `incomplete` = `answers[i].evaluationIncomplete = true`; `overridden` = `answers[i].moderatorOverride != null`. FE phải ưu tiên `moderatorOverride.overall` khi hiển thị (bước 7 của S1 — chưa làm).
 
 ---

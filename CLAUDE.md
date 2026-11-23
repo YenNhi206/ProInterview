@@ -164,7 +164,7 @@ Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed
 
 ### Jobs (`jobs/`)
 
-`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob`.
+`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob`.
 
 ### Middleware
 
@@ -307,7 +307,7 @@ Nguồn sự thật: `backend/src/constants/planCatalog.js`.
 
 ## Capstone FA26 (GFA26SE160) — kế hoạch và quy ước
 
-Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi code một tính năng mới, đọc:
+Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REGISTRATION_V3.md`). Trước khi code một tính năng mới, đọc:
 
 - **[docs/capstone/TASKS.md](docs/capstone/TASKS.md)**: 107 task, người phụ trách, phụ thuộc, điều kiện "Xong khi", cổng giai đoạn, Definition of Done.
 - **[docs/capstone/DECISIONS.md](docs/capstone/DECISIONS.md)**: 14 quyết định đã chốt, công thức chia tiền lộ trình, state machine mới, ánh xạ tên role.
@@ -392,7 +392,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 
 ## Kế hoạch capstone (docs/plan/)
 
-- Phạm vi đã đăng ký: docs/plan/REGISTRATION_V2.md. Mã REQ: docs/plan/REQUIREMENTS.md.
+- Phạm vi đã đăng ký: docs/plan/REGISTRATION_V3.md (V3 ngày 23/11/2026 thay V2; V2 giữ để đối chiếu). Mã REQ: docs/plan/REQUIREMENTS.md.
 - Tiến độ và task: docs/plan/TASKS.md (nguồn đúng duy nhất). Quyết định: docs/plan/DECISIONS.md. Thiết kế và bẫy: docs/plan/DESIGN.md.
 - Thứ tự đọc trước mỗi task: REQUIREMENTS.md → TASKS.md → DECISIONS.md → DESIGN.md.
 - Mỗi task gắn ít nhất một mã REQ. Task không có REQ: dừng và báo.
