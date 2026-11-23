@@ -28,6 +28,7 @@ import { avatarSrc } from "../../utils/shared/mediaUrl.js";
 import { UserOnlineStatus } from "../../components/admin/UserOnlineStatus.jsx";
 
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { roleLabel } from "../../utils/auth/roleLabels.js";
 
 function vnd(amount) {
   return formatVnd(amount);
@@ -357,7 +358,7 @@ export function AdminMentorDetail() {
                   <code className="text-xs text-slate-600">{mentor.publicId || "—"}</code>
                 </InfoBlock>
                 <InfoBlock icon={ShieldCheck} label="Vai trò tài khoản">
-                  {mentor.userId?.role || "mentor"}
+                  {roleLabel(mentor.userId?.role || "mentor")}
                   {mentor.userId?.plan ? ` · Gói ${mentor.userId.plan}` : ""}
                 </InfoBlock>
               </div>

@@ -61,7 +61,7 @@ function MascotSparkle({ className }) {
 
 const LG_UNIFIED_MQ = "(min-width: 1024px)";
 
-export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
+export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = false }) {
   const { percent, matched, missing, summary } = CV_HUB_DEMO_MATCH;
   const shellRef = useRef(null);
   const blockRef = useRef(null);
@@ -220,6 +220,16 @@ export function CvAnalysisHubHero({ onJd, onField, navShellAligned = false }) {
                   {CV_HUB_HERO_COPY.ctaField}
                 </button>
               </div>
+              {onBestFit ? (
+                <button
+                  type="button"
+                  onClick={onBestFit}
+                  className="self-start text-sm font-semibold text-violet-200 underline-offset-4 hover:text-[#93f72b] hover:underline"
+                  data-button-surface="none"
+                >
+                  Có nhiều bản CV? So sánh để chọn CV hợp nhất với JD →
+                </button>
+              ) : null}
             </div>
           </div>
 

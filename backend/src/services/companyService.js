@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { Company } from "../models/Company.js";
 import { CompanyInvite } from "../models/CompanyInvite.js";
 import { User } from "../models/User.js";
+import { RUBRIC_SHARING_TERMS } from "../config/rubricSharingTerms.js";
 
 function hashToken(rawToken) {
   return crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -239,8 +240,26 @@ export async function verifyInviteToken(rawToken) {
   return invite;
 }
 
-export async function acceptInvite({ rawToken, name, password }) {
+function httpError(status, message) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+}
+
+/**
+ * Nhận lời mời: tạo (hoặc cập nhật) tài khoản `company_moderator` của công ty.
+ * CO-02 (đề xuất aa): bắt buộc đồng ý điều khoản dùng rubric ẩn danh (`acceptRubricTerms === true`)
+ * đúng bản hiện tại (`termsVersion`); lưu thời điểm đồng ý vào lời mời và vào công ty (lần đầu).
+ */
+export async function acceptInvite({ rawToken, name, password, acceptRubricTerms, termsVersion }) {
   const invite = await verifyInviteToken(rawToken);
+
+  if (acceptRubricTerms !== true) {
+    throw httpError(400, "Bạn cần đồng ý điều khoản dùng rubric ẩn danh để nhận lời mời.");
+  }
+  if (termsVersion !== RUBRIC_SHARING_TERMS.version) {
+    throw httpError(409, "Điều khoản đã được cập nhật. Vui lòng tải lại trang và đọc bản mới.");
+  }
 
   const cleanName = (name || "").trim();
   if (!cleanName) {
@@ -266,6 +285,51 @@ export async function acceptInvite({ rawToken, name, password }) {
   let user = existingUser;
   const passwordHash = await bcrypt.hash(password, 10);
 
+  // Token dùng 1 lần: giành lời mời bằng một lệnh nguyên tử trước khi tạo tài khoản, để hai lần
+  // bấm "nhận" cùng lúc không tạo ra hai lần nhận. Lỗi sau bước này thì trả lời mời về `pending`.
+  const now = new Date();
+  const claimed = await CompanyInvite.findOneAndUpdate(
+    { _id: invite._id, status: "pending" },
+    {
+      $set: {
+        status: "accepted",
+        acceptedAt: now,
+        rubricTermsAcceptedAt: now,
+        rubricTermsVersion: RUBRIC_SHARING_TERMS.version,
+      },
+    },
+    { returnDocument: "after" },
+  );
+  if (!claimed) {
+    throw httpError(400, "Lời mời không tồn tại, đã được sử dụng hoặc đã bị thu hồi.");
+  }
+
+  try {
+    user = await upsertCompanyModerator({ user, invite, cleanName, passwordHash });
+  } catch (err) {
+    await CompanyInvite.updateOne(
+      { _id: invite._id, status: "accepted" },
+      { $set: { status: "pending", acceptedAt: null, rubricTermsAcceptedAt: null, rubricTermsVersion: "" } },
+    );
+    throw err;
+  }
+
+  // Công ty giữ lần đồng ý đầu tiên; lời mời sau chỉ ghi ở CompanyInvite.
+  await Company.updateOne(
+    { _id: invite.companyId._id, "rubricSharingConsent.acceptedAt": null },
+    {
+      $set: {
+        "rubricSharingConsent.acceptedAt": now,
+        "rubricSharingConsent.acceptedBy": user._id,
+        "rubricSharingConsent.termsVersion": RUBRIC_SHARING_TERMS.version,
+      },
+    },
+  );
+
+  return user;
+}
+
+async function upsertCompanyModerator({ user, invite, cleanName, passwordHash }) {
   if (!user) {
     user = await User.create({
       name: cleanName,
@@ -285,11 +349,5 @@ export async function acceptInvite({ rawToken, name, password }) {
     user.role = "company_moderator";
     await user.save();
   }
-
-  // Token dùng 1 lần: chuyển trạng thái accepted
-  invite.status = "accepted";
-  invite.acceptedAt = new Date();
-  await invite.save();
-
   return user;
 }

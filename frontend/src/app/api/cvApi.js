@@ -160,3 +160,26 @@ export async function deleteCvAnalysis(id) {
     return { success: false, error: "Không kết nối được server." };
   }
 }
+
+/**
+ * PR-12: xếp hạng 2–5 CV trong kho với một JD (`POST /api/cv/best-fit`, PR-05).
+ * Body `{ cvIds, jdText }` hoặc `{ cvIds, jobPostId }`. Python có thể mất tới ~60 giây.
+ */
+export async function bestFitCvs({ cvIds, jdText, jobPostId } = {}) {
+  if (!hasAuthCredentials()) return { success: false, error: "Vui lòng đăng nhập." };
+  try {
+    const res = await authFetch("/api/cv/best-fit", {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({ cvIds, ...(jobPostId ? { jobPostId } : { jdText }) }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || !body.success) {
+      const fallback = res.status === 403 ? "Bạn đã hết lượt phân tích CV. Vui lòng nâng cấp gói." : res.status >= 502 ? "Dịch vụ phân tích CV đang bận. Thử lại sau ít phút." : `Lỗi ${res.status}`;
+      return { success: false, error: body.error || body.message || fallback };
+    }
+    return { success: true, bestFit: body.bestFit };
+  } catch {
+    return { success: false, error: "Không kết nối được máy chủ." };
+  }
+}
