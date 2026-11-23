@@ -37,3 +37,4 @@ export { LearningPath } from "./LearningPath.js";
 export { LearningPathSession } from "./LearningPathSession.js";
 export { CandidateProfile } from "./CandidateProfile.js";
 export { CVDocument } from "./CVDocument.js";
+export { AIImprovementProposal } from "./AIImprovementProposal.js";
