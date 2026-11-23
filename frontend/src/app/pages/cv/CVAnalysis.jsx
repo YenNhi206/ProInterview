@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { takeBestFitHandoff } from "../../utils/cv/bestFit.js";
 import { useNavigate, useSearchParams, useLocation } from "react-router";
 import {
   FileText,
@@ -446,6 +447,16 @@ export function CVAnalysis() {
     setEnableJD(true);
     setEnableField(false);
   };
+
+  // PR-12: đến từ trang "Chọn CV hợp nhất" — điền sẵn CV đã chọn và JD đã dán (chỉ một lần).
+  useEffect(() => {
+    if (routeMode !== "jd") return;
+    const handoff = takeBestFitHandoff();
+    if (!handoff?.cvFile || !handoff?.jdFile) return;
+    handleCVFile(handoff.cvFile);
+    handleJDFile(handoff.jdFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Main analyze handler ────────────────────────────────────────────────
   const handleAnalyze = async () => {

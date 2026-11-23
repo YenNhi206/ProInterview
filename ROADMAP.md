@@ -627,3 +627,7 @@ Chi tiết triển khai, tương thích dữ liệu cũ và cấu hình PDF: [FI
 ### AI-09: cờ sàng lọc khóa học trên giao diện
 
 ✅ `/moderator/courses`: nhãn kết quả AI sàng lọc trên thẻ khóa chờ duyệt (tối đa 3 cờ nặng nhất) và khối đầy đủ (điểm, tóm tắt, mọi cờ) trong hộp thoại chi tiết. ✅ Mentor: bước "Xem lại & Gửi duyệt" khi tạo khóa hiện cờ theo luật; sửa khóa bấm "Lưu & gửi duyệt" mà còn cờ nghiêm trọng / cảnh báo thì hỏi lại (không chặn). API `POST /api/courses/prescreen-preview`.
+
+### PR-12: chọn CV hợp nhất cho JD (giao diện)
+
+✅ `/cv-analysis/best-fit` (lối vào từ `/cv-analysis`): chọn 2–5 CV trong kho, dán JD, xếp hạng qua `POST /api/cv/best-fit` (PR-05) với lý do, điểm mạnh, khoảng thiếu, kỹ năng khớp / thiếu; nút "Phân tích chi tiết CV này" mở `/cv-analysis/jd` với CV và JD điền sẵn.
