@@ -110,6 +110,7 @@ SLACK_ALERT_WEBHOOK_URL=<https://hooks.slack.com/...>   # thiếu → alert ch�
 # Ngưỡng Slack theo ngày (UTC) cho CostEvent rubric_scoring / course_prescreen (AI-12); mặc định $2·300 lần / $1·50 lần
 COST_ALERT_RUBRIC_SCORING_DAILY_USD=  COST_ALERT_RUBRIC_SCORING_DAILY_COUNT=
 COST_ALERT_COURSE_PRESCREEN_DAILY_USD=  COST_ALERT_COURSE_PRESCREEN_DAILY_COUNT=
+AI_IMPROVEMENT_MIN_EVIDENCE=   # số lượt kiểm duyệt cùng nhóm để miner tạo đề xuất cải tiến AI (AI-03), mặc định 5
 ```
 
 Lời gọi LLM cho chấm rubric (JB-07) hoặc sàng lọc khóa (AI-08) truyền `costKind: COST_EVENT_KIND.RUBRIC_SCORING` / `COURSE_PRESCREEN` vào `logGeneration()` (`constants/costEventKinds.js`). Kind không có trong danh sách bị ledger bỏ qua (log `cost_ledger_unknown_kind`).
@@ -131,7 +132,7 @@ VITE_GOOGLE_CLIENT_ID=<giống backend>
 
 ### Entry points
 
-- **`server.js`** — load env → kiểm tra env bắt buộc → Sentry → kết nối MongoDB → tự seed demo (chỉ dev) → bật 4 job → `listen(PORT)`.
+- **`server.js`** — load env → kiểm tra env bắt buộc → Sentry → kết nối MongoDB → tự seed demo (chỉ dev) → bật 5 job → `listen(PORT)`.
 - **`app.js`** — `createApp()`: helmet, hpp, `sanitizeObjectKeys`, rate limit `/api`, CORS, `GET /api/health`, mount router.
 
 ### Pattern
@@ -156,15 +157,15 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 
 `/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-### Models (`models/`) — 37 schema
+### Models (`models/`) — 38 schema
 
-`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`, `Company`, `CompanyInvite`, `CompanyRubric`, `CandidateProfile`, `CVDocument`, `JobPost`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`, `Company`, `CompanyInvite`, `CompanyRubric`, `CandidateProfile`, `CVDocument`, `JobPost`, `AIImprovementProposal`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
 Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 
 ### Jobs (`jobs/`)
 
-`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob`.
+`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob` · `aiImprovementMinerJob` (mỗi ngày: gom ModerationItem đã xử lý thành đề xuất cải tiến AI + PromptVersion chưa bật, AI-03).
 
 ### Middleware
 
