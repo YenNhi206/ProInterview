@@ -57,6 +57,10 @@ const jobPostSchema = new Schema(
     closedAt: { type: Date, default: null },
     /** `company` (Company Mod bấm đóng) hoặc `expired` (JB-02). */
     closedReason: { type: String, enum: ["", "company", "expired"], default: "" },
+    /** JB-04: Platform Moderator ẩn tin (`published → hidden`); bỏ ẩn thì xóa 3 field này. */
+    hiddenAt: { type: Date, default: null },
+    hiddenBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    hiddenReason: { type: String, trim: true, default: "", maxlength: 1000 },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     updatedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
   },

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { AI_REPORT_TARGET_TYPES } from "../models/Report.js";
+import { MODERATOR_REPORT_TARGET_TYPES } from "../models/Report.js";
 import * as bookingsService from "../services/bookingsService.js";
 import * as paymentsService from "../services/paymentsService.js";
 import { tryCreditMentorForPaidEnrollment, tryCreditMentorForCompletedBooking } from "../services/mentorEarningsService.js";
@@ -1500,7 +1500,7 @@ export const AdminController = {
         Enrollment.countDocuments({ paymentStatus: "paid" }),
         Course.countDocuments({ status: "published" }),
         Course.countDocuments({ status: { $in: ["pending_review", "pending_update"] } }),
-        Report.countDocuments({ status: { $in: ["pending", "reviewing"] }, targetType: { $nin: AI_REPORT_TARGET_TYPES } }),
+        Report.countDocuments({ status: { $in: ["pending", "reviewing"] }, targetType: { $nin: MODERATOR_REPORT_TARGET_TYPES } }),
         Booking.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       ]);
 

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { Report, AI_REPORT_TARGET_TYPES } from "../models/Report.js";
+import { Report, AI_REPORT_TARGET_TYPES, MODERATOR_REPORT_TARGET_TYPES, JOB_POST_REPORT_TARGET_TYPE } from "../models/Report.js";
+import { createJobPostReport } from "./jobPostModerationService.js";
 import { InterviewSession } from "../models/InterviewSession.js";
 import { QuestionBank } from "../models/QuestionBank.js";
 import { validateAiReport, formatJoiError } from "../dto/aiReport.dto.js";
@@ -22,6 +23,15 @@ export async function createReport(userId, body) {
 
   const targetType = String(body?.targetType ?? "mentor").trim();
   if (AI_REPORT_TARGET_TYPES.includes(targetType)) return createAiReport(uid, body);
+  // JB-04: báo cáo tin tuyển dụng → ModerationItem `job_post_report` cho Platform Moderator.
+  if (targetType === JOB_POST_REPORT_TARGET_TYPE) {
+    try {
+      return { ok: true, ...(await createJobPostReport(uid, body)) };
+    } catch (error) {
+      if (error?.status) return { ok: false, status: error.status, error: error.message };
+      throw error;
+    }
+  }
   if (!["mentor", "booking", "review", "course"].includes(targetType)) {
     return { ok: false, status: 400, error: "targetType không hợp lệ." };
   }
@@ -173,7 +183,8 @@ export async function listReportsForAdmin(query = {}) {
   const limit = Math.min(Math.max(Number(query?.limit) || 50, 1), 100);
   const skip = (page - 1) * limit;
   // Report AI (interview_*) thuộc hàng đợi moderator, không hiện ở trang support admin.
-  const filter = { targetType: { $nin: AI_REPORT_TARGET_TYPES } };
+  // Report AI và báo cáo tin tuyển dụng (JB-04) do moderator xử lý, không hiện ở trang support admin.
+  const filter = { targetType: { $nin: MODERATOR_REPORT_TARGET_TYPES } };
 
   const status = String(query?.status ?? "").trim();
   const openOnly = ["true", "1", "yes"].includes(String(query?.open ?? "").trim().toLowerCase());
@@ -274,7 +285,7 @@ export async function updateReportStatusForAdmin(adminUserId, reportId, body = {
 
   const resolution = String(body?.resolution || "").trim().slice(0, 2000);
   const doc = await Report.findById(reportId);
-  if (!doc || AI_REPORT_TARGET_TYPES.includes(doc.targetType)) {
+  if (!doc || MODERATOR_REPORT_TARGET_TYPES.includes(doc.targetType)) {
     return { ok: false, status: 404, error: "Không tìm thấy báo cáo." };
   }
 

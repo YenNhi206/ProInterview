@@ -465,9 +465,9 @@ ensureCollection("reports", {
   required: ["reportedBy", "targetType", "targetId"],
   properties: {
     reportedBy: oid,
-    targetType: en("mentor", "booking", "review", "course", "interview_question", "interview_evaluation"),
+    targetType: en("mentor", "booking", "review", "course", "interview_question", "interview_evaluation", "job_post"),
     targetId: oid,
-    reason: en("late", "unprofessional", "inappropriate", "no_show", "fraud", "other", null),
+    reason: en("late", "unprofessional", "inappropriate", "no_show", "fraud", "other", "misleading", "discriminatory", null),
     reasonCode: en("irrelevant", "inaccurate_scoring", "hallucination", "offensive", "other", null),
     status: en("pending", "reviewing", "resolved", "dismissed"),
   },
@@ -482,7 +482,7 @@ ensureCollection("reports", {
 ensureCollection("moderation_items", {
   required: ["type"],
   properties: {
-    type: en("question_report", "evaluation_report", "evaluation_incomplete", "course_prescreen"),
+    type: en("question_report", "evaluation_report", "evaluation_incomplete", "course_prescreen", "job_post_report"),
     status: en("open", "in_review", "resolved", "dismissed"),
     priority: en("low", "normal", "high"),
     priorityRank: num,
@@ -501,6 +501,8 @@ ensureCollection("moderation_items", {
     partialFilterExpression: { type: "course_prescreen" },
     name: "course_prescreen_per_course",
   }],
+  // JB-04: báo cáo đang mở của một tin tuyển dụng
+  [{ "refs.jobPostId": 1, status: 1 }, { partialFilterExpression: { type: "job_post_report" } }],
 ]);
 
 // AI-02: bảng đăng ký phiên bản prompt. Chuỗi `version` khớp promptVersion đã ghi ở

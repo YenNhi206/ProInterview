@@ -4,7 +4,12 @@ const { Schema } = mongoose;
 
 /** Report về câu hỏi / kết quả chấm AI — không hiện ở trang support admin, sinh ModerationItem. */
 export const AI_REPORT_TARGET_TYPES = ["interview_question", "interview_evaluation"];
-export const REPORT_TARGET_TYPES = ["mentor", "booking", "review", "course", ...AI_REPORT_TARGET_TYPES];
+/** JB-04: báo cáo tin tuyển dụng — Platform Moderator xử lý qua ModerationItem `job_post_report`, không vào trang support admin. */
+export const JOB_POST_REPORT_TARGET_TYPE = "job_post";
+export const JOB_POST_REPORT_REASONS = ["fraud", "misleading", "discriminatory", "inappropriate", "other"];
+/** Report do moderator xử lý (không hiện ở trang support / số "báo cáo mở" của admin). */
+export const MODERATOR_REPORT_TARGET_TYPES = [...AI_REPORT_TARGET_TYPES, JOB_POST_REPORT_TARGET_TYPE];
+export const REPORT_TARGET_TYPES = ["mentor", "booking", "review", "course", ...AI_REPORT_TARGET_TYPES, JOB_POST_REPORT_TARGET_TYPE];
 export const AI_REPORT_REASON_CODES = ["irrelevant", "inaccurate_scoring", "hallucination", "offensive", "other"];
 
 function isAiReport() {
@@ -24,7 +29,7 @@ const reportSchema = new Schema(
     /** Lý do cho report mentor/booking/review/course. Report AI dùng `reasonCode`. */
     reason: {
       type: String,
-      enum: ["late", "unprofessional", "inappropriate", "no_show", "fraud", "other"],
+      enum: ["late", "unprofessional", "inappropriate", "no_show", "fraud", "other", "misleading", "discriminatory"],
       required: function requiredForNonAiReport() {
         return !isAiReport.call(this);
       },
@@ -58,6 +63,13 @@ reportSchema.index(
   { reportedBy: 1, targetType: 1, targetId: 1, questionIndex: 1 },
   // Partial filter theo questionIndex số (chỉ report AI có) — $in trong partial index cần MongoDB mới.
   { unique: true, partialFilterExpression: { questionIndex: { $type: "number" } } },
+);
+
+// JB-04: mỗi người chỉ 1 báo cáo tin tuyển dụng đang chờ cho mỗi tin (chặn cả hai request cùng lúc).
+// Báo cáo job không qua `reviewing` (moderator xử lý qua ModerationItem) nên chỉ lọc `pending`.
+reportSchema.index(
+  { reportedBy: 1, targetId: 1 },
+  { unique: true, partialFilterExpression: { targetType: "job_post", status: "pending" } },
 );
 
 export const Report = mongoose.models.Report ?? mongoose.model("Report", reportSchema);

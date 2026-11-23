@@ -48,6 +48,12 @@ moderatorRouter.get("/queue/:id", asyncHandler(ModeratorController.getQueueItem)
 moderatorRouter.patch("/queue/:id/claim", asyncHandler(ModeratorController.claimQueueItem));
 moderatorRouter.patch("/queue/:id/resolve", asyncHandler(ModeratorController.resolveQueueItem));
 
+// ── JB-04: tin tuyển dụng bị báo cáo, ẩn / bỏ ẩn ────────────────────────────
+// Báo cáo tin nằm trong hàng đợi với `type=job_post_report` (GET /queue?type=job_post_report), xử lý bằng
+// PATCH /queue/:id/resolve { action: "hide_job" | "dismiss", note }.
+moderatorRouter.get("/jobs", asyncHandler(ModeratorController.listJobs));
+moderatorRouter.patch("/jobs/:id/visibility", asyncHandler(ModeratorController.setJobVisibility));
+
 // ── Quality dashboard ────────────────────────────────────────────────────────
 moderatorRouter.get("/quality/stats", asyncHandler(ModeratorController.qualityStats));
 

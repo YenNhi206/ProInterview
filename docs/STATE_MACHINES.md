@@ -189,13 +189,14 @@ Giá trị `draft`, `rejected` có trong enum nhưng **chưa có luồng nào gh
 stateDiagram-v2
     [*] --> open : Ứng viên "Báo sai" câu hỏi/đánh giá<br/>(question_report / evaluation_report)
     [*] --> open : Chấm điểm vẫn thiếu trường sau retry<br/>(evaluation_incomplete, upsert)
+    [*] --> open : Người dùng báo cáo tin tuyển dụng<br/>(job_post_report, JB-04)
 
     open --> in_review : Moderator nhận (claim)<br/>[chưa ai nhận hoặc chính mình]
     in_review --> in_review : Claim lại bởi chính người đó
     open --> resolved : Resolve trực tiếp
     open --> dismissed : Bỏ qua
 
-    in_review --> resolved : override_score · edit_question<br/>· deprecate_question
+    in_review --> resolved : override_score · edit_question<br/>· deprecate_question · hide_job (JB-04)
     in_review --> dismissed : dismiss
 
     resolved --> [*]
@@ -208,12 +209,16 @@ stateDiagram-v2
 | Tạo từ đánh giá thiếu | `upsertIncompleteEvaluationItem` (unique theo session + questionIndex) | gọi trong `POST /api/interviews/sessions/:id/evaluate` |
 | Nhận | `claimItem` — người khác đang giữ → 409 | `PATCH /api/moderator/queue/:id/claim` |
 | Xử lý | `resolveItem` — mục đã đóng → 409 | `PATCH /api/moderator/queue/:id/resolve` |
+| Tạo từ báo cáo tin tuyển dụng (JB-04) | `createJobPostReport` (`services/jobPostModerationService.js`) | `POST /api/reports` (targetType `job_post`) |
+| Xử lý báo cáo tin (JB-04) | `resolveJobItem`: `dismiss` hoặc `hide_job` (ẩn tin qua `setJobVisibility`, đóng mọi item mở của tin qua `resolveOpenJobReports`) | `PATCH /api/moderator/queue/:id/resolve` |
 
 Khi resolve: `Report` liên kết → `resolved`/`dismissed` + `resolvedBy`; `override_score` ghi `InterviewSession.answers[i].moderatorOverride`; người báo cáo nhận `Notification` (link `/interview/feedback?sessionId=`).
 
 **`course_prescreen` (AI-08):** không vào hàng đợi trên (`listQueue`, `getQueueItem`, `claimItem`, `resolveItem` và KPI hàng đợi chỉ xét 3 loại phỏng vấn, `HITL_QUEUE_TYPES`). `coursePrescreenService.prescreenCourse` upsert 1 item / khóa ở `open` mỗi lần mentor gửi duyệt (`PATCH /api/courses/:id/publish`, hoặc `PUT /api/courses/:id` với khóa đang bán); `closePrescreenItem` chuyển `resolved` khi moderator duyệt / từ chối khóa (`resolution.action: null`, `note` bắt đầu bằng `approve` hoặc `reject`).
 
 Trạng thái `Report` cho báo cáo mentor/booking/review/course (không qua hàng đợi): `pending → reviewing → resolved | dismissed`, do admin xử lý ở `/api/admin`.
+
+**JB-04:** `/api/moderator/queue` không truyền `type` chỉ trả 3 loại phỏng vấn; `job_post_report` hiện ở màn riêng (JB-17, `?type=job_post_report`). KPI hàng đợi của Quality Dashboard cũng chỉ đếm 3 loại phỏng vấn. Report `job_post` không hiện ở trang support admin (`MODERATOR_REPORT_TARGET_TYPES`).
 
 ---
 
