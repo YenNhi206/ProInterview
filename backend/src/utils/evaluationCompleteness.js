@@ -4,6 +4,9 @@
  */
 export const SCORE_DIMENSIONS = ["clarity", "structure", "relevance", "credibility"];
 
+/** Mức SHRM hợp lệ. Ngoài danh sách (lạ / thiếu) thì lưu "" — không gán "proficient" (AI-13). */
+export const SHRM_LEVELS = ["excellent", "proficient", "developing"];
+
 /** Điểm hợp lệ: số hữu hạn (hoặc chuỗi số). null / "" / thiếu / NaN = thiếu. */
 export function isScoreValue(v) {
   if (v === null || v === undefined || v === "" || typeof v === "boolean") return false;
