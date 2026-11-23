@@ -302,7 +302,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | GET | `/api/moderator/company-questions` | `[AUTH][MODERATOR]` câu doanh nghiệp theo tab chờ duyệt / đã duyệt / từ chối, kèm công ty và job (CO-16) |
 | ✅ | POST | `/api/moderator/company-questions/:id/approve` · `/:id/reject` · `/bulk` | `[AUTH][MODERATOR]` duyệt → `approved` + render video avatar; từ chối bắt buộc lý do (CO-16) |
 
-Chi tiết: **API_INDEX.md A.18 (CO-04, CO-05)**. FE: nút "Sinh bộ câu bằng AI" trên `/company/questions`.
+Chi tiết: **API_INDEX.md A.18 (CO-04, CO-05)**. FE `/company/questions`: nút "Sinh bộ câu bằng AI", "Tải câu theo job" (CO-13), lọc theo job, trạng thái "Chờ Platform Mod"; FE Platform Mod: `/moderator/company-questions` (CO-16).
 
 Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJob` (JB-02). Chi tiết: **API_INDEX.md A.18, A.19**. FE `/company/jobs` ở JB-15, `/jobs` ở JB-11.
 
