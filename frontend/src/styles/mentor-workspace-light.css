@@ -1018,3 +1018,6 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
   color: rgba(221, 214, 254, 0.9) !important;
 }
 
+
+/* LP-23: năng lực gợi ý trong trình soạn lộ trình. */
+:root[data-workspace-theme="light"] .lp-hint-text strong { color: var(--mw-text); }

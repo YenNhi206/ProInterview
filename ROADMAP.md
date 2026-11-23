@@ -258,6 +258,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/cv/analyze/full` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/suggestions` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/field` | `[AUTH]` |
+| ✅ | POST | `/api/cv/best-fit` — xếp hạng 2–5 CV trong kho với một JD hoặc job, kèm lý do (PR-05; Python `POST /best-fit`) | `[AUTH]` |
 
 ### Payments & enrollments (chuyển khoản)
 
@@ -329,6 +330,8 @@ FE (LP-11): ✅ `/admin/learning-path-payments` (sidebar admin, nhóm «Đối s
 
 FE (LP-20): ✅ `/mentor/learning-paths` (danh sách, lọc theo trạng thái, yêu cầu sẵn sàng soạn), ✅ `/mentor/learning-paths/new?requestId=` và `/mentor/learning-paths/:id/edit` (trình soạn: mục tiêu, giá trọn gói, thêm / sắp xếp / xóa buổi, mục tiêu buổi, năng lực SHRM, hồ sơ mentee, checklist và gửi). Lối vào từ trang `/mentor/requests/:id` và mục "Lộ trình học" trên sidebar mentor. Chi tiết: **API_INDEX.md A.17**.
 
+✅ LP-23: `GET /api/learning-paths/:id/competency-hints` + mục "Năng lực nên rèn" trong trình soạn (năng lực job yêu cầu và năng lực ứng viên còn thiếu; nút "Thêm buổi" điền sẵn buổi, mentor vẫn sửa tự do).
+
 ### Yêu cầu mentor và buổi đánh giá 0đ (LP-05)
 
 | BE | Method | Endpoint | Auth |
@@ -399,6 +402,7 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | POST | `/api/ai/interview/pregenerate`, `/api/ai/interview/pregen/start` | `[AUTH]` |
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
 | ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
+| ✅ | GET | `/api/recommendations/me` — gợi ý mentor, khóa học, job kèm một dòng lý do (AI-10) | `[AUTH]` customer |
 
 ### Upload, mentor, courses, admin
 

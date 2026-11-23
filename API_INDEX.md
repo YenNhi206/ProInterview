@@ -293,6 +293,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/cv/analyze/full` | Khớp + chấm điểm (LLM/Ollama) |
 | POST | `/api/cv/analyze/suggestions` | Pipeline đầy đủ + gợi ý (JD) |
 | POST | `/api/cv/analyze/field` | Phân tích theo ngành (`field` form field) |
+| POST | `/api/cv/best-fit` | PR-05, `cvBestFitService.js`. JSON `{ cvIds: [2–5 id CV trong kho /api/cvs, không trùng], jdText? (30–20.000 ký tự) \| jobPostId? (job đang mở) }`. Cần còn lượt phân tích CV (không trừ lượt), rate limit như `/analyze`. Node gửi file đã tải lên (PDF / DOCX / TXT) hoặc chữ soạn trong editor (`content`) sang Python `POST /best-fit` (multipart `jd_text`, `items` JSON, `files[]`). Một lượt LLM cho cả bộ; `score = 0,7 × điểm AI + 0,3 × điểm kỹ năng`; LLM lỗi hoặc thiếu CV trong kết quả → xếp theo kỹ năng (`mode: "skills"`). → `{ success, bestFit: { ranking[] { cvId, title, rank, score \| null, skillScore, aiScore, reason, strengths[], gaps[], matchingSkills[], missingSkills[], error }, bestCvId, mode ai \| skills, jdSource { type text \| job, jobPostId?, title? }, elapsedMs } }`. CV không đọc được đứng cuối, `score: null`, có `error`. Lỗi: 400 đầu vào, 404 CV không thuộc user / job không mở, 403 hết lượt, 503 / 504 / 502 Python |
 
 **N-11:** cả 4 route nhận form field `analysisId` (tùy chọn) và luôn trả `analysisId` (kể cả khi lỗi). Server mở `CVAnalysis` `processing` trước khi gọi Python; Python 2xx → `completed` + `result.match` + trừ 1 lượt quota; lỗi → `failed` + `error`. Mỗi lần gọi ghi `meta.processingTimeMs` và log `cv_analysis_timing` (`durationMs`, `pythonMs`, `endpoint`, `httpStatus`). FE gửi lại `analysisId` khi thử bậc thấp hơn (suggestions → full → basic) và khi lưu.
 
@@ -359,11 +360,16 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/admin/content/interview-sessions` | Phiên phỏng vấn AI gần đây + câu hỏi đã lưu (`?limit=30`) |
 | GET | `/api/admin/content/course-media` | Danh sách khóa + số bài video (`?scope=all\|published\|pending`) |
 | GET | `/api/moderator/content/stats` | `[MODERATOR]` Bản dùng cho hàng đợi duyệt (cùng handler với `/api/admin/content/stats`) |
-| GET | `/api/moderator/courses/pending` | `[MODERATOR]` Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) |
+| GET | `/api/moderator/courses/pending` | `[MODERATOR]` Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) + `aiPrescreen` (AI-08) `{ status pending \| done \| failed, score, summary, flags[] { code, severity, message, evidence, source rule \| ai }, target, model, promptVersion, error, at }` hoặc `null` |
 | GET | `/api/moderator/courses/published` | `[MODERATOR]` Khóa đã xuất bản (`?limit=50`, tối đa 100) + `stats` |
 | PATCH | `/api/moderator/courses/:id/approve` | `[MODERATOR]` Duyệt → `status: published`, xóa `adminReview` |
 | PATCH | `/api/moderator/courses/:id/reject` | `[MODERATOR]` Từ chối — body `{ reason }` (bắt buộc) → `draft`, lưu `adminReview`, thông báo mentor |
 | PATCH | `/api/moderator/courses/:id/archive` | `[MODERATOR]` Gỡ marketplace — body `{ reason? }` → `archived`, lưu `adminReview`, thông báo mentor |
+| GET | `/api/moderator/queue` | `[MODERATOR]` Hàng đợi kiểm định. **JB-04:** không truyền `type` thì chỉ trả 3 loại phỏng vấn (`question_report`, `evaluation_report`, `evaluation_incomplete`); báo cáo tin tuyển dụng lấy bằng `?type=job_post_report` |
+| PATCH | `/api/moderator/queue/:id/resolve` | `[MODERATOR]` **JB-04:** item `job_post_report` chỉ nhận `action` `dismiss` (giữ tin, report `dismissed`) hoặc `hide_job` (`note` = lý do ẩn ≥ 5 ký tự; ẩn tin, đóng mọi báo cáo đang mở của tin, báo người báo cáo và Company Moderator). Item phỏng vấn không nhận `hide_job`; sai loại → 400. Tin đã đóng / đã xóa sau khi bị báo cáo → `hide_job` trả 409 gợi ý `dismiss` (item vẫn mở, `dismiss` đóng được) |
+| GET | `/api/moderator/jobs` | `[MODERATOR]` **JB-04 (cho JB-17).** Tin `published` / `hidden`; query `status` (`published` hoặc `hidden`), `reported=true` (chỉ tin có báo cáo đang mở), `q` (tìm theo tiêu đề), `page`, `limit` → `{ jobs[] {id, title, companyId, companyName, roleCategory, level, status, publishedAt, closesAt, hiddenAt, hiddenReason, openReports}, pagination }`, tin nhiều báo cáo lên trước |
+| PATCH | `/api/moderator/jobs/:id/visibility` | `[MODERATOR]` **JB-04.** Body `{ hidden: true, reason (≥ 5 ký tự) }` → `published → hidden` (ghi `hiddenAt`, `hiddenBy`, `hiddenReason`; đóng báo cáo đang mở; Notification `job_post_hidden` cho Company Moderator của công ty) · `{ hidden: false }` → `hidden → published` (xóa 3 field, Notification `system`). 409: đã ở trạng thái đó, bản nháp / đã đóng, bỏ ẩn tin đã quá `closesAt`. Tin bị ẩn không hiện ở `GET /api/jobs`; Company Mod không sửa được, vẫn đóng được |
+| POST | `/api/reports` | **JB-04:** `{ targetType: "job_post", targetId, reason: fraud \| misleading \| discriminatory \| inappropriate \| other, description (≥ 10 ký tự), evidenceUrls? }` → `201 { reportId, moderationItemId }` (item `job_post_report`; `fraud` / `discriminatory` ưu tiên cao). Chỉ tin công chúng đang thấy, cùng quy tắc `GET /api/jobs/:id` (`published`, chưa quá `closesAt`, công ty không bị khóa; khác → 404); Company Mod không báo cáo tin công ty mình (400); đang có báo cáo chờ xử lý cho cùng tin → 409, kể cả hai request cùng lúc (unique index `{reportedBy, targetId}` partial `targetType: job_post, status: pending`) |
 | PATCH | `/api/admin/bookings/:id/confirm-transfer-payment` | Xác nhận CK booking |
 | PATCH | `/api/admin/bookings/:id/confirm-refund` | Xác nhận hoàn tiền |
 | PATCH | `/api/admin/bookings/:id/status` | Cập nhật trạng thái booking |
@@ -530,6 +536,7 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 |:-------|:-----|:---|:--------|
 | GET | `/api/learning-paths` | Mentor / Mentee | Mentor: lộ trình mình soạn. Mentee: lộ trình đã gửi cho mình (**không thấy bản nháp**). Mỗi lộ trình có `mentor: { name, title, avatar, publicId }` (LP-18, trang `/learning-paths` của ứng viên) |
 | GET | `/api/learning-paths/:id` | Mentor soạn / Mentee của lộ trình | Mentee gọi bản nháp → 404 |
+| GET | `/api/learning-paths/:id/competency-hints` | Mentor của lộ trình | **LP-23.** Năng lực gợi ý cho trình soạn: `{ hints: { items[], hasJob, hasEvidence, jobTitle, passThreshold } }`. Mỗi item `{ shrmKey, name, fromJob, requiredLevel, currentLevel, gap, status }`; `status` = `gap` (dưới yêu cầu job / dưới mức đạt), `unknown` (job yêu cầu, ứng viên chưa có bằng chứng), `met`. Nguồn: `requiredCompetencies` của job gắn lộ trình + hồ sơ năng lực ứng viên (PR-07); chỉ key hợp lệ LP-01. Mentor khác / mentee → 404; id sai → 400 |
 | POST | `/api/learning-paths` | Mentor được chọn | **LP-07.** Body `{ mentorshipRequestId, goal?, totalAmount? (VND nguyên, 0–100.000.000), sessions?: [{ title, objectives?[], shrmKeys?[] }] (≤ 12) }`. `shrmKeys` phải là key trong bộ tiêu chí LP-01 (`GET /api/competencies`) và không `deprecated`, nếu không trả 400. Request phải ở `selected`/`assessing`. **201** bản nháp (`draft`). 409 nếu yêu cầu đã có lộ trình chưa hủy |
 | PATCH | `/api/learning-paths/:id` | Mentor soạn | **LP-07.** Body `{ goal?, totalAmount?, sessions? }`; `sessions` thay **toàn bộ** danh sách buổi. Chỉ khi `draft` hoặc `revision_requested` (khác → 409) |
 | POST | `/api/learning-paths/:id/propose` | Mentor soạn | **LP-07.** `draft`/`revision_requested → proposed`. Chặn (400): chưa có buổi; giá < 10.000₫; buổi đánh giá 0đ chưa `completed`. Chụp `platformFeeRate` theo Mentor (`resolveBookingPlatformFeeRate`); gửi lại sau sửa thì `version + 1`. Yêu cầu mentor → `path_proposed`; thông báo `learning_path_proposed` cho mentee |
@@ -691,6 +698,14 @@ Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, t
 | POST | `/api/cvs/:id/set-default` | Bearer | Đặt mặc định (bỏ mặc định CV khác, cập nhật `CandidateProfile.defaultCvId`). Alias `PATCH /:id/default` |
 | DELETE | `/api/cvs/:id` | Bearer | Xóa; xóa CV mặc định thì CV mới cập nhật gần nhất thành mặc định |
 | GET / POST | `/api/cvs/:id/export-pdf` | Bearer | Xuất PDF (pdfkit + DejaVu) — PR-09 |
+
+### A.20. Gợi ý mentor, khóa học, job — `/api/recommendations` (AI-10)
+
+**File:** `backend/src/routes/recommendations.js` · **Service:** `recommendationsService.js` · Chấm theo luật có trọng số (`RECOMMENDATION_WEIGHTS`), không gọi LLM, không ghi DB.
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| GET | `/api/recommendations/me` | `[AUTH][customer]` | Query `limit?` 1–10 (mặc định 5; sai → 400). `{ success, recommendations: { basis { gaps[] { key, name, level }, targetRoles[], passThreshold }, mentors[], courses[], jobs[] } }`. Mỗi gợi ý có `score` (0–1), `reason` (một dòng) và `actionUrl`. **Năng lực còn thiếu** = năng lực trong `CandidateProfile` có bằng chứng, key có trong bộ tiêu chí LP-01, `level < passThreshold`. **Mentor** (đã xác minh, đang hoạt động; `id` = `publicId`, `actionUrl /mentors/:id`): 0,6 × khớp năng lực thiếu (đã dạy buổi lộ trình `done` có `shrmKeys` đó = 1, khớp từ khóa năng lực trong chức danh / lĩnh vực / chuyên môn / giới thiệu = 0,7; trọng số theo độ thiếu) + 0,3 × sao + 0,1 × số lượt đánh giá. **Khóa** (`published`, `pending_update`; bỏ khóa đã ghi danh; `actionUrl /courses/:id`): như mentor, khớp từ khóa trong tiêu đề / thẻ / mô tả / "bạn sẽ học được". **Job** (đang mở; `actionUrl /jobs/:id`): 0,7 × tỉ lệ năng lực yêu cầu đã đạt + 0,3 × đúng vị trí mục tiêu của hồ sơ. Mục khớp đứng trước, thiếu thì lấp bằng mục còn lại theo điểm. Chưa có hồ sơ → gợi ý theo đánh giá / tin mới |
 
 ---
 

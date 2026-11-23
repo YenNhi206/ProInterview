@@ -15,6 +15,9 @@ import {
   COMPANY_QUESTION_GEN_KEY, COMPANY_QUESTION_GEN_DEFAULT_VERSION, COMPANY_QUESTION_GEN_SPEC,
   COMPANY_QUESTION_GEN_DEFAULT_TEMPLATE,
 } from "./companyQuestionGenPrompt.js";
+import {
+  COURSE_PRESCREEN_KEY, COURSE_PRESCREEN_DEFAULT_VERSION, COURSE_PRESCREEN_SPEC, COURSE_PRESCREEN_DEFAULT_TEMPLATE,
+} from "./coursePrescreenPrompt.js";
 
 export const PROMPT_REGISTRY = deepFreezeModule({
   [QUESTION_GEN_KEY]: {
@@ -33,6 +36,14 @@ export const PROMPT_REGISTRY = deepFreezeModule({
     spec: COMPANY_QUESTION_GEN_SPEC,
     default: {
       version: COMPANY_QUESTION_GEN_DEFAULT_VERSION, template: COMPANY_QUESTION_GEN_DEFAULT_TEMPLATE, fewShotExamples: [],
+    },
+  },
+  // AI-08: sàng lọc khóa học khi mentor gửi duyệt.
+  [COURSE_PRESCREEN_KEY]: {
+    versionPrefix: "prescreen",
+    spec: COURSE_PRESCREEN_SPEC,
+    default: {
+      version: COURSE_PRESCREEN_DEFAULT_VERSION, template: COURSE_PRESCREEN_DEFAULT_TEMPLATE, fewShotExamples: [],
     },
   },
 });

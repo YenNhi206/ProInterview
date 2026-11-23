@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { AI_REPORT_TARGET_TYPES } from "../models/Report.js";
+import { MODERATOR_REPORT_TARGET_TYPES } from "../models/Report.js";
 import * as bookingsService from "../services/bookingsService.js";
 import * as paymentsService from "../services/paymentsService.js";
 import { tryCreditMentorForPaidEnrollment, tryCreditMentorForCompletedBooking } from "../services/mentorEarningsService.js";
@@ -21,6 +21,7 @@ import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
 import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
+import { closePrescreenItem } from "../services/coursePrescreenService.js";
 import { bookingRevenueRow, courseRevenueRow } from "../services/revenueAnalyticsService.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
@@ -1269,6 +1270,7 @@ export const AdminController = {
       course.publishedAt = new Date();
       course.adminReview = { reason: "", reviewedAt: null, reviewedBy: null, lastAction: "" };
       await course.save();
+      await closePrescreenItem(course._id, { decision: "approve", moderatorId: req.userId });
       res.json({ success: true, course: serializePendingCourseForAdmin(course) });
     } catch (error) {
       next(error);
@@ -1311,6 +1313,7 @@ export const AdminController = {
         lastAction: "reject",
       };
       await course.save();
+      await closePrescreenItem(course._id, { decision: "reject", moderatorId: req.userId, note: reason });
 
       const mentorUserId = course.mentorId?.userId?._id || course.mentorId?.userId;
       if (mentorUserId) {
@@ -1497,7 +1500,7 @@ export const AdminController = {
         Enrollment.countDocuments({ paymentStatus: "paid" }),
         Course.countDocuments({ status: "published" }),
         Course.countDocuments({ status: { $in: ["pending_review", "pending_update"] } }),
-        Report.countDocuments({ status: { $in: ["pending", "reviewing"] }, targetType: { $nin: AI_REPORT_TARGET_TYPES } }),
+        Report.countDocuments({ status: { $in: ["pending", "reviewing"] }, targetType: { $nin: MODERATOR_REPORT_TARGET_TYPES } }),
         Booking.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       ]);
 
@@ -1919,5 +1922,22 @@ export function serializePendingCourseForAdmin(course) {
           lastAction: doc.adminReview.lastAction || "",
         }
       : null,
+    aiPrescreen: publicPrescreen(doc.aiPrescreen),
+  };
+}
+
+/** AI-08: kết quả sàng lọc cho Platform Moderator (bỏ `contentHash` nội bộ). */
+export function publicPrescreen(p) {
+  if (!p) return null;
+  return {
+    status: p.status,
+    score: p.score ?? null,
+    summary: p.summary || "",
+    flags: p.flags ?? [],
+    target: p.target || "course",
+    model: p.model || "",
+    promptVersion: p.promptVersion || "",
+    error: p.error || "",
+    at: p.at ?? null,
   };
 }

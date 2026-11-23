@@ -125,6 +125,7 @@ function roleHomeLoader() {
   return null;
 }
 
+import { Jobs } from "./pages/jobs/Jobs.jsx";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -134,6 +135,7 @@ export const router = createBrowserRouter([
       { path: "mentors", Component: Mentors },
       { path: "mentors/:id", Component: MentorProfile },
       { path: "courses", Component: Courses },
+      { path: "jobs", Component: Jobs },
       { path: "courses/:id", Component: CourseDetail },
       { path: "pricing", Component: Pricing },
       { path: "about", Component: About },
