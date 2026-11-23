@@ -4,6 +4,7 @@
  * LP-10: ứng viên thanh toán trọn gói bằng chuyển khoản (checkout, submit-transfer); SePay xác nhận qua
  * `POST /api/payments/webhook/sepay`, trạng thái poll qua `GET /api/payments/transfer-status?orderRef=PI…`.
  * LP-12: ứng viên đặt lịch từng buổi (`POST /:id/sessions/:sid/schedule`), buổi sau chỉ mở khi buổi trước đạt.
+ * LP-23: `GET /:id/competency-hints` năng lực gợi ý cho trình soạn (mentor).
  * LP-13: mentor ghi kết quả buổi (`PATCH /:id/sessions/:sid/outcome`) và đề xuất buổi bổ sung có phí
  * (`POST /:id/sessions/:sid/supplementary`).
  * Quyền: mentee (customer) hoặc Mentor đã duyệt — dùng chung `requestActor` với /api/mentorship-requests.
@@ -16,6 +17,7 @@ import { requestActor } from "../services/mentorshipRequestsService.js";
 import * as service from "../services/learningPathsService.js";
 import * as paymentService from "../services/learningPathPaymentService.js";
 import * as sessionsService from "../services/learningPathSessionsService.js";
+import { getPathCompetencyHints } from "../services/learningPathCompetencyHintsService.js";
 
 export const learningPathsRouter = Router();
 
@@ -46,6 +48,11 @@ learningPathsRouter.post("/", mutationLimit, asyncHandler(async (req, res) => {
 
 learningPathsRouter.get("/:id", asyncHandler(async (req, res) => {
   res.json({ success: true, learningPath: await service.getLearningPath(req.pathActor, req.params.id) });
+}));
+
+/** LP-23: năng lực gợi ý cho trình soạn (job yêu cầu + hồ sơ ứng viên). Chỉ mentor của lộ trình. */
+learningPathsRouter.get("/:id/competency-hints", asyncHandler(async (req, res) => {
+  res.json({ success: true, hints: await getPathCompetencyHints(req.pathActor, req.params.id) });
 }));
 
 learningPathsRouter.patch("/:id", mutationLimit, asyncHandler(async (req, res) => {

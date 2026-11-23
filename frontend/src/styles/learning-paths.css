@@ -259,3 +259,16 @@
 :root[data-workspace-theme="light"] .lp-page .lp-choice { border-color: var(--mw-border); background: var(--mw-surface); color: #442268; }
 :root[data-workspace-theme="light"] .lp-page .lp-choice.is-pass[aria-checked="true"] { border-color: #3f7a0f; background: #ecfccb; color: #2f5d0a; }
 :root[data-workspace-theme="light"] .lp-page .lp-choice.is-fail[aria-checked="true"] { border-color: #b4233a; background: #ffe4e6; color: #8f1d30; }
+
+/* LP-23: năng lực gợi ý trong trình soạn lộ trình. */
+.lp-hints .mr-eyebrow { display: inline-flex; align-items: center; gap: 5px; }
+.lp-hint-list { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.lp-hint { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--lp-border); border-left-width: 3px; border-radius: 12px; }
+.lp-hint.is-gap { border-left-color: #f7d27a; }
+.lp-hint.is-unknown { border-left-color: #8f86a8; }
+.lp-hint.is-met { border-left-color: #93f72b; opacity: .75; }
+.lp-hint-text { display: grid; gap: 2px; min-width: 0; }
+.lp-hint-text strong { font-size: 13px; font-weight: 600; color: #f1e8fb; }
+.lp-hint-text span { font-size: 11px; color: var(--lp-muted); }
+.lp-hint .lp-chip { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
+.lp-hint .lp-chip:disabled { opacity: .55; cursor: default; }

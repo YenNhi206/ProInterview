@@ -14,6 +14,8 @@ async function call(path = "", method = "GET", payload) {
 
 export const listLearningPaths = () => call();
 export const getLearningPath = (id) => call(`/${encodeURIComponent(id)}`);
+/** LP-23: năng lực gợi ý cho trình soạn (chỉ mentor của lộ trình). */
+export const getLearningPathCompetencyHints = (id) => call(`/${encodeURIComponent(id)}/competency-hints`);
 /** payload: { mentorshipRequestId, goal?, totalAmount?, sessions?: [{ title, objectives[], shrmKeys[] }] } */
 export const createLearningPath = (payload) => call("", "POST", payload);
 /** payload: { goal?, totalAmount?, sessions? } — sessions thay toàn bộ danh sách buổi. */

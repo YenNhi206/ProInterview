@@ -322,6 +322,8 @@ FE (LP-11): ✅ `/admin/learning-path-payments` (sidebar admin, nhóm «Đối s
 
 FE (LP-20): ✅ `/mentor/learning-paths` (danh sách, lọc theo trạng thái, yêu cầu sẵn sàng soạn), ✅ `/mentor/learning-paths/new?requestId=` và `/mentor/learning-paths/:id/edit` (trình soạn: mục tiêu, giá trọn gói, thêm / sắp xếp / xóa buổi, mục tiêu buổi, năng lực SHRM, hồ sơ mentee, checklist và gửi). Lối vào từ trang `/mentor/requests/:id` và mục "Lộ trình học" trên sidebar mentor. Chi tiết: **API_INDEX.md A.17**.
 
+✅ LP-23: `GET /api/learning-paths/:id/competency-hints` + mục "Năng lực nên rèn" trong trình soạn (năng lực job yêu cầu và năng lực ứng viên còn thiếu; nút "Thêm buổi" điền sẵn buổi, mentor vẫn sửa tự do).
+
 ### Yêu cầu mentor và buổi đánh giá 0đ (LP-05)
 
 | BE | Method | Endpoint | Auth |

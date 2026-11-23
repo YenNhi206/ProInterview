@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, Briefcase, CheckCircle2, Circle, ClipboardCheck,
-  FileText, Layers, MessageSquareWarning, Plus, Send, Trash2, UserRound,
+  FileText, Layers, Lightbulb, MessageSquareWarning, Plus, Send, Trash2, UserRound,
 } from "lucide-react";
-import { createLearningPath, getLearningPath, proposeLearningPath, updateLearningPath } from "../../api/learningPathsApi.js";
+import { createLearningPath, getLearningPath, getLearningPathCompetencyHints, proposeLearningPath, updateLearningPath } from "../../api/learningPathsApi.js";
+import { addHintSession, hintSourceLabel, hintStatusLabel, sessionsCoverKey } from "../../utils/learningPath/competencyHints.js";
 import { getMentorshipRequest } from "../../api/mentorshipRequestsApi.js";
 import { competenciesApi } from "../../api/competenciesApi.js";
 import {
@@ -60,6 +61,19 @@ export function MentorLearningPathEditor() {
     return () => { active = false; };
   }, []);
   const options = useMemo(() => competencyOptions(framework), [framework]);
+
+  // LP-23: năng lực gợi ý từ job + hồ sơ ứng viên (chỉ có khi lộ trình đã lưu).
+  const [hints, setHints] = useState(null);
+  const [hintsError, setHintsError] = useState("");
+  useEffect(() => {
+    if (!pathId) { setHints(null); return undefined; }
+    let active = true;
+    setHintsError("");
+    getLearningPathCompetencyHints(pathId)
+      .then((res) => active && setHints(res.hints || null))
+      .catch((e) => active && setHintsError(e.message || "Không tải được năng lực gợi ý."));
+    return () => { active = false; };
+  }, [pathId]);
 
   useEffect(() => {
     let active = true;
@@ -247,6 +261,58 @@ export function MentorLearningPathEditor() {
                 </dl>
               )}
             </section>
+
+            {editable && (
+              <section className="mr-panel lp-block lp-hints" aria-labelledby="lp-hints-title">
+                <div className="lp-block-heading">
+                  <div><span className="mr-eyebrow"><Lightbulb size={13} aria-hidden /> Gợi ý</span><h2 id="lp-hints-title">Năng lực nên rèn</h2></div>
+                </div>
+                {isNew ? (
+                  <p className="lp-field-hint">Lưu bản nháp để xem năng lực gợi ý từ job và hồ sơ của mentee.</p>
+                ) : hintsError ? (
+                  <p className="lp-field-hint" role="alert">{hintsError}</p>
+                ) : !hints ? (
+                  <p className="lp-field-hint">Đang tải gợi ý…</p>
+                ) : hints.items.length === 0 ? (
+                  <p className="lp-field-hint">
+                    {hints.hasJob ? "Job chưa có năng lực yêu cầu." : "Yêu cầu này không gắn job và hồ sơ mentee chưa có năng lực nào dưới mức đạt."} Bạn tự chọn năng lực cho từng buổi.
+                  </p>
+                ) : (
+                  <>
+                    <p className="lp-field-hint">
+                      {hints.jobTitle ? <>Theo job <strong>{hints.jobTitle}</strong> và hồ sơ năng lực của mentee. </> : "Theo hồ sơ năng lực của mentee. "}
+                      Thiếu nhiều xếp trước; bạn vẫn sửa buổi tự do.
+                    </p>
+                    <ul className="lp-hint-list">
+                      {hints.items.map((h) => {
+                        const covered = sessionsCoverKey(state.sessions, h.shrmKey);
+                        const full = state.sessions.length >= MAX_SESSIONS;
+                        return (
+                          <li key={h.shrmKey} className={`lp-hint is-${h.status}`}>
+                            <div className="lp-hint-text">
+                              <strong>{h.name}</strong>
+                              <span>{hintStatusLabel(h)} · {hintSourceLabel(h)}</span>
+                            </div>
+                            {h.status === "met" ? null : (
+                              <button
+                                type="button"
+                                data-button-surface="none"
+                                className="lp-chip"
+                                disabled={covered || full}
+                                title={covered ? "Đã có buổi rèn năng lực này" : full ? `Tối đa ${MAX_SESSIONS} buổi` : "Thêm một buổi điền sẵn năng lực này"}
+                                onClick={() => setState((p) => ({ ...p, sessions: addHintSession(p.sessions, h) }))}
+                              >
+                                {covered ? "Đã có buổi" : <><Plus size={13} aria-hidden /> Thêm buổi</>}
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+              </section>
+            )}
 
             <section className="mr-panel lp-block" aria-labelledby="lp-sessions-title">
               <div className="lp-block-heading">
