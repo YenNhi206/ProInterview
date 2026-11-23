@@ -37,6 +37,7 @@ export function CVAnalysisHub() {
           navShellAligned
           onJd={() => requireLoginNavigate(navigate, "/cv-analysis/jd")}
           onField={() => requireLoginNavigate(navigate, "/cv-analysis/field")}
+          onBestFit={() => requireLoginNavigate(navigate, "/cv-analysis/best-fit")}
         />
       </div>
     </div>

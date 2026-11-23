@@ -25,6 +25,7 @@ const ROUTE_TITLES = {
   "/admin/finance/operations": "Giải ngân & đối soát",
   "/cv-analysis": "Phân tích CV",
   "/cv-analysis/jd/history": "Lịch sử CV + JD",
+  "/cv-analysis/best-fit": "Chọn CV hợp nhất",
   "/cv-analysis/jd": "Phân tích CV + JD",
   "/cv-analysis/field/history": "Lịch sử CV theo ngành",
   "/cv-analysis/field": "Phân tích CV theo ngành",
