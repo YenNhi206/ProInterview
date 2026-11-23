@@ -294,3 +294,146 @@ describe("GET /api/moderator/jobs (JB-04, cho màn JB-17)", () => {
     assert.equal((await call(companyMod, "/api/moderator/jobs")).status, 403);
   });
 });
+
+describe("Kiểm thử bổ sung JB-04", () => {
+  it("không báo cáo được tin công chúng không thấy: công ty bị khóa, tin quá hạn nhưng job định kỳ chưa đóng", async () => {
+    const user = await candidate();
+    const locked = await models.Company.create({ name: "Công ty bị khóa JB04", slug: "jb04-locked", status: "suspended" });
+    const lockedJob = await job({ companyId: locked._id });
+    assert.equal((await report(user, lockedJob)).status, 404);
+    const expired = await job({ closesAt: new Date(Date.now() - 60_000) });
+    assert.equal(expired.status, "published", "chưa bị job định kỳ đóng");
+    assert.equal((await report(user, expired)).status, 404);
+  });
+
+  it("bấm đúp gửi 2 báo cáo cùng lúc: chỉ 1 được tạo, cái kia 409; không để lại báo cáo mồ côi", async () => {
+    const j = await job();
+    const user = await candidate();
+    const results = await Promise.all([report(user, j), report(user, j)]);
+    assert.deepEqual(results.map((r) => r.status).sort(), [201, 409]);
+    assert.equal(await models.Report.countDocuments({ reportedBy: user._id, targetId: j._id }), 1);
+    assert.equal(await models.ModerationItem.countDocuments({ "refs.userId": user._id, "refs.jobPostId": j._id }), 1);
+  });
+
+  it("báo cáo trước bị bác bỏ thì người đó báo cáo lại được", async () => {
+    const j = await job();
+    const user = await candidate();
+    const first = await report(user, j);
+    assert.equal((await call(moderator, `/api/moderator/queue/${first.moderationItemId}/resolve`, "PATCH", { action: "dismiss" })).status, 200);
+    const again = await report(user, j, { description: "Tin vẫn còn thông tin sai lệch về phúc lợi." });
+    assert.equal(again.status, 201, again.error);
+  });
+
+  it("mô tả quá dài bị cắt 8000 ký tự, bằng chứng tối đa 10 link", async () => {
+    const j = await job();
+    const res = await report(await candidate(), j, { description: "x".repeat(9000), evidenceUrls: Array.from({ length: 15 }, (_, i) => ` https://example.com/${i} `) });
+    assert.equal(res.status, 201, res.error);
+    const rep = await models.Report.findById(res.reportId).lean();
+    assert.equal(rep.description.length, 8000);
+    assert.equal(rep.evidenceUrls.length, 10);
+    assert.equal(rep.evidenceUrls[0], "https://example.com/0");
+  });
+
+  it("tin bị công ty đóng / bị xóa sau khi có báo cáo: hide_job báo 409 gợi ý dismiss; dismiss vẫn đóng được báo cáo", async () => {
+    for (const mode of ["closed", "deleted"]) {
+      const j = await job();
+      const r = await report(await candidate(), j);
+      if (mode === "closed") await models.JobPost.updateOne({ _id: j._id }, { $set: { status: "closed", closedAt: new Date(), closedReason: "company" } });
+      else await models.JobPost.deleteOne({ _id: j._id });
+      const hide = await call(moderator, `/api/moderator/queue/${r.moderationItemId}/resolve`, "PATCH", { action: "hide_job", note: "Ẩn tin sai sự thật" });
+      assert.equal(hide.status, 409, mode);
+      assert.match(hide.error, /dismiss/);
+      assert.equal((await itemOf(r.moderationItemId)).status, "open", "chưa đóng khi ẩn thất bại");
+      const dismiss = await call(moderator, `/api/moderator/queue/${r.moderationItemId}/resolve`, "PATCH", { action: "dismiss", note: "Tin đã đóng" });
+      assert.equal(dismiss.status, 200, dismiss.error);
+      assert.equal((await itemOf(r.moderationItemId)).status, "dismissed");
+    }
+  });
+
+  it("moderator khác đang giữ mục thì không xử lý được; người giữ xử lý được", async () => {
+    const other = await models.User.create({ name: "Platform Mod 2", email: "jb04-mod2@test.local", role: "moderator" });
+    const j = await job();
+    const r = await report(await candidate(), j);
+    const claim = await call(other, `/api/moderator/queue/${r.moderationItemId}/claim`, "PATCH");
+    assert.equal(claim.status, 200, claim.error);
+    assert.equal(claim.item.status, "in_review");
+    assert.equal((await call(moderator, `/api/moderator/queue/${r.moderationItemId}/claim`, "PATCH")).status, 409);
+    assert.equal((await call(moderator, `/api/moderator/queue/${r.moderationItemId}/resolve`, "PATCH", { action: "hide_job", note: "Ẩn tin sai sự thật" })).status, 409);
+    assert.equal((await models.JobPost.findById(j._id).lean()).status, "published", "không ẩn khi bị chặn");
+    const ok = await call(other, `/api/moderator/queue/${r.moderationItemId}/resolve`, "PATCH", { action: "hide_job", note: "Ẩn tin sai sự thật" });
+    assert.equal(ok.status, 200, ok.error);
+    assert.equal(String(ok.item.assignee), String(other._id));
+  });
+
+  it("xem chi tiết mục báo cáo job: có báo cáo gốc kèm người báo cáo, snapshot tin", async () => {
+    const j = await job();
+    const user = await candidate();
+    const r = await report(user, j);
+    const res = await call(moderator, `/api/moderator/queue/${r.moderationItemId}`);
+    assert.equal(res.status, 200, res.error);
+    assert.equal(res.item.type, "job_post_report");
+    assert.equal(res.item.snapshot.jobTitle, j.title);
+    assert.equal(res.report.reason, "misleading");
+    assert.equal(res.report.reportedBy.email, user.email);
+    assert.equal(res.question, null);
+  });
+
+  it("lọc hàng đợi theo loại phỏng vấn vẫn đúng; tổng của hàng đợi mặc định không gồm báo cáo job", async () => {
+    await report(await candidate(), await job());
+    const evalOnly = await call(moderator, "/api/moderator/queue?type=evaluation_report&limit=100");
+    assert.ok(evalOnly.items.every((i) => i.type === "evaluation_report"));
+    const def = await call(moderator, "/api/moderator/queue?limit=100");
+    assert.equal(def.pagination.total, await models.ModerationItem.countDocuments({ status: { $in: ["open", "in_review"] }, type: { $ne: "job_post_report" } }));
+  });
+
+  it("admin không vào được API moderator (tách vận hành khỏi kiểm định)", async () => {
+    const j = await job();
+    assert.equal((await call(admin, "/api/moderator/jobs")).status, 403);
+    assert.equal((await call(admin, `/api/moderator/jobs/${j._id}/visibility`, "PATCH", { hidden: true, reason: "Admin thử ẩn" })).status, 403);
+  });
+
+  it("ẩn tin được ghi nhật ký thao tác moderator (moderator_action)", async () => {
+    const j = await job();
+    await call(moderator, `/api/moderator/jobs/${j._id}/visibility`, "PATCH", { hidden: true, reason: "Ghi nhật ký ẩn tin" });
+    // Nhật ký ghi sau khi phản hồi xong (fire-and-forget) — chờ một nhịp.
+    await new Promise((r) => setTimeout(r, 200));
+    const log = await models.SecurityLog.findOne({ type: "moderator_action", "details.path": `/api/moderator/jobs/${j._id}/visibility` }).lean();
+    assert.ok(log, "có SecurityLog");
+    assert.equal(String(log.userId), String(moderator._id));
+    assert.equal(log.details.statusCode, 200);
+    assert.equal(log.details.body.reason, "Ghi nhật ký ẩn tin");
+  });
+
+  it("tin đang ẩn rồi quá hạn: job định kỳ đóng tin, không bỏ ẩn được nữa", async () => {
+    const { closeExpiredJobPosts } = await import("../services/jobPostsService.js");
+    const j = await job({ closesAt: new Date(Date.now() + 60_000) });
+    await call(moderator, `/api/moderator/jobs/${j._id}/visibility`, "PATCH", { hidden: true, reason: "Ẩn trước khi hết hạn" });
+    await closeExpiredJobPosts(new Date(Date.now() + 120_000));
+    assert.equal((await models.JobPost.findById(j._id).lean()).status, "closed");
+    assert.equal((await call(moderator, `/api/moderator/jobs/${j._id}/visibility`, "PATCH", { hidden: false })).status, 409);
+  });
+
+  it("bỏ ẩn: thông báo cho HR loại system kèm jobPostId và companyId", async () => {
+    const j = await job();
+    await call(moderator, `/api/moderator/jobs/${j._id}/visibility`, "PATCH", { hidden: true, reason: "Ẩn để kiểm tra" });
+    await call(moderator, `/api/moderator/jobs/${j._id}/visibility`, "PATCH", { hidden: false });
+    const n = await models.Notification.findOne({ userId: companyMod._id, title: "Tin tuyển dụng hiển thị lại", "metadata.jobPostId": j._id }).lean();
+    assert.equal(n.type, "system");
+    assert.equal(String(n.metadata.companyId), String(company._id));
+    assert.equal(n.metadata.actionUrl, "/company/jobs");
+  });
+
+  it("danh sách cho moderator: tìm theo tiêu đề (không phân biệt hoa thường, ký tự đặc biệt an toàn), phân trang", async () => {
+    const special = await job({ title: "Tester (QA) C++ JB04-search" });
+    const found = await call(moderator, `/api/moderator/jobs?q=${encodeURIComponent("tester (qa) c++")}`);
+    assert.equal(found.status, 200, found.error);
+    assert.deepEqual(found.jobs.map((x) => x.id), [String(special._id)]);
+    const page1 = await call(moderator, "/api/moderator/jobs?limit=2&page=1");
+    const page2 = await call(moderator, "/api/moderator/jobs?limit=2&page=2");
+    assert.equal(page1.jobs.length, 2);
+    assert.equal(page1.pagination.total, page2.pagination.total);
+    assert.ok(page1.pagination.totalPages >= 2);
+    assert.ok(!page1.jobs.some((x) => page2.jobs.some((y) => y.id === x.id)), "hai trang không trùng");
+    assert.equal((await call(moderator, "/api/moderator/jobs?limit=500")).status, 400);
+  });
+});

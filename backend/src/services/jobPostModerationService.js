@@ -16,6 +16,7 @@ import { ModerationItem, JOB_POST_REPORT_ITEM_TYPE } from "../models/ModerationI
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { httpError } from "../utils/apiErrors.js";
 import { logger } from "../config/logger.js";
+import { findPublicJob } from "./publicJobsService.js";
 
 const OPEN_ITEM_STATUSES = ["open", "in_review"];
 const MAX_REASON_LEN = 1000;
@@ -39,8 +40,11 @@ export async function createJobPostReport(userId, body = {}) {
   const description = typeof body.description === "string" ? body.description.trim() : "";
   if (description.length < 10) throw httpError(400, "Vui lòng mô tả vấn đề (ít nhất 10 ký tự).");
 
-  const job = await JobPost.findById(jobId).select("title status companyId").lean();
-  if (!job || job.status !== "published") throw httpError(404, "Không tìm thấy tin tuyển dụng đang đăng.");
+  // Chỉ báo cáo tin người dùng đang thấy: cùng quy tắc API công khai (published, chưa quá `closesAt`,
+  // công ty không bị khóa) — không phụ thuộc độ trễ của job tự đóng (JB-02).
+  const found = await findPublicJob(jobId);
+  if (!found) throw httpError(404, "Không tìm thấy tin tuyển dụng đang đăng.");
+  const { job, company } = found;
   const reporter = await User.findById(userId).select("role companyId").lean();
   if (reporter?.role === "company_moderator" && String(reporter.companyId || "") === String(job.companyId)) {
     throw httpError(400, "Không báo cáo tin tuyển dụng của chính công ty bạn.");
@@ -53,15 +57,21 @@ export async function createJobPostReport(userId, body = {}) {
   });
   if (pending) throw httpError(409, "Bạn đã báo cáo tin này và báo cáo đang chờ xử lý.");
 
-  const company = await Company.findById(job.companyId).select("name").lean();
-  const report = await Report.create({
-    reportedBy: userId,
-    targetType: JOB_POST_REPORT_TARGET_TYPE,
-    targetId: job._id,
-    reason,
-    description: description.slice(0, 8000),
-    evidenceUrls: Array.isArray(body.evidenceUrls) ? body.evidenceUrls.map((u) => String(u).trim()).filter(Boolean).slice(0, 10) : [],
-  });
+  let report;
+  try {
+    report = await Report.create({
+      reportedBy: userId,
+      targetType: JOB_POST_REPORT_TARGET_TYPE,
+      targetId: job._id,
+      reason,
+      description: description.slice(0, 8000),
+      evidenceUrls: Array.isArray(body.evidenceUrls) ? body.evidenceUrls.map((u) => String(u).trim()).filter(Boolean).slice(0, 10) : [],
+    });
+  } catch (error) {
+    // Hai request cùng lúc của cùng người (bấm đúp): unique index báo cáo job đang chờ chặn bản thứ hai.
+    if (error?.code === 11000) throw httpError(409, "Bạn đã báo cáo tin này và báo cáo đang chờ xử lý.");
+    throw error;
+  }
 
   let item;
   try {

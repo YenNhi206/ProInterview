@@ -65,4 +65,11 @@ reportSchema.index(
   { unique: true, partialFilterExpression: { questionIndex: { $type: "number" } } },
 );
 
+// JB-04: mỗi người chỉ 1 báo cáo tin tuyển dụng đang chờ cho mỗi tin (chặn cả hai request cùng lúc).
+// Báo cáo job không qua `reviewing` (moderator xử lý qua ModerationItem) nên chỉ lọc `pending`.
+reportSchema.index(
+  { reportedBy: 1, targetId: 1 },
+  { unique: true, partialFilterExpression: { targetType: "job_post", status: "pending" } },
+);
+
 export const Report = mongoose.models.Report ?? mongoose.model("Report", reportSchema);

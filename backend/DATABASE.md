@@ -136,7 +136,7 @@ Mỗi domain một file trong **`src/models/`**. Import chung: **`src/models/ind
 | `Payment.js` | `payments` | Sổ cái thanh toán. `type`: `booking`, `subscription`, `course`, `learning_path` (LP-10: trọn gói lộ trình, `referenceModel: LearningPath`, `referenceId` = id lộ trình, `providerRef` = mã `PI…` trùng `LearningPath.paymentRef`). Mỗi đối tượng tối đa 1 bản ghi CK (unique `{provider, type, referenceId}`) |
 | `SepayWebhookEvent.js` | `sepaywebhookevents` | Log webhook SePay, idempotent theo `sepayId`; `entityType` ∈ `cart`, `booking`, `booking_group`, `course`, `subscription`, `learning_path` (rỗng khi chưa khớp) |
 | `Subscription.js` | `subscriptions` | Gói đăng ký |
-| `Report.js` | `reports` | Báo cáo / khiếu nại. JB-04: `targetType: job_post` (tin tuyển dụng; `reason` thêm `misleading`, `discriminatory`) do Platform Moderator xử lý qua `ModerationItem` `job_post_report`, không hiện ở trang support admin |
+| `Report.js` | `reports` | Báo cáo / khiếu nại. JB-04: `targetType: job_post` (tin tuyển dụng; `reason` thêm `misleading`, `discriminatory`) do Platform Moderator xử lý qua `ModerationItem` `job_post_report`, không hiện ở trang support admin. Unique index `{reportedBy, targetId}` partial `{targetType: job_post, status: pending}` (mỗi người 1 báo cáo đang chờ / tin); sau khi deploy chạy `npm run db:sync-moderation-indexes -- --dry-run` (Git Bash; script đọc cờ `--dry-run`) để xác nhận index đã có |
 | `Activity.js` | `activities` | Feed hoạt động dashboard |
 | `CourseQA.js` | `courseqas` | Q&A theo bài học |
 | `MentorPeerReview.js` | `mentorpeerreviews` | Mentor review khóa (đồng nghiệp) |

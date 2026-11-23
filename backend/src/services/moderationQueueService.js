@@ -264,6 +264,10 @@ async function resolveJobItem(item, { action, note }, moderatorId) {
     } catch (error) {
       // Tin đã bị ẩn (bởi báo cáo khác / thao tác trực tiếp) thì vẫn đóng được item này.
       if (!(error?.status === 409 && /đã bị ẩn/.test(error.message))) {
+        if (error?.status === 404 || error?.status === 409) {
+          // Tin đã đóng / bị xóa sau khi bị báo cáo: không còn gì để ẩn — moderator đóng báo cáo bằng dismiss.
+          return { ok: false, status: 409, error: "Tin này không còn đang đăng (đã đóng hoặc đã xóa), không ẩn được. Hãy đóng báo cáo bằng dismiss." };
+        }
         return { ok: false, status: error?.status || 500, error: error?.message || "Không ẩn được tin." };
       }
     }
