@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { financeRequest } from "../../api/financeOperationsApi.js";
 import { AppSelect } from "../../components/ui/AppSelect";
 
-const ROLE_LABELS = { admin: "Admin", moderator: "Platform Moderator", company_moderator: "Company Moderator", mentor: "Mentor" };
+import { ROLE_LABELS } from "../../utils/auth/roleLabels.js";
 
 /** Tên dễ đọc cho các thao tác tiền của mentor; thao tác khác hiện method + path. */
 const MENTOR_ACTION_LABELS = {

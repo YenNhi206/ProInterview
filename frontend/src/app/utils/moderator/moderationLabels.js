@@ -40,8 +40,8 @@ export const QUESTION_STATUS = {
 export const QUESTION_SOURCE = {
   baseline: "Baseline",
   llm_followup: "LLM follow-up",
-  moderator: "Moderator",
-  org_template: "Template tổ chức",
+  moderator: "Platform Moderator",
+  org_template: "Câu doanh nghiệp",
 };
 
 export const QUEUE_TYPE = {
