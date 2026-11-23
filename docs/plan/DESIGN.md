@@ -10,13 +10,13 @@
 | `CandidateProfile` | `userId` (unique), `headline`, `targetRoles[]`, `defaultCvId`, `competencies[]` {key SHRM, level, evidenceCount, sources[] {type: ai_interview \| mentor_session \| course, refId, at}} | #2, #9, #38 |
 | `CVDocument` (hiện chỉ có `CVAnalysis`, chưa có model CV) | `userId`, `title`, `targetRole`, `fileUrl`, `content` (JSON cho editor), `skills[]`, `version`, `parentCvId`, `isDefault`, `isValidCv`, `lastAnalysisId`. Lưu file theo cách của `mentorshipDocumentsService` | #2, #4, #36 |
 | `Company` | `name`, `slug`, `logoUrl`, `industry`, `status` active \| suspended, `createdBy` | #18 |
-| `CompanyInvite` | `companyId`, `email`, `tokenHash`, `expiresAt`, `acceptedAt` | #18 |
+| `CompanyInvite` | `companyId`, `email`, `tokenHash`, `expiresAt`, `acceptedAt`, thời điểm đồng ý điều khoản dùng rubric ẩn danh (CO-02, quyết định AI-18) | #18 |
 | `CompanyRubric` | `companyId`, `roleCategory`, `version`, `status` draft \| pending_review \| approved \| rejected \| archived (Platform Mod duyệt qua status này, không dùng ModerationItem), `criteria[]` {key, name, weight, `shrmKey`, levels[] {score 0–5, descriptor}}, `questionIds[]`, `reviewNote` | #23, #29, #33 |
 | `JobPost` | `companyId`, `title`, `roleCategory`, `level`, `location`, `description`, `requiredCompetencies[]` {shrmKey, minLevel}, `requiredSkills[]`, `rubricId`, `status`, `closesAt` | #5, #26, #30 |
 | `Application` | `jobPostId`, `companyId`, `candidateId`, `cvId`, `consent` {at, scope}, `snapshot` {profile, chỉ số JB-19 của ứng viên với doanh nghiệp}, `status`, `history[]`; unique {jobPostId, candidateId} | #5, #31 |
 | `LearningPath` | `candidateId`, `mentorId`, `mentorshipRequestId`, `jobPostId`, `assessmentBookingId`, `goal`, `status`, `totalAmount`, `platformFeeRate`, `paymentRef` (sinh bằng `utils/orderRef.js`), `version` | #6, #7, #12, #13, #16 |
 | `LearningPathSession` | `pathId`, `order`, `title`, `objectives[]`, `shrmKeys: [String]`, `shareAmount`, `bookingId`, `attempt`, `retakeOf`, `outcome`, `feedback` {summary, strengths, improvements} | #13, #14 |
-| `AIImprovementProposal` | `target` question_gen \| evaluation, `kind` few_shot \| prompt_change \| calibration, `evidence` {moderationItemIds[], overrideCount, avgScoreDelta}, `before`, `after`, `status` | #25, #37 |
+| `AIImprovementProposal` | `target` question_gen \| evaluation, `kind` few_shot \| prompt_change \| calibration \| rubric_anchor (AI-18), `evidence` {moderationItemIds[], overrideCount, avgScoreDelta; với rubric_anchor: shrmKey, số công ty, rubricIds[]}, `before`, `after`, `status` | #25, #37 |
 | `PromptVersion` | Bảng đăng ký cho chuỗi `promptVersion` đã có: `key`, `version`, `template`, `fewShotExamples[]`, `active` | #25, #37 |
 
 ## 2. Model có sẵn cần sửa (12)
@@ -84,6 +84,7 @@ Quy trình thêm API của repo: model → service → controller → route → 
 
 1. `aiImprovementMinerJob` chạy mỗi ngày, gom ModerationItem đã xử lý: điểm bị `override_score`, câu bị sửa hoặc khai tử.
 2. Khi một tiêu chí bị sửa điểm đủ ngưỡng (mặc định 5), job tạo `AIImprovementProposal`: cặp câu trả lời + điểm moderator làm few-shot mới, hoặc độ lệch hiệu chỉnh.
+   Nguồn thứ hai (AI-18): khi ≥ 3 công ty đã đồng ý điều khoản có rubric duyệt cùng một `shrmKey`, job tạo đề xuất `rubric_anchor` gồm ví dụ neo từng mức đã bỏ thông tin nhận diện công ty. Đi qua cùng backtest và bước duyệt; không sửa bảng 6 mức LP-01.
 3. Platform Mod xem bằng chứng, xem bảng trước/sau trên bộ 20 câu chuẩn (AI-01) và 10 câu trả lời cũ, rồi duyệt. Duyệt thì tạo `PromptVersion` mới và bật `active`.
 4. InterviewSession vốn đã ghi `promptVersion`; Langfuse trace theo version; Quality Dashboard so sánh tỉ lệ bị sửa giữa các version; có rollback.
 
