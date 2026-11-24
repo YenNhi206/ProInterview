@@ -383,7 +383,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/admin/payments/:id/confirm-learning-path-transfer` | **LP-11.** Body `{ force?, forceNote?, amount? }`. Không `force`: ứng viên phải đã báo «Đã chuyển» (400). `force` cần `forceNote` ≥ 3 ký tự; chỉ `force` mới xác nhận được giao dịch đã hết hạn (tiền đến muộn, khác → 409). `amount` (số tiền trên sao kê) lệch giá lộ trình → 400. Thành công: Payment `success`, lộ trình `active`, thông báo `learning_path_paid`; gọi lại → `idempotent: true`. Trả `{ success, payment, learningPath, idempotent }` |
 | POST | `/api/admin/payments/normalize-transfer-refs` | Chuẩn hóa mã tham chiếu CK |
 | GET | `/api/admin/finance/courses` | Tổng hợp doanh thu khóa |
-| GET | `/api/admin/finance/platform-summary` | Tài chính nền tảng — query `?month=YYYY-MM` (tuỳ chọn) |
+| GET | `/api/admin/finance/platform-summary` | Tài chính nền tảng — query `?month=YYYY-MM` (tuỳ chọn). Trả `platformFinance { totals, booking, course, subscription, learningPath }`. **LP-16:** `learningPath` tính từ Payment `learning_path` đã thu (`success` / `partial_refund`, trừ phần hoàn, bỏ Payment demo), phí = phí nền tảng các buổi gốc, cùng công thức analytics N-08 (`learningPathRevenueRows`); booking lộ trình không cộng vào `booking` |
 | GET | `/api/admin/payouts` | Yêu cầu rút tiền mentor |
 | PATCH | `/api/admin/payouts/:id/approve` | Duyệt payout |
 | PATCH | `/api/admin/payouts/:id/mark-paid` | Đánh dấu đã chi |

@@ -22,7 +22,12 @@ import { getPlatformBehavior, getUserJourney } from "../services/analyticsServic
 import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
 import { closePrescreenItem } from "../services/coursePrescreenService.js";
-import { bookingRevenueRow, courseRevenueRow } from "../services/revenueAnalyticsService.js";
+import {
+  bookingRevenueRow,
+  courseRevenueRow,
+  learningPathRevenueRows,
+  LEARNING_PATH_PAID_FILTER,
+} from "../services/revenueAnalyticsService.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
 const Booking = mongoose.model("Booking");
@@ -872,15 +877,39 @@ export const AdminController = {
         { grossCollected: 0, platformRevenue: 0, mentorNet: 0, count: 0 },
       );
 
+      // LP-16: lộ trình thu trọn gói qua Payment `learning_path`; booking lộ trình đã bị loại ở trên nên không cộng trùng.
+      // Cùng công thức với analytics doanh thu theo nguồn (N-08): gross = tiền giữ lại, phí = phí các buổi gốc.
+      const lpPaymentRows = await Payment.find(LEARNING_PATH_PAID_FILTER)
+        .select("userId amount refundAmount referenceId paidAt createdAt")
+        .lean();
+      const lpPaymentRowsFiltered = monthRange
+        ? lpPaymentRows.filter((row) => {
+            const t = row.paidAt ? new Date(row.paidAt) : new Date(row.createdAt);
+            const ms = t.getTime();
+            return ms >= monthRange.start.getTime() && ms < monthRange.end.getTime();
+          })
+        : lpPaymentRows;
+      const learningPath = (await learningPathRevenueRows(lpPaymentRowsFiltered)).reduce(
+        (acc, { gross, fee }) => {
+          acc.grossCollected += gross;
+          acc.platformRevenue += fee;
+          acc.mentorNet += gross - fee;
+          acc.count += 1;
+          return acc;
+        },
+        { grossCollected: 0, platformRevenue: 0, mentorNet: 0, count: 0 },
+      );
+
       const paidCustomerIds = new Set();
       for (const row of bookingRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
       for (const row of enrollmentRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
       for (const row of subscriptionRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
+      for (const row of lpPaymentRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
 
       const totals = {
-        grossCollected: booking.grossCollected + course.grossCollected + subscription.grossCollected,
-        platformRevenue: booking.platformRevenue + course.platformRevenue + subscription.platformRevenue,
-        mentorNet: booking.mentorNet + course.mentorNet + subscription.mentorNet,
+        grossCollected: booking.grossCollected + course.grossCollected + subscription.grossCollected + learningPath.grossCollected,
+        platformRevenue: booking.platformRevenue + course.platformRevenue + subscription.platformRevenue + learningPath.platformRevenue,
+        mentorNet: booking.mentorNet + course.mentorNet + subscription.mentorNet + learningPath.mentorNet,
         paidCustomerCount: paidCustomerIds.size,
       };
 
@@ -898,6 +927,7 @@ export const AdminController = {
           booking,
           course,
           subscription,
+          learningPath,
         },
       });
     } catch (error) {
