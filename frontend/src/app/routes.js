@@ -107,7 +107,7 @@ import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
 import { CompanyDashboard } from "./pages/company/CompanyDashboard.jsx";
 import { CompanyQuestions } from "./pages/company/CompanyQuestions.jsx";
 import { CompanyRubrics } from "./pages/company/CompanyRubrics.jsx";
-import { CompanyApplications } from "./pages/company/CompanyPages.jsx";
+import { CompanyApplications, CompanyApplicationDetail } from "./pages/company/CompanyApplications.jsx";
 import { CompanyJobs } from "./pages/company/CompanyJobs.jsx";
 import { COMPANY_ROLES } from "./components/layout/CompanyWorkspaceNav.jsx";
 import { createRoleLoader } from "./utils/auth/roleLoader.js";
@@ -305,6 +305,7 @@ export const router = createBrowserRouter([
       { path: "rubrics", Component: CompanyRubrics },
       { path: "jobs", Component: CompanyJobs },
       { path: "applications", Component: CompanyApplications },
+      { path: "applications/:id", Component: CompanyApplicationDetail },
     ],
   },
   { path: "*", loader: () => redirect("/") },

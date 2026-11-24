@@ -126,6 +126,14 @@ describe("JB-08 ứng tuyển: consent và mỗi job mỗi người 1 đơn", ()
     assert.equal(app.snapshot.companyMetrics.answeredCount, 1);
     assert.equal(app.snapshot.companyMetrics.rubricScoreAvg, 4);
     assert.deepEqual(app.snapshot.companyMetrics.criteria.map((c) => [c.criterionKey, c.avgScore]), [["c1", 4]]);
+    // JB-16 (CM-04): câu trả lời kèm điểm rubric từng tiêu chí.
+    const [ans] = app.snapshot.companyMetrics.answers;
+    assert.equal(app.snapshot.companyMetrics.answers.length, 1);
+    assert.equal(ans.question, "Câu A");
+    assert.equal(ans.transcript, ANSWER);
+    assert.equal(ans.scoringStatus, "scored");
+    assert.equal(ans.rubricScore, 4);
+    assert.deepEqual(ans.scores.map((x) => [x.criterionKey, x.criterionName, x.score]), [["c1", "Phân tích", 4]]);
 
     const n = await notifs(modA._id, "application_submitted");
     assert.ok(n.some((x) => String(x.metadata.applicationId) === String(app._id)));
