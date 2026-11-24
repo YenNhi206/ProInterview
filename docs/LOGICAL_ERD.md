@@ -535,6 +535,8 @@ erDiagram
         bool evaluationIncomplete
         array incompleteFields
         object moderatorOverride "scores, overall, shrmLevel, by → USER"
+        array rubricScores "criterionKey, criterionName, shrmKey, weight, score 0-5, evidenceQuote (JB-07, chỉ câu doanh nghiệp)"
+        object rubricScoring "status scored|no_answer|failed, rubricId, companyId, promptVersion, model, scoredAt (JB-07)"
         array redFlags
         object behavioralData
     }

@@ -276,6 +276,7 @@ stateDiagram-v2
 
 - `abandoned` (N-07): `markAbandonedInterviewSessions` (`services/interviewSessionCleanupService.js`) chạy trong nhịp 20 phút của `jobs/bookingStaleSweepJob.js`, đánh buổi `in_progress` có `createdAt ≤ now − 24h` (`INTERVIEW_ABANDON_AFTER_MS`), ghi `abandonedAt`. Cập nhật có điều kiện theo `status`, chạy lại không đổi gì; không hoàn lượt `interviewUsed`. `POST /sessions/:id/complete` trả 409 với buổi `abandoned`; `PATCH /sessions/:id` vốn chỉ nhận `in_progress`. Thống kê (`/api/admin/content/stats`, `/api/admin/interview-metrics` trừ bảng theo trạng thái, `/api/public/home-data`) trải `EXCLUDE_ABANDONED_SESSIONS`; hồ sơ năng lực chỉ đọc `completed`.
 - `incomplete` = `answers[i].evaluationIncomplete = true`; `overridden` = `answers[i].moderatorOverride != null`. FE phải ưu tiên `moderatorOverride.overall` khi hiển thị (bước 7 của S1 — chưa làm).
+- Chấm rubric câu doanh nghiệp (JB-07) — `answers[i].rubricScoring.status`, chỉ câu trong `companyQuestions`: chưa có (`null`) → `scored` (LLM trả đủ tiêu chí áp dụng) | `no_answer` (transcript rỗng, không gọi LLM) | `failed`. `scored`, `no_answer` và `failed` vì rubric không còn có `scoredAt`, không chấm lại. `failed` do lỗi LLM có `scoredAt = null` → `scored`/`failed` ở lần `POST /sessions/:id/evaluate` sau (`scoreMissingRubricsWithClaim`, khóa `rubricScoringClaimedAt` 2 phút). Hàm: `scoreCompanyRubrics` (`services/rubricScoringService.js`). Không job nào lọc theo status này.
 
 ---
 

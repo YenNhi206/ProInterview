@@ -87,6 +87,7 @@ function reportBankError(event, err, sessionId) {
 }
 import { mergeInterviewAnswersForEval } from "../utils/mergeInterviewAnswers.js";
 import { SHRM_LEVELS } from "../utils/evaluationCompleteness.js";
+import { rubricFeedbackByQuestion, scoreCompanyRubrics, scoreMissingRubricsWithClaim } from "../services/rubricScoringService.js";
 
 // ── Accumulation helper ───────────────────────────────────────────────────────
 /**
@@ -713,6 +714,11 @@ export const InterviewsController = {
 
       // Idempotent: return cached feedback if already evaluated (skip LLM call)
       if (session.feedbackGeneratedAt && session.feedback?.perQuestion?.length > 0) {
+        // JB-07: chấm bù rubric cho câu doanh nghiệp chưa chấm (session cũ / lần trước LLM lỗi).
+        await scoreMissingRubricsWithClaim(session, { userId: req.userId }).catch((err) =>
+          logger.error("rubric_scoring_backfill_failed", { sessionId: id, error: err?.message }),
+        );
+        const rubricByQ = await rubricFeedbackByQuestion(session);
         const openReports = await openReportTypesBySession(session);
         const cachedBehavioralPerQuestion = session.answers.map((a) => ({
           questionIndex: a.questionIndex,
@@ -732,6 +738,7 @@ export const InterviewsController = {
               improvements:  q.improvements ?? [],
               suggestion:    q.suggestion ?? "",
               ...moderationFieldsFor(session, q.questionIndex, openReports),
+              ...rubricByQ.get(q.questionIndex),
             })),
           },
           overallScore:   session.feedback.overallScore,
@@ -782,12 +789,18 @@ export const InterviewsController = {
         answerCount:   answersToEval.length,
       });
 
-      const evalResult = await evaluateTranscripts({
-        questions: questionsToUse,
-        answers:   answersToEval,
-        userId:    req.userId,
-        sessionId: id,
-      });
+      // JB-07: chấm rubric câu doanh nghiệp song song với chấm SHRM/DDI; lỗi rubric không chặn đánh giá.
+      const [evalResult] = await Promise.all([
+        evaluateTranscripts({
+          questions: questionsToUse,
+          answers:   answersToEval,
+          userId:    req.userId,
+          sessionId: id,
+        }),
+        scoreCompanyRubrics(session, { userId: req.userId }).catch((err) =>
+          logger.error("rubric_scoring_failed_unexpected", { sessionId: id, error: err?.message }),
+        ),
+      ]);
 
       // Persist to MongoDB
       const BADGE_MAP = { excellent: "Xuất sắc", proficient: "Tốt", developing: "Cần cải thiện" };
@@ -839,6 +852,7 @@ export const InterviewsController = {
       }
 
       logger.info("evaluate_session_ok", { userId: req.userId, sessionId: id, overallScore: session.feedback.overallScore });
+      const rubricByQ = await rubricFeedbackByQuestion(session);
 
       // Build per-question behavioral lookup
       const behavioralPerQuestion = session.answers.map((a) => ({
@@ -852,7 +866,11 @@ export const InterviewsController = {
         evaluation:     {
           ...evalResult,
           // Phiên vừa chấm lần đầu thì chưa thể có báo cáo nào → không cần truy vấn Report.
-          perQuestion: evalResult.perQuestion.map((q) => ({ ...q, ...moderationFieldsFor(session, q.questionIndex) })),
+          perQuestion: evalResult.perQuestion.map((q) => ({
+            ...q,
+            ...moderationFieldsFor(session, q.questionIndex),
+            ...rubricByQ.get(q.questionIndex),
+          })),
         },
         overallScore:   session.feedback.overallScore,
         generalComment: evalResult.overallComment,
