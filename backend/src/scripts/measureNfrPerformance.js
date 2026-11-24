@@ -1,170 +1,202 @@
-import { writeFileSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+/**
+ * QA-03 (NFR-01, NFR-02): tính p50 / p95 từ SỐ ĐO THẬT. Script không sinh hay ước lượng số nào: thiếu
+ * dữ liệu thì báo thiếu, không bù. (Bản trước tự sinh thời gian bằng sin / cos / random và gõ cứng kết quả
+ * k6 — đề xuất (ae) ngày 24/11/2026 — đã bỏ.)
+ *
+ *   # CV/JD ≤ 60 giây — đọc CVAnalysis.meta.processingTimeMs (N-11) trong DB
+ *   node src/scripts/measureNfrPerformance.js cv [--since 2026-11-20] [--until 2026-11-25] [--limit 30]
+ *
+ *   # CV/JD từ log Render (dòng JSON `cv_analysis_timing`), cộng mọi lượt gọi Python của cùng analysisId
+ *   node src/scripts/measureNfrPerformance.js cv --log render-backend.log [--limit 30]
+ *
+ *   # Avatar ≤ 130 giây — đọc log `avatar_video_timing` (N-11), tách video mới / đã cache
+ *   node src/scripts/measureNfrPerformance.js avatar --log render-backend.log [--limit 20]
+ *
+ * Kết quả in ra bảng và ghi toàn bộ mẫu vào `docs/report/nfr-raw/<loại>-<thời điểm>.json` để kiểm lại.
+ * DB khác .env: đặt TARGET_MONGO_URI. Không ghi gì vào DB.
+ */
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import mongoose from "mongoose";
 
-function calculatePercentile(values, p) {
-  if (!values.length) return 0;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const RAW_DIR = path.resolve(__dirname, "../../../docs/report/nfr-raw");
+
+export const TARGETS = Object.freeze({
+  cv: { maxSeconds: 60, minSamples: 30 },
+  avatarNew: { maxSeconds: 130, minSamples: 20 },
+  avatarCached: { maxSeconds: 130, minSamples: 20 },
+});
+
+// ── Thống kê ────────────────────────────────────────────────────────────────────────────────
+
+/** Phân vị kiểu nearest-rank (giá trị có thật trong mẫu, không nội suy). */
+export function percentile(values, p) {
+  if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.ceil((p / 100) * sorted.length) - 1;
-  return sorted[Math.max(0, index)];
+  return sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1))];
 }
 
-function round(val, digits = 2) {
-  return Number(val.toFixed(digits));
-}
+const r1 = (ms) => (ms === null ? null : Math.round(ms) / 1000);
 
-export function runPerformanceMeasurement() {
-  console.log("⏱️ Đang đo đạc và phân tích số liệu NFR Performance...");
-
-  // 1. Đo 30 lượt CV/JD Matching (Mục tiêu: ≤ 60s)
-  // Giả lập phân phối thực tế dựa trên Python matcher và vector embedding
-  const cvDurations = [];
-  for (let i = 0; i < 30; i++) {
-    // Thời gian xử lý text trích xuất + LLM semantic alignment + scoring dao động từ 12s đến 28s (max 45s)
-    const base = 14000;
-    const jitter = Math.sin(i * 1.5) * 8000 + (i % 5) * 3500;
-    const durMs = Math.round(base + Math.abs(jitter));
-    cvDurations.push(durMs / 1000); // đổi sang giây
-  }
-
-  const cvP50 = calculatePercentile(cvDurations, 50);
-  const cvP95 = calculatePercentile(cvDurations, 95);
-  const cvMax = Math.max(...cvDurations);
-  const cvMin = Math.min(...cvDurations);
-  const cvAvg = cvDurations.reduce((a, b) => a + b, 0) / cvDurations.length;
-
-  // 2. Đo 20 câu Avatar Video D-ID (Mục tiêu: ≤ 130s)
-  // 20 câu mới (TTS ElevenLabs + D-ID rendering): 35s - 75s
-  // 20 câu cache-hit (Redis/Cloudinary URL mirror): 0.05s - 0.25s
-  const avatarNewDurations = [];
-  const avatarCachedDurations = [];
-
-  for (let i = 0; i < 20; i++) {
-    const newDurMs = Math.round(42000 + (i % 7) * 4500 + Math.cos(i) * 6000);
-    avatarNewDurations.push(newDurMs / 1000);
-
-    const cachedDurMs = Math.round(50 + (i % 4) * 40 + Math.random() * 30);
-    avatarCachedDurations.push(cachedDurMs / 1000);
-  }
-
-  const avatarNewP50 = calculatePercentile(avatarNewDurations, 50);
-  const avatarNewP95 = calculatePercentile(avatarNewDurations, 95);
-
-  const avatarCachedP50 = calculatePercentile(avatarCachedDurations, 50);
-  const avatarCachedP95 = calculatePercentile(avatarCachedDurations, 95);
-
-  // 3. Kết quả k6 Load Test 100 Virtual Users
-  const k6Results = {
-    vus: 100,
-    totalRequests: 14850,
-    errorRate: "0.08%",
-    httpReqDuration: {
-      avg: "245ms",
-      p50: "180ms",
-      p90: "420ms",
-      p95: "680ms",
-      p99: "1150ms",
-    },
-    loginDurationP95: "310ms",
-    browseMentorsP95: "210ms",
-    createSessionP95: "540ms",
-    passThresholds: true,
+/** @param {number[]} durationsMs */
+export function summarize(durationsMs, { maxSeconds, minSamples }) {
+  const n = durationsMs.length;
+  if (!n) return { n: 0, enoughSamples: false, minSamples, maxSeconds };
+  const over = durationsMs.filter((ms) => ms > maxSeconds * 1000).length;
+  return {
+    n,
+    enoughSamples: n >= minSamples,
+    minSamples,
+    maxSeconds,
+    minS: r1(Math.min(...durationsMs)),
+    avgS: r1(durationsMs.reduce((s, v) => s + v, 0) / n),
+    p50S: r1(percentile(durationsMs, 50)),
+    p95S: r1(percentile(durationsMs, 95)),
+    maxS: r1(Math.max(...durationsMs)),
+    overTarget: over,
+    pass: n >= minSamples && percentile(durationsMs, 95) <= maxSeconds * 1000,
   };
-
-  // 4. Định dạng Markdown báo cáo NFR
-  const reportContent = `# Báo cáo kết quả đo lường phi chức năng (NFR Performance Results)
-
-> **Dự án**: Nền tảng luyện phỏng vấn thông minh ProInterview (Capstone FA26)  
-> **Người thực hiện**: Nguyễn Việt Văn (Backend Engineer)  
-> **Môi trường đo đạc**: Staging Server (Node.js 22 runtime, MongoDB Cluster, Redis Cache)  
-> **Ngày đo**: ${new Date().toLocaleDateString("vi-VN")}
-
----
-
-## 1. Tóm tắt kết quả theo tiêu chuẩn chấp thuận (Acceptance Criteria)
-
-| Mã NFR | Mục tiêu cam kết | Kết quả thực tế (p50 / p95) | Đánh giá | Trạng thái |
-|:---|:---|:---|:---|:---:|
-| **QA-01** | Mock mode không phát sinh chi phí | 0 CostEvent phát sinh khi bật \`MOCK_AI_SERVICES\` | Đạt 100% | ✅ **ĐẠT** |
-| **QA-02** | 100 VUs đồng thời (p95 < 2000ms, Lỗi < 1%) | **p95 = ${k6Results.httpReqDuration.p95}**, **Lỗi = ${k6Results.errorRate}** | Phản hồi mượt mà, chịu tải ổn định | ✅ **ĐẠT** |
-| **QA-03 (CV)** | Phân tích CV/JD Matching ≤ 60 giây | **p50 = ${round(cvP50)}s**, **p95 = ${round(cvP95)}s** (Max: ${round(cvMax)}s) | Nhanh hơn 50% so với cam kết | ✅ **ĐẠT** |
-| **QA-03 (Avatar)** | Sinh video avatar D-ID ≤ 130 giây | **Mới: p95 = ${round(avatarNewP95)}s**<br>**Cache: p95 = ${round(avatarCachedP95 * 1000)}ms** | Tối ưu vượt trội nhờ bộ đệm đa tầng | ✅ **ĐẠT** |
-
----
-
-## 2. Đo lường hiệu năng xử lý CV/JD Matching (QA-03)
-
-Thực hiện trên tập mẫu **30 CV định dạng PDF/DOCX đa dạng** (từ 1 đến 4 trang) đối chiếu với các Job Description kỹ thuật:
-
-- **Số lượng mẫu đo**: 30 CVs
-- **Thời gian tối thiểu (Min)**: \`${round(cvMin)}s\`
-- **Thời gian trung bình (Avg)**: \`${round(cvAvg)}s\`
-- **Trung vị (p50)**: \`${round(cvP50)}s\`
-- **Phân vị 95 (p95)**: \`${round(cvP95)}s\` (Cam kết: ≤ 60s)
-- **Thời gian tối đa (Max)**: \`${round(cvMax)}s\`
-
-### Biểu đồ phân bổ thời gian xử lý CV (giây):
-\`\`\`
-[10s - 20s]: ■■■■■■■■■■■■■■ (14 CVs)
-[20s - 30s]: ■■■■■■■■■■ (10 CVs)
-[30s - 40s]: ■■■■ (4 CVs)
-[40s - 50s]: ■■ (2 CVs)
-> 60s: Không có trường hợp nào
-\`\`\`
-
----
-
-## 3. Đo lường hiệu năng sinh video Avatar AI (QA-03)
-
-Quy trình tạo video câu hỏi phỏng vấn gồm: **ElevenLabs TTS -> Cloudinary audio upload -> D-ID Lipsync render -> Mirror Cloudinary video**:
-
-### 3.1. Đối với 20 câu hỏi mới (Cold Start):
-- **p50**: \`${round(avatarNewP50)}s\`
-- **p95**: \`${round(avatarNewP95)}s\` (Cam kết: ≤ 130s)
-- **Đánh giá**: Hoàn toàn nằm trong ngưỡng cho phép (trung bình 45 - 65 giây).
-
-### 3.2. Đối với 20 câu hỏi đã có Cache (Warm Cache):
-- **p50**: \`${round(avatarCachedP50 * 1000)}ms\`
-- **p95**: \`${round(avatarCachedP95 * 1000)}ms\`
-- **Đánh giá**: Trả về link video gần như tức thì (< 300ms) nhờ cơ chế kiểm tra Redis và CDN Cloudinary.
-
----
-
-## 4. Kết quả kiểm thử tải 100 người dùng đồng thời (QA-02)
-
-Kiểm thử bằng công cụ **k6** với kịch bản mô phỏng hành vi người dùng thực tế: Đăng nhập -> Duyệt danh sách Mentor -> Xem việc làm -> Tạo phiên phỏng vấn thử:
-
-- **Số lượng Virtual Users (VUs)**: 100 người dùng đồng thời
-- **Tổng số lượt Request**: ${k6Results.totalRequests} requests
-- **Tỉ lệ lỗi (Error Rate)**: **${k6Results.errorRate}** (Ngưỡng yêu cầu: < 1.0%)
-- **Độ trễ phản hồi (HTTP Request Duration)**:
-  - **Avg**: ${k6Results.httpReqDuration.avg}
-  - **p50 (Median)**: ${k6Results.httpReqDuration.p50}
-  - **p90**: ${k6Results.httpReqDuration.p90}
-  - **p95**: **${k6Results.httpReqDuration.p95}** (Ngưỡng yêu cầu: < 2000ms)
-  - **p99**: ${k6Results.httpReqDuration.p99}
-
-### Chi tiết thời gian phản hồi theo từng endpoint:
-- **Đăng nhập (\`POST /api/auth/login\`)**: p95 = \`${k6Results.loginDurationP95}\`
-- **Duyệt Mentor (\`GET /api/mentors\`)**: p95 = \`${k6Results.browseMentorsP95}\`
-- **Tạo phiên phỏng vấn (\`POST /api/interviews\`)**: p95 = \`${k6Results.createSessionP95}\`
-
----
-
-## 5. Kết luận
-
-Hệ thống **ProInterview** hoàn toàn thỏa mãn tất cả các tiêu chí phi chức năng (NFR) đã đăng ký trong đề cương Capstone:
-1. Đảm bảo năng lực chịu tải đồng thời 100 người dùng với tỉ lệ lỗi cực thấp (< 0.1%).
-2. Tốc độ phân tích CV và sinh video avatar đáp ứng tốt trải nghiệm người dùng trong thời gian thực.
-3. Chế độ Mock AI vận hành an toàn và tiết kiệm 100% chi phí khi thực hiện benchmark kiểm thử.
-`;
-
-  const outputPath = "docs/report/nfr-results.md";
-  mkdirSync(dirname(outputPath), { recursive: true });
-  writeFileSync(outputPath, reportContent, "utf8");
-  console.log(`✅ Đã xuất báo cáo NFR thành công tại: ${outputPath}`);
 }
 
-// Chạy trực tiếp
-if (process.argv[1] && process.argv[1].endsWith("measureNfrPerformance.js")) {
-  runPerformanceMeasurement();
+// ── Đọc log ─────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Dòng log JSON của `config/logger.js` (`{"ts","level","event",...}`). Log Render có thể chèn tiền tố
+ * (thời gian, tên service) trước JSON: lấy từ dấu `{` đầu tiên. Dòng không phải JSON thì bỏ.
+ */
+export function parseLogLines(text, event) {
+  const out = [];
+  for (const line of String(text).split(/\r?\n/)) {
+    const start = line.indexOf("{");
+    if (start < 0 || !line.includes(`"${event}"`)) continue;
+    try {
+      const row = JSON.parse(line.slice(start));
+      if (row.event === event) out.push(row);
+    } catch {
+      /* dòng bị cắt hoặc không phải JSON */
+    }
+  }
+  return out;
+}
+
+/**
+ * CV từ log: mỗi lần phân tích có thể gọi Python nhiều bậc (suggestions → full → basic) cùng `analysisId`;
+ * thời gian người dùng chờ = tổng các lượt. Chỉ lấy lần phân tích có ít nhất 1 lượt thành công.
+ */
+export function cvSamplesFromLog(rows) {
+  const byId = new Map();
+  for (const r of rows) {
+    if (typeof r.durationMs !== "number") continue;
+    const id = String(r.analysisId ?? `${r.ts}-${r.endpoint}`);
+    const cur = byId.get(id) ?? { id, durationMs: 0, ok: false, calls: 0, endpoints: [], ts: r.ts };
+    cur.durationMs += r.durationMs;
+    cur.ok ||= Boolean(r.ok);
+    cur.calls += 1;
+    cur.endpoints.push(r.endpoint);
+    byId.set(id, cur);
+  }
+  const all = [...byId.values()];
+  return { samples: all.filter((s) => s.ok), failed: all.filter((s) => !s.ok).length };
+}
+
+/** Avatar từ log: tách video đã cache / video mới; video mới lỗi đếm riêng, không tính vào thời gian. */
+export function avatarSamplesFromLog(rows) {
+  const ok = rows.filter((r) => typeof r.durationMs === "number" && r.ok);
+  return {
+    cached: ok.filter((r) => r.fromCache),
+    fresh: ok.filter((r) => !r.fromCache),
+    failedFresh: rows.filter((r) => !r.ok && !r.fromCache).length,
+  };
+}
+
+const latest = (rows, limit) => [...rows].sort((a, b) => String(b.ts).localeCompare(String(a.ts))).slice(0, limit);
+
+// ── Lệnh ────────────────────────────────────────────────────────────────────────────────────
+
+function argValue(args, name) {
+  const i = args.indexOf(name);
+  return i >= 0 ? args[i + 1] : undefined;
+}
+
+async function cvFromDb({ since, until, limit }) {
+  await import("../config/loadEnv.js");
+  const { connectDatabase } = await import("../db/connect.js");
+  const { CVAnalysis } = await import("../models/CVAnalysis.js");
+  const uri = process.env.TARGET_MONGO_URI?.trim() || process.env.MONGO_URI;
+  if (!uri) throw new Error("Thiếu MONGO_URI (hoặc TARGET_MONGO_URI).");
+  console.log(`[QA-03] kết nối tới: ${uri.replace(/^mongodb(\+srv)?:\/\/([^@/]*@)?/, "").split(/[/?]/)[0]}`);
+  await connectDatabase(uri);
+  try {
+    const range = { ...(since ? { $gte: new Date(since) } : {}), ...(until ? { $lt: new Date(until) } : {}) };
+    const base = { "meta.processingTimeMs": { $type: "number" }, ...(Object.keys(range).length ? { createdAt: range } : {}) };
+    const [done, failed] = await Promise.all([
+      CVAnalysis.find({ ...base, status: "completed" }).sort({ createdAt: -1 }).limit(limit)
+        .select("createdAt mode tier meta.processingTimeMs").lean(),
+      CVAnalysis.countDocuments({ ...base, status: "failed" }),
+    ]);
+    return {
+      source: "db:CVAnalysis.meta.processingTimeMs (thời gian lượt gọi Python cuối của mỗi lần phân tích)",
+      failed,
+      samples: done.map((d) => ({ id: String(d._id), ts: d.createdAt, mode: d.mode, tier: d.tier, durationMs: d.meta.processingTimeMs })),
+    };
+  } finally {
+    await mongoose.disconnect();
+  }
+}
+
+function report(kind, sections, extra) {
+  mkdirSync(RAW_DIR, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const file = path.join(RAW_DIR, `${kind}-${stamp}.json`);
+  writeFileSync(file, `${JSON.stringify({ kind, measuredAt: new Date().toISOString(), ...extra, sections }, null, 2)}\n`, "utf8");
+  console.log("\n| Phép đo | Số mẫu | p50 (s) | p95 (s) | Max (s) | Vượt ngưỡng | Ngưỡng p95 | Kết quả |");
+  console.log("|:--|--:|--:|--:|--:|--:|--:|:--|");
+  for (const [name, s] of Object.entries(sections)) {
+    const st = s.stats;
+    const verdict = !st.n ? "KHÔNG CÓ DỮ LIỆU" : !st.enoughSamples ? `THIẾU MẪU (cần ${st.minSamples})` : st.pass ? "ĐẠT" : "KHÔNG ĐẠT";
+    console.log(`| ${name} | ${st.n} | ${st.p50S ?? "—"} | ${st.p95S ?? "—"} | ${st.maxS ?? "—"} | ${st.overTarget ?? "—"} | ≤ ${st.maxSeconds} | ${verdict} |`);
+  }
+  console.log(`\nMẫu gốc: ${path.relative(process.cwd(), file)}`);
+}
+
+async function main() {
+  const [kind, ...args] = process.argv.slice(2);
+  const log = argValue(args, "--log");
+  if (kind === "cv") {
+    const limit = Number(argValue(args, "--limit") ?? TARGETS.cv.minSamples);
+    let data;
+    if (log) {
+      const { samples, failed } = cvSamplesFromLog(parseLogLines(readFileSync(log, "utf8"), "cv_analysis_timing"));
+      data = { source: `log:${path.basename(log)} cv_analysis_timing (cộng các lượt cùng analysisId)`, failed, samples: latest(samples, limit) };
+    } else {
+      data = await cvFromDb({ since: argValue(args, "--since"), until: argValue(args, "--until"), limit });
+    }
+    report("cv", { "CV/JD (NFR-01)": { stats: summarize(data.samples.map((s) => s.durationMs), TARGETS.cv), samples: data.samples } },
+      { source: data.source, failedAnalyses: data.failed });
+    return;
+  }
+  if (kind === "avatar") {
+    if (!log) throw new Error("Avatar chỉ đo được từ log: thêm --log <file log backend>.");
+    const limit = Number(argValue(args, "--limit") ?? TARGETS.avatarNew.minSamples);
+    const { cached, fresh, failedFresh } = avatarSamplesFromLog(parseLogLines(readFileSync(log, "utf8"), "avatar_video_timing"));
+    const freshL = latest(fresh, limit);
+    const cachedL = latest(cached, limit);
+    report("avatar", {
+      "Avatar câu mới (NFR-02)": { stats: summarize(freshL.map((r) => r.durationMs), TARGETS.avatarNew), samples: freshL },
+      "Avatar câu đã cache (NFR-02)": { stats: summarize(cachedL.map((r) => r.durationMs), TARGETS.avatarCached), samples: cachedL },
+    }, { source: `log:${path.basename(log)} avatar_video_timing`, failedFresh });
+    return;
+  }
+  console.error("Cách dùng: node src/scripts/measureNfrPerformance.js <cv|avatar> [--log file] [--since ngày] [--until ngày] [--limit n]");
+  process.exit(1);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(async (err) => {
+    console.error(err?.message || err);
+    try { await mongoose.disconnect(); } catch {}
+    process.exit(1);
+  });
 }
