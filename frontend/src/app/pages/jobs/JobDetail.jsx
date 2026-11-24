@@ -8,6 +8,7 @@ import {
   CircleDashed,
   Clock,
   ExternalLink,
+  FileText,
   Flag,
   Globe,
   MapPin,
@@ -21,6 +22,16 @@ import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { getJob, getJobGap, reportJob } from "../../api/jobsApi.js";
 import { getUser } from "../../utils/auth/auth.js";
+import { applyToJob, getMyCompanyMetrics, listMyApplications } from "../../api/applicationsApi.js";
+import { cvsApi } from "../../api/cvsApi.js";
+import {
+  APPLICATION_STATUS_TONE,
+  applicationForJob,
+  applyFormError,
+  companyMetricsView,
+  defaultCvId,
+  statusLabelOf,
+} from "../../utils/jobs/applications.js";
 import {
   JOB_EMPLOYMENT_TYPE_LABELS,
   JOB_LEVEL_LABELS,
@@ -155,17 +166,212 @@ function GapPanel({ jobId, audience, loginUrl }) {
   );
 }
 
-/** Chỉ số của ứng viên với doanh nghiệp (JB-19). API chưa có: hiện hướng dẫn luyện câu của doanh nghiệp. */
-function CompanyScorePanel({ jobId, companyName, audience }) {
+/** Chỉ số của ứng viên với doanh nghiệp (JB-19): câu doanh nghiệp đã trả lời trong phỏng vấn AI và điểm rubric (JB-07). */
+function CompanyScorePanel({ jobId, companyId, companyName, audience }) {
+  const [state, setState] = useState({ loading: true, error: "", view: null });
+
+  useEffect(() => {
+    if (audience !== "candidate" || !companyId) return undefined;
+    let active = true;
+    getMyCompanyMetrics(companyId).then((res) => {
+      if (!active) return;
+      setState({ loading: false, error: res.success ? "" : res.error, view: res.success ? companyMetricsView(res.metrics) : null });
+    });
+    return () => {
+      active = false;
+    };
+  }, [audience, companyId]);
+
   if (audience !== "candidate") return null;
+  const { loading, error, view } = state;
+  const practice = (
+    <Link to={interviewUrl(jobId)} className={`${SECONDARY_BTN} mt-4`}>
+      <Mic className="size-4" aria-hidden /> Luyện phỏng vấn AI theo job này
+    </Link>
+  );
   return (
-    <section className={PANEL} aria-labelledby="job-company-score-title">
+    <section className={PANEL} aria-labelledby="job-company-score-title" aria-busy={loading}>
       <SectionTitle><span id="job-company-score-title">Chỉ số của bạn với {companyName || "doanh nghiệp này"}</span></SectionTitle>
-      <p className="text-sm text-slate-400">Bạn chưa trả lời câu nào của doanh nghiệp này.</p>
-      <Link to={interviewUrl(jobId)} className={`${SECONDARY_BTN} mt-4`}>
-        <Mic className="size-4" aria-hidden /> Luyện phỏng vấn AI theo job này
-      </Link>
+      {loading ? (
+        <p className="text-sm text-slate-400" role="status">Đang tải chỉ số…</p>
+      ) : error ? (
+        <p className="flex items-start gap-2 text-sm text-red-300" role="alert"><AlertCircle className="mt-0.5 size-4 shrink-0" /> {error}</p>
+      ) : view.empty ? (
+        <>
+          <p className="text-sm text-slate-400">Bạn chưa trả lời câu nào của doanh nghiệp này.</p>
+          {practice}
+        </>
+      ) : (
+        <>
+          <dl className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+              <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Điểm rubric TB</dt>
+              <dd className="mt-1 text-xl font-black text-white">
+                {view.average !== null ? view.average.toFixed(1) : "—"}<span className="text-xs font-semibold text-slate-500">/5</span>
+              </dd>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+              <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Câu đã trả lời</dt>
+              <dd className="mt-1 text-xl font-black text-white">
+                {view.answeredCount}<span className="text-xs font-semibold text-slate-500">/{view.questionCount}</span>
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-3 text-xs text-slate-400">
+            {view.sessionCount} buổi phỏng vấn AI{view.lastAnsweredAt ? ` · gần nhất ${view.lastAnsweredAt}` : ""}
+            {view.pendingScoringCount ? ` · ${view.pendingScoringCount} câu đang chấm` : ""}
+          </p>
+          {view.criteria.length ? (
+            <ul className="mt-4 space-y-2.5">
+              {view.criteria.map((c) => (
+                <li key={c.key}>
+                  <div className="flex items-center justify-between gap-3 text-xs">
+                    <span className="font-semibold text-slate-200">{c.name}</span>
+                    <span className="shrink-0 font-bold tabular-nums text-white">{c.avg.toFixed(1)}/5</span>
+                  </div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden>
+                    <div
+                      className={`h-full rounded-full ${c.avg >= 4 ? "bg-[#93f72b]" : c.avg >= 3 ? "bg-violet-400" : "bg-amber-400"}`}
+                      style={{ width: `${(c.avg / 5) * 100}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="mt-4 text-[11px] leading-relaxed text-slate-500">
+            Doanh nghiệp chỉ thấy các chỉ số này khi bạn ứng tuyển và đồng ý chia sẻ.
+          </p>
+          {practice}
+        </>
+      )}
     </section>
+  );
+}
+
+const APP_TONE_STYLE = {
+  info: "border-violet-400/30 bg-violet-400/10 text-violet-200",
+  good: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+  bad: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+  muted: "border-white/15 bg-white/5 text-slate-300",
+};
+
+/** Hộp thoại ứng tuyển (JB-08): chọn CV trong kho + đồng ý chia sẻ. */
+function ApplyDialog({ job, onClose, onDone }) {
+  const [cvState, setCvState] = useState({ loading: true, error: "", cvs: [] });
+  const [cvId, setCvId] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    cvsApi.list().then((res) => {
+      if (!active) return;
+      const cvs = res.success ? res.cvs || [] : [];
+      setCvState({ loading: false, error: res.success ? "" : res.error || "Không tải được kho CV.", cvs });
+      setCvId(defaultCvId(cvs));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && !sending && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, sending]);
+
+  const inputError = applyFormError({ cvId, consent });
+  const submit = async (e) => {
+    e.preventDefault();
+    if (inputError || sending) return;
+    setSending(true);
+    setError("");
+    const res = await applyToJob(job.id, { cvId });
+    setSending(false);
+    if (res.success) onDone(res.application);
+    else setError(res.error);
+  };
+
+  const companyName = job.company?.name || "doanh nghiệp";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="presentation" onClick={() => !sending && onClose()}>
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="job-apply-title"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={submit}
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-[#18113c] p-5 shadow-2xl sm:p-6"
+      >
+        <div className="mb-1 flex items-start justify-between gap-3">
+          <h2 id="job-apply-title" className="font-headline text-lg font-black text-white">Ứng tuyển {job.title}</h2>
+          <button type="button" data-button-surface="none" aria-label="Đóng" onClick={onClose} disabled={sending} className="rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white">
+            <X className="size-4" />
+          </button>
+        </div>
+        <p className="mb-4 text-xs text-slate-400">{companyName} · Mỗi tin chỉ ứng tuyển được một lần, rút đơn rồi không nộp lại.</p>
+
+        <fieldset disabled={sending}>
+          <legend className="mb-2 text-sm font-bold text-slate-200">Chọn CV</legend>
+          {cvState.loading ? (
+            <p className="text-sm text-slate-400" role="status">Đang tải kho CV…</p>
+          ) : cvState.error ? (
+            <p className="text-sm text-red-300" role="alert">{cvState.error}</p>
+          ) : cvState.cvs.length === 0 ? (
+            <p className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-slate-300">
+              Kho CV của bạn đang trống. <Link to="/cvs" className="font-bold text-[#93f72b] hover:underline">Tải CV vào kho</Link> rồi quay lại ứng tuyển.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {cvState.cvs.map((cv) => {
+                const invalid = cv.isValidCv === false;
+                const on = cvId === cv.id;
+                return (
+                  <li key={cv.id}>
+                    <label
+                      className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition-colors ${
+                        invalid ? "cursor-not-allowed border-white/5 opacity-50" : on ? "cursor-pointer border-[#93f72b] bg-[#93f72b]/[0.08]" : "cursor-pointer border-white/10 bg-white/[0.03] hover:border-white/25"
+                      }`}
+                    >
+                      <input type="radio" name="cv" value={cv.id} checked={on} disabled={invalid} onChange={() => setCvId(cv.id)} className="mt-0.5 accent-[#93f72b]" />
+                      <FileText className="mt-0.5 size-4 shrink-0 text-violet-300" aria-hidden />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold text-white">
+                          {cv.title || "CV"}
+                          {cv.isDefault ? <span className="ml-2 text-[11px] font-semibold text-[#93f72b]">Mặc định</span> : null}
+                        </span>
+                        <span className="block truncate text-xs text-slate-400">
+                          {invalid ? "Tệp này không được nhận là CV" : [cv.targetRole, cv.fileName || "CV soạn trên ProInterview"].filter(Boolean).join(" · ")}
+                        </span>
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </fieldset>
+
+        <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-slate-300">
+          <input type="checkbox" checked={consent} disabled={sending} onChange={(e) => setConsent(e.target.checked)} className="mt-1 accent-[#93f72b]" />
+          <span>
+            Tôi đồng ý chia sẻ với <strong className="text-white">{companyName}</strong>: họ tên, email, hồ sơ năng lực, CV đã chọn và
+            kết quả trả lời câu hỏi của doanh nghiệp này trong phỏng vấn AI. Doanh nghiệp xem bản chụp tại thời điểm nộp; rút đơn thì bản chụp bị xóa.
+          </span>
+        </label>
+
+        {error ? <p className="mt-3 text-sm text-red-300" role="alert">{error}</p> : null}
+        <div className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={onClose} disabled={sending} className={SECONDARY_BTN}>Hủy</button>
+          <button type="submit" disabled={Boolean(inputError) || sending || cvState.loading} title={inputError || undefined} className={PRIMARY_BTN}>
+            <Send className="size-4" aria-hidden /> {sending ? "Đang nộp…" : "Nộp đơn"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -257,6 +463,21 @@ export function JobDetail() {
   const [reload, setReload] = useState(0);
   const [reporting, setReporting] = useState(false);
   const [reported, setReported] = useState(false);
+  // JB-08: đơn của ứng viên cho job này (undefined = đang tải, null = chưa ứng tuyển).
+  const [myApplication, setMyApplication] = useState(undefined);
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
+
+  useEffect(() => {
+    if (audience !== "candidate") return undefined;
+    let active = true;
+    listMyApplications().then((res) => {
+      if (active) setMyApplication(res.success ? applicationForJob(res.applications, id) : null);
+    });
+    return () => {
+      active = false;
+    };
+  }, [audience, id]);
 
   useEffect(() => {
     let active = true;
@@ -335,9 +556,22 @@ export function JobDetail() {
                   </div>
 
                   <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col lg:items-stretch">
-                    <button type="button" disabled className={PRIMARY_BTN} title="Chức năng ứng tuyển sẽ mở trong bản cập nhật tới">
-                      <Send className="size-4" aria-hidden /> Ứng tuyển (sắp mở)
-                    </button>
+                    {audience === "guest" ? (
+                      <Link to={loginUrl} className={PRIMARY_BTN}>
+                        <Send className="size-4" aria-hidden /> Đăng nhập để ứng tuyển
+                      </Link>
+                    ) : !canAct ? null : myApplication ? (
+                      <div className="flex flex-col items-stretch gap-1.5 text-center">
+                        <span className={`rounded-full border px-4 py-2 text-sm font-bold ${APP_TONE_STYLE[APPLICATION_STATUS_TONE[myApplication.status]] || APP_TONE_STYLE.muted}`}>
+                          {applied ? "Đã nộp đơn" : `Đã ứng tuyển · ${statusLabelOf(myApplication)}`}
+                        </span>
+                        <Link to="/my-applications" className="text-xs font-bold text-violet-300 hover:text-white">Xem đơn ứng tuyển</Link>
+                      </div>
+                    ) : (
+                      <button type="button" disabled={myApplication === undefined} onClick={() => setApplying(true)} className={PRIMARY_BTN}>
+                        <Send className="size-4" aria-hidden /> Ứng tuyển
+                      </button>
+                    )}
                     <Link to={canAct ? mentorRequestUrl(job.id) : loginUrl} className={SECONDARY_BTN}>
                       <Users className="size-4" aria-hidden /> Tìm mentor cho job này
                     </Link>
@@ -405,13 +639,25 @@ export function JobDetail() {
 
                 <aside className="min-w-0 space-y-5">
                   <GapPanel jobId={job.id} audience={audience} loginUrl={loginUrl} />
-                  <CompanyScorePanel jobId={job.id} companyName={company.name} audience={audience} />
+                  <CompanyScorePanel jobId={job.id} companyId={company.id} companyName={company.name} audience={audience} />
                 </aside>
               </div>
             </>
           )}
         </div>
       </div>
+
+      {applying && job ? (
+        <ApplyDialog
+          job={job}
+          onClose={() => setApplying(false)}
+          onDone={(application) => {
+            setApplying(false);
+            setApplied(true);
+            setMyApplication(application ?? { status: "submitted", statusLabel: "Đã nộp" });
+          }}
+        />
+      ) : null}
 
       {reporting && job ? (
         <ReportDialog
