@@ -20,13 +20,10 @@ export function safeInternalPath(url, fallback) {
   return s.startsWith("/") && !s.startsWith("//") ? s : fallback;
 }
 
-/**
- * Trang chi tiết job (`/jobs/:id`, JB-12) chưa có: tạm mở danh sách /jobs đã lọc theo tên job.
- * Khi JB-12 xong, đổi hàm này trả `item.actionUrl`.
- */
+/** Trang chi tiết job `/jobs/:id` (JB-12); thiếu id thì mở danh sách /jobs. */
 export function jobActionUrl(job) {
-  const title = clean(job?.title);
-  return title ? `/jobs?q=${encodeURIComponent(title)}` : "/jobs";
+  const fallback = job?.id ? `/jobs/${encodeURIComponent(job.id)}` : "/jobs";
+  return safeInternalPath(job?.actionUrl, fallback);
 }
 
 /** Bỏ trùng, giữ thứ tự (so không phân biệt hoa thường). */

@@ -38,6 +38,8 @@ import {
   acceptMentorshipAssessment,
 } from "../../api/mentorshipRequestsApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
+import { getJob } from "../../api/jobsApi.js";
+import { jdFileName, jobToJdText, readJobPostId } from "../../utils/jobs/jobDetail.js";
 import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
 import { mentorRequestStats } from "../../utils/mentor/mentorRequestStats.js";
 import "../../../styles/mentorship-requests.css";
@@ -125,6 +127,33 @@ export function MentorshipRequests() {
   const requestTitle = request?.title || location.state?.title || "";
 
   const [documentMode, setDocumentMode] = useState({ cv: "upload", jd: "upload" });
+
+  // JB-12: yêu cầu mentor gắn job (`/mentor-requests/new?jobPostId=`), JD lấy từ mô tả job.
+  const jobPostId = isNew ? readJobPostId(new URLSearchParams(location.search)) : "";
+  const [jobPost, setJobPost] = useState(null);
+  const [jobPostError, setJobPostError] = useState("");
+  useEffect(() => {
+    if (!jobPostId) {
+      setJobPost(null);
+      setJobPostError("");
+      return undefined;
+    }
+    let active = true;
+    getJob(jobPostId).then((res) => {
+      if (!active) return;
+      if (res.success) {
+        setJobPost(res.job);
+        setJobPostError("");
+        setDocumentMode((prev) => ({ ...prev, jd: "job" }));
+      } else {
+        setJobPost(null);
+        setJobPostError(res.error || "Không tải được tin tuyển dụng.");
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [jobPostId]);
   const [documents, setDocuments] = useState([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [documentsError, setDocumentsError] = useState("");
@@ -225,6 +254,9 @@ export function MentorshipRequests() {
     event.preventDefault();
     if (busy) return;
     const form = new FormData(event.currentTarget);
+    if (jobPost && documentMode.jd === "job") {
+      form.set("jd", new File([jobToJdText(jobPost)], jdFileName(jobPost.title), { type: "text/plain" }));
+    }
     for (const kind of ["cv", "jd"]) {
       if (form.get(`${kind}Source`)) continue;
       const file = form.get(kind);
@@ -445,11 +477,30 @@ export function MentorshipRequests() {
         </div>
       ) : isNew ? (
         /* Create Request View (Candidate only) */
-        <form className="mr-form mr-panel" onSubmit={submitNew}>
+        <form className="mr-form mr-panel" onSubmit={submitNew} key={jobPost?.id || "no-job"}>
+          {jobPost ? (
+            <div className="mr-job-link flex items-start gap-3 rounded-2xl border border-[#93f72b]/30 bg-[#93f72b]/10 p-4">
+              <Briefcase size={18} className="mt-0.5 shrink-0 text-[#93f72b]" />
+              <div className="min-w-0 text-sm">
+                <p className="font-bold text-white">
+                  Gắn với job: {jobPost.title}
+                  {jobPost.company?.name ? ` · ${jobPost.company.name}` : ""}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-300">
+                  Mentor thấy job này và dựa vào năng lực job yêu cầu để đề xuất lộ trình.
+                </p>
+              </div>
+              <input type="hidden" name="jobPostId" value={jobPost.id} />
+            </div>
+          ) : jobPostError ? (
+            <p className="mr-document-hint" role="alert">
+              {jobPostError} Yêu cầu sẽ được gửi không kèm job.
+            </p>
+          ) : null}
           <div className="mr-form-grid">
             <label>
               Vị trí ứng tuyển
-              <input name="position" required maxLength={160} placeholder="Ví dụ: Frontend Developer" />
+              <input name="position" required maxLength={160} defaultValue={jobPost?.title || ""} placeholder="Ví dụ: Frontend Developer" />
             </label>
             <label>
               Hình thức hỗ trợ
@@ -531,8 +582,23 @@ export function MentorshipRequests() {
                     >
                       Chọn {kind.toUpperCase()} đã lưu
                     </button>
+                    {kind === "jd" && jobPost ? (
+                      <button
+                        type="button"
+                        data-button-surface="none"
+                        aria-pressed={documentMode.jd === "job"}
+                        className={documentMode.jd === "job" ? "active" : ""}
+                        onClick={() => setDocumentMode((prev) => ({ ...prev, jd: "job" }))}
+                      >
+                        Lấy từ job
+                      </button>
+                    ) : null}
                   </div>
-                  {documentMode[kind] === "upload" ? (
+                  {kind === "jd" && jobPost && documentMode.jd === "job" ? (
+                    <p className="mr-document-hint">
+                      JD được tạo từ mô tả, kỹ năng và năng lực yêu cầu của job “{jobPost.title}”.
+                    </p>
+                  ) : documentMode[kind] === "upload" ? (
                     <label>
                       Tệp từ máy tính
                       <small className="mr-document-hint">PDF, DOC, DOCX, TXT · tối đa 5MB</small>
@@ -640,6 +706,19 @@ export function MentorshipRequests() {
                   <span aria-hidden className="text-slate-600">·</span>
                   <span className="text-[#93f72b] font-medium">{TYPES[request.sessionType]}</span>
                 </div>
+                {request.jobPost ? (
+                  <p className="mt-2 text-sm text-slate-300">
+                    Job mục tiêu:{" "}
+                    {request.jobPost.isOpen ? (
+                      <Link to={`/jobs/${request.jobPost.id}`} className="font-semibold text-[#93f72b] hover:underline">
+                        {request.jobPost.title}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-slate-200">{request.jobPost.title} (đã đóng)</span>
+                    )}
+                    {request.jobPost.company?.name ? ` · ${request.jobPost.company.name}` : ""}
+                  </p>
+                ) : null}
                 <div className="mr-detail-goal">
                   <h3>{mentor ? "Mentee cần hỗ trợ gì" : "MỤC TIÊU CỦA BẠN"}</h3>
                   <p className="mr-description">{request.description}</p>
