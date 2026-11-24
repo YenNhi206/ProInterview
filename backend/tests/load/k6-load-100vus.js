@@ -115,11 +115,13 @@ export default function () {
 
   group("4. Candidate AI Interview Session", () => {
     const payload = JSON.stringify({
-      roleCategory: "frontend",
       hrGender: "female",
+      position: "Frontend Developer",
     });
 
-    const res = http.post(`${BASE_URL}/api/interviews`, payload, authHeaders);
+    // QA-02: route tạo phiên là `POST /api/interviews/sessions` (bản cũ gọi `/api/interviews`, không tồn tại).
+    // Mỗi lượt trừ 1 lượt phỏng vấn (quota.interviewLimit): tài khoản test cần quota đủ lớn, nếu không sẽ nhận 403.
+    const res = http.post(`${BASE_URL}/api/interviews/sessions`, payload, authHeaders);
     createSessionDuration.add(res.timings.duration);
 
     const success = check(res, {
