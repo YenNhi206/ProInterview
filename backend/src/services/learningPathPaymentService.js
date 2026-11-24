@@ -358,7 +358,9 @@ export async function learningPathTransferStatusForUser(userId, orderRef) {
 // ---------------------------------------------------------------------------
 
 /** Bộ lọc trang đối soát: chờ xác nhận, hết hạn mà lộ trình vẫn chờ thanh toán (có thể tiền đến muộn), đã nhận. */
-export const ADMIN_LEARNING_PATH_TRANSFER_FILTERS = ["pending", "expired", "paid"];
+/** `refund` (LP-15): lộ trình bị hủy — chờ hoàn tiền / đã hoàn. */
+export const ADMIN_LEARNING_PATH_TRANSFER_FILTERS = ["pending", "expired", "paid", "refund"];
+const REFUND_PAYMENT_STATUSES = ["refund_pending", "partial_refund", "refunded"];
 
 function adminRowStatus(payment) {
   if (payment.status === "success") return "paid";
@@ -380,18 +382,19 @@ export async function listLearningPathTransfersForAdmin({ status = "pending", li
   const cap = Math.min(200, Math.max(1, Number(limit) || 100));
   let query;
   if (filterKey === "paid") query = { ...base, status: "success" };
+  else if (filterKey === "refund") query = { ...base, status: { $in: REFUND_PAYMENT_STATUSES } };
   else if (filterKey === "expired") {
     query = { ...base, $or: [{ status: "cancelled", failureReason: "payment_timeout" }, { status: "pending", paymentExpiresAt: { $lte: now } }] };
   } else query = { ...base, status: "pending", paymentExpiresAt: { $gt: now } };
 
   const rows = await Payment.find(query)
-    .sort(filterKey === "paid" ? { paidAt: -1, _id: -1 } : { createdAt: -1, _id: -1 })
+    .sort(filterKey === "paid" || filterKey === "refund" ? { paidAt: -1, _id: -1 } : { createdAt: -1, _id: -1 })
     .limit(cap * (filterKey === "expired" ? 2 : 1))
     .populate("userId", "name email")
     .lean();
 
   const paths = await LearningPath.find({ _id: { $in: rows.map((r) => r.referenceId) } })
-    .select("status totalAmount version mentorId paymentRef paidAt")
+    .select("status totalAmount version mentorId paymentRef paidAt cancelledAt cancelReason")
     .lean();
   const pathById = new Map(paths.map((p) => [String(p._id), p]));
   const mentors = await Mentor.find({ _id: { $in: paths.map((p) => p.mentorId) } }).select("name publicId").lean();
@@ -421,11 +424,16 @@ export async function listLearningPathTransfersForAdmin({ status = "pending", li
       forceNote: pr.forceNote || "",
       candidate: user ? { id: String(user._id), name: user.name || "", email: user.email || "" } : null,
       mentor: mentor ? { name: mentor.name || "", publicId: mentor.publicId || "" } : null,
-      learningPath: path ? { status: path.status, totalAmount: path.totalAmount, version: path.version, paymentRef: path.paymentRef || "" } : null,
+      learningPath: path ? { status: path.status, totalAmount: path.totalAmount, version: path.version, paymentRef: path.paymentRef || "", cancelledAt: path.cancelledAt ?? null, cancelReason: path.cancelReason || "" } : null,
+      // LP-15: tiền hoàn khi lộ trình bị hủy.
+      refundAmount: Number(p.refundAmount) || 0,
+      refundedAt: p.refundedAt ?? null,
+      refundTransferRef: pr.refundTransferRef || "",
     });
     if (items.length >= cap) break;
   }
 
+  const refundPendingCountPromise = Payment.countDocuments({ ...base, status: "refund_pending" });
   const [paidAgg, pendingCount, submittedCount] = await Promise.all([
     Payment.aggregate([
       { $match: { ...base, status: "success" } },
@@ -441,6 +449,7 @@ export async function listLearningPathTransfersForAdmin({ status = "pending", li
       paidTotalAmount: paidAgg[0]?.total || 0,
       pendingCount,
       submittedCount,
+      refundPendingCount: await refundPendingCountPromise,
     },
   };
 }

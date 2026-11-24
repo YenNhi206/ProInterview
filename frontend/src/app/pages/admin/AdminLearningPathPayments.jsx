@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlarmClock, CheckCircle2, Clock, RefreshCw, Route, Search, Send, User } from "lucide-react";
+import { AlarmClock, Ban, CheckCircle2, Clock, RefreshCw, Route, Search, Send, Undo2, User } from "lucide-react";
 import { motion } from "motion/react";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { adminApi } from "../../api/adminApi.js";
@@ -13,12 +13,16 @@ import { formatVnd } from "../../utils/shared/formatVnd.js";
  *      PATCH /api/admin/payments/:id/confirm-learning-path-transfer.
  * - Chờ đối soát: mã còn hạn. Ứng viên đã báo «Đã chuyển» thì admin xác nhận thường; chưa báo thì xác nhận ngoại lệ.
  * - Hết hạn: tiền có thể đến muộn sau cửa sổ CK; chỉ xác nhận ngoại lệ kèm lý do sau khi đối chiếu sao kê.
+ * - LP-15: tab «Đã nhận» có nút hủy lộ trình đang học (hoàn T − phần các buổi đã học); tab «Hủy & hoàn tiền»
+ *   để xác nhận đã chuyển khoản hoàn (POST /api/admin/learning-paths/:id/cancel,
+ *   PATCH /api/admin/payments/:id/confirm-learning-path-refund).
  */
 
 const TABS = [
   { id: "pending", label: "Chờ đối soát" },
   { id: "expired", label: "Hết hạn (tiền đến muộn)" },
   { id: "paid", label: "Đã nhận" },
+  { id: "refund", label: "Hủy & hoàn tiền" },
 ];
 
 const STATUS_PILL = {
@@ -26,6 +30,9 @@ const STATUS_PILL = {
   submitted: { label: "Ứng viên đã báo chuyển", icon: Send, tone: "border-sky-200 bg-sky-50 text-sky-800" },
   expired: { label: "Mã đã hết hạn", icon: AlarmClock, tone: "border-rose-200 bg-rose-50 text-rose-800" },
   paid: { label: "Đã nhận", icon: CheckCircle2, tone: "border-emerald-200 bg-emerald-50 text-emerald-800" },
+  refund_pending: { label: "Chờ hoàn tiền", icon: Undo2, tone: "border-orange-200 bg-orange-50 text-orange-800" },
+  partial_refund: { label: "Đã hoàn một phần", icon: Undo2, tone: "border-slate-200 bg-slate-50 text-slate-700" },
+  refunded: { label: "Đã hoàn toàn bộ", icon: Undo2, tone: "border-slate-200 bg-slate-50 text-slate-700" },
 };
 
 function formatDateTime(value) {
@@ -45,6 +52,9 @@ export function AdminLearningPathPayments() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  // LP-15: hộp hủy lộ trình / xác nhận đã hoàn tiền đang mở cho dòng nào
+  const [cancelRow, setCancelRow] = useState(null);
+  const [refundRow, setRefundRow] = useState(null);
 
   const load = useCallback(async (tab) => {
     setLoading(true);
@@ -186,7 +196,9 @@ export function AdminLearningPathPayments() {
                 <th className={thCell}>Mentor</th>
                 <th className={thCell}>Chuyển khoản</th>
                 <th className={`${thCell} text-right`}>Số tiền</th>
-                <th className={`${thCell} text-right`}>{activeTab === "paid" ? "Đã nhận lúc" : "Thao tác"}</th>
+                <th className={`${thCell} text-right`}>
+                  {activeTab === "paid" ? "Đã nhận lúc" : activeTab === "refund" ? "Hoàn tiền" : "Thao tác"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
@@ -259,6 +271,38 @@ export function AdminLearningPathPayments() {
                               {row.forceNote}
                             </p>
                           )}
+                          {row.learningPath?.status === "active" && (
+                            <button
+                              type="button"
+                              onClick={() => setCancelRow(row)}
+                              className="mt-2 inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-rose-700 hover:bg-rose-100"
+                            >
+                              <Ban size={12} /> Hủy lộ trình
+                            </button>
+                          )}
+                        </td>
+                      ) : activeTab === "refund" ? (
+                        <td className={`${tdCell} text-right`}>
+                          <p className="text-xs font-black text-orange-700">Hoàn {formatVnd(row.refundAmount)}</p>
+                          {row.learningPath?.cancelReason && (
+                            <p className="mt-1 truncate text-[11px] text-slate-500" title={row.learningPath.cancelReason}>
+                              {row.learningPath.cancelReason}
+                            </p>
+                          )}
+                          {row.status === "refund_pending" ? (
+                            <button
+                              type="button"
+                              onClick={() => setRefundRow(row)}
+                              className="mt-2 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 hover:bg-emerald-100"
+                            >
+                              Đã chuyển khoản hoàn
+                            </button>
+                          ) : (
+                            <p className="mt-1 text-[11px] text-slate-500">
+                              {formatDateTime(row.refundedAt)}
+                              {row.refundTransferRef ? ` · ${row.refundTransferRef}` : ""}
+                            </p>
+                          )}
                         </td>
                       ) : (
                         <td className={tdCell}>
@@ -288,6 +332,172 @@ export function AdminLearningPathPayments() {
           </table>
         </div>
       </div>
+
+      {cancelRow && (
+        <CancelLearningPathDialog
+          row={cancelRow}
+          onClose={() => setCancelRow(null)}
+          onDone={async () => {
+            setCancelRow(null);
+            await load(activeTab);
+          }}
+        />
+      )}
+      {refundRow && (
+        <ConfirmRefundDialog
+          row={refundRow}
+          onClose={() => setRefundRow(null)}
+          onDone={async () => {
+            setRefundRow(null);
+            await load(activeTab);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/** LP-15: xem trước số tiền hoàn rồi hủy lộ trình (bắt buộc lý do ≥ 5 ký tự). */
+function CancelLearningPathDialog({ row, onClose, onDone }) {
+  const [preview, setPreview] = useState(null);
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const pathId = row.learningPathId;
+  const reasonOk = reason.trim().length >= 5;
+
+  useEffect(() => {
+    let alive = true;
+    tryApi(() => adminApi.previewCancelLearningPath(pathId), { fallback: "Không tính được tiền hoàn." }).then((res) => {
+      if (alive && res.success) setPreview(res.preview);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [pathId]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!reasonOk) return;
+    setSaving(true);
+    const res = await tryApi(() => adminApi.cancelLearningPath(pathId, reason.trim()), {
+      fallback: "Không hủy được lộ trình.",
+      successMessage: "Đã hủy lộ trình. Giao dịch chuyển sang tab «Hủy & hoàn tiền».",
+    });
+    setSaving(false);
+    if (res.success) onDone();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+      <form onSubmit={submit} className="w-full max-w-md space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div>
+          <h3 className="text-lg font-black text-slate-900">Hủy lộ trình</h3>
+          <p className="mt-1 text-xs text-slate-500">
+            {row.candidate?.name || "Ứng viên"} · {row.mentor?.name || "Mentor"} · {formatVnd(row.amount)}
+          </p>
+        </div>
+        {!preview ? (
+          <p className="text-xs text-slate-400">Đang tính tiền hoàn…</p>
+        ) : (
+          <dl className="grid grid-cols-[1fr_auto] gap-y-1.5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">
+            <dt className="text-slate-600">Tổng lộ trình</dt>
+            <dd className="text-right font-bold">{formatVnd(preview.totalAmount)}</dd>
+            <dt className="text-slate-600">Đã học ({preview.learnedSessions} buổi), mentor giữ</dt>
+            <dd className="text-right font-bold">− {formatVnd(preview.learnedShare)}</dd>
+            <dt className="font-black text-slate-900">Hoàn cho ứng viên</dt>
+            <dd className="text-right font-black text-orange-700">{formatVnd(preview.refundAmount)}</dd>
+            {preview.openBookings > 0 && (
+              <dd className="col-span-2 mt-1 text-[11px] text-rose-700">
+                {preview.openBookings} buổi đã đặt lịch chưa học sẽ bị hủy, mentor được thông báo.
+              </dd>
+            )}
+          </dl>
+        )}
+        <div>
+          <label htmlFor="lp-cancel-reason" className="mb-1 block text-xs font-bold text-slate-700">
+            Lý do hủy *
+          </label>
+          <textarea
+            id="lp-cancel-reason"
+            rows={3}
+            maxLength={1000}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Ví dụ: Ứng viên xin dừng vì chuyển công tác (đã xác nhận qua email hỗ trợ)."
+            className="w-full rounded-xl border border-slate-200 p-3 text-xs focus:border-violet-500 focus:outline-none"
+          />
+          {reason && !reasonOk && <p className="mt-1 text-[11px] text-rose-600">Lý do ít nhất 5 ký tự.</p>}
+        </div>
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+            Đóng
+          </button>
+          <button
+            type="submit"
+            disabled={saving || !preview || !reasonOk}
+            className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50"
+          >
+            {saving ? "Đang hủy…" : "Hủy lộ trình"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/** LP-15: admin đã chuyển khoản hoàn cho ứng viên → nhập mã chuyển khoản để đóng giao dịch. */
+function ConfirmRefundDialog({ row, onClose, onDone }) {
+  const [transferRef, setTransferRef] = useState("");
+  const [saving, setSaving] = useState(false);
+  const refOk = transferRef.trim().length >= 3;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!refOk) return;
+    setSaving(true);
+    const res = await tryApi(() => adminApi.confirmLearningPathRefund(row.paymentId, transferRef.trim()), {
+      fallback: "Không xác nhận được hoàn tiền.",
+      successMessage: "Đã xác nhận hoàn tiền.",
+    });
+    setSaving(false);
+    if (res.success) onDone();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div>
+          <h3 className="text-lg font-black text-slate-900">Xác nhận đã hoàn tiền</h3>
+          <p className="mt-1 text-xs text-slate-500">
+            Hoàn {formatVnd(row.refundAmount)} cho {row.candidate?.name || "ứng viên"}. Chỉ bấm sau khi đã chuyển khoản.
+          </p>
+        </div>
+        <div>
+          <label htmlFor="lp-refund-ref" className="mb-1 block text-xs font-bold text-slate-700">
+            Mã chuyển khoản hoàn *
+          </label>
+          <input
+            id="lp-refund-ref"
+            value={transferRef}
+            maxLength={100}
+            onChange={(e) => setTransferRef(e.target.value)}
+            placeholder="Ví dụ: FT2611240001"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-violet-500 focus:outline-none"
+          />
+        </div>
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+            Đóng
+          </button>
+          <button
+            type="submit"
+            disabled={saving || !refOk}
+            className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {saving ? "Đang lưu…" : "Xác nhận"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

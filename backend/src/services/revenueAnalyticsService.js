@@ -148,10 +148,13 @@ export function learningPathPlatformFee(path, originalSessions = []) {
   return planLearningPathMoney(total, 1, rate).reduce((sum, s) => sum + s.platformFee, 0);
 }
 
-/** Điều kiện Payment lộ trình đã thu (không tính Payment demo). Dùng chung cho analytics và báo cáo tài chính (LP-16). */
+/**
+ * Điều kiện Payment lộ trình đã thu (không tính Payment demo). Dùng chung cho analytics và báo cáo tài chính (LP-16).
+ * `refund_pending` (LP-15, lộ trình bị hủy, chờ admin chuyển khoản hoàn): vẫn tính, `gross` đã trừ `refundAmount`.
+ */
 export const LEARNING_PATH_PAID_FILTER = Object.freeze({
   type: "learning_path",
-  status: { $in: ["success", "partial_refund"] },
+  status: { $in: ["success", "partial_refund", "refund_pending"] },
   ...NOT_DEMO_PAYMENT,
 });
 
@@ -166,8 +169,8 @@ export async function learningPathRevenueRows(lpPayments) {
   const pathIds = (lpPayments ?? []).map((p) => p.referenceId);
   const [paths, originalSessions] = pathIds.length
     ? await Promise.all([
-        LearningPath.find({ _id: { $in: pathIds } }).select("totalAmount platformFeeRate").lean(),
-        LearningPathSession.find({ pathId: { $in: pathIds }, attempt: 1 }).select("pathId shareAmount").lean(),
+        LearningPath.find({ _id: { $in: pathIds } }).select("totalAmount platformFeeRate status").lean(),
+        LearningPathSession.find({ pathId: { $in: pathIds }, attempt: 1 }).select("pathId shareAmount status").lean(),
       ])
     : [[], []];
   const pathById = new Map(paths.map((p) => [String(p._id), p]));
@@ -180,7 +183,14 @@ export async function learningPathRevenueRows(lpPayments) {
   return (lpPayments ?? []).map((payment) => {
     const gross = Math.max(0, vndInt(payment.amount) - vndInt(payment.refundAmount));
     const path = pathById.get(String(payment.referenceId));
-    const fee = path ? learningPathPlatformFee(path, sessionsByPath.get(String(payment.referenceId)) || []) : 0;
+    const sessions = sessionsByPath.get(String(payment.referenceId)) || [];
+    // LP-15: lộ trình bị hủy chỉ giữ phí của các buổi đã học (buổi chưa học đã hoàn cho ứng viên và bị đánh `cancelled`).
+    const feeSessions = path?.status === "cancelled" ? sessions.filter((s) => s.status !== "cancelled") : sessions;
+    const fee = !path
+      ? 0
+      : path.status === "cancelled"
+        ? feeSessions.reduce((sum, s) => sum + learningPathSessionFee(vndInt(s.shareAmount), safeRate(path.platformFeeRate, 0)), 0)
+        : learningPathPlatformFee(path, feeSessions);
     return { payment, gross, fee: Math.max(0, Math.min(gross, fee)) };
   });
 }
