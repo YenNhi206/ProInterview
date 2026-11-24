@@ -1,8 +1,10 @@
 # ProInterview
 
-> Nền tảng SaaS luyện phỏng vấn xin việc với AI avatar, đặt lịch mentor, phân tích CV/JD và khóa học trực tuyến.
+> **ProInterview — AI-Powered Interview Coaching & Mentor Platform** (Capstone FA26, mã đề tài GFA26SE160).
+> Nền tảng nối liền luyện phỏng vấn với AI avatar, lộ trình mentor cá nhân hóa, kho nhiều CV + đối chiếu JD,
+> khóa học video và tin tuyển dụng của doanh nghiệp đối tác, xoay quanh một Hồ sơ ứng viên duy nhất.
 
-[![Node](https://img.shields.io/badge/Node-%3E%3D20-brightgreen)](https://nodejs.org/)
+[![Node](https://img.shields.io/badge/Node-%3E%3D22-brightgreen)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
 [![Express](https://img.shields.io/badge/Express-5-lightgrey)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose_9-green)](https://mongoosejs.com/)
@@ -12,13 +14,24 @@
 
 ## Tổng quan
 
-**ProInterview** là ứng dụng web giúp ứng viên chuẩn bị phỏng vấn xin việc thông qua:
+**ProInterview** là ứng dụng web giúp ứng viên (đặc biệt sinh viên mới tốt nghiệp) chuẩn bị phỏng vấn
+và kết nối với việc làm thật. Năm thành phần chính:
 
-- **Phỏng vấn AI** — avatar D-ID đặt câu hỏi (giọng ElevenLabs), phân tích hành vi & khuôn mặt, chấm điểm theo SHRM/DDI
-- **Đặt lịch mentor** — booking 1-1, thanh toán chuyển khoản, phòng họp Jitsi, đánh giá sau buổi
-- **Phân tích CV/JD** — 2 chế độ: đối chiếu CV ↔ JD và phân tích CV theo lĩnh vực
-- **Khóa học** — giỏ hàng nhiều khóa, checkout 1 QR, học video, Q&A
-- **Dashboard & Achievements** — theo dõi tiến trình, lịch sử phỏng vấn, huy hiệu
+- **Phỏng vấn AI** — avatar D-ID đặt câu hỏi (giọng ElevenLabs): 3 câu baseline cố định + 2 câu follow-up sinh
+  giữa buổi từ CV/JD và câu trả lời thật (Pro); câu hỏi của doanh nghiệp được đưa vào buổi phỏng vấn khi ứng viên
+  luyện cho một tin tuyển dụng. Chấm theo bộ tiêu chí năng lực **SHRM/DDI**, kèm rubric riêng của công ty.
+- **Lộ trình mentor cá nhân hóa** — ứng viên gửi yêu cầu, mentor đánh giá ở buổi đầu miễn phí, đề xuất lộ trình
+  nhiều buổi; buổi chưa đạt thì học lại trước khi đi tiếp. Booking 1-1, phòng họp Jitsi, feedback sau buổi.
+- **Kho nhiều CV & Best-Fit JD** — lưu nhiều phiên bản CV, phân tích JD để gợi ý CV phù hợp nhất, chỉ ra khoảng
+  trống kỹ năng; thêm chế độ phân tích CV theo lĩnh vực.
+- **Thư viện khóa học video** — mentor tạo khóa (AI sàng lọc + Platform Moderator duyệt), giỏ hàng nhiều khóa, 1 QR.
+- **Doanh nghiệp & tin tuyển dụng** — Company Moderator quản lý câu hỏi, rubric, tin tuyển dụng và đơn ứng tuyển;
+  công ty xem kết quả theo rubric khi ứng viên ứng tuyển và đồng ý chia sẻ.
+
+**Human-in-the-loop hai tầng:** Platform Moderator duyệt nội dung AI sinh ra; câu hỏi công ty phải qua cả Company
+Moderator và Platform Moderator. Quyết định kiểm duyệt được gom lại thành đề xuất cải tiến prompt AI
+(`aiImprovementMinerJob` + `PromptVersion`). **Hồ sơ ứng viên** ghi lại mọi kết quả đã xác minh (phỏng vấn AI,
+đánh giá mentor, tiến độ lộ trình) dưới dạng hồ sơ năng lực.
 
 ---
 
@@ -29,7 +42,7 @@ ProInterview/
 ├── frontend/          # Vite + React 18 + Tailwind CSS v4 + shadcn/ui   (port 5173)
 ├── backend/           # Express 5 + MongoDB (Mongoose 9) + JWT           (port 5000)
 ├── cv_jd_matching/    # Python FastAPI + Uvicorn                         (port 8000)
-└── docs/              # Sơ đồ nghiệp vụ, context diagram, port notes
+└── docs/              # Kế hoạch capstone (plan/), ERD, state machine, activity diagram, báo cáo
 ```
 
 ---
@@ -38,7 +51,7 @@ ProInterview/
 
 | Công cụ | Phiên bản |
 |:--------|:----------|
-| Node.js | ≥ 20 |
+| Node.js | ≥ 22 (`engines` trong `backend/package.json`) |
 | npm | ≥ 10 |
 | MongoDB | ≥ 6 (local hoặc Atlas) |
 | Python | ≥ 3.10 (chỉ cho CV/JD service) |
@@ -90,10 +103,17 @@ SEPAY_WEBHOOK_API_KEY=<...>               # tự xác nhận chuyển khoản
 SENTRY_DSN=<...>
 MAIL_USER=<...>                           # email xác thực / thông báo
 MAIL_PASS=<...>
+SLACK_ALERT_WEBHOOK_URL=<https://hooks.slack.com/...>   # thiếu → alert chỉ ghi log
+LLM_PRESCREEN_MODEL=<model rẻ>            # AI sàng lọc khóa học; trống → LLM_MODEL
+AI_IMPROVEMENT_MIN_EVIDENCE=5             # số lượt kiểm duyệt cùng nhóm để tạo đề xuất cải tiến AI
+# Ngưỡng cảnh báo chi phí theo ngày: COST_ALERT_RUBRIC_SCORING_DAILY_USD / _COUNT,
+#                                    COST_ALERT_COURSE_PRESCREEN_DAILY_USD / _COUNT
 ```
 
-> ⚠️ **LLM đa provider:** `interviewQuestionService.js` tự nhận diện provider từ `LLM_BASE_URL` —
-> OpenAI-compatible (DeepSeek, GLM, DS2API…), Anthropic, Gemini, hoặc Ollama local.
+Production cần thêm `REFRESH_TOKEN_PEPPER` (server exit nếu thiếu) và `UPSTASH_REDIS_*`.
+
+> ⚠️ **LLM đa provider:** backend tự nhận diện provider từ `LLM_BASE_URL` —
+> OpenAI-compatible (DeepSeek, GLM…), Anthropic, Gemini, hoặc Ollama local.
 
 **Frontend** — tạo `frontend/.env.local`:
 
@@ -136,54 +156,89 @@ python -m pip install -r requirements.txt
 python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-> `npm run dev:full` trong `frontend/` chạy cả 3 service song song, nhưng script `dev:ai`
-> hiện hard-code `DEVELOPER_DIR` của macOS — **trên Windows hãy chạy 3 terminal riêng**.
+> `npm run dev:full` trong `frontend/` chạy cả 3 service song song, nhưng script AI
+> hiện hard-code đường dẫn macOS (sẽ sửa ở task N-14) — **trên Windows hãy chạy 3 terminal riêng**.
 
 ### Tài khoản dev mặc định (sau seed)
 
 Mật khẩu: **`Dev123456`**
 
-| Email | Role |
-|:------|:-----|
-| `customer@dev.local` | Customer (plan: free) |
-| `mentor@dev.local` | Mentor |
-| `admin@dev.local` | Admin |
-| `moderator@dev.local` | Moderator (kiểm duyệt) |
-| `enterprise@dev.local` | Enterprise (tổ chức) |
+| Email | Role trong code | Hiển thị trên UI | Trang chính |
+|:------|:----------------|:-----------------|:------------|
+| `customer@dev.local` | `customer` (plan free) | Candidate | `/dashboard` |
+| `mentor@dev.local` | `mentor` | Mentor | `/mentor/dashboard` |
+| `admin@dev.local` | `admin` | Admin | `/admin` |
+| `moderator@dev.local` | `moderator` | Platform Moderator | `/moderator/queue` |
+| `enterprise@dev.local` | `company_moderator` | Company Moderator | `/company` |
+
+> DB cũ còn user role `enterprise`: chạy `npm run db:migrate-enterprise-role:dry` rồi `npm run db:migrate-enterprise-role`.
+
+### Script vận hành / migration hay dùng (`backend/`)
+
+| Lệnh | Việc |
+|:-----|:-----|
+| `npm run sync:mentor-profiles` | Đồng bộ `Mentor` với User role mentor |
+| `npm run warmup:baseline-videos` | Làm nóng cache video 3 câu baseline |
+| `npm run warmup:company-videos[:dry]` | Render video câu hỏi công ty đã duyệt |
+| `npm run db:sync-booking-indexes[:dry]` | Đồng bộ index Booking (LP-02) |
+| `npm run db:sync-prompt-versions[:dry]` | Đồng bộ bảng `PromptVersion` với prompt trong code |
+| `node src/scripts/activatePromptVersion.js <key> <version>` | Đổi bản prompt đang chạy, không cần deploy |
+| `npm run db:recompute-competency-profiles[:dry]` | Gộp lại hồ sơ năng lực ứng viên |
+
+Lệnh có hậu tố `:dry` chỉ đếm/xem trước, không ghi DB. Chạy trên DB khác `.env` thì đặt `TARGET_MONGO_URI`.
+Danh sách đầy đủ: `backend/package.json` và [CLAUDE.md](./CLAUDE.md).
 
 ### Chạy test
 
 ```bash
 cd backend  && npm test        # node:test + jest DTO + unittest Python
 cd backend  && npm run test:node
-cd frontend && npm test
+cd frontend && npm test        # node:test cho utils
 ```
+
+Test integration dùng `mongodb-memory-server`, không cần MongoDB thật. `test:node` (backend) và `test`
+(frontend) liệt kê từng file test — thêm file test mới vào script tương ứng.
 
 ---
 
 ## Tính năng chính
 
-### Người dùng (Customer)
+### Candidate (`customer`)
 - Đăng ký / đăng nhập email (có xác thực email), Google OAuth
 - **Free trial phỏng vấn** không cần CV — 3 câu hỏi baseline cố định (`/interview/trial`)
-- Phỏng vấn đầy đủ với AI avatar + phân tích hành vi (`/interview`)
+- Phỏng vấn đầy đủ với AI avatar + phân tích hành vi (`/interview`), luyện theo tin tuyển dụng có câu hỏi công ty
+- **Hồ sơ ứng viên** (`/profile`): thông tin, vị trí mục tiêu, hồ sơ năng lực SHRM/DDI đã xác minh
+- **Kho CV** (`/cvs`, `/cvs/:id/edit`): nhiều phiên bản CV, chọn CV phù hợp nhất với JD
 - Phân tích CV: đối chiếu với JD hoặc chấm theo lĩnh vực, có lịch sử
-- Tìm kiếm & đặt lịch mentor, phòng họp Jitsi, đánh giá sau buổi
+- **Tin tuyển dụng** (`/jobs`): tìm, xem chi tiết, ứng tuyển kèm đồng ý chia sẻ kết quả, báo cáo tin vi phạm
+- Gửi yêu cầu mentor (`/mentor-requests`), theo dõi **lộ trình học** (`/learning-paths`), thanh toán lộ trình
+- Đặt lịch mentor lẻ, phòng họp Jitsi, đánh giá sau buổi
 - Giỏ hàng khóa học, checkout nhiều khóa bằng 1 mã QR, áp coupon
+- Gợi ý mentor / khóa học / job theo điểm yếu thực (`/api/recommendations`)
 - Lịch sử thanh toán + hóa đơn PDF, dashboard cá nhân, huy hiệu
 
 ### Mentor
-- Dashboard, lịch, booking, tài chính & yêu cầu payout
-- Tạo / quản lý khóa học (có luồng admin duyệt cập nhật)
-- Peer review với mentor khác, analytics buổi tư vấn
-- Gửi feedback sau buổi cho học viên
+- Dashboard, lịch, nhận yêu cầu mentor, buổi đánh giá đầu, booking, tài chính & yêu cầu payout
+- **Soạn lộ trình học** nhiều buổi, ghi kết quả từng buổi (đạt / học lại) theo bộ tiêu chí năng lực
+- Tạo / quản lý khóa học (AI sàng lọc trước, Platform Moderator duyệt)
+- Peer review với mentor khác, analytics buổi tư vấn, feedback sau buổi
+
+### Platform Moderator (`moderator`)
+- Hàng đợi kiểm định AI (`/moderator/queue`): đánh giá thiếu, chấm điểm cần xem lại; sửa điểm (override)
+- Duyệt ngân hàng câu hỏi chung, **duyệt tầng hai câu hỏi công ty**, duyệt rubric, xử lý báo cáo tin tuyển dụng
+- Duyệt khóa học, Quality Dashboard (KPI chất lượng AI theo `PromptVersion`)
+
+### Company Moderator (`company_moderator`)
+- Mời thành viên công ty (`/company-invite/:token`), tổng quan công ty (`/company/overview`)
+- Duyệt câu hỏi AI sinh hoặc tải câu hỏi riêng cho từng vị trí (`/company/questions`)
+- Định nghĩa rubric chấm điểm riêng (`/company/rubrics`), đăng và quản lý tin tuyển dụng (`/company/jobs`)
+- Xem đơn ứng tuyển và kết quả theo rubric khi ứng viên đồng ý (`/company/applications`)
 
 ### Admin
-- Quản lý người dùng (có import hàng loạt), mentor, bookings, duyệt mentor mới
-- Vận hành tài chính: giao dịch, payout, xác nhận chuyển khoản khóa học & gói
+- Quản lý người dùng (có import hàng loạt, gán role), mentor, bookings, duyệt mentor mới
+- Vận hành tài chính: giao dịch, payout, xác nhận chuyển khoản khóa học, gói và lộ trình học
 - Rà soát booking quá giờ, check-in, audit log
-- Quản lý nội dung khóa học, câu hỏi, review, hỗ trợ, achievements
-- Dashboard thống kê + analytics toàn hệ thống
+- Review, hỗ trợ, achievements; analytics toàn hệ thống + doanh thu theo nguồn
 
 ---
 
@@ -195,6 +250,10 @@ Tính năng trung tâm của sản phẩm. Hai luồng vào:
 |:------|:------|:--------|:--------|
 | **Free trial** | `/interview/trial` | Chỉ cần đăng nhập, không cần CV | 3 câu baseline cố định |
 | **Phỏng vấn đầy đủ** | `/interview` | CV hoặc thông tin vị trí | 3 baseline + 2 follow-up cá nhân hóa (Pro) |
+| **Luyện theo tin tuyển dụng** | `/interview` (từ `/jobs/:id`) | Tin có câu hỏi công ty đã duyệt | Câu công ty có ngay từ đầu, chấm thêm theo rubric công ty |
+
+> Code đọc câu hỏi theo `questions[].source` (baseline / follow-up / company), **không** giả định
+> "3 baseline + 2 follow-up" theo vị trí.
 
 ### Sơ đồ tổng quan
 
@@ -343,7 +402,8 @@ evaluateTranscripts({ questions, answers })
   └─ Output per question:
        scores:  { clarity, structure, relevance, credibility }  (0–5)
        overall: float 0–5
-       shrmLevel: "excellent" | "proficient" | "developing"
+       shrmLevel: "excellent" | "proficient" | "developing" | ""  (rỗng = "Chưa đủ dữ liệu";
+                  quy đổi mức bằng aiAnswerToLevel(), không đọc trực tiếp shrmLevel)
        strengths[]:    điểm mạnh cụ thể
        improvements[]: điểm cần cải thiện
        suggestion:     câu trả lời mẫu tốt hơn từ LLM
@@ -353,6 +413,11 @@ Response trả về Frontend:
   behavioralSummary        ← đọc từ MongoDB (lưu lúc complete)
   behavioralPerQuestion[]  ← emotion + metrics từng câu từ MongoDB
 ```
+
+- Prompt chấm điểm lấy từ `PromptVersion` đang active (`eval-v1`, …); `promptVersion` ghi theo bản thực sự chạy.
+- Thiếu trường sau 1 lần retry → tạo `ModerationItem` `evaluation_incomplete` cho Platform Moderator.
+- Câu hỏi công ty được chấm thêm theo `CompanyRubric` (ghi chi phí `rubric_scoring` vào `CostEvent`).
+- Kết quả được gộp vào `CandidateProfile.competencies` (hồ sơ năng lực) qua `competencyProfileService`.
 
 ---
 
@@ -436,24 +501,18 @@ Base URL: `/api` · Auth: `Authorization: Bearer <jwt>`
 
 | Nhóm | Endpoint |
 |:-----|:---------|
-| Auth | `/api/auth/*` |
-| Users / Plans | `/api/users/*`, `/api/plans/*` |
-| Mentors | `/api/mentors/*`, `/api/mentor/*` (dashboard mentor) |
-| Bookings | `/api/bookings/*` |
-| Courses | `/api/courses/*`, `/api/enrollments/*` |
-| Giỏ hàng & Coupon | `/api/cart/*`, `/api/coupons/validate` |
-| CV & JD | `/api/cv/*` |
-| Interviews | `/api/interviews/*` |
-| AI providers | `/api/ai/*` (TTS, STT, emotion, avatar pregen, D-ID proxy) |
-| Payments | `/api/payments/*` |
+| Tài khoản | `/api/auth/*`, `/api/users/*`, `/api/notifications/*`, `/api/analytics/*` |
+| Hồ sơ & CV | `/api/profile/*` (hồ sơ ứng viên), `/api/cvs/*` (kho CV) |
+| Mentor & đặt lịch | `/api/mentors/*`, `/api/mentor/*` (khu vực mentor), `/api/bookings/*`, `/api/mentorship-requests/*` |
+| Lộ trình học | `/api/learning-paths/*` (đề xuất, thanh toán, đặt lịch buổi, ghi kết quả) |
+| Công ty & tuyển dụng | `/api/company/*` (câu hỏi, rubric, jobs, đơn ứng tuyển), `/api/company-invites/*`, `/api/jobs/*` (công khai) |
+| Danh mục chuẩn | `/api/role-categories` (nhóm vị trí), `/api/competencies` (bộ tiêu chí SHRM/DDI) |
+| Khóa học & bán hàng | `/api/courses/*`, `/api/enrollments/*`, `/api/cart/*`, `/api/coupons/*`, `/api/plans/*`, `/api/payments/*` |
+| CV/JD | `/api/cv/*` (lịch sử, quota + proxy sang Python) |
+| Phỏng vấn & AI | `/api/interviews/*`, `/api/ai/*` (TTS, STT, emotion, avatar pregen, D-ID proxy), `/api/recommendations/*` |
 | Reviews / Reports | `/api/reviews/*`, `/api/reports/*` |
-| Notifications | `/api/notifications/*` |
-| Achievements | `/api/achievements/*` |
-| Analytics | `/api/analytics/*` |
-| Upload | `/api/upload/*` |
-| Public | `/api/public/home-data` (không cần auth) |
-| Admin | `/api/admin/*` |
-| Moderator | `/api/moderator/*` (duyệt khóa học, kiểm định chất lượng AI) |
+| Vận hành | `/api/admin/*`, `/api/moderator/*`, `/api/upload/*`, `/api/achievements/*`, `/api/public/*` |
+| Chỉ dev | `/api/mock/*` (không mount khi `NODE_ENV=production`) |
 | Health | `GET /api/health` |
 
 Xem toàn bộ contract tại [API_INDEX.md](./API_INDEX.md).
@@ -464,9 +523,10 @@ Docs CV/JD service (khi chạy local): `http://127.0.0.1:8000/docs`
 | Job | Chu kỳ | Việc |
 |:----|:-------|:-----|
 | `bookingReminderJob` | định kỳ | Nhắc lịch buổi tư vấn sắp diễn ra |
-| `bookingStaleSweepJob` | 20 phút | Hủy booking pending chưa trả tiền quá giờ; gắn cờ booking đã trả tiền quá giờ kết thúc + 60 phút |
+| `bookingStaleSweepJob` | 20 phút | Hủy booking pending chưa trả tiền quá giờ; gắn cờ booking đã trả tiền quá giờ kết thúc + 60 phút; đóng tin tuyển dụng quá hạn; đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h |
 | `earningsClearanceJob` | định kỳ | Giải phóng thu nhập mentor sau thời gian giữ |
 | `ttsCleanupJob` | định kỳ | Dọn audio TTS tạm trên Cloudinary |
+| `aiImprovementMinerJob` | mỗi ngày | Gom `ModerationItem` đã xử lý thành `AIImprovementProposal` + `PromptVersion` chưa bật |
 
 ---
 
@@ -476,18 +536,26 @@ Docs CV/JD service (khi chạy local): `http://127.0.0.1:8000/docs`
 
 ```
 server.js        Load env → validate env (fail-fast) → Sentry → connect Mongo → start jobs → listen
-app.js           createApp(): helmet/hpp/rate-limit/CORS → /api/health → mount 24 router
-routes/          25 router theo domain
+app.js           createApp(): helmet/hpp/rate-limit/CORS → /api/health → mount router
+routes/          Router theo domain (~35 file)
 controllers/     Xử lý request/response
-services/        Business logic (~45 service)
-models/          26 Mongoose schema
+services/        Business logic (~90 file)
+models/          38 Mongoose schema (export qua models/index.js)
+prompts/         Prompt mặc định; bản chạy thật lấy từ PromptVersion trong DB
 middleware/      authJwt, requireMentor, requireAdmin, requireRole (requireModerator /
                  requireEnterprise), rateLimiters, injectionRateLimit, adminAuditLog,
                  asyncHandler, errorHandler, optionalAuth, upload
-jobs/            4 background job
-config/          loadEnv, logger, sentry, baselineQuestions
+jobs/            5 background job
+config/          loadEnv, validateEnv, logger, sentry, baselineQuestions,
+                 competencies.json (SHRM/DDI), roleCategories.json (nhóm vị trí)
+constants/       planCatalog, costEventKinds, ...
 scripts/         Seed / migration / audit CLI
+integration/     Test integration (mongodb-memory-server)
 ```
+
+Model capstone mới: `LearningPath`, `LearningPathSession`, `Company`, `CompanyInvite`, `CompanyRubric`,
+`CandidateProfile`, `CVDocument`, `JobPost`, `PromptVersion`, `AIImprovementProposal`, `MentorKnowledge`.
+Chi tiết field: [backend/DATABASE.md](./backend/DATABASE.md), [docs/LOGICAL_ERD.md](./docs/LOGICAL_ERD.md).
 
 Pattern chuẩn: `Route → Controller → Service → Mongoose Model`. Một số domain đơn giản
 (notifications, courses, enrollments, CV CRUD, upload) gọi Model trực tiếp từ Controller.
@@ -507,20 +575,22 @@ Logout / đổi mật khẩu → `tokenVersion++` và xóa toàn bộ refresh se
 
 ```
 routes.js        createBrowserRouter — path thường, KHÔNG dùng hash
-api/             19 module *Api.js + http.js (apiUrl, API_BASE_URL, isExpressBackendConfigured)
-pages/           auth, home, account, booking, courses, cv, interview, mentor, mentors,
-                 payment, admin
+api/             ~30 module *Api.js + http.js (apiUrl, API_BASE_URL)
+pages/           auth, home, account, booking, company, courses, cv, interview, jobs,
+                 learningPaths, mentor, mentors, mentorship, moderator, payment, admin
 components/      ui (shadcn), layout, auth, interview, cv, courses, mentor, admin,
                  account, booking, brand, decor, home, legal, modals, profile, reviews, shared
 hooks/           useAuthSession, useCart, useDIDStream, useFaceAnalysis, useMeetingLiveCapture,
                  useNavbarNotifications, usePageAnalytics, useUserPresence, ...
-utils/           Chia theo domain: admin/ analytics/ auth/ booking/ course/ cv/
-                 interview/ meeting/ mentor/ plans/ profile/ shared/
+utils/           Chia theo domain: admin/ analytics/ auth/ booking/ company/ course/ cv/
+                 interview/ jobs/ learningPath/ meeting/ mentor/ moderator/ plans/
+                 profile/ recommendations/ shared/
 ```
 
 **Auth state:** `localStorage` keys `prointerview_access_token`, `prointerview_auth`.
 Session khôi phục qua `GET /api/auth/me` khi app load. Route guard: `requireAuthLoader`,
-`requireCustomerAuthLoader`, `adminLoader`, `ProtectedOutlet`.
+`requireCustomerAuthLoader`, `adminLoader`, `createRoleLoader(...)` (moderator, company), `ProtectedOutlet`.
+Tên role hiển thị qua `roleLabel()` (`utils/auth/roleLabels.js`) — không in thẳng `user.role` ra UI.
 Gọi API cần auth: dùng `authFetch()` từ `utils/auth/auth.js` (tự gắn Bearer token + refresh).
 
 ---
@@ -531,24 +601,39 @@ Gọi API cần auth: dùng `authFetch()` từ `utils/auth/auth.js` (tự gắn 
 
 5 role trên `User.role`:
 
-| Role | Phạm vi | Trạng thái |
+| Role (code) | Tên hiển thị | Phạm vi |
 |:--|:--|:--|
-| `customer` | Luyện phỏng vấn, CV/JD, booking, khóa học | ✅ |
-| `mentor` | Lịch, thu nhập, khóa học, peer review | ✅ |
-| `admin` | Người dùng, mentor, booking, tài chính, audit | ✅ |
-| `moderator` | **Duyệt khóa học** + kiểm định chất lượng AI | 🔧 duyệt khóa học xong; ngân hàng câu hỏi + review queue đang làm |
-| `enterprise` | Cohort, credit, talent pool của tổ chức | 📋 chưa triển khai (role + cổng đã có) |
+| `customer` | Candidate | Hồ sơ, kho CV, phỏng vấn AI, lộ trình mentor, khóa học, ứng tuyển |
+| `mentor` | Mentor | Yêu cầu mentor, lộ trình học, lịch, thu nhập, khóa học, peer review |
+| `admin` | Admin | Người dùng, mentor, booking, tài chính, audit, analytics |
+| `moderator` | Platform Moderator | Hàng đợi kiểm định AI, ngân hàng câu hỏi, duyệt tầng hai câu công ty, rubric, báo cáo job, khóa học |
+| `company_moderator` | Company Moderator | Câu hỏi, rubric, tin tuyển dụng, đơn ứng tuyển của công ty (`User.companyId`) |
 
 Cổng: `requireRole(...roles)` trong `backend/src/middleware/requireRole.js`, kèm
 `requireModerator` / `requireEnterprise`. **Admin cố ý KHÔNG đi vòng được cổng moderator** —
 kiểm định nội dung tách khỏi quyền vận hành; admin muốn duyệt thì phải được cấp role moderator.
 
-Gán role: `PATCH /api/users/:id/role` (`customer | mentor | moderator | enterprise`).
+Gán role: `PATCH /api/users/:id/role` (`customer | mentor | moderator | company_moderator`).
 Không nâng `admin` qua API — phải sửa trực tiếp DB, tránh một tài khoản admin bị chiếm tự nhân quyền.
+Chữ `enterprise` còn trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role.
 
 `QuestionBank` (`models/QuestionBank.js`) là substrate dùng chung: câu hỏi LLM sinh ra được thu
-hoạch vào đây ở `pending_review` cho moderator duyệt, còn interview template của tổ chức là cùng
-schema nhưng gắn `orgId` nên không lẫn vào pool chung.
+hoạch vào đây ở `pending_review` cho moderator duyệt; câu hỏi công ty cùng schema nhưng gắn `orgId`
+(ref `Company`) nên không lẫn vào pool chung. Nhóm vị trí (`roleCategory`) phải lấy từ
+`config/roleCategories.json`; key năng lực từ `config/competencies.json`.
+
+### Lộ trình học (Learning Path)
+
+```
+Ứng viên gửi yêu cầu mentor (MentorshipRequest)
+   → chọn mentor → buổi đánh giá đầu miễn phí (Booking assessment, 0đ)
+   → mentor đề xuất LearningPath nhiều buổi → ứng viên thanh toán (Payment learning_path)
+   → đặt lịch từng buổi (LearningPathSession ↔ Booking) → mentor ghi kết quả
+   → buổi chưa đạt: tạo buổi học lại, mở đặt lịch ngay; đạt: mở buổi kế tiếp
+```
+
+Booking lộ trình và buổi 0đ không hoàn tiền / không sinh rebook credit theo từng buổi và không tính vào
+doanh thu booking. Công thức chia tiền: [docs/plan/DECISIONS.md](./docs/plan/DECISIONS.md).
 
 ### Plans & Quota
 
@@ -572,8 +657,9 @@ Tạo đơn → QR + mã tham chiếu (recordTransferPending)
    → recordAdminTransferSuccess → mở quyền
 ```
 
-Áp dụng cho booking mentor, ghi danh khóa học, giỏ hàng nhiều khóa (`CartOrder` — 1 QR cho cả đơn)
-và subscription. MoMo / ZaloPay / VNPay chỉ có stub sandbox trong `paymentsService` — ngoài phạm vi mặc định.
+Áp dụng cho booking mentor, ghi danh khóa học, giỏ hàng nhiều khóa (`CartOrder` — 1 QR cho cả đơn),
+subscription và lộ trình học (`POST /api/learning-paths/:id/checkout`). Mã tham chiếu dạng `PI…`.
+MoMo / ZaloPay / VNPay chỉ có stub sandbox, trả 400 ở production. Khoản thu mới phải tái dùng đường ray này.
 
 ### Mentor
 
@@ -583,9 +669,12 @@ và subscription. MoMo / ZaloPay / VNPay chỉ có stub sandbox trong `paymentsS
 
 ### Bookings
 
-Lifecycle: `pending` → `confirmed` → `completed` / `cancelled`.
+Lifecycle: `pending` → `confirmed` → `in_progress` → `completed`; ngoài ra `cancelled`, `no_show`.
+`paymentStatus`: `pending | paid | refund_pending | refunded | partial_refund | failed`.
 Fields: `price`, `platformFee`, `vat`, `totalAmount`, `paymentStatus`, `status`, `rescheduleHistory`, `staleFlaggedAt`.
-Hủy: `DELETE /api/bookings/:id`.
+Ứng viên hủy: `DELETE /api/bookings/:id` (không tự dời lịch). Trước khi tạo/đổi giờ booking phải gọi
+`findCandidateBookingConflict` để chặn ứng viên trùng giờ giữa nhiều mentor.
+Chi tiết mọi chuyển trạng thái: [docs/STATE_MACHINES.md](./docs/STATE_MACHINES.md).
 
 ---
 
@@ -600,8 +689,8 @@ Hủy: `DELETE /api/bookings/:id`.
 | NoSQL injection | `sanitizeObjectKeys` trên body/params/query |
 | Audit | `adminAuditLog` middleware + `SecurityLog` model, trang `/admin/audit-log` |
 | Error tracking | Sentry (`config/sentry.js`), bắt cả `uncaughtException`/`unhandledRejection` |
-| Alerting | `alertService` + `errorRateMonitor` — cảnh báo cost spike / error rate |
-| Cost ledger | `costLedgerService` + `CostEvent` — theo dõi chi phí LLM/D-ID/TTS |
+| Alerting | `alertService` + `errorRateMonitor` — cảnh báo cost spike / error rate qua Slack webhook |
+| Cost ledger | `costLedgerService` + `CostEvent` — chi phí LLM/D-ID/TTS, chấm rubric, AI sàng lọc khóa học |
 
 **Redis fail-fast:** ở production `cacheService.js` **throw** khi Redis lỗi thay vì âm thầm fallback
 sang in-memory Map; `server.js` exit(1) nếu thiếu `UPSTASH_REDIS_*`. Lý do: mỗi instance Render có
@@ -622,7 +711,10 @@ backend Render (tránh CORS). Chỉ set `VITE_GOOGLE_CLIENT_ID`.
 
 **Backend trên Render** — set: `NODE_ENV=production`, `MONGO_URI`, `JWT_SECRET`, `CORS_ORIGIN`,
 `GOOGLE_CLIENT_ID`, `LLM_API_KEY`, `LLM_BASE_URL`, `CV_ANALYZER_URL`, `UPSTASH_REDIS_REST_URL`,
-`UPSTASH_REDIS_REST_TOKEN`, `D_ID_API_KEY`, `ELEVENLABS_API_KEY` + voice IDs, `JAAS_*`.
+`UPSTASH_REDIS_REST_TOKEN`, `REFRESH_TOKEN_PEPPER`, `D_ID_API_KEY`, `ELEVENLABS_API_KEY` + voice IDs, `JAAS_*`.
+
+Sau khi merge thay đổi liên quan, nhớ chạy migration một lần trên production
+(`db:sync-booking-indexes`, `db:sync-prompt-versions`, `db:migrate-enterprise-role`, …) — xem [CLAUDE.md](./CLAUDE.md).
 
 > ⚠️ **Gotcha Render:** nhập giá trị **không kèm dấu ngoặc kép**, dù `.env` local viết `KEY="value"`.
 > Render lưu nguyên văn (không strip quote như `dotenv`). Đã từng gây sự cố: `UPSTASH_REDIS_REST_URL`
@@ -642,8 +734,9 @@ Cần cả hai, nếu không sẽ gặp `404` (sai host) hoặc `503` (analyzer 
 | Layer | Công nghệ |
 |:------|:----------|
 | Frontend | React 18, Vite 6, React Router 7 (browser router), Tailwind CSS v4, shadcn/ui (Radix), MUI, Recharts, Three.js / R3F, motion, react-pdf |
-| Backend | Express 5 (ESM), Node ≥ 20, Mongoose 9, JWT, bcrypt, Multer, Joi, helmet, hpp, Sharp, PDFKit, Nodemailer |
-| Database | MongoDB (26 schema) · Cache: Upstash Redis |
+| Backend | Express 5 (ESM), Node ≥ 22, Mongoose 9, JWT, bcrypt, Multer, Joi, helmet, hpp, Sharp, PDFKit, Nodemailer |
+| Database | MongoDB (38 schema) · Cache: Upstash Redis |
+| Đánh giá năng lực | Bộ tiêu chí SHRM/DDI (`config/competencies.json`) + rubric riêng của công ty |
 | CV Analysis | Python FastAPI, pdf parsing, NLP skill extraction, semantic matcher |
 | LLM | Đa provider — OpenAI-compatible / Anthropic / Gemini / Ollama |
 | Avatar & Voice | D-ID (`/talks` pregen + WebRTC stream), ElevenLabs TTS, Google Cloud Vision |
@@ -659,10 +752,20 @@ Cần cả hai, nếu không sẽ gặp `404` (sai host) hoặc `503` (analyzer 
 
 | File | Nội dung |
 |:-----|:---------|
+| [docs/plan/START_HERE.md](./docs/plan/START_HERE.md) | Quy trình làm task capstone với code agent, luật task phát sinh |
+| [docs/plan/REGISTRATION_V3.md](./docs/plan/REGISTRATION_V3.md) | Đơn đăng ký đề tài V3 — phạm vi đã cam kết với hội đồng |
+| [docs/plan/REQUIREMENTS.md](./docs/plan/REQUIREMENTS.md) | Mã REQ cho chức năng + NFR, ánh xạ REQ ↔ task |
+| [docs/plan/TASKS.md](./docs/plan/TASKS.md) | Task, trạng thái, phụ thuộc, điều kiện "Xong khi" — nguồn đúng duy nhất về tiến độ |
+| [docs/plan/DECISIONS.md](./docs/plan/DECISIONS.md) | Quyết định đã chốt, chia tiền lộ trình |
+| [docs/plan/DESIGN.md](./docs/plan/DESIGN.md) | Thiết kế model/API/màn hình, bẫy trong code |
 | [API_INDEX.md](./API_INDEX.md) | Contract đầy đủ tất cả endpoints (đang chạy + roadmap) |
 | [ROADMAP.md](./ROADMAP.md) | Lộ trình theo phase, trạng thái từng endpoint |
-| [CLAUDE.md](./CLAUDE.md) | Hướng dẫn cho AI coding agent làm việc trong repo |
+| [CLAUDE.md](./CLAUDE.md) / [AGENTS.md](./AGENTS.md) | Hướng dẫn cho code agent (Claude Code / Gemini) |
 | [backend/DATABASE.md](./backend/DATABASE.md) | Schema MongoDB chi tiết, seed scripts |
+| [docs/LOGICAL_ERD.md](./docs/LOGICAL_ERD.md) | Logical ERD + ràng buộc / unique index |
+| [docs/STATE_MACHINES.md](./docs/STATE_MACHINES.md) | State machine các field `status` |
+| [docs/ACTIVITY_DIAGRAMS.md](./docs/ACTIVITY_DIAGRAMS.md) | Activity diagram các luồng nghiệp vụ chính |
+| [docs/SYSTEM_OVERVIEW.md](./docs/SYSTEM_OVERVIEW.md) | Sơ đồ kiến trúc tổng quan |
 | [POSTMAN_TESTING.md](./POSTMAN_TESTING.md) | Hướng dẫn test API với Postman |
 | [docs/BUSINESS_FLOW_GUIDE.md](./docs/BUSINESS_FLOW_GUIDE.md) | Sơ đồ luồng nghiệp vụ |
 | [docs/CONTEXT_DIAGRAM.md](./docs/CONTEXT_DIAGRAM.md) | Context diagram hệ thống |
@@ -673,14 +776,17 @@ Cần cả hai, nếu không sẽ gặp `404` (sai host) hoặc `503` (analyzer 
 
 ## Đóng góp
 
-1. Fork repo và tạo branch từ `main`
-2. Khi thêm API mới: cập nhật [API_INDEX.md](./API_INDEX.md) và [ROADMAP.md](./ROADMAP.md)
-3. Dùng `apiUrl()` từ `frontend/src/app/api/http.js`, không hardcode URL
-4. Route cần auth: dùng `authFetch()` từ `frontend/src/app/utils/auth/auth.js`
-5. Thêm/sửa gọi API trong `frontend/src/app/api/*Api.js` tương ứng
-6. Response shape chuẩn: `{ success: true, <key>: data }` / `{ success: false, error: "msg" }`
-7. Chạy `npm test` ở `backend/` và `frontend/` trước khi mở PR
-8. Tạo Pull Request vào `main` với mô tả rõ ràng
+1. Nhận việc qua [docs/plan/TASKS.md](./docs/plan/TASKS.md); mỗi task gắn ít nhất một mã REQ, task đang
+   Doing/Review của người khác thì không làm. Chỉ làm đủ cột "Xong khi".
+2. Tạo branch từ `main` theo mẫu `feat/<mã-task>-<tên-ngắn>` (mã: `N`, `LP`, `CO`, `PR`, `JB`, `AI`, `QA`, `DOC`).
+3. Khi thêm API mới: Model → Service → Controller → Route (`authJwt` + `requireRole`), test integration,
+   cập nhật [API_INDEX.md](./API_INDEX.md) và [ROADMAP.md](./ROADMAP.md); model / status mới thì cập nhật
+   ERD, `DATABASE.md`, `STATE_MACHINES.md`.
+4. FE: dùng `apiUrl()` từ `frontend/src/app/api/http.js` và `authFetch()` từ `utils/auth/auth.js`;
+   gọi API qua `frontend/src/app/api/*Api.js`; không đưa dữ liệu giả vào màn hình.
+5. Response shape chuẩn: `{ success: true, <key>: data }` / `{ success: false, error: "thông báo tiếng Việt" }`.
+6. Chạy `npm test` ở `backend/` và `frontend/` trước khi mở PR.
+7. Tên PR mở đầu bằng mã task; mô tả PR có dòng `REQ: <mã, mã>`.
 
 ---
 

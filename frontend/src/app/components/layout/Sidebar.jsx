@@ -18,6 +18,7 @@ import {
   Home,
   LogIn,
   UserPlus,
+  Briefcase,
 } from "lucide-react";
 import {
   Sidebar,
@@ -441,6 +442,12 @@ export function AppSidebar() {
                       <Link to="/my-bookings" className="flex items-center gap-2.5 cursor-pointer">
                         <Calendar className="size-4 text-violet-400" />
                         Lịch hẹn của tôi
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/my-applications" className="flex items-center gap-2.5 cursor-pointer">
+                        <Briefcase className="size-4 text-violet-400" />
+                        Đơn ứng tuyển của tôi
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
