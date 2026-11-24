@@ -1,0 +1,11 @@
+ACCOUNT STATEMENT
+Sunrise Commercial Bank
+Account holder: LE VAN HAI   Account number: 0123 4567 8901
+Statement period: 01/03/2024 - 31/03/2024
+Opening balance: 15,200,000 VND
+Date        Description                 Debit        Credit       Balance
+02/03/2024  Salary March                              12,000,000   27,200,000
+05/03/2024  Electricity bill            850,000                    26,350,000
+12/03/2024  ATM withdrawal              2,000,000                  24,350,000
+Closing balance: 24,350,000 VND
+For enquiries call 1900 1234.

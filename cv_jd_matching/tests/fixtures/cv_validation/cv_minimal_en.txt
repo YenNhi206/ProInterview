@@ -1,0 +1,11 @@
+John Le
+john.le.qa@gmail.com | 0901 777 888
+
+Experience
+QA Engineer, Kite Software (2021 - 2024): wrote 400 automated test cases with Playwright.
+
+Education
+FPT University, Software Engineering (2017 - 2021)
+
+Skills
+Playwright, Selenium, Postman, SQL, Agile

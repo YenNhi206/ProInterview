@@ -35,6 +35,7 @@ from suggester import generate_suggestions, extract_bullets_from_text
 from llm_client import check_llm_health
 from field_analyzer import analyze_cv_by_field
 from best_fit import rank_cvs, docx_text, MIN_CVS, MAX_CVS
+from cv_validator import validate_cv_text
 import cache as cv_cache
 from cache import md5_of_bytes
 
@@ -370,6 +371,61 @@ def _file_text(upload_name: str, data: bytes) -> str:
     if name.endswith(".txt"):
         return data.decode("utf-8", errors="ignore")
     raise ValueError("Định dạng file chưa hỗ trợ so khớp (chỉ PDF, DOCX, TXT).")
+
+
+# ── PR-03: kiểm tra file có phải CV ───────────────────────────────────────────
+
+_IMAGE_EXTS =(".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".heic")
+
+
+def _is_image(name: str, data: bytes) -> bool:
+    if (name or "").lower().endswith(_IMAGE_EXTS):
+        return True
+    head = data[:12]
+    return (
+        head.startswith(b"\x89PNG")
+        or head.startswith(b"\xff\xd8\xff")
+        or head.startswith(b"GIF8")
+        or (head.startswith(b"RIFF") and head[8:12] == b"WEBP")
+    )
+
+
+@app.post("/validate")
+async def validate_cv(
+    file:    Optional[UploadFile] = File(default=None),
+    text:    Optional[str] = Form(default=None),
+    use_llm: bool = Form(default=True),
+):
+    """
+    PR-03: file (PDF / DOCX / TXT) hoặc `text` có phải CV không.
+    Luật đếm mục Kinh nghiệm, Học vấn, Kỹ năng, Liên hệ và dấu hiệu giấy tờ khác;
+    chỉ gọi LLM khi luật không chắc. Luôn trả 200 kèm `is_cv` và `reason` tiếng Việt,
+    trừ khi request thiếu cả file lẫn text.
+    """
+    if file is None and not (text or "").strip():
+        raise HTTPException(400, "Cần gửi file CV hoặc nội dung text.")
+
+    if file is not None:
+        data = await file.read()
+        if not data:
+            raise HTTPException(400, "File rỗng.")
+        if _is_image(file.filename, data):
+            return {
+                "is_cv": False, "confidence": 0.95, "method": "file_type", "doc_type": "image",
+                "reason": "Tệp là hình ảnh, không phải CV. Vui lòng tải lên CV dạng PDF, DOCX hoặc TXT.",
+                "signals": None, "missing_sections": [],
+            }
+        try:
+            body = _file_text(file.filename, data)
+        except ValueError as e:
+            return {
+                "is_cv": False, "confidence": 0.9, "method": "file_type", "doc_type": "unreadable",
+                "reason": str(e), "signals": None, "missing_sections": [],
+            }
+    else:
+        body = text
+
+    return validate_cv_text(body, use_llm=use_llm)
 
 
 @app.post("/best-fit")
