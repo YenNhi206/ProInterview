@@ -747,6 +747,19 @@ Hệ A cũ `/api/users/me/cvs*`, `/api/users/me/verified-competencies*` đã g�
 | GET | `/api/company/applications/:id` | `[COMPANY_MOD]` chi tiết kèm `snapshot`, `consent`, `history[]`. `snapshot.companyMetrics.answers[]` là câu trả lời kèm điểm rubric (JB-16, cùng dạng API JB-19); danh sách không trả trường này. FE: `/company/applications/:id` (JB-16). Đơn `submitted` mở lần đầu → `viewed` + báo ứng viên. Đơn công ty khác 404; đơn đã rút chỉ trả tên và "Đã rút" |
 | PATCH | `/api/company/applications/:id/status` | `[COMPANY_MOD]` `{ status: "viewed" \| "shortlisted" \| "rejected", note? }`; trạng thái khác 400; đơn `shortlisted` / `rejected` / `withdrawn` 409. Báo `application_status_changed` cho ứng viên (từ chối kèm `note`) |
 
+### A.23. Đề xuất cải tiến AI — `/api/moderator/ai-improvements` (AI-04, AI-05)
+
+**File:** `routes/moderator.js` (`requireModerator`, ghi `moderator_action`; admin bị chặn) · **Controller:** `moderatorController.js` · **Service:** `aiImprovementReviewService.js`, `aiImprovementBacktestService.js` · **FE:** `/moderator/ai-improvements` (AI-06)
+
+| Method | Endpoint | Mô tả |
+|:-------|:---------|:------|
+| GET | `/api/moderator/ai-improvements` | Query `status?` (`proposed \| approved \| rejected \| rolled_back`), `target?` (`evaluation \| question_gen`), `page`, `limit` (1–100, mặc định 20). Mới nhất trước. Không trả `backtest.items` / `backtest.oldAnswers`. → `{ success, proposals, total, page, limit }` |
+| GET | `/api/moderator/ai-improvements/:id` | → `{ success, proposal, activeVersion, actions { approve, reject, rebase, rollback } }`. `proposal.backtest` (AI-04): `gold` {before, after} và `old` {before, after, meanAbsChange} với {`n`, `mae`, `bias`, `exact`, `within1`} theo mức LP-01 so với điểm chuẩn AI-01 / điểm moderator, `maeDelta`, `verdict` (`better \| worse \| same`), điểm từng câu. Id sai 400, không có 404 |
+| PATCH | `/api/moderator/ai-improvements/:id` | Body `{ action, note? }`. `approve`: `proposed` → `approved`, bật `after.version`; bản đang chạy khác `before.version` (đề xuất khác cùng key đã được duyệt) → **409**, cần `rebase`. `reject` (bắt buộc `note` ≥ 3 ký tự): → `rejected`. `rollback` (bắt buộc `note`): `approved` → `rolled_back`, bật lại `before.version`; bản đang chạy không phải `after.version` → **409**. `rebase`: dựng lại `after` = bản đang chạy + ví dụ mới của đề xuất, xóa `backtest`. Sai trạng thái **409**. → `{ success, proposal, activeVersion }` |
+| POST | `/api/moderator/ai-improvements/:id/backtest` | Chạy lại backtest AI-04 ở nền (khoảng 12 lần gọi LLM). Chỉ đề xuất `proposed`; đang chạy (< 15 phút) → **409**. **202** `{ success, backtest: { status: "running", ranAt } }`; tải lại chi tiết để xem kết quả |
+
+Job `aiImprovementMinerJob` tự backtest đề xuất mới (`backtest: null`). Chạy tay: `node src/scripts/backtestAiProposal.js <proposalId|--pending>`.
+
 ---
 
 ## Phần B — Tích hợp ngoài (FE gọi trực tiếp)

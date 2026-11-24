@@ -410,6 +410,9 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
 | ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
 | ✅ | GET | `/api/recommendations/me` — gợi ý mentor, khóa học, job kèm một dòng lý do (AI-10) | `[AUTH]` customer |
+| ✅ | GET | `/api/moderator/ai-improvements` · `/:id` — đề xuất cải tiến AI kèm backtest trước/sau trên bộ AI-01 (AI-04, AI-05) | `[AUTH][MODERATOR]` |
+| ✅ | PATCH | `/api/moderator/ai-improvements/:id` — `approve` bật PromptVersion mới, `reject`, `rollback` bật lại bản trước, `rebase` (AI-05) | `[AUTH][MODERATOR]` |
+| ✅ | POST | `/api/moderator/ai-improvements/:id/backtest` — chạy lại backtest ở nền, 202 (AI-05) | `[AUTH][MODERATOR]` |
 
 ### Upload, mentor, courses, admin
 

@@ -1,6 +1,7 @@
 import Joi from "joi";
 import { QUEUE_ITEM_TYPES, MODERATION_ITEM_STATUSES } from "../models/ModerationItem.js";
 import { QUESTION_SOURCES } from "../models/QuestionBank.js";
+import { AI_IMPROVEMENT_STATUSES, AI_IMPROVEMENT_TARGETS } from "../models/AIImprovementProposal.js";
 import { COMPETENCY_LIBRARY } from "../services/competencyFramework.js";
 
 /** Validate cho /api/moderator/* (spec S1 §3). */
@@ -107,4 +108,22 @@ export const listModeratorJobsQuery = Joi.object({
 export const jobVisibilityBody = Joi.object({
   hidden: Joi.boolean().required(),
   reason: Joi.when("hidden", { is: true, then: Joi.string().trim().min(5).max(1000).required(), otherwise: Joi.string().trim().max(1000).allow("").default("") }),
+});
+
+/** AI-05: danh sách đề xuất cải tiến AI. */
+export const listAiImprovementsQuery = Joi.object({
+  status: Joi.string().valid(...AI_IMPROVEMENT_STATUSES),
+  target: Joi.string().valid(...AI_IMPROVEMENT_TARGETS),
+  page,
+  limit,
+});
+
+/** AI-05: duyệt / từ chối / rollback / dựng lại. Từ chối và rollback bắt buộc lý do. */
+export const reviewAiImprovementBody = Joi.object({
+  action: Joi.string().valid("approve", "reject", "rollback", "rebase").required(),
+  note: Joi.when("action", {
+    is: Joi.valid("reject", "rollback"),
+    then: Joi.string().trim().min(3).max(1000).required(),
+    otherwise: Joi.string().trim().max(1000).allow("").default(""),
+  }),
 });

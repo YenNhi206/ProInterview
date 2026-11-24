@@ -15,7 +15,10 @@ import {
   qualityStatsQuery,
   listModeratorJobsQuery,
   jobVisibilityBody,
+  listAiImprovementsQuery,
+  reviewAiImprovementBody,
 } from "../dto/moderator.dto.js";
+import * as aiImprovementReviewService from "../services/aiImprovementReviewService.js";
 import { listJobsForModerator, setJobVisibility } from "../services/jobPostModerationService.js";
 
 /** Service ném `httpError` → kết quả `{ ok, status, error }` mà `send` hiểu. */
@@ -79,4 +82,15 @@ export const ModeratorController = {
 
   // ── Quality ──
   qualityStats: handle(qualityStatsQuery, "query", (q) => getQualityStats(q)),
+
+  // ── AI-05: đề xuất cải tiến AI ──
+  listAiImprovements: handle(listAiImprovementsQuery, "query", (q) => toResult(aiImprovementReviewService.listProposals(q))),
+  getAiImprovement: handle(null, null, (_v, req) => toResult(aiImprovementReviewService.getProposal(req.params.id)), { needsId: true }),
+  reviewAiImprovement: handle(reviewAiImprovementBody, "body", (b, req) => toResult(aiImprovementReviewService.reviewProposal(req.params.id, b, req.userId)), { needsId: true }),
+  // Backtest chạy nền (gọi LLM khoảng 12 lần) → 202, FE tải lại chi tiết để xem kết quả.
+  backtestAiImprovement: handle(null, null, async (_v, req) => {
+    const result = await toResult(aiImprovementReviewService.startBacktest(req.params.id));
+    if (!result.ok) return result;
+    return { ok: true, backtest: result.backtest };
+  }, { needsId: true, okStatus: 202 }),
 };
