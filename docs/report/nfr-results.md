@@ -20,6 +20,7 @@
 | **QA-02** (NFR-04) | 100 người dùng đồng thời, p95 < 2000 ms, lỗi < 1% | **Chưa đo** (mục 4) | ⏳ Đang đo |
 | **QA-03** CV (NFR-01) | Phân tích CV/JD ≤ 60 giây (30 CV) | **Chưa đo** (mục 2) | ⏳ Đang đo |
 | **QA-03** Avatar (NFR-02) | Video avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) | **Chưa đo** (mục 3) | ⏳ Đang đo |
+| **QA-04** (NFR-03) | Đối soát chuyển khoản SePay, p95 ≤ 5 giây (đề xuất, cần chốt) trên 20 giao dịch | **Chưa đo** (mục QA-04 cuối file) | ⏳ Đang đo |
 
 ---
 
@@ -55,3 +56,19 @@ Cách đo:
    (không tính lỗi nhưng không đo được thời gian tạo phiên thật).
 2. `k6 run -e TARGET_URL=https://<staging-backend> -e K6_EMAIL=<email> -e K6_PASSWORD=<mật khẩu> --summary-export docs/report/nfr-raw/k6-<thời điểm>.json backend/tests/load/k6-load-100vus.js`
 3. Ghi p95 `http_req_duration`, `error_rate`, p95 từng bước và số `interview_quota_limited` vào bảng trên; commit file JSON. Tắt `LOAD_TEST` và `MOCK_AI_SERVICES` sau khi đo.
+
+---
+
+<!-- QA-04:start -->
+## QA-04: Đối soát chuyển khoản SePay (NFR-03)
+
+> **Chưa có số đo.** Mục này do `npm run qa:sepay-reconcile:write` (`backend/src/scripts/measureSepayReconcile.js`) ghi đè, không điền tay.
+> Mốc đo: từ lúc `POST /api/payments/webhook/sepay` vào handler tới lúc đơn đã xác nhận và webhook ghi `processed` (`SepayWebhookEvent.processingMs`, có từ QA-04).
+> Ngưỡng đề xuất p95 ≤ 5 giây (REQUIREMENTS ghi "CẦN CHỐT", nhóm cần chốt con số).
+
+Cách đo:
+
+1. Deploy bản có QA-04 lên môi trường đo (production hoặc staging có SePay thật).
+2. Thực hiện 20 giao dịch chuyển khoản thật khớp mã `PI…` (booking, khóa học, gói Pro, giỏ hàng hoặc lộ trình).
+3. Chạy `$env:TARGET_MONGO_URI="<URI DB đã đo>"; $env:SINCE="<ngày bắt đầu đo, YYYY-MM-DD>"; npm run qa:sepay-reconcile:write` trong `backend/`.
+<!-- QA-04:end -->

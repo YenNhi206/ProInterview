@@ -49,6 +49,8 @@ node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đ�
 npm run db:recompute-competency-profiles:dry  # đếm hồ sơ năng lực cần gộp lại (PR-06, không ghi DB)
 npm run db:recompute-competency-profiles      # gộp lại hồ sơ năng lực theo cách PR-06; chạy 1 lần trên staging/production sau khi merge
 npm run ai01:sheet / ai01:aggregate           # AI-01: sinh phiếu chấm 20 câu chuẩn / tổng hợp điểm chuẩn từ grades/*.csv
+npm run qa:sepay-reconcile           # QA-04: p50/p95 đối soát SePay trên 20 webhook `processed` mới nhất (chỉ đọc); đặt TARGET_MONGO_URI, SINCE, SAMPLE_SIZE
+npm run qa:sepay-reconcile:write     # như trên, ghi mục QA-04 vào docs/report/nfr-results.md (chỉ thay mục giữa marker)
 npm test                       # node:test + jest DTO + unittest Python
 ```
 

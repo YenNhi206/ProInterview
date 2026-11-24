@@ -693,6 +693,9 @@ erDiagram
         enum status "received|processed|ignored|unmatched|failed|held_inactive_account"
         enum entityType "cart|booking|booking_group|course|subscription|learning_path (rỗng khi chưa khớp)"
         string entityId
+        date receivedAt "QA-04, chỉ khi processed"
+        date processedAt "QA-04"
+        number processingMs "QA-04: processedAt − receivedAt"
     }
     ACHIEVEMENT {
         ObjectId _id PK

@@ -229,6 +229,11 @@ describe("SePay xác nhận lộ trình (LP-10)", () => {
     assert.equal(event.status, "processed");
     assert.equal(event.entityType, "learning_path");
     assert.equal(event.entityId, lp.id);
+    // QA-04: mốc đo đối soát; Payment success nằm giữa lúc webhook đến và lúc ghi processed.
+    assert.ok(Number.isFinite(event.processingMs) && event.processingMs >= 0);
+    assert.equal(event.processingMs, new Date(event.processedAt) - new Date(event.receivedAt));
+    assert.ok(new Date(event.receivedAt) <= new Date(row.paidAt));
+    assert.ok(new Date(row.paidAt) <= new Date(event.processedAt));
 
     assert.equal(await notifCount(mentee._id, lp.id), 1);
     assert.equal(await notifCount(mentor.user._id, lp.id), 1);
@@ -259,6 +264,7 @@ describe("SePay xác nhận lộ trình (LP-10)", () => {
       const event = await models.SepayWebhookEvent.findOne({ sepayId: hook.id }).lean();
       assert.equal(event.status, "unmatched");
       assert.match(event.resultMessage, /amount mismatch/);
+      assert.equal(event.processingMs, undefined, "QA-04 chỉ đo giao dịch đã khớp đơn");
     }
     assert.equal((await pathOf(lp.id)).status, "pending_payment");
     assert.equal((await paymentsOf(lp.id))[0].status, "pending");
