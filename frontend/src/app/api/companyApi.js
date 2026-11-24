@@ -54,7 +54,7 @@ export const companyApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  // Tin tuyển dụng của công ty (JB-01), dùng cho bộ lọc / tải câu theo job (CO-13)
+  // Tin tuyển dụng của công ty (JB-01): bộ lọc / tải câu theo job (CO-13) và trang /company/jobs (JB-15).
   listJobs: (params = {}) => authedFetch(`/api/company/jobs${toQuery(params)}`),
   /** CO-04: AI sinh 8–12 câu nháp theo roleCategory — body { roleCategory, count }. */
   generateQuestions: (data = {}) =>
@@ -104,6 +104,25 @@ export const companyApi = {
   submitRubric: (id) =>
     authedFetch(`/api/company/rubrics/${id}/submit`, {
       method: "POST",
+    }),
+
+  // Tin tuyển dụng (JB-01 API, JB-15 UI) — `status`: draft | published | hidden | closed. `listJobs` khai báo ở trên.
+  getJob: (id) => authedFetch(`/api/company/jobs/${encodeURIComponent(id)}`),
+  createJob: (data) =>
+    authedFetch("/api/company/jobs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateJob: (id, data) =>
+    authedFetch(`/api/company/jobs/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  /** `status`: "published" (đăng bản nháp) hoặc "closed" (đóng tin đang đăng / bị ẩn). */
+  changeJobStatus: (id, status) =>
+    authedFetch(`/api/company/jobs/${encodeURIComponent(id)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
     }),
 
   // ── Platform Moderator: Duyệt Rubric (CO-08 & CO-15) ──
