@@ -17,9 +17,9 @@ test("safeInternalPath chỉ nhận đường dẫn nội bộ", () => {
   assert.equal(safeInternalPath(undefined, "/x"), "/x");
 });
 
-test("jobActionUrl mở /jobs lọc theo tên job (chưa có trang chi tiết)", () => {
-  assert.equal(jobActionUrl({ title: "Backend Node.js" }), "/jobs?q=Backend%20Node.js");
-  assert.equal(jobActionUrl({ title: "" }), "/jobs");
+test("jobActionUrl mở trang chi tiết job", () => {
+  assert.equal(jobActionUrl({ id: "j1", actionUrl: "/jobs/j1" }), "/jobs/j1");
+  assert.equal(jobActionUrl({ id: "j1", actionUrl: "//evil" }), "/jobs/j1");
   assert.equal(jobActionUrl(null), "/jobs");
 });
 
@@ -63,7 +63,7 @@ test("normalizeRecommendations cắt theo limit và dựng href", () => {
   assert.equal(out.mentors[0].subtitle, "Dev");
   assert.equal(out.mentors[1].href, "/mentors/u2");
   assert.equal(out.courses[0].isFree, true);
-  assert.equal(out.jobs[0].href, "/jobs?q=Backend");
+  assert.equal(out.jobs[0].href, "/jobs/j1");
   assert.equal(out.jobs[0].subtitle, "Công ty A · Hà Nội");
   assert.equal(out.hasGaps, true);
   assert.equal(out.isEmpty, false);

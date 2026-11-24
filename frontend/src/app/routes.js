@@ -127,6 +127,7 @@ function roleHomeLoader() {
 }
 
 import { Jobs } from "./pages/jobs/Jobs.jsx";
+import { JobDetail } from "./pages/jobs/JobDetail.jsx";
 import { CvBestFit } from "./pages/cv/CvBestFit.jsx";
 export const router = createBrowserRouter([
   {
@@ -138,6 +139,7 @@ export const router = createBrowserRouter([
       { path: "mentors/:id", Component: MentorProfile },
       { path: "courses", Component: Courses },
       { path: "jobs", Component: Jobs },
+      { path: "jobs/:id", Component: JobDetail },
       { path: "courses/:id", Component: CourseDetail },
       { path: "pricing", Component: Pricing },
       { path: "about", Component: About },
