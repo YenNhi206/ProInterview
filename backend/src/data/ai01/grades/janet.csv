@@ -1,0 +1,21 @@
+id,level,note
+ai01-01,4,"Đủ STAR, tìm điểm chung các ca lỗi, so 2 phương án có lý do, số đo rõ (0 đơn trùng 3 tháng, -40 phiếu/tuần), có bài học và đề xuất cho cả nhóm"
+ai01-02,2,"Chỉ nói cách làm thường ngày (""thường thì em sẽ...""), không có tình huống cụ thể nào, tiêu chí so sánh chung chung"
+ai01-03,3,"Tình huống cụ thể, rõ phần việc của bản thân, cách điều chỉnh theo người nghe tốt; kết quả định tính, không có bài học nên chưa tới 4"
+ai01-04,1,"Kể chuyện mất file và trễ hạn, không phải thông tin bị hiểu sai; hiểu sai câu hỏi"
+ai01-05,2,"Toàn ""nhóm em/chúng em"", không rõ vai trò cá nhân; kết quả 80% không gán được cho ứng viên"
+ai01-06,4,"Có xung đột thật, hỏi nguyên nhân trước khi báo cấp trên, chia lại việc, kết quả đo được (xong sớm 2 ngày, demo 0 lỗi), có bài học"
+ai01-07,2,"Có việc cá nhân làm nhưng kể chung chung, không có kết quả (bao nhiêu sách, bao nhiêu người), không có khó khăn hay cách vượt qua"
+ai01-08,4,"Quyết định khó, xử lý hai phe bằng thử nghiệm và số liệu, kết quả đo được, có bài học; có dấu hiệu mức 5 nhưng phiếu không dùng mức 5"
+ai01-09,3,"Đủ STAR, phản ứng nhanh và có cấu trúc; kết quả đúng hạn nhưng không có số đo hay bài học"
+ai01-10,0,Không đưa ra ví dụ nào; trong phỏng vấn thật đây là tín hiệu xấu với câu hỏi thất bại
+ai01-11,4,"Cách học có chủ đích, kết quả đo được (5 ngày; dựng môi trường 1 ngày xuống 20 phút), chia sẻ tài liệu cho nhóm, có bài học"
+ai01-12,1,"Có tự học nhưng là kỹ năng ngoài kỹ thuật, không áp dụng vào công việc; không thể hiện năng lực được hỏi"
+ai01-13,3,"Kế hoạch rõ, theo dõi hằng ngày, chủ động cắt tính năng khi trễ; kết quả định tính, không có bài học. Ranh giới 3/4"
+ai01-14,2,"Dài nhưng không có một tình huống cụ thể nào, chỉ nói thói quen và tự nhận xét"
+ai01-15,4,"Ưu tiên cho khách chạy được trước, tìm nguyên nhân gốc, chủ động báo 12 quán khác, kết quả đo được (gia hạn 1 năm, khiếu nại 30 về 0), có bài học"
+ai01-16,3,"Cụ thể, rõ phần việc của bản thân, có số đo (bỏ app 60% xuống 35%); thiếu bài học và không có khó khăn. Ranh giới 3/4"
+ai01-17,2,"Có nhắc một sự việc nhưng không rõ mức ảnh hưởng, việc khắc phục do leader cùng làm, không có kết quả, bài học chung chung"
+ai01-18,3,"Tình huống có thể che giấu, chủ động báo, đề xuất chấm lại cả lớp, kết quả rõ; thiếu bài học. Ranh giới 3/4"
+ai01-19,1,"Quyết định theo cảm tính, không có dữ liệu; ví dụ ngược với năng lực được hỏi"
+ai01-20,0,Lạc đề hoàn toàn (sở thích cá nhân)
