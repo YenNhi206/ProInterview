@@ -29,6 +29,8 @@ import {
   Hourglass,
 } from "lucide-react";
 import { ReportAiResultDialog } from "../../components/interview/ReportAiResultDialog";
+import { CompanyQuestionBadge, CompanyRubricPanel } from "../../components/interview/CompanyRubricPanel";
+import { companyRubricView } from "../../utils/interview/companyRubricFeedback.js";
 import { SHRM_NO_DATA_LABEL, effectiveEvaluation, reportableTargets, shrmLevelCounts } from "../../utils/interview/feedbackModeration.js";
 import { CourseRecommendations } from "../../components/courses/CourseRecommendations";
 import { BehavioralRadarChart, behaviorScoreColor, emotionLabel } from "../../components/interview/BehavioralRadarChart";
@@ -391,6 +393,7 @@ export function InterviewFeedback() {
           improvements:  evalQ.improvements ?? [],
           suggestion:    evalQ.suggestion,
           ...effectiveEvaluation(evalQ),
+          rubric:        companyRubricView(evalQ), // JB-14: chỉ câu doanh nghiệp, câu khác null
         }));
         setRealFeedback(mapped);
         if (res.freeQuestionCount) setFreeLimit(res.freeQuestionCount);
@@ -925,6 +928,7 @@ export function InterviewFeedback() {
                           <Hourglass className="h-3 w-3" aria-hidden /> Đang chờ kiểm định
                         </span>
                       ) : null}
+                      {item.rubric ? <CompanyQuestionBadge companyName={item.rubric.companyName} /> : null}
                     </div>
                     {/* Preview cải thiện khi chưa mở rộng */}
                     {expandedQ !== i && item.improvements?.[0] && (
@@ -1060,6 +1064,9 @@ export function InterviewFeedback() {
                       </div>
                     );
                   })()}
+
+                  {/* JB-14: điểm theo tiêu chí rubric của doanh nghiệp (chỉ câu doanh nghiệp) */}
+                  <CompanyRubricPanel rubric={item.rubric} />
 
                   {/* ── Điểm mạnh & Cần cải thiện ── */}
                   <div className="mb-4 grid gap-4 sm:grid-cols-2">
