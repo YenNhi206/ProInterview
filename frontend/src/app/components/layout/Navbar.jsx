@@ -18,6 +18,7 @@ import {
   User,
   UserPlus,
   X,
+  Briefcase,
 } from "lucide-react";
 import { TopNavShell } from "./TopNavShell";
 import { HOME_SHELL_MAX } from "./customerShellLayout";
@@ -62,6 +63,7 @@ const PAGE_TITLES = {
   "/mentor-requests": { label: "Yêu cầu Mentor", sub: "Nhu cầu và đề nghị hỗ trợ" },
   "/learning-paths": { label: "Lộ trình học", sub: "Lộ trình mentor soạn riêng cho bạn" },
   "/cvs": { label: "Kho CV", sub: "Các phiên bản CV và CV mặc định" },
+  "/my-applications": { label: "Đơn ứng tuyển", sub: "Trạng thái các đơn bạn đã nộp" },
   "/mentors": { label: "Tìm Mentor", sub: "Đặt lịch 1:1 với anh/chị mentor" },
   "/profile": { label: "Hồ sơ cá nhân", sub: "Thông tin và thành tích của bạn" },
   "/settings": { label: "Cài đặt", sub: "Tuỳ chỉnh tài khoản" },
@@ -282,6 +284,10 @@ function CustomerNavbar() {
                   <DropdownMenuItem onClick={() => navigate("/my-bookings")}>
                     <Calendar className="mr-2.5 size-4 text-violet-400" />
                     Lịch hẹn của tôi
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/my-applications")}>
+                    <Briefcase className="mr-2.5 size-4 text-violet-400" />
+                    Đơn ứng tuyển của tôi
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/mentor-requests")}>
                     <FileText className="mr-2.5 size-4 text-violet-400" />
