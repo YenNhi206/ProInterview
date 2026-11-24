@@ -309,6 +309,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/company/questions/:id/approve` · `/reject` · `batch-approve` · `batch-reject` | `[AUTH][COMPANY_MOD]` duyệt → `pending_platform_review` chờ Platform Mod (quyết định CO-16) |
 | ✅ | GET | `/api/moderator/company-questions` | `[AUTH][MODERATOR]` câu doanh nghiệp theo tab chờ duyệt / đã duyệt / từ chối, kèm công ty và job (CO-16) |
 | ✅ | POST | `/api/moderator/company-questions/:id/approve` · `/:id/reject` · `/bulk` | `[AUTH][MODERATOR]` duyệt → `approved` + render video avatar; từ chối bắt buộc lý do (CO-16) |
+| ✅ | POST | `/api/moderator/rubrics/:id/ai-review` | `[AUTH][MODERATOR]` AI kiểm tra rubric công ty: map SHRM, thang mơ hồ / chồng lấn / trùng lặp; chạy nền khi công ty gửi duyệt, cảnh báo hiện trong `/moderator/rubrics` (CO-09) |
 
 Chi tiết: **API_INDEX.md A.18 (CO-04, CO-05)**. FE `/company/questions`: nút "Sinh bộ câu bằng AI", "Tải câu theo job" (CO-13), lọc theo job, trạng thái "Chờ Platform Mod"; FE Platform Mod: `/moderator/company-questions` (CO-16).
 

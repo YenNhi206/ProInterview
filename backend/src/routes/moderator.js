@@ -69,3 +69,4 @@ moderatorRouter.get("/rubrics", asyncHandler(ModeratorRubricController.list));
 moderatorRouter.get("/rubrics/:id", asyncHandler(ModeratorRubricController.getById));
 moderatorRouter.post("/rubrics/:id/approve", asyncHandler(ModeratorRubricController.approve));
 moderatorRouter.post("/rubrics/:id/reject", asyncHandler(ModeratorRubricController.reject));
+moderatorRouter.post("/rubrics/:id/ai-review", asyncHandler(ModeratorRubricController.aiReview)); // CO-09

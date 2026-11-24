@@ -12,9 +12,13 @@ import {
   AlertCircle,
   Tag,
   Sliders,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { companyApi } from "../../api/companyApi.js";
+import { competenciesApi } from "../../api/competenciesApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
+import { flagLabel, groupReviewFlags, reviewBadgeText, reviewStatusText } from "../../utils/moderator/rubricReview.js";
 
 const STATUS_TABS = [
   { id: "pending_review", label: "Chờ duyệt", dot: "bg-amber-500" },
@@ -32,6 +36,42 @@ export function ModeratorRubrics() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectComment, setRejectComment] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const [competencyNames, setCompetencyNames] = useState({});
+
+  // Tên tiếng Việt của năng lực (LP-01) để hiện cạnh shrmKey và key AI gợi ý.
+  useEffect(() => {
+    competenciesApi.getFramework().then((res) => {
+      if (!res.success) return;
+      setCompetencyNames(Object.fromEntries((res.framework?.competencies || []).map((c) => [c.key, c.nameVi])));
+    });
+  }, []);
+
+  const replaceRubric = (id, patch) => {
+    setRubrics((list) => list.map((r) => (r._id === id ? { ...r, ...patch } : r)));
+    setSelectedRubric((cur) => (cur?._id === id ? { ...cur, ...patch } : cur));
+  };
+
+  // CO-09: AI chạy nền khi công ty gửi duyệt. Đang chạy thì tải lại chi tiết; chưa có / muốn chạy lại thì gọi ai-review.
+  const runAiReview = async (rubric, { force = false } = {}) => {
+    setReviewing(true);
+    const res = rubric.aiReview?.status === "pending" && !force
+      ? await companyApi.getModeratorRubric(rubric._id)
+      : await companyApi.reviewModeratorRubric(rubric._id, force);
+    setReviewing(false);
+    if (!res.success) {
+      toastApiError(res.error, "AI chưa kiểm tra được rubric.");
+      return;
+    }
+    replaceRubric(rubric._id, { aiReview: res.aiReview ?? res.rubric?.aiReview });
+  };
+
+  const openDetail = (rubric) => {
+    setSelectedRubric(rubric);
+    setShowDetailModal(true);
+    // Rubric gửi trước khi có CO-09 chưa có kết quả: chạy một lần khi mở.
+    if (activeTab === "pending_review" && !rubric.aiReview?.status) runAiReview(rubric);
+  };
 
   const fetchRubrics = useCallback(async () => {
     setLoading(true);
@@ -195,6 +235,7 @@ export function ModeratorRubrics() {
                         <Sliders size={13} className="text-violet-500" />
                         {rubric.criteria?.length || 0} tiêu chí
                       </span>
+                      <ReviewBadge aiReview={rubric.aiReview} />
                     </td>
 
                     <td className="px-5 py-4 text-slate-400 text-[11px]">
@@ -205,10 +246,7 @@ export function ModeratorRubrics() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
-                          onClick={() => {
-                            setSelectedRubric(rubric);
-                            setShowDetailModal(true);
-                          }}
+                          onClick={() => openDetail(rubric)}
                           className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                         >
                           <Eye size={13} />
@@ -272,6 +310,12 @@ export function ModeratorRubrics() {
 
             {/* Danh sách tiêu chí */}
             <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+              <AiReviewPanel
+                rubric={selectedRubric}
+                names={competencyNames}
+                reviewing={reviewing}
+                onRun={(force) => runAiReview(selectedRubric, { force })}
+              />
               {selectedRubric.criteria?.map((crit, idx) => (
                 <div key={idx} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
                   <div className="flex items-center justify-between mb-1">
@@ -283,8 +327,13 @@ export function ModeratorRubrics() {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-mono">
-                    SHRM key: {crit.shrmKey} · {crit.questionIds?.length || 0} câu hỏi áp dụng
+                    SHRM key: {crit.shrmKey}
+                    {competencyNames[crit.shrmKey] ? ` (${competencyNames[crit.shrmKey]})` : ""} · {crit.questionIds?.length || 0} câu hỏi áp dụng
                   </p>
+                  <FlagList
+                    flags={groupReviewFlags(selectedRubric.aiReview, selectedRubric.criteria.length).byCriterion[idx]}
+                    names={competencyNames}
+                  />
                   {crit.description && (
                     <p className="mt-2 text-xs text-slate-700 leading-relaxed">{crit.description}</p>
                   )}
@@ -377,5 +426,89 @@ export function ModeratorRubrics() {
         </div>
       )}
     </div>
+  );
+}
+
+const FLAG_TONE = {
+  critical: "border-rose-200 bg-rose-50 text-rose-800",
+  warning: "border-amber-200 bg-amber-50 text-amber-800",
+  info: "border-slate-200 bg-white text-slate-600",
+};
+
+/** CO-09: số cảnh báo AI ở cột danh sách. */
+function ReviewBadge({ aiReview }) {
+  const text = reviewBadgeText(aiReview);
+  if (!text) return null;
+  const { counts, total } = groupReviewFlags(aiReview);
+  const tone = !total ? "text-emerald-700" : counts.critical ? "text-rose-700" : "text-amber-700";
+  return (
+    <span className={`mt-1 flex items-center gap-1 text-[11px] font-semibold ${tone}`}>
+      {total ? <AlertCircle size={12} /> : <CheckCircle2 size={12} />}
+      {text}
+    </span>
+  );
+}
+
+/** CO-09: danh sách cờ (luật hoặc AI) của một tiêu chí hoặc của cả rubric. */
+function FlagList({ flags, names }) {
+  if (!flags?.length) return null;
+  return (
+    <ul className="mt-2 space-y-1.5">
+      {flags.map((f, i) => (
+        <li key={`${f.code}-${i}`} className={`rounded-lg border px-2.5 py-1.5 text-[11px] ${FLAG_TONE[f.severity] || FLAG_TONE.info}`}>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-bold">{flagLabel(f.code)}</span>
+            <span className="rounded bg-white/70 px-1 text-[10px] font-semibold uppercase tracking-wide">
+              {f.source === "ai" ? "AI" : "Luật"}
+            </span>
+          </div>
+          <p className="mt-0.5 leading-relaxed">{f.message}</p>
+          {f.evidence && <p className="mt-0.5 italic opacity-80">&ldquo;{f.evidence}&rdquo;</p>}
+          {f.suggestedShrmKey && (
+            <p className="mt-0.5 font-semibold">
+              Gợi ý năng lực: {names[f.suggestedShrmKey] || f.suggestedShrmKey} ({f.suggestedShrmKey})
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** CO-09: tóm tắt của AI và cảnh báo chung, nút chạy lại. Cảnh báo theo tiêu chí nằm trong từng thẻ tiêu chí. */
+function AiReviewPanel({ rubric, names, reviewing, onRun }) {
+  const review = rubric.aiReview;
+  const { general, counts, total } = groupReviewFlags(review, rubric.criteria?.length ?? 0);
+  const status = reviewStatusText(review);
+  const pending = review?.status === "pending";
+  return (
+    <section className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center gap-1.5 text-sm font-bold text-violet-900">
+          <Sparkles size={15} /> Gợi ý kiểm định của AI
+        </h3>
+        <button
+          type="button"
+          onClick={() => onRun(review?.status === "done" || review?.status === "failed")}
+          disabled={reviewing}
+          className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-50"
+        >
+          {reviewing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+          {pending ? "Tải lại" : review?.status ? "Chạy lại" : "Chạy kiểm tra"}
+        </button>
+      </div>
+      {reviewing && !pending && <p className="mt-2 text-[11px] text-violet-700">AI đang đọc rubric, mất khoảng 10–20 giây…</p>}
+      {status && <p className="mt-2 text-[11px] text-slate-600">{status}</p>}
+      {review?.summary && <p className="mt-2 text-xs leading-relaxed text-slate-800">{review.summary}</p>}
+      {review?.status && !pending && (
+        <p className="mt-2 text-[11px] font-semibold text-slate-600">
+          {total
+            ? `${counts.critical} nghiêm trọng · ${counts.warning} cảnh báo · ${counts.info} lưu ý — xem trong từng tiêu chí bên dưới.`
+            : "Không phát hiện vấn đề về map năng lực SHRM hay mô tả thang."}
+        </p>
+      )}
+      <FlagList flags={general} names={names} />
+      <p className="mt-2 text-[10px] text-slate-400">AI chỉ gợi ý; quyết định duyệt hay từ chối thuộc về bạn.</p>
+    </section>
   );
 }

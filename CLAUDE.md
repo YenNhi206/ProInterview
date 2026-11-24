@@ -45,7 +45,7 @@ npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần t
 npm run db:migrate-enterprise-role:dry  # N-03: đếm user role cũ `enterprise` (không ghi DB); production: đặt TARGET_MONGO_URI
 npm run db:migrate-enterprise-role      # N-03: đổi `enterprise` → `company_moderator`; chạy lại được
 npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
-npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1/rubric-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08, JB-07)
+npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1/rubric-v1/rubricreview-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08, JB-07, CO-09)
 node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy
 npm run db:recompute-competency-profiles:dry  # đếm hồ sơ năng lực cần gộp lại (PR-06, không ghi DB)
 npm run db:recompute-competency-profiles      # gộp lại hồ sơ năng lực theo cách PR-06; chạy 1 lần trên staging/production sau khi merge
