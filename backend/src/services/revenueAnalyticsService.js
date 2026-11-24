@@ -149,6 +149,53 @@ export function learningPathPlatformFee(path, originalSessions = []) {
 }
 
 /**
+ * Điều kiện Payment lộ trình đã thu (không tính Payment demo). Dùng chung cho analytics và báo cáo tài chính (LP-16).
+ * `refund_pending` (LP-15, lộ trình bị hủy, chờ admin chuyển khoản hoàn): vẫn tính, `gross` đã trừ `refundAmount`.
+ */
+export const LEARNING_PATH_PAID_FILTER = Object.freeze({
+  type: "learning_path",
+  status: { $in: ["success", "partial_refund", "refund_pending"] },
+  ...NOT_DEMO_PAYMENT,
+});
+
+/**
+ * LP-16: tiền từng Payment lộ trình đã thu. `gross` = số tiền trừ phần hoàn, `fee` = phí nền tảng các buổi gốc
+ * (kẹp trong [0, gross]). Đọc LearningPath + buổi gốc một lần cho cả danh sách.
+ * @returns {Promise<Array<{ payment: object, gross: number, fee: number }>>}
+ */
+export async function learningPathRevenueRows(lpPayments) {
+  const LearningPath = mongoose.model("LearningPath");
+  const LearningPathSession = mongoose.model("LearningPathSession");
+  const pathIds = (lpPayments ?? []).map((p) => p.referenceId);
+  const [paths, originalSessions] = pathIds.length
+    ? await Promise.all([
+        LearningPath.find({ _id: { $in: pathIds } }).select("totalAmount platformFeeRate status").lean(),
+        LearningPathSession.find({ pathId: { $in: pathIds }, attempt: 1 }).select("pathId shareAmount status").lean(),
+      ])
+    : [[], []];
+  const pathById = new Map(paths.map((p) => [String(p._id), p]));
+  const sessionsByPath = new Map();
+  for (const s of originalSessions) {
+    const key = String(s.pathId);
+    if (!sessionsByPath.has(key)) sessionsByPath.set(key, []);
+    sessionsByPath.get(key).push(s);
+  }
+  return (lpPayments ?? []).map((payment) => {
+    const gross = Math.max(0, vndInt(payment.amount) - vndInt(payment.refundAmount));
+    const path = pathById.get(String(payment.referenceId));
+    const sessions = sessionsByPath.get(String(payment.referenceId)) || [];
+    // LP-15: lộ trình bị hủy chỉ giữ phí của các buổi đã học (buổi chưa học đã hoàn cho ứng viên và bị đánh `cancelled`).
+    const feeSessions = path?.status === "cancelled" ? sessions.filter((s) => s.status !== "cancelled") : sessions;
+    const fee = !path
+      ? 0
+      : path.status === "cancelled"
+        ? feeSessions.reduce((sum, s) => sum + learningPathSessionFee(vndInt(s.shareAmount), safeRate(path.platformFeeRate, 0)), 0)
+        : learningPathPlatformFee(path, feeSessions);
+    return { payment, gross, fee: Math.max(0, Math.min(gross, fee)) };
+  });
+}
+
+/**
  * Doanh thu theo nguồn trong `period` (từ `resolveRevenuePeriod`).
  * Trả `{ period, totals, sources[], series[] }`; `series` có một dòng cho mỗi ngày (giờ Việt Nam),
  * kể cả ngày không có giao dịch, để biểu đồ không bị hở.
@@ -157,8 +204,6 @@ export async function getRevenueBySource(period) {
   const Booking = mongoose.model("Booking");
   const Enrollment = mongoose.model("Enrollment");
   const Payment = mongoose.model("Payment");
-  const LearningPath = mongoose.model("LearningPath");
-  const LearningPathSession = mongoose.model("LearningPathSession");
   const { start, end } = period;
 
   const [bookings, enrollments, subscriptions, lpPayments] = await Promise.all([
@@ -175,30 +220,12 @@ export async function getRevenueBySource(period) {
     Payment.find({ type: "subscription", status: "success", ...NOT_DEMO_PAYMENT, ...paidInRange(start, end) })
       .select("amount refundAmount paidAt createdAt")
       .lean(),
-    Payment.find({
-      type: "learning_path",
-      status: { $in: ["success", "partial_refund"] },
-      ...NOT_DEMO_PAYMENT,
-      ...paidInRange(start, end),
-    })
+    Payment.find({ ...LEARNING_PATH_PAID_FILTER, ...paidInRange(start, end) })
       .select("amount refundAmount referenceId paidAt createdAt")
       .lean(),
   ]);
 
-  const pathIds = lpPayments.map((p) => p.referenceId);
-  const [paths, originalSessions] = pathIds.length
-    ? await Promise.all([
-        LearningPath.find({ _id: { $in: pathIds } }).select("totalAmount platformFeeRate").lean(),
-        LearningPathSession.find({ pathId: { $in: pathIds }, attempt: 1 }).select("pathId shareAmount").lean(),
-      ])
-    : [[], []];
-  const pathById = new Map(paths.map((p) => [String(p._id), p]));
-  const sessionsByPath = new Map();
-  for (const s of originalSessions) {
-    const key = String(s.pathId);
-    if (!sessionsByPath.has(key)) sessionsByPath.set(key, []);
-    sessionsByPath.get(key).push(s);
-  }
+  const lpRows = await learningPathRevenueRows(lpPayments);
 
   const buckets = Object.fromEntries(REVENUE_SOURCES.map((s) => [s.key, emptyBucket()]));
   const seriesByDay = new Map();
@@ -218,11 +245,8 @@ export async function getRevenueBySource(period) {
     // Gói Pro/Elite không chia mentor: toàn bộ là phần nền tảng giữ.
     record("subscription", p.paidAt ?? p.createdAt, { gross, fee: gross });
   }
-  for (const p of lpPayments) {
-    const gross = Math.max(0, vndInt(p.amount) - vndInt(p.refundAmount));
-    const path = pathById.get(String(p.referenceId));
-    const fee = path ? learningPathPlatformFee(path, sessionsByPath.get(String(p.referenceId)) || []) : 0;
-    record("learning_path", p.paidAt ?? p.createdAt, { gross, fee: Math.max(0, Math.min(gross, fee)) });
+  for (const { payment: p, gross, fee } of lpRows) {
+    record("learning_path", p.paidAt ?? p.createdAt, { gross, fee });
   }
 
   const totals = emptyBucket();

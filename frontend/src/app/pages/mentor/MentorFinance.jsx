@@ -9,6 +9,7 @@ import {
   Wallet,
   Calendar,
   BookOpen,
+  Route,
   CheckCircle2 as CheckCircle,
   Clock,
   TrendingUp,
@@ -413,6 +414,8 @@ export function MentorFinance() {
   const totalEarned = Number(finance?.totalEarned || 0);
   const bookingIncome = Number(finance?.incomeBreakdown?.booking || 0);
   const courseIncome = Number(finance?.incomeBreakdown?.course || 0);
+  // LP-16: thu nhập từ các buổi lộ trình học (tách khỏi đặt lịch thường).
+  const learningPathIncome = Number(finance?.incomeBreakdown?.learningPath || 0);
   const payoutAccount = finance?.payoutAccount || {};
   const payoutAccountMasked = finance?.payoutAccountMasked || "";
   const payoutAccountOwnerName = finance?.payoutAccountOwnerName || getDisplayName(user, "Mentor");
@@ -822,6 +825,15 @@ export function MentorFinance() {
                   </span>
                   <span className="font-bold text-xs text-white">
                     {formatMoney(bookingIncome)}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                    <Route size={14} className="text-sky-400" />
+                    Từ lộ trình
+                  </span>
+                  <span className="font-bold text-xs text-white">
+                    {formatMoney(learningPathIncome)}
                   </span>
                 </li>
                 <li className="flex items-center justify-between gap-3 py-2.5">

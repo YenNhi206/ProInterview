@@ -61,7 +61,9 @@
     "test:python-cv": "cd ../cv_jd_matching && python -m unittest discover -s tests -p test_*.py -v",
     "test:dto": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns=__tests__",
     "test:finance": "node --test src/integration/finance-operations.integration.test.js",
-    "test:mentorship": "node --test src/integration/mentorshipRequests.integration.test.js"
+    "test:mentorship": "node --test src/integration/mentorshipRequests.integration.test.js",
+    "ai01:sheet": "node src/scripts/ai01Benchmark.js sheet",
+    "ai01:aggregate": "node src/scripts/ai01Benchmark.js aggregate"
   },
   "jest": {
     "testEnvironment": "node",
