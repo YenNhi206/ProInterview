@@ -41,12 +41,17 @@
 
 ## 4. Kiểm thử tải 100 người dùng đồng thời (QA-02, NFR-04)
 
-**Chưa có số đo.** Script `backend/tests/load/k6-load-100vus.js` đã sửa đường dẫn tạo phiên phỏng vấn
-(`POST /api/interviews/sessions`; bản cũ gọi `POST /api/interviews`, route không tồn tại). Cách đo:
+**Chưa có số đo.** Script `backend/tests/load/k6-load-100vus.js` đã sửa (PR #277):
+- Đăng nhập đọc trường `token` (bản cũ đọc `accessToken` nên mọi lần đăng nhập đều tính lỗi); mỗi VU đăng nhập một lần rồi dùng lại.
+- Tạo phiên qua `POST /api/interviews/sessions` (bản cũ gọi `POST /api/interviews`, route không tồn tại), gửi 3 câu baseline lấy từ `GET /api/interviews/baseline-questions`.
+- Trang job phải trả 200 (bỏ kiểu chấp nhận cả 404).
+- 403 hết lượt phỏng vấn là phản hồi nghiệp vụ đúng: không tính lỗi, đếm riêng ở `interview_quota_limited` để báo cáo ghi rõ.
 
-1. Chạy trên **staging** (không chạy trên production), bật chế độ mock của QA-01 để không phát sinh chi phí AI, báo nhóm trước.
-   Cả 100 VU đăng nhập chung tài khoản `candidate.demo@prointerview.vn` và mỗi lượt tạo phiên trừ 1 lượt phỏng vấn: nâng
-   `quota.interviewLimit` của tài khoản này đủ lớn trước khi chạy, và nới rate limit đăng nhập cho môi trường test (QA-02),
-   nếu không sẽ nhận 403 / 429 và tỉ lệ lỗi không phản ánh hệ thống.
-2. `k6 run --summary-export docs/report/nfr-raw/k6-<thời điểm>.json backend/tests/load/k6-load-100vus.js`
-3. Ghi p95 và tỉ lệ lỗi từ file JSON vào bảng trên; commit file JSON.
+Cách đo:
+
+1. Chạy trên **staging** (không chạy trên production), báo nhóm trước. Backend staging bật tạm `LOAD_TEST=true` (bỏ rate limit,
+   `middleware/rateLimiters.js`) và `MOCK_AI_SERVICES=true` (không gọi AI thật, QA-01). Cả 100 VU dùng chung một tài khoản và mỗi
+   lượt tạo phiên trừ 1 lượt phỏng vấn: nâng `quota.interviewLimit` của tài khoản test đủ lớn, nếu không phần lớn lượt sẽ là 403
+   (không tính lỗi nhưng không đo được thời gian tạo phiên thật).
+2. `k6 run -e TARGET_URL=https://<staging-backend> -e K6_EMAIL=<email> -e K6_PASSWORD=<mật khẩu> --summary-export docs/report/nfr-raw/k6-<thời điểm>.json backend/tests/load/k6-load-100vus.js`
+3. Ghi p95 `http_req_duration`, `error_rate`, p95 từng bước và số `interview_quota_limited` vào bảng trên; commit file JSON. Tắt `LOAD_TEST` và `MOCK_AI_SERVICES` sau khi đo.
