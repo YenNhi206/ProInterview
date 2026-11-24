@@ -1,85 +1,56 @@
-# Báo cáo kết quả đo lường phi chức năng (NFR Performance Results)
+# Kết quả đo phi chức năng (NFR)
 
-> **Dự án**: Nền tảng luyện phỏng vấn thông minh ProInterview (Capstone FA26)  
-> **Người thực hiện**: Nguyễn Việt Văn (Backend Engineer)  
-> **Môi trường đo đạc**: Staging Server (Node.js 22 runtime, MongoDB Cluster, Redis Cache)  
-> **Ngày đo**: 19/11/2026
+> **Dự án**: ProInterview (Capstone FA26, GFA26SE160)
+> **Phụ trách đo**: Nguyễn Việt Văn (QA-02, QA-03) · Janet (QA-08, đo lại avatar sau khi đổi provider)
+> **Cập nhật**: 24/11/2026
 
----
+> ⚠️ **Bản 19/11/2026 của file này đã bị gỡ (đề xuất ae).** Các số QA-02 và QA-03 trong bản đó **không phải số đo**:
+> `backend/src/scripts/measureNfrPerformance.js` tự sinh thời gian CV / avatar bằng `Math.sin`, `Math.cos`, `Math.random`
+> và gõ cứng kết quả k6. Script k6 khi đó còn gọi sai đường dẫn (`POST /api/interviews`) và đọc sai trường token, nên không
+> thể cho ra tỉ lệ lỗi đã ghi. Không dùng bất kỳ số nào của bản cũ trong báo cáo nộp. Mọi số dưới đây phải kèm file mẫu gốc
+> trong `docs/report/nfr-raw/`.
 
-## 1. Tóm tắt kết quả theo tiêu chuẩn chấp thuận (Acceptance Criteria)
+## 1. Tóm tắt
 
-| Mã NFR | Mục tiêu cam kết | Kết quả thực tế (p50 / p95) | Đánh giá | Trạng thái |
+| Mã | Mục tiêu | Kết quả | Bằng chứng | Trạng thái |
 |:---|:---|:---|:---|:---:|
-| **QA-01** | Mock mode không phát sinh chi phí | 0 CostEvent phát sinh khi bật `MOCK_AI_SERVICES` | Đạt 100% | ✅ **ĐẠT** |
-| **QA-02** | 100 VUs đồng thời (p95 < 2000ms, Lỗi < 1%) | **p95 = 680ms**, **Lỗi = 0.08%** | Phản hồi mượt mà, chịu tải ổn định | ✅ **ĐẠT** |
-| **QA-03 (CV)** | Phân tích CV/JD Matching ≤ 60 giây | **p50 = 21.5s**, **p95 = 34.43s** (Max: 34.69s) | Nhanh hơn 50% so với cam kết | ✅ **ĐẠT** |
-| **QA-03 (Avatar)** | Sinh video avatar D-ID ≤ 130 giây | **Mới: p95 = 74.44s**<br>**Cache: p95 = 192ms** | Tối ưu vượt trội nhờ bộ đệm đa tầng | ✅ **ĐẠT** |
+| QA-01 | Bật `MOCK_AI_SERVICES` thì không phát sinh chi phí AI | Không ghi CostEvent, không gọi D-ID / ElevenLabs | Test `backend/src/integration/mockAiServices.integration.test.js` (chạy trong `npm test`) | ✅ Đạt |
+| QA-02 (NFR-04) | 100 người dùng đồng thời: p95 < 2000 ms, lỗi < 1% | **Chưa đo** | Cần file `nfr-raw/k6-*.json` từ lần chạy thật trên staging | ⏳ |
+| QA-03 (NFR-01) | Phân tích CV/JD ≤ 60 giây (30 lần phân tích) | **Chưa đo** | Cần file `nfr-raw/cv-*.json` | ⏳ |
+| QA-03 (NFR-02) | Video avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) | **Chưa đo** | Cần file `nfr-raw/avatar-*.json` | ⏳ |
 
----
+## 2. Cách đo
 
-## 2. Đo lường hiệu năng xử lý CV/JD Matching (QA-03)
+### QA-03: CV/JD (NFR-01)
 
-Thực hiện trên tập mẫu **30 CV định dạng PDF/DOCX đa dạng** (từ 1 đến 4 trang) đối chiếu với các Job Description kỹ thuật:
+Mỗi lần gọi Python, backend ghi một dòng log `cv_analysis_timing` (N-11). Một lần phân tích có thể gọi nhiều bậc
+(suggestions → full → basic), nên **thời gian người dùng chờ = tổng các lượt cùng `analysisId`**; vì vậy đo từ log, không
+đo từ DB (DB chỉ giữ lượt cuối).
 
-- **Số lượng mẫu đo**: 30 CVs
-- **Thời gian tối thiểu (Min)**: `14s`
-- **Thời gian trung bình (Avg)**: `22.25s`
-- **Trung vị (p50)**: `21.5s`
-- **Phân vị 95 (p95)**: `34.43s` (Cam kết: ≤ 60s)
-- **Thời gian tối đa (Max)**: `34.69s`
+1. Trên staging, phân tích đủ ít nhất 30 lần với CV và JD khác nhau.
+2. Tải log backend từ Render (Logs → Download), lưu ví dụ `render-backend.log`.
+3. `cd backend && node src/scripts/measureNfrPerformance.js cv --log render-backend.log --limit 30`
+4. Chép bảng in ra vào mục 3 và commit file `docs/report/nfr-raw/cv-*.json`.
 
-### Biểu đồ phân bổ thời gian xử lý CV (giây):
-```
-[10s - 20s]: ■■■■■■■■■■■■■■ (14 CVs)
-[20s - 30s]: ■■■■■■■■■■ (10 CVs)
-[30s - 40s]: ■■■■ (4 CVs)
-[40s - 50s]: ■■ (2 CVs)
-> 60s: Không có trường hợp nào
-```
+Khi không có log: `node src/scripts/measureNfrPerformance.js cv --since <ngày>` đọc `CVAnalysis.meta.processingTimeMs`
+(đặt `TARGET_MONGO_URI` cho DB staging). Cách này chỉ tính lượt gọi cuối, phải ghi rõ trong báo cáo.
 
----
+### QA-03: Avatar (NFR-02)
 
-## 3. Đo lường hiệu năng sinh video Avatar AI (QA-03)
+Mỗi video ghi một dòng `avatar_video_timing` (`fromCache`, `ok`, `durationMs`).
 
-Quy trình tạo video câu hỏi phỏng vấn gồm: **ElevenLabs TTS -> Cloudinary audio upload -> D-ID Lipsync render -> Mirror Cloudinary video**:
+1. Trên staging, chạy phỏng vấn sao cho có ít nhất 20 câu chưa có video (câu follow-up hoặc câu doanh nghiệp mới) và 20 câu đã cache (câu baseline sau khi `npm run warmup:baseline-videos`).
+2. `node src/scripts/measureNfrPerformance.js avatar --log render-backend.log --limit 20`
+3. Ghi rõ provider đang chạy (`GET /api/ai/config`). Sau khi đổi sang ElevenLabs (AI-15), đo lại ở QA-08.
 
-### 3.1. Đối với 20 câu hỏi mới (Cold Start):
-- **p50**: `49.74s`
-- **p95**: `74.44s` (Cam kết: ≤ 130s)
-- **Đánh giá**: Hoàn toàn nằm trong ngưỡng cho phép (trung bình 45 - 65 giây).
+### QA-02: 100 người dùng đồng thời (NFR-04)
 
-### 3.2. Đối với 20 câu hỏi đã có Cache (Warm Cache):
-- **p50**: `115ms`
-- **p95**: `192ms`
-- **Đánh giá**: Trả về link video gần như tức thì (< 300ms) nhờ cơ chế kiểm tra Redis và CDN Cloudinary.
+1. Staging backend bật `LOAD_TEST=true` (bỏ rate limit, `middleware/rateLimiters.js`) và `MOCK_AI_SERVICES=true` (không gọi AI thật, QA-01), có tài khoản demo (`npm run seed:demo-staging`) hoặc tài khoản riêng cho test tải.
+2. Cài k6 (`winget install k6` hoặc https://k6.io/docs/get-started/installation/).
+3. `k6 run -e TARGET_URL=https://<staging-backend> -e K6_EMAIL=<email> -e K6_PASSWORD=<mật khẩu> --summary-export=docs/report/nfr-raw/k6-<ngày>.json backend/tests/load/k6-load-100vus.js`
+4. Ghi p95 `http_req_duration`, `error_rate`, p95 từng bước và số lần `interview_quota_limited` (hết lượt phỏng vấn, phản hồi 403 nghiệp vụ, không tính lỗi) vào mục 3.
+5. Tắt `LOAD_TEST` và `MOCK_AI_SERVICES` sau khi đo.
 
----
+## 3. Kết quả
 
-## 4. Kết quả kiểm thử tải 100 người dùng đồng thời (QA-02)
-
-Kiểm thử bằng công cụ **k6** với kịch bản mô phỏng hành vi người dùng thực tế: Đăng nhập -> Duyệt danh sách Mentor -> Xem việc làm -> Tạo phiên phỏng vấn thử:
-
-- **Số lượng Virtual Users (VUs)**: 100 người dùng đồng thời
-- **Tổng số lượt Request**: 14850 requests
-- **Tỉ lệ lỗi (Error Rate)**: **0.08%** (Ngưỡng yêu cầu: < 1.0%)
-- **Độ trễ phản hồi (HTTP Request Duration)**:
-  - **Avg**: 245ms
-  - **p50 (Median)**: 180ms
-  - **p90**: 420ms
-  - **p95**: **680ms** (Ngưỡng yêu cầu: < 2000ms)
-  - **p99**: 1150ms
-
-### Chi tiết thời gian phản hồi theo từng endpoint:
-- **Đăng nhập (`POST /api/auth/login`)**: p95 = `310ms`
-- **Duyệt Mentor (`GET /api/mentors`)**: p95 = `210ms`
-- **Tạo phiên phỏng vấn (`POST /api/interviews`)**: p95 = `540ms`
-
----
-
-## 5. Kết luận
-
-Hệ thống **ProInterview** hoàn toàn thỏa mãn tất cả các tiêu chí phi chức năng (NFR) đã đăng ký trong đề cương Capstone:
-1. Đảm bảo năng lực chịu tải đồng thời 100 người dùng với tỉ lệ lỗi cực thấp (< 0.1%).
-2. Tốc độ phân tích CV và sinh video avatar đáp ứng tốt trải nghiệm người dùng trong thời gian thực.
-3. Chế độ Mock AI vận hành an toàn và tiết kiệm 100% chi phí khi thực hiện benchmark kiểm thử.
+*(Chưa có lần đo thật. Điền sau khi chạy các lệnh ở mục 2, ghi kèm ngày đo, môi trường, provider AI và đường dẫn file mẫu gốc.)*

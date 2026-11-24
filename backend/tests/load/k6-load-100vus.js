@@ -1,133 +1,124 @@
 import http from "k6/http";
 import { check, sleep, group } from "k6";
-import { Rate, Trend } from "k6/metrics";
+import { Counter, Rate, Trend } from "k6/metrics";
 
 /**
- * QA-02: Script k6 100 người dùng đồng thời
- * Kịch bản:
- * 1. Đăng nhập / Lấy token
- * 2. Xem danh sách Mentors
- * 3. Xem danh sách Jobs
- * 4. Tạo phiên phỏng vấn AI (Mock mode)
- * 5. Đặt lịch / Kiểm tra availability
- * 
- * NFR Target:
- * - p95 Latency < 2000ms
- * - Error rate < 1%
+ * QA-02 (NFR-04): 100 người dùng đồng thời trên staging.
+ *
+ *   k6 run -e TARGET_URL=https://<staging-backend> -e K6_EMAIL=... -e K6_PASSWORD=... \
+ *     --summary-export=docs/report/nfr-raw/k6-summary.json backend/tests/load/k6-load-100vus.js
+ *
+ * Kịch bản mỗi VU: đăng nhập 1 lần (giữ token cho các vòng sau) → xem mentor → xem job → tạo buổi
+ * phỏng vấn AI với 3 câu baseline. Backend staging bật `LOAD_TEST=true` (bỏ rate limit, `middleware/rateLimiters.js`)
+ * và `MOCK_AI_SERVICES=true` (không gọi AI thật, QA-01) để đo hạ tầng, không đo giới hạn chống spam.
+ *
+ * Sửa 24/11/2026 (đề xuất ae): đăng nhập trả `token` (không phải `accessToken`); tạo buổi là
+ * `POST /api/interviews/sessions` (không có `POST /api/interviews`); job phải trả 200 (không chấp nhận 404).
+ * Hết lượt phỏng vấn (403) là phản hồi nghiệp vụ đúng nên không tính lỗi, nhưng đếm riêng
+ * ở `interview_quota_limited` để báo cáo ghi rõ.
  */
 
 const errorRate = new Rate("error_rate");
-const loginDuration = new Trend("login_duration");
-const browseMentorsDuration = new Trend("browse_mentors_duration");
-const browseJobsDuration = new Trend("browse_jobs_duration");
-const createSessionDuration = new Trend("create_session_duration");
+const loginDuration = new Trend("login_duration", true);
+const browseMentorsDuration = new Trend("browse_mentors_duration", true);
+const browseJobsDuration = new Trend("browse_jobs_duration", true);
+const createSessionDuration = new Trend("create_session_duration", true);
+const quotaLimited = new Counter("interview_quota_limited");
 
 export const options = {
   stages: [
-    { duration: "10s", target: 20 },   // Khởi động 20 VUs
-    { duration: "20s", target: 50 },   // Tăng lên 50 VUs
-    { duration: "30s", target: 100 },  // Duy trì tải tối đa 100 VUs đồng thời
-    { duration: "10s", target: 0 },    // Hạ tải về 0
+    { duration: "10s", target: 20 },
+    { duration: "20s", target: 50 },
+    { duration: "30s", target: 100 }, // giữ 100 VU đồng thời
+    { duration: "10s", target: 0 },
   ],
   thresholds: {
-    http_req_duration: ["p(95)<2000"], // p95 phản hồi dưới 2s
-    error_rate: ["rate<0.01"],         // Tỉ lệ lỗi dưới 1%
+    http_req_duration: ["p(95)<2000"],
+    error_rate: ["rate<0.01"],
   },
 };
 
 const BASE_URL = __ENV.TARGET_URL || "http://localhost:5000";
+const EMAIL = __ENV.K6_EMAIL || "candidate.demo@prointerview.vn";
+const PASSWORD = __ENV.K6_PASSWORD || "Password123!";
 
-export default function () {
-  let authToken = "";
+/** Lấy 3 câu baseline một lần cho cả bài test (API công khai). */
+export function setup() {
+  const res = http.get(`${BASE_URL}/api/interviews/baseline-questions`);
+  const ok = check(res, { "baseline questions 200": (r) => r.status === 200 });
+  if (!ok) throw new Error(`Không lấy được câu baseline: HTTP ${res.status}`);
+  return { questions: res.json("questions") };
+}
 
-  group("1. Authentication - User Login", () => {
-    const payload = JSON.stringify({
-      email: "candidate.demo@prointerview.vn",
-      password: "Password123!",
-    });
+let token = ""; // mỗi VU một biến riêng: đăng nhập một lần rồi dùng lại
 
-    const res = http.post(`${BASE_URL}/api/auth/login`, payload, {
-      headers: { "Content-Type": "application/json" },
-    });
-
-    loginDuration.add(res.timings.duration);
-    const success = check(res, {
-      "login status is 200": (r) => r.status === 200,
-      "has access token": (r) => {
-        try {
-          const body = r.json();
-          if (body && body.accessToken) {
-            authToken = body.accessToken;
-            return true;
-          }
-          return false;
-        } catch (_) {
-          return false;
-        }
-      },
-    });
-
-    errorRate.add(!success);
+function login() {
+  const res = http.post(`${BASE_URL}/api/auth/login`, JSON.stringify({ email: EMAIL, password: PASSWORD }), {
+    headers: { "Content-Type": "application/json" },
+    tags: { name: "POST /api/auth/login" },
   });
-
-  sleep(1);
-
-  const authHeaders = {
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-      "Content-Type": "application/json",
+  loginDuration.add(res.timings.duration);
+  let value = "";
+  const ok = check(res, {
+    "login 200": (r) => r.status === 200,
+    "login có token": (r) => {
+      try {
+        value = r.json("token") || "";
+        return Boolean(value);
+      } catch (_) {
+        return false;
+      }
     },
-  };
+  });
+  errorRate.add(!ok);
+  return ok ? value : "";
+}
 
-  group("2. Browse Mentors & Directory", () => {
-    const res = http.get(`${BASE_URL}/api/mentors`, authHeaders);
+export default function (data) {
+  group("1. Đăng nhập", () => {
+    if (!token) token = login();
+  });
+  if (!token) {
+    sleep(1);
+    return;
+  }
+  const auth = { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } };
+  sleep(1);
+
+  group("2. Xem mentor", () => {
+    const res = http.get(`${BASE_URL}/api/mentors`, { ...auth, tags: { name: "GET /api/mentors" } });
     browseMentorsDuration.add(res.timings.duration);
-
-    const success = check(res, {
-      "mentors status is 200": (r) => r.status === 200,
-      "mentors list returned": (r) => {
+    errorRate.add(!check(res, {
+      "mentors 200": (r) => r.status === 200,
+      "mentors là mảng": (r) => {
         try {
-          const body = r.json();
-          return body && Array.isArray(body.mentors || body.data || body);
+          return Array.isArray(r.json("mentors"));
         } catch (_) {
           return false;
         }
       },
-    });
-
-    errorRate.add(!success);
+    }));
   });
-
   sleep(1);
 
-  group("3. Browse Job Postings", () => {
-    const res = http.get(`${BASE_URL}/api/jobs`, authHeaders);
+  group("3. Xem job", () => {
+    const res = http.get(`${BASE_URL}/api/jobs`, { ...auth, tags: { name: "GET /api/jobs" } });
     browseJobsDuration.add(res.timings.duration);
-
-    const success = check(res, {
-      "jobs status is 200 or 404": (r) => r.status === 200 || r.status === 404,
-    });
-
-    errorRate.add(!success);
+    errorRate.add(!check(res, { "jobs 200": (r) => r.status === 200 }));
   });
-
   sleep(1);
 
-  group("4. Candidate AI Interview Session", () => {
-    const payload = JSON.stringify({
-      roleCategory: "frontend",
-      hrGender: "female",
-    });
-
-    const res = http.post(`${BASE_URL}/api/interviews`, payload, authHeaders);
+  group("4. Tạo buổi phỏng vấn AI", () => {
+    const res = http.post(
+      `${BASE_URL}/api/interviews/sessions`,
+      JSON.stringify({ hrGender: "female", questions: data.questions }),
+      { ...auth, tags: { name: "POST /api/interviews/sessions" } },
+    );
     createSessionDuration.add(res.timings.duration);
-
-    const success = check(res, {
-      "interview create status is 200 or 201": (r) => r.status === 200 || r.status === 201,
-    });
-
-    errorRate.add(!success);
+    // createSession chỉ trả 403 khi hết lượt phỏng vấn (interviewsController, kiểm quota nguyên tử).
+    const limited = res.status === 403;
+    if (limited) quotaLimited.add(1);
+    errorRate.add(!check(res, { "tạo buổi 200/201 (hoặc 403 hết lượt)": (r) => r.status === 200 || r.status === 201 || limited }));
   });
-
   sleep(1);
 }
