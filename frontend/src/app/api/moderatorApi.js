@@ -50,6 +50,16 @@ export const moderatorApi = {
       body: JSON.stringify({ action, note, ...(payload && { payload }) }),
     }),
 
+  // ── Tin tuyển dụng bị báo cáo (JB-04 API, màn JB-17) ──
+  /** @param {{ status?: "published"|"hidden", reported?: boolean, q?, page?, limit? }} params */
+  listJobs: (params = {}) => authedFetch(`/api/moderator/jobs${toQuery(params)}`),
+  /** hidden=true cần reason ≥ 5 ký tự; hidden=false bỏ ẩn. */
+  setJobVisibility: (id, { hidden, reason = "" }) =>
+    authedFetch(`/api/moderator/jobs/${id}/visibility`, {
+      method: "PATCH",
+      body: JSON.stringify(hidden ? { hidden: true, reason } : { hidden: false }),
+    }),
+
   // ── Quality dashboard ──
   getQualityStats: ({ from, to } = {}) => authedFetch(`/api/moderator/quality/stats${toQuery({ from, to })}`),
 };

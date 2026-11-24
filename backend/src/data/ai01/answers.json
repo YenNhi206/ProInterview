@@ -1,0 +1,147 @@
+{
+  "version": "ai01-v1",
+  "createdAt": "2026-11-24",
+  "description": "AI-01: 20 câu trả lời phỏng vấn mẫu (giả lập transcript, không phải dữ liệu thật của ứng viên). Cả nhóm chấm độc lập theo thang 6 mức LP-01 (config/competencies.json); điểm chuẩn = trung vị các người chấm. Dùng cho AI-04 (backtest), hiệu chỉnh aiCalibration, JB-07, AI-18. Không sửa câu trả lời sau khi đã có người chấm: muốn đổi thì tạo bản ai01-v2.",
+  "items": [
+    {
+      "id": "ai01-01",
+      "competencyId": "problem_solving",
+      "layer": "behavior",
+      "question": "Hãy kể về một vấn đề phức tạp bạn từng giải quyết. Bạn đã phân tích nguyên nhân gốc rễ như thế nào và kết quả ra sao?",
+      "transcript": "Dạ, hồi em làm backend ở công ty thương mại điện tử, có một đợt đơn hàng bị ghi trùng, khoảng hai ba chục đơn mỗi ngày, khách bị trừ tiền hai lần. Em được giao tìm nguyên nhân trong một tuần. Em không sửa ngay mà gom log của hai tuần trước, lọc ra các đơn trùng thì thấy tất cả đều rơi vào lúc cổng thanh toán phản hồi chậm hơn năm giây. Em dựng lại trên môi trường test và xác nhận là phía app tự gửi lại request khi timeout, còn server thì không kiểm tra trùng. Em đưa ra hai cách: một là tăng timeout, hai là thêm khóa idempotency cho mỗi đơn. Em chọn cách thứ hai vì tăng timeout chỉ che triệu chứng. Sau khi triển khai thì số đơn trùng về không trong ba tháng liền, bộ phận chăm sóc khách hàng giảm khoảng bốn mươi phiếu khiếu nại mỗi tuần. Bài học của em là phải tìm điểm chung của các ca lỗi trước rồi mới sửa, và từ đó em đề xuất nhóm thêm kiểm tra trùng cho mọi API thanh toán."
+    },
+    {
+      "id": "ai01-02",
+      "competencyId": "problem_solving",
+      "layer": "behavior",
+      "question": "Kể về lần bạn phải chọn giữa nhiều giải pháp cho cùng một vấn đề. Bạn so sánh các phương án dựa trên tiêu chí nào?",
+      "transcript": "Dạ thường thì khi gặp vấn đề em sẽ liệt kê ra các phương án, sau đó em xem cái nào tốn ít thời gian nhất và ít rủi ro nhất thì em chọn. Em cũng hay hỏi ý kiến anh chị đi trước nữa. Ví dụ như chọn thư viện hay chọn cách làm thì em sẽ đọc tài liệu, so sánh ưu nhược điểm rồi quyết định. Em nghĩ quan trọng nhất là phải cân nhắc kỹ trước khi làm ạ."
+    },
+    {
+      "id": "ai01-03",
+      "competencyId": "communication",
+      "layer": "behavior",
+      "question": "Hãy kể về lần bạn phải giải thích một vấn đề phức tạp cho người không có chuyên môn. Bạn làm thế nào để họ hiểu?",
+      "transcript": "Dạ, năm ngoái em làm đồ án tốt nghiệp là hệ thống gợi ý sản phẩm cho một cửa hàng sách nhỏ. Chủ cửa hàng không biết gì về kỹ thuật nhưng cần hiểu vì sao hệ thống gợi ý cuốn này mà không gợi ý cuốn kia để còn quyết định có dùng hay không. Em được giao trình bày trong buổi họp cuối. Em bỏ hết thuật ngữ, em so sánh hệ thống giống như người bán sách lâu năm nhớ khách nào hay mua loại sách gì. Em chuẩn bị ba ví dụ lấy từ chính khách quen của cửa hàng, cho chị xem từng bước vì sao ra gợi ý đó, và để chị tự đoán trước rồi so với máy. Cuối buổi chị đã tự giải thích lại được cho nhân viên và đồng ý dùng thử trong cửa hàng."
+    },
+    {
+      "id": "ai01-04",
+      "competencyId": "communication",
+      "layer": "behavior",
+      "question": "Kể về một lần thông tin bị hiểu sai trong nhóm. Bạn đã phát hiện và khắc phục ra sao?",
+      "transcript": "Dạ em nghĩ là trong nhóm thì ai cũng có lúc hiểu sai. Hồi em làm bài tập lớn môn cơ sở dữ liệu thì nhóm em bị trễ hạn nộp vì máy của bạn trưởng nhóm bị hỏng, mất hết file. Sau đó tụi em phải làm lại gần như từ đầu trong hai ngày, em thức đêm làm phần thiết kế bảng. Cuối cùng cũng nộp kịp nhưng điểm không cao lắm. Từ đó em luôn lưu bài lên Google Drive cho chắc ạ."
+    },
+    {
+      "id": "ai01-05",
+      "competencyId": "teamwork",
+      "layer": "behavior",
+      "question": "Hãy kể về một dự án nhóm mà bạn đóng góp quan trọng. Vai trò cụ thể của bạn là gì và nhóm đạt được kết quả gì?",
+      "transcript": "Dạ, dự án em nhớ nhất là ứng dụng đặt lịch khám cho một phòng khám nha khoa, nhóm em có năm người làm trong ba tháng. Lúc đó phòng khám đang ghi lịch bằng sổ nên hay bị trùng giờ. Nhóm em đã khảo sát nhu cầu, chúng em chia thành hai đội frontend và backend, họp mỗi tuần một lần. Chúng em làm xong đúng hạn, phòng khám dùng thật và giảm được khoảng tám mươi phần trăm số lần trùng lịch. Cả nhóm phối hợp rất ăn ý, ai cũng hỗ trợ nhau khi có người bị kẹt việc."
+    },
+    {
+      "id": "ai01-06",
+      "competencyId": "teamwork",
+      "layer": "behavior",
+      "question": "Kể về lần một thành viên trong nhóm không hoàn thành phần việc. Bạn đã xử lý tình huống đó thế nào?",
+      "transcript": "Dạ, kỳ thực tập vừa rồi nhóm em có bốn người làm module báo cáo, còn hai tuần là demo cho khách thì một bạn phụ trách phần xuất file Excel đã trễ ba ngày mà chưa có gì. Em là người ghép code nên em thấy rõ nhất. Em không báo ngay lên anh quản lý mà hẹn bạn nói chuyện riêng trước. Hóa ra bạn bị kẹt vì chưa từng làm thư viện xuất Excel và ngại hỏi. Em đề xuất chia lại: em làm cùng bạn phần khó nhất trong hai buổi tối, bạn nhận thêm phần kiểm thử của em để cân bằng khối lượng. Em cũng đề xuất nhóm họp nhanh mười lăm phút mỗi sáng để ai kẹt thì nói sớm. Kết quả là module xong trước demo hai ngày, khách không phát hiện lỗi nào trong buổi demo, và về sau bạn đó tự làm luôn phần xuất PDF. Em rút ra là người trễ việc thường đang kẹt chứ không phải lười, nên phải hỏi trước khi kết luận."
+    },
+    {
+      "id": "ai01-07",
+      "competencyId": "leadership",
+      "layer": "behavior",
+      "question": "Hãy kể về lần bạn dẫn dắt một nhóm hoặc một đầu việc dù không có chức danh quản lý. Bạn tạo ảnh hưởng bằng cách nào?",
+      "transcript": "Dạ, ở câu lạc bộ tình nguyện của trường, có lần trưởng ban bận thi nên em đứng ra lo chương trình quyên góp sách cho trẻ em vùng cao. Em lên kế hoạch, phân công mọi người đi xin sách ở các lớp, em cũng đi thuyết phục mấy bạn ở khoa khác tham gia cùng. Em tạo nhóm chat để mọi người cập nhật tiến độ hằng ngày, ai làm tốt em đều khen trong nhóm để mọi người có động lực. Không khí làm việc rất vui và mọi người đều nhiệt tình ạ."
+    },
+    {
+      "id": "ai01-08",
+      "competencyId": "leadership",
+      "layer": "behavior",
+      "question": "Kể về một quyết định khó bạn phải đưa ra cho cả nhóm. Bạn thuyết phục mọi người đồng thuận ra sao?",
+      "transcript": "Dạ, khi em làm tech lead tạm thời cho nhóm năm người ở dự án app giao đồ ăn, còn một tháng là ra mắt thì bọn em phát hiện thư viện bản đồ đang dùng sắp tăng giá gấp bốn lần. Nhóm chia hai phe: một phe muốn giữ để kịp hạn, một phe muốn đổi sang thư viện mã nguồn mở. Em phải chốt trong tuần đó. Em không chọn theo cảm tính mà cho mỗi phe một ngày làm bản thử, rồi so ba tiêu chí là thời gian chuyển đổi, chi phí một năm và độ chính xác định vị trên hai trăm địa chỉ thật. Kết quả bản mã nguồn mở chậm hơn khoảng một tuần nhưng tiết kiệm khoảng sáu mươi triệu một năm, độ chính xác chênh dưới hai phần trăm. Em trình bày số liệu cho cả nhóm, để phe phản đối nêu rủi ro, rồi nhận phần chuyển đổi khó nhất về mình để không ai phải gánh thêm. Cả nhóm đồng ý, app ra mắt trễ đúng năm ngày, và anh quản lý sau đó lấy cách so sánh này làm mẫu cho các quyết định chọn công nghệ của phòng. Em học được là khi nhóm chia rẽ, cho mọi người cùng nhìn một bộ số liệu hiệu quả hơn là tranh luận."
+    },
+    {
+      "id": "ai01-09",
+      "competencyId": "adaptability",
+      "layer": "behavior",
+      "question": "Hãy kể về lần yêu cầu dự án thay đổi đột ngột. Bạn đã điều chỉnh kế hoạch và cách làm việc như thế nào?",
+      "transcript": "Dạ, lúc em thực tập ở một công ty phần mềm, em đang làm tính năng đăng nhập bằng mật khẩu cho app nội bộ thì khách hàng đổi yêu cầu, muốn đăng nhập bằng tài khoản Microsoft của công ty họ, và hạn vẫn giữ nguyên là hai tuần. Nhiệm vụ của em là làm lại phần đăng nhập cho kịp. Em dừng phần đang làm, dành một ngày đọc tài liệu và làm một bản thử nhỏ để chắc là cách mới chạy được, rồi em báo anh hướng dẫn những phần cũ có thể bỏ và phần nào giữ lại được. Em chia lại công việc theo ngày và báo tiến độ mỗi chiều. Kết quả em bàn giao đúng hạn, khách hàng nghiệm thu luôn ở buổi demo."
+    },
+    {
+      "id": "ai01-10",
+      "competencyId": "adaptability",
+      "layer": "behavior",
+      "question": "Kể về một thất bại hoặc sai lầm của bạn. Bạn đã rút ra bài học gì và áp dụng vào lần sau ra sao?",
+      "transcript": "Dạ câu này em chưa nghĩ ra ví dụ nào ạ. Em xin phép trả lời câu tiếp theo được không ạ."
+    },
+    {
+      "id": "ai01-11",
+      "competencyId": "technical_learning",
+      "layer": "behavior",
+      "question": "Hãy kể về lần bạn phải học một công nghệ hoặc kỹ năng mới trong thời gian ngắn để kịp tiến độ. Bạn học bằng cách nào?",
+      "transcript": "Dạ, tháng thứ hai đi làm, nhóm em quyết định chuyển toàn bộ dịch vụ sang chạy bằng Docker mà em là người duy nhất chưa dùng bao giờ, và em được giao đóng gói ba dịch vụ trong một tuần. Em không đọc lan man mà chọn đúng phần cần cho việc của mình: ngày đầu em làm theo hướng dẫn chính thức để chạy được một container, ngày thứ hai em đọc Dockerfile của một dự án mẫu trong công ty và ghi lại những chỗ không hiểu, cuối ngày em hỏi anh DevOps một lần mười lăm phút cho tất cả câu hỏi thay vì hỏi rải rác. Em đóng gói dịch vụ nhỏ nhất trước rồi mới tới hai dịch vụ lớn. Kết quả em xong trong năm ngày, thời gian dựng môi trường cho người mới của nhóm giảm từ khoảng một ngày xuống còn hai mươi phút. Em viết lại một trang ghi chú các lỗi em gặp, giờ nhóm dùng trang đó làm tài liệu nhập môn. Bài học của em là học theo đúng việc cần làm và gom câu hỏi lại thì nhanh hơn nhiều."
+    },
+    {
+      "id": "ai01-12",
+      "competencyId": "technical_learning",
+      "layer": "behavior",
+      "question": "Kể về một kiến thức bạn tự học gần đây và cách bạn đã áp dụng nó vào công việc thực tế.",
+      "transcript": "Dạ gần đây em tự học nấu ăn qua các video trên mạng, vì em mới ra ở riêng. Lúc đầu em nấu hay bị mặn nhưng giờ em nấu được khá nhiều món rồi, cuối tuần em còn nấu cho bạn cùng phòng ăn nữa. Em nghĩ việc tự học này cho thấy em là người chịu khó và kiên nhẫn ạ."
+    },
+    {
+      "id": "ai01-13",
+      "competencyId": "planning_execution",
+      "layer": "behavior",
+      "question": "Hãy kể về một dự án bạn tự lập kế hoạch từ đầu. Bạn chia nhỏ công việc và theo dõi tiến độ như thế nào?",
+      "transcript": "Dạ, em tự làm website bán hàng cho tiệm gốm của nhà một người bạn, có hạn sáu tuần trước dịp Tết. Em là người duy nhất làm nên phải tự lên kế hoạch. Em liệt kê các tính năng, chia thành ba mốc: hai tuần đầu làm trang sản phẩm, hai tuần sau làm giỏ hàng và thanh toán chuyển khoản, hai tuần cuối kiểm thử và nhập dữ liệu. Em dùng Trello, mỗi thẻ là một việc làm được trong nửa ngày, tối nào em cũng cập nhật. Đến tuần thứ tư em thấy phần thanh toán trễ nên em bỏ tính năng mã giảm giá sang sau Tết. Website lên đúng hạn và tiệm nhận được đơn online ngay trong dịp Tết."
+    },
+    {
+      "id": "ai01-14",
+      "competencyId": "planning_execution",
+      "layer": "behavior",
+      "question": "Kể về lần bạn có nhiều việc gấp cùng lúc. Bạn sắp xếp thứ tự ưu tiên ra sao và kết quả thế nào?",
+      "transcript": "Dạ, cái này thì em gặp rất là nhiều ạ, vì em vừa đi học vừa đi làm thêm, lại còn tham gia câu lạc bộ nữa, nên lúc nào cũng có rất nhiều việc. Em nghĩ quản lý thời gian là kỹ năng rất quan trọng, và em luôn cố gắng sắp xếp sao cho hợp lý nhất. Em thường ưu tiên những việc quan trọng và gấp trước, việc nào không gấp thì để sau. Em cũng hay dùng lịch trên điện thoại để nhắc việc. Ngoài ra em nghĩ là phải giữ sức khỏe và tinh thần tốt thì mới làm được nhiều việc, nên em cũng cố gắng ngủ đủ giấc. Nói chung là nhờ vậy mà em luôn hoàn thành được công việc, ít khi bị trễ hạn, mọi người xung quanh cũng đánh giá em là người có trách nhiệm và biết sắp xếp ạ."
+    },
+    {
+      "id": "ai01-15",
+      "competencyId": "customer_focus",
+      "layer": "behavior",
+      "question": "Hãy kể về lần bạn xử lý một khách hàng hoặc người dùng không hài lòng. Bạn đã làm gì để giải quyết?",
+      "transcript": "Dạ, em làm hỗ trợ kỹ thuật bán thời gian cho một phần mềm quản lý quán cà phê. Có một chủ quán gọi rất bực vì máy in hóa đơn liên tục in sai giá, đang giờ cao điểm và chị dọa hủy hợp đồng. Em ưu tiên cho quán chạy được trước: em hướng dẫn chị chuyển sang in tạm bằng mẫu dự phòng trong năm phút, rồi hẹn tối gọi lại để tìm nguyên nhân. Tối đó em kiểm tra thì thấy bản cập nhật mới làm tròn giá sai với các món có topping. Em báo nhóm phát triển kèm các bước tái hiện, theo dõi đến khi có bản sửa sau hai ngày, và gọi lại cho chị để cập nhật giúp. Em cũng kiểm tra thì có thêm mười hai quán bị cùng lỗi nên em chủ động gọi báo trước cho họ. Chị chủ quán gia hạn hợp đồng một năm, còn số cuộc gọi khiếu nại về lỗi này giảm từ hơn ba mươi xuống không trong tuần đó. Em học được là phải giải quyết cái khách đang đau trước, sau đó mới sửa tận gốc."
+    },
+    {
+      "id": "ai01-16",
+      "competencyId": "customer_focus",
+      "layer": "behavior",
+      "question": "Kể về một lần bạn chủ động tìm hiểu nhu cầu thật của khách hàng và điều chỉnh sản phẩm hoặc dịch vụ theo đó.",
+      "transcript": "Dạ, app học từ vựng nhóm em làm có tỉ lệ người dùng bỏ sau ba ngày khoảng sáu mươi phần trăm. Em được giao tìm lý do. Em gọi điện phỏng vấn mười lăm người đã bỏ app thì phần lớn nói bài học mỗi ngày quá dài. Em đề xuất rút bài học xuống còn năm phút, nhóm đồng ý và em làm phần thay đổi. Sau một tháng tỉ lệ bỏ app giảm còn ba mươi lăm phần trăm."
+    },
+    {
+      "id": "ai01-17",
+      "competencyId": "accountability",
+      "layer": "behavior",
+      "question": "Hãy kể về lần bạn mắc lỗi ảnh hưởng tới người khác. Bạn đã nhận trách nhiệm và khắc phục như thế nào?",
+      "transcript": "Dạ, có lần em lỡ xóa nhầm dữ liệu trên môi trường test làm cả nhóm phải chờ. Em đã xin lỗi mọi người và nhận trách nhiệm ngay, sau đó em cùng anh leader khôi phục lại. Em nghĩ khi mắc lỗi thì quan trọng nhất là thành thật nhận lỗi và không đổ cho người khác, rồi rút kinh nghiệm để lần sau cẩn thận hơn ạ."
+    },
+    {
+      "id": "ai01-18",
+      "competencyId": "integrity",
+      "layer": "behavior",
+      "question": "Hãy kể về lần bạn phát hiện một sai sót có thể bị che giấu. Bạn đã xử lý tình huống đó như thế nào?",
+      "transcript": "Dạ, khi em làm trợ giảng cho một môn lập trình, lúc tổng hợp điểm em phát hiện file chấm tự động bị lỗi, khoảng hai mươi bài nộp đúng nhưng bị chấm không điểm ở một câu, và điểm đã công bố cho sinh viên rồi. Nếu em im lặng thì có lẽ cũng không ai biết vì sinh viên ít khi phúc khảo. Em thấy việc của mình là điểm phải đúng. Em báo ngay với cô phụ trách môn, gửi kèm danh sách các bài bị ảnh hưởng và cách em kiểm tra lại từng bài bằng tay. Em đề xuất chấm lại câu đó cho cả lớp chứ không chỉ hai mươi bạn. Cô đồng ý, em chấm lại trong hai ngày, cô gửi thông báo đính chính cho lớp và điểm của các bạn được cập nhật trước khi chốt điểm học kỳ."
+    },
+    {
+      "id": "ai01-19",
+      "competencyId": "data_driven_decision",
+      "layer": "behavior",
+      "question": "Hãy kể về một quyết định bạn đưa ra dựa trên số liệu. Bạn thu thập và phân tích dữ liệu như thế nào?",
+      "transcript": "Dạ, hồi em làm trưởng ban truyền thông câu lạc bộ, em quyết định đổi màu chủ đạo của fanpage từ xanh dương sang cam vì em thấy màu cam nổi bật hơn và nhiều trang khác cũng đang dùng. Mọi người trong ban cũng thấy đẹp nên đồng ý. Sau khi đổi thì em thấy fanpage nhìn chuyên nghiệp và trẻ trung hơn hẳn ạ."
+    },
+    {
+      "id": "ai01-20",
+      "competencyId": "data_driven_decision",
+      "layer": "behavior",
+      "question": "Kể về lần dữ liệu cho kết quả trái với trực giác của bạn. Bạn đã xử lý mâu thuẫn đó ra sao?",
+      "transcript": "Dạ em rất thích đọc sách về tâm lý học và hay chơi cờ vua vào cuối tuần. Em nghĩ chơi cờ giúp em tư duy tốt hơn. Ngoài ra em còn thích đi du lịch để khám phá những vùng đất mới ạ."
+    }
+  ]
+}
