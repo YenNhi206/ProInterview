@@ -45,8 +45,20 @@ export const companyApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  generateStarterQuestions: (data = {}) =>
-    authedFetch("/api/company/questions/generate-starter", {
+  /**
+   * CO-05: tải lên hàng loạt câu cho một job — body { jobPostId, questions: string[] | {text, competencyId}[], status? }.
+   * Một dòng sai → `{ success: false, error, errors: [{ line, error }] }`, không lưu câu nào.
+   */
+  uploadQuestions: (data) =>
+    authedFetch("/api/company/questions/upload", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  // Tin tuyển dụng của công ty (JB-01): bộ lọc / tải câu theo job (CO-13) và trang /company/jobs (JB-15).
+  listJobs: (params = {}) => authedFetch(`/api/company/jobs${toQuery(params)}`),
+  /** CO-04: AI sinh 8–12 câu nháp theo roleCategory — body { roleCategory, count }. */
+  generateQuestions: (data = {}) =>
+    authedFetch("/api/company/questions/generate", {
       method: "POST",
       body: JSON.stringify(data),
     }),
@@ -94,6 +106,25 @@ export const companyApi = {
       method: "POST",
     }),
 
+  // Tin tuyển dụng (JB-01 API, JB-15 UI) — `status`: draft | published | hidden | closed. `listJobs` khai báo ở trên.
+  getJob: (id) => authedFetch(`/api/company/jobs/${encodeURIComponent(id)}`),
+  createJob: (data) =>
+    authedFetch("/api/company/jobs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateJob: (id, data) =>
+    authedFetch(`/api/company/jobs/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  /** `status`: "published" (đăng bản nháp) hoặc "closed" (đóng tin đang đăng / bị ẩn). */
+  changeJobStatus: (id, status) =>
+    authedFetch(`/api/company/jobs/${encodeURIComponent(id)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+
   // ── Platform Moderator: Duyệt Rubric (CO-08 & CO-15) ──
   listModeratorRubrics: (params = {}) => authedFetch(`/api/moderator/rubrics${toQuery(params)}`),
   getModeratorRubric: (id) => authedFetch(`/api/moderator/rubrics/${id}`),
@@ -106,6 +137,25 @@ export const companyApi = {
     authedFetch(`/api/moderator/rubrics/${id}/reject`, {
       method: "POST",
       body: JSON.stringify({ comment }),
+    }),
+
+  // ── Platform Moderator: Duyệt câu hỏi doanh nghiệp (CO-16) ──
+  listModeratorCompanyQuestions: (params = {}) =>
+    authedFetch(`/api/moderator/company-questions${toQuery(params)}`),
+  approveModeratorCompanyQuestion: (id, note = "") =>
+    authedFetch(`/api/moderator/company-questions/${id}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    }),
+  rejectModeratorCompanyQuestion: (id, reason) =>
+    authedFetch(`/api/moderator/company-questions/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+  bulkModeratorCompanyQuestions: (action, ids, reason = "") =>
+    authedFetch("/api/moderator/company-questions/bulk", {
+      method: "POST",
+      body: JSON.stringify({ action, ids, reason }),
     }),
 
   // ── Public: Nhận lời mời (CO-02 & CO-11) ──

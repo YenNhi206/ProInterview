@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { authJwt } from "../middleware/authJwt.js";
 import { requireModerator } from "../middleware/requireRole.js";
-import { adminAuditLog } from "../middleware/adminAuditLog.js";
+import { moderatorAuditLog } from "../middleware/adminAuditLog.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { AdminController } from "../controllers/adminController.js";
 import { ModeratorController } from "../controllers/moderatorController.js";
 import { ModeratorRubricController } from "../controllers/moderatorRubricController.js";
+import { ModeratorCompanyQuestionController } from "../controllers/moderatorCompanyQuestionController.js";
 
 /**
  * Moderator — lớp kiểm định chất lượng, tách khỏi vận hành của admin.
@@ -14,12 +15,12 @@ import { ModeratorRubricController } from "../controllers/moderatorRubricControl
  * duyệt được nữa (xem requireRole.js — cổng này không cho admin đi vòng).
  * Handler tái dùng AdminController vì logic duyệt không đổi, chỉ đổi người có quyền.
  *
- * `adminAuditLog` ghi `type: "admin_action"` theo req.userId nên thao tác của moderator
- * vẫn hiện trong trang /admin/audit-log — không mất vết kiểm toán sau khi chuyển quyền.
+ * `moderatorAuditLog` ghi `type: "moderator_action"` theo req.userId nên thao tác của moderator
+ * vẫn hiện trong trang /admin/audit-log (lọc `?actor=moderator`), tách riêng khỏi thao tác admin.
  */
 export const moderatorRouter = Router();
 
-moderatorRouter.use(authJwt, requireModerator, adminAuditLog);
+moderatorRouter.use(authJwt, requireModerator, moderatorAuditLog);
 
 // Thống kê nội dung — moderator cần để xếp thứ tự hàng đợi duyệt.
 // Admin vẫn giữ bản của mình ở /api/admin/content/stats (dùng ở trang Phỏng vấn AI).
@@ -48,10 +49,22 @@ moderatorRouter.get("/queue/:id", asyncHandler(ModeratorController.getQueueItem)
 moderatorRouter.patch("/queue/:id/claim", asyncHandler(ModeratorController.claimQueueItem));
 moderatorRouter.patch("/queue/:id/resolve", asyncHandler(ModeratorController.resolveQueueItem));
 
+// ── JB-04: tin tuyển dụng bị báo cáo, ẩn / bỏ ẩn ────────────────────────────
+// Báo cáo tin nằm trong hàng đợi với `type=job_post_report` (GET /queue?type=job_post_report), xử lý bằng
+// PATCH /queue/:id/resolve { action: "hide_job" | "dismiss", note }.
+moderatorRouter.get("/jobs", asyncHandler(ModeratorController.listJobs));
+moderatorRouter.patch("/jobs/:id/visibility", asyncHandler(ModeratorController.setJobVisibility));
+
 // ── Quality dashboard ────────────────────────────────────────────────────────
 moderatorRouter.get("/quality/stats", asyncHandler(ModeratorController.qualityStats));
 
 // ── CO-08: Phê duyệt Rubric doanh nghiệp ─────────────────────────────────────
+// ── Câu hỏi doanh nghiệp: duyệt tầng hai (CO-16), tách khỏi ngân hàng câu chung ở trên ──
+moderatorRouter.get("/company-questions", asyncHandler(ModeratorCompanyQuestionController.list));
+moderatorRouter.post("/company-questions/bulk", asyncHandler(ModeratorCompanyQuestionController.bulk));
+moderatorRouter.post("/company-questions/:id/approve", asyncHandler(ModeratorCompanyQuestionController.approve));
+moderatorRouter.post("/company-questions/:id/reject", asyncHandler(ModeratorCompanyQuestionController.reject));
+
 moderatorRouter.get("/rubrics", asyncHandler(ModeratorRubricController.list));
 moderatorRouter.get("/rubrics/:id", asyncHandler(ModeratorRubricController.getById));
 moderatorRouter.post("/rubrics/:id/approve", asyncHandler(ModeratorRubricController.approve));

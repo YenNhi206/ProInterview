@@ -162,6 +162,23 @@ export async function updateCourseDraft(id, payload) {
   }
 }
 
+/** AI-09: cờ sàng lọc theo luật trên nội dung đang soạn (không gọi AI, không lưu). Body như tạo / sửa khóa. */
+export async function previewCoursePrescreen(payload) {
+  if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập.", flags: [] };
+  try {
+    const res = await authFetch("/api/courses/prescreen-preview", {
+      method: "POST",
+      headers: { ...jsonHeaders },
+      body: JSON.stringify(payload ?? {}),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: body.error || `Lỗi ${res.status}`, flags: [] };
+    return { success: true, flags: body.flags || [] };
+  } catch {
+    return { success: false, error: "Không kết nối được backend.", flags: [] };
+  }
+}
+
 export async function publishCourse(id, payload) {
   if (!hasAuthCredentials()) return { success: false, error: "Chưa đăng nhập." };
   try {

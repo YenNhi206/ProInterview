@@ -9,6 +9,7 @@ import {
   Wallet,
   Calendar,
   BookOpen,
+  Route,
   CheckCircle2 as CheckCircle,
   Clock,
   TrendingUp,
@@ -26,6 +27,7 @@ import { useMentorListExpand } from "../../hooks/useMentorListExpand.js";
 import { MentorScrollFadeRow } from "../../components/mentor/MentorScrollFadeRow.jsx";
 import { getUser, getDisplayName } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
 import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 import {
@@ -412,6 +414,8 @@ export function MentorFinance() {
   const totalEarned = Number(finance?.totalEarned || 0);
   const bookingIncome = Number(finance?.incomeBreakdown?.booking || 0);
   const courseIncome = Number(finance?.incomeBreakdown?.course || 0);
+  // LP-16: thu nhập từ các buổi lộ trình học (tách khỏi đặt lịch thường).
+  const learningPathIncome = Number(finance?.incomeBreakdown?.learningPath || 0);
   const payoutAccount = finance?.payoutAccount || {};
   const payoutAccountMasked = finance?.payoutAccountMasked || "";
   const payoutAccountOwnerName = finance?.payoutAccountOwnerName || getDisplayName(user, "Mentor");
@@ -492,34 +496,21 @@ export function MentorFinance() {
   return (
     <MentorPageShell mentorRole bottomPad="pb-16" fillHeight={false} className="bg-transparent" extraStyles={MENTOR_FINANCE_EXTRA_CSS}>
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header */}
-        <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.8)]" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#93f72b]">
-                TỔNG QUAN TÀI CHÍNH & VÍ MENTOR
-              </span>
-            </div>
-            <h1 className="font-headline mt-1.5 text-2xl font-black tracking-tight text-white sm:text-3xl">
-              Quản lý <span className="text-[#93f72b]">tài chính</span>
-            </h1>
-            <p className="mt-1 text-xs text-slate-400">
-              Theo dõi số dư khả dụng, doanh thu từ các buổi tư vấn 1:1, khóa học và yêu cầu giải ngân.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
+        {/* Unified Mentor Header */}
+        <MentorPageHeader
+          title="Quản lý"
+          highlight="tài chính"
+          actions={
             <button
               type="button"
               onClick={() => setShowWithdraw(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500"
             >
               <Wallet size={15} />
               Rút tiền ngay
             </button>
-          </div>
-        </header>
+          }
+        />
 
         {/* Hero Wallet Card */}
         <motion.section
@@ -834,6 +825,15 @@ export function MentorFinance() {
                   </span>
                   <span className="font-bold text-xs text-white">
                     {formatMoney(bookingIncome)}
+                  </span>
+                </li>
+                <li className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                    <Route size={14} className="text-sky-400" />
+                    Từ lộ trình
+                  </span>
+                  <span className="font-bold text-xs text-white">
+                    {formatMoney(learningPathIncome)}
                   </span>
                 </li>
                 <li className="flex items-center justify-between gap-3 py-2.5">

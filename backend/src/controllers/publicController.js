@@ -1,6 +1,6 @@
 import { Review } from "../models/Review.js";
 import { User, toPublicUser } from "../models/User.js";
-import { InterviewSession } from "../models/InterviewSession.js";
+import { InterviewSession, EXCLUDE_ABANDONED_SESSIONS } from "../models/InterviewSession.js";
 import { resolveStoredUploadUrl } from "../utils/resolveStoredUploadUrl.js";
 
 export const PublicController = {
@@ -34,7 +34,7 @@ export const PublicController = {
       });
 
       // 2. Fetch stats
-      const totalSessions = await InterviewSession.countDocuments();
+      const totalSessions = await InterviewSession.countDocuments(EXCLUDE_ABANDONED_SESSIONS); // N-07
       const totalMentors = await User.countDocuments({ role: "mentor", isActive: true });
       const totalUsers = await User.countDocuments();
       

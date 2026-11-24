@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { getUser } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames";
 import { fetchMentorReviews } from "../../api/mentorApi.js";
 import { replyToReview } from "../../api/reviewsApi.js";
@@ -347,20 +348,11 @@ export function MentorReviews() {
 
   return (
     <MentorPageShell bottomPad="pb-20" showAmbient={false} className="bg-transparent text-white">
-      <div className="relative z-10 mx-auto max-w-[1280px] px-4 pb-12 sm:px-6 lg:px-10">
-        <motion.header
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6 pt-2 sm:mb-8"
-        >
-          <h1 className="font-headline text-[clamp(1.75rem,4vw,2.75rem)] font-black leading-tight tracking-tight text-slate-900">
-            Đánh giá <span className="text-[#8037f4]">từ học viên</span>
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-slate-500">
-            Phản hồi sau buổi mentor — tìm kiếm và trả lời.
-          </p>
-        </motion.header>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <MentorPageHeader
+          title="Đánh giá"
+          highlight="từ học viên"
+        />
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}

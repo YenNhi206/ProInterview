@@ -6,7 +6,8 @@ Thư mục `docs/plan/` gồm:
 
 | File | Dùng để | Ai sửa |
 | --- | --- | --- |
-| `REGISTRATION_V2.md` | Đơn đăng ký V2 dạng Markdown. **Phạm vi đã cam kết với hội đồng** | Không ai sửa; đơn đổi thì chép lại |
+| `REGISTRATION_V3.md` | Đơn đăng ký V3 dạng Markdown (23/11/2026). **Phạm vi đã cam kết với hội đồng** | Không ai sửa; đơn đổi thì chép lại |
+| `REGISTRATION_V2.md` | Đơn V2, bản cũ giữ để đối chiếu | Không sửa, không dùng làm phạm vi |
 | `REQUIREMENTS.md` | Mã REQ cho 39 chức năng + 6 NFR, ánh xạ REQ ↔ task, trạng thái phủ | Agent cập nhật cột Task và Phủ; Janet duyệt REQ mới |
 | `TASKS.md` | Task, trạng thái, phụ thuộc, điều kiện xong, cột REQ. Nguồn đúng duy nhất về tiến độ | Agent cập nhật trạng thái; Janet duyệt đề xuất thay đổi |
 | `DECISIONS.md` | Quyết định đã chốt + nhật ký quyết định mới | Agent ghi quyết định mới sau khi bạn trả lời |
@@ -17,7 +18,7 @@ Thư mục `docs/plan/` gồm:
 
 ## Cài đặt một lần
 
-1. Chép thư mục `docs/plan/` vào repo ProInterview, gồm cả `REGISTRATION_V2.md`.
+1. Chép thư mục `docs/plan/` vào repo ProInterview, gồm cả `REGISTRATION_V3.md`.
 2. Dán mục "Đoạn cho CLAUDE.md" ở cuối file này vào cuối `CLAUDE.md` ở gốc repo.
 3. Chạy **Prompt 0** ở một phiên riêng để tạo `REQUIREMENTS.md` và gắn REQ cho mọi task.
 4. Commit lên nhánh chính: `docs: add scope anchor (REQUIREMENTS, REQ column)`.
@@ -63,7 +64,7 @@ Cài neo phạm vi cho kế hoạch capstone. Chỉ sửa tài liệu trong docs
 Bước 1. Đọc docs/plan/REGISTRATION_V2.md, docs/plan/TASKS.md, docs/plan/DECISIONS.md.
 
 Bước 2. Tạo docs/plan/REQUIREMENTS.md:
-- Đặt mã REQ cho từng dòng chức năng trong REGISTRATION_V2.md, ĐÚNG thứ tự trong đơn:
+- Đặt mã REQ cho từng dòng chức năng trong REGISTRATION_V3.md, ĐÚNG thứ tự trong đơn:
   C-01..C-10 (Candidate), M-01..M-06 (Mentor), A-01..A-05 (Admin),
   PM-01..PM-06 (Platform Moderator), CM-01..CM-04 (Company Moderator),
   AIS-01..AIS-08 (AI System), NFR-01..NFR-06. Tổng 39 chức năng + 6 NFR.
@@ -120,7 +121,7 @@ Làm task <MÃ TASK> trong docs/plan/TASKS.md.
    - Các task phụ thuộc đã Done chưa. Chưa thì dừng và báo tôi.
 3. Đổi trạng thái task sang Doing. Tạo nhánh feat/<mã>-<tên-ngắn>.
 4. Đọc code liên quan, rồi gửi tôi, gom trong một lần, chưa code:
-   - Một câu: task này giúp đáp ứng dòng nào của đơn V2 và đóng góp phần nào cho REQ đó.
+   - Một câu: task này giúp đáp ứng dòng nào của đơn V3 và đóng góp phần nào cho REQ đó.
    - Kế hoạch thay đổi (file nào, làm gì).
    - Việc phát sinh đã thấy khi đọc code, mỗi việc kèm REQ và loại (bat-buoc / chi-tiet / ngoai-don / no-ky-thuat).
    - Mọi câu hỏi còn mở.
@@ -131,7 +132,7 @@ Làm task <MÃ TASK> trong docs/plan/TASKS.md.
      Chỉ làm luôn nếu là bat-buoc VÀ là "sửa nhỏ" (không thêm model/route/
      collection mới, không đổi API đã có, sửa ≤ 3 file không tính test).
      Còn lại ghi vào "Đề xuất thay đổi kế hoạch" và làm tiếp phần chính.
-   - Thấy yêu cầu trong đơn V2 chưa có task: ghi đề xuất loại chi-tiet, không tự làm.
+   - Thấy yêu cầu trong đơn V3 chưa có task: ghi đề xuất loại chi-tiet, không tự làm.
 6. Đối chiếu từng ý trong cột "Xong khi" và Definition of Done, báo ý nào đạt, ý nào chưa.
 7. Cập nhật:
    - TASKS.md: trạng thái Review.

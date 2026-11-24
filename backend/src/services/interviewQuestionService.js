@@ -32,6 +32,7 @@ import {
   findIncomplete,
   mergeRetry,
   isScoreValue,
+  SHRM_LEVELS,
 } from "../utils/evaluationCompleteness.js";
 
 // ── Prompt version ────────────────────────────────────────────────────────────
@@ -93,8 +94,19 @@ function geminiReasoningEffort(baseUrl, model) {
 /** Tên model thực sự được gọi cho loại tác vụ — ghi vào generatedBy.model. */
 export function activeLLMModel(kind = "qgen") {
   const c = cfg();
+  // AI-08: sàng lọc khóa học dùng model rẻ (mặc định Haiku / LLM_MODEL), đổi bằng biến môi trường.
+  if (kind === "prescreen") {
+    if (getLLMProvider() === "anthropic") return process.env.ANTHROPIC_PRESCREEN_MODEL || "claude-haiku-4-5";
+    return process.env.LLM_PRESCREEN_MODEL || c.model;
+  }
   if (getLLMProvider() === "anthropic") return kind === "eval" ? c.anthropicEval : c.anthropicQgen;
   return c.model;
+}
+
+/** Có ít nhất một khóa LLM (OpenAI-compatible hoặc Anthropic) — CO-04 kiểm trước khi gọi. */
+export function isLLMConfigured() {
+  const { apiKey, anthropicKey } = cfg();
+  return Boolean(apiKey || anthropicKey);
 }
 
 function getLLMProvider() {
@@ -234,7 +246,11 @@ function buildLLMError(status, errBody, retryAfterMs) {
  * @param {string} [opts.traceName]  - Tên generation cho Langfuse
  * @param {string} [opts.anthropicModel] - Override Anthropic model (dùng eval model cho evaluation)
  */
-async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2, traceId, traceName, anthropicModel } = {}) {
+/**
+ * `costKind`: kind ghi vào CostEvent (mặc định `llm_call`); `model`: đổi model cho provider
+ * OpenAI-compatible (Anthropic dùng `anthropicModel`), ví dụ model rẻ cho sàng lọc khóa (AI-08).
+ */
+export async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2, traceId, traceName, anthropicModel, costKind, model: modelOverride } = {}) {
   // QA-01: Chế độ mock LLM bằng biến môi trường để test tải không tốn tiền
   if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") {
     return JSON.stringify({
@@ -283,6 +299,7 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
           traceId,
           name:         traceName ?? "llm_call",
           model:        anthropicModel ?? cfg().anthropicQgen,
+          ...(costKind && { costKind }),
           systemPrompt: systemToText(system),
           userPrompt:   user,
           output,
@@ -307,7 +324,8 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
   }
 
   // ── OpenAI-compatible API (Groq, Gemini, OpenAI, OpenRouter, Ollama) ──────
-  const { baseUrl, apiKey, model } = cfg();
+  const { baseUrl, apiKey, model: defaultModel } = cfg();
+  const model = modelOverride || defaultModel;
   const deadlineMs = startMs + LLM_TOTAL_BUDGET_MS;
   let lastErr;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -354,6 +372,7 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
           traceId,
           name:         traceName ?? "llm_call",
           model,
+          ...(costKind && { costKind }),
           systemPrompt: systemToText(system),
           userPrompt:   user,
           output,
@@ -381,7 +400,7 @@ async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retries = 2
   throw lastErr;
 }
 
-function extractJson(text) {
+export function extractJson(text) {
   const start = text.indexOf("{");
   const end   = text.lastIndexOf("}");
   if (start === -1 || end === -1) throw new Error("Không tìm thấy JSON trong output LLM");
@@ -734,8 +753,8 @@ export async function evaluateTranscripts({ questions, answers, userId, sessionI
       questionIndex: idx,
       scores,
       overall:     clamp(isScoreValue(q.overall) ? q.overall : meanScore),
-      shrmLevel:   ["excellent", "proficient", "developing"].includes(q.shrm_level)
-                     ? q.shrm_level : "proficient",
+      // AI-13: giá trị lạ / thiếu → "" (FE hiện "Chưa đủ dữ liệu"), không gán "proficient".
+      shrmLevel:   SHRM_LEVELS.includes(q.shrm_level) ? q.shrm_level : "",
       strengths:    Array.isArray(q.strengths)    ? q.strengths    : [],
       improvements: Array.isArray(q.improvements) ? q.improvements : [],
       suggestion:   q.suggestion ?? "",

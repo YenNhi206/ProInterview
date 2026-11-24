@@ -1,4 +1,4 @@
-import { CVAnalysis } from "../models/CVAnalysis.js";
+import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { User } from "../models/User.js";
 import { validateSaveAnalysis, formatValidationError } from "../dto/cvAnalysis.dto.js";
 import { logger } from "../config/logger.js";
@@ -137,7 +137,21 @@ export const CVController = {
       });
     }
 
-    // ── Step 2: Kiểm tra quota (với auto-downgrade nếu plan hết hạn) ─────
+    // ── Step 2 (N-11): bản ghi đã mở ở POST /api/cv/analyze* — ghi đè vào đó, không tạo bản ghi thứ hai ──
+    let run = null;
+    if (value.analysisId) {
+      run = await CVAnalysis.findOne({ _id: value.analysisId, userId }).select("mode status quotaCharged meta").lean();
+      if (!run) {
+        return res.status(404).json({ success: false, error: "Không tìm thấy bản phân tích để cập nhật." });
+      }
+      if (run.mode !== value.mode) {
+        return res.status(400).json({ success: false, error: "Chế độ phân tích không khớp với bản ghi đang cập nhật." });
+      }
+    }
+
+    // ── Step 3: Kiểm tra quota (với auto-downgrade nếu plan hết hạn) ─────
+    // Bản ghi đã trừ lượt lúc Python trả kết quả (`quotaCharged`) thì không trừ lần nữa.
+    const needsCharge = !run?.quotaCharged;
     let user = await User.findById(userId).select("quota plan planExpiresAt").catch(() => null);
     if (!user) {
       return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
@@ -145,50 +159,74 @@ export const CVController = {
 
     user = await enforceExpiry(user);
 
-    // Atomic: chỉ increment nếu used < limit — tránh race condition
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: userId, "quota.cvAnalysisUsed": { $lt: user.quota?.cvAnalysisLimit ?? 3 } },
-      { $inc: { "quota.cvAnalysisUsed": 1 } },
-      { new: true }
-    );
-    if (!updatedUser) {
-      logger.warn("cv_analysis_quota_exceeded", {
-        userId,
-        used:  user.quota?.cvAnalysisUsed,
-        limit: user.quota?.cvAnalysisLimit,
-      });
-      return res.status(403).json({
-        success: false,
-        error: "quota_exceeded",
-        message: "Bạn đã hết lượt phân tích CV. Vui lòng nâng cấp gói.",
-      });
+    if (needsCharge) {
+      // Atomic: chỉ increment nếu used < limit — tránh race condition
+      const updatedUser = await User.findOneAndUpdate(
+        { _id: userId, "quota.cvAnalysisUsed": { $lt: user.quota?.cvAnalysisLimit ?? 3 } },
+        { $inc: { "quota.cvAnalysisUsed": 1 } },
+        { new: true }
+      );
+      if (!updatedUser) {
+        logger.warn("cv_analysis_quota_exceeded", {
+          userId,
+          used:  user.quota?.cvAnalysisUsed,
+          limit: user.quota?.cvAnalysisLimit,
+        });
+        return res.status(403).json({
+          success: false,
+          error: "quota_exceeded",
+          message: "Bạn đã hết lượt phân tích CV. Vui lòng nâng cấp gói.",
+        });
+      }
     }
 
-    // ── Step 3: Transform payload → DB schema ─────────────────────────────
+    // ── Step 4: Transform payload → DB schema ─────────────────────────────
     const dbPayload = transformToDb(value);
 
-    // ── Step 4: Persist ───────────────────────────────────────────────────
+    // ── Step 5: Persist ───────────────────────────────────────────────────
     try {
-      const analysis = await CVAnalysis.create({
-        userId,
-        ...dbPayload,
-        status:      "completed",
-        completedAt: new Date(),
-      });
+      let analysis;
+      if (run) {
+        // Thời gian đo ở server (N-11) đáng tin hơn số FE gửi; giữ số server nếu có.
+        const meta = {
+          ...(run.meta || {}),
+          ...(dbPayload.meta || {}),
+          ...(run.meta?.processingTimeMs != null ? { processingTimeMs: run.meta.processingTimeMs } : {}),
+        };
+        analysis = await CVAnalysis.findOneAndUpdate(
+          { _id: run._id, userId },
+          {
+            $set: { ...dbPayload, meta, status: "completed", completedAt: new Date(), quotaCharged: true },
+            $unset: { error: "" },
+          },
+          { new: true, runValidators: true },
+        );
+      } else {
+        analysis = await CVAnalysis.create({
+          userId,
+          ...dbPayload,
+          status:       "completed",
+          completedAt:  new Date(),
+          quotaCharged: true,
+        });
+      }
 
       logger.info("cv_analysis_created", {
         userId,
         analysisId:  String(analysis._id),
+        updatedRun:  Boolean(run),
         mode:        analysis.mode,
         tier:        analysis.tier,
         matchScore:  analysis.result?.match?.score,
       });
 
-      return res.status(201).json({ success: true, analysis: withResolvedFileUrls(analysis) });
+      return res.status(run ? 200 : 201).json({ success: true, analysis: withResolvedFileUrls(analysis) });
     } catch (err) {
-      // Rollback quota vì CVAnalysis.create thất bại nhưng quota đã bị tăng
-      await User.findByIdAndUpdate(userId, { $inc: { "quota.cvAnalysisUsed": -1 } })
-        .catch((e) => logger.error("cv_quota_rollback_failed", { userId, error: e.message }));
+      // Rollback quota vì lưu thất bại nhưng quota đã bị tăng ở bước 3
+      if (needsCharge) {
+        await User.findByIdAndUpdate(userId, { $inc: { "quota.cvAnalysisUsed": -1 } })
+          .catch((e) => logger.error("cv_quota_rollback_failed", { userId, error: e.message }));
+      }
       logger.error("cv_analysis_create_failed", { userId, error: err.message });
       return res.status(500).json({ success: false, error: err.message });
     }
@@ -197,7 +235,8 @@ export const CVController = {
   /** Danh sách lịch sử */
   list: async (req, res) => {
     try {
-      const list = await CVAnalysis.find({ userId: req.userId })
+      // N-11: bản ghi đang chạy / lỗi không hiện trong lịch sử.
+      const list = await CVAnalysis.find({ userId: req.userId, ...CV_ANALYSIS_DONE_FILTER })
         .sort({ createdAt: -1 })
         .select("-cvText -jdText"); // loại raw text để giảm payload
       res.json({ success: true, list });

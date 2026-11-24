@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { takeBestFitHandoff } from "../../utils/cv/bestFit.js";
 import { useNavigate, useSearchParams, useLocation } from "react-router";
 import {
   FileText,
@@ -447,6 +448,16 @@ export function CVAnalysis() {
     setEnableField(false);
   };
 
+  // PR-12: đến từ trang "Chọn CV hợp nhất" — điền sẵn CV đã chọn và JD đã dán (chỉ một lần).
+  useEffect(() => {
+    if (routeMode !== "jd") return;
+    const handoff = takeBestFitHandoff();
+    if (!handoff?.cvFile || !handoff?.jdFile) return;
+    handleCVFile(handoff.cvFile);
+    handleJDFile(handoff.jdFile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Main analyze handler ────────────────────────────────────────────────
   const handleAnalyze = async () => {
     if (!isLoggedIn()) {
@@ -501,53 +512,48 @@ export function CVAnalysis() {
 
         if (analyzeMode === "jd") {
           // ── Python CV Matcher (qua Express proxy /api/cv/analyze) ──────
-          const form = new FormData();
-          if (cvFile)   form.append("resume", cvFile);
-          if (jdFile)   form.append("jd", jdFile);
-
           // Cascade: suggestions (full) → full (scores only) → analyze (basic)
           const ollamaDown = (s) => s === 503 || s === 504;
 
-          let pyRes = await fetch(expressApiUrl("/api/cv/analyze/suggestions"), {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-            body: form,
-          });
+          // N-11: server mở 1 bản ghi CVAnalysis cho lần phân tích và trả `analysisId`; gửi lại id đó ở các
+          // bậc sau và khi lưu để mỗi lần phân tích chỉ có đúng 1 bản ghi.
+          let runAnalysisId = null;
+          const postAnalyze = async (path) => {
+            const f = new FormData();
+            if (cvFile) f.append("resume", cvFile);
+            if (jdFile) f.append("jd", jdFile);
+            if (runAnalysisId) f.append("analysisId", runAnalysisId);
+            const res = await fetch(expressApiUrl(path), {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}` },
+              body: f,
+            });
+            const body = await res.json().catch(() => null);
+            if (body?.analysisId) runAnalysisId = String(body.analysisId);
+            return { status: res.status, ok: res.ok, body };
+          };
+
+          let pyRes = await postAnalyze("/api/cv/analyze/suggestions");
 
           // Tier-2: Ollama có nhưng suggestions thất bại → thử scoring only
           if (ollamaDown(pyRes.status)) {
-            const form2 = new FormData();
-            if (cvFile) form2.append("resume", cvFile);
-            if (jdFile) form2.append("jd", jdFile);
-            pyRes = await fetch(expressApiUrl("/api/cv/analyze/full"), {
-              method: "POST",
-              headers: { Authorization: `Bearer ${token}` },
-              body: form2,
-            });
+            pyRes = await postAnalyze("/api/cv/analyze/full");
           }
 
           // Tier-3: Ollama hoàn toàn không chạy → basic skill-matching (không LLM)
           let usedFallback = false;
           if (ollamaDown(pyRes.status)) {
-            const form3 = new FormData();
-            if (cvFile) form3.append("resume", cvFile);
-            if (jdFile) form3.append("jd", jdFile);
-            pyRes = await fetch(expressApiUrl("/api/cv/analyze"), {
-              method: "POST",
-              headers: { Authorization: `Bearer ${token}` },
-              body: form3,
-            });
+            pyRes = await postAnalyze("/api/cv/analyze");
             usedFallback = true;
           }
 
           clearInterval(timer); setProgress(95);
 
-          if (!pyRes.ok) {
-            const errBody = await pyRes.json().catch(() => ({}));
-            throw new Error(formatCvAnalyzerHttpError(pyRes.status, errBody));
+          if (!pyRes.ok || !pyRes.body) {
+            throw new Error(formatCvAnalyzerHttpError(pyRes.status, pyRes.body ?? {}));
           }
 
-          const raw = await pyRes.json();
+          const raw = pyRes.body;
           const m    = raw.match       ?? {};
           const s    = raw.scores      ?? null;
           const sugg = raw.suggestions ?? {};
@@ -696,6 +702,7 @@ export function CVAnalysis() {
             tier: analysisTier,
             planAtTime,
             meta: { pythonEndpoint, fallbackTriggered: usedFallback },
+            analysisId: runAnalysisId,
           });
           const saveRes = await saveCvAnalysis(savePayload);
           let historySaveWarning = formatCvSaveError(saveRes);
@@ -732,6 +739,8 @@ export function CVAnalysis() {
           const fieldName = selectedField || "IT / Công nghệ";
           let raw = null;
           let usedFieldFallback = true;
+          // N-11: id bản ghi server mở cho lần phân tích này (kể cả khi lỗi và FE rơi về dữ liệu mẫu).
+          let fieldAnalysisId = null;
 
           if (USE_EXPRESS_CV && cvFile) {
             const formField = new FormData();
@@ -744,13 +753,14 @@ export function CVAnalysis() {
                 headers: { Authorization: `Bearer ${token}` },
                 body: formField,
               });
-              if (pyRes.ok) {
-                raw = await pyRes.json();
+              const pyBody = await pyRes.json().catch(() => null);
+              if (pyBody?.analysisId) fieldAnalysisId = String(pyBody.analysisId);
+              if (pyRes.ok && pyBody) {
+                raw = pyBody;
                 usedFieldFallback = Boolean(raw._fallback ?? raw._mock);
               } else if (pyRes.status === 403) {
                 // Hết quota — KHÔNG fallback mock (mock sẽ che mất việc bị chặn thật sự).
-                const errBody = await pyRes.json().catch(() => ({}));
-                quotaBlockedError = new Error(formatCvAnalyzerHttpError(pyRes.status, errBody));
+                quotaBlockedError = new Error(formatCvAnalyzerHttpError(pyRes.status, pyBody ?? {}));
               }
             } catch (err) {
               console.warn("[CV field] API unavailable, using mock", err);
@@ -788,6 +798,7 @@ export function CVAnalysis() {
               fallbackTriggered: usedFieldFallback,
               llmProvider: raw._mock ? "mock" : "unknown",
             },
+            analysisId: fieldAnalysisId,
           });
           const saveRes = await saveCvAnalysis(savePayload);
           let historySaveWarning = formatCvSaveError(saveRes);

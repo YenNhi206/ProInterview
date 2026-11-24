@@ -15,6 +15,7 @@ import {
   groupMentorIssueAlerts,
 } from "../../utils/booking/bookingMappers.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { DashboardRecommendations } from "../../components/dashboard/DashboardRecommendations.jsx";
 import { DASHBOARD_GREETING_SUB } from "../../constants/brandVoice";
 import {
   getUserCancelPolicyFromDateTime,
@@ -737,6 +738,10 @@ export function Dashboard() {
             hoverBorder="hover:border-[#5b598c]/50"
             onClick={() => navigate("/mentors")}
           />
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <DashboardRecommendations />
         </motion.div>
 
         <motion.div className="grid grid-cols-12 gap-4 items-start lg:gap-5">

@@ -179,7 +179,39 @@ stateDiagram-v2
 
 **Tác động lúc chạy phỏng vấn:** chỉ câu `approved` (và `orgId=null`) được phục vụ làm fallback; `applyDeprecationPolicy` loại câu LLM vừa sinh nếu trùng `textHash` một câu `deprecated` và sinh lại tối đa `REGENERATE_ATTEMPTS = 2` lần.
 
-Giá trị `draft`, `rejected` có trong enum nhưng **chưa có luồng nào ghi** — dành cho Enterprise template sau này.
+Các route duyệt của pool chung (`PATCH /api/moderator/questions/:id/approve`, `POST .../questions/bulk`) chỉ tác động câu `orgId=null`; câu doanh nghiệp đi luồng 6b.
+
+### 6b. Câu hỏi doanh nghiệp (`orgId != null`, CO-04, CO-05, CO-16)
+
+Quyết định CO-16 (23/11/2026): câu Company Moderator đã duyệt phải qua Platform Moderator duyệt mới được dùng.
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft : AI sinh bộ câu nháp (CO-04)<br/>· tự thêm / tải lên với status=draft
+    [*] --> pending_platform_review : Company Mod tự thêm câu<br/>hoặc tải lên theo job (CO-05)
+
+    draft --> pending_platform_review : Company Mod duyệt<br/>(đơn lẻ hoặc hàng loạt)
+    draft --> rejected : Company Mod từ chối
+    rejected --> pending_platform_review : Company Mod duyệt lại
+
+    pending_platform_review --> approved : Platform Mod duyệt (CO-16)<br/>→ render video avatar (CO-06)
+    pending_platform_review --> rejected : Platform Mod từ chối (bắt buộc lý do)
+    approved --> pending_platform_review : Company Mod sửa chữ câu<br/>(phải duyệt lại)
+    approved --> rejected : Company Mod từ chối (gỡ khỏi phỏng vấn)
+```
+
+| Chuyển | Hàm | Endpoint |
+|:-------|:----|:---------|
+| `[*] → draft` | `generateCompanyQuestionDrafts` | `POST /api/company/questions/generate` |
+| `[*] → pending_platform_review` (hoặc `draft`) | `createQuestion`, `uploadQuestions` (`companyWorkspaceController.js`) | `POST /api/company/questions`, `/questions/upload` |
+| `draft \| rejected → pending_platform_review` | `approveQuestion`, `batchApproveQuestions` | `POST /api/company/questions/:id/approve`, `/batch-approve` |
+| `→ rejected` (Company Mod) | `rejectQuestion`, `batchRejectQuestions` | `POST /api/company/questions/:id/reject`, `/batch-reject` |
+| `approved → pending_platform_review` | `editQuestion` (khi đổi chữ) | `PATCH /api/company/questions/:id` |
+| `pending_platform_review → approved \| rejected` | `approveCompanyQuestion`, `rejectCompanyQuestion`, `bulkReviewCompanyQuestions` (`services/companyQuestionReviewService.js`) | `POST /api/moderator/company-questions/:id/approve`, `/:id/reject`, `/bulk` |
+
+**Tác động:** chỉ câu `approved` vào phỏng vấn (JB-06) và được render video avatar (`scheduleCompanyQuestionVideoWarm`, CO-06). Rubric công ty gắn được câu `pending_platform_review` hoặc `approved`.
+
+Giá trị `draft`, `rejected` chỉ dùng cho câu doanh nghiệp; pool chung chưa có luồng nào ghi hai giá trị này.
 
 ---
 
@@ -189,13 +221,14 @@ Giá trị `draft`, `rejected` có trong enum nhưng **chưa có luồng nào gh
 stateDiagram-v2
     [*] --> open : Ứng viên "Báo sai" câu hỏi/đánh giá<br/>(question_report / evaluation_report)
     [*] --> open : Chấm điểm vẫn thiếu trường sau retry<br/>(evaluation_incomplete, upsert)
+    [*] --> open : Người dùng báo cáo tin tuyển dụng<br/>(job_post_report, JB-04)
 
     open --> in_review : Moderator nhận (claim)<br/>[chưa ai nhận hoặc chính mình]
     in_review --> in_review : Claim lại bởi chính người đó
     open --> resolved : Resolve trực tiếp
     open --> dismissed : Bỏ qua
 
-    in_review --> resolved : override_score · edit_question<br/>· deprecate_question
+    in_review --> resolved : override_score · edit_question<br/>· deprecate_question · hide_job (JB-04)
     in_review --> dismissed : dismiss
 
     resolved --> [*]
@@ -208,10 +241,16 @@ stateDiagram-v2
 | Tạo từ đánh giá thiếu | `upsertIncompleteEvaluationItem` (unique theo session + questionIndex) | gọi trong `POST /api/interviews/sessions/:id/evaluate` |
 | Nhận | `claimItem` — người khác đang giữ → 409 | `PATCH /api/moderator/queue/:id/claim` |
 | Xử lý | `resolveItem` — mục đã đóng → 409 | `PATCH /api/moderator/queue/:id/resolve` |
+| Tạo từ báo cáo tin tuyển dụng (JB-04) | `createJobPostReport` (`services/jobPostModerationService.js`) | `POST /api/reports` (targetType `job_post`) |
+| Xử lý báo cáo tin (JB-04) | `resolveJobItem`: `dismiss` hoặc `hide_job` (ẩn tin qua `setJobVisibility`, đóng mọi item mở của tin qua `resolveOpenJobReports`) | `PATCH /api/moderator/queue/:id/resolve` |
 
 Khi resolve: `Report` liên kết → `resolved`/`dismissed` + `resolvedBy`; `override_score` ghi `InterviewSession.answers[i].moderatorOverride`; người báo cáo nhận `Notification` (link `/interview/feedback?sessionId=`).
 
+**`course_prescreen` (AI-08):** không vào hàng đợi trên (`listQueue`, `getQueueItem`, `claimItem`, `resolveItem` và KPI hàng đợi chỉ xét 3 loại phỏng vấn, `HITL_QUEUE_TYPES`). `coursePrescreenService.prescreenCourse` upsert 1 item / khóa ở `open` mỗi lần mentor gửi duyệt (`PATCH /api/courses/:id/publish`, hoặc `PUT /api/courses/:id` với khóa đang bán); `closePrescreenItem` chuyển `resolved` khi moderator duyệt / từ chối khóa (`resolution.action: null`, `note` bắt đầu bằng `approve` hoặc `reject`).
+
 Trạng thái `Report` cho báo cáo mentor/booking/review/course (không qua hàng đợi): `pending → reviewing → resolved | dismissed`, do admin xử lý ở `/api/admin`.
+
+**JB-04:** `/api/moderator/queue` không truyền `type` chỉ trả 3 loại phỏng vấn; `job_post_report` hiện ở màn riêng (JB-17, `?type=job_post_report`). KPI hàng đợi của Quality Dashboard cũng chỉ đếm 3 loại phỏng vấn. Report `job_post` không hiện ở trang support admin (`MODERATOR_REPORT_TARGET_TYPES`).
 
 ---
 
@@ -222,8 +261,10 @@ stateDiagram-v2
     [*] --> in_progress : POST /sessions<br/>(3 câu baseline)
     in_progress --> in_progress : Ghi câu trả lời (PATCH)<br/>· sinh 2 follow-up [Pro]
     in_progress --> completed : POST complete
+    in_progress --> abandoned : job 20 phút<br/>[createdAt ≤ now − 24h] (N-07)
     completed --> completed : POST /evaluate<br/>(sinh feedback)
     completed --> [*]
+    abandoned --> [*]
 
     state "Đánh giá mỗi câu trả lời" as Eval {
         [*] --> scored : LLM trả đủ trường
@@ -233,7 +274,7 @@ stateDiagram-v2
     }
 ```
 
-- `abandoned` có trong enum nhưng **chưa có job/handler nào ghi** — buổi bỏ dở hiện nằm mãi ở `in_progress`. Ứng viên cho job dọn dẹp sau này.
+- `abandoned` (N-07): `markAbandonedInterviewSessions` (`services/interviewSessionCleanupService.js`) chạy trong nhịp 20 phút của `jobs/bookingStaleSweepJob.js`, đánh buổi `in_progress` có `createdAt ≤ now − 24h` (`INTERVIEW_ABANDON_AFTER_MS`), ghi `abandonedAt`. Cập nhật có điều kiện theo `status`, chạy lại không đổi gì; không hoàn lượt `interviewUsed`. `POST /sessions/:id/complete` trả 409 với buổi `abandoned`; `PATCH /sessions/:id` vốn chỉ nhận `in_progress`. Thống kê (`/api/admin/content/stats`, `/api/admin/interview-metrics` trừ bảng theo trạng thái, `/api/public/home-data`) trải `EXCLUDE_ABANDONED_SESSIONS`; hồ sơ năng lực chỉ đọc `completed`.
 - `incomplete` = `answers[i].evaluationIncomplete = true`; `overridden` = `answers[i].moderatorOverride != null`. FE phải ưu tiên `moderatorOverride.overall` khi hiển thị (bước 7 của S1 — chưa làm).
 
 ---
@@ -358,7 +399,10 @@ Model và enum có từ LP-03. **Đã code (LP-07):** `→ draft` (`createLearni
 stateDiagram-v2
     [*] --> planned : Mentor thêm buổi vào lộ trình
     planned --> scheduled : Ứng viên đặt lịch<br/>[buổi trước passed] (tạo Booking)
-    scheduled --> done : Mentor ghi kết quả
+    scheduled --> done : Mentor ghi kết quả<br/>[booking completed]
+    [*] --> pending_payment : Mentor đề xuất buổi bổ sung có phí<br/>[buổi học lại vẫn not_passed]
+    pending_payment --> planned : Ứng viên thanh toán (chưa làm)
+    pending_payment --> cancelled : Lộ trình bị hủy
     planned --> cancelled : Lộ trình bị hủy
     scheduled --> cancelled : Lộ trình bị hủy
     done --> [*]
@@ -371,8 +415,13 @@ stateDiagram-v2
 |:-------|:---------------|:-----|
 | `planned` → `scheduled` | `POST /api/learning-paths/:id/sessions/:sid/schedule` | LP-12 |
 | `scheduled` → `planned` | Hủy / vắng mặt booking của buổi (`closeLearningPathOrAssessmentBooking`) | LP-22 |
-| `scheduled` → `done` (+ `outcome`) | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` | LP-13 |
+| `scheduled` → `done` (+ `outcome`) | `PATCH /api/learning-paths/:id/sessions/:sid/outcome` (`recordLearningPathSessionOutcome`) | LP-13 |
+| → `planned` (buổi học lại 0đ, `attempt` 2) | Tự tạo khi lần đầu `not_passed` | LP-13 |
+| → `pending_payment` (buổi bổ sung, `attempt ≥ 3`) | `POST /api/learning-paths/:id/sessions/:sid/supplementary` (`proposeSupplementarySession`) | LP-13 |
+| `pending_payment` → `planned` | Thanh toán buổi bổ sung — chưa làm, đề xuất (s) | — |
 | → `cancelled` | Hủy lộ trình | LP-15 |
+
+**Đã code (LP-13):** mentor ghi kết quả khi booking của buổi đã `completed`; ghi có điều kiện (`status: scheduled`) nên chỉ một lần thắng. Bước kế tính bằng `resolveOutcomeNextStep` (`utils/learningPathOutcome.js`): đạt và mọi `order` có lần học mới nhất đạt → `LearningPath` `active → completed`; lần đầu chưa đạt → tạo buổi học lại 0đ ở `planned` (mở đặt lịch ngay); từ lần học lại trở đi chưa đạt → không tạo gì, mentor đề xuất buổi bổ sung có phí ở `pending_payment` (`findSchedulableSession` không mở buổi đó và chặn mọi buổi sau).
 
 **Đã code (LP-12):** `planned → scheduled` (`scheduleLearningPathSession` trong `learningPathSessionsService.js`). Buổi mở đặt lịch tính bằng `findSchedulableSession` (`utils/learningPathSchedule.js`): lộ trình `active`; đi theo `order`, mỗi `order` lấy lần học mới nhất (bỏ `cancelled`); gặp buổi `planned` đầu tiên chưa đạt thì mở buổi đó, gặp buổi `scheduled` hoặc `not_passed` thì không mở buổi nào. Nên mỗi lúc chỉ có tối đa 1 buổi `scheduled`. Giữ buổi bằng cập nhật có điều kiện (`status: planned`, `bookingId: null`) trước khi tạo Booking; tạo Booking lỗi thì trả buổi về `planned`.
 
@@ -402,3 +451,48 @@ stateDiagram-v2
 
 **Đã code (JB-01):** tạo, sửa (chỉ `draft` / `published`; job đang đăng phải vẫn đủ điều kiện đăng), đăng, đóng. Đổi trạng thái cập nhật có điều kiện theo `status` (hai lần đăng cùng lúc chỉ một lần thắng); sửa nội dung có điều kiện theo `status` + `updatedAt`. Company Mod không mở lại job đã đóng và không bỏ ẩn. **JB-02:** `closeExpiredJobPosts` (`jobPostsService.js`) chạy trong nhịp 20 phút của `jobs/bookingStaleSweepJob.js`: job `published` hoặc `hidden` có `closesAt <= now` → `closed`, `closedReason: expired` (cập nhật có điều kiện theo status, chạy lại không đổi gì; bản nháp không bị đóng). **JB-03:** API công khai chỉ trả `published` chưa quá hạn của công ty không bị khóa, nên không phụ thuộc độ trễ của job định kỳ.
 
+
+## 16. Đề xuất cải tiến AI — `AIImprovementProposal.status` (capstone FA26)
+
+```mermaid
+stateDiagram-v2
+    [*] --> proposed : aiImprovementMinerJob<br/>[nhóm đủ ngưỡng, chưa có đề xuất chờ duyệt]
+    proposed --> approved : Platform Mod duyệt (AI-05)<br/>bật PromptVersion `after.version`
+    proposed --> rejected : Platform Mod từ chối (AI-05)
+    approved --> rolled_back : Platform Mod rollback (AI-05)<br/>bật lại `before.version`
+    rejected --> [*]
+    rolled_back --> [*]
+```
+
+| Chuyển | Hàm / endpoint | Task |
+|:-------|:---------------|:-----|
+| → `proposed` | `mineImprovementProposals` (`services/aiImprovementMinerService.js`) trong `jobs/aiImprovementMinerJob.js` (mỗi ngày, lượt đầu sau 10 phút) | AI-03 |
+| `proposed` → `approved` / `rejected`; `approved` → `rolled_back` | `PATCH /api/moderator/ai-improvements/:id` | AI-05 (chưa code) |
+
+**Đã code (AI-03):** miner gom `ModerationItem` `resolved` có `resolution.action` là `override_score` (target `evaluation`, nhóm theo `competencyId` của câu) hoặc `edit_question` / `deprecate_question` (target `question_gen`, nhóm theo `roleCategory`; bỏ câu công ty có `orgId`). Nhóm có ≥ `AI_IMPROVEMENT_MIN_EVIDENCE` (mặc định 5) item chưa dùng thì tạo PromptVersion mới **chưa bật** (`createVersion`: bản active + tối đa 3 few-shot từ ca lệch nhiều nhất, tổng tối đa 9) và 1 đề xuất `few_shot`, báo `ai_improvement_proposed` cho moderator. Mỗi item chỉ làm bằng chứng một lần; nhóm đang có đề xuất `proposed` thì item mới để lại tới lượt sau khi đề xuất được xử lý. Không job nào khác lọc theo status này.
+
+---
+
+## 17. Phân tích CV — `CVAnalysis.status` (N-11)
+
+```mermaid
+stateDiagram-v2
+    [*] --> processing : POST /api/cv/analyze* (trước khi gọi Python)
+    processing --> completed : Python 2xx + trừ được 1 lượt quota
+    processing --> failed : Python lỗi / không gọi được / hết lượt giữa chừng
+    failed --> processing : FE thử bậc thấp hơn với cùng analysisId
+    failed --> completed : FE lưu kết quả dự phòng (theo ngành) với analysisId
+    completed --> completed : FE lưu kết quả đầy đủ (POST /api/cv/analyses { analysisId })
+    completed --> [*] : DELETE /api/cv/analyses/:id
+```
+
+| Chuyển | Hàm / endpoint | Task |
+|:-------|:---------------|:-----|
+| → `processing` | `startAnalysisRun` (`services/cvAnalysisRunService.js`) trong `proxyToAnalyzer` (`routes/cvMatch.js`) | N-11 |
+| `processing` → `completed` / `failed` | `finishAnalysisRun`: ghi `meta.processingTimeMs`, `result.match` (khi thành công), `error` (khi lỗi); log `cv_analysis_timing` | N-11 |
+| `failed` → `processing` | `startAnalysisRun` với `analysisId` của chính user, cùng `mode`, đang `processing`/`failed` | N-11 |
+| `completed` / `failed` → `completed` | `CVController.createAnalysis` với `analysisId` (ghi đè, không trừ lượt nếu `quotaCharged`) | N-11 |
+| → `completed` (không qua Python) | `CVController.createAnalysis` không có `analysisId` (client cũ) | — |
+| `legacy_mock` | Script `migrate-cv-analysis.js` gắn cho bản ghi giả cũ; không còn hàm nào ghi | — |
+
+Bản ghi `processing` / `failed` không hiện trong lịch sử ứng viên và không tính vào thống kê (`CV_ANALYSIS_DONE_FILTER`), chỉ dùng để đo thời gian và tỉ lệ lỗi (QA-03). Bản ghi kẹt ở `processing` (server tắt giữa chừng) tìm bằng index `{ status: 1, createdAt: 1 }`.

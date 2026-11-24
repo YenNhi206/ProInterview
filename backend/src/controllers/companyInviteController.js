@@ -1,6 +1,7 @@
 import * as companyService from "../services/companyService.js";
 import { issueAccessToken, pushNewSession } from "../services/authService.js";
 import { toPublicUser } from "../models/User.js";
+import { RUBRIC_SHARING_TERMS } from "../config/rubricSharingTerms.js";
 
 export const CompanyInviteController = {
   async verify(req, res) {
@@ -19,15 +20,19 @@ export const CompanyInviteController = {
         },
         expiresAt: invite.expiresAt,
       },
+      // CO-02: điều khoản phải đồng ý trước khi nhận lời mời; gửi lại `version` khi accept.
+      terms: RUBRIC_SHARING_TERMS,
     });
   },
 
   async accept(req, res) {
-    const { token, name, password } = req.body;
+    const { token, name, password, acceptRubricTerms, termsVersion } = req.body ?? {};
     const user = await companyService.acceptInvite({
       rawToken: token,
       name,
       password,
+      acceptRubricTerms,
+      termsVersion,
     });
 
     const { refreshToken } = pushNewSession(user, req);

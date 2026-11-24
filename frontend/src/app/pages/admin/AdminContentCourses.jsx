@@ -36,6 +36,8 @@ import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiTo
 import { markAdminCoursePreviewReturn } from "../../utils/admin/adminCoursePreview.js";
 import { mediaSrc, DEFAULT_COURSE_THUMB, avatarSrc } from "../../utils/shared/mediaUrl.js";
 import { getInitials } from "../../utils/auth/auth.js";
+import { PrescreenBadge, PrescreenFlagList, PrescreenPanel } from "../../components/courses/PrescreenFlags.jsx";
+import { sortFlags } from "../../utils/course/prescreenFlags.js";
 
 const LEVEL_LABELS = {
   basic: "Cơ bản",
@@ -368,12 +370,28 @@ function CourseReviewCard({ course, busy, onApprove, onReject, onPreview }) {
               {meta.label}
             </span>
             <span className="text-[10px] font-medium text-slate-500">{formatDate(course.updatedAt)}</span>
+            <PrescreenBadge prescreen={course.aiPrescreen} />
           </div>
           <h2 className="mt-2 text-xl font-black text-slate-900">{r.title || "(Không có tiêu đề)"}</h2>
         </div>
       </div>
 
       <div className="space-y-4 p-5">
+        {/* AI-09: cờ sàng lọc của AI-08 (chỉ gợi ý). Thẻ chỉ hiện cờ nghiêm trọng / cảnh báo; đủ cờ ở "Xem chi tiết". */}
+        {(() => {
+          const serious = course.aiPrescreen?.status === "done" ? sortFlags((course.aiPrescreen.flags || []).filter((f) => f.severity !== "info")) : [];
+          if (!serious.length) return null;
+          return (
+            <div className="space-y-2">
+              <PrescreenFlagList flags={serious.slice(0, 3)} />
+              {serious.length > 3 ? (
+                <button type="button" onClick={onPreview} className="text-xs font-bold text-violet-300 hover:text-white">
+                  và {serious.length - 3} cờ khác · xem chi tiết
+                </button>
+              ) : null}
+            </div>
+          );
+        })()}
         {priorReject ? (
           <div className="rounded-lg border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-900">
             <p className="text-[10px] font-black uppercase tracking-wide text-red-800">Lần từ chối trước</p>
@@ -506,6 +524,8 @@ function CourseDetailModal({
       </div>
 
       <img src={thumb} alt="" className="mb-4 h-48 w-full rounded-lg object-cover border border-slate-200" />
+
+      {!readOnly ? <div className="mb-4"><PrescreenPanel prescreen={course?.aiPrescreen} variant="light" /></div> : null}
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
         <MentorBlock mentor={course.mentor} />

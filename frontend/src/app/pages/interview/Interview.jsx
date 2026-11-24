@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import {
   BrowserCompatibilityWarning,
   checkSTTSupport,
@@ -19,14 +19,18 @@ import {
   AlertCircle,
   ChevronDown,
   FileText,
+  Briefcase,
+  Shuffle,
 } from "lucide-react";
+import { getRecentJobs } from "../../api/jobsApi.js";
+import { initialSelectedJobId, recentJobsForCard, shouldShowRecentJobsCard } from "../../utils/jobs/recentJobsCard.js";
 import { getLatestCVAnalysisAsync, getUploadedCV, saveUploadedCV } from "../../utils/shared/history.js";
 import { getUser, hasAuthCredentials, isLoggedIn } from "../../utils/auth/auth.js";
 import { hasCameraConsent } from "../../utils/interview/cameraConsent.js";
 import { CameraConsentDialog } from "../../components/interview/CameraConsentDialog";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
-import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos, saveCameraConsent } from "../../api/interviewsApi.js";
+import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos, pregenerateInterviewVideos, saveCameraConsent } from "../../api/interviewsApi.js";
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { InterviewHistoryPanel } from "../../components/interview/InterviewHistoryPanel";
 import { InterviewPageTabs } from "../../components/interview/InterviewPageTabs";
@@ -233,8 +237,82 @@ const HR_PREVIEWS = {
   },
 };
 
+/**
+ * JB-21: "Luyện theo job bạn quan tâm gần đây". Chọn job → buổi có câu của doanh nghiệp đó (JB-06);
+ * "Ngẫu nhiên" → server chọn một doanh nghiệp cùng vị trí.
+ */
+function RecentJobsCard({ jobs, selectedJobId, onSelect, optBase, optOn, optIdle }) {
+  const selectedFromUrlOnly = Boolean(selectedJobId) && !jobs.some((j) => String(j.id) === selectedJobId);
+  return (
+    <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+      <div>
+        <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+          <Briefcase className="h-4 w-4 text-[#93f72b]" {...IS} />
+          Luyện theo job bạn quan tâm gần đây
+        </h3>
+        <p className="mt-0.5 text-xs text-slate-400">
+          Chọn một job để buổi phỏng vấn có thêm tối đa 2 câu hỏi của doanh nghiệp đó. Bỏ qua thì hệ thống chọn ngẫu nhiên.
+        </p>
+      </div>
+      <div className="grid gap-2" role="radiogroup" aria-label="Chọn job để luyện">
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!selectedJobId}
+          onClick={() => onSelect("")}
+          className={`${optBase} py-3 ${!selectedJobId ? optOn : optIdle}`}
+        >
+          <div className="flex items-center gap-3">
+            <SelectOptionRing selected={!selectedJobId} />
+            <Shuffle className="h-4 w-4 shrink-0 text-slate-300" {...IS} />
+            <span className="text-sm font-semibold text-white">Ngẫu nhiên</span>
+          </div>
+        </button>
+        {selectedFromUrlOnly && (
+          <button type="button" role="radio" aria-checked className={`${optBase} py-3 ${optOn}`}>
+            <div className="flex items-center gap-3">
+              <SelectOptionRing selected />
+              <span className="text-sm font-semibold text-white">Job bạn vừa chọn ở trang việc làm</span>
+            </div>
+          </button>
+        )}
+        {jobs.map((job) => {
+          const selected = String(job.id) === selectedJobId;
+          return (
+            <button
+              key={job.id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onSelect(String(job.id))}
+              className={`${optBase} py-3 ${selected ? optOn : optIdle}`}
+            >
+              <div className="flex items-start gap-3">
+                <SelectOptionRing selected={selected} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-white">{job.title}</p>
+                  <p className="mt-0.5 truncate text-xs text-slate-400">
+                    {[job.company?.name, job.roleCategoryName].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function Interview() {
   const navigate = useNavigate();
+  // JB-06: `/interview?jobPostId=…` (trang job JB-12, thẻ "job quan tâm gần đây" JB-21) → buổi có câu của job đó;
+  // không có thì server tự chọn ngẫu nhiên một doanh nghiệp cùng vị trí.
+  const [searchParams] = useSearchParams();
+  // JB-21: job chọn trên thẻ "job quan tâm gần đây" (hoặc chọn sẵn từ URL); rỗng = ngẫu nhiên.
+  const [selectedJobId, setSelectedJobId] = useState(() => initialSelectedJobId(searchParams.get("jobPostId")));
+  const [recentJobs, setRecentJobs] = useState([]);
+  const jobPostId = selectedJobId;
 
   const [option, setOption] = useState(null);
   const [cvUploaded, setCvUploaded] = useState(false);
@@ -257,6 +335,18 @@ export function Interview() {
 
   useEffect(() => {
     if (!checkSTTSupport()) setShowBrowserWarning(true);
+  }, []);
+
+  // JB-21: tối đa 3 job xem gần đây có câu doanh nghiệp (JB-20). Chỉ ứng viên đăng nhập; lỗi thì ẩn thẻ.
+  useEffect(() => {
+    if (!hasAuthCredentials() || getUser()?.role !== "customer") return undefined;
+    let cancelled = false;
+    getRecentJobs().then((res) => {
+      if (!cancelled && res.success) setRecentJobs(recentJobsForCard(res.jobs));
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -493,12 +583,15 @@ export function Interview() {
       try {
         const created = await createInterviewSession(hrGender, {
           ...(questions && { questions }),
+          ...(jobPostId && { jobPostId }),
           // cvText/jdText không lưu vào session (giống generateQuestions cũ) — chỉ dùng để BE
           // tính competencyProfile rẻ (zero LLM cost) cho few-shot accumulation/analytics.
           cvText, jdText, position, field,
         });
         if (created.success) {
           sessionId = created.sessionId;
+          // JB-06: server có thể chèn tối đa 2 câu doanh nghiệp sau 3 câu baseline.
+          if (created.questions?.length > (questions?.length ?? 0)) questions = created.questions;
         } else {
           // InterviewRoom luôn yêu cầu sessionId hợp lệ (bounce về /interview nếu thiếu) — báo lỗi
           // ngay tại đây (vd hết quota free) thay vì âm thầm điều hướng vào room rồi bị đẩy ngược lại.
@@ -536,6 +629,20 @@ export function Interview() {
           ]);
           if (pregenResult.success && pregenResult.videoUrls?.some(Boolean)) {
             videoUrls = pregenResult.videoUrls;
+          }
+          // JB-06: video câu doanh nghiệp đã render sẵn lúc Platform Mod duyệt (CO-06, CO-16) nên thường
+          // trúng cache; lỗi / quá giờ thì câu đó dùng giọng trình duyệt như follow-up.
+          const companyTexts = (questions ?? []).filter((q) => q?.source === "company").map((q) => q.question);
+          if (companyTexts.length) {
+            const base = Array.from({ length: (questions?.length ?? 0) - companyTexts.length }, (_, i) => videoUrls?.[i] ?? null);
+            const companyTimeout = new Promise((resolve) => setTimeout(() => resolve({ success: false }), 60_000));
+            const companyRes = await Promise.race([
+              pregenerateInterviewVideos(companyTexts, { gender: hrGender }),
+              companyTimeout,
+            ]);
+            const companyUrls = companyRes.success ? companyRes.videoUrls ?? [] : [];
+            const merged = [...base, ...companyTexts.map((_, i) => companyUrls[i] ?? null)];
+            videoUrls = merged.some(Boolean) ? merged : null;
           }
         }
       } catch {
@@ -822,6 +929,17 @@ export function Interview() {
                     </div>
 
                     <HrPreviewPanel hrGender={hrGender} />
+
+                    {shouldShowRecentJobsCard(recentJobs, selectedJobId) && (
+                      <RecentJobsCard
+                        jobs={recentJobs}
+                        selectedJobId={selectedJobId}
+                        onSelect={setSelectedJobId}
+                        optBase={optBase}
+                        optOn={optOn}
+                        optIdle={optIdle}
+                      />
+                    )}
 
                     {extractWarning && (
                       <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">

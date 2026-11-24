@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import {
-  ArrowLeft,
+  ListFilter,
   ArrowRight,
   Briefcase,
   CheckCircle2,
@@ -15,8 +15,6 @@ import {
   RefreshCw,
   Users,
   Search,
-  Sparkles,
-  TrendingUp,
   Award,
   Calendar,
   Send,
@@ -40,7 +38,10 @@ import {
   acceptMentorshipAssessment,
 } from "../../api/mentorshipRequestsApi.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
-import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
+import { getJob } from "../../api/jobsApi.js";
+import { jdFileName, jobToJdText, readJobPostId } from "../../utils/jobs/jobDetail.js";
+import { MentorStatPanel, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
+import { mentorRequestStats } from "../../utils/mentor/mentorRequestStats.js";
 import "../../../styles/mentorship-requests.css";
 
 const TYPES = {
@@ -93,6 +94,8 @@ export function MentorshipRequests() {
 
   const [scope, setScope] = useState("open");
   const [rows, setRows] = useState([]);
+  /** Số liệu đầu trang của mentor: luôn tính từ cả 2 danh sách, không đổi theo tab. */
+  const [summaryRows, setSummaryRows] = useState({ open: [], mine: [] });
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -113,14 +116,44 @@ export function MentorshipRequests() {
 
   const [reload, setReload] = useState(0);
   const isNew = requestId === "new" && !mentor;
+  const isListView = !requestId && !isNew;
+  const listLoadedOnce = useRef(false);
   const backTarget = mentorshipBackTarget({
     returnTo: location.state?.returnTo,
     mentor,
     detail: !!requestId && !isNew,
   });
   const entryState = { returnTo: `${location.pathname}${location.search}` };
+  const requestTitle = request?.title || location.state?.title || "";
 
   const [documentMode, setDocumentMode] = useState({ cv: "upload", jd: "upload" });
+
+  // JB-12: yêu cầu mentor gắn job (`/mentor-requests/new?jobPostId=`), JD lấy từ mô tả job.
+  const jobPostId = isNew ? readJobPostId(new URLSearchParams(location.search)) : "";
+  const [jobPost, setJobPost] = useState(null);
+  const [jobPostError, setJobPostError] = useState("");
+  useEffect(() => {
+    if (!jobPostId) {
+      setJobPost(null);
+      setJobPostError("");
+      return undefined;
+    }
+    let active = true;
+    getJob(jobPostId).then((res) => {
+      if (!active) return;
+      if (res.success) {
+        setJobPost(res.job);
+        setJobPostError("");
+        setDocumentMode((prev) => ({ ...prev, jd: "job" }));
+      } else {
+        setJobPost(null);
+        setJobPostError(res.error || "Không tải được tin tuyển dụng.");
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [jobPostId]);
   const [documents, setDocuments] = useState([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [documentsError, setDocumentsError] = useState("");
@@ -167,6 +200,7 @@ export function MentorshipRequests() {
           setRequest(body?.request || null);
         } else {
           setRows(body?.requests || []);
+          listLoadedOnce.current = true;
         }
       })
       .catch((e) => {
@@ -180,6 +214,21 @@ export function MentorshipRequests() {
       active = false;
     };
   }, [requestId, scope, reload, isNew]);
+
+  useEffect(() => {
+    if (!mentor || requestId) return undefined;
+    let active = true;
+    Promise.all([listMentorshipRequests("open"), listMentorshipRequests("mine")])
+      .then(([open, mine]) => {
+        if (active) setSummaryRows({ open: open?.requests || [], mine: mine?.requests || [] });
+      })
+      .catch(() => {
+        /* Lỗi tải đã hiện ở danh sách chính; ô số liệu giữ giá trị cũ. */
+      });
+    return () => {
+      active = false;
+    };
+  }, [mentor, requestId, reload]);
 
   const action = async (fn, message) => {
     if (busy) return;
@@ -205,6 +254,9 @@ export function MentorshipRequests() {
     event.preventDefault();
     if (busy) return;
     const form = new FormData(event.currentTarget);
+    if (jobPost && documentMode.jd === "job") {
+      form.set("jd", new File([jobToJdText(jobPost)], jdFileName(jobPost.title), { type: "text/plain" }));
+    }
     for (const kind of ["cv", "jd"]) {
       if (form.get(`${kind}Source`)) continue;
       const file = form.get(kind);
@@ -223,7 +275,7 @@ export function MentorshipRequests() {
       const body = await createMentorshipRequest(form);
       navigate(`${base}/${body.request.id}`, {
         replace: true,
-        state: { returnTo: backTarget.to },
+        state: { returnTo: backTarget.to, title: body.request?.title },
       });
     } catch (e) {
       setError(e.message);
@@ -280,37 +332,44 @@ export function MentorshipRequests() {
     });
   }, [rows, sessionFilter, searchQuery]);
 
-  // Dynamic statistics
-  const stats = useMemo(() => {
-    const total = rows?.length || 0;
-    const withBudget = (rows || []).filter((r) => r.budget != null && r.budget > 0);
-    const avgBudget = withBudget.length
-      ? Math.round(withBudget.reduce((sum, r) => sum + r.budget, 0) / withBudget.length)
-      : null;
-
-    return {
-      openCount: total,
-      myOffers: scope === "mine" ? total : 0,
-      avgBudgetLabel: avgBudget ? `${(avgBudget / 1000).toLocaleString("vi-VN")}k` : "Linh hoạt",
-    };
-  }, [rows, scope]);
+  const mentorStats = useMemo(() => mentorRequestStats(summaryRows.open, summaryRows.mine), [summaryRows]);
 
   const content = (
     <div className={`mr-page ${mentor ? "mr-page-mentor" : ""} ${isNew ? "mr-page-new" : requestId ? "mr-page-detail" : ""}`}>
       {/* Top Header */}
       <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Link
-            to={backTarget.to}
-            className="mb-3.5 inline-flex items-center gap-2 text-xs font-semibold text-slate-400 transition hover:text-[#93f72b]"
-          >
-            <ArrowLeft size={14} />
-            {backTarget.label}
-          </Link>
+          {!isListView && backTarget ? (
+            <nav
+              aria-label="Đường dẫn điều hướng"
+              className="mb-3.5 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-400"
+            >
+              <Link
+                to={backTarget.to}
+                title={`Quay lại ${backTarget.label}`}
+                className="mr-breadcrumb-link"
+              >
+                {backTarget.label}
+              </Link>
+              {requestId && requestTitle ? (
+                <>
+                  <span className="text-slate-500" aria-hidden>
+                    /
+                  </span>
+                  <span
+                    className="max-w-[260px] truncate font-medium text-slate-200 sm:max-w-md"
+                    title={requestTitle}
+                  >
+                    {requestTitle}
+                  </span>
+                </>
+              ) : null}
+            </nav>
+          ) : null}
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.8)]" />
             <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#93f72b]">
-              {mentor ? "Không gian kết nối & đồng hành 1:1" : "Đồng hành cùng chuyên gia"}
+              {mentor ? "Kết nối 1:1 với mentee" : "Đồng hành cùng chuyên gia"}
             </span>
           </div>
           <h1 className="font-headline mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
@@ -320,11 +379,11 @@ export function MentorshipRequests() {
               </>
             ) : requestId ? (
               <>
-                Chi tiết <span className="text-[#93f72b]">yêu cầu hỗ trợ</span>
+                Chi tiết <span className="text-[#93f72b]">nhu cầu</span>
               </>
             ) : mentor ? (
               <>
-                Nhu cầu <span className="text-[#93f72b]">từ mentee</span>
+                Nhu cầu <span className="text-[#93f72b]">của mentee</span>
               </>
             ) : (
               <>
@@ -336,9 +395,11 @@ export function MentorshipRequests() {
             {isNew
               ? "Chia sẻ mục tiêu nghề nghiệp và đính kèm hồ sơ để nhận đề nghị từ Mentor chuyên gia."
               : requestId
-              ? "Xem chi tiết mục tiêu của mentee, hồ sơ đính kèm và gửi đề xuất thời gian hỗ trợ."
+              ? mentor
+                ? "Đọc mentee cần gì và tài liệu đính kèm. Nếu bạn giúp được, gửi đề nghị ở bên dưới."
+                : "Xem các đề nghị mentor gửi và chọn người phù hợp với bạn."
               : mentor
-              ? "Tìm kiếm yêu cầu tư vấn 1:1, phỏng vấn thử hoặc review CV phù hợp với chuyên môn của bạn."
+              ? "Mentee đăng nhu cầu cần hỗ trợ. Chọn nhu cầu hợp với chuyên môn của bạn và gửi đề nghị."
               : "Đăng nhu cầu, nhận đề xuất giải pháp và lựa chọn Mentor phù hợp nhất."}
           </p>
         </div>
@@ -405,23 +466,41 @@ export function MentorshipRequests() {
         )}
       </AnimatePresence>
 
-      {/* Loading Skeleton */}
-      {loading ? (
+      {/* Loading Skeleton: chỉ lần tải đầu. Đổi tab ở danh sách thì tải tại chỗ (xem khối Requests Grid). */}
+      {loading && !(isListView && listLoadedOnce.current) ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#140c24]/80 p-16 text-center backdrop-blur-xl">
           <div className="relative mb-4">
             <RefreshCw size={36} className="animate-spin text-[#93f72b]" />
             <div className="absolute inset-0 rounded-full blur-md bg-[#93f72b]/30" />
           </div>
-          <p className="text-sm font-semibold text-slate-300">Đang đồng bộ danh sách nhu cầu...</p>
-          <p className="mt-1 text-xs text-slate-500">Vui lòng chờ trong giây lát</p>
+          <p className="text-sm font-semibold text-slate-300">Đang tải danh sách nhu cầu…</p>
         </div>
       ) : isNew ? (
         /* Create Request View (Candidate only) */
-        <form className="mr-form mr-panel" onSubmit={submitNew}>
+        <form className="mr-form mr-panel" onSubmit={submitNew} key={jobPost?.id || "no-job"}>
+          {jobPost ? (
+            <div className="mr-job-link flex items-start gap-3 rounded-2xl border border-[#93f72b]/30 bg-[#93f72b]/10 p-4">
+              <Briefcase size={18} className="mt-0.5 shrink-0 text-[#93f72b]" />
+              <div className="min-w-0 text-sm">
+                <p className="font-bold text-white">
+                  Gắn với job: {jobPost.title}
+                  {jobPost.company?.name ? ` · ${jobPost.company.name}` : ""}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-300">
+                  Mentor thấy job này và dựa vào năng lực job yêu cầu để đề xuất lộ trình.
+                </p>
+              </div>
+              <input type="hidden" name="jobPostId" value={jobPost.id} />
+            </div>
+          ) : jobPostError ? (
+            <p className="mr-document-hint" role="alert">
+              {jobPostError} Yêu cầu sẽ được gửi không kèm job.
+            </p>
+          ) : null}
           <div className="mr-form-grid">
             <label>
               Vị trí ứng tuyển
-              <input name="position" required maxLength={160} placeholder="Ví dụ: Frontend Developer" />
+              <input name="position" required maxLength={160} defaultValue={jobPost?.title || ""} placeholder="Ví dụ: Frontend Developer" />
             </label>
             <label>
               Hình thức hỗ trợ
@@ -503,8 +582,23 @@ export function MentorshipRequests() {
                     >
                       Chọn {kind.toUpperCase()} đã lưu
                     </button>
+                    {kind === "jd" && jobPost ? (
+                      <button
+                        type="button"
+                        data-button-surface="none"
+                        aria-pressed={documentMode.jd === "job"}
+                        className={documentMode.jd === "job" ? "active" : ""}
+                        onClick={() => setDocumentMode((prev) => ({ ...prev, jd: "job" }))}
+                      >
+                        Lấy từ job
+                      </button>
+                    ) : null}
                   </div>
-                  {documentMode[kind] === "upload" ? (
+                  {kind === "jd" && jobPost && documentMode.jd === "job" ? (
+                    <p className="mr-document-hint">
+                      JD được tạo từ mô tả, kỹ năng và năng lực yêu cầu của job “{jobPost.title}”.
+                    </p>
+                  ) : documentMode[kind] === "upload" ? (
                     <label>
                       Tệp từ máy tính
                       <small className="mr-document-hint">PDF, DOC, DOCX, TXT · tối đa 5MB</small>
@@ -612,8 +706,21 @@ export function MentorshipRequests() {
                   <span aria-hidden className="text-slate-600">·</span>
                   <span className="text-[#93f72b] font-medium">{TYPES[request.sessionType]}</span>
                 </div>
+                {request.jobPost ? (
+                  <p className="mt-2 text-sm text-slate-300">
+                    Job mục tiêu:{" "}
+                    {request.jobPost.isOpen ? (
+                      <Link to={`/jobs/${request.jobPost.id}`} className="font-semibold text-[#93f72b] hover:underline">
+                        {request.jobPost.title}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-slate-200">{request.jobPost.title} (đã đóng)</span>
+                    )}
+                    {request.jobPost.company?.name ? ` · ${request.jobPost.company.name}` : ""}
+                  </p>
+                ) : null}
                 <div className="mr-detail-goal">
-                  <h3>{mentor ? "MỤC TIÊU MENTEE MUỐN ĐẠT ĐƯỢC" : "MỤC TIÊU CỦA BẠN"}</h3>
+                  <h3>{mentor ? "Mentee cần hỗ trợ gì" : "MỤC TIÊU CỦA BẠN"}</h3>
                   <p className="mr-description">{request.description}</p>
                 </div>
               </section>
@@ -623,7 +730,7 @@ export function MentorshipRequests() {
                 <div className="mr-section-heading">
                   <div>
                     <span className="mr-eyebrow">
-                      {mentor ? "CÁCH BẠN CÓ THỂ ĐỒNG HÀNH" : "CHỌN NGƯỜI PHÙ HỢP NHẤT VỚI MỤC TIÊU"}
+                      {mentor ? "Gửi cho mentee" : "CHỌN NGƯỜI PHÙ HỢP NHẤT VỚI MỤC TIÊU"}
                     </span>
                     <h2 className="text-xl font-bold text-white">
                       {mentor
@@ -701,11 +808,11 @@ export function MentorshipRequests() {
                   <div className="mr-empty">
                     <Users size={30} className="text-[#93f72b]" />
                     <h3 className="text-base font-bold text-white">
-                      {mentor ? "Bạn chưa gửi đề nghị hỗ trợ" : "Chưa có đề nghị nào từ Mentor"}
+                      {mentor ? "Bạn chưa gửi đề nghị" : "Chưa có đề nghị nào từ Mentor"}
                     </h3>
                     <p className="text-xs text-slate-400">
                       {mentor
-                        ? "Hãy giới thiệu chuyên môn và đề xuất khung giờ gặp phù hợp trong biểu mẫu bên dưới."
+                        ? "Điền form bên dưới: bạn giúp mentee được gì và rảnh lúc nào."
                         : "Các Mentor uy tín trên hệ thống đang xem xét yêu cầu và sẽ gửi đề nghị sớm nhất cho bạn."}
                     </p>
                     {!mentor && (
@@ -721,21 +828,21 @@ export function MentorshipRequests() {
                   <form className="mr-offer-form" onSubmit={submitOffer}>
                     <div className="flex items-center gap-2 mb-2">
                       <Send size={16} className="text-[#93f72b]" />
-                      <h3 className="text-base font-bold text-white">Gửi đề nghị hỗ trợ tới mentee</h3>
+                      <h3 className="text-base font-bold text-white">Gửi đề nghị</h3>
                     </div>
                     <label>
-                      Bạn có thể hỗ trợ mentee như thế nào?
+                      Bạn sẽ giúp mentee thế nào?
                       <textarea
                         name="message"
                         required
                         minLength={20}
                         maxLength={3000}
                         rows={4}
-                        placeholder="Nêu rõ chuyên môn phù hợp, lộ trình giải quyết vấn đề và giá trị cụ thể mentee sẽ nhận được sau buổi..."
+                        placeholder="Ví dụ: Mình làm Business Analyst 5 năm. Buổi này mình sẽ hỏi thử 5–6 câu hay gặp, góp ý cách trả lời và chỉ chỗ cần sửa trong CV."
                       />
                     </label>
                     <label>
-                      Thời gian bạn có thể gặp 1:1
+                      Bạn rảnh lúc nào?
                       <input
                         name="availability"
                         required
@@ -744,10 +851,10 @@ export function MentorshipRequests() {
                       />
                     </label>
                     <p className="mr-muted">
-                      Mức phí tham khảo lấy từ hồ sơ của bạn cho loại buổi này. Giá cuối cùng và ưu đãi hiển thị tại checkout; thời gian được chốt theo lịch trống. Một đề nghị tương ứng một buổi 60 phút.
+                      Mỗi đề nghị là 1 buổi 60 phút, phí lấy theo giá trong hồ sơ của bạn. Nếu mentee chọn bạn, họ sẽ đặt giờ theo lịch trống của bạn và thanh toán.
                     </p>
                     <button data-button-surface="none" className="mr-primary" disabled={busy}>
-                      {busy ? "Đang gửi đề nghị…" : "Gửi đề nghị hỗ trợ"}
+                      {busy ? "Đang gửi…" : "Gửi đề nghị"}
                       <ArrowRight size={16} />
                     </button>
                   </form>
@@ -756,7 +863,7 @@ export function MentorshipRequests() {
             </div>
 
             {/* Sidebar */}
-            <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu yêu cầu">
+            <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu của nhu cầu">
               {CHOSEN_STATUSES.includes(request.status) && chosen && (request.assessment || canScheduleAssessment) && (
                 <section className="mr-panel mr-detail-assessment">
                   <div className="mr-detail-section-label">
@@ -912,7 +1019,7 @@ export function MentorshipRequests() {
                     </dd>
                   </div>
                   <div>
-                    <dt>Hình thức</dt>
+                    <dt>{mentor ? "Loại hỗ trợ" : "Hình thức"}</dt>
                     <dd className="font-semibold text-[#93f72b]">{TYPES[request.sessionType]}</dd>
                   </div>
                 </dl>
@@ -956,7 +1063,7 @@ export function MentorshipRequests() {
                   )}
                   <p className="mr-detail-private">
                     <LockKeyhole size={13} className="text-[#93f72b]" />
-                    <span>Chỉ mentee và Mentor được chọn có quyền tải tài liệu này.</span>
+                    <span>Chỉ mentee và mentor được chọn mới tải được tài liệu này.</span>
                   </p>
                 </div>
               </section>
@@ -966,7 +1073,7 @@ export function MentorshipRequests() {
                   <MessageSquare size={16} className="text-[#93f72b]" />
                   <p>
                     {mentor
-                      ? "Đọc kỹ mục tiêu và đề xuất thời gian rõ ràng để mentee dễ dàng đưa ra quyết định."
+                      ? "Mẹo: nói rõ bạn giúp được gì và rảnh lúc nào, mentee sẽ dễ chọn bạn hơn."
                       : "Khi nhận được đề nghị, bạn có thể xem xét profile, lịch rảnh và chi phí trước khi quyết định chọn."}
                   </p>
                 </div>
@@ -1037,112 +1144,73 @@ export function MentorshipRequests() {
         <>
           {/* Bento KPI Summary Frames (Mentor only) */}
           {mentor && (
-            <MentorStatMiniGrid className="mb-8">
+            <MentorStatPanel className="mb-8">
               <MentorStatFrame
                 index={1}
-                value={rows.length}
+                value={mentorStats.openCount}
                 title="Nhu cầu đang mở"
-                subtitle="Mentee đang tìm kiếm mentor"
+                subtitle="Mentee đang tìm mentor"
                 cornerIcon={Briefcase}
                 accent="lime"
                 compact
               />
               <MentorStatFrame
                 index={2}
-                value={scope === "mine" ? rows.length : "Đang mở"}
-                title="Đề nghị của bạn"
-                subtitle="Chủ động kết nối với ứng viên"
+                value={mentorStats.waiting}
+                title="Đề nghị chờ phản hồi"
+                subtitle="Bạn đã gửi, mentee chưa chọn"
                 cornerIcon={Send}
                 accent="purple"
                 compact
               />
               <MentorStatFrame
                 index={3}
-                value="100%"
-                title="Tỷ lệ kết nối"
-                subtitle="Phản hồi trong 24 giờ"
-                cornerIcon={TrendingUp}
+                value={mentorStats.chosen}
+                title="Được mentee chọn"
+                subtitle="Đề nghị của bạn được nhận"
+                cornerIcon={CheckCircle2}
                 accent="purple"
                 compact
               />
-              <MentorStatFrame
-                index={4}
-                value={stats.avgBudgetLabel}
-                title="Ngân sách TB"
-                subtitle="Mức dự kiến từ mentee"
-                cornerIcon={Sparkles}
-                accent="purple"
-                compact
-              />
-            </MentorStatMiniGrid>
+            </MentorStatPanel>
           )}
 
-          {/* Filter & Search Toolbar */}
+          {/* Thanh lọc: hàng 1 = tab (mentor) + ô tìm kiếm; hàng 2 = biểu tượng lọc + loại hỗ trợ. Chữ không xuống dòng. */}
           <div className="mb-6 rounded-2xl border border-white/10 bg-[#160f26]/85 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              {/* Scope Tabs */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {mentor && (
-                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+                <div className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1" role="tablist" aria-label="Danh sách">
                   {[
-                    ["open", "Nhu cầu đang mở"],
-                    ["mine", "Đề nghị của tôi"],
-                  ].map(([val, label]) => {
+                    ["open", "Nhu cầu đang mở", summaryRows.open.length],
+                    ["mine", "Đề nghị của tôi", summaryRows.mine.length],
+                  ].map(([val, label, count]) => {
                     const active = scope === val;
                     return (
                       <button
                         key={val}
                         type="button"
+                        role="tab"
+                        aria-selected={active}
                         onClick={() => setScope(val)}
-                        className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                          active
-                            ? "bg-[#93f72b] text-slate-950 shadow-[0_0_16px_rgba(147,247,43,0.35)]"
-                            : "text-slate-400 hover:text-white"
+                        className={`inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-xs font-bold transition-colors ${
+                          active ? "bg-[#93f72b] text-slate-950" : "text-slate-400 hover:text-white"
                         }`}
                       >
                         {label}
-                        {active && (
-                          <span
-                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                              active ? "bg-slate-950/20 text-slate-950" : "bg-white/10 text-slate-400"
-                            }`}
-                          >
-                            {rows.length}
-                          </span>
-                        )}
+                        <span
+                          className={`min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-black tabular-nums ${
+                            active ? "bg-slate-950/15 text-slate-950" : "bg-white/10 text-slate-400"
+                          }`}
+                        >
+                          {count}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
               )}
 
-              {/* Session Type Filters */}
-              <div className="flex flex-wrap items-center gap-2">
-                {[
-                  ["all", "Tất cả hình thức"],
-                  ["mock_interview", "Phỏng vấn thử"],
-                  ["cv_review", "Review CV"],
-                  ["career_consulting", "Tư vấn nghề nghiệp"],
-                ].map(([key, label]) => {
-                  const active = sessionFilter === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setSessionFilter(key)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                        active
-                          ? "border border-[#93f72b]/50 bg-[#93f72b]/15 text-[#93f72b]"
-                          : "border border-white/5 bg-white/[0.02] text-slate-400 hover:border-white/15 hover:text-slate-200"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Search Box */}
-              <div className="relative min-w-[240px]">
+              <div className="relative w-full sm:max-w-xs">
                 <Search
                   size={14}
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1152,12 +1220,16 @@ export function MentorshipRequests() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm vị trí, từ khóa..."
-                  className="w-full rounded-xl border border-white/10 bg-[#120a20] py-2 pl-9 pr-8 text-xs text-white placeholder-slate-500 transition focus:border-[#93f72b] focus:outline-none"
+                  aria-label="Tìm nhu cầu"
+                  /* .mr-page input đặt padding 11px 14px (độ ưu tiên cao hơn pl-9) → chữ đè kính lúp; ghi đè bằng style. */
+                  style={{ paddingLeft: "2.25rem", paddingRight: "2rem", paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+                  className="w-full rounded-xl border border-white/10 bg-[#120a20] text-xs text-white placeholder-slate-500 transition focus:border-[#93f72b] focus:outline-none"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
+                    aria-label="Xóa tìm kiếm"
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                   >
                     <X size={13} />
@@ -1165,8 +1237,37 @@ export function MentorshipRequests() {
                 )}
               </div>
             </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+              <ListFilter size={15} className="mr-0.5 shrink-0 text-slate-500" aria-label="Lọc theo loại hỗ trợ" />
+              {[
+                ["all", "Tất cả"],
+                ["mock_interview", "Phỏng vấn thử"],
+                ["cv_review", "Review CV"],
+                ["career_consulting", "Tư vấn nghề nghiệp"],
+              ].map(([key, label]) => {
+                const active = sessionFilter === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setSessionFilter(key)}
+                    className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                      active
+                        ? "border border-[#93f72b]/50 bg-[#93f72b]/15 text-[#93f72b]"
+                        : "border border-white/10 bg-transparent text-slate-400 hover:border-white/20 hover:text-slate-200"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
+          {/* Đổi tab: giữ danh sách cũ (mờ) tại chỗ trong lúc tải, không thay cả trang bằng khung tải → không nhảy. */}
+          <div className={`transition-opacity duration-200 ${loading ? "pointer-events-none opacity-50" : ""}`} aria-busy={loading}>
           {/* Requests Grid */}
           {filteredRows.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -1178,7 +1279,7 @@ export function MentorshipRequests() {
                 return (
                   <Link
                     to={`${base}/${row.id}`}
-                    state={entryState}
+                    state={{ ...entryState, title: row.title }}
                     key={row.id}
                     className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 p-6 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-[#93f72b]/50 hover:shadow-[0_0_30px_rgba(147,247,43,0.15)]"
                   >
@@ -1248,7 +1349,7 @@ export function MentorshipRequests() {
                       <div className="mt-4 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5 text-xs font-bold text-[#93f72b] transition group-hover:border-[#93f72b]/30 group-hover:bg-[#93f72b]/10">
                         <span>
                           {mentor
-                            ? "Xem nhu cầu & Đề xuất hỗ trợ"
+                            ? scope === "mine" ? "Xem đề nghị của bạn" : "Xem chi tiết và gửi đề nghị"
                             : `${row.offerCount ?? 0} đề nghị từ Mentor`}
                         </span>
                         <ArrowRight
@@ -1273,21 +1374,21 @@ export function MentorshipRequests() {
 
               <h2 className="font-headline text-xl font-bold text-white">
                 {searchQuery || sessionFilter !== "all"
-                  ? "Không tìm thấy yêu cầu phù hợp"
+                  ? "Không có nhu cầu nào khớp bộ lọc"
                   : mentor
                   ? scope === "mine"
                     ? "Bạn chưa gửi đề nghị nào"
-                    : "Hiện chưa có nhu cầu mới từ mentee"
+                    : "Chưa có nhu cầu nào đang mở"
                   : "Bạn chưa đăng nhu cầu nào"}
               </h2>
 
               <p className="mt-2 max-w-md text-xs leading-relaxed text-slate-400">
                 {searchQuery || sessionFilter !== "all"
-                  ? "Thử thay đổi từ khóa tìm kiếm hoặc chọn 'Tất cả hình thức' để xem danh sách đầy đủ."
+                  ? "Thử từ khóa khác, hoặc chọn 'Tất cả' để xem hết."
                   : mentor
                   ? scope === "mine"
-                    ? "Chuyển sang tab 'Nhu cầu đang mở' để tìm các yêu cầu phù hợp với thế mạnh của bạn."
-                    : "Các yêu cầu tư vấn 1:1, phỏng vấn thử hoặc review CV từ mentee sẽ xuất hiện tại đây ngay khi được gửi lên."
+                    ? "Vào tab 'Nhu cầu đang mở', chọn một nhu cầu hợp với bạn và gửi đề nghị."
+                    : "Khi mentee đăng nhu cầu mới, nhu cầu sẽ hiện ở đây."
                   : "Hãy đính kèm CV, JD mục tiêu và mô tả ngắn để các chuyên gia phù hợp chủ động đề xuất hỗ trợ."}
               </p>
 
@@ -1310,7 +1411,7 @@ export function MentorshipRequests() {
                       onClick={() => setScope("open")}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-5 py-2.5 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
                     >
-                      Khám phá nhu cầu đang mở →
+                      Xem nhu cầu đang mở →
                     </button>
                   ) : (
                     <button
@@ -1335,6 +1436,7 @@ export function MentorshipRequests() {
               </div>
             </div>
           )}
+          </div>
         </>
       ) : null}
     </div>

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { AI_REPORT_TARGET_TYPES } from "../models/Report.js";
+import { MODERATOR_REPORT_TARGET_TYPES } from "../models/Report.js";
 import * as bookingsService from "../services/bookingsService.js";
 import * as paymentsService from "../services/paymentsService.js";
 import { tryCreditMentorForPaidEnrollment, tryCreditMentorForCompletedBooking } from "../services/mentorEarningsService.js";
@@ -8,7 +8,7 @@ import { runInTransaction } from "../helpers/dbHelper.js";
 
 import { PayoutRequest } from "../models/PayoutRequest.js";
 import { Enrollment } from "../models/Enrollment.js";
-import { InterviewSession } from "../models/InterviewSession.js";
+import { InterviewSession, EXCLUDE_ABANDONED_SESSIONS } from "../models/InterviewSession.js";
 import { Notification } from "../models/index.js";
 import { deliverNotification } from "../services/notificationDeliveryService.js";
 import { activateMentorCommissionPolicy } from "../services/mentorCommissionService.js";
@@ -19,8 +19,15 @@ import {
 } from "../services/courseStatsService.js";
 import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
-import { CVAnalysis } from "../models/CVAnalysis.js";
+import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
+import { closePrescreenItem } from "../services/coursePrescreenService.js";
+import {
+  bookingRevenueRow,
+  courseRevenueRow,
+  learningPathRevenueRows,
+  LEARNING_PATH_PAID_FILTER,
+} from "../services/revenueAnalyticsService.js";
 const User = mongoose.model("User");
 const Mentor = mongoose.model("Mentor");
 const Booking = mongoose.model("Booking");
@@ -67,12 +74,6 @@ function serializeSubscriptionPayment(p) {
         }
       : null,
   };
-}
-
-function safeFeeRate(raw, fallback) {
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n <= 0 || n > 1) return fallback;
-  return n;
 }
 
 function parseMonthRange(rawMonth) {
@@ -818,18 +819,9 @@ export const AdminController = {
         : bookingRows;
       const booking = bookingRowsFiltered.reduce(
         (acc, row) => {
-          // partial_refund: trừ phần đã hoàn cho học viên — chỉ tính phần tiền THỰC SỰ còn giữ lại
-          // (nền tảng + mentor), tránh Tổng thu/Lợi nhuận/Chia mentor bị thổi phồng bằng số tiền đã hoàn.
-          const rawGross = Number(row.totalAmount ?? row.price ?? 0);
-          const refunded = Number(row.cancelRefundAmountVnd) || 0;
-          const gross = Math.round(Math.max(0, rawGross - refunded));
-          const rate = safeFeeRate(row.platformFeeRate, Number(process.env.BOOKING_PLATFORM_FEE_RATE) || 0.3);
-          const rawFee = Number.isFinite(Number(row.platformFee))
-            ? Math.round(Number(row.platformFee))
-            : Math.round(gross * rate);
-          // Kẹp fee trong [0, gross] — sau khi trừ hoàn tiền, gross có thể nhỏ hơn fee gốc; không để
-          // platformRevenue vượt quá số tiền thực sự còn giữ lại (giữ đúng platformRevenue + mentorNet = gross).
-          const fee = Math.max(0, Math.min(gross, rawFee));
+          // partial_refund: chỉ tính phần tiền THỰC SỰ còn giữ lại; fee kẹp trong [0, gross].
+          // Dùng chung công thức với analytics doanh thu theo nguồn (N-08) để hai trang ra cùng một số.
+          const { gross, fee } = bookingRevenueRow(row);
           acc.grossCollected += gross;
           acc.platformRevenue += fee;
           acc.mentorNet += gross - fee;
@@ -851,14 +843,11 @@ export const AdminController = {
         : enrollmentRows;
       const course = enrollmentRowsFiltered.reduce(
         (acc, row) => {
-          const gross = Math.round(Number(row.pricePaid || 0));
-          const rate = safeFeeRate(row.platformFeeRate, Number(process.env.COURSE_PLATFORM_FEE_RATE) || 0.35);
-          const fee = Number.isFinite(Number(row.platformFee))
-            ? Math.round(Number(row.platformFee))
-            : Math.round(gross * rate);
+          // Enrollment cũ chưa ghi platformFee (mặc định null) tính theo tỉ lệ, không coi là phí 0 (N-08).
+          const { gross, fee } = courseRevenueRow(row);
           acc.grossCollected += gross;
-          acc.platformRevenue += Math.max(0, fee);
-          acc.mentorNet += Math.max(0, gross - fee);
+          acc.platformRevenue += fee;
+          acc.mentorNet += gross - fee;
           acc.count += 1;
           return acc;
         },
@@ -888,15 +877,39 @@ export const AdminController = {
         { grossCollected: 0, platformRevenue: 0, mentorNet: 0, count: 0 },
       );
 
+      // LP-16: lộ trình thu trọn gói qua Payment `learning_path`; booking lộ trình đã bị loại ở trên nên không cộng trùng.
+      // Cùng công thức với analytics doanh thu theo nguồn (N-08): gross = tiền giữ lại, phí = phí các buổi gốc.
+      const lpPaymentRows = await Payment.find(LEARNING_PATH_PAID_FILTER)
+        .select("userId amount refundAmount referenceId paidAt createdAt")
+        .lean();
+      const lpPaymentRowsFiltered = monthRange
+        ? lpPaymentRows.filter((row) => {
+            const t = row.paidAt ? new Date(row.paidAt) : new Date(row.createdAt);
+            const ms = t.getTime();
+            return ms >= monthRange.start.getTime() && ms < monthRange.end.getTime();
+          })
+        : lpPaymentRows;
+      const learningPath = (await learningPathRevenueRows(lpPaymentRowsFiltered)).reduce(
+        (acc, { gross, fee }) => {
+          acc.grossCollected += gross;
+          acc.platformRevenue += fee;
+          acc.mentorNet += gross - fee;
+          acc.count += 1;
+          return acc;
+        },
+        { grossCollected: 0, platformRevenue: 0, mentorNet: 0, count: 0 },
+      );
+
       const paidCustomerIds = new Set();
       for (const row of bookingRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
       for (const row of enrollmentRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
       for (const row of subscriptionRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
+      for (const row of lpPaymentRowsFiltered) if (row.userId) paidCustomerIds.add(String(row.userId));
 
       const totals = {
-        grossCollected: booking.grossCollected + course.grossCollected + subscription.grossCollected,
-        platformRevenue: booking.platformRevenue + course.platformRevenue + subscription.platformRevenue,
-        mentorNet: booking.mentorNet + course.mentorNet + subscription.mentorNet,
+        grossCollected: booking.grossCollected + course.grossCollected + subscription.grossCollected + learningPath.grossCollected,
+        platformRevenue: booking.platformRevenue + course.platformRevenue + subscription.platformRevenue + learningPath.platformRevenue,
+        mentorNet: booking.mentorNet + course.mentorNet + subscription.mentorNet + learningPath.mentorNet,
         paidCustomerCount: paidCustomerIds.size,
       };
 
@@ -914,6 +927,7 @@ export const AdminController = {
           booking,
           course,
           subscription,
+          learningPath,
         },
       });
     } catch (error) {
@@ -1028,11 +1042,12 @@ export const AdminController = {
         fewShotReadyCount,
         freeInterviewUserIds,
       ] = await Promise.all([
-        InterviewSession.countDocuments(),
-        CVAnalysis.countDocuments(),
+        // N-07: buổi bỏ dở (abandoned) không tính; N-11: không đếm lần phân tích CV đang chạy / lỗi.
+        InterviewSession.countDocuments(EXCLUDE_ABANDONED_SESSIONS),
+        CVAnalysis.countDocuments(CV_ANALYSIS_DONE_FILTER),
         Course.countDocuments({ status: "published" }),
         InterviewSession.countDocuments({ status: "completed" }),
-        InterviewSession.countDocuments({ createdAt: { $gte: since7d } }),
+        InterviewSession.countDocuments({ ...EXCLUDE_ABANDONED_SESSIONS, createdAt: { $gte: since7d } }),
         InterviewSession.countDocuments({ status: "completed", createdAt: { $gte: since7d } }),
         InterviewSession.aggregate([
           {
@@ -1285,6 +1300,7 @@ export const AdminController = {
       course.publishedAt = new Date();
       course.adminReview = { reason: "", reviewedAt: null, reviewedBy: null, lastAction: "" };
       await course.save();
+      await closePrescreenItem(course._id, { decision: "approve", moderatorId: req.userId });
       res.json({ success: true, course: serializePendingCourseForAdmin(course) });
     } catch (error) {
       next(error);
@@ -1327,6 +1343,7 @@ export const AdminController = {
         lastAction: "reject",
       };
       await course.save();
+      await closePrescreenItem(course._id, { decision: "reject", moderatorId: req.userId, note: reason });
 
       const mentorUserId = course.mentorId?.userId?._id || course.mentorId?.userId;
       if (mentorUserId) {
@@ -1513,7 +1530,7 @@ export const AdminController = {
         Enrollment.countDocuments({ paymentStatus: "paid" }),
         Course.countDocuments({ status: "published" }),
         Course.countDocuments({ status: { $in: ["pending_review", "pending_update"] } }),
-        Report.countDocuments({ status: { $in: ["pending", "reviewing"] }, targetType: { $nin: AI_REPORT_TARGET_TYPES } }),
+        Report.countDocuments({ status: { $in: ["pending", "reviewing"] }, targetType: { $nin: MODERATOR_REPORT_TARGET_TYPES } }),
         Booking.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
       ]);
 
@@ -1721,9 +1738,9 @@ export const AdminController = {
           }},
         ]),
 
-        // Daily session count — last 7 days
+        // Daily session count — last 7 days (N-07: bỏ buổi abandoned)
         InterviewSession.aggregate([
-          { $match: { createdAt: { $gte: since } } },
+          { $match: { ...EXCLUDE_ABANDONED_SESSIONS, createdAt: { $gte: since } } },
           { $group: {
             _id:   { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
             count: { $sum: 1 },
@@ -1752,8 +1769,8 @@ export const AdminController = {
           "feedback.overallScore": { $gte: 80 },
         }),
 
-        // All-time total
-        InterviewSession.countDocuments(),
+        // All-time total (N-07: bỏ buổi abandoned)
+        InterviewSession.countDocuments(EXCLUDE_ABANDONED_SESSIONS),
       ]);
 
       res.json({
@@ -1935,5 +1952,22 @@ export function serializePendingCourseForAdmin(course) {
           lastAction: doc.adminReview.lastAction || "",
         }
       : null,
+    aiPrescreen: publicPrescreen(doc.aiPrescreen),
+  };
+}
+
+/** AI-08: kết quả sàng lọc cho Platform Moderator (bỏ `contentHash` nội bộ). */
+export function publicPrescreen(p) {
+  if (!p) return null;
+  return {
+    status: p.status,
+    score: p.score ?? null,
+    summary: p.summary || "",
+    flags: p.flags ?? [],
+    target: p.target || "course",
+    model: p.model || "",
+    promptVersion: p.promptVersion || "",
+    error: p.error || "",
+    at: p.at ?? null,
   };
 }

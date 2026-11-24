@@ -25,6 +25,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { getUser } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import { AppSelect } from "../../components/ui/AppSelect";
 import {
@@ -470,16 +471,21 @@ export function MentorMeetingDetail() {
   return (
     <MentorPageShell bottomPad="pb-32" extraStyles={MENTOR_MEETING_DETAIL_EXTRA_CSS}>
       <div className="relative z-10 mx-auto max-w-7xl px-10 pb-10">
-        {/* Header Navigation */}
-        <div className="mb-16 flex items-center justify-end">
-           <DropdownMenu>
+        {/* Unified Mentor Header */}
+        <MentorPageHeader
+          backTo="/mentor/schedule"
+          backLabel="Quay lại Lịch làm việc"
+          title={isCompleted ? "Báo cáo chi tiết" : "Sẵn sàng phỏng vấn"}
+          highlight={isCompleted ? "buổi Mentor" : "cùng Mentee"}
+          actions={
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   aria-label="Thao tác buổi hẹn"
-                  className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-zinc-500 transition-all hover:bg-slate-100 hover:text-slate-900"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-all hover:bg-white/10 hover:text-white"
                 >
-                  <MoreVertical size={20} />
+                  <MoreVertical size={18} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[220px]">
@@ -526,8 +532,9 @@ export function MentorMeetingDetail() {
                   </>
                 )}
               </DropdownMenuContent>
-           </DropdownMenu>
-        </div>
+            </DropdownMenu>
+          }
+        />
 
         {showCompleteReminder ? (
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4">
@@ -561,34 +568,34 @@ export function MentorMeetingDetail() {
                  </div>
                  <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-8">
-                       <span className={`rounded-full px-4 py-1.5 text-xs font-normal ${isCompleted ? "border border-primary-fixed/20 bg-primary-fixed/20 text-violet-700" : "border border-orange-500/20 bg-orange-500/20 text-orange-600"}`}>
+                       <span className={`rounded-full px-4 py-1.5 text-xs font-semibold ${isCompleted ? "border border-violet-500/30 bg-violet-500/20 text-violet-300" : "border border-orange-500/30 bg-orange-500/20 text-orange-300"}`}>
                           {isCompleted ? "Đã hoàn thành" : "Sắp diễn ra"}
                        </span>
-                       <span className="flex items-center gap-2 text-xs font-normal text-zinc-500">
+                       <span className="flex items-center gap-2 text-xs font-medium text-slate-400">
                          <Layout size={14} /> {meetingTypeLabel}
                        </span>
                     </div>
-                    <h1 className="mb-6 max-w-2xl font-headline text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-3xl">
+                    <h2 className="mb-6 max-w-2xl font-headline text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl">
                        {isCompleted ? 'Báo cáo chi tiết buổi Mentor' : 'Sẵn sàng phỏng vấn cùng Mentee'}
-                    </h1>
+                    </h2>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-10">
                        <div className="space-y-2">
-                          <p className="text-xs font-normal text-zinc-500">Thời gian bắt đầu</p>
-                          <p className="text-xl font-black text-slate-900 flex items-center gap-3">
-                             <Clock size={20} className="text-violet-700" /> {meeting.scheduledTime}
+                          <p className="text-xs font-medium text-slate-400">Thời gian bắt đầu</p>
+                          <p className="text-xl font-black text-white flex items-center gap-3">
+                             <Clock size={20} className="text-violet-400" /> {meeting.scheduledTime}
                           </p>
                        </div>
                        <div className="space-y-2">
-                          <p className="text-xs font-normal text-zinc-500">Ngày diễn ra</p>
-                          <p className="text-xl font-black text-slate-900 flex items-center gap-3">
-                            <Calendar size={20} className="text-violet-700" /> {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
+                          <p className="text-xs font-medium text-slate-400">Ngày diễn ra</p>
+                          <p className="text-xl font-black text-white flex items-center gap-3">
+                            <Calendar size={20} className="text-violet-400" /> {formatMeetingDate(meeting.scheduledDate, meeting.scheduledTime)}
                           </p>
                        </div>
                        <div className="space-y-2">
-                          <p className="text-xs font-normal text-zinc-500">Thời lượng</p>
-                          <p className="text-xl font-black text-slate-900 flex items-center gap-3">
-                             <ShieldCheck size={20} className="text-violet-700" /> {meeting.duration} phút
+                          <p className="text-xs font-medium text-slate-400">Thời lượng</p>
+                          <p className="text-xl font-black text-white flex items-center gap-3">
+                             <ShieldCheck size={20} className="text-violet-400" /> {meeting.duration} phút
                           </p>
                        </div>
                     </div>

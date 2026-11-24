@@ -6,7 +6,7 @@ const SecurityLogSchema = new mongoose.Schema(
     sessionId: { type: String, index: true },
     type: {
       type: String,
-      enum: ["prompt_injection_attempt", "rate_limit_hit", "suspicious_output", "admin_action"],
+      enum: ["prompt_injection_attempt", "rate_limit_hit", "suspicious_output", "admin_action", "moderator_action", "company_moderator_action", "mentor_action"],
       required: true,
     },
     details:   { type: Object, default: {} },

@@ -83,6 +83,22 @@ const candidateProfileSchema = new Schema(
       type: Date,
       default: null,
     },
+    /**
+     * JB-20: tối đa 5 job ứng viên xem gần nhất (mới nhất trước), ghi khi gọi `GET /api/jobs/:id`.
+     * Dùng cho thẻ "Luyện theo job bạn quan tâm gần đây" trước phòng phỏng vấn AI (JB-21).
+     */
+    recentJobViews: {
+      type: [
+        new Schema(
+          {
+            jobPostId: { type: Schema.Types.ObjectId, ref: "JobPost", required: true },
+            viewedAt: { type: Date, default: Date.now },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,

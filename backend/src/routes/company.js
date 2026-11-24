@@ -1,14 +1,17 @@
 import { Router } from "express";
 import { authJwt } from "../middleware/authJwt.js";
 import { requireCompanyModerator } from "../middleware/requireCompanyModerator.js";
+import { companyModeratorAuditLog } from "../middleware/adminAuditLog.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
+import { companyQuestionGenLimiter } from "../middleware/rateLimiters.js";
 import { CompanyWorkspaceController } from "../controllers/companyWorkspaceController.js";
 import { CompanyJobsController } from "../controllers/companyJobsController.js";
 
 export const companyRouter = Router();
 
-// Mọi route ở đây bắt buộc qua authJwt và requireCompanyModerator (CO-03)
-companyRouter.use(authJwt, requireCompanyModerator);
+// Mọi route ở đây bắt buộc qua authJwt và requireCompanyModerator (CO-03).
+// Thao tác ghi (POST/PATCH/...) được ghi vào nhật ký `company_moderator_action`, xem ở /admin/audit-log.
+companyRouter.use(authJwt, requireCompanyModerator, companyModeratorAuditLog);
 
 // Thông tin công ty & Dashboard tóm tắt
 companyRouter.get("/profile", asyncHandler(CompanyWorkspaceController.getProfile));
@@ -17,7 +20,8 @@ companyRouter.get("/dashboard", asyncHandler(CompanyWorkspaceController.getDashb
 // CO-05: Quản lý ngân hàng câu hỏi công ty
 companyRouter.get("/questions", asyncHandler(CompanyWorkspaceController.listQuestions));
 companyRouter.post("/questions", asyncHandler(CompanyWorkspaceController.createQuestion));
-companyRouter.post("/questions/generate-starter", asyncHandler(CompanyWorkspaceController.generateStarterQuestions));
+companyRouter.post("/questions/generate", companyQuestionGenLimiter, asyncHandler(CompanyWorkspaceController.generateQuestions));
+companyRouter.post("/questions/upload", asyncHandler(CompanyWorkspaceController.uploadQuestions));
 companyRouter.post("/questions/batch-approve", asyncHandler(CompanyWorkspaceController.batchApproveQuestions));
 companyRouter.post("/questions/batch-reject", asyncHandler(CompanyWorkspaceController.batchRejectQuestions));
 companyRouter.patch("/questions/:id", asyncHandler(CompanyWorkspaceController.editQuestion));

@@ -35,12 +35,16 @@ npm run seed:samples           # mentor + khóa học mẫu
 npm run sync:mentor-profiles   # đồng bộ Mentor với User role mentor
 npm run db:prune-fake-mentors  # xóa Mentor không có User tương ứng
 npm run warmup:baseline-videos # làm nóng cache video 3 câu baseline
+npm run warmup:company-videos:dry  # đếm câu công ty đã duyệt cần render video (CO-06, không render)
+npm run warmup:company-videos      # render video câu công ty đã duyệt × 2 giới tính; chạy lại sau khi đổi provider video (AI-15)
 npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (không ghi DB)
 npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
 npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)
 npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần trên production sau khi merge
+npm run db:migrate-enterprise-role:dry  # N-03: đếm user role cũ `enterprise` (không ghi DB); production: đặt TARGET_MONGO_URI
+npm run db:migrate-enterprise-role      # N-03: đổi `enterprise` → `company_moderator`; chạy lại được
 npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
-npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1 + chuỗi cũ legacy; chạy lại được
+npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08)
 node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy
 npm test                       # node:test + jest DTO + unittest Python
 ```
@@ -108,6 +112,8 @@ SLACK_ALERT_WEBHOOK_URL=<https://hooks.slack.com/...>   # thiếu → alert ch�
 # Ngưỡng Slack theo ngày (UTC) cho CostEvent rubric_scoring / course_prescreen (AI-12); mặc định $2·300 lần / $1·50 lần
 COST_ALERT_RUBRIC_SCORING_DAILY_USD=  COST_ALERT_RUBRIC_SCORING_DAILY_COUNT=
 COST_ALERT_COURSE_PRESCREEN_DAILY_USD=  COST_ALERT_COURSE_PRESCREEN_DAILY_COUNT=
+LLM_PRESCREEN_MODEL=  ANTHROPIC_PRESCREEN_MODEL=   # model rẻ cho AI sàng lọc khóa học (AI-08); trống → LLM_MODEL / claude-haiku-4-5
+AI_IMPROVEMENT_MIN_EVIDENCE=   # số lượt kiểm duyệt cùng nhóm để miner tạo đề xuất cải tiến AI (AI-03), mặc định 5
 ```
 
 Lời gọi LLM cho chấm rubric (JB-07) hoặc sàng lọc khóa (AI-08) truyền `costKind: COST_EVENT_KIND.RUBRIC_SCORING` / `COURSE_PRESCREEN` vào `logGeneration()` (`constants/costEventKinds.js`). Kind không có trong danh sách bị ledger bỏ qua (log `cost_ledger_unknown_kind`).
@@ -129,7 +135,7 @@ VITE_GOOGLE_CLIENT_ID=<giống backend>
 
 ### Entry points
 
-- **`server.js`** — load env → kiểm tra env bắt buộc → Sentry → kết nối MongoDB → tự seed demo (chỉ dev) → bật 4 job → `listen(PORT)`.
+- **`server.js`** — load env → kiểm tra env bắt buộc → Sentry → kết nối MongoDB → tự seed demo (chỉ dev) → bật 5 job → `listen(PORT)`.
 - **`app.js`** — `createApp()`: helmet, hpp, `sanitizeObjectKeys`, rate limit `/api`, CORS, `GET /api/health`, mount router.
 
 ### Pattern
@@ -148,21 +154,21 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Mentor & đặt lịch | `/api/mentors`, `/api/mentor` (khu vực mentor), `/api/bookings`, `/api/mentorship-requests`, `/api/learning-paths` (capstone), `/api/reviews`, `/api/reports` |
 | Công ty & tuyển dụng (capstone) | `/api/company` (Company Mod: câu hỏi, rubric, `jobs`), `/api/company-invites`, `/api/jobs` (công khai, JB-03), `/api/role-categories` (nhóm vị trí từ `config/roleCategories.json`), `/api/profile`, `/api/cvs` |
 | Khóa học & bán hàng | `/api/courses`, `/api/enrollments`, `/api/cart`, `/api/coupons`, `/api/plans`, `/api/payments` |
-| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01) |
+| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01), `/api/recommendations` (gợi ý mentor/khóa/job, AI-10) |
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
-`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
+`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-### Models (`models/`) — 37 schema
+### Models (`models/`) — 38 schema
 
-`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`, `Company`, `CompanyInvite`, `CompanyRubric`, `CandidateProfile`, `CVDocument`, `JobPost`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`, `Company`, `CompanyInvite`, `CompanyRubric`, `CandidateProfile`, `CVDocument`, `JobPost`, `AIImprovementProposal`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
 Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 
 ### Jobs (`jobs/`)
 
-`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob`.
+`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob` · `aiImprovementMinerJob` (mỗi ngày: gom ModerationItem đã xử lý thành đề xuất cải tiến AI + PromptVersion chưa bật, AI-03).
 
 ### Middleware
 
@@ -211,15 +217,15 @@ utils/        theo domain: auth/ (auth.js — authFetch, token; requireAuthLoade
 |:-----|:----------|:-------|
 | Công khai (`AppLayout`) | `/`, `/mentors`, `/mentors/:id`, `/courses`, `/courses/:id`, `/pricing`, `/about`, `/blog`, `/achievements`, `/terms`, `/privacy`, `/cv-analysis/*`, `/interview` | `/` chuyển mentor/admin/moderator về khu vực riêng (`roleHomeLoader`) |
 | Phỏng vấn | `/interview/room`, `/interview/feedback`, `/interview/trial`, `/interview/trial/done` | `requireCustomerAuthLoader` |
-| Ứng viên | `/dashboard`, `/my-bookings`, `/mentor-requests`, `/my-courses`, `/payment-history`, `/cart`, `/booking/:id`, `/session/:id`, `/review/:sessionId`, `/profile`, `/settings` | `requireAuthLoader` + `ProtectedOutlet` |
+| Ứng viên | `/dashboard`, `/my-bookings`, `/mentor-requests`, `/learning-paths`, `/learning-paths/:id` (LP-19), `/my-courses`, `/payment-history`, `/cart`, `/booking/:id`, `/session/:id`, `/review/:sessionId`, `/profile`, `/settings`, `/cvs` (PR-11), `/cvs/:id/edit` (PR-13) | `requireAuthLoader` + `ProtectedOutlet` |
 | Mentor (`MentorArea`) | `/mentor/dashboard`, `schedule`, `requests`, `learning-paths`, `learning-paths/new`, `learning-paths/:pathId/edit`, `finance`, `analytics`, `reviews`, `courses`, `courses/:id/edit`, `peer-review`, `meeting-detail/:id`; `/mentor/session-feedback/:sessionId` | như trên |
 | Toàn màn hình | `/checkout`, `/courses/:id/learn`, `/meeting/:sessionId`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, `/payment-*` | tùy trang |
 | Admin | `/admin`, `users`, `users/:id`, `mentors`, `mentors/pending`, `mentors/:id`, `bookings`, `bookings/check-ins`, `bookings/:id`, `finance`, `finance/operations`, `transactions`, `payouts`, `course-payments`, `subscription-payments`, `learning-path-payments`, `audit-log`, `analytics`, `content/questions`, `reviews`, `support`, `achievements`, `settings` | `adminLoader` |
-| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `quality`, `courses` | `createRoleLoader("moderator")` |
+| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `company-questions` (CO-16), `job-reports` (JB-17), `rubrics`, `quality`, `courses` | `createRoleLoader("moderator")` |
 
 Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transactions`, `payouts`, `content/questions`, `settings`) đều gọi API thật; tên file là di sản cũ.
 
-⚠️ `/admin/analytics`, `/admin/users`, `/admin/users/:id`, `/admin/content/questions` và `components/admin/UserJourneyPanel.jsx` đang **bơm số liệu giả ở trình duyệt** qua `utils/analytics/mock*.js`. Không dùng các hàm này cho màn mới; gỡ ở task N-09.
+Các trang admin `/admin/analytics`, `/admin/users`, `/admin/users/:id`, `/admin/content/questions` và `UserJourneyPanel.jsx` hiển thị đúng số từ API (N-09 đã gỡ lớp bơm số liệu giả `utils/analytics/mock*.js`). `/admin/analytics` có mục doanh thu theo nguồn (`GET /api/admin/analytics/revenue`, N-08).
 
 ---
 
@@ -230,6 +236,7 @@ Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transac
 - Lịch sử/quota: `api/cvApi.js` → `GET/POST/DELETE /api/cv/analyses`, `GET /api/cv/quota`.
 - Phân tích: `POST /api/cv/analyze`, `/analyze/full`, `/analyze/suggestions`, `/analyze/field` (`cvMatch.js` proxy sang Python qua `CV_ANALYZER_URL`). Thiếu/sai → `503`.
 - Chế độ "theo lĩnh vực" tự rơi về `data/cvFieldAnalysisMock.js` khi API lỗi (ghi `fallbackTriggered`).
+- Một lần phân tích = một bản ghi `CVAnalysis` (N-11): `/api/cv/analyze*` mở bản ghi `processing` trước khi gọi Python, ghi `completed` (trừ 1 lượt, `quotaCharged`) hoặc `failed`, trả `analysisId`; FE gửi lại `analysisId` ở bậc thử sau và khi `POST /api/cv/analyses`. Đếm hoặc liệt kê phân tích thì trải `CV_ANALYSIS_DONE_FILTER` (`models/CVAnalysis.js`) để bỏ bản ghi đang chạy hoặc lỗi.
 
 ### D-ID / ElevenLabs / Cloudinary — Avatar phỏng vấn
 
@@ -305,7 +312,7 @@ Nguồn sự thật: `backend/src/constants/planCatalog.js`.
 
 ## Capstone FA26 (GFA26SE160) — kế hoạch và quy ước
 
-Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi code một tính năng mới, đọc:
+Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REGISTRATION_V3.md`). Trước khi code một tính năng mới, đọc:
 
 - **[docs/capstone/TASKS.md](docs/capstone/TASKS.md)**: 107 task, người phụ trách, phụ thuộc, điều kiện "Xong khi", cổng giai đoạn, Definition of Done.
 - **[docs/capstone/DECISIONS.md](docs/capstone/DECISIONS.md)**: 14 quyết định đã chốt, công thức chia tiền lộ trình, state machine mới, ánh xạ tên role.
@@ -314,7 +321,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 ### Quy ước
 
 - **Mã task**: `N` nền tảng · `LP` Learning Path · `CO` Company/Rubric · `PR` Profile/CV · `JB` Job Post/Ứng tuyển · `AI` vòng AI · `QA` · `DOC`. Nhánh `feat/<mã>-<tên-ngắn>`, tên PR mở đầu bằng mã task.
-- **Tên role**: code giữ `customer` và `moderator`; UI hiển thị Candidate, Platform Moderator. Role `enterprise` được đổi thành `company_moderator` (task N-02). Chữ `enterprise` trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role, không đổi.
+- **Tên role**: code giữ `customer` và `moderator`; UI hiển thị Candidate, Platform Moderator, Company Moderator qua `roleLabel()` trong `frontend/src/app/utils/auth/roleLabels.js` (N-13); không in thẳng `user.role` ra giao diện. Role `enterprise` được đổi thành `company_moderator` (task N-02). Chữ `enterprise` trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role, không đổi.
 - **Tái dùng, không dựng song song**: Booking cho mọi buổi gặp; đường ray chuyển khoản + SePay cho mọi khoản thu; mở rộng router có sẵn (`/api/mentorship-requests`, không tạo `/api/mentor-requests`).
 - Thêm loại thông báo mới thì thêm vào `NOTIFICATION_TYPE_GROUPS` (`models/Notification.js`) trước, nếu không Mongoose từ chối bản ghi và `deliverNotification` chỉ log lỗi. Ref mới trong `metadata` cũng phải khai báo (sub-document strict). FE chọn icon theo tiền tố trong `utils/shared/notificationKind.js`.
 
@@ -327,17 +334,16 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 | `controllers/adminController.js` `getPlatformFinanceSummary` | Cộng mọi booking `paid` vào doanh thu | Đã loại booking lộ trình và buổi 0đ bằng `EXCLUDE_LEARNING_PATH_BOOKINGS` (LP-04); báo cáo doanh thu booking mới cũng phải loại như vậy |
 | `jobs/bookingStaleSweepJob.js` | Hủy mọi booking `pending` chưa trả tiền đã qua giờ bắt đầu | Booking không cần thanh toán riêng phải tạo với `paymentStatus: "paid"` |
 | `services/bookingsService.js` (`cancelMyBooking`, `cancelMentorBooking`, `processBookingNoShow`, `resolveMentorCancelBooking`) | Booking `paid` bị hoàn tiền / sinh rebook credit theo từng buổi | Đã chặn ở LP-22: `isLearningPathOrAssessmentBooking()` → `closeLearningPathOrAssessmentBooking()` (không hoàn tiền, không credit, buổi lộ trình quay về `planned`). Luồng hủy/hoàn tiền mới cũng phải kiểm tra hàm này |
-| `LearningPathSession` + Booking lộ trình (LP-12) | Tạo Booking lộ trình bằng tay (seed, task khác) dễ quên gắn `learningPathSessionId`, quên giữ buổi, hoặc mở buổi khi buổi trước chưa đạt | Đặt lịch qua `scheduleLearningPathSession` (`services/learningPathSessionsService.js`); buổi nào đang mở tính bằng `findSchedulableSession` (`utils/learningPathSchedule.js`). Buổi `planned` tạo ra (học lại, buổi bổ sung) **mở đặt lịch ngay** nếu là lần học mới nhất của `order` đó |
+| `LearningPathSession` + Booking lộ trình (LP-12) | Tạo Booking lộ trình bằng tay (seed, task khác) dễ quên gắn `learningPathSessionId`, quên giữ buổi, hoặc mở buổi khi buổi trước chưa đạt | Đặt lịch qua `scheduleLearningPathSession` (`services/learningPathSessionsService.js`); buổi nào đang mở tính bằng `findSchedulableSession` (`utils/learningPathSchedule.js`). Buổi `planned` tạo ra (học lại) **mở đặt lịch ngay** nếu là lần học mới nhất của `order` đó; buổi bổ sung có phí phải tạo ở `pending_payment` (LP-13). Ghi kết quả buổi qua `recordLearningPathSessionOutcome`, không sửa `outcome` bằng tay |
 | Booking của ứng viên (mọi luồng tạo / dời giờ) | Unique index `mentorId + date + timeSlot` chỉ chặn trùng **cùng mentor, cùng giờ bắt đầu**; ứng viên vẫn đặt được 2 mentor chồng giờ, hoặc 19:00 và 19:30 | Gọi `findCandidateBookingConflict` (`services/bookingConflictService.js`) trước khi tạo hoặc đổi giờ booking; trả `candidateConflictMessage` cho ứng viên, `MENTEE_BUSY_MESSAGE` cho mentor (không lộ lịch). Luồng tạo booking mới cũng phải gọi. Test tạo nhiều buổi cho cùng ứng viên phải cách nhau ≥ thời lượng buổi |
 | `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription, learning_path (LP-10); `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng, thêm vào `TRANSFER_REFERENCE_MODELS` (`paymentsService.js`), `PAYMENT_TYPES` (`Payment.js`), `SEPAY_ENTITY_TYPES` (`SepayWebhookEvent.js`), và sinh mã bằng `generatePiOrderRef()` (`utils/orderRef.js`). Mẫu đầy đủ: `services/learningPathPaymentService.js` |
 | `services/mentorshipRequestsService.js` `resolveRequestBooking` | Trước LP-05 chỉ cho tạo booking khi `request.status === "selected"` | Đã sửa ở LP-05: dùng `REQUEST_MENTOR_CHOSEN_STATUSES` (`selected`, `assessing`, `path_proposed`). Thêm status mới sau khi chọn mentor thì thêm vào hằng số này |
-| `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |
-| `services/moderationQueueService.js:39, :83` | `createItemForReport` map mọi `targetType` khác thành `evaluation_report`; danh sách hàng đợi không lọc `type` | Loại mới cần map riêng; hàng đợi HITL chỉ lấy 3 loại phỏng vấn |
+| `controllers/interviewsController.js` `generateFollowUpQuestions` | Trước JB-06 trả `alreadyGenerated` khi `questions.length >= 5` và trả `questions.slice(3)` | Đã sửa ở JB-06: buổi có câu doanh nghiệp có 5 câu từ đầu; xét và trả câu follow-up qua `followUpQuestionsOf()` (theo `questions[].source`). Code mới đọc câu theo vị trí phải dùng `source`, không giả định "3 baseline + 2 follow-up" |
+| `services/moderationQueueService.js` (`createItemForReport`, `listQueue`, `getQueueItem`, `claimItem`, `resolveItem`) | Đã sửa ở JB-04: `createItemForReport` chỉ nhận report AI (loại khác ném lỗi, trước đây thành `evaluation_report`). Hàng đợi mặc định và KPI hàng đợi chỉ lấy `HITL_QUEUE_TYPES` (3 loại phỏng vấn, AI-08); xem / nhận / xử lý và lọc `type` rõ ràng dùng `QUEUE_ITEM_TYPES` (thêm `job_post_report`, JB-04); `course_prescreen` (AI-08) không đi qua hàng đợi | Loại item mới tạo ở service riêng (mẫu: `jobPostModerationService.js`), thêm vào `MODERATION_ITEM_TYPES`, và quyết định có thêm vào `QUEUE_ITEM_TYPES` không; trang support admin lọc theo `MODERATOR_REPORT_TARGET_TYPES` |
 | `models/QuestionBank.js` | `orgId` đang `ref: "Organization"` (model không tồn tại); `status` đã có `draft`, `rejected`; `roleCategory` đã có index | Đổi ref sang `"Company"`; dùng lại field có sẵn, không thêm field mới |
-| `frontend/src/app/utils/analytics/mock*.js` | 4 trang admin + `UserJourneyPanel.jsx` bơm số liệu giả ở trình duyệt | Không dùng cho màn mới; gỡ ở N-09 |
 | `config/roleCategories.json` | Trước 22/11/2026 mỗi nơi tự đặt `roleCategory` (phỏng vấn AI dùng key của `ROLE_COMPETENCY_MAP`, khu công ty dùng danh sách riêng ở FE) nên câu hỏi, rubric, job không khớp nhau | BE kiểm bằng `isValidRoleCategory` (`services/roleCategories.js`), FE đọc `GET /api/role-categories` (hook `useRoleCategories`). Map sang phỏng vấn AI qua `interviewRole`. Không đặt danh sách vị trí riêng trong code |
 | `config/competencies.json` (LP-01) | Đặt danh sách năng lực riêng, hoặc chỉ kiểm key bằng regex, thì lưu được key không có trong bộ tiêu chí: chấm điểm, `suggestOutcome` và hồ sơ năng lực không tra được | Backend kiểm bằng `isValidCompetencyKey`; frontend đọc `GET /api/competencies`. Quy tắc đầy đủ: DECISIONS.md mục "Bộ tiêu chí năng lực SHRM/DDI (LP-01)" |
-| `InterviewSession` | 3 câu baseline có `competencyId = ""`; `moderatorOverride` và `evaluationIncomplete` nằm trên `answers[i]`, không nằm trên `feedback.perQuestion[i]`; `shrmLevel` có fallback `"proficient"` | Quy đổi điểm AI sang mức bằng `aiAnswerToLevel(item, { answer })`, không đọc `shrmLevel` (AI-13 sẽ bỏ fallback) |
+| `InterviewSession` | 3 câu baseline có `competencyId = ""`; `moderatorOverride` và `evaluationIncomplete` nằm trên `answers[i]`, không nằm trên `feedback.perQuestion[i]`; `shrmLevel` rỗng (`""`) khi LLM trả mức lạ hoặc thiếu (AI-13 đã bỏ fallback `"proficient"`); `feedback.perQuestion[i].badge` khi đó cũng trống | Quy đổi điểm AI sang mức bằng `aiAnswerToLevel(item, { answer })`, không đọc `shrmLevel`; FE hiện mức rỗng là "Chưa đủ dữ liệu" (`shrmLevelCounts`, `SHRM_NO_DATA_LABEL`) |
 | `backend/src/prompts/*.js` (AI-02) | Sửa thẳng chữ prompt trong code: production vẫn chạy bản trong DB, Quality Dashboard không tách được version | Tạo `PromptVersion` mới rồi `activate`; `db:sync-prompt-versions` cảnh báo khi template trong DB khác code ở cùng version. Loader lỗi thì dùng bản mặc định, `promptVersion` ghi theo bản thực sự chạy |
 | Script trong `src/scripts/` được test import | `import "../config/loadEnv.js"` ở đầu file nạp `.env` với `override: true`, ghi đè `JWT_SECRET` và biến của môi trường test → test HTTP lỗi 401 | Nạp `loadEnv` trong `main()` (xem `syncPromptVersions.js`) |
 | `package.json` `test:node` | Liệt kê từng file test; `node --test` chỉ nhận glob từ Node 21 | Cho tới khi xong N-05: thêm file test mới vào script này |
@@ -390,7 +396,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V2. Trước khi c
 
 ## Kế hoạch capstone (docs/plan/)
 
-- Phạm vi đã đăng ký: docs/plan/REGISTRATION_V2.md. Mã REQ: docs/plan/REQUIREMENTS.md.
+- Phạm vi đã đăng ký: docs/plan/REGISTRATION_V3.md (V3 ngày 23/11/2026 thay V2; V2 giữ để đối chiếu). Mã REQ: docs/plan/REQUIREMENTS.md.
 - Tiến độ và task: docs/plan/TASKS.md (nguồn đúng duy nhất). Quyết định: docs/plan/DECISIONS.md. Thiết kế và bẫy: docs/plan/DESIGN.md.
 - Thứ tự đọc trước mỗi task: REQUIREMENTS.md → TASKS.md → DECISIONS.md → DESIGN.md.
 - Mỗi task gắn ít nhất một mã REQ. Task không có REQ: dừng và báo.

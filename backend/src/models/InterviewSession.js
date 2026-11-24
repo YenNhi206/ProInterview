@@ -33,8 +33,26 @@ const interviewSessionSchema = new Schema(
         // Câu trong QuestionBank (harvest follow-up) — null với câu chưa thu hoạch
         questionBankId: { type: Schema.Types.ObjectId, ref: "QuestionBank", default: null },
         promptVersion:  { type: String, default: "" },
+        // JB-06: nguồn câu. "" = session cũ (trước JB-06), không suy ra được.
+        source: { type: String, enum: ["", "baseline", "company", "llm_followup"], default: "" },
       },
     ],
+    // JB-06 (quyết định JB-06 ngày 23/11/2026): câu doanh nghiệp chèn sau 3 câu baseline, tối đa 2 câu,
+    // cùng một doanh nghiệp. Chấm rubric (JB-07) đọc `rubricId` ở đây.
+    companyQuestions: {
+      type: [
+        new Schema(
+          {
+            questionId: { type: Schema.Types.ObjectId, ref: "QuestionBank", required: true },
+            companyId:  { type: Schema.Types.ObjectId, ref: "Company", required: true },
+            jobPostId:  { type: Schema.Types.ObjectId, ref: "JobPost", default: null },
+            rubricId:   { type: Schema.Types.ObjectId, ref: "CompanyRubric", default: null },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
     inferredRole:      { type: String, default: "" },
     inferredSeniority: { type: String, default: "" },
     coverageScore: {
@@ -176,6 +194,8 @@ const interviewSessionSchema = new Schema(
     },
     totalDurationSeconds: { type: Number, default: 0 },
     completedAt: { type: Date },
+    /** N-07: lúc job đánh `abandoned` (buổi `in_progress` quá `INTERVIEW_ABANDON_AFTER_MS`). */
+    abandonedAt: { type: Date },
     feedbackGeneratedAt: { type: Date },
 
     reportPdfUrl: { type: String, default: "" },
@@ -190,6 +210,11 @@ interviewSessionSchema.index({ status: 1 });
 // Accumulation queries: tìm sessions cùng role/competency để lấy few-shot examples
 interviewSessionSchema.index({ "competencyProfile.roleCategory": 1, status: 1, createdAt: -1 });
 interviewSessionSchema.index({ "competencyProfile.competencyIds": 1, status: 1 });
+
+/** N-07: buổi `in_progress` tạo quá 24 giờ thì coi là bỏ dở. */
+export const INTERVIEW_ABANDON_AFTER_MS = 24 * 60 * 60 * 1000;
+/** N-07: điều kiện Mongo loại buổi bỏ dở khỏi thống kê. Trải vào query: `{ ...EXCLUDE_ABANDONED_SESSIONS, createdAt }`. */
+export const EXCLUDE_ABANDONED_SESSIONS = Object.freeze({ status: { $ne: "abandoned" } });
 
 export const InterviewSession =
   mongoose.models.InterviewSession ?? mongoose.model("InterviewSession", interviewSessionSchema);

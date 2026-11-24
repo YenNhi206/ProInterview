@@ -1,9 +1,49 @@
 import mongoose from "mongoose";
-import { QuestionBank, hashQuestionText } from "../models/QuestionBank.js";
+import {
+  QuestionBank,
+  hashQuestionText,
+  QUESTION_STATUSES,
+  COMPANY_REVIEWED_STATUSES,
+} from "../models/QuestionBank.js";
 import { CompanyRubric } from "../models/CompanyRubric.js";
+import { JobPost } from "../models/JobPost.js";
 import { assertSameCompany } from "../utils/assertSameCompany.js";
 import { isValidCompetencyKey } from "../services/competencyFramework.js";
 import { isValidRoleCategory } from "../services/roleCategories.js";
+import { COMPANY_QUESTION_COUNT, generateCompanyQuestionDrafts } from "../services/companyQuestionGenService.js";
+
+/**
+ * Quyết định CO-16 (23/11/2026): Company Moderator duyệt xong thì câu chuyển `pending_platform_review`,
+ * chưa vào phỏng vấn. Platform Moderator duyệt tiếp mới thành `approved` (CO-16), và video avatar
+ * (CO-06) chỉ render lúc đó, nên các thao tác ở đây không xếp hàng render video.
+ */
+const COMPANY_APPROVED_STATUS = "pending_platform_review";
+/** Trạng thái Company Moderator được bấm duyệt: câu nháp, hoặc câu đã từ chối muốn duyệt lại. */
+const COMPANY_APPROVABLE_STATUSES = ["draft", "rejected"];
+
+/** Giới hạn một lượt tải câu lên theo job (CO-05). */
+export const COMPANY_QUESTION_UPLOAD_MAX = 50;
+const QUESTION_TEXT_MAX_LENGTH = 1000;
+const QUESTION_LAYERS = ["theory", "project", "behavior"];
+const QUESTION_SENIORITIES = ["intern", "junior", "middle", "senior"];
+
+/**
+ * Tìm tin tuyển dụng của chính công ty theo id (CO-05). Job công ty khác → 403 (assertSameCompany).
+ * @returns {Promise<{ job?: object, status?: number, error?: string }>}
+ */
+async function findCompanyJob(req, jobPostId) {
+  if (!mongoose.isValidObjectId(jobPostId)) {
+    return { status: 400, error: "Mã tin tuyển dụng không hợp lệ." };
+  }
+  const job = await JobPost.findById(jobPostId).select("companyId roleCategory level title").lean();
+  if (!job) return { status: 404, error: "Không tìm thấy tin tuyển dụng." };
+  assertSameCompany(req, job.companyId);
+  return { job };
+}
+
+function isDuplicateKeyError(err) {
+  return err?.code === 11000;
+}
 
 /** Thang mô tả của mỗi tiêu chí rubric: 6 mức 0–5 (CO-07). */
 const RUBRIC_LEVELS = ["0", "1", "2", "3", "4", "5"];
@@ -50,7 +90,12 @@ async function normalizeRubricCriteria(input, companyId) {
   }
 
   if (allQuestionIds.size) {
-    const owned = await QuestionBank.countDocuments({ _id: { $in: [...allQuestionIds] }, orgId: companyId, status: "approved" });
+    // Câu Company Mod đã duyệt, kể cả đang chờ Platform Mod (CO-16); câu chưa `approved` chưa vào phỏng vấn.
+    const owned = await QuestionBank.countDocuments({
+      _id: { $in: [...allQuestionIds] },
+      orgId: companyId,
+      status: { $in: COMPANY_REVIEWED_STATUSES },
+    });
     if (owned !== allQuestionIds.size) {
       return { error: "Chỉ gắn được câu hỏi đã duyệt của công ty bạn." };
     }
@@ -98,11 +143,12 @@ export const CompanyWorkspaceController = {
   async getDashboardStats(req, res) {
     const companyId = req.companyId;
 
-    const [questionsTotal, questionsApproved, questionsDraft, rubricsApproved, rubricsPending] =
+    const [questionsTotal, questionsApproved, questionsDraft, questionsPendingPlatform, rubricsApproved, rubricsPending] =
       await Promise.all([
         QuestionBank.countDocuments({ orgId: companyId }),
         QuestionBank.countDocuments({ orgId: companyId, status: "approved" }),
         QuestionBank.countDocuments({ orgId: companyId, status: "draft" }),
+        QuestionBank.countDocuments({ orgId: companyId, status: COMPANY_APPROVED_STATUS }),
         CompanyRubric.countDocuments({ companyId, status: "approved" }),
         CompanyRubric.countDocuments({ companyId, status: "pending_review" }),
       ]);
@@ -114,6 +160,7 @@ export const CompanyWorkspaceController = {
           total: questionsTotal,
           approved: questionsApproved,
           draft: questionsDraft,
+          pendingPlatformReview: questionsPendingPlatform,
         },
         rubrics: {
           approved: rubricsApproved,
@@ -126,11 +173,25 @@ export const CompanyWorkspaceController = {
   // ===== CO-05: Quản lý ngân hàng câu hỏi công ty =====
   async listQuestions(req, res) {
     const companyId = req.companyId;
-    const { status, roleCategory, page = 1, limit = 50 } = req.query;
+    const { status, roleCategory, jobPostId, page = 1, limit = 50 } = req.query;
 
     const filter = { orgId: companyId };
-    if (status) filter.status = status;
+    if (status) {
+      if (!QUESTION_STATUSES.includes(status)) {
+        return res.status(400).json({ success: false, error: "Trạng thái câu hỏi không hợp lệ." });
+      }
+      filter.status = status;
+    }
     if (roleCategory) filter.roleCategory = roleCategory;
+    // CO-05: lọc theo job; `jobPostId=none` lấy câu không gắn job.
+    if (jobPostId === "none") {
+      filter.jobPostId = null;
+    } else if (jobPostId) {
+      if (!mongoose.isValidObjectId(jobPostId)) {
+        return res.status(400).json({ success: false, error: "Mã tin tuyển dụng không hợp lệ." });
+      }
+      filter.jobPostId = jobPostId;
+    }
 
     const p = Math.max(1, Number(page) || 1);
     const l = Math.min(100, Math.max(1, Number(limit) || 50));
@@ -154,21 +215,25 @@ export const CompanyWorkspaceController = {
   async createQuestion(req, res) {
     const companyId = req.companyId;
     const {
-      questionText,
-      roleCategory = "software_engineer",
       competencyId = "technical_learning",
       layer = "project",
       seniority = "middle",
-      difficulty = "medium",
-      status = "approved", // Tự thêm thì mặc định duyệt luôn cho công ty
-      sampleAnswer = "",
-      keyPoints = [],
+      // Tự thêm thì coi như công ty đã duyệt → chờ Platform Mod (CO-16); gửi "draft" để lưu nháp.
+      status,
     } = req.body;
 
     const cleanText = (req.body.text || req.body.questionText || req.body.question || "").trim();
     if (!cleanText) {
       return res.status(400).json({ success: false, error: "Nội dung câu hỏi không được để trống." });
     }
+
+    let job = null;
+    if (req.body.jobPostId) {
+      const found = await findCompanyJob(req, req.body.jobPostId);
+      if (found.error) return res.status(found.status).json({ success: false, error: found.error });
+      job = found.job;
+    }
+    const roleCategory = req.body.roleCategory || job?.roleCategory || "software_engineer";
     if (!isValidRoleCategory(roleCategory)) {
       return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
     }
@@ -187,12 +252,13 @@ export const CompanyWorkspaceController = {
       originalText: cleanText,
       textHash,
       orgId: companyId,
+      jobPostId: job?._id ?? null,
       source: "org_template",
       roleCategory,
       competencyId,
       layer,
       seniority,
-      status: ["approved", "draft"].includes(status) ? status : "approved",
+      status: status === "draft" ? "draft" : COMPANY_APPROVED_STATUS,
       moderation: {
         reviewedBy: req.userId,
         reviewedAt: new Date(),
@@ -211,6 +277,110 @@ export const CompanyWorkspaceController = {
     return res.status(201).json({ success: true, question });
   },
 
+  /**
+   * CO-05: tải lên hàng loạt câu của công ty cho một job.
+   * Body `{ jobPostId, questions: [string | { text, competencyId?, layer?, seniority? }], status? }`.
+   * Câu trùng `textHash` với câu đã có của công ty (mọi trạng thái) hoặc trùng nhau trong lượt thì bỏ qua.
+   * Một dòng sai thì từ chối cả lượt (không lưu gì) và trả danh sách lỗi theo dòng.
+   */
+  async uploadQuestions(req, res) {
+    const companyId = req.companyId;
+    const { jobPostId, questions, status } = req.body ?? {};
+    if (!jobPostId) {
+      return res.status(400).json({ success: false, error: "Vui lòng chọn tin tuyển dụng." });
+    }
+    const found = await findCompanyJob(req, jobPostId);
+    if (found.error) return res.status(found.status).json({ success: false, error: found.error });
+    const { job } = found;
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ success: false, error: "Danh sách câu hỏi không được để trống." });
+    }
+    if (questions.length > COMPANY_QUESTION_UPLOAD_MAX) {
+      return res.status(400).json({
+        success: false,
+        error: `Mỗi lượt tải lên tối đa ${COMPANY_QUESTION_UPLOAD_MAX} câu.`,
+      });
+    }
+    if (!isValidRoleCategory(job.roleCategory)) {
+      return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
+    }
+
+    const rows = [];
+    const errors = [];
+    questions.forEach((raw, i) => {
+      const item = typeof raw === "string" ? { text: raw } : raw ?? {};
+      const text = String(item.text ?? item.question ?? "").trim();
+      const competencyId = String(item.competencyId ?? "").trim() || "technical_learning";
+      const line = i + 1;
+      if (!text) return errors.push({ line, error: "Nội dung câu hỏi không được để trống." });
+      if (text.length > QUESTION_TEXT_MAX_LENGTH) {
+        return errors.push({ line, error: `Câu hỏi tối đa ${QUESTION_TEXT_MAX_LENGTH} ký tự.` });
+      }
+      if (!isValidCompetencyKey(competencyId)) return errors.push({ line, error: COMPETENCY_ERROR });
+      const layer = QUESTION_LAYERS.includes(item.layer) ? item.layer : "project";
+      const seniority = QUESTION_SENIORITIES.includes(item.seniority)
+        ? item.seniority
+        : QUESTION_SENIORITIES.includes(job.level) ? job.level : "middle";
+      rows.push({ text, competencyId, layer, seniority, textHash: hashQuestionText(text) });
+    });
+    if (errors.length) {
+      return res.status(400).json({ success: false, error: "Có câu hỏi không hợp lệ, chưa lưu câu nào.", errors });
+    }
+
+    // Bỏ câu trùng trong lượt rồi trùng với câu đã có của công ty (unique index { textHash, orgId }).
+    const seen = new Set();
+    const unique = rows.filter((r) => (seen.has(r.textHash) ? false : seen.add(r.textHash)));
+    const existing = await QuestionBank.find({ orgId: companyId, textHash: { $in: unique.map((r) => r.textHash) } })
+      .select("textHash")
+      .lean();
+    const existingHashes = new Set(existing.map((q) => q.textHash));
+    const toCreate = unique.filter((r) => !existingHashes.has(r.textHash));
+
+    const finalStatus = status === "draft" ? "draft" : COMPANY_APPROVED_STATUS;
+    const now = new Date();
+    const created = [];
+    for (const r of toCreate) {
+      try {
+        created.push(
+          await QuestionBank.create({
+            text: r.text,
+            originalText: r.text,
+            textHash: r.textHash,
+            orgId: companyId,
+            jobPostId: job._id,
+            source: "org_template",
+            roleCategory: job.roleCategory,
+            competencyId: r.competencyId,
+            layer: r.layer,
+            seniority: r.seniority,
+            status: finalStatus,
+            createdBy: req.userId,
+            moderation:
+              finalStatus === "draft"
+                ? { reason: "Tải lên theo job" }
+                : { reviewedBy: req.userId, reviewedAt: now, reason: "Company Moderator tải lên theo job" },
+            history: [{ action: "create", actorId: req.userId, reason: `Tải lên cho job "${job.title}"`, at: now }],
+          }),
+        );
+      } catch (err) {
+        // Hai lượt tải song song cùng câu: lượt sau đụng unique index → tính là câu trùng.
+        if (!isDuplicateKeyError(err)) throw err;
+      }
+    }
+
+    const skippedDuplicates = rows.length - created.length;
+    const skipped = skippedDuplicates ? ` Bỏ qua ${skippedDuplicates} câu trùng với câu đã có.` : "";
+    const waiting = finalStatus === COMPANY_APPROVED_STATUS ? ", chờ Platform Moderator duyệt" : " ở trạng thái nháp";
+    return res.status(201).json({
+      success: true,
+      message: `Đã tải lên ${created.length} câu cho job "${job.title}"${waiting}.${skipped}`,
+      count: created.length,
+      skippedDuplicates,
+      questions: created,
+    });
+  },
+
   async editQuestion(req, res) {
     const question = await QuestionBank.findById(req.params.id);
     if (!question) {
@@ -222,17 +392,36 @@ export const CompanyWorkspaceController = {
     const { difficulty, roleCategory, competencyId, reason } = req.body;
     const cleanText = (req.body.text || req.body.questionText || req.body.question || "").trim();
     const previousQuestion = question.text;
-
-    if (cleanText && cleanText !== question.text) {
-      question.text = cleanText;
-      question.textHash = hashQuestionText(question.text);
-    }
+    const textChanged = Boolean(cleanText) && cleanText !== question.text;
 
     if (roleCategory && !isValidRoleCategory(roleCategory)) {
       return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
     }
     if (competencyId && !isValidCompetencyKey(competencyId)) {
       return res.status(400).json({ success: false, error: COMPETENCY_ERROR });
+    }
+
+    // CO-05: đổi job của câu (`null` hoặc "" = bỏ gắn job).
+    if (req.body.jobPostId !== undefined) {
+      if (!req.body.jobPostId) {
+        question.jobPostId = null;
+      } else {
+        const found = await findCompanyJob(req, req.body.jobPostId);
+        if (found.error) return res.status(found.status).json({ success: false, error: found.error });
+        question.jobPostId = found.job._id;
+      }
+    }
+
+    if (textChanged) {
+      const textHash = hashQuestionText(cleanText);
+      const duplicate = await QuestionBank.exists({ orgId: question.orgId, textHash, _id: { $ne: question._id } });
+      if (duplicate) {
+        return res.status(409).json({ success: false, error: "Câu hỏi này đã tồn tại trong bộ câu hỏi của công ty." });
+      }
+      question.text = cleanText;
+      question.textHash = textHash;
+      // Platform Mod duyệt nội dung (CO-16): đổi chữ câu đã duyệt thì phải duyệt lại.
+      if (question.status === "approved") question.status = COMPANY_APPROVED_STATUS;
     }
 
     if (difficulty) question.difficulty = difficulty;
@@ -259,7 +448,16 @@ export const CompanyWorkspaceController = {
 
     assertSameCompany(req, question.orgId);
 
-    question.status = "approved";
+    if (!COMPANY_APPROVABLE_STATUSES.includes(question.status)) {
+      return res.status(409).json({
+        success: false,
+        error: question.status === "approved"
+          ? "Câu hỏi đã được Platform Moderator duyệt."
+          : "Câu hỏi đã được duyệt, đang chờ Platform Moderator duyệt.",
+      });
+    }
+
+    question.status = COMPANY_APPROVED_STATUS;
     question.moderation = {
       reviewedBy: req.userId,
       reviewedAt: new Date(),
@@ -273,7 +471,7 @@ export const CompanyWorkspaceController = {
     });
 
     await question.save();
-    return res.json({ success: true, message: "Đã duyệt câu hỏi.", question });
+    return res.json({ success: true, message: "Đã duyệt câu hỏi, chờ Platform Moderator duyệt.", question });
   },
 
   async rejectQuestion(req, res) {
@@ -301,92 +499,39 @@ export const CompanyWorkspaceController = {
     return res.json({ success: true, message: "Đã từ chối câu hỏi.", question });
   },
 
-  // Sinh bộ câu hỏi mẫu khởi đầu cho roleCategory
-  async generateStarterQuestions(req, res) {
-    const companyId = req.companyId;
-    const roleCategory = req.body.roleCategory || "software_engineer";
+  // CO-04: AI sinh bộ 8–12 câu nháp theo roleCategory (quyết định 11)
+  async generateQuestions(req, res) {
+    const roleCategory = req.body?.roleCategory;
     if (!isValidRoleCategory(roleCategory)) {
       return res.status(400).json({ success: false, error: ROLE_CATEGORY_ERROR });
     }
-
-    const STARTER_TEMPLATES = {
-      software_engineer: [
-        { text: "Hãy mô tả một kiến trúc hệ thống hoặc module phức tạp bạn từng thiết kế và triển khai từ đầu.", competencyId: "technical_learning", layer: "system", seniority: "middle" },
-        { text: "Kể về một sự cố production nghiêm trọng mà bạn từng điều tra và khắc phục. Bạn đã xử lý và rút ra biện pháp phòng ngừa ra sao?", competencyId: "problem_solving", layer: "project", seniority: "middle" },
-        { text: "Bạn tiếp cận việc tối ưu hóa hiệu năng (database queries, network latency, caching) trong một ứng dụng có lưu lượng cao như thế nào?", competencyId: "technical_learning", layer: "technical", seniority: "middle" },
-        { text: "Kể về lần bạn có bất đồng quan điểm kỹ thuật với Tech Lead hoặc thành viên trong nhóm về giải pháp triển khai.", competencyId: "teamwork", layer: "behavioral", seniority: "middle" },
-        { text: "Bạn thực hiện quy trình CI/CD và đảm bảo chất lượng code (Unit test, Integration test, Code review) trong dự án như thế nào?", competencyId: "planning_execution", layer: "technical", seniority: "middle" },
-      ],
-      frontend: [
-        { text: "Bạn quản lý state trong ứng dụng frontend quy mô lớn như thế nào? Khi nào nên dùng local state, context hay global store?", competencyId: "technical_learning", layer: "technical", seniority: "middle" },
-        { text: "Hãy kể về lần bạn tối ưu hiệu năng Web Vitals (FCP, LCP, CLS) hoặc dung lượng bundle cho một trang web.", competencyId: "problem_solving", layer: "technical", seniority: "middle" },
-        { text: "Cách bạn tổ chức Design System hoặc bộ UI components tái sử dụng để bảo đảm tính nhất quán và dễ mở rộng?", competencyId: "planning_execution", layer: "system", seniority: "middle" },
-        { text: "Làm thế nào để xử lý các vấn đề cross-browser compatibility, responsive và accessibility (a11y) trong dự án?", competencyId: "customer_focus", layer: "technical", seniority: "middle" },
-        { text: "Kể về một tình huống bạn phải phối hợp chặt chẽ với UI/UX designer và backend engineer để hoàn thiện một tính năng phức tạp.", competencyId: "teamwork", layer: "behavioral", seniority: "middle" },
-      ],
-      backend: [
-        { text: "Hãy giải thích cách bạn thiết kế RESTful hoặc GraphQL API bảo đảm tính bảo mật, phân quyền, và idempotency.", competencyId: "technical_learning", layer: "system", seniority: "middle" },
-        { text: "Bạn xử lý vấn đề data consistency và race condition trong hệ thống phân tán hoặc transaction nhiều bảng/microservices ra sao?", competencyId: "problem_solving", layer: "technical", seniority: "senior" },
-        { text: "Kể về chiến lược đánh index và tối ưu truy vấn cơ sở dữ liệu (SQL hoặc NoSQL) cho bảng có hàng chục triệu bản ghi.", competencyId: "technical_learning", layer: "technical", seniority: "middle" },
-        { text: "Bạn đã từng triển khai caching (Redis, Memcached) như thế nào để giảm tải cho DB mà không gặp lỗi cache stampede hay stale data?", competencyId: "planning_execution", layer: "system", seniority: "middle" },
-        { text: "Kể về một lần bạn xử lý lỗ hổng bảo mật (ví dụ injection, auth bypass, rate limit) và bảo vệ dịch vụ backend.", competencyId: "integrity", layer: "technical", seniority: "middle" },
-      ],
-      fullstack: [
-        { text: "Mô tả kiến trúc luồng dữ liệu end-to-end từ giao diện người dùng đến database trong sản phẩm gần nhất của bạn.", competencyId: "technical_learning", layer: "system", seniority: "middle" },
-        { text: "Kể về một tính năng phức tạp bạn tự mình làm từ UI/UX, API backend, migration database đến deploy.", competencyId: "planning_execution", layer: "project", seniority: "middle" },
-        { text: "Bạn cân bằng thế nào giữa việc chọn giải pháp nhanh để kịp deadline với kiến trúc lâu dài dễ bảo trì?", competencyId: "adaptability", layer: "behavioral", seniority: "middle" },
-        { text: "Khi gặp lỗi chỉ xuất hiện trên môi trường production, bạn phối hợp debug giữa frontend log và backend telemetry ra sao?", competencyId: "problem_solving", layer: "technical", seniority: "middle" },
-        { text: "Bạn thiết kế kiến trúc xác thực (JWT, session cookie, OAuth2/SSO) cho toàn bộ hệ thống web và mobile như thế nào?", competencyId: "technical_learning", layer: "system", seniority: "middle" },
-      ],
-      devops: [
-        { text: "Hãy mô tả đường ống CI/CD tự động hóa bạn đã xây dựng: từ linting, testing, docker build đến automated rollout.", competencyId: "planning_execution", layer: "system", seniority: "middle" },
-        { text: "Kể về kinh nghiệm thiết lập hệ thống giám sát và cảnh báo (Prometheus, Grafana, ELK, Sentry) để phát hiện sự cố sớm.", competencyId: "problem_solving", layer: "technical", seniority: "middle" },
-        { text: "Bạn quản lý hạ tầng theo mã (IaC - Terraform, Ansible, Pulumi) và state file như thế nào để an toàn?", competencyId: "technical_learning", layer: "technical", seniority: "middle" },
-        { text: "Kể về lần hệ thống bị quá tải hoặc downtime, bạn đã phối hợp phục hồi (disaster recovery) và RCA ra sao?", competencyId: "adaptability", layer: "behavioral", seniority: "middle" },
-        { text: "Cách bạn bảo vệ các secrets, credentials và quản lý chính sách mạng (VPC, Security Groups, IAM) trên cloud?", competencyId: "integrity", layer: "system", seniority: "middle" },
-      ],
-    };
-
-    const templates = STARTER_TEMPLATES[roleCategory] || STARTER_TEMPLATES.software_engineer;
-    const created = [];
-
-    for (const t of templates) {
-      const textHash = hashQuestionText(t.text);
-      const exists = await QuestionBank.findOne({ textHash, orgId: companyId });
-      if (!exists) {
-        const doc = await QuestionBank.create({
-          text: t.text,
-          originalText: t.text,
-          textHash,
-          orgId: companyId,
-          source: "org_template",
-          roleCategory,
-          competencyId: t.competencyId,
-          layer: t.layer,
-          seniority: t.seniority,
-          status: "draft",
-          moderation: {
-            reason: "Sinh từ bộ câu hỏi mẫu",
-          },
-          history: [
-            {
-              action: "create",
-              actorId: req.userId,
-              reason: "Sinh tự động từ bộ câu hỏi mẫu",
-              at: new Date(),
-            },
-          ],
-        });
-        created.push(doc);
-      }
+    const { min, max } = COMPANY_QUESTION_COUNT;
+    const count = req.body?.count === undefined ? COMPANY_QUESTION_COUNT.default : Number(req.body.count);
+    if (!Number.isInteger(count) || count < min || count > max) {
+      return res.status(400).json({ success: false, error: `Số câu cần sinh phải là số nguyên từ ${min} đến ${max}.` });
     }
 
-    return res.json({
-      success: true,
-      message: `Đã sinh thành công ${created.length} câu hỏi mới dạng bản nháp (draft).`,
-      count: created.length,
-      questions: created,
-    });
+    try {
+      const result = await generateCompanyQuestionDrafts({
+        companyId: req.companyId, roleCategory, count, userId: req.userId,
+      });
+      const n = result.questions.length;
+      const skipped = result.skippedDuplicates ? ` Bỏ qua ${result.skippedDuplicates} câu trùng với câu đã có.` : "";
+      return res.status(201).json({
+        success: true,
+        message: `Đã sinh ${n} câu hỏi nháp, chờ bạn duyệt.${skipped}`,
+        count: n,
+        skippedDuplicates: result.skippedDuplicates,
+        promptVersion: result.promptVersion,
+        questions: result.questions,
+      });
+    } catch (err) {
+      // 502/503 tự trả thông báo riêng: errorHandler ở production đổi lỗi 5xx thành câu chung.
+      if ([400, 502, 503].includes(err?.status)) {
+        return res.status(err.status).json({ success: false, error: err.message });
+      }
+      throw err;
+    }
   },
 
   // Duyệt hàng loạt câu hỏi
@@ -397,11 +542,16 @@ export const CompanyWorkspaceController = {
       return res.status(400).json({ success: false, error: "Vui lòng chọn ít nhất một câu hỏi." });
     }
 
+    if (ids.some((id) => !mongoose.isValidObjectId(id))) {
+      return res.status(400).json({ success: false, error: "Mã câu hỏi không hợp lệ." });
+    }
+
+    // Chỉ chuyển câu nháp / đã từ chối; câu đã duyệt (kể cả Platform Mod đã duyệt) giữ nguyên.
     const result = await QuestionBank.updateMany(
-      { _id: { $in: ids }, orgId: companyId },
+      { _id: { $in: ids }, orgId: companyId, status: { $in: COMPANY_APPROVABLE_STATUSES } },
       {
         $set: {
-          status: "approved",
+          status: COMPANY_APPROVED_STATUS,
           "moderation.reviewedBy": req.userId,
           "moderation.reviewedAt": new Date(),
           "moderation.reason": reason,
@@ -416,10 +566,9 @@ export const CompanyWorkspaceController = {
         },
       }
     );
-
     return res.json({
       success: true,
-      message: `Đã duyệt thành công ${result.modifiedCount} câu hỏi.`,
+      message: `Đã duyệt ${result.modifiedCount} câu hỏi, chờ Platform Moderator duyệt.`,
       modifiedCount: result.modifiedCount,
     });
   },
@@ -430,6 +579,9 @@ export const CompanyWorkspaceController = {
     const { ids = [], reason = "Từ chối hàng loạt bởi Company Moderator" } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ success: false, error: "Vui lòng chọn ít nhất một câu hỏi." });
+    }
+    if (ids.some((id) => !mongoose.isValidObjectId(id))) {
+      return res.status(400).json({ success: false, error: "Mã câu hỏi không hợp lệ." });
     }
 
     const result = await QuestionBank.updateMany(

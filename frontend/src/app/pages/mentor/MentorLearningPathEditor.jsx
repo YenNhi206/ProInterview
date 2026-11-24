@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, Briefcase, CheckCircle2, Circle, ClipboardCheck,
-  FileText, Layers, MessageSquareWarning, Plus, Send, Trash2, UserRound,
+  FileText, Layers, Lightbulb, MessageSquareWarning, Plus, Send, Trash2, UserRound,
 } from "lucide-react";
-import { createLearningPath, getLearningPath, proposeLearningPath, updateLearningPath } from "../../api/learningPathsApi.js";
+import { createLearningPath, getLearningPath, getLearningPathCompetencyHints, proposeLearningPath, updateLearningPath } from "../../api/learningPathsApi.js";
+import { addHintSession, hintSourceLabel, hintStatusLabel, sessionsCoverKey } from "../../utils/learningPath/competencyHints.js";
 import { getMentorshipRequest } from "../../api/mentorshipRequestsApi.js";
 import { competenciesApi } from "../../api/competenciesApi.js";
 import {
@@ -12,6 +13,10 @@ import {
   parsePrice, previewShares, proposeChecklist, saveErrors, shrmLabel, toPayload, toggleShrm, unselectableShrmKeys,
 } from "../../utils/learningPath/learningPathEditor.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
+import { LearningPathTimeline } from "../../components/learningPath/LearningPathTimeline.jsx";
+import { canProposeSupplementary } from "../../utils/learningPath/learningPathTimeline.js";
 import "../../../styles/mentorship-requests.css";
 import "../../../styles/learning-paths.css";
 
@@ -56,6 +61,19 @@ export function MentorLearningPathEditor() {
     return () => { active = false; };
   }, []);
   const options = useMemo(() => competencyOptions(framework), [framework]);
+
+  // LP-23: năng lực gợi ý từ job + hồ sơ ứng viên (chỉ có khi lộ trình đã lưu).
+  const [hints, setHints] = useState(null);
+  const [hintsError, setHintsError] = useState("");
+  useEffect(() => {
+    if (!pathId) { setHints(null); return undefined; }
+    let active = true;
+    setHintsError("");
+    getLearningPathCompetencyHints(pathId)
+      .then((res) => active && setHints(res.hints || null))
+      .catch((e) => active && setHintsError(e.message || "Không tải được năng lực gợi ý."));
+    return () => { active = false; };
+  }, [pathId]);
 
   useEffect(() => {
     let active = true;
@@ -182,14 +200,14 @@ export function MentorLearningPathEditor() {
   const totalPreview = parsePrice(state.totalAmount);
 
   return (
-    <div className="mr-page mr-page-mentor mr-page-detail lp-page lp-editor">
-      <header className="mr-heading">
-        <div>
-          <Link to="/mentor/learning-paths" className="mr-back"><ArrowLeft size={15} />Lộ trình học</Link>
-          <h1>{editable ? (isNew ? "Soạn lộ trình mới" : "Soạn lộ trình") : "Lộ trình học"}</h1>
-          <p>{editable ? "Chia mục tiêu của mentee thành các buổi rõ ràng, gắn năng lực cần rèn và đặt giá trọn gói." : "Lộ trình đã gửi cho mentee. Bạn sửa được khi mentee yêu cầu chỉnh sửa."}</p>
-        </div>
-      </header>
+    <MentorPageShell bottomPad="pb-24" showAmbient={false} className="bg-transparent text-white">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8 py-5">
+        <div className="mr-page mr-page-mentor mr-page-detail lp-page lp-editor !max-w-none !p-0">
+          <MentorPageHeader
+            backTo="/mentor/learning-paths"
+            backLabel="Quay lại Lộ trình học"
+            title={editable ? (isNew ? "Soạn lộ trình mới" : "Chỉnh sửa lộ trình") : "Lộ trình học"}
+          />
 
       {error && <div className="mr-error" role="alert">{error}</div>}
       {notice && <div className="mr-notice" role="status"><CheckCircle2 size={18} />{notice}</div>}
@@ -244,6 +262,58 @@ export function MentorLearningPathEditor() {
               )}
             </section>
 
+            {editable && (
+              <section className="mr-panel lp-block lp-hints" aria-labelledby="lp-hints-title">
+                <div className="lp-block-heading">
+                  <div><span className="mr-eyebrow"><Lightbulb size={13} aria-hidden /> Gợi ý</span><h2 id="lp-hints-title">Năng lực nên rèn</h2></div>
+                </div>
+                {isNew ? (
+                  <p className="lp-field-hint">Lưu bản nháp để xem năng lực gợi ý từ job và hồ sơ của mentee.</p>
+                ) : hintsError ? (
+                  <p className="lp-field-hint" role="alert">{hintsError}</p>
+                ) : !hints ? (
+                  <p className="lp-field-hint">Đang tải gợi ý…</p>
+                ) : hints.items.length === 0 ? (
+                  <p className="lp-field-hint">
+                    {hints.hasJob ? "Job chưa có năng lực yêu cầu." : "Yêu cầu này không gắn job và hồ sơ mentee chưa có năng lực nào dưới mức đạt."} Bạn tự chọn năng lực cho từng buổi.
+                  </p>
+                ) : (
+                  <>
+                    <p className="lp-field-hint">
+                      {hints.jobTitle ? <>Theo job <strong>{hints.jobTitle}</strong> và hồ sơ năng lực của mentee. </> : "Theo hồ sơ năng lực của mentee. "}
+                      Thiếu nhiều xếp trước; bạn vẫn sửa buổi tự do.
+                    </p>
+                    <ul className="lp-hint-list">
+                      {hints.items.map((h) => {
+                        const covered = sessionsCoverKey(state.sessions, h.shrmKey);
+                        const full = state.sessions.length >= MAX_SESSIONS;
+                        return (
+                          <li key={h.shrmKey} className={`lp-hint is-${h.status}`}>
+                            <div className="lp-hint-text">
+                              <strong>{h.name}</strong>
+                              <span>{hintStatusLabel(h)} · {hintSourceLabel(h)}</span>
+                            </div>
+                            {h.status === "met" ? null : (
+                              <button
+                                type="button"
+                                data-button-surface="none"
+                                className="lp-chip"
+                                disabled={covered || full}
+                                title={covered ? "Đã có buổi rèn năng lực này" : full ? `Tối đa ${MAX_SESSIONS} buổi` : "Thêm một buổi điền sẵn năng lực này"}
+                                onClick={() => setState((p) => ({ ...p, sessions: addHintSession(p.sessions, h) }))}
+                              >
+                                {covered ? "Đã có buổi" : <><Plus size={13} aria-hidden /> Thêm buổi</>}
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+              </section>
+            )}
+
             <section className="mr-panel lp-block" aria-labelledby="lp-sessions-title">
               <div className="lp-block-heading">
                 <div><span className="mr-eyebrow">Bước 2</span><h2 id="lp-sessions-title">Các buổi học</h2></div>
@@ -295,6 +365,22 @@ export function MentorLearningPathEditor() {
                     <Plus size={16} />{state.sessions.length >= MAX_SESSIONS ? `Đã đủ ${MAX_SESSIONS} buổi` : "Thêm buổi"}
                   </button>
                 </>
+              ) : ["active", "completed"].includes(status) && path ? (
+                // LP-21: lộ trình đang học — tiến độ từng buổi, chấm buổi đã học, đề xuất buổi bổ sung.
+                <LearningPathTimeline
+                  path={path}
+                  framework={framework}
+                  renderAction={(s) => {
+                    if (!s.bookingId) return null;
+                    if (s.status === "scheduled") {
+                      return <Link className="mr-primary lp-attempt-action" to={`/mentor/session-feedback/${s.bookingId}`}><ClipboardCheck size={15} />Chấm buổi này</Link>;
+                    }
+                    if (status === "active" && canProposeSupplementary(path.sessions, s)) {
+                      return <Link className="mr-secondary lp-attempt-action" to={`/mentor/session-feedback/${s.bookingId}`}>Đề xuất buổi bổ sung có phí →</Link>;
+                    }
+                    return null;
+                  }}
+                />
               ) : (
                 <ol className="lp-sessions">
                   {state.sessions.map((s, i) => (
@@ -381,6 +467,8 @@ export function MentorLearningPathEditor() {
           </div>
         </dialog>
       )}
-    </div>
+        </div>
+      </div>
+    </MentorPageShell>
   );
 }

@@ -8,17 +8,34 @@ const { Schema } = mongoose;
  *
  * State machine (docs/STATE_MACHINES.md):
  *   planned → scheduled (tạo Booking, LP-12) → done (ghi outcome, LP-13)
- *   planned | scheduled → cancelled (lộ trình bị hủy, LP-15)
+ *   pending_payment (buổi bổ sung có phí mentor đề xuất, LP-13) → planned (ứng viên trả tiền)
+ *   planned | scheduled | pending_payment → cancelled (lộ trình bị hủy, LP-15)
  * outcome: passed → mở buổi kế · not_passed → tạo buổi retakeOf (lần đầu 0đ, quyết định 2)
  */
-export const LEARNING_PATH_SESSION_STATUSES = ["planned", "scheduled", "done", "cancelled"];
+export const LEARNING_PATH_SESSION_STATUSES = ["planned", "pending_payment", "scheduled", "done", "cancelled"];
 export const LEARNING_PATH_SESSION_OUTCOMES = ["passed", "not_passed"];
+
+/** Mức của một năng lực trong buổi theo thang 0–5 của LP-01 (`config/competencies.json`); null = chưa đủ dữ liệu. */
+const competencyScoreSchema = new Schema(
+  {
+    shrmKey: { type: String, trim: true, required: true },
+    score: { type: Number, min: 0, max: 5, default: null },
+    note: { type: String, trim: true, default: "", maxlength: 1000 },
+  },
+  { _id: false },
+);
 
 const feedbackSchema = new Schema(
   {
     summary: { type: String, trim: true, default: "", maxlength: 4000 },
     strengths: [{ type: String, trim: true, maxlength: 1000 }],
     improvements: [{ type: String, trim: true, maxlength: 1000 }],
+    /** LP-13: điểm từng key trong `shrmKeys` của buổi (đề xuất (a) từ LP-01). */
+    scores: { type: [competencyScoreSchema], default: [] },
+    /** `version` của `competencies.json` lúc mentor chấm, để đọc đúng thang khi bộ tiêu chí đổi. */
+    frameworkVersion: { type: String, trim: true, default: "" },
+    /** Gợi ý từ `suggestOutcome` lúc ghi (mentor vẫn là người quyết định `outcome`). */
+    suggestedOutcome: { type: String, enum: [...LEARNING_PATH_SESSION_OUTCOMES, null], default: null },
   },
   { _id: false },
 );
@@ -47,6 +64,9 @@ const learningPathSessionSchema = new Schema(
     outcome: { type: String, enum: [...LEARNING_PATH_SESSION_OUTCOMES, null], default: null },
     feedback: { type: feedbackSchema, default: () => ({}) },
     doneAt: { type: Date },
+    /** Buổi bổ sung có phí (attempt ≥ 3): ghi chú mentor gửi kèm đề xuất và mốc đề xuất. */
+    supplementaryNote: { type: String, trim: true, default: "", maxlength: 2000 },
+    proposedAt: { type: Date },
   },
   { collection: "learning_path_sessions", timestamps: true },
 );

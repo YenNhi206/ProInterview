@@ -39,6 +39,7 @@
     "db:migrate-cv-analysis": "node src/scripts/migrate-cv-analysis.js",
     "db:migrate-cv-analysis:dry": "node src/scripts/migrate-cv-analysis.js --dry-run",
     "db:migrate-enterprise-role": "node src/scripts/migrateEnterpriseRole.js",
+    "db:migrate-enterprise-role:dry": "node src/scripts/migrateEnterpriseRole.js --dry-run",
     "db:audit-past-bookings": "node src/scripts/auditPastBookings.js",
     "db:sync-moderation-indexes": "node src/scripts/syncModerationIndexes.js",
     "db:sync-booking-indexes": "node src/scripts/syncBookingIndexes.js",
@@ -49,6 +50,8 @@
     "db:sync-prompt-versions:dry": "node src/scripts/syncPromptVersions.js --dry-run",
     "db:sync-fallback-questions": "node src/scripts/syncFallbackQuestions.js",
     "warmup:baseline-videos": "node src/scripts/warmupBaselineVideos.js",
+    "warmup:company-videos": "node src/scripts/warmupCompanyQuestionVideos.js",
+    "warmup:company-videos:dry": "node src/scripts/warmupCompanyQuestionVideos.js --dry-run",
     "test": "npm run test:node && npm run test:dto && npm run test:python-cv",
     "test:node": "node --test --test-concurrency=1 \"src/**/*.test.js\"",
     "test:cart": "node --test src/integration/cart-booking-sweep.integration.test.js",
@@ -56,7 +59,9 @@
     "test:python-cv": "cd ../cv_jd_matching && python -m unittest discover -s tests -p test_*.py -v",
     "test:dto": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns=__tests__",
     "test:finance": "node --test src/integration/finance-operations.integration.test.js",
-    "test:mentorship": "node --test src/integration/mentorshipRequests.integration.test.js"
+    "test:mentorship": "node --test src/integration/mentorshipRequests.integration.test.js",
+    "ai01:sheet": "node src/scripts/ai01Benchmark.js sheet",
+    "ai01:aggregate": "node src/scripts/ai01Benchmark.js aggregate"
   },
   "jest": {
     "testEnvironment": "node",

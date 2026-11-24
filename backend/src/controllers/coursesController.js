@@ -15,6 +15,7 @@ import {
   isAllowedMediaUrl,
 } from "../utils/resolveStoredUploadUrl.js";
 import * as courseMentorInsights from "../services/courseMentorInsightsService.js";
+import { PRESCREEN_RULES, ruleFlags, schedulePrescreen } from "../services/coursePrescreenService.js";
 import * as reviewsService from "../services/reviewsService.js";
 import {
   getCourseArchiveEligibility,
@@ -107,6 +108,15 @@ function findInvalidMediaUrl(body = {}) {
 }
 
 export const CoursesController = {
+  /**
+   * AI-09: mentor xem trước cờ sàng lọc theo luật (cùng `ruleFlags` của AI-08) trên nội dung đang soạn,
+   * trước khi gửi duyệt. Không gọi LLM, không ghi DB. Body cùng dạng tạo / sửa khóa (`chapters`, `outcomes`).
+   */
+  prescreenPreview: async (req, res) => {
+    const flags = ruleFlags(normalizeCoursePayload(req.body ?? {}));
+    res.json({ success: true, flags, rules: PRESCREEN_RULES });
+  },
+
   /** Danh sách khóa học */
   list: async (req, res, next) => {
     try {
@@ -278,6 +288,7 @@ export const CoursesController = {
         course.pendingUpdate = payload;
         course.status = "pending_update";
         await course.save();
+        schedulePrescreen(course._id, req.userId); // AI-08
         return res.json({
           success: true,
           course: serializeCourseForApi(course),
@@ -326,6 +337,7 @@ export const CoursesController = {
         course.pendingUpdate = pendingPayload;
         course.status = "pending_update";
         await course.save();
+        schedulePrescreen(course._id, req.userId); // AI-08
         return res.json({
           success: true,
           course,
@@ -343,6 +355,7 @@ export const CoursesController = {
       course.status = "pending_review";
       course.publishedAt = null;
       await course.save();
+      schedulePrescreen(course._id, req.userId); // AI-08
 
       return res.json({ success: true, course, message: "Đã gửi khóa học để admin duyệt." });
     } catch (error) {

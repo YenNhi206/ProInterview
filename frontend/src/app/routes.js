@@ -20,7 +20,9 @@ import { InterviewTrial } from "./pages/interview/InterviewTrial";
 import { InterviewTrialDone } from "./pages/interview/InterviewTrialDone";
 import { MentorshipRequests } from "./pages/mentorship/MentorshipRequests";
 import { LearningPaths } from "./pages/learningPaths/LearningPaths";
+import { LearningPathDetail } from "./pages/learningPaths/LearningPathDetail";
 import { CvVault } from "./pages/cv/CvVault";
+import { CvEditor } from "./pages/cv/CvEditor";
 import { Mentors } from "./pages/mentors/Mentors";
 import { MentorProfile } from "./pages/mentors/MentorProfile";
 import { Booking } from "./pages/booking/Booking";
@@ -97,16 +99,16 @@ import { ModeratorQueue } from "./pages/moderator/ModeratorQueue.jsx";
 import { ModeratorQueueItem } from "./pages/moderator/ModeratorQueueItem.jsx";
 import { ModeratorQuality } from "./pages/moderator/ModeratorQuality.jsx";
 import { ModeratorRubrics } from "./pages/moderator/ModeratorRubrics.jsx";
+import { ModeratorCompanyQuestions } from "./pages/moderator/ModeratorCompanyQuestions.jsx";
+import { ModeratorJobReports } from "./pages/moderator/ModeratorJobReports.jsx";
 import { AdminCompanies } from "./pages/admin/AdminCompanies.jsx";
 import { CompanyInviteAccept } from "./pages/auth/CompanyInviteAccept.jsx";
 import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
 import { CompanyDashboard } from "./pages/company/CompanyDashboard.jsx";
 import { CompanyQuestions } from "./pages/company/CompanyQuestions.jsx";
 import { CompanyRubrics } from "./pages/company/CompanyRubrics.jsx";
-import {
-  CompanyJobs,
-  CompanyApplications,
-} from "./pages/company/CompanyPages.jsx";
+import { CompanyApplications } from "./pages/company/CompanyPages.jsx";
+import { CompanyJobs } from "./pages/company/CompanyJobs.jsx";
 import { COMPANY_ROLES } from "./components/layout/CompanyWorkspaceNav.jsx";
 import { createRoleLoader } from "./utils/auth/roleLoader.js";
 
@@ -123,6 +125,9 @@ function roleHomeLoader() {
   return null;
 }
 
+import { Jobs } from "./pages/jobs/Jobs.jsx";
+import { JobDetail } from "./pages/jobs/JobDetail.jsx";
+import { CvBestFit } from "./pages/cv/CvBestFit.jsx";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -132,6 +137,8 @@ export const router = createBrowserRouter([
       { path: "mentors", Component: Mentors },
       { path: "mentors/:id", Component: MentorProfile },
       { path: "courses", Component: Courses },
+      { path: "jobs", Component: Jobs },
+      { path: "jobs/:id", Component: JobDetail },
       { path: "courses/:id", Component: CourseDetail },
       { path: "pricing", Component: Pricing },
       { path: "about", Component: About },
@@ -176,8 +183,12 @@ export const router = createBrowserRouter([
           { path: "mentor-requests/:requestId", loader: requireCustomerAuthLoader, Component: MentorshipRequests },
           // LP-18: lộ trình mentor đã gửi cho ứng viên (chi tiết /learning-paths/:id ở LP-19).
           { path: "learning-paths", loader: requireCustomerAuthLoader, Component: LearningPaths },
+          // LP-19: chi tiết lộ trình — chấp nhận / yêu cầu sửa, thanh toán, đặt lịch từng buổi, xem kết quả.
+          { path: "learning-paths/:id", loader: requireCustomerAuthLoader, Component: LearningPathDetail },
           // PR-11: kho CV (tải lên, nhân bản, đặt mặc định, xóa).
           { path: "cvs", loader: requireCustomerAuthLoader, Component: CvVault },
+          { path: "cv-analysis/best-fit", loader: requireCustomerAuthLoader, Component: CvBestFit },
+          { path: "cvs/:id/edit", loader: requireCustomerAuthLoader, Component: CvEditor },
           { path: "my-courses", Component: MyCourses },
           { path: "payment-history", loader: requireAuthLoader, Component: PaymentHistory },
       { path: "cart", loader: requireCustomerAuthLoader, Component: Cart },
@@ -274,6 +285,8 @@ export const router = createBrowserRouter([
       { index: true, loader: () => redirect("/moderator/queue") },
       { path: "courses", Component: AdminContentCourses },
       { path: "questions", Component: ModeratorQuestions },
+      { path: "company-questions", Component: ModeratorCompanyQuestions },
+      { path: "job-reports", Component: ModeratorJobReports },
       { path: "rubrics", Component: ModeratorRubrics },
       { path: "queue", Component: ModeratorQueue },
       { path: "queue/:id", Component: ModeratorQueueItem },

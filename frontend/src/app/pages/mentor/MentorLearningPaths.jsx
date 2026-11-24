@@ -5,6 +5,8 @@ import { listLearningPaths } from "../../api/learningPathsApi.js";
 import { listMentorshipRequests } from "../../api/mentorshipRequestsApi.js";
 import { PATH_STATUS, draftableRequests } from "../../utils/learningPath/learningPathEditor.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import "../../../styles/mentorship-requests.css";
 import "../../../styles/learning-paths.css";
 
@@ -51,16 +53,25 @@ export function MentorLearningPaths() {
   }, [paths, tab]);
 
   return (
-    <div className="mr-page mr-page-mentor lp-page">
-      <header className="mr-heading">
-        <div>
-          <h1>Lộ trình học</h1>
-          <p>Soạn lộ trình nhiều buổi cho mentee sau buổi đánh giá 0đ, gửi để mentee chấp nhận và thanh toán trọn gói.</p>
-        </div>
-        <button type="button" data-button-surface="none" className="mr-secondary" disabled={loading} onClick={() => setReload((v) => v + 1)}>
-          <RefreshCw size={15} /> Làm mới
-        </button>
-      </header>
+    <MentorPageShell bottomPad="pb-24" showAmbient={false} className="bg-transparent text-white">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8 py-5">
+        <div className="mr-page mr-page-mentor lp-page !max-w-none !p-0">
+          <MentorPageHeader
+            title="Lộ trình"
+            highlight="học tập"
+            actions={
+              <button
+                type="button"
+                data-button-surface="none"
+                disabled={loading}
+                onClick={() => setReload((v) => v + 1)}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#160f26]/80 px-4 py-2.5 text-xs font-bold text-slate-300 backdrop-blur-xl transition hover:border-violet-500/50 hover:bg-[#1a1230] hover:text-violet-300 disabled:opacity-50"
+              >
+                <RefreshCw size={14} className={loading ? "animate-spin text-violet-400" : ""} />
+                Làm mới
+              </button>
+            }
+          />
 
       {error && (
         <div className="mr-error" role="alert">
@@ -146,6 +157,8 @@ export function MentorLearningPaths() {
           )}
         </>
       )}
-    </div>
+        </div>
+      </div>
+    </MentorPageShell>
   );
 }

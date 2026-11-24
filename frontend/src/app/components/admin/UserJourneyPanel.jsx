@@ -3,20 +3,9 @@ import { Clock, MapPin, MousePointerClick, Route } from "lucide-react";
 import { adminApi } from "../../api/adminApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { formatDurationMs, labelAction, labelRoute } from "../../utils/analytics/analyticsLabels.js";
-import { ensureRichJourney } from "../../utils/analytics/mockJourney.js";
 
-const PAID_PLANS = new Set(["starter_pro", "elite_pro"]);
-
-export function UserJourneyPanel({
-  userId,
-  plan,
-  createdAt,
-  planExpiresAt,
-  interviewUsed,
-  cvUsed,
-  lastSeenAt,
-  onResolvedLastSeenAt,
-}) {
+/** Hành trình thật của user (sự kiện tracking trong 30 ngày). N-09: không bù sự kiện mẫu. */
+export function UserJourneyPanel({ userId }) {
   const [journey, setJourney] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,28 +16,9 @@ export function UserJourneyPanel({
       fallback: "Không tải được hành trình người dùng.",
       silent: true,
     });
-    let nextJourney = res.success ? res.journey || null : null;
-    // User Pro/Elite có dưới 100 sự kiện tracking thật (vd. mới bật tính năng, hoặc
-    // ít khi mở app) thì bù thêm sự kiện mẫu cho đủ mức hợp lý, giữ nguyên dữ liệu thật.
-    // Timeline bù tôn trọng ngày đăng ký / ngày mua gói thật, không dồn cùng 1 ngày.
-    // Số phiên phỏng vấn/CV được bù khớp đúng interviewUsed/cvUsed (đã bù ở khối
-    // quota bên trên) — để không bị lệch số giữa 2 chỗ hiển thị. lastSeenAt chặn
-    // trần để không có hoạt động giả mới hơn lần cuối user thật sự online — tự nới
-    // rộng bên trong ensureRichJourney nếu cửa sổ quá hẹp, effectiveLastSeenAt báo
-    // ngược lên đây để khối "Trực tuyến" phía trên hiển thị khớp.
-    if (PAID_PLANS.has(plan)) {
-      nextJourney = ensureRichJourney(nextJourney, userId, {
-        createdAt,
-        planExpiresAt,
-        interviewUsed,
-        cvUsed,
-        lastSeenAt,
-      });
-      onResolvedLastSeenAt?.(nextJourney?.effectiveLastSeenAt || lastSeenAt);
-    }
-    setJourney(nextJourney);
+    setJourney(res.success ? res.journey || null : null);
     setLoading(false);
-  }, [userId, plan, createdAt, planExpiresAt, interviewUsed, cvUsed, lastSeenAt, onResolvedLastSeenAt]);
+  }, [userId]);
 
   useEffect(() => {
     void load();

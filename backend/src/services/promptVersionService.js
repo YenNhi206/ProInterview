@@ -7,12 +7,13 @@
  *   prompt THỰC SỰ chạy (bản mặc định thì là `eval-v1` / `followup-v1`), dùng để ghi vào session.
  * - `activate(key, version, { by, note })`: kiểm tra template đủ phần, đủ biến (render thử) rồi mới
  *   bật; luôn giữ ràng buộc mỗi key tối đa 1 bản active; xóa cache.
+ * - `createVersion(key, { baseVersion, template, fewShotExamples })`: tạo bản mới chưa bật (AI-03).
  *
  * Mỗi instance có cache riêng: instance khác nhận version mới chậm nhất sau TTL.
  */
 import mongoose from "mongoose";
 import { PromptVersion } from "../models/PromptVersion.js";
-import { PROMPT_REGISTRY } from "../prompts/index.js";
+import { PROMPT_REGISTRY, versionNameError } from "../prompts/index.js";
 import { validateTemplate } from "../prompts/promptTemplate.js";
 import { runInTransaction } from "../helpers/dbHelper.js";
 import { httpError } from "../utils/apiErrors.js";
@@ -130,4 +131,77 @@ export async function activate(key, version, { by = null, note = "" } = {}) {
   clearPromptCache(key);
   logger.info("prompt_version_activated", { key, version, previous: previous?._id?.toString() ?? null });
   return PromptVersion.findById(target._id).lean();
+}
+
+/**
+ * Số N lớn nhất trong các version `<tiền tố>-vN` đã có (bỏ qua chuỗi cũ khác quy ước), tính cả bản
+ * mặc định trong code: DB chưa sync vẫn không tạo trùng tên `eval-v1` mà session cũ đã ghi.
+ */
+async function maxVersionNumber(prefix, defaultVersion) {
+  const docs = await PromptVersion.find({ version: { $regex: `^${prefix}-v\\d+$` } }).select("version").lean();
+  const numberOf = (v) => (v?.startsWith(`${prefix}-v`) ? Number(v.slice(prefix.length + 2)) || 0 : 0);
+  return docs.reduce((max, d) => Math.max(max, numberOf(d.version)), numberOf(defaultVersion));
+}
+
+/**
+ * Tạo version mới (chưa bật) cho `key` từ một bản gốc (AI-03, đề xuất h).
+ *
+ * - `baseVersion` bỏ trống → lấy bản `active`; chưa có bản active → bản mặc định trong code.
+ * - `template` / `fewShotExamples` bỏ trống → chép từ bản gốc.
+ * - Tên tự sinh `<tiền tố>-v(N+1)` (N lớn nhất đã có), hoặc truyền `version` để đặt tên.
+ *   Kiểm tên và `validateTemplate` như `activate()`; không hợp lệ thì 400, trùng tên thì 409.
+ * @returns {Promise<object>} bản ghi PromptVersion vừa tạo (`active: false`)
+ */
+export async function createVersion(
+  key,
+  { baseVersion = null, template, fewShotExamples, version = null, note = "" } = {},
+) {
+  const entry = PROMPT_REGISTRY[key];
+  if (!entry) throw httpError(400, `Key prompt "${key}" chưa được đăng ký.`);
+
+  let base;
+  if (baseVersion) {
+    base = await PromptVersion.findOne({ key, version: baseVersion }).lean();
+    if (!base) throw httpError(404, `Không tìm thấy phiên bản "${baseVersion}" của prompt "${key}".`);
+    if (base.legacy || !base.template) {
+      throw httpError(400, `Phiên bản "${baseVersion}" là chuỗi cũ không có nội dung prompt, không làm bản gốc được.`);
+    }
+  } else {
+    base = (await PromptVersion.findOne({ key, active: true }).lean()) ?? entry.default;
+  }
+
+  const nextTemplate = template ?? base.template;
+  const errors = validateTemplate(entry.spec, nextTemplate);
+  if (errors.length) throw httpError(400, `Template chưa hợp lệ: ${errors.join("; ")}.`);
+
+  const nextFewShot = (fewShotExamples ?? base.fewShotExamples ?? []).map((e) => ({
+    input: String(e?.input ?? ""),
+    output: String(e?.output ?? ""),
+    note: String(e?.note ?? ""),
+  }));
+
+  const autoName = !version;
+  // Tự đặt tên: thử lại khi hai lượt tạo cùng lúc lấy trùng số.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const name = version ?? `${entry.versionPrefix}-v${(await maxVersionNumber(entry.versionPrefix, entry.default.version)) + 1}`;
+    const nameError = versionNameError(key, name);
+    if (nameError) throw httpError(400, `${nameError}.`);
+    try {
+      const doc = await PromptVersion.create({
+        key,
+        version: name,
+        // Bản mặc định trong code bị deepFreeze → chép ra object thường trước khi lưu.
+        template: structuredClone(nextTemplate),
+        fewShotExamples: nextFewShot,
+        active: false,
+        note: note || `Tạo từ ${base.version}`,
+      });
+      logger.info("prompt_version_created", { key, version: name, base: base.version });
+      return doc.toObject();
+    } catch (err) {
+      if (err?.code !== 11000) throw err;
+      if (!autoName) throw httpError(409, `Phiên bản "${name}" đã tồn tại.`);
+    }
+  }
+  throw httpError(409, `Đang có thao tác tạo phiên bản khác cho prompt "${key}", thử lại sau.`);
 }

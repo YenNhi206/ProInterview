@@ -193,7 +193,7 @@ ensureCollection("learning_path_sessions", {
     title: str,
     shrmKeys: { bsonType: "array", items: str },
     shareAmount: num,
-    status: en("planned", "scheduled", "done", "cancelled"),
+    status: en("planned", "pending_payment", "scheduled", "done", "cancelled"), // pending_payment: buổi bổ sung có phí (LP-13)
     bookingId: oidOrNull,
     attempt: num,
     retakeOf: oidOrNull,
@@ -405,6 +405,7 @@ ensureCollection("cv_analyses", {
     tier: en("suggestions", "full", "basic"),
     status: en("processing", "completed", "failed", "legacy_mock"),
     planAtTime: en("free", "pro", "enterprise"),
+    quotaCharged: { bsonType: "bool" }, // N-11
   },
 }, [
   [{ userId: 1 }],
@@ -464,9 +465,9 @@ ensureCollection("reports", {
   required: ["reportedBy", "targetType", "targetId"],
   properties: {
     reportedBy: oid,
-    targetType: en("mentor", "booking", "review", "course", "interview_question", "interview_evaluation"),
+    targetType: en("mentor", "booking", "review", "course", "interview_question", "interview_evaluation", "job_post"),
     targetId: oid,
-    reason: en("late", "unprofessional", "inappropriate", "no_show", "fraud", "other", null),
+    reason: en("late", "unprofessional", "inappropriate", "no_show", "fraud", "other", "misleading", "discriminatory", null),
     reasonCode: en("irrelevant", "inaccurate_scoring", "hallucination", "offensive", "other", null),
     status: en("pending", "reviewing", "resolved", "dismissed"),
   },
@@ -481,7 +482,7 @@ ensureCollection("reports", {
 ensureCollection("moderation_items", {
   required: ["type"],
   properties: {
-    type: en("question_report", "evaluation_report", "evaluation_incomplete"),
+    type: en("question_report", "evaluation_report", "evaluation_incomplete", "course_prescreen", "job_post_report"),
     status: en("open", "in_review", "resolved", "dismissed"),
     priority: en("low", "normal", "high"),
     priorityRank: num,
@@ -494,6 +495,14 @@ ensureCollection("moderation_items", {
     unique: true,
     partialFilterExpression: { type: "evaluation_incomplete" },
   }],
+  // AI-08: 1 item course_prescreen / khóa.
+  [{ type: 1, "refs.courseId": 1 }, {
+    unique: true,
+    partialFilterExpression: { type: "course_prescreen" },
+    name: "course_prescreen_per_course",
+  }],
+  // JB-04: báo cáo đang mở của một tin tuyển dụng
+  [{ "refs.jobPostId": 1, status: 1 }, { partialFilterExpression: { type: "job_post_report" } }],
 ]);
 
 // AI-02: bảng đăng ký phiên bản prompt. Chuỗi `version` khớp promptVersion đã ghi ở
@@ -514,6 +523,32 @@ ensureCollection("prompt_versions", {
   [{ key: 1, version: 1 }, { unique: true }],
   [{ version: 1 }, { unique: true, name: "version_unique" }],
   [{ key: 1 }, { unique: true, partialFilterExpression: { active: true }, name: "key_single_active" }],
+]);
+
+// AI-03: đề xuất cải tiến AI do aiImprovementMinerJob sinh từ moderation_items đã xử lý.
+ensureCollection("ai_improvement_proposals", {
+  required: ["target", "kind", "groupKey"],
+  properties: {
+    target: en("question_gen", "evaluation"),
+    kind: en("few_shot", "prompt_change", "calibration", "rubric_anchor"),
+    groupKey: str,
+    status: en("proposed", "approved", "rejected", "rolled_back"),
+    evidence: { bsonType: "object" },
+    before: { bsonType: "object" },
+    after: { bsonType: "object" },
+  },
+}, [
+  [{ status: 1, createdAt: -1 }],
+  [{ "evidence.moderationItemIds": 1 }, {
+    unique: true,
+    partialFilterExpression: { "evidence.moderationItemIds": { $type: "objectId" } },
+    name: "evidence_item_unique",
+  }],
+  [{ target: 1, kind: 1, groupKey: 1 }, {
+    unique: true,
+    partialFilterExpression: { status: "proposed" },
+    name: "group_single_proposed",
+  }],
 ]);
 
 // ─────────────────────────────────────────────────────────────
@@ -568,7 +603,7 @@ ensureCollection("securitylogs", {
   required: ["type"],
   properties: {
     userId: oid,
-    type: en("prompt_injection_attempt", "rate_limit_hit", "suspicious_output", "admin_action"),
+    type: en("prompt_injection_attempt", "rate_limit_hit", "suspicious_output", "admin_action", "moderator_action", "company_moderator_action", "mentor_action"),
   },
 }, [
   [{ userId: 1 }],

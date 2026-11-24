@@ -5,7 +5,7 @@
 ## Nền RBAC — role `moderator` và `enterprise` (đã có)
 
 - ✅ BE: `User.role` mở rộng thành `customer | mentor | admin | moderator | enterprise`; middleware `requireRole(...roles)` + `requireModerator` / `requireEnterprise` trong `backend/src/middleware/requireRole.js`.
-- ✅ BE: router `/api/moderator` (`routes/moderator.js`), gắn `adminAuditLog` nên thao tác moderator vẫn hiện ở `/admin/audit-log`.
+- ✅ BE: router `/api/moderator` (`routes/moderator.js`), gắn `moderatorAuditLog` (`moderator_action`) nên thao tác moderator hiện ở `/admin/audit-log`, lọc riêng bằng `?actor=moderator`.
 - ✅ BE: **duyệt khóa học chuyển từ admin sang moderator** — `/api/admin/courses/*` đã bỏ, thay bằng `/api/moderator/courses/*`. Cổng moderator cố ý KHÔNG cho admin đi vòng.
 - ✅ BE: model `QuestionBank` (`models/QuestionBank.js`) — substrate dùng chung cho kiểm duyệt ngân hàng câu hỏi (Moderator) và interview template của tổ chức (Enterprise, qua `orgId`).
 - ✅ BE: `setRoleByAdmin` gán được `moderator` / `enterprise` (`ASSIGNABLE_ROLES`); không gán được `admin` qua API.
@@ -95,6 +95,7 @@ Khi merge xong một route: cập nhật **Phần A** trong `API_INDEX`, đổi 
 | GET | `/api/achievements`, `/api/achievements/:id` | Public — tin tức & hoạt động |
 | GET | `/api/admin/analytics/user-behavior` | `[ADMIN]` — funnel / hành vi nền tảng |
 | GET | `/api/admin/analytics/users/:id/journey` | `[ADMIN]` — hành trình từng user |
+| GET | `/api/admin/analytics/revenue` | `[ADMIN]` ✅ — doanh thu theo nguồn: booking, khóa, gói, lộ trình (N-08) |
 | PATCH | `/api/bookings/mentor/:id/check-in` | `[AUTH][MENTOR]` — webcam trước phòng họp |
 | POST | `/api/upload/achievement-image` | `[AUTH][ADMIN]` |
 
@@ -257,6 +258,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/cv/analyze/full` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/suggestions` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/field` | `[AUTH]` |
+| ✅ | POST | `/api/cv/best-fit` — xếp hạng 2–5 CV trong kho với một JD hoặc job, kèm lý do (PR-05; Python `POST /best-fit`) | `[AUTH]` |
 
 ### Payments & enrollments (chuyển khoản)
 
@@ -285,8 +287,25 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | GET | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` chi tiết (job công ty khác → 404) |
 | ✅ | PATCH | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` sửa khi `draft` / `published` |
 | ✅ | PATCH | `/api/company/jobs/:id/status` | `[AUTH][COMPANY_MOD]` `published` (đăng) / `closed` (đóng) |
-| ✅ | GET | `/api/jobs` · `/api/jobs/:id` | Công khai — chỉ job đang mở, lọc vị trí / cấp độ / công ty / từ khóa (JB-03) |
+| ✅ | GET | `/api/jobs` · `/api/jobs/:id` | Công khai — chỉ job đang mở, lọc vị trí / cấp độ / công ty / từ khóa (JB-03); `/:id` ghi lượt xem của ứng viên (JB-20) |
+| ✅ | GET | `/api/jobs/recent` | `[AUTH][CUSTOMER]` tối đa 5 job xem gần đây, chỉ job đang mở có câu doanh nghiệp hợp lệ (JB-20) |
+| ✅ | GET | `/api/jobs/:id/gap` | `[AUTH][customer]` khoảng thiếu: hồ sơ năng lực so với `requiredCompetencies`, CV mặc định so với `requiredSkills`, kèm mức độ và gợi ý bước tiếp (JB-05) |
 | ✅ | GET | `/api/role-categories` | Công khai — danh sách nhóm vị trí dùng chung (`config/roleCategories.json`) |
+
+### Câu hỏi công ty — AI sinh bộ câu nháp (CO-04)
+
+| BE | Method | Endpoint | Auth |
+|:---|:-------|:---------|:-----|
+| ✅ | POST | `/api/company/questions/generate` | `[AUTH][COMPANY_MOD]` AI sinh 8–12 câu `draft` theo `roleCategory`, chống trùng `textHash`, ghi `provenance.promptVersion` (prompt `company_question_gen`) |
+| ✅ | GET | `/api/company/questions` | `[AUTH][COMPANY_MOD]` lọc `status`, `roleCategory`, `jobPostId` (CO-05) |
+| ✅ | POST | `/api/company/questions` | `[AUTH][COMPANY_MOD]` tự thêm câu, gắn `jobPostId` tùy chọn → `pending_platform_review` (CO-05) |
+| ✅ | POST | `/api/company/questions/upload` | `[AUTH][COMPANY_MOD]` tải lên hàng loạt ≤ 50 câu theo job, bỏ câu trùng `textHash` → `pending_platform_review` (CO-05) |
+| ✅ | PATCH | `/api/company/questions/:id` | `[AUTH][COMPANY_MOD]` sửa câu, ghi `history`; đổi chữ câu `approved` → duyệt lại (CO-05) |
+| ✅ | POST | `/api/company/questions/:id/approve` · `/reject` · `batch-approve` · `batch-reject` | `[AUTH][COMPANY_MOD]` duyệt → `pending_platform_review` chờ Platform Mod (quyết định CO-16) |
+| ✅ | GET | `/api/moderator/company-questions` | `[AUTH][MODERATOR]` câu doanh nghiệp theo tab chờ duyệt / đã duyệt / từ chối, kèm công ty và job (CO-16) |
+| ✅ | POST | `/api/moderator/company-questions/:id/approve` · `/:id/reject` · `/bulk` | `[AUTH][MODERATOR]` duyệt → `approved` + render video avatar; từ chối bắt buộc lý do (CO-16) |
+
+Chi tiết: **API_INDEX.md A.18 (CO-04, CO-05)**. FE `/company/questions`: nút "Sinh bộ câu bằng AI", "Tải câu theo job" (CO-13), lọc theo job, trạng thái "Chờ Platform Mod"; FE Platform Mod: `/moderator/company-questions` (CO-16).
 
 Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJob` (JB-02). Chi tiết: **API_INDEX.md A.18, A.19**. FE `/company/jobs` ở JB-15, `/jobs` ở JB-11.
 
@@ -303,12 +322,16 @@ Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJo
 | ✅ | POST | `/api/learning-paths/:id/checkout` | `[AUTH]` mentee — mã CK `PI…` trọn gói, Payment `learning_path` pending (LP-10) |
 | ✅ | PATCH | `/api/learning-paths/:id/submit-transfer` | `[AUTH]` mentee — báo đã chuyển khoản (LP-10) |
 | ✅ | POST | `/api/learning-paths/:id/sessions/:sid/schedule` | `[AUTH]` mentee — đặt lịch buổi đang mở (buổi trước `passed`), tạo Booking lộ trình (LP-12) |
+| ✅ | PATCH | `/api/learning-paths/:id/sessions/:sid/outcome` | `[AUTH][MENTOR]` ghi đạt / chưa đạt + feedback theo LP-01; chưa đạt lần đầu tạo buổi học lại 0đ; buổi cuối đạt → lộ trình `completed` (LP-13) |
+| ✅ | POST | `/api/learning-paths/:id/sessions/:sid/supplementary` | `[AUTH][MENTOR]` đề xuất buổi bổ sung có phí sau khi buổi học lại vẫn chưa đạt (`pending_payment`, LP-13) |
 | ✅ | GET | `/api/admin/payments/learning-path-transfers` | `[AUTH][ADMIN]` đối soát CK lộ trình: chờ / hết hạn / đã nhận (LP-11) |
 | ✅ | PATCH | `/api/admin/payments/:id/confirm-learning-path-transfer` | `[AUTH][ADMIN]` xác nhận tay; tiền đến muộn sau khi mã hết hạn → xác nhận ngoại lệ (LP-11) |
 
 FE (LP-11): ✅ `/admin/learning-path-payments` (sidebar admin, nhóm «Đối soát SePay»).
 
 FE (LP-20): ✅ `/mentor/learning-paths` (danh sách, lọc theo trạng thái, yêu cầu sẵn sàng soạn), ✅ `/mentor/learning-paths/new?requestId=` và `/mentor/learning-paths/:id/edit` (trình soạn: mục tiêu, giá trọn gói, thêm / sắp xếp / xóa buổi, mục tiêu buổi, năng lực SHRM, hồ sơ mentee, checklist và gửi). Lối vào từ trang `/mentor/requests/:id` và mục "Lộ trình học" trên sidebar mentor. Chi tiết: **API_INDEX.md A.17**.
+
+✅ LP-23: `GET /api/learning-paths/:id/competency-hints` + mục "Năng lực nên rèn" trong trình soạn (năng lực job yêu cầu và năng lực ứng viên còn thiếu; nút "Thêm buổi" điền sẵn buổi, mentor vẫn sửa tự do).
 
 ### Yêu cầu mentor và buổi đánh giá 0đ (LP-05)
 
@@ -380,6 +403,7 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | POST | `/api/ai/interview/pregenerate`, `/api/ai/interview/pregen/start` | `[AUTH]` |
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
 | ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
+| ✅ | GET | `/api/recommendations/me` — gợi ý mentor, khóa học, job kèm một dòng lý do (AI-10) | `[AUTH]` customer |
 
 ### Upload, mentor, courses, admin
 
@@ -588,6 +612,8 @@ Chi tiết response lỗi / thành công: tham chiếu `API_INDEX.md` (phần đ
 - ✅ Giữ thu nhập mới 3 ngày; job giải phóng, chặn report mở; phân biệt số dư khả dụng/đang giữ/chờ rút.
 - ✅ `/admin/finance/operations`: đối soát số dư, quét giải phóng và ghi nhận hoàn tiền đang giữ.
 - ✅ `/admin/audit-log`: nhật ký thao tác admin thành công/thất bại, che trường bí mật.
+- ✅ Nhật ký thao tác tiền của mentor (rút tiền, đổi tài khoản nhận tiền, yêu cầu đổi giá): `SecurityLog` `mentor_action`, số tài khoản chỉ giữ 4 số cuối, lọc `?actor=mentor` ở `/admin/audit-log`.
+- ✅ Nhật ký Company Moderator: mọi thao tác ghi trên `/api/company/*` (câu hỏi, rubric, tin tuyển dụng) ghi `company_moderator_action`, lọc `?actor=company_moderator`, kèm tên công ty.
 - ✅ Chi tiết người dùng: xem tác động, giải ngân số dư còn tồn và đóng mềm qua cổng kiểm tra nghĩa vụ.
 - ✅ Tự đóng tài khoản dùng cùng cổng kiểm tra; giữ chứng từ và vô hiệu phiên.
 
@@ -605,3 +631,11 @@ Chi tiết triển khai, tương thích dữ liệu cũ và cấu hình PDF: [FI
 | 0.6 | Consent camera | ✅ | `PUT /api/users/me/consent/camera`; `/interview` hỏi trước khi vào room; room không gọi `getUserMedia({video})` khi chưa đồng ý; BE `analyze-face` bỏ qua Vision |
 | 0.7 | Booking trả phí thiếu JaaS | ✅ | `createBooking` trả 503 ở production khi thiếu `JAAS_*` |
 | 0.8 | Body limit `analyze-face` | ✅ | `express.json` 1.5mb riêng cho route này |
+
+### AI-09: cờ sàng lọc khóa học trên giao diện
+
+✅ `/moderator/courses`: nhãn kết quả AI sàng lọc trên thẻ khóa chờ duyệt (tối đa 3 cờ nặng nhất) và khối đầy đủ (điểm, tóm tắt, mọi cờ) trong hộp thoại chi tiết. ✅ Mentor: bước "Xem lại & Gửi duyệt" khi tạo khóa hiện cờ theo luật; sửa khóa bấm "Lưu & gửi duyệt" mà còn cờ nghiêm trọng / cảnh báo thì hỏi lại (không chặn). API `POST /api/courses/prescreen-preview`.
+
+### PR-12: chọn CV hợp nhất cho JD (giao diện)
+
+✅ `/cv-analysis/best-fit` (lối vào từ `/cv-analysis`): chọn 2–5 CV trong kho, dán JD, xếp hạng qua `POST /api/cv/best-fit` (PR-05) với lý do, điểm mạnh, khoảng thiếu, kỹ năng khớp / thiếu; nút "Phân tích chi tiết CV này" mở `/cv-analysis/jd` với CV và JD điền sẵn.

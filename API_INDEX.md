@@ -19,7 +19,7 @@ File trong repo: `API_INDEX.md`. Cập nhật khi thêm route, đổi FE hoặc 
 
 **Duyệt khóa học đã chuyển sang moderator:** `/api/admin/courses/*` không còn tồn tại (trả 404),
 thay bằng `/api/moderator/courses/*`. Router moderator vẫn gắn `adminAuditLog` nên mọi thao tác
-duyệt vẫn ghi vào `SecurityLog` (`type: admin_action`) và hiện ở trang `/admin/audit-log`.
+duyệt vẫn ghi vào `SecurityLog` (`type: moderator_action`; trước 22/11/2026 là `admin_action`) và hiện ở trang `/admin/audit-log` (lọc `?actor=moderator`).
 
 Gán role: `PATCH /api/users/:id/role` — `ASSIGNABLE_ROLES` = `customer | mentor | moderator | enterprise`.
 Không nâng `admin` qua API (phải sửa trực tiếp DB).
@@ -253,6 +253,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/courses/:id/lessons/:lessonId/notes` | Bearer | Ghi chú bài học (học viên đã ghi danh) |
 | PUT | `/api/courses/:id/lessons/:lessonId/notes` | Bearer | Lưu ghi chú `{ content }` trên `Enrollment` |
 | POST | `/api/courses` | Bearer + Mentor | Tạo khóa học mới |
+| POST | `/api/courses/prescreen-preview` | Bearer + Mentor | **AI-09.** Xem trước cờ sàng lọc theo luật (`ruleFlags` của AI-08) trên nội dung đang soạn, body cùng dạng tạo / sửa khóa (`chapters`, `outcomes`). Trả `{ flags[] { code, severity, message, evidence, source: "rule" }, rules }`. Không gọi LLM, không ghi DB |
 | PUT | `/api/courses/:id` | Bearer + Mentor | Cập nhật khóa học |
 | PATCH | `/api/courses/:id/publish` | Bearer + Mentor | Xuất bản khóa học |
 | DELETE | `/api/courses/:id` | Bearer + Mentor | Lưu trữ / xóa mềm khóa học |
@@ -280,8 +281,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
 | GET | `/api/cv/quota` | Bearer | Kiểm tra quota phân tích CV |
-| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python) |
-| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích |
+| POST | `/api/cv/analyses` | Bearer | Lưu kết quả phân tích (sau khi chạy Python). N-11: gửi `analysisId` (từ `/api/cv/analyze*`) thì ghi đè vào bản ghi đó → `200`, không trừ lượt nếu đã trừ; không có `analysisId` → tạo mới `201` như cũ |
+| GET | `/api/cv/analyses` | Bearer | Danh sách lịch sử phân tích (chỉ bản đã xong; bỏ `processing`/`failed`) |
 | GET | `/api/cv/analyses/:id` | Bearer | Chi tiết bản phân tích |
 | DELETE | `/api/cv/analyses/:id` | Bearer | Xóa bản phân tích |
 
@@ -293,6 +294,9 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | POST | `/api/cv/analyze/full` | Khớp + chấm điểm (LLM/Ollama) |
 | POST | `/api/cv/analyze/suggestions` | Pipeline đầy đủ + gợi ý (JD) |
 | POST | `/api/cv/analyze/field` | Phân tích theo ngành (`field` form field) |
+| POST | `/api/cv/best-fit` | PR-05, `cvBestFitService.js`. JSON `{ cvIds: [2–5 id CV trong kho /api/cvs, không trùng], jdText? (30–20.000 ký tự) \| jobPostId? (job đang mở) }`. Cần còn lượt phân tích CV (không trừ lượt), rate limit như `/analyze`. Node gửi file đã tải lên (PDF / DOCX / TXT) hoặc chữ soạn trong editor (`content`) sang Python `POST /best-fit` (multipart `jd_text`, `items` JSON, `files[]`). Một lượt LLM cho cả bộ; `score = 0,7 × điểm AI + 0,3 × điểm kỹ năng`; LLM lỗi hoặc thiếu CV trong kết quả → xếp theo kỹ năng (`mode: "skills"`). → `{ success, bestFit: { ranking[] { cvId, title, rank, score \| null, skillScore, aiScore, reason, strengths[], gaps[], matchingSkills[], missingSkills[], error }, bestCvId, mode ai \| skills, jdSource { type text \| job, jobPostId?, title? }, elapsedMs } }`. CV không đọc được đứng cuối, `score: null`, có `error`. Lỗi: 400 đầu vào, 404 CV không thuộc user / job không mở, 403 hết lượt, 503 / 504 / 502 Python |
+
+**N-11:** cả 4 route nhận form field `analysisId` (tùy chọn) và luôn trả `analysisId` (kể cả khi lỗi). Server mở `CVAnalysis` `processing` trước khi gọi Python; Python 2xx → `completed` + `result.match` + trừ 1 lượt quota; lỗi → `failed` + `error`. Mỗi lần gọi ghi `meta.processingTimeMs` và log `cv_analysis_timing` (`durationMs`, `pythonMs`, `endpoint`, `httpStatus`). FE gửi lại `analysisId` khi thử bậc thấp hơn (suggestions → full → basic) và khi lưu.
 
 **FE:** `cvApi.js` (lịch sử CRUD), `CVAnalysis.jsx` (phân tích qua `/api/cv/analyze*`). **Production:** Express + Python. **Supabase Edge:** chỉ khi `VITE_SUPABASE_PROJECT_ID` — fallback tùy env, không bắt buộc.
 
@@ -304,10 +308,10 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
-| POST | `/api/interviews/sessions` | Bearer | Tạo phiên phỏng vấn thử |
+| POST | `/api/interviews/sessions` | Bearer | Tạo phiên phỏng vấn thử. **JB-06:** body nhận `jobPostId` tùy chọn (sai định dạng → 400, không trừ lượt). Server chèn tối đa 2 câu doanh nghiệp sau 3 câu baseline: có `jobPostId` (job đang mở) thì câu của job đó, không có thì câu của **một** doanh nghiệp ngẫu nhiên cùng vị trí (`competencyProfile.roleCategory` → `roleCategoryKeysForInterviewRole`). Câu hợp lệ: `approved`, trong câu áp dụng của rubric `approved` gắn với job, thuộc job đó hoặc dùng chung. Mỗi câu có `source` (`baseline` / `company` / `llm_followup`); session lưu `companyQuestions[] { questionId, companyId, jobPostId, rubricId }`; có câu doanh nghiệp thì `questionsAllowed` = 5 (free) / 7 (Pro). Không có câu hợp lệ → buổi như cũ. FE đọc `session.questions` từ response |
 | PATCH | `/api/interviews/sessions/:id` | Bearer | Cập nhật câu trả lời |
 | POST | `/api/interviews/sessions/:id/complete` | Bearer | Hoàn thành và nhận feedback |
-| POST | `/api/interviews/sessions/:id/evaluate` | Bearer | Chấm điểm / feedback bổ sung. Mỗi `perQuestion[]` kèm trạng thái kiểm định: `evaluationIncomplete`, `incompleteFields`, `moderatorOverride` (điểm moderator chấm lại, không ghi đè điểm AI) và `openReports` (loại báo cáo AI `interview_question` / `interview_evaluation` của chính user còn chưa xử lý; chỉ có khi phiên đã chấm trước đó). Trang Feedback dùng để hiện "Đang chờ kiểm định" và ưu tiên điểm moderator (N-10) |
+| POST | `/api/interviews/sessions/:id/evaluate` | Bearer | Chấm điểm / feedback bổ sung. Mỗi `perQuestion[]` kèm trạng thái kiểm định: `evaluationIncomplete`, `incompleteFields`, `moderatorOverride` (điểm moderator chấm lại, không ghi đè điểm AI) và `openReports` (loại báo cáo AI `interview_question` / `interview_evaluation` của chính user còn chưa xử lý; chỉ có khi phiên đã chấm trước đó). Trang Feedback dùng để hiện "Đang chờ kiểm định" và ưu tiên điểm moderator (N-10). `freeQuestionCount` (JB-06): số câu đầu buổi user free xem được kết quả (3 baseline + câu doanh nghiệp) |
 | POST | `/api/interviews/sessions/:id/analyze-face` | Bearer | Vision — cảm xúc khuôn mặt (body `imageBase64`, JSON limit riêng 1.5mb). Chưa có `consent.camera` → trả `emotion: null, reason: "no_camera_consent"`, không gọi Vision |
 | POST | `/api/interviews/generate-questions` | Bearer | Sinh câu hỏi (LLM) |
 | POST | `/api/interviews/extract-cv-text` | Bearer | Trích text từ CV upload |
@@ -357,11 +361,16 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/admin/content/interview-sessions` | Phiên phỏng vấn AI gần đây + câu hỏi đã lưu (`?limit=30`) |
 | GET | `/api/admin/content/course-media` | Danh sách khóa + số bài video (`?scope=all\|published\|pending`) |
 | GET | `/api/moderator/content/stats` | `[MODERATOR]` Bản dùng cho hàng đợi duyệt (cùng handler với `/api/admin/content/stats`) |
-| GET | `/api/moderator/courses/pending` | `[MODERATOR]` Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) |
+| GET | `/api/moderator/courses/pending` | `[MODERATOR]` Khóa chờ duyệt (`pending_review`, `pending_update`) + `stats.enrollmentCount` (đếm ghi danh `paid`) + `aiPrescreen` (AI-08) `{ status pending \| done \| failed, score, summary, flags[] { code, severity, message, evidence, source rule \| ai }, target, model, promptVersion, error, at }` hoặc `null` |
 | GET | `/api/moderator/courses/published` | `[MODERATOR]` Khóa đã xuất bản (`?limit=50`, tối đa 100) + `stats` |
 | PATCH | `/api/moderator/courses/:id/approve` | `[MODERATOR]` Duyệt → `status: published`, xóa `adminReview` |
 | PATCH | `/api/moderator/courses/:id/reject` | `[MODERATOR]` Từ chối — body `{ reason }` (bắt buộc) → `draft`, lưu `adminReview`, thông báo mentor |
 | PATCH | `/api/moderator/courses/:id/archive` | `[MODERATOR]` Gỡ marketplace — body `{ reason? }` → `archived`, lưu `adminReview`, thông báo mentor |
+| GET | `/api/moderator/queue` | `[MODERATOR]` Hàng đợi kiểm định. **JB-04:** không truyền `type` thì chỉ trả 3 loại phỏng vấn (`question_report`, `evaluation_report`, `evaluation_incomplete`); báo cáo tin tuyển dụng lấy bằng `?type=job_post_report` |
+| PATCH | `/api/moderator/queue/:id/resolve` | `[MODERATOR]` **JB-04:** item `job_post_report` chỉ nhận `action` `dismiss` (giữ tin, report `dismissed`) hoặc `hide_job` (`note` = lý do ẩn ≥ 5 ký tự; ẩn tin, đóng mọi báo cáo đang mở của tin, báo người báo cáo và Company Moderator). Item phỏng vấn không nhận `hide_job`; sai loại → 400. Tin đã đóng / đã xóa sau khi bị báo cáo → `hide_job` trả 409 gợi ý `dismiss` (item vẫn mở, `dismiss` đóng được) |
+| GET | `/api/moderator/jobs` | `[MODERATOR]` **JB-04 (cho JB-17).** Tin `published` / `hidden`; query `status` (`published` hoặc `hidden`), `reported=true` (chỉ tin có báo cáo đang mở), `q` (tìm theo tiêu đề), `page`, `limit` → `{ jobs[] {id, title, companyId, companyName, roleCategory, level, status, publishedAt, closesAt, hiddenAt, hiddenReason, openReports}, pagination }`, tin nhiều báo cáo lên trước |
+| PATCH | `/api/moderator/jobs/:id/visibility` | `[MODERATOR]` **JB-04.** Body `{ hidden: true, reason (≥ 5 ký tự) }` → `published → hidden` (ghi `hiddenAt`, `hiddenBy`, `hiddenReason`; đóng báo cáo đang mở; Notification `job_post_hidden` cho Company Moderator của công ty) · `{ hidden: false }` → `hidden → published` (xóa 3 field, Notification `system`). 409: đã ở trạng thái đó, bản nháp / đã đóng, bỏ ẩn tin đã quá `closesAt`. Tin bị ẩn không hiện ở `GET /api/jobs`; Company Mod không sửa được, vẫn đóng được |
+| POST | `/api/reports` | **JB-04:** `{ targetType: "job_post", targetId, reason: fraud \| misleading \| discriminatory \| inappropriate \| other, description (≥ 10 ký tự), evidenceUrls? }` → `201 { reportId, moderationItemId }` (item `job_post_report`; `fraud` / `discriminatory` ưu tiên cao). Chỉ tin công chúng đang thấy, cùng quy tắc `GET /api/jobs/:id` (`published`, chưa quá `closesAt`, công ty không bị khóa; khác → 404); Company Mod không báo cáo tin công ty mình (400); đang có báo cáo chờ xử lý cho cùng tin → 409, kể cả hai request cùng lúc (unique index `{reportedBy, targetId}` partial `targetType: job_post, status: pending`) |
 | PATCH | `/api/admin/bookings/:id/confirm-transfer-payment` | Xác nhận CK booking |
 | PATCH | `/api/admin/bookings/:id/confirm-refund` | Xác nhận hoàn tiền |
 | PATCH | `/api/admin/bookings/:id/status` | Cập nhật trạng thái booking |
@@ -374,7 +383,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/admin/payments/:id/confirm-learning-path-transfer` | **LP-11.** Body `{ force?, forceNote?, amount? }`. Không `force`: ứng viên phải đã báo «Đã chuyển» (400). `force` cần `forceNote` ≥ 3 ký tự; chỉ `force` mới xác nhận được giao dịch đã hết hạn (tiền đến muộn, khác → 409). `amount` (số tiền trên sao kê) lệch giá lộ trình → 400. Thành công: Payment `success`, lộ trình `active`, thông báo `learning_path_paid`; gọi lại → `idempotent: true`. Trả `{ success, payment, learningPath, idempotent }` |
 | POST | `/api/admin/payments/normalize-transfer-refs` | Chuẩn hóa mã tham chiếu CK |
 | GET | `/api/admin/finance/courses` | Tổng hợp doanh thu khóa |
-| GET | `/api/admin/finance/platform-summary` | Tài chính nền tảng — query `?month=YYYY-MM` (tuỳ chọn) |
+| GET | `/api/admin/finance/platform-summary` | Tài chính nền tảng — query `?month=YYYY-MM` (tuỳ chọn). Trả `platformFinance { totals, booking, course, subscription, learningPath }`. **LP-16:** `learningPath` tính từ Payment `learning_path` đã thu (`success` / `partial_refund`, trừ phần hoàn, bỏ Payment demo), phí = phí nền tảng các buổi gốc, cùng công thức analytics N-08 (`learningPathRevenueRows`); booking lộ trình không cộng vào `booking` |
 | GET | `/api/admin/payouts` | Yêu cầu rút tiền mentor |
 | PATCH | `/api/admin/payouts/:id/approve` | Duyệt payout |
 | PATCH | `/api/admin/payouts/:id/mark-paid` | Đánh dấu đã chi |
@@ -382,6 +391,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | GET | `/api/admin/interview-metrics` | Metric phỏng vấn AI |
 | GET | `/api/admin/analytics/user-behavior` | Hành vi nền tảng — query `?days=` (1–90, mặc định 7) → `{ behavior }` |
 | GET | `/api/admin/analytics/users/:id/journey` | Hành trình user — query `?days=`, `?limit=` → `{ journey }` |
+| GET | `/api/admin/analytics/revenue` | Doanh thu theo nguồn (N-08) — query `?days=` (1–366, mặc định 30, tính cả hôm nay) hoặc `?month=YYYY-MM` (giờ VN) → `{ revenue: { period, totals, sources[], series[] } }`. `sources[]`: `booking` (Booking `paid`/`partial_refund`, loại booking lộ trình và buổi 0đ), `course` (Enrollment `paid`, `pricePaid > 0`), `subscription` (Payment `subscription` `success`), `learning_path` (Payment `learning_path` `success`/`partial_refund`); mỗi nguồn `{ key, label, grossCollected, platformRevenue, mentorNet, count, sharePct }`, `grossCollected` đã trừ tiền hoàn; mốc thời gian `paidAt` ?? `createdAt`; bỏ Payment demo `UIMOCK-`. `series[]`: mỗi ngày `{ date, booking, course, subscription, learning_path, total }` |
 
 **Online presence:** `isOnline` = `lastSeenAt` trong cửa sổ **3 phút** (`backend/src/utils/userPresence.js`). Heartbeat FE: `POST /api/auth/presence` + `authJwt` tự touch mỗi request.
 
@@ -421,7 +431,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/bookings/mentor/:id/start` | Bearer + Mentor | Mentor bắt đầu buổi |
 | PATCH | `/api/bookings/mentor/:id/check-in` | Bearer + Mentor | Check-in webcam — body `{ imageUrl }` |
 | PATCH | `/api/bookings/mentor/:id/session-capture` | Bearer + Mentor | Lưu ảnh/chụp phiên |
-| GET | `/api/bookings/mentor/:id` | Bearer + Mentor | Chi tiết booking phía mentor |
+| GET | `/api/bookings/mentor/:id` | Bearer + Mentor | Chi tiết booking phía mentor. Booking buổi lộ trình có thêm `learningPathId`, `learningPathSessionId` (rỗng với booking thường; LP-21 dùng để mở form chấm đạt / chưa đạt) |
 | GET | `/api/bookings/mentor/:id/booked-slots` | — / Mentor | Slot đã đặt |
 | PATCH | `/api/bookings/mentor/:id/reschedule` | Bearer + Mentor | Dời lịch (mentor). 409 nếu mentee có buổi khác chồng giờ mới (xem C.3 "Chặn ứng viên trùng giờ") |
 | PATCH | `/api/bookings/mentor/:id/cancel` | Bearer + Mentor | Hủy (mentor) |
@@ -460,6 +470,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 |:-------|:-----|:-------------|
 | GET | `/api/admin/analytics/user-behavior` | `behavior` — funnel, top routes, recent actions |
 | GET | `/api/admin/analytics/users/:id/journey` | `journey` — timeline, `topRoutes`, `lastStop`, `lastAction` |
+| GET | `/api/admin/analytics/revenue` | `revenue` — doanh thu theo nguồn (booking, khóa, gói, lộ trình) + chuỗi theo ngày (N-08) |
 
 **FE:** `usePageAnalytics.js`, `analyticsApi.js`, `trackAction`, `AdminAnalytics.jsx`, `UserJourneyPanel.jsx`.
 
@@ -508,7 +519,7 @@ Mọi route gắn `authJwt`; chỉ `customer` (mentee) và Mentor đã duyệt (
 | POST | `/api/mentorship-requests/:id/offers` | Mentor | Gửi đề nghị (`message`, `availability`) |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/select` | Mentee | `open → selected` |
 | POST | `/api/mentorship-requests/:id/offers/:offerId/withdraw` | Mentor | Rút đề nghị |
-| POST | **`/api/mentorship-requests/:id/accept-assessment`** | Mentor được chọn | **LP-05.** Body `{ date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?: 30–120 (mặc định 60), note? }`. Tạo Booking `sessionType: "assessment"` (mọi field tiền 0, `paid`, `confirmed`), request `selected\|assessing → assessing`, thông báo `booking_confirmed` cho mentee. **201** `{ success, request }`. Lỗi: 400 sai định dạng / giờ đã qua; 403 không phải Mentor được chọn; 409 đang có buổi 0đ chưa diễn ra, buổi 0đ đã hoàn thành, đã `path_proposed`, trùng khung giờ của mentor, hoặc mentee đã có buổi khác chồng giờ (thông báo không lộ lịch của mentee). Hẹn lại được khi buổi trước `cancelled`/`no_show` |
+| POST | **`/api/mentorship-requests/:id/accept-assessment`** | Mentor được chọn | **LP-05.** Body `{ date: "DD/MM/YYYY", timeSlot: "HH:mm", durationMinutes?: 30–120 (mặc định 60), note? }`. Tạo Booking `sessionType: "assessment"` (mọi field tiền 0, `paid`, `confirmed`), request `selected\|assessing → assessing`, thông báo `booking_confirmed` cho mentee. **201** `{ success, request }`. Lỗi: 400 sai định dạng / giờ đã qua; 403 không phải Mentor được chọn; 409 đang có buổi 0đ chưa diễn ra, buổi 0đ đã hoàn thành, đã `path_proposed`, trùng khung giờ của mentor, hoặc mentee đã có buổi khác chồng giờ (thông báo không lộ lịch của mentee). Hẹn lại được khi buổi trước `cancelled`/`no_show`. **LP-06 (quyết định 13):** 409 khi ứng viên (gộp mọi yêu cầu, mọi mentor) đang có 1 buổi 0đ chưa xong, hoặc đã dùng 2 buổi 0đ trong 30 ngày (tính theo lúc tạo buổi; tính buổi đang mở, `completed`, `no_show` do ứng viên; không tính `no_show` do mentor và buổi `cancelled`) — thông báo kèm ngày được hẹn lại |
 | POST | `/api/mentorship-requests/:id/close` | Mentee | `open → closed` |
 | GET | `/api/mentorship-requests/:id/files/:kind` | Mentee / Mentor được chọn | Tải CV/JD (`kind` = `cv` \| `jd`) |
 
@@ -526,6 +537,7 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 |:-------|:-----|:---|:--------|
 | GET | `/api/learning-paths` | Mentor / Mentee | Mentor: lộ trình mình soạn. Mentee: lộ trình đã gửi cho mình (**không thấy bản nháp**). Mỗi lộ trình có `mentor: { name, title, avatar, publicId }` (LP-18, trang `/learning-paths` của ứng viên) |
 | GET | `/api/learning-paths/:id` | Mentor soạn / Mentee của lộ trình | Mentee gọi bản nháp → 404 |
+| GET | `/api/learning-paths/:id/competency-hints` | Mentor của lộ trình | **LP-23.** Năng lực gợi ý cho trình soạn: `{ hints: { items[], hasJob, hasEvidence, jobTitle, passThreshold } }`. Mỗi item `{ shrmKey, name, fromJob, requiredLevel, currentLevel, gap, status }`; `status` = `gap` (dưới yêu cầu job / dưới mức đạt), `unknown` (job yêu cầu, ứng viên chưa có bằng chứng), `met`. Nguồn: `requiredCompetencies` của job gắn lộ trình + hồ sơ năng lực ứng viên (PR-07); chỉ key hợp lệ LP-01. Mentor khác / mentee → 404; id sai → 400 |
 | POST | `/api/learning-paths` | Mentor được chọn | **LP-07.** Body `{ mentorshipRequestId, goal?, totalAmount? (VND nguyên, 0–100.000.000), sessions?: [{ title, objectives?[], shrmKeys?[] }] (≤ 12) }`. `shrmKeys` phải là key trong bộ tiêu chí LP-01 (`GET /api/competencies`) và không `deprecated`, nếu không trả 400. Request phải ở `selected`/`assessing`. **201** bản nháp (`draft`). 409 nếu yêu cầu đã có lộ trình chưa hủy |
 | PATCH | `/api/learning-paths/:id` | Mentor soạn | **LP-07.** Body `{ goal?, totalAmount?, sessions? }`; `sessions` thay **toàn bộ** danh sách buổi. Chỉ khi `draft` hoặc `revision_requested` (khác → 409) |
 | POST | `/api/learning-paths/:id/propose` | Mentor soạn | **LP-07.** `draft`/`revision_requested → proposed`. Chặn (400): chưa có buổi; giá < 10.000₫; buổi đánh giá 0đ chưa `completed`. Chụp `platformFeeRate` theo Mentor (`resolveBookingPlatformFeeRate`); gửi lại sau sửa thì `version + 1`. Yêu cầu mentor → `path_proposed`; thông báo `learning_path_proposed` cho mentee |
@@ -533,13 +545,17 @@ Mọi route gắn `authJwt`; chỉ mentee (`customer`) và Mentor đã duyệt (
 | POST | `/api/learning-paths/:id/request-revision` | Mentee của lộ trình | **LP-08.** Body `{ note }` (5–2000 ký tự, bắt buộc). `proposed → revision_requested`, lưu `revisionNote`. Mentor sửa (`PATCH`) rồi gửi lại (`propose`) → `version + 1`. Thông báo `learning_path_revision_requested` cho mentor |
 | POST | `/api/learning-paths/:id/checkout` | Mentee của lộ trình | **LP-10.** Chỉ khi `pending_payment` (khác → 409; đã `active`/`completed` → 409 "đã thanh toán"). Trả `{ success, learningPath, payment }`. Tạo Payment `type: learning_path`, `provider: transfer`, `amount = totalAmount`, `providerRef` = mã `PI` + 12 số (`generatePiOrderRef`), hết hạn sau `TRANSFER_PAYMENT_TIMEOUT_MINUTES` (mặc định 15). Gọi lại khi mã còn hạn → trả **đúng mã cũ, không gia hạn**; mã đã hết hạn → mã mới trên cùng bản ghi Payment. Hai lần bấm cùng lúc: một lần nhận 409 |
 | POST | `/api/learning-paths/:id/sessions/:sid/schedule` | Mentee của lộ trình | **LP-12.** Body `{ date (DD/MM/YYYY), timeSlot (HH:mm), durationMinutes? (30–120, mặc định 60), note? (≤ 1000) }`. **201** `{ success, learningPath, booking { id, status, date, timeSlot, durationMinutes, learningPathSessionId } }`. Buổi `planned → scheduled`, tạo Booking `confirmed` gắn `learningPathId` + `learningPathSessionId` (**không** gắn `mentorshipRequestId`), tiền ghi sẵn theo LP-04 (`price = totalAmount = shareAmount`, `platformFee = round(shareAmount × platformFeeRate)`, `paid`, `paymentMethod: learning_path`; buổi học lại = 0). Chỉ đặt được buổi đang mở: lộ trình `active`, đi theo `order`, mỗi `order` xét lần học mới nhất; buổi trước chưa `passed` (đang `scheduled` hoặc `not_passed`) → **409**. Khung giờ: tương lai, trong lịch mentor mở (cùng quy tắc `POST /api/bookings`), mentor chưa có lịch trùng (đơn CK hết hạn đang giữ giờ được giải phóng), mentee không có buổi khác chồng giờ (kể cả với mentor khác) → 400/409. Bấm 2 lần cùng lúc chỉ tạo 1 booking. Mentor gọi → 403; lộ trình / buổi của người khác → 404. Thông báo `booking_confirmed` cho mentor. Hủy buổi qua `DELETE /api/bookings/:id` (LP-22) → buổi về `planned`, đặt lại được |
+| PATCH | `/api/learning-paths/:id/sessions/:sid/outcome` | Mentor của lộ trình | **LP-13.** Body `{ outcome: "passed" \| "not_passed", feedback: { summary (10–4000, bắt buộc), strengths?: string[], improvements?: string[] }, scores?: [{ shrmKey, score (0–5 hoặc null), note? }] }`. `scores` chỉ nhận key trong `shrmKeys` của buổi (khác hoặc trùng → 400); `not_passed` phải có ≥ 1 `improvements` (400). Điều kiện: lộ trình `active`, buổi `scheduled`, booking của buổi đã `completed` (mentor kết thúc buổi trước) → khác 409. Trả `{ success, learningPath, nextStep, suggestedOutcome }`: `nextStep` = `open_next` (mở buổi kế) \| `complete_path` (mọi buổi đạt → lộ trình `completed`, `completedAt`) \| `free_retake` (lần chưa đạt đầu: tạo buổi cùng `order`, `attempt` 2, `retakeOf`, `shareAmount` 0, `planned`) \| `supplementary_required` (học lại vẫn chưa đạt: không tự tạo buổi). `suggestedOutcome` = `suggestOutcome` của LP-01 từ `scores` (mentor vẫn quyết định). Lưu `feedback.scores`, `frameworkVersion`. Ghi 2 lần cùng lúc: một lần 409. Mentee gọi → 403; mentor khác → 404. Thông báo `learning_path_session_result` cho mentee |
+| POST | `/api/learning-paths/:id/sessions/:sid/supplementary` | Mentor của lộ trình | **LP-13 (quyết định 2).** Body `{ price (10.000–100.000.000, số nguyên), note? (≤ 2000) }`. Chỉ cho lần học lại mới nhất `done` + `not_passed` (`attempt ≥ 2`); lần trượt đầu hoặc đã đề xuất → 409. **201** `{ success, learningPath }`. Tạo buổi `attempt + 1`, `retakeOf`, `shareAmount = price` (thu riêng, ngoài T), `status: pending_payment`: chưa đặt lịch được (409) và chặn các buổi sau tới khi thanh toán. Thông báo `learning_path_session_result` cho mentee |
 | PATCH | `/api/learning-paths/:id/submit-transfer` | Mentee của lộ trình | **LP-10.** Ứng viên báo "Tôi đã chuyển khoản": ghi `Payment.providerResponse.submittedAt` (giúp admin đối soát tay, LP-11). 404 chưa checkout; 409 mã đã hết hạn hoặc lộ trình không còn chờ thanh toán. Trả `{ success, learningPath, payment }` |
+
+**DTO `sessions[]` (LP-13 thêm):** `feedback { summary, strengths[], improvements[], scores[] { shrmKey, score, note }, frameworkVersion, suggestedOutcome }`, `doneAt`, `supplementaryNote`. `status` có thêm `pending_payment` (buổi bổ sung chờ thanh toán, `canSchedule: false`).
 
 **DTO `payment` (LP-10):** `paymentId, orderRef, amount, status (pending | submitted | paid | expired), submittedAt, paymentExpiresAt, expiresInMs, timeoutMinutes`. FE hiện QR theo `orderRef` + `amount` như checkout giỏ hàng, rồi poll `GET /api/payments/transfer-status?orderRef=…` (trả `entityType: "learning_path"`, `entityId` = id lộ trình, `redirectTo: /learning-paths/:id` khi `paid`).
 
 **Xác nhận tiền lộ trình (LP-10):** SePay webhook khớp mã `PI…` của Payment `learning_path` đang chờ và **đúng** `totalAmount` → `confirmLearningPathTransfer`: Payment `success`, lộ trình `pending_payment → active` (`paidAt`), thông báo `learning_path_paid` cho mentee và mentor. Sai tiền / mã hết hạn / mã cũ → `SepayWebhookEvent.status = unmatched`, lộ trình giữ nguyên. Webhook trùng `id` → idempotent. Tài khoản ứng viên ngừng hoạt động → `held_inactive_account`, không kích hoạt. Admin xác nhận tay (LP-11): A.10 `/api/admin/payments/learning-path-transfers`, `/api/admin/payments/:id/confirm-learning-path-transfer`.
 
-Sắp có: `sessions/:sid/outcome` (LP-13), `cancel` (LP-15). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
+Sắp có: `cancel` (LP-15); thanh toán buổi bổ sung có phí (đề xuất (s) trong `docs/plan/TASKS.md`). `shareAmount` từng buổi gốc được chốt khi `propose` (LP-09: `splitLearningPathShares`, tổng = `totalAmount`, buổi cuối nhận phần dư); bản nháp còn 0.
 
 ---
 
@@ -563,7 +579,7 @@ Mọi route `/api/company/*` gắn `authJwt` + `requireCompanyModerator` (CO-03)
 
 **Tự đóng (JB-02):** job `published` / `hidden` có `closesAt <= now` chuyển `closed`, `closedReason: "expired"`, trong nhịp 20 phút của `bookingStaleSweepJob` (`closeExpiredJobPosts`). API công khai đã loại job quá hạn ngay lúc truy vấn.
 
-**Kiểm tra key ở API công ty khác (đề xuất (l)):** `POST/PATCH /api/company/questions`, `POST /api/company/questions/generate-starter`, `POST /api/company/rubrics` nhận `roleCategory` trong `GET /api/role-categories` (khác → 400). `competencyId` của câu hỏi và `criteria[].shrmKey` của rubric (`POST`, `PATCH`, `submit`) phải là key bộ tiêu chí LP-01 (khác → 400). `competencyId` mặc định của câu hỏi công ty là `technical_learning`.
+**Kiểm tra key ở API công ty khác (đề xuất (l)):** `POST/PATCH /api/company/questions`, `POST /api/company/questions/upload` (job), `POST /api/company/rubrics` nhận `roleCategory` trong `GET /api/role-categories` (khác → 400). `competencyId` của câu hỏi và `criteria[].shrmKey` của rubric (`POST`, `PATCH`, `submit`) phải là key bộ tiêu chí LP-01 (khác → 400). `competencyId` mặc định của câu hỏi công ty là `technical_learning`.
 
 Sắp có: ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
 
@@ -573,19 +589,21 @@ Sắp có: ẩn/hiện của Platform Mod (JB-04), FE `/company/jobs` (JB-15).
 
 **File:** `backend/src/routes/jobs.js`, `routes/roleCategories.js` · **Service:** `publicJobsService.js`, `roleCategories.js` · **Dữ liệu nhóm vị trí:** `backend/src/config/roleCategories.json` (nguồn duy nhất)
 
-Không cần đăng nhập. Job **đang mở** = `status: published`, `closesAt` null hoặc ở tương lai, công ty không `suspended`. Không bao giờ trả `draft`, `closed`, `hidden`.
+Không cần đăng nhập (trừ `/:id/gap`). Job **đang mở** = `status: published`, `closesAt` null hoặc ở tương lai, công ty không `suspended`. Không bao giờ trả `draft`, `closed`, `hidden`.
 
 **DTO công khai `job`:** `id, title, roleCategory, roleCategoryName, level, employmentType, workMode, location, salaryRange, summary (≤ 280 ký tự), description (chỉ ở chi tiết), requiredCompetencies[] { shrmKey, minLevel, name }, requiredSkills[], hasRubric, closesAt, publishedAt, company { id, name, slug, logo, industry, website, size, address }`. Không có `createdBy`, `rubricId`, nội dung rubric, `status`.
 
 | Method | Path | Ghi chú |
 |:-------|:-----|:--------|
 | GET | `/api/jobs` | Query: `q?` (≤ 100 ký tự, tìm trong tiêu đề, kỹ năng, địa điểm, không phân biệt hoa thường), `roleCategory?`, `level?`, `employmentType?`, `workMode?`, `company?` (slug; công ty không có / bị khóa → danh sách rỗng), `page` (mặc định 1), `limit` (1–50, mặc định 12). Mới đăng trước (`publishedAt`). Trả `{ success, jobs, pagination { page, limit, total, totalPages } }`. Bộ lọc sai → 400 |
-| GET | `/api/jobs/:id` | `{ success, job }` có `description` đầy đủ. Không mở → 404; id sai → 400 |
+| GET | `/api/jobs/:id` | `{ success, job }` có `description` đầy đủ. Không mở → 404; id sai → 400. Có Bearer của ứng viên (`customer`) thì ghi lượt xem cho JB-20 (khách và role khác không ghi) |
+| GET | `/api/jobs/recent` | Bearer, chỉ ứng viên (khác → 403). Tối đa 5 job xem gần nhất (mới nhất trước), **chỉ job đang mở và có câu doanh nghiệp hợp lệ**: câu `approved`, nằm trong câu áp dụng của rubric `approved` gắn với job, thuộc job đó hoặc dùng chung (`companyInterviewQuestionService.js`, dùng chung với JB-06). Trả `{ success, jobs: [DTO job + viewedAt, companyQuestionCount] }` (JB-20) |
+| GET | `/api/jobs/:id/gap` | `[AUTH][customer]` khoảng thiếu (JB-05, `jobGapService.js`, chỉ đọc). `{ success, gap: { job { id, title, company }, competencies[], skills { cv { id, title } \| null, matched[], missing[] { skill, nextStep } }, summary { competenciesMet, competenciesTotal, competenciesNoEvidence, skillsMatched, skillsTotal } } }`. Mỗi `competencies[]`: `shrmKey, name, requiredLevel, currentLevel \| null, evidenceCount, gap \| null, status met \| below \| no_evidence, severity null \| medium (thiếu 1 bậc) \| high (≥ 2 bậc) \| unknown (chưa có bằng chứng), nextStep { type ai_interview \| mentor_request, label, actionUrl } \| null`. Năng lực có `evidenceCount = 0` trong `CandidateProfile` tính là `no_evidence`, không tính level mặc định. Kỹ năng so với CV mặc định (`defaultCvId` của hồ sơ, hoặc CV `isDefault`): `skills`, `content.skills`, `content.projects[].technologies`, so sau khi bỏ dấu, hoa/thường, ký tự đặc biệt, đuôi `js`; `nextStep.type` `course` (có CV) hoặc `update_cv` (chưa có CV). Chưa đăng nhập 401, không phải ứng viên 403, job không mở 404, id sai 400 |
 | GET | `/api/role-categories` | `{ success, version, roleCategories: [{ key, nameVi, nameEn, interviewRole, suggestedCompetencies[] }] }`. `interviewRole` = key trong `ROLE_COMPETENCY_MAP` (phỏng vấn AI, JB-06); `suggestedCompetencies` = năng lực ưu tiên của vị trí (gợi ý khi soạn job). `Cache-Control: public, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). FE: `api/roleCategoriesApi.js`, hook `useRoleCategories()` |
 
 **`jobPostSummary`** (DTO `jobPost` trong yêu cầu mentor và lộ trình): `id, title, roleCategory, roleCategoryName, level, isOpen, company { name, slug } | null, requiredCompetencies[], requiredSkills[]`. Đọc cả job đã đóng (`isOpen: false`) vì job có thể đóng sau khi gửi yêu cầu.
 
-Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/apply` (JB-08). Luồng ứng viên cần job hợp lệ dùng `findPublicJob(id)` của `publicJobsService.js`.
+Sắp có trên `/api/jobs`: `/:id/apply` (JB-08). Luồng ứng viên cần job hợp lệ dùng `findPublicJob(id)` của `publicJobsService.js`.
 
 ---
 
@@ -598,6 +616,47 @@ Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/
 | GET | `/api/competencies` | Bearer; role `customer`, `mentor`, `admin`, `moderator`, `enterprise` / `company_moderator` | Trả `{ success, framework }`: `version`, `scale {min, max}`, `passThreshold`, `aiCalibration {offset, maxLevel, status}`, `levels[] {score, label, descriptor}`, `nullLabel`, `competencies[] {key, nameVi, nameEn, shrm, ddi, definition, indicators, anchors {1,3,5}, deprecated, ...}`. Header `Cache-Control: private, max-age=3600`, `ETag` theo `version` (`If-None-Match` khớp → 304). Không token → 401 |
 
 **Quy tắc:** key năng lực giữ nguyên 20 key cũ; bỏ key thì đặt `deprecated: true` (vẫn hiện tên cho dữ liệu cũ, form mentor/rubric không cho chọn). Mức `null` = "Chưa đủ dữ liệu", khác mức 0. BE dùng `isValidCompetencyKey`, `aiAnswerToLevel`, `suggestOutcome`, `toDisplayLevel` trong `competencyFramework.js`.
+
+
+### A.18. AI sinh bộ câu nháp cho công ty — `POST /api/company/questions/generate` (CO-04)
+
+| Method | Endpoint | Auth | Mô tả |
+|:-------|:---------|:-----|:------|
+| POST | `/api/company/questions/generate` | Company Moderator; rate limit 10 lần / 15 phút / user | Body `{ roleCategory, count? }`: `roleCategory` là key trong `GET /api/role-categories`, `count` nguyên 8–12 (mặc định 10); sai → **400**, không gọi LLM. AI sinh câu theo năng lực của vị trí (`interviewRole` → `ROLE_COMPETENCY_MAP`, chỉ key bộ tiêu chí LP-01). Lưu vào `QuestionBank`: `orgId = companyId`, `source: "org_template"`, `status: "draft"`, `provenance.promptVersion` / `generatedBy.promptVersion` = version prompt thực sự chạy (`companyq-vN`). Câu trùng `textHash` với câu đã có của công ty (mọi trạng thái) hoặc trùng nhau trong lượt bị bỏ qua. **201** `{ success, message, count, skippedDuplicates, promptVersion, questions }`. Chưa cấu hình LLM → **503**; LLM trả kết quả không dùng được sau 1 lần sửa JSON → **502** (không lưu gì) |
+
+Prompt key `company_question_gen` (PromptVersion, tiền tố `companyq`), bản mặc định `companyq-v1` trong `prompts/companyQuestionGenPrompt.js`. Câu đã có (chưa bị từ chối) của cùng vị trí được đưa vào prompt (tối đa 30) để tránh lặp ý. Trang câu hỏi của Platform Moderator (`GET /api/moderator/questions`) chỉ đọc `orgId: null` nên không thấy các câu này.
+
+#### Quản lý câu hỏi công ty (CO-05)
+
+Vòng đời câu doanh nghiệp (quyết định CO-16, 23/11/2026): `draft` → `pending_platform_review` (Company Mod duyệt) → `approved` \| `rejected` (Platform Mod, CO-16); `draft` → `rejected` (Company Mod). **Chỉ câu `approved` mới vào buổi phỏng vấn.** Câu có `jobPostId` (tin tuyển dụng của chính công ty) hoặc `null` (dùng chung theo `roleCategory`).
+
+| Method | Endpoint | Mô tả |
+|:-------|:---------|:------|
+| GET | `/api/company/questions` | Query `status?` (giá trị trong enum, sai → 400), `roleCategory?`, `jobPostId?` (id job, hoặc `none` = câu không gắn job; id sai → 400), `page`, `limit` (1–100, mặc định 50). Trả `{ success, questions, pagination }` |
+| POST | `/api/company/questions` | Tự thêm một câu. Body `{ text, jobPostId?, roleCategory?, competencyId?, layer?, seniority?, status? }`. Có `jobPostId` thì `roleCategory` mặc định lấy của job. Mặc định `pending_platform_review`; `status: "draft"` để lưu nháp. Trùng `textHash` với câu đã có của công ty → **409**; job công ty khác → **403**; job không có → **404** |
+| POST | `/api/company/questions/upload` | Tải lên hàng loạt cho một job. Body `{ jobPostId, questions: [string \| { text, competencyId?, layer?, seniority? }], status? }`, tối đa **50** câu, mỗi câu ≤ 1000 ký tự. `roleCategory` lấy của job; `seniority` lấy cấp độ job nếu thuộc thang `intern/junior/middle/senior`, không thì `middle`; `competencyId` mặc định `technical_learning`. Một dòng sai → **400** `{ errors: [{ line, error }] }`, không lưu câu nào. Câu trùng `textHash` với câu đã có của công ty (mọi trạng thái) hoặc trùng nhau trong lượt bị bỏ qua. Mặc định `pending_platform_review`; `status: "draft"` để lưu nháp. **201** `{ success, message, count, skippedDuplicates, questions }` |
+| PATCH | `/api/company/questions/:id` | Sửa `text`, `roleCategory`, `competencyId`, `jobPostId` (null/"" = bỏ gắn job), kèm `reason?`. Mỗi lần sửa ghi `history` (`action: "edit"`, `previousQuestion`). Đổi chữ câu `approved` → quay về `pending_platform_review`. Đổi chữ trùng câu khác của công ty → **409** |
+| POST | `/api/company/questions/:id/approve` | Chỉ từ `draft` hoặc `rejected` → `pending_platform_review`. Câu đã ở `pending_platform_review` / `approved` → **409** |
+| POST | `/api/company/questions/:id/reject` | → `rejected`, ghi `history` |
+| POST | `/api/company/questions/batch-approve` | Body `{ ids, reason? }`. Chỉ chuyển câu `draft` / `rejected` của chính công ty sang `pending_platform_review`; câu khác giữ nguyên. Trả `modifiedCount`. Id sai → **400** |
+| POST | `/api/company/questions/batch-reject` | Body `{ ids, reason? }` → `rejected`. Id sai → **400** |
+
+`GET /api/company/dashboard` trả thêm `stats.questions.pendingPlatformReview`. Rubric công ty gắn được câu `pending_platform_review` hoặc `approved` của chính công ty.
+
+#### Platform Moderator duyệt câu doanh nghiệp — `/api/moderator/company-questions` (CO-16)
+
+**File:** `routes/moderator.js` (`requireModerator`, ghi `moderator_action`) · **Controller:** `moderatorCompanyQuestionController.js` · **Service:** `companyQuestionReviewService.js` · **FE:** `/moderator/company-questions` (`ModeratorCompanyQuestions.jsx`)
+
+| Method | Endpoint | Mô tả |
+|:-------|:---------|:------|
+| GET | `/api/moderator/company-questions` | Query `status?` (`pending_platform_review` mặc định \| `approved` \| `rejected`; khác → 400), `companyId?`, `jobPostId?`, `roleCategory?`, `q?` (≤ 100 ký tự), `page`, `limit` (1–100, mặc định 20). Chỉ câu `orgId != null`. Tab chờ duyệt xếp cũ nhất trước. Trả `{ success, questions: [{ ..., company { _id, name, slug, logo }, jobPost { _id, title, status, level } \| null, lastEdit }], counts { pending_platform_review, approved, rejected }, pagination }` |
+| POST | `/api/moderator/company-questions/:id/approve` | Body `{ note? }`. `pending_platform_review` → `approved`, ghi `review`, `moderation`, `history`; xếp hàng render video avatar (CO-06). Câu khác trạng thái → **409**; câu pool chung / không có → **404** |
+| POST | `/api/moderator/company-questions/:id/reject` | Body `{ reason }` (bắt buộc, ≤ 500). → `rejected`; lý do lưu ở `moderation.reason` (công ty xem ở `GET /api/company/questions`) |
+| POST | `/api/moderator/company-questions/bulk` | Body `{ action: "approve" \| "reject", ids (≤ 100), reason? }` (`reject` bắt buộc `reason`). Chỉ đổi câu đang `pending_platform_review`, câu khác bỏ qua. Trả `{ updated, skipped }` |
+
+Route duyệt của ngân hàng câu chung (`PATCH /api/moderator/questions/:id/approve`, `POST /api/moderator/questions/bulk`) chỉ tác động câu `orgId: null`, nên không đi vòng được luồng này.
+
+Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, tức là lúc Platform Mod duyệt (CO-16). Company Mod duyệt không xếp hàng render. Render nền cho cả 2 giới tính (`persistVideo: true`, mirror Cloudinary), không chặn response. Cache tính theo nội dung câu, nên buổi luyện theo job gọi `POST /api/ai/interview/pregenerate` với câu này sẽ trúng cache, không gọi provider video. Backfill hoặc render lại sau khi đổi provider: `npm run warmup:company-videos`.
 
 
 ### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)
@@ -615,7 +674,20 @@ Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/
 | POST | `/api/moderator/rubrics/:id/approve` | Platform Moderator | Duyệt; bản `approved` cũ cùng công ty + `roleCategory` → `archived` |
 | POST | `/api/moderator/rubrics/:id/reject` | Platform Moderator | Body `{ comment }` bắt buộc → `rejected`, lưu `moderationNote.comment` |
 
-### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11)
+`questionIds` gắn được câu `pending_platform_review` hoặc `approved` của chính công ty (CO-05).
+
+### A.18. Lời mời Company Moderator — `/api/company-invites` (CO-02)
+
+**File:** `routes/companyInvites.js` (công khai, không cần token) · **Service:** `companyService.js` (`verifyInviteToken`, `acceptInvite`) · **Điều khoản:** `config/rubricSharingTerms.js` · **FE:** `/company-invite/:token`
+
+| Method | Path | Ghi chú |
+|:-------|:-----|:--------|
+| GET | `/api/company-invites/verify/:token` | `{ success, invite { id, email, company { id, name, slug, logo, industry }, expiresAt }, terms { version, title, points[] } }`. Token sai / đã dùng / thu hồi → 400; hết hạn → 400 và lời mời chuyển `expired`; công ty bị khóa → 403 |
+| POST | `/api/company-invites/accept` | Body `{ token, name, password (≥ 6), acceptRubricTerms: true, termsVersion }`. Không đồng ý điều khoản (`acceptRubricTerms` khác `true`) → **400**; `termsVersion` khác bản hiện tại → **409** (tải lại trang). Email đã có tài khoản role khác → 400 (quyết định 14). Token dùng 1 lần, giành bằng lệnh nguyên tử (hai lần nhận cùng lúc chỉ một lần thành công). **201** `{ user, token, refreshToken }` |
+
+**Điều khoản dùng rubric ẩn danh (quyết định AI-18):** khi nhận lời mời, thời điểm và version đồng ý lưu ở `CompanyInvite.rubricTermsAcceptedAt` / `rubricTermsVersion`; lần đồng ý đầu tiên của công ty lưu ở `Company.rubricSharingConsent { acceptedAt, acceptedBy, termsVersion }`. Miner AI-18 chỉ lấy rubric của công ty có `rubricSharingConsent.acceptedAt`. Đổi nội dung điều khoản thì tăng `version` trong `config/rubricSharingTerms.js`.
+
+### A.19. Kho CV — `/api/cvs` (PR-02, PR-09; FE `/cvs` PR-11, `/cvs/:id/edit` PR-13)
 
 **File:** `backend/src/routes/cvs.js` · **Model:** `CVDocument` · Chỉ chủ CV đọc/ghi được (lọc theo `userId`)
 
@@ -628,6 +700,14 @@ Sắp có trên `/api/jobs`: `/:id/gap` (JB-05), `/:id/practice` (JB-06), `/:id/
 | POST | `/api/cvs/:id/set-default` | Bearer | Đặt mặc định (bỏ mặc định CV khác, cập nhật `CandidateProfile.defaultCvId`). Alias `PATCH /:id/default` |
 | DELETE | `/api/cvs/:id` | Bearer | Xóa; xóa CV mặc định thì CV mới cập nhật gần nhất thành mặc định |
 | GET / POST | `/api/cvs/:id/export-pdf` | Bearer | Xuất PDF (pdfkit + DejaVu) — PR-09 |
+
+### A.20. Gợi ý mentor, khóa học, job — `/api/recommendations` (AI-10)
+
+**File:** `backend/src/routes/recommendations.js` · **Service:** `recommendationsService.js` · Chấm theo luật có trọng số (`RECOMMENDATION_WEIGHTS`), không gọi LLM, không ghi DB.
+
+| Method | Path | Auth | Ghi chú |
+|:-------|:-----|:-----|:--------|
+| GET | `/api/recommendations/me` | `[AUTH][customer]` | Query `limit?` 1–10 (mặc định 5; sai → 400). `{ success, recommendations: { basis { gaps[] { key, name, level }, targetRoles[], passThreshold }, mentors[], courses[], jobs[] } }`. Mỗi gợi ý có `score` (0–1), `reason` (một dòng) và `actionUrl`. **Năng lực còn thiếu** = năng lực trong `CandidateProfile` có bằng chứng, key có trong bộ tiêu chí LP-01, `level < passThreshold`. **Mentor** (đã xác minh, đang hoạt động; `id` = `publicId`, `actionUrl /mentors/:id`): 0,6 × khớp năng lực thiếu (đã dạy buổi lộ trình `done` có `shrmKeys` đó = 1, khớp từ khóa năng lực trong chức danh / lĩnh vực / chuyên môn / giới thiệu = 0,7; trọng số theo độ thiếu) + 0,3 × sao + 0,1 × số lượt đánh giá. **Khóa** (`published`, `pending_update`; bỏ khóa đã ghi danh; `actionUrl /courses/:id`): như mentor, khớp từ khóa trong tiêu đề / thẻ / mô tả / "bạn sẽ học được". **Job** (đang mở; `actionUrl /jobs/:id`): 0,7 × tỉ lệ năng lực yêu cầu đã đạt + 0,3 × đúng vị trí mục tiêu của hồ sơ. Mục khớp đứng trước, thiếu thì lấp bằng mục còn lại theo điểm. Chưa có hồ sơ → gợi ý theo đánh giá / tin mới |
 
 ---
 
@@ -908,6 +988,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | GET | `/api/admin/interview-metrics` |
 | GET | `/api/admin/analytics/user-behavior` |
 | GET | `/api/admin/analytics/users/:id/journey` |
+| GET | `/api/admin/analytics/revenue` |
 
 ### C.15. AI providers — `/api/ai`
 
@@ -931,6 +1012,7 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | POST | `/api/analytics/events` | Bearer |
 | GET | `/api/admin/analytics/user-behavior` | Admin — `?days=` |
 | GET | `/api/admin/analytics/users/:id/journey` | Admin — `?days=`, `?limit=` |
+| GET | `/api/admin/analytics/revenue` | Admin — `?days=` hoặc `?month=YYYY-MM` |
 
 ### C.17. Achievements — `/api/achievements`
 
@@ -1086,7 +1168,7 @@ Field presence trên `User`: `lastSeenAt` (heartbeat `/api/auth/presence` + `aut
 | GET | `/api/bookings/:id/invoice` | Chủ giao dịch hoặc admin; PDF booking đã thanh toán |
 | GET | `/api/enrollments/:id/invoice` | Chủ giao dịch hoặc admin; PDF học phí |
 | GET | `/api/cart/orders/:id/invoice` | Chủ đơn hoặc admin; PDF toàn đơn đã hoàn tất |
-| GET | `/api/admin/audit-log` | Admin; phân trang, lọc `adminId`, `method`, `success`, `from`, `to` |
+| GET | `/api/admin/audit-log` | Admin; phân trang, lọc `actor` (`admin`, `moderator` = Platform Moderator (`moderator_action`, kèm dòng `admin_action` cũ trên `/api/moderator/*`), `company_moderator` = Company Moderator (`company_moderator_action`, ghi ở mọi thao tác ghi trên `/api/company/*`; `userId.companyId.name` cho biết công ty), `mentor` = thao tác tiền của mentor; bỏ trống = tất cả, giá trị khác → 400), `adminId`, `method`, `success`, `from`, `to`. Mentor ghi `SecurityLog` `type: mentor_action` ở `POST /api/mentor/payout`, `PATCH /api/mentor/payout-account`, `POST /api/mentor/request-price-change`; `accountNumber` chỉ giữ 4 số cuối (`****1234`) |
 | GET | `/api/admin/finance/reconciliation` | Admin; `report.mismatches`, `payoutMismatches`, `alerts`; chỉ đọc |
 | POST | `/api/admin/finance/release-earnings` | Admin; giải phóng khoản đủ 3 ngày, không có report mở |
 | GET | `/api/admin/users/:id/impact` | Admin; số dư, nghĩa vụ, `canClose`, `blockers` |

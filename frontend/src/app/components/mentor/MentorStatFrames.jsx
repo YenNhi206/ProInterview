@@ -3,20 +3,20 @@ import { MentorMoneyText } from "../../utils/shared/moneyDisplay.jsx";
 
 const ACCENT = {
   purple: {
-    frame: "border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 hover:border-violet-500/40 hover:shadow-[0_0_24px_rgba(130,60,240,0.18)] transition-all duration-300",
+    frame: "admin-glow-card border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-violet-500/40 hover:shadow-[0_0_24px_rgba(130,60,240,0.18)] transition-all duration-300",
     value: "text-white font-black tracking-tight",
-    title: "text-violet-200/90 font-bold uppercase tracking-wider text-[11px]",
+    title: "text-slate-400 font-bold uppercase tracking-wider text-[11px]",
     subtitle: "text-slate-400 font-medium text-xs",
     icon: "text-violet-300",
-    iconBg: "bg-violet-500/15 border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.2)]",
+    iconBg: "bg-white/[0.05] border border-white/10 shadow-[0_0_12px_rgba(130,60,240,0.2)]",
   },
   lime: {
-    frame: "border border-white/10 bg-gradient-to-b from-[#181128]/95 to-[#120a20]/95 hover:border-[#93f72b]/40 hover:shadow-[0_0_24px_rgba(147,247,43,0.18)] transition-all duration-300",
+    frame: "admin-glow-card border border-white/10 bg-white/[0.03] backdrop-blur-md hover:border-violet-500/40 hover:shadow-[0_0_24px_rgba(130,60,240,0.18)] transition-all duration-300",
     value: "text-white font-black tracking-tight",
-    title: "text-[#93f72b] font-bold uppercase tracking-wider text-[11px]",
+    title: "text-violet-300 font-bold uppercase tracking-wider text-[11px]",
     subtitle: "text-slate-400 font-medium text-xs",
-    icon: "text-[#93f72b]",
-    iconBg: "bg-[#93f72b]/15 border border-[#93f72b]/30 shadow-[0_0_12px_rgba(147,247,43,0.25)]",
+    icon: "text-violet-400",
+    iconBg: "bg-violet-500/15 border border-violet-500/30 shadow-[0_0_12px_rgba(130,60,240,0.25)]",
   },
 };
 
@@ -70,22 +70,27 @@ export function MentorStatFrame({
     : {};
 
   const valStr = String(value ?? "");
+  const isVeryLong = valStr.length > 8;
   const isLong = valStr.length > 5;
   const isMedium = valStr.length > 3;
 
   const valueCls = compact
-    ? isLong
-      ? "text-sm sm:text-base font-bold"
-      : isMedium
-        ? "text-base sm:text-lg font-extrabold"
-        : "text-2xl sm:text-[1.75rem] font-black"
-    : moneyAmount != null
-      ? "text-[clamp(1.75rem,3.2vw,2.5rem)]"
+    ? isVeryLong
+      ? "!text-sm sm:!text-base font-bold"
       : isLong
-        ? "text-base sm:text-lg font-bold"
+        ? "!text-base sm:!text-lg font-bold"
         : isMedium
-          ? "text-xl sm:text-2xl font-extrabold"
-          : "text-[clamp(2rem,3.5vw,2.75rem)]";
+          ? "!text-xl sm:!text-2xl font-black"
+          : "!text-2xl sm:!text-[1.75rem] font-black"
+    : moneyAmount != null
+      ? "!text-[clamp(1.75rem,3.2vw,2.5rem)] font-black"
+      : isVeryLong
+        ? "!text-base sm:!text-lg font-bold"
+        : isLong
+          ? "!text-lg sm:!text-xl font-bold"
+          : isMedium
+            ? "!text-xl sm:!text-2xl font-extrabold"
+            : "!text-[clamp(2rem,3.5vw,2.75rem)] font-black";
 
   const shellCls = compact
     ? `rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] backdrop-blur-xl ${theme.frame} flex min-h-[5.25rem] flex-col justify-center px-4 py-3.5 sm:px-5 sm:py-4`
@@ -94,7 +99,7 @@ export function MentorStatFrame({
   return (
     <Wrapper
       {...motionProps}
-      className={`relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${shellCls}`}
+      className={`mentor-stat-frame relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] ${shellCls}`}
     >
       {/* Top Hairline Glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
@@ -116,12 +121,14 @@ export function MentorStatFrame({
       ) : null}
 
       <div className={compact || CornerIcon ? (compact ? "pr-6" : "pr-8") : undefined}>
-        <p
-          className={`mentor-stat-num font-headline ${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
-        >
-          {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
-        </p>
-        <p className={`${compact ? "mt-1.5 text-[10px]" : "mt-2.5 text-[11px]"} ${theme.title}`}>{title}</p>
+        <div className={`flex items-baseline ${compact ? "h-8 sm:h-9" : "h-9 sm:h-11"}`}>
+          <p
+            className={`mentor-stat-num font-headline ${isLong && moneyAmount == null ? "mentor-stat-num--long " : ""}${moneyAmount != null ? "mentor-stat-num--money leading-[1.05] whitespace-nowrap" : "leading-none tracking-tight"} ${valueCls} ${theme.value}`}
+          >
+            {moneyAmount != null ? <MentorMoneyText amount={moneyAmount} /> : value}
+          </p>
+        </div>
+        <p className={`${compact ? "mt-2 text-[10px]" : "mt-2.5 text-[11px]"} ${theme.title}`}>{title}</p>
         {subtitle ? (
           <p className={`${compact ? "mt-1 text-[11px]" : "mt-1.5 text-xs"} leading-snug ${theme.subtitle}`}>{subtitle}</p>
         ) : null}

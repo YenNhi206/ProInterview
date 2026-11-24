@@ -18,5 +18,5 @@ test("rejects external URLs and return loops", () => {
   }
 });
 test("Mentor request detail returns to its own board", () => {
-  assert.deepEqual(mentorshipBackTarget({ returnTo: "/mentor/requests?scope=mine", mentor: true, detail: true }), { to: "/mentor/requests?scope=mine", label: "Nhu cầu từ mentee" });
+  assert.deepEqual(mentorshipBackTarget({ returnTo: "/mentor/requests?scope=mine", mentor: true, detail: true }), { to: "/mentor/requests?scope=mine", label: "Nhu cầu mentee" });
 });

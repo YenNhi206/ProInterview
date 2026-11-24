@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { getUser } from "../../utils/auth/auth.js";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell.jsx";
+import { MentorPageHeader } from "../../components/mentor/MentorPageHeader.jsx";
 import { MentorStatMiniGrid, MentorStatFrame } from "../../components/mentor/MentorStatFrames.jsx";
 import { listMentorBookings } from "../../api/bookingsApi.js";
 import { fetchMentorAvailability, updateMyMentorAvailability } from "../../api/mentorApi.js";
@@ -163,19 +164,19 @@ function AvailabilityModal({ onClose, availability, onSaved }) {
     setWorkingHours((prev) =>
       (prev.some((row) => row.dayOfWeek === dayOfWeek)
         ? prev.map((row) => {
-            if (row.dayOfWeek !== dayOfWeek) return row;
-            if (row.slots.includes(range)) return row;
-            const nextSlots = [...row.slots, range].sort((a, b) => a.localeCompare(b));
-            return { ...row, slots: nextSlots };
-          })
+          if (row.dayOfWeek !== dayOfWeek) return row;
+          if (row.slots.includes(range)) return row;
+          const nextSlots = [...row.slots, range].sort((a, b) => a.localeCompare(b));
+          return { ...row, slots: nextSlots };
+        })
         : [
-            ...prev,
-            {
-              dayOfWeek,
-              day: DAY_ROWS.find((d) => d.key === dayOfWeek)?.label || "Thứ 2",
-              slots: [range],
-            },
-          ])
+          ...prev,
+          {
+            dayOfWeek,
+            day: DAY_ROWS.find((d) => d.key === dayOfWeek)?.label || "Thứ 2",
+            slots: [range],
+          },
+        ])
         .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
     );
   };
@@ -486,42 +487,31 @@ export function MentorSchedule() {
   return (
     <MentorPageShell mentorRole bottomPad="pb-16" fillHeight={false} className="bg-transparent">
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5">
-        {/* Header */}
-        <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#93f72b] shadow-[0_0_8px_rgba(147,247,43,0.8)]" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#93f72b]">
-                ĐIỀU PHỐI LỊCH & THỜI GIAN BIỂU
-              </span>
-            </div>
-            <h1 className="font-headline mt-1.5 text-2xl font-black tracking-tight text-white sm:text-3xl">
-              Lịch <span className="text-[#93f72b]">làm việc & tư vấn</span>
-            </h1>
-            <p className="mt-1 text-xs text-slate-400">
-              Quản lý ca tư vấn trực tiếp 1:1, kiểm soát thời gian rảnh và chuẩn bị trước buổi hẹn cùng mentee.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              type="button"
-              onClick={goToToday}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#160f26]/80 px-3.5 py-2 text-xs font-semibold text-slate-300 backdrop-blur-xl transition hover:border-[#93f72b]/50 hover:bg-[#1a1230] hover:text-[#93f72b]"
-            >
-              <CalendarDays size={13} />
-              Về hôm nay
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowAvailability(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#93f72b] px-4 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(147,247,43,0.35)] transition hover:bg-[#a8ff4e]"
-            >
-              <Clock size={14} />
-              Cài đặt giờ rảnh
-            </button>
-          </div>
-        </header>
+        {/* Unified Mentor Header */}
+        <MentorPageHeader
+          title="Lịch"
+          highlight="làm việc & tư vấn"
+          actions={
+            <>
+              <button
+                type="button"
+                onClick={goToToday}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#160f26]/80 px-3.5 py-2 text-xs font-semibold text-slate-300 backdrop-blur-xl transition hover:border-violet-500/50 hover:bg-[#1a1230] hover:text-violet-300"
+              >
+                <CalendarDays size={13} />
+                Về hôm nay
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAvailability(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:from-violet-500 hover:to-indigo-500"
+              >
+                <Clock size={14} />
+                Cài đặt giờ rảnh
+              </button>
+            </>
+          }
+        />
 
         {/* Compact Bento KPI Summary Frames */}
         <MentorStatMiniGrid className="mb-5">
@@ -529,7 +519,6 @@ export function MentorSchedule() {
             index={1}
             value={monthMeetingsCount}
             title="Lịch tháng này"
-            subtitle="Buổi 1:1 đã xếp"
             cornerIcon={CalendarIcon}
             accent="lime"
             compact
@@ -538,7 +527,6 @@ export function MentorSchedule() {
             index={2}
             value={todayMeetings.length}
             title="Lịch hôm nay"
-            subtitle="Ca cần thực hiện"
             cornerIcon={Clock}
             accent="purple"
             compact
@@ -547,7 +535,6 @@ export function MentorSchedule() {
             index={3}
             value={totalWeeklySlots}
             title="Giờ rảnh / tuần"
-            subtitle="Số ca rảnh đã mở"
             cornerIcon={Clock3}
             accent="purple"
             compact
@@ -556,7 +543,6 @@ export function MentorSchedule() {
             index={4}
             value={pendingCount}
             title="Chờ xác nhận"
-            subtitle="Yêu cầu đặt lịch mới"
             cornerIcon={CheckCircle2}
             accent="purple"
             compact
@@ -637,24 +623,22 @@ export function MentorSchedule() {
                     key={idx}
                     type="button"
                     onClick={() => setSelectedDate(cell.date)}
-                    className={`relative flex flex-col items-center justify-center h-12 sm:h-13 rounded-xl text-xs transition-all duration-200 ${
-                      isSelected
+                    className={`relative flex flex-col items-center justify-center h-12 sm:h-13 rounded-xl text-xs transition-all duration-200 ${isSelected
                         ? "bg-[#93f72b] text-slate-950 font-black shadow-[0_0_18px_rgba(147,247,43,0.4)] scale-105 z-10"
                         : isToday
-                        ? "border border-[#93f72b]/60 text-[#93f72b] font-bold bg-[#93f72b]/10"
-                        : cell.currentMonth
-                        ? "text-slate-300 hover:bg-white/[0.08] hover:text-white"
-                        : "text-slate-600 opacity-30 hover:opacity-70"
-                    }`}
+                          ? "border border-[#93f72b]/60 text-[#93f72b] font-bold bg-[#93f72b]/10"
+                          : cell.currentMonth
+                            ? "text-slate-300 hover:bg-white/[0.08] hover:text-white"
+                            : "text-slate-600 opacity-30 hover:opacity-70"
+                      }`}
                   >
                     <span className="text-sm">{cell.date.getDate()}</span>
                     {hasMeetings && (
                       <span
-                        className={`mt-1 h-1.5 w-1.5 rounded-full ${
-                          isSelected
+                        className={`mt-1 h-1.5 w-1.5 rounded-full ${isSelected
                             ? "bg-slate-950"
                             : "bg-[#93f72b] shadow-[0_0_6px_rgba(147,247,43,0.8)]"
-                        }`}
+                          }`}
                       />
                     )}
                   </button>
@@ -728,15 +712,14 @@ export function MentorSchedule() {
                       </div>
                     </div>
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                        String(meeting.status || "").toLowerCase() === "confirmed"
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${String(meeting.status || "").toLowerCase() === "confirmed"
                           ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
                           : String(meeting.status || "").toLowerCase() === "pending"
-                          ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
-                          : String(meeting.status || "").toLowerCase() === "completed"
-                          ? "bg-blue-500/10 border-blue-500/30 text-blue-300"
-                          : "bg-white/5 border-white/10 text-slate-400"
-                      }`}
+                            ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                            : String(meeting.status || "").toLowerCase() === "completed"
+                              ? "bg-violet-500/10 border-violet-500/30 text-violet-300"
+                              : "bg-white/5 border-white/10 text-slate-400"
+                        }`}
                     >
                       {meeting.statusLabel}
                     </span>

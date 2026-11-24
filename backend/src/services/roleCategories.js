@@ -79,3 +79,13 @@ export function listRoleCategories() {
       })),
   };
 }
+
+/**
+ * JB-06: các key vị trí (còn dùng) có `interviewRole` cho trước. Phỏng vấn AI đoán vai trò theo
+ * `ROLE_COMPETENCY_MAP` (`resolveTopCompetencies`), còn job / câu doanh nghiệp dùng key ở file này.
+ */
+export function roleCategoryKeysForInterviewRole(interviewRole) {
+  const role = String(interviewRole ?? "").trim();
+  if (!role) return [];
+  return CONFIG.roleCategories.filter((r) => !r.deprecated && r.interviewRole === role).map((r) => r.key);
+}

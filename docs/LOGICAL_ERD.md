@@ -245,13 +245,15 @@ erDiagram
         array objectives
         array shrmKeys "key SHRM/DDI (LP-01)"
         int shareAmount "VND; học lại miễn phí = 0"
-        enum status "planned|scheduled|done|cancelled"
+        enum status "planned|pending_payment|scheduled|done|cancelled"
         ObjectId bookingId FK,UK "→ BOOKING"
         int attempt "1 = lần đầu"
         ObjectId retakeOf FK "→ LEARNING_PATH_SESSION"
         enum outcome "passed|not_passed|null"
-        object feedback "summary, strengths[], improvements[]"
+        object feedback "summary, strengths[], improvements[], scores[] {shrmKey, score 0–5|null, note}, frameworkVersion, suggestedOutcome (LP-13)"
         date doneAt
+        string supplementaryNote "buổi bổ sung có phí (LP-13)"
+        date proposedAt
     }
 ```
 
@@ -334,6 +336,7 @@ erDiagram
         enum status "draft|pending_review|pending_update|published|archived"
         mixed pendingUpdate "bản sửa chờ duyệt"
         object adminReview "reason, reviewedBy → USER (moderator), lastAction"
+        object aiPrescreen "AI-08: status pending|done|failed, score, summary, flags[], target, model, promptVersion, contentHash, at"
         object settings "autoEnroll, certificateEnabled, qaEnabled"
         object stats
         int totalLessons "tự tính"
@@ -477,7 +480,8 @@ erDiagram
         ObjectId userId FK "→ USER"
         enum hrGender "male|female"
         string planAtTime
-        int questionsAllowed "3 free / 5 Pro"
+        int questionsAllowed "3 free / 5 Pro; có câu doanh nghiệp: 5 free / 7 Pro (JB-06)"
+        array companyQuestions "questionId, companyId, jobPostId, rubricId (JB-06)"
         string inferredRole
         string inferredSeniority
         object competencyProfile
@@ -495,6 +499,7 @@ erDiagram
         string question
         object starGuidance
         ObjectId questionBankId FK "→ QUESTION_BANK"
+        enum source "baseline|company|llm_followup (JB-06; rỗng ở session cũ)"
         string promptVersion
     }
     INTERVIEW_ANSWER {
@@ -528,8 +533,9 @@ erDiagram
         string competencyId
         string roleCategory
         enum source "baseline|llm_followup|moderator|org_template"
-        ObjectId orgId FK "→ ORGANIZATION (chưa có)"
-        enum status "draft|pending_review|approved|rejected|deprecated"
+        ObjectId orgId FK "→ COMPANY"
+        ObjectId jobPostId FK "→ JOB_POST, câu doanh nghiệp (CO-05)"
+        enum status "draft|pending_review|pending_platform_review|approved|rejected|deprecated"
         object review "by → USER, at, note"
         object deprecation "by → USER, reason"
         array revisions
@@ -557,13 +563,14 @@ erDiagram
     }
     MODERATION_ITEM {
         ObjectId _id PK
-        enum type "question_report|evaluation_report|evaluation_incomplete"
+        enum type "question_report|evaluation_report|evaluation_incomplete|course_prescreen"
         enum status "open|in_review|resolved|dismissed"
         enum priority "low|normal|high"
         int priorityRank "tự tính"
         ObjectId refs_sessionId FK "→ INTERVIEW_SESSION"
         int refs_questionIndex
         ObjectId refs_questionBankId FK "→ QUESTION_BANK"
+        ObjectId refs_courseId FK "→ COURSE (course_prescreen)"
         ObjectId refs_reportId FK,UK "→ REPORT"
         ObjectId refs_userId FK "→ USER"
         object snapshot "questionText, transcript, aiEvaluation"
@@ -581,6 +588,21 @@ erDiagram
         date activatedAt
         ObjectId activatedBy FK "→ USER"
         string note
+    }
+    AI_IMPROVEMENT_PROPOSAL {
+        ObjectId _id PK
+        enum target "question_gen|evaluation (AI-03)"
+        enum kind "few_shot|prompt_change|calibration|rubric_anchor"
+        string groupKey "competencyId | roleCategory | _general"
+        enum status "proposed|approved|rejected|rolled_back"
+        string summary
+        array evidence_moderationItemIds FK,UK "→ MODERATION_ITEM, mỗi item 1 đề xuất"
+        int evidence_overrideCount
+        number evidence_avgScoreDelta "điểm moderator − điểm AI (0–5)"
+        object before "promptKey, version, fewShotExamples"
+        object after "promptKey, version (→ PROMPT_VERSION chưa bật), fewShotExamples"
+        object backtest "AI-04"
+        object review "by → USER, at, note"
     }
 ```
 
@@ -623,7 +645,7 @@ erDiagram
     SECURITY_LOG {
         ObjectId _id PK
         ObjectId userId FK "→ USER"
-        enum type "prompt_injection_attempt|rate_limit_hit|suspicious_output|admin_action"
+        enum type "prompt_injection_attempt|rate_limit_hit|suspicious_output|admin_action|moderator_action|company_moderator_action|mentor_action"
         object details
         string ipAddress
     }
@@ -682,18 +704,21 @@ erDiagram
 | Mã chuyển khoản đang chờ | — | Partial unique `paymentRef` khi `paymentStatus=pending` (Booking, Enrollment) |
 | REPORT (AI) – câu hỏi | — | Partial unique `{reportedBy, targetType, targetId, questionIndex}` khi có `questionIndex` → mỗi user báo một câu một lần |
 | REPORT – MODERATION_ITEM | 1 – 0..1 | Partial unique `refs.reportId` |
+| COURSE – MODERATION_ITEM (course_prescreen) | 1 – 0..1 | Partial unique `{type, refs.courseId}` khi `type=course_prescreen` (`course_prescreen_per_course`) → mỗi lần gửi duyệt cập nhật lại item của khóa (AI-08) |
 | Đánh giá chưa đủ – MODERATION_ITEM | — | Partial unique `{type, refs.sessionId, refs.questionIndex}` khi `type=evaluation_incomplete` → upsert không nhân bản |
 | QUESTION_BANK nội dung | — | Unique `{textHash, orgId}`: chuẩn hóa chữ thường, gộp khoảng trắng, bỏ dấu câu cuối |
 | SEPAY_WEBHOOK_EVENT | — | Unique `sepayId` → webhook gửi lại không xử lý hai lần |
 | PROMPT_VERSION – chuỗi `promptVersion` | 1 – 0..n | Không có FK: session và QuestionBank lưu nguyên chuỗi `version`. Unique `{key, version}` và unique `{version}` (`version_unique`, vì Quality Dashboard nhóm theo chuỗi không kèm key) |
 | PROMPT_VERSION bản active | — | Partial unique `{key}` khi `active: true` (`key_single_active`) → mỗi key tối đa 1 bản active (AI-02) |
+| MODERATION_ITEM – AI_IMPROVEMENT_PROPOSAL | n – 0..1 | Unique `evidence.moderationItemIds` (multikey, `evidence_item_unique`) → mỗi item làm bằng chứng cho tối đa 1 đề xuất (AI-03) |
+| AI_IMPROVEMENT_PROPOSAL chờ duyệt | — | Partial unique `{target, kind, groupKey}` khi `status: proposed` (`group_single_proposed`) → mỗi nhóm tối đa 1 đề xuất chờ duyệt |
 
 ## Thay đổi so với Conceptual ERD cũ
 
 Conceptual ERD (`PROINTERVIEW_CONCEPTUAL.drawio`) có 17 thực thể và ghi "chưa có role kiểm duyệt viên". Từ đó đến nay đã thêm:
 
 - `User.role` có thêm `moderator`, `enterprise`.
-- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`, `LearningPath`, `LearningPathSession` (capstone FA26, LP-03), `PromptVersion` (AI-02).
+- Collection mới: `QuestionBank`, `ModerationItem`, `MentorshipRequest`, `MentorKnowledge`, `Coupon`, `LearningPath`, `LearningPathSession` (capstone FA26, LP-03), `PromptVersion` (AI-02), `AIImprovementProposal` (AI-03).
 - `Report` mở rộng `targetType` cho câu hỏi/đánh giá AI (`reasonCode` riêng).
 - `InterviewSession.answers` có `evaluationIncomplete`, `moderatorOverride`; `questions`/`answers` trỏ `questionBankId`.
 - `Course.adminReview.reviewedBy` giờ là moderator (route chuyển từ `/api/admin` sang `/api/moderator`).

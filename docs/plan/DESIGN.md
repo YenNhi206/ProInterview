@@ -10,13 +10,13 @@
 | `CandidateProfile` | `userId` (unique), `headline`, `targetRoles[]`, `defaultCvId`, `competencies[]` {key SHRM, level, evidenceCount, sources[] {type: ai_interview \| mentor_session \| course, refId, at}} | #2, #9, #38 |
 | `CVDocument` (hiện chỉ có `CVAnalysis`, chưa có model CV) | `userId`, `title`, `targetRole`, `fileUrl`, `content` (JSON cho editor), `skills[]`, `version`, `parentCvId`, `isDefault`, `isValidCv`, `lastAnalysisId`. Lưu file theo cách của `mentorshipDocumentsService` | #2, #4, #36 |
 | `Company` | `name`, `slug`, `logoUrl`, `industry`, `status` active \| suspended, `createdBy` | #18 |
-| `CompanyInvite` | `companyId`, `email`, `tokenHash`, `expiresAt`, `acceptedAt` | #18 |
+| `CompanyInvite` | `companyId`, `email`, `tokenHash`, `expiresAt`, `acceptedAt`, thời điểm đồng ý điều khoản dùng rubric ẩn danh (CO-02, quyết định AI-18) | #18 |
 | `CompanyRubric` | `companyId`, `roleCategory`, `version`, `status` draft \| pending_review \| approved \| rejected \| archived (Platform Mod duyệt qua status này, không dùng ModerationItem), `criteria[]` {key, name, weight, `shrmKey`, levels[] {score 0–5, descriptor}}, `questionIds[]`, `reviewNote` | #23, #29, #33 |
 | `JobPost` | `companyId`, `title`, `roleCategory`, `level`, `location`, `description`, `requiredCompetencies[]` {shrmKey, minLevel}, `requiredSkills[]`, `rubricId`, `status`, `closesAt` | #5, #26, #30 |
-| `Application` | `jobPostId`, `companyId`, `candidateId`, `cvId`, `practiceSessionId`, `consent` {at, scope}, `snapshot` {profile, rubricScores}, `status`, `history[]`; unique {jobPostId, candidateId} | #5, #31 |
+| `Application` | `jobPostId`, `companyId`, `candidateId`, `cvId`, `consent` {at, scope}, `snapshot` {profile, chỉ số JB-19 của ứng viên với doanh nghiệp}, `status`, `history[]`; unique {jobPostId, candidateId} | #5, #31 |
 | `LearningPath` | `candidateId`, `mentorId`, `mentorshipRequestId`, `jobPostId`, `assessmentBookingId`, `goal`, `status`, `totalAmount`, `platformFeeRate`, `paymentRef` (sinh bằng `utils/orderRef.js`), `version` | #6, #7, #12, #13, #16 |
 | `LearningPathSession` | `pathId`, `order`, `title`, `objectives[]`, `shrmKeys: [String]`, `shareAmount`, `bookingId`, `attempt`, `retakeOf`, `outcome`, `feedback` {summary, strengths, improvements} | #13, #14 |
-| `AIImprovementProposal` | `target` question_gen \| evaluation, `kind` few_shot \| prompt_change \| calibration, `evidence` {moderationItemIds[], overrideCount, avgScoreDelta}, `before`, `after`, `status` | #25, #37 |
+| `AIImprovementProposal` | `target` question_gen \| evaluation, `kind` few_shot \| prompt_change \| calibration \| rubric_anchor (AI-18), `evidence` {moderationItemIds[], overrideCount, avgScoreDelta; với rubric_anchor: shrmKey, số công ty, rubricIds[]}, `before`, `after`, `status` | #25, #37 |
 | `PromptVersion` | Bảng đăng ký cho chuỗi `promptVersion` đã có: `key`, `version`, `template`, `fewShotExamples[]`, `active` | #25, #37 |
 
 ## 2. Model có sẵn cần sửa (12)
@@ -30,8 +30,8 @@
 | `SepayWebhookEvent` | `entityType` thêm `learning_path` |
 | `Notification` | `type` thêm các loại: lộ trình, ứng tuyển, lời mời công ty, rubric, job bị ẩn, cải tiến AI |
 | `CostEvent` | kind thêm `rubric_scoring`, `course_prescreen` |
-| `InterviewSession` | Thêm `jobPostId`, `companyId`, `rubricId`; mỗi answer thêm `rubricScores[]` {criterionKey, score, evidenceQuote}; `questionsAllowed` riêng cho buổi theo job (5 free / 7 Pro). `promptVersion` đã có, không thêm |
-| `QuestionBank` | `orgId` đổi `ref` từ `"Organization"` sang `"Company"`; câu công ty dùng `source: org_template`. **Dùng lại** `status` (`draft`, `rejected` đã có) và `roleCategory` (đã có index), không thêm field mới |
+| `InterviewSession` | Thêm `companyQuestions[]` {questionId, companyId, jobPostId, rubricId} (quyết định JB-06 ngày 23/11/2026); answer của câu doanh nghiệp thêm `rubricScores[]` {criterionKey, score, evidenceQuote}; `questionsAllowed` riêng cho buổi có câu doanh nghiệp (5 free / 7 Pro). `promptVersion` đã có, không thêm |
+| `QuestionBank` | `orgId` đổi `ref` từ `"Organization"` sang `"Company"`; câu công ty dùng `source: org_template`. **Dùng lại** `status` (`draft`, `rejected` đã có) và `roleCategory` (đã có index). Thêm theo quyết định CO-16 ngày 23/11/2026: `jobPostId` cho câu doanh nghiệp, `status` thêm `pending_platform_review` |
 | `Course` | Thêm `aiPrescreen` {status, flags[], score, model, at} |
 | `Report` | `targetType` thêm `job_post` |
 | `ModerationItem` | `type` thêm `job_post_report`, `course_prescreen`, `ai_improvement`; sửa `createItemForReport` map đúng loại; hàng đợi HITL lọc theo 3 loại cũ |
@@ -44,6 +44,7 @@
 | LearningPathSession | `planned` → `scheduled` (tạo Booking) → `done`; outcome `passed` → mở buổi kế; `not_passed` → tạo buổi `retakeOf`, `attempt + 1` |
 | JobPost | `draft` → `published` → `closed` (Company Mod hoặc hết hạn); `published` → `hidden` → `published` (Platform Mod) |
 | Application | `submitted` → `viewed` → `shortlisted` \| `rejected`; `submitted`/`viewed` → `withdrawn` (ứng viên) |
+| QuestionBank (câu doanh nghiệp) | `draft` → `pending_platform_review` (Company Mod duyệt) → `approved` \| `rejected` (Platform Mod, CO-16); `draft` → `rejected` (Company Mod) |
 | CompanyRubric | `draft` → `pending_review` → `approved` \| `rejected` → `draft`; `approved` → `archived` khi có version mới |
 | AIImprovementProposal | `proposed` → `approved` (kích hoạt PromptVersion) \| `rejected`; `approved` → `rolled_back` |
 
@@ -74,8 +75,8 @@ Quy trình thêm API của repo: model → service → controller → route → 
 | --- | --- | --- |
 | Candidate Profile | `GET/PATCH /api/profile/me`; `GET /api/profile/me/competencies`; `GET/POST/PATCH/DELETE /api/cvs`, `POST /api/cvs/:id/duplicate`, `POST /api/cvs/:id/export-pdf` (backend `pdfkit` + font DejaVu như hóa đơn); `POST /api/cv/validate`; `POST /api/cv/best-fit` | `/profile`, `/cvs`, `/cvs/:id/edit` |
 | Learning Path | Mở rộng `/api/mentorship-requests` (thêm `jobPostId`, `POST /:id/accept-assessment`); `POST/PATCH /api/learning-paths`; `POST /api/learning-paths/:id/propose`, `accept`, `request-revision`, `checkout`, `cancel`; `POST /api/learning-paths/:id/sessions/:sid/schedule`; `PATCH /api/learning-paths/:id/sessions/:sid/outcome`; target `learning_path` trong SePay webhook và xác nhận tay | Ứng viên: `/learning-paths`, `/learning-paths/:id`. Mentor: `/mentor/learning-paths`, `/mentor/learning-paths/:id/edit`, form trong `/mentor/session-feedback/:sessionId`. Admin: loại `learning_path` trong trang đối soát |
-| Job Post & Application | `GET /api/jobs`, `GET /api/jobs/:id`, `GET /api/jobs/:id/gap`; `POST /api/jobs/:id/practice`; `POST /api/jobs/:id/apply`; `GET /api/applications/me`, `PATCH /api/applications/:id/withdraw`; Company: `POST/PATCH /api/company/jobs`, `PATCH /api/company/jobs/:id/status`, `GET /api/company/applications`, `PATCH /api/company/applications/:id/status`; Platform Mod: `PATCH /api/moderator/jobs/:id/visibility` | `/jobs`, `/jobs/:id`, `/my-applications`; `/company/jobs`, `/company/jobs/:id/edit`, `/company/applications`, `/company/applications/:id` |
-| Company & Rubric | Admin: `POST/GET/PATCH /api/admin/companies`, `POST /api/admin/companies/:id/invites`; `POST /api/company-invites/:token/accept`; Company: `POST /api/company/questions/generate`, `GET /api/company/questions`, `PATCH /api/company/questions/:id`, `POST/PATCH /api/company/rubrics`, `POST /api/company/rubrics/:id/submit`; Platform Mod: `GET /api/moderator/rubrics`, `PATCH /api/moderator/rubrics/:id` | `/admin/companies`, `/admin/companies/:id`; `/company-invite/:token`; `/company`, `/company/questions`, `/company/rubrics`, `/company/rubrics/:id/edit`; `/moderator/rubrics` |
+| Job Post & Application | `GET /api/jobs`, `GET /api/jobs/:id`, `GET /api/jobs/:id/gap`; `GET /api/jobs/recent` (JB-20); `POST /api/interviews/sessions` nhận `jobPostId` tùy chọn (JB-06); API chỉ số của ứng viên theo doanh nghiệp (JB-19); `POST /api/jobs/:id/apply`; `GET /api/applications/me`, `PATCH /api/applications/:id/withdraw`; Company: `POST/PATCH /api/company/jobs`, `PATCH /api/company/jobs/:id/status`, `GET /api/company/applications`, `PATCH /api/company/applications/:id/status`; Platform Mod: `PATCH /api/moderator/jobs/:id/visibility` | `/jobs`, `/jobs/:id`, `/my-applications`, thẻ "Luyện theo job bạn quan tâm gần đây" ở màn cài đặt phỏng vấn AI (JB-21); `/company/jobs`, `/company/jobs/:id/edit`, `/company/applications`, `/company/applications/:id` |
+| Company & Rubric | Admin: `POST/GET/PATCH /api/admin/companies`, `POST /api/admin/companies/:id/invites`; `POST /api/company-invites/:token/accept`; Company: `POST /api/company/questions/generate`, `GET /api/company/questions`, `PATCH /api/company/questions/:id`, tải câu lên hàng loạt theo job (CO-05); `POST/PATCH /api/company/rubrics`, `POST /api/company/rubrics/:id/submit`; Platform Mod: `GET /api/moderator/rubrics`, `PATCH /api/moderator/rubrics/:id`, API duyệt câu doanh nghiệp (CO-16) | `/admin/companies`, `/admin/companies/:id`; `/company-invite/:token`; `/company`, `/company/questions`, `/company/rubrics`, `/company/rubrics/:id/edit`; `/moderator/rubrics`; màn Platform Mod duyệt câu doanh nghiệp (CO-16) |
 | Vòng AI | `GET /api/moderator/ai-improvements`, `PATCH /api/moderator/ai-improvements/:id` (approve \| reject \| rollback); job `aiImprovementMinerJob`; `GET /api/recommendations/me`; course prescreen chạy khi mentor gửi duyệt | `/moderator/ai-improvements`; khối gợi ý trên `/dashboard`; nhãn sàng lọc trên `/moderator/courses` |
 | Dọn nợ | Bổ sung doanh thu theo nguồn vào analytics (các API analytics khác đã có); `POST /api/reports` từ trang feedback | Gỡ số liệu giả ở 4 trang admin + `UserJourneyPanel.jsx`; nút "Báo sai" + nhãn "Đang chờ kiểm định" trên `InterviewFeedback.jsx` |
 
@@ -83,6 +84,7 @@ Quy trình thêm API của repo: model → service → controller → route → 
 
 1. `aiImprovementMinerJob` chạy mỗi ngày, gom ModerationItem đã xử lý: điểm bị `override_score`, câu bị sửa hoặc khai tử.
 2. Khi một tiêu chí bị sửa điểm đủ ngưỡng (mặc định 5), job tạo `AIImprovementProposal`: cặp câu trả lời + điểm moderator làm few-shot mới, hoặc độ lệch hiệu chỉnh.
+   Nguồn thứ hai (AI-18): khi ≥ 3 công ty đã đồng ý điều khoản có rubric duyệt cùng một `shrmKey`, job tạo đề xuất `rubric_anchor` gồm ví dụ neo từng mức đã bỏ thông tin nhận diện công ty. Đi qua cùng backtest và bước duyệt; không sửa bảng 6 mức LP-01.
 3. Platform Mod xem bằng chứng, xem bảng trước/sau trên bộ 20 câu chuẩn (AI-01) và 10 câu trả lời cũ, rồi duyệt. Duyệt thì tạo `PromptVersion` mới và bật `active`.
 4. InterviewSession vốn đã ghi `promptVersion`; Langfuse trace theo version; Quality Dashboard so sánh tỉ lệ bị sửa giữa các version; có rollback.
 
@@ -99,7 +101,7 @@ Two-tier HITL trong đơn: Company Mod duyệt câu theo công ty, Platform Mod 
 | `sepayWebhookService.findPendingTargets` chỉ nhận 5 loại; `parsePiOrderFromText` chỉ nhận mã `PI…` | Tiền lộ trình về mà không ai xác nhận | LP-10 |
 | `mentorshipRequestsService.js:125` chỉ cho tạo booking khi `status === "selected"` | Thêm status mới làm luồng cũ lỗi 403 | LP-05 |
 | `Notification.type` là enum | Loại mới bị Mongoose từ chối, không báo lỗi | N-06 |
-| `interviewsController.js:476` trả `alreadyGenerated` khi ≥ 5 câu; `questionsAllowed` lấy theo quota | Pro không bao giờ nhận câu follow-up ở buổi theo job; buổi kết thúc sớm | JB-06 |
+| `interviewsController.js:476` trả `alreadyGenerated` khi ≥ 5 câu; `questionsAllowed` lấy theo quota | Pro không bao giờ nhận câu follow-up ở buổi có câu doanh nghiệp; buổi kết thúc sớm | JB-06 |
 | `moderationQueueService.js:83` không lọc `type`; `createItemForReport` (dòng 39) map mọi `targetType` khác thành `evaluation_report` | Rubric và báo cáo job lọt vào hàng đợi phỏng vấn, sai loại | JB-04, CO-07 |
 | `QuestionBank.orgId` đang `ref: "Organization"` | `populate` lỗi | CO-01 |
 | Chữ `enterprise` vừa là role vừa là giá trị gói (`CVAnalysis.planAtTime`); role còn trong `usersSeed.json` | Tìm-thay hàng loạt làm hỏng gói; seed lại tạo role cũ | N-02, N-03 |
@@ -107,5 +109,5 @@ Two-tier HITL trong đơn: Company Mod duyệt câu theo công ty, Platform Mod 
 | Frontend tự lưu `CVAnalysis` sau khi phân tích xong | Không ghi được `processing`, dễ tạo bản ghi trùng | N-11 |
 | `_devOnlyGuard.js` chặn chạy trên production | Seed demo không chạy được trên production | QA-05 (demo trên staging) |
 | `node --test` chỉ nhận glob từ Node 21; `render.yaml` chưa cố định Node | Test glob hỏng trên Render | N-05 |
-| User free luyện theo job tạo video D-ID riêng mỗi buổi | Tốn credit D-ID | CO-06 |
+| Câu doanh nghiệp chèn vào phỏng vấn AI (mọi gói, quyết định JB-06 ngày 23/11/2026) tạo video avatar riêng mỗi buổi | Tốn credit provider video | CO-06 (đã làm, PR #234: render trước khi câu được duyệt) |
 | Trang câu hỏi của moderator đã lọc `orgId: null` (`questionBankService.js:272`) | Tin tốt: câu công ty không lẫn vào | |
