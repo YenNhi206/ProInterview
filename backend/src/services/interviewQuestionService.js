@@ -680,15 +680,16 @@ export async function generateQuestionsFromText({
  * @param {{ questions: object[], answers: {questionIndex: number, transcript: string}[] }} param
  * @returns {{ overallComment: string, perQuestion: object[] }}
  */
-export async function evaluateTranscripts({ questions, answers, userId, sessionId }) {
+export async function evaluateTranscripts({ questions, answers, userId, sessionId, prompt: promptOverride, traceName = "evaluate_session" }) {
   const { apiKey, anthropicKey, anthropicEval } = cfg();
   if (!apiKey && !anthropicKey) throw new Error("LLM chưa được cấu hình.");
 
   // Prompt theo version active (DB lỗi thì bản mặc định) — version ghi vào feedback và trace.
-  const prompt = await getActivePrompt(EVALUATION_KEY);
+  // Backtest (AI-04) truyền `prompt` để chấm bằng một version cụ thể, không phải bản active.
+  const prompt = promptOverride ?? await getActivePrompt(EVALUATION_KEY);
 
   const traceId = createTrace({
-    name:      "evaluate_session",
+    name:      traceName,
     userId,
     sessionId,
     metadata:  {
