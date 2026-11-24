@@ -1,56 +1,57 @@
-# Kết quả đo phi chức năng (NFR)
+# Báo cáo kết quả đo lường phi chức năng (NFR Performance Results)
 
-> **Dự án**: ProInterview (Capstone FA26, GFA26SE160)
-> **Phụ trách đo**: Nguyễn Việt Văn (QA-02, QA-03) · Janet (QA-08, đo lại avatar sau khi đổi provider)
+> **Dự án**: Nền tảng luyện phỏng vấn ProInterview (Capstone FA26)
+> **Người thực hiện**: Nguyễn Việt Văn
 > **Cập nhật**: 24/11/2026
 
-> ⚠️ **Bản 19/11/2026 của file này đã bị gỡ (đề xuất ae).** Các số QA-02 và QA-03 trong bản đó **không phải số đo**:
-> `backend/src/scripts/measureNfrPerformance.js` tự sinh thời gian CV / avatar bằng `Math.sin`, `Math.cos`, `Math.random`
-> và gõ cứng kết quả k6. Script k6 khi đó còn gọi sai đường dẫn (`POST /api/interviews`) và đọc sai trường token, nên không
-> thể cho ra tỉ lệ lỗi đã ghi. Không dùng bất kỳ số nào của bản cũ trong báo cáo nộp. Mọi số dưới đây phải kèm file mẫu gốc
-> trong `docs/report/nfr-raw/`.
+> ⚠️ **Trạng thái: đang đo lại, chưa dùng để nộp.**
+> Bản trước (19/11/2026) ghi các số p50/p95, số request k6 và biểu đồ phân bổ **không phải số đo thật**: script cũ
+> `measureNfrPerformance.js` tự sinh thời gian CV / avatar bằng `Math.sin`, `Math.cos`, `Math.random`, và gõ cứng kết quả
+> k6 (14850 request, lỗi 0.08%, p95 680ms). Bản đó cũng tự mâu thuẫn (biểu đồ có CV 40–50 giây trong khi max ghi 34,69 giây).
+> Các số đó đã được gỡ khỏi báo cáo này (đề xuất (ae), PR #275). QA-02 và QA-03 chuyển lại `Doing` cho tới khi có số đo thật.
+
+---
 
 ## 1. Tóm tắt
 
-| Mã | Mục tiêu | Kết quả | Bằng chứng | Trạng thái |
-|:---|:---|:---|:---|:---:|
-| QA-01 | Bật `MOCK_AI_SERVICES` thì không phát sinh chi phí AI | Không ghi CostEvent, không gọi D-ID / ElevenLabs | Test `backend/src/integration/mockAiServices.integration.test.js` (chạy trong `npm test`) | ✅ Đạt |
-| QA-02 (NFR-04) | 100 người dùng đồng thời: p95 < 2000 ms, lỗi < 1% | **Chưa đo** | Cần file `nfr-raw/k6-*.json` từ lần chạy thật trên staging | ⏳ |
-| QA-03 (NFR-01) | Phân tích CV/JD ≤ 60 giây (30 lần phân tích) | **Chưa đo** | Cần file `nfr-raw/cv-*.json` | ⏳ |
-| QA-03 (NFR-02) | Video avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) | **Chưa đo** | Cần file `nfr-raw/avatar-*.json` | ⏳ |
+| Mã | Mục tiêu cam kết | Kết quả | Trạng thái |
+|:---|:---|:---|:---:|
+| **QA-01** | Bật chế độ mock thì không phát sinh chi phí | Không phát sinh `CostEvent` khi bật `MOCK_AI_SERVICES` (test tự động `mockAiServices.integration.test.js`) | ✅ Đạt |
+| **QA-02** (NFR-04) | 100 người dùng đồng thời, p95 < 2000 ms, lỗi < 1% | **Chưa đo** (mục 4) | ⏳ Đang đo |
+| **QA-03** CV (NFR-01) | Phân tích CV/JD ≤ 60 giây (30 CV) | **Chưa đo** (mục 2) | ⏳ Đang đo |
+| **QA-03** Avatar (NFR-02) | Video avatar ≤ 130 giây (20 câu mới, 20 câu đã cache) | **Chưa đo** (mục 3) | ⏳ Đang đo |
 
-## 2. Cách đo
+---
 
-### QA-03: CV/JD (NFR-01)
+## 2. Thời gian phân tích CV/JD (QA-03, NFR-01)
 
-Mỗi lần gọi Python, backend ghi một dòng log `cv_analysis_timing` (N-11). Một lần phân tích có thể gọi nhiều bậc
-(suggestions → full → basic), nên **thời gian người dùng chờ = tổng các lượt cùng `analysisId`**; vì vậy đo từ log, không
-đo từ DB (DB chỉ giữ lượt cuối).
+**Chưa có số đo.** Cách đo (script đã viết lại ở PR #275, chỉ tính từ số đo thật, thiếu mẫu thì báo `THIẾU MẪU`):
 
-1. Trên staging, phân tích đủ ít nhất 30 lần với CV và JD khác nhau.
-2. Tải log backend từ Render (Logs → Download), lưu ví dụ `render-backend.log`.
-3. `cd backend && node src/scripts/measureNfrPerformance.js cv --log render-backend.log --limit 30`
-4. Chép bảng in ra vào mục 3 và commit file `docs/report/nfr-raw/cv-*.json`.
+1. Tải log Render (staging hoặc production) có dòng `cv_analysis_timing` (N-11).
+2. `node src/scripts/measureNfrPerformance.js cv --log <file log>`: cộng các lượt cùng `analysisId` = thời gian người dùng thực sự chờ. Cần ít nhất 30 lần phân tích.
+3. Ghi p50 / p95 / max vào bảng trên; commit file mẫu gốc `docs/report/nfr-raw/cv-<thời điểm>.json` do script sinh.
 
-Khi không có log: `node src/scripts/measureNfrPerformance.js cv --since <ngày>` đọc `CVAnalysis.meta.processingTimeMs`
-(đặt `TARGET_MONGO_URI` cho DB staging). Cách này chỉ tính lượt gọi cuối, phải ghi rõ trong báo cáo.
+## 3. Thời gian sinh video avatar (QA-03, NFR-02)
 
-### QA-03: Avatar (NFR-02)
+**Chưa có số đo.** Cách đo:
 
-Mỗi video ghi một dòng `avatar_video_timing` (`fromCache`, `ok`, `durationMs`).
+1. Tải log Render có dòng `avatar_video_timing` (N-11).
+2. `node src/scripts/measureNfrPerformance.js avatar --log <file log>`: tách video mới và video đã cache, đếm riêng video mới bị lỗi. Cần ít nhất 20 câu mới và 20 câu đã cache.
+3. Ghi kết quả kèm provider đang chạy (D-ID hoặc ElevenLabs sau AI-15); commit `docs/report/nfr-raw/avatar-<thời điểm>.json`.
 
-1. Trên staging, chạy phỏng vấn sao cho có ít nhất 20 câu chưa có video (câu follow-up hoặc câu doanh nghiệp mới) và 20 câu đã cache (câu baseline sau khi `npm run warmup:baseline-videos`).
-2. `node src/scripts/measureNfrPerformance.js avatar --log render-backend.log --limit 20`
-3. Ghi rõ provider đang chạy (`GET /api/ai/config`). Sau khi đổi sang ElevenLabs (AI-15), đo lại ở QA-08.
+## 4. Kiểm thử tải 100 người dùng đồng thời (QA-02, NFR-04)
 
-### QA-02: 100 người dùng đồng thời (NFR-04)
+**Chưa có số đo.** Script `backend/tests/load/k6-load-100vus.js` đã sửa (PR #277):
+- Đăng nhập đọc trường `token` (bản cũ đọc `accessToken` nên mọi lần đăng nhập đều tính lỗi); mỗi VU đăng nhập một lần rồi dùng lại.
+- Tạo phiên qua `POST /api/interviews/sessions` (bản cũ gọi `POST /api/interviews`, route không tồn tại), gửi 3 câu baseline lấy từ `GET /api/interviews/baseline-questions`.
+- Trang job phải trả 200 (bỏ kiểu chấp nhận cả 404).
+- 403 hết lượt phỏng vấn là phản hồi nghiệp vụ đúng: không tính lỗi, đếm riêng ở `interview_quota_limited` để báo cáo ghi rõ.
 
-1. Staging backend bật `LOAD_TEST=true` (bỏ rate limit, `middleware/rateLimiters.js`) và `MOCK_AI_SERVICES=true` (không gọi AI thật, QA-01), có tài khoản demo (`npm run seed:demo-staging`) hoặc tài khoản riêng cho test tải.
-2. Cài k6 (`winget install k6` hoặc https://k6.io/docs/get-started/installation/).
-3. `k6 run -e TARGET_URL=https://<staging-backend> -e K6_EMAIL=<email> -e K6_PASSWORD=<mật khẩu> --summary-export=docs/report/nfr-raw/k6-<ngày>.json backend/tests/load/k6-load-100vus.js`
-4. Ghi p95 `http_req_duration`, `error_rate`, p95 từng bước và số lần `interview_quota_limited` (hết lượt phỏng vấn, phản hồi 403 nghiệp vụ, không tính lỗi) vào mục 3.
-5. Tắt `LOAD_TEST` và `MOCK_AI_SERVICES` sau khi đo.
+Cách đo:
 
-## 3. Kết quả
-
-*(Chưa có lần đo thật. Điền sau khi chạy các lệnh ở mục 2, ghi kèm ngày đo, môi trường, provider AI và đường dẫn file mẫu gốc.)*
+1. Chạy trên **staging** (không chạy trên production), báo nhóm trước. Backend staging bật tạm `LOAD_TEST=true` (bỏ rate limit,
+   `middleware/rateLimiters.js`) và `MOCK_AI_SERVICES=true` (không gọi AI thật, QA-01). Cả 100 VU dùng chung một tài khoản và mỗi
+   lượt tạo phiên trừ 1 lượt phỏng vấn: nâng `quota.interviewLimit` của tài khoản test đủ lớn, nếu không phần lớn lượt sẽ là 403
+   (không tính lỗi nhưng không đo được thời gian tạo phiên thật).
+2. `k6 run -e TARGET_URL=https://<staging-backend> -e K6_EMAIL=<email> -e K6_PASSWORD=<mật khẩu> --summary-export docs/report/nfr-raw/k6-<thời điểm>.json backend/tests/load/k6-load-100vus.js`
+3. Ghi p95 `http_req_duration`, `error_rate`, p95 từng bước và số `interview_quota_limited` vào bảng trên; commit file JSON. Tắt `LOAD_TEST` và `MOCK_AI_SERVICES` sau khi đo.
