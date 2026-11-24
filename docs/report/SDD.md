@@ -1106,11 +1106,11 @@ sequenceDiagram
 
 #### 3.28 Learning Path (Lộ trình luyện phỏng vấn với Mentor)
 
-> DOC-02. Sequence khớp code nhánh `main` ngày 24/11/2026: `routes/learningPaths.js`, `services/learningPathsService.js`, `services/learningPathPaymentService.js`, `services/learningPathSessionsService.js`, `services/sepayWebhookService.js`, `services/bookingsService.js`, `services/mentorEarningsService.js`, `utils/learningPathMoney.js`, `utils/learningPathBookingMoney.js`, `utils/learningPathOutcome.js`. Quyết định nghiệp vụ: `docs/plan/DECISIONS.md` (1: trả trọn gói, 2: học lại, 4: chụp phí nền tảng, 13: buổi đánh giá 0đ).
+> DOC-02. Sequence khớp code nhánh `main` ngày 24/11/2026: `routes/learningPaths.js`, `services/learningPathsService.js`, `services/learningPathPaymentService.js`, `services/learningPathSessionsService.js`, `services/learningPathCancelService.js`, `services/sepayWebhookService.js`, `services/bookingsService.js`, `services/mentorEarningsService.js`, `utils/learningPathMoney.js`, `utils/learningPathBookingMoney.js`, `utils/learningPathOutcome.js`. Quyết định nghiệp vụ: `docs/plan/DECISIONS.md` (1: trả trọn gói, 2: học lại, 4: chụp phí nền tảng, 13: buổi đánh giá 0đ).
 
 Điều kiện trước: ứng viên đã gửi yêu cầu mentor (`/api/mentorship-requests`), chọn mentor, và buổi đánh giá 0đ (Booking `sessionType: "assessment"`) đã `completed` (mục 3.8, LP-05, LP-06).
 
-State machine `LearningPath.status`: `draft → proposed ⇄ revision_requested`; `proposed → pending_payment → active → completed`. `LearningPathSession.status`: `planned → scheduled → done` (hủy hoặc vắng buổi đưa `scheduled` về `planned`).
+State machine `LearningPath.status`: `draft → proposed ⇄ revision_requested`; `proposed → pending_payment → active → completed`; `active → cancelled` (admin hủy, LP-15). `LearningPathSession.status`: `planned → scheduled → done` (hủy hoặc vắng buổi đưa `scheduled` về `planned`); buổi chưa học thành `cancelled` khi lộ trình bị hủy.
 
 **Chia tiền (LP-09).** Giá trọn gói `T`, `n` buổi gốc, tỉ lệ phí nền tảng `r` chụp từ Mentor lúc gửi đề xuất:
 
@@ -1121,6 +1121,7 @@ State machine `LearningPath.status`: `draft → proposed ⇄ revision_requested`
 | Mentor nhận buổi `i` | `shareAmount − platformFee`, ghi có khi buổi `completed` | `Mentor.finance.clearingBalance` (`tryCreditMentorForCompletedBooking`) |
 | Học lại lần đầu (`attempt` 2) | `shareAmount = 0`, mentor không nhận thêm | `retakeShareAmount` |
 | Buổi bổ sung (`attempt` ≥ 3) | Giá mentor đề xuất, thu riêng ngoài `T` | `proposeSupplementarySession` |
+| Hoàn khi admin hủy lộ trình | `T − tổng shareAmount các buổi gốc đã học` (buổi `done` hoặc booking đã `completed`), mentor giữ phần đã nhận | `Payment.refundAmount` (`computeLearningPathCancel`, LP-15) |
 
 ##### 3.28.1 Sequence Diagram: Mentor soạn và gửi lộ trình, ứng viên chấp nhận hoặc yêu cầu sửa (LP-07, LP-08, LP-09)
 ```mermaid
@@ -1287,4 +1288,37 @@ sequenceDiagram
     end
     U->>B: PATCH /api/bookings/:id/mentor-cancel-resolution (chọn đổi mentor / hoàn tiền)
     B->>G: Booking lộ trình hoặc buổi 0đ → 400 "đặt lại buổi trên trang lộ trình"
+```
+
+##### 3.28.5 Sequence Diagram: Admin hủy lộ trình đang học và hoàn phần chưa học (LP-15)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor A as Admin
+    participant R as adminRouter (/api/admin)
+    participant X as learningPathCancelService
+    participant DB as MongoDB (LearningPath, LearningPathSession, Booking, Payment)
+    participant N as deliverNotification
+
+    A->>R: GET /learning-paths/:id/cancel-preview
+    R->>X: previewLearningPathCancel(id) → computeLearningPathCancel(id)
+    Note over X: Chỉ lộ trình active. Buổi đã học = buổi done hoặc booking completed.<br/>refundAmount = T − tổng shareAmount buổi gốc (attempt 1) đã học
+    X-->>A: 200 { preview: { totalAmount, learnedSessions, learnedShare, refundAmount, openBookings, hasPayment } }
+
+    A->>R: POST /learning-paths/:id/cancel { reason (≥ 5 ký tự) }
+    R->>X: cancelLearningPathByAdmin(id, { adminUserId, reason })
+    X->>DB: LearningPath findOneAndUpdate({ status: "active" }, { status: "cancelled", cancelledAt, cancelReason })
+    Note over X: Không cập nhật được (thao tác song song) → 409, không hoàn trùng
+    X->>DB: Booking đang mở của buổi chưa học → cancelled (cancelledBy system, không hoàn theo buổi)
+    X->>DB: LearningPathSession chưa học → cancelled
+    X->>DB: Payment { status: "success" } → refund_pending (nếu refundAmount > 0), refundAmount, learnedShare
+    X->>N: Ứng viên + Mentor: "learning_path_cancelled"
+    X-->>A: 200 { learningPath, refundAmount, payment }
+
+    A->>A: Chuyển khoản hoàn tiền cho ứng viên
+    A->>R: PATCH /payments/:id/confirm-learning-path-refund { transferRef }
+    R->>X: confirmLearningPathRefund(paymentId, { adminUserId, transferRef })
+    X->>DB: Payment { status: "refund_pending" } → refunded (hoàn hết) | partial_refund
+    X->>N: Ứng viên: "learning_path_cancelled" (đã chuyển khoản hoàn)
+    X-->>A: 200 { payment }
 ```
