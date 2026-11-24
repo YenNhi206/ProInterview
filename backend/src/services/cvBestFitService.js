@@ -52,7 +52,7 @@ export function cvContentText(content = {}) {
 }
 
 /** Bytes của file CV đã tải lên; không có / không đọc được → null. */
-async function readCvFile(cv) {
+export async function readCvFile(cv) {
   const url = String(cv.fileUrl || "");
   if (!url) return null;
   try {

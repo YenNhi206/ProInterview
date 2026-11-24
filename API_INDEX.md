@@ -705,6 +705,7 @@ Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, t
 | POST | `/api/cvs/:id/set-default` | Bearer | Đặt mặc định (bỏ mặc định CV khác, cập nhật `CandidateProfile.defaultCvId`). Alias `PATCH /:id/default` |
 | DELETE | `/api/cvs/:id` | Bearer | Xóa; xóa CV mặc định thì CV mới cập nhật gần nhất thành mặc định |
 | GET / POST | `/api/cvs/:id/export-pdf` | Bearer | Xuất PDF (pdfkit + DejaVu) — PR-09 |
+| POST | `/api/cvs/:id/extract-content` | Bearer | PR-08, `cvContentExtractService.js`. CV phải của user và có tệp gốc PDF / DOCX / TXT; rate limit như `/api/cv/analyze`, không trừ lượt. Node gửi tệp sang Python `POST /extract-content` (multipart `file`): một lượt LLM trả đúng shape `CVDocument.content`, LLM lỗi hoặc trả rỗng thì tách theo tiêu đề mục (`method: "rules"`). **Không ghi DB**: editor điền vào bản nháp, người dùng bấm Lưu (`PATCH /api/cvs/:id`). → `{ success, extracted: { content, method llm \| rules, sections[], cvVersion } }`. Lỗi: 400 mã sai / CV không có tệp / định dạng khác / Python 400 (giữ `detail`), 404 CV không thuộc user hoặc mất tệp gốc, 503 / 504 / 502 Python |
 
 ### A.20. Gợi ý mentor, khóa học, job — `/api/recommendations` (AI-10)
 

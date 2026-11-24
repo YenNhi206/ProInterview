@@ -8,6 +8,7 @@ import {
   deleteCv,
 } from "../services/cvDocumentService.js";
 import { exportCvToPdf } from "../services/cvExportPdfService.js";
+import { extractCvContent } from "../services/cvContentExtractService.js";
 import { User } from "../models/User.js";
 import { CVDocument } from "../models/CVDocument.js";
 
@@ -108,5 +109,11 @@ export const CVDocumentController = {
     res.setHeader("Content-Length", pdfBuffer.length);
 
     return res.send(pdfBuffer);
+  },
+
+  // PR-08: tách tệp CV đã tải lên thành `content` cho editor (không ghi DB)
+  async extractContent(req, res) {
+    const extracted = await extractCvContent(req.userId, req.params.id);
+    return res.json({ success: true, extracted });
   },
 };

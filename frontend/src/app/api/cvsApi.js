@@ -10,6 +10,9 @@ export const cvsApi = {
   setDefault: (id) => authedFetch(`/api/cvs/${encodeURIComponent(id)}/set-default`, { method: "POST" }),
   remove: (id) => authedFetch(`/api/cvs/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
+  /** PR-08: tách tệp CV gốc thành `content` cho editor. Trả `{ success, extracted: { content, method, sections, cvVersion } }`, không ghi DB. */
+  extractContent: (id) => authedFetch(`/api/cvs/${encodeURIComponent(id)}/extract-content`, { method: "POST" }),
+
   /** PR-13: các lần phân tích CV đã xong (`list`, mới nhất trước) để lấy gợi ý viết lại bullet. */
   listAnalyses: () => authedFetch("/api/cv/analyses"),
 
