@@ -291,6 +291,9 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | GET | `/api/jobs/recent` | `[AUTH][CUSTOMER]` tối đa 5 job xem gần đây, chỉ job đang mở có câu doanh nghiệp hợp lệ (JB-20) |
 | ✅ | GET | `/api/jobs/:id/gap` | `[AUTH][customer]` khoảng thiếu: hồ sơ năng lực so với `requiredCompetencies`, CV mặc định so với `requiredSkills`, kèm mức độ và gợi ý bước tiếp (JB-05) |
 | ✅ | GET | `/api/role-categories` | Công khai — danh sách nhóm vị trí dùng chung (`config/roleCategories.json`) |
+| ✅ | POST | `/api/jobs/:id/apply` | `[AUTH][CUSTOMER]` nộp đơn `{ cvId, consent: true }`, snapshot hồ sơ + CV + chỉ số JB-19; mỗi job mỗi người 1 đơn (JB-08) |
+| ✅ | GET | `/api/applications/me` · PATCH `/api/applications/:id/withdraw` | `[AUTH][CUSTOMER]` đơn của tôi; rút đơn xóa snapshot (JB-08) |
+| ✅ | GET | `/api/company/applications` · `/api/company/applications/:id` · PATCH `/:id/status` | `[AUTH][COMPANY_MOD]` xem đơn có đồng ý của công ty mình, `viewed` / `shortlisted` / `rejected`, thông báo ứng viên (JB-09) |
 | ✅ | GET | `/api/profile/me/company-metrics` · `/api/profile/me/company-metrics/:companyId` | `[AUTH][CUSTOMER]` chỉ số của ứng viên với từng doanh nghiệp: số câu đã trả lời, điểm trung bình từng tiêu chí rubric, ngày gần nhất, danh sách buổi (JB-19) |
 
 ### Câu hỏi công ty — AI sinh bộ câu nháp (CO-04)

@@ -229,6 +229,27 @@ ensureCollection("job_posts", {
   [{ status: 1, closesAt: 1 }, { partialFilterExpression: { closesAt: { $type: "date" } } }],
 ]);
 
+// JB-08: đơn ứng tuyển (mỗi job mỗi người 1 đơn; snapshot bị xóa khi rút đơn)
+ensureCollection("applications", {
+  required: ["jobPostId", "companyId", "candidateId", "consent", "status", "submittedAt"],
+  properties: {
+    jobPostId: oid,
+    companyId: oid,
+    candidateId: oid,
+    cvId: oidOrNull,
+    candidateName: str,
+    jobTitle: str,
+    consent: { bsonType: "object", required: ["given", "at"] },
+    status: en("submitted", "viewed", "shortlisted", "rejected", "withdrawn"),
+    history: { bsonType: "array" },
+  },
+}, [
+  [{ jobPostId: 1, candidateId: 1 }, { unique: true, name: "application_per_job_candidate" }],
+  [{ candidateId: 1, submittedAt: -1 }],
+  [{ companyId: 1, status: 1, submittedAt: -1 }],
+  [{ companyId: 1, jobPostId: 1, submittedAt: -1 }],
+]);
+
 // PR-01 / PR-06: hồ sơ ứng viên, năng lực gộp bằng competencyProfileService.
 ensureCollection("candidateprofiles", {
   required: ["userId"],

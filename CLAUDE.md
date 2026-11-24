@@ -157,7 +157,7 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 |:-----|:-------|
 | Tài khoản | `/api/auth`, `/api/users`, `/api/notifications`, `/api/analytics` |
 | Mentor & đặt lịch | `/api/mentors`, `/api/mentor` (khu vực mentor), `/api/bookings`, `/api/mentorship-requests`, `/api/learning-paths` (capstone), `/api/reviews`, `/api/reports` |
-| Công ty & tuyển dụng (capstone) | `/api/company` (Company Mod: câu hỏi, rubric, `jobs`), `/api/company-invites`, `/api/jobs` (công khai, JB-03), `/api/role-categories` (nhóm vị trí từ `config/roleCategories.json`), `/api/profile`, `/api/cvs` |
+| Công ty & tuyển dụng (capstone) | `/api/company` (Company Mod: câu hỏi, rubric, `jobs`, `applications` JB-09), `/api/company-invites`, `/api/jobs` (công khai, JB-03; `POST /:id/apply` JB-08), `/api/applications` (đơn của ứng viên, JB-08), `/api/role-categories` (nhóm vị trí từ `config/roleCategories.json`), `/api/profile`, `/api/cvs` |
 | Khóa học & bán hàng | `/api/courses`, `/api/enrollments`, `/api/cart`, `/api/coupons`, `/api/plans`, `/api/payments` |
 | AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01), `/api/recommendations` (gợi ý mentor/khóa/job, AI-10) |
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
@@ -165,9 +165,9 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 
 `/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
-### Models (`models/`) — 38 schema
+### Models (`models/`) — 39 schema
 
-`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`, `Company`, `CompanyInvite`, `CompanyRubric`, `CandidateProfile`, `CVDocument`, `JobPost`, `AIImprovementProposal`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
+`User`, `Mentor`, `Booking`, `MentorshipRequest`, `MentorKnowledge`, `Payment`, `PayoutRequest`, `Subscription`, `Coupon`, `SepayWebhookEvent`, `Course`, `Enrollment`, `Cart`, `CartOrder`, `CourseQA`, `MentorPeerReview`, `Review`, `Report`, `CVAnalysis`, `InterviewSession`, `QuestionBank`, `ModerationItem`, `Notification`, `Activity`, `UserEvent`, `SecurityLog`, `CostEvent`, `Achievement`, `LearningPath`, `LearningPathSession`, `PromptVersion`, `Company`, `CompanyInvite`, `CompanyRubric`, `CandidateProfile`, `CVDocument`, `JobPost`, `Application`, `AIImprovementProposal`. Export qua `models/index.js`. Chi tiết field: `docs/LOGICAL_ERD.md`, `backend/DATABASE.md`.
 
 Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed`, `interviewUsed`, …).
 
