@@ -879,6 +879,149 @@ sequenceDiagram
     Controller-->>Candidate: 200 OK (Content-Type: application/pdf, Content-Disposition: attachment)
 ```
 
+#### 3.24 Job Posts & Applications (Tin tuyển dụng và Ứng tuyển)
+
+> DOC-02. Sequence khớp code nhánh `main` ngày 24/11/2026: `routes/company.js`, `routes/jobs.js`, `services/jobPostsService.js`, `services/publicJobsService.js`, `services/recentJobsService.js`, `services/jobPostModerationService.js`, `services/moderationQueueService.js`, `jobs/bookingStaleSweepJob.js`. File `docs/detailed-design/3.24_Job_Posts_Applications.drawio` vẽ theo thiết kế cũ (`/api/job-posts`, `PartnerCompany`, `CompanyRole`) không còn đúng; dùng các sequence dưới đây.
+
+State machine `JobPost.status`: `draft → published → closed`; `published ⇄ hidden` (Platform Moderator); `published | hidden → closed` (Company Moderator đóng, hoặc quá `closesAt`). Tin `hidden` và `closed` không hiện ở API công khai.
+
+##### 3.24.1 Sequence Diagram: Company Moderator soạn, đăng, sửa và đóng tin (JB-01, JB-02, JB-15)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor HR as Company Moderator
+    participant FE as /company/jobs (CompanyJobs)
+    participant MW as authJwt + requireCompanyModerator + companyModeratorAuditLog
+    participant Ctrl as CompanyJobsController
+    participant Svc as jobPostsService
+    participant DB as MongoDB (JobPost, CompanyRubric)
+
+    HR->>FE: Điền form (tiêu đề, roleCategory, cấp độ, mô tả, năng lực, kỹ năng, rubric, closesAt)
+    FE->>MW: POST /api/company/jobs
+    MW->>Ctrl: req.companyId = công ty của người gọi
+    Ctrl->>Svc: createCompanyJob(companyId, userId, body)
+    Note over Svc: Joi validate, roleCategory theo config/roleCategories.json,<br/>năng lực theo config/competencies.json, closesAt ở tương lai
+    opt Có rubricId
+        Svc->>DB: CompanyRubric.findOne({ _id, companyId })
+        Note over Svc: assertRubricAttachable: cùng công ty, status approved, cùng roleCategory với job
+    end
+    Svc->>DB: JobPost.create({ ...input, companyId, status: "draft" })
+    Svc-->>FE: 201 { success, job }
+
+    HR->>FE: Bấm "Đăng tin"
+    FE->>Ctrl: PATCH /api/company/jobs/:id/status { status: "published" }
+    Ctrl->>Svc: changeCompanyJobStatus(companyId, userId, id, body)
+    Note over Svc: assertPublishable: mô tả ≥ 50 ký tự, ≥ 1 năng lực,<br/>kiểm lại rubric (có thể đã bị lưu trữ)
+    Svc->>DB: findOneAndUpdate({ _id, companyId, status: "draft" }, { status: "published", publishedAt })
+    alt Không cập nhật được (đổi trạng thái song song)
+        Svc-->>FE: 409 "Tin tuyển dụng vừa đổi trạng thái"
+    else Thành công
+        Svc-->>FE: 200 { success, job }
+    end
+
+    HR->>FE: Sửa tin đang đăng
+    FE->>Ctrl: PATCH /api/company/jobs/:id
+    Ctrl->>Svc: updateCompanyJob(...)
+    Note over Svc: Tin hidden hoặc closed → 409,<br/>đổi rubricId/roleCategory → kiểm lại rubric
+    Svc->>DB: findOneAndUpdate({ _id, companyId, status, updatedAt }, { $set })
+    Svc-->>FE: 200 { success, job }
+
+    HR->>FE: Bấm "Đóng tin"
+    FE->>Ctrl: PATCH /api/company/jobs/:id/status { status: "closed" }
+    Svc->>DB: findOneAndUpdate({ status ∈ [published, hidden] }, { status: "closed", closedReason: "company" })
+    Svc-->>FE: 200 { success, job }
+
+    Note over DB: bookingStaleSweepJob (20 phút) → closeExpiredJobPosts():<br/>updateMany({ status ∈ [published, hidden], closesAt ≤ now }, { status: "closed", closedReason: "expired" })
+```
+
+##### 3.24.2 Sequence Diagram: Ứng viên xem tin công khai và job xem gần đây (JB-03, JB-20)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Ứng viên (hoặc khách)
+    participant FE as /jobs (Jobs), /jobs/:id (JobDetail)
+    participant R as jobsRouter (/api/jobs)
+    participant Pub as publicJobsService
+    participant Rec as recentJobsService
+    participant DB as MongoDB (JobPost, Company, CandidateProfile)
+
+    C->>FE: Mở danh sách job (lọc vị trí, công ty, cấp độ)
+    FE->>R: GET /api/jobs?roleCategory&company&level&page
+    R->>Pub: listPublicJobs(query)
+    Pub->>DB: Company.find({ status: "suspended" }) → loại công ty bị khóa
+    Pub->>DB: JobPost.find(openJobFilter: status "published", closesAt null hoặc > now)
+    Pub-->>FE: 200 { success, jobs, pagination }
+
+    C->>FE: Mở chi tiết job
+    FE->>R: GET /api/jobs/:id (optionalAuth)
+    R->>Pub: getPublicJob(id)
+    alt Job không mở (draft, hidden, closed, quá hạn, công ty bị khóa)
+        Pub-->>FE: 404
+    else Job đang mở
+        opt Có token ứng viên
+            R->>Rec: recordJobView(userId, jobId)
+            Note over Rec: Chỉ ghi khi user role customer
+            Rec->>DB: CandidateProfile.recentJobViews: $pull job cũ (upsert), rồi $push lên đầu, $slice 5
+            Note over R: Lỗi ghi lượt xem chỉ log warn, không làm hỏng trang
+        end
+        R-->>FE: 200 { success, job }
+    end
+
+    C->>FE: Màn cài đặt phỏng vấn AI (thẻ "job bạn quan tâm")
+    FE->>R: GET /api/jobs/recent (authJwt, role customer)
+    R->>Rec: listRecentJobs(userId)
+    Rec->>DB: Chỉ job còn mở, công ty không bị khóa, có câu doanh nghiệp hợp lệ
+    R-->>FE: 200 { success, jobs }
+```
+
+##### 3.24.3 Sequence Diagram: Báo cáo tin tuyển dụng và Platform Moderator ẩn tin (JB-04, JB-17)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Người dùng đã đăng nhập
+    actor Mod as Platform Moderator
+    participant RepAPI as POST /api/reports
+    participant JMS as jobPostModerationService
+    participant ModAPI as /api/moderator (queue, jobs)
+    participant MQS as moderationQueueService
+    participant DB as MongoDB (Report, ModerationItem, JobPost)
+    participant N as deliverNotification
+
+    U->>RepAPI: { targetType: "job_post", targetId, reason, description }
+    RepAPI->>JMS: createJobPostReport(userId, body)
+    Note over JMS: reason thuộc JOB_POST_REPORT_REASONS, mô tả ≥ 10 ký tự,<br/>job phải đang mở (findPublicJob),<br/>Company Mod không báo cáo tin công ty mình,<br/>mỗi người 1 báo cáo đang chờ cho mỗi tin (409)
+    JMS->>DB: Report.create(...)
+    JMS->>DB: ModerationItem.create({ type: "job_post_report", priority: high nếu fraud/discriminatory })
+    Note over JMS: Tạo item lỗi → xóa Report vừa tạo (không để báo cáo mồ côi)
+    JMS-->>U: 201 { reportId, moderationItemId }
+
+    Mod->>ModAPI: GET /api/moderator/queue?type=job_post_report (màn /moderator/job-reports)
+    Mod->>ModAPI: PATCH /api/moderator/queue/:id/resolve { action: "hide_job" | "dismiss", note }
+    ModAPI->>MQS: resolveItem → resolveJobItem(item, action, note)
+    alt action = hide_job
+        MQS->>JMS: setJobVisibility(jobId, { hidden: true, reason: note }, exceptItemId)
+        Note over MQS: Tin đã bị ẩn trước đó → vẫn đóng item, tin đã đóng → 409, moderator dùng dismiss
+        JMS->>DB: findOneAndUpdate({ status: "published" }, { status: "hidden", hiddenAt, hiddenBy, hiddenReason })
+        JMS->>DB: resolveOpenJobReports: đóng các item + Report đang mở khác của tin
+        JMS->>N: Người báo cáo của các báo cáo đó: "feedback"
+        JMS->>N: Company Moderator của công ty: "job_post_hidden"
+    end
+    MQS->>DB: ModerationItem này → resolved / dismissed (cập nhật có điều kiện, xử lý trùng → 409)
+    MQS->>JMS: closeJobReport(reportId) → Report resolved / dismissed
+    JMS->>N: Người báo cáo: "feedback" (báo cáo đã xử lý)
+    MQS-->>Mod: 200 { success, item }
+
+    Mod->>ModAPI: PATCH /api/moderator/jobs/:id/visibility { hidden: false }
+    ModAPI->>JMS: setJobVisibility(jobId, { hidden: false })
+    Note over JMS: Chỉ bỏ ẩn khi chưa quá closesAt, quá hạn → 409
+    JMS->>DB: { status: "hidden" } → "published"
+    JMS->>N: Company Moderator: "system" (tin hiển thị lại)
+```
+
+##### 3.24.4 Sequence Diagram: Ứng tuyển (JB-08, JB-09, JB-10)
+
+Chưa vẽ: `Application`, `POST /api/jobs/:id/apply`, `GET /api/applications/me` và API công ty xem đơn chưa có trong code (JB-08 chờ JB-07, JB-19). DOC-02 bổ sung mục này sau khi JB-10 xong để sequence khớp code.
+
 #### 3.25 Partner Companies (Quản lý Công ty & Lời mời HR)
 
 ##### 3.25.1 Sequence Diagram: Admin tạo Công ty & Gửi Lời mời Company Moderator
@@ -961,3 +1104,187 @@ sequenceDiagram
     ModCtrl-->>Mod: 200 OK { success: true, message: "Đã phê duyệt rubric" }
 ```
 
+#### 3.28 Learning Path (Lộ trình luyện phỏng vấn với Mentor)
+
+> DOC-02. Sequence khớp code nhánh `main` ngày 24/11/2026: `routes/learningPaths.js`, `services/learningPathsService.js`, `services/learningPathPaymentService.js`, `services/learningPathSessionsService.js`, `services/sepayWebhookService.js`, `services/bookingsService.js`, `services/mentorEarningsService.js`, `utils/learningPathMoney.js`, `utils/learningPathBookingMoney.js`, `utils/learningPathOutcome.js`. Quyết định nghiệp vụ: `docs/plan/DECISIONS.md` (1: trả trọn gói, 2: học lại, 4: chụp phí nền tảng, 13: buổi đánh giá 0đ).
+
+Điều kiện trước: ứng viên đã gửi yêu cầu mentor (`/api/mentorship-requests`), chọn mentor, và buổi đánh giá 0đ (Booking `sessionType: "assessment"`) đã `completed` (mục 3.8, LP-05, LP-06).
+
+State machine `LearningPath.status`: `draft → proposed ⇄ revision_requested`; `proposed → pending_payment → active → completed`. `LearningPathSession.status`: `planned → scheduled → done` (hủy hoặc vắng buổi đưa `scheduled` về `planned`).
+
+**Chia tiền (LP-09).** Giá trọn gói `T`, `n` buổi gốc, tỉ lệ phí nền tảng `r` chụp từ Mentor lúc gửi đề xuất:
+
+| Đại lượng | Công thức | Ghi ở |
+| --- | --- | --- |
+| Phần tiền buổi gốc `i` | `floor(T / n)`, buổi cuối nhận phần dư (tổng đúng bằng `T`) | `LearningPathSession.shareAmount` (`splitLearningPathShares`) |
+| Phí nền tảng buổi `i` | `round(shareAmount × r)` | `Booking.platformFee` (`learningPathBookingMoney`) |
+| Mentor nhận buổi `i` | `shareAmount − platformFee`, ghi có khi buổi `completed` | `Mentor.finance.clearingBalance` (`tryCreditMentorForCompletedBooking`) |
+| Học lại lần đầu (`attempt` 2) | `shareAmount = 0`, mentor không nhận thêm | `retakeShareAmount` |
+| Buổi bổ sung (`attempt` ≥ 3) | Giá mentor đề xuất, thu riêng ngoài `T` | `proposeSupplementarySession` |
+
+##### 3.28.1 Sequence Diagram: Mentor soạn và gửi lộ trình, ứng viên chấp nhận hoặc yêu cầu sửa (LP-07, LP-08, LP-09)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor M as Mentor
+    actor C as Ứng viên
+    participant R as learningPathsRouter (/api/learning-paths, authJwt + requestActor)
+    participant S as learningPathsService
+    participant DB as MongoDB (LearningPath, LearningPathSession, MentorshipRequest, Booking)
+    participant N as deliverNotification
+
+    M->>R: POST / { mentorshipRequestId, goal, totalAmount, sessions[] }
+    R->>S: createLearningPathDraft(actor, body)
+    Note over S: Chỉ Mentor đã duyệt, yêu cầu phải chọn đúng mentor này, status selected | assessing,<br/>≤ 12 buổi, shrmKeys hợp lệ theo LP-01
+    S->>DB: LearningPath.create({ status: "draft" }) — unique theo mentorshipRequestId (trùng → 409)
+    S->>DB: LearningPathSession.insertMany(sessions, attempt 1, status planned)
+    S-->>M: 201 { learningPath }
+
+    M->>R: POST /:id/propose
+    R->>S: proposeLearningPath(actor, id)
+    Note over S: status draft | revision_requested, ≥ 1 buổi, 10.000đ ≤ T,<br/>buổi đánh giá 0đ đã completed (thiếu → 400)
+    S->>S: rate = resolveBookingPlatformFeeRate(mentor)
+    S->>S: shares = splitLearningPathShares(T, n)
+    S->>DB: LearningPathSession.bulkWrite(shareAmount từng buổi gốc)
+    S->>DB: findOneAndUpdate({ status, version }, { status: "proposed", platformFeeRate: rate }, gửi lại thì version + 1)
+    S->>DB: MentorshipRequest.status → "path_proposed"
+    S->>N: Ứng viên: "learning_path_proposed"
+    S-->>M: 200 { learningPath }
+
+    C->>R: GET /:id (xem lộ trình, giá, buổi, phần tiền)
+    alt Ứng viên chấp nhận
+        C->>R: POST /:id/accept { version }
+        R->>S: acceptLearningPath(actor, id, body)
+        Note over S: version khác bản đang xem → 409 (mentor vừa gửi bản mới)
+        S->>DB: findOneAndUpdate({ status: "proposed", version }, { status: "pending_payment", acceptedAt })
+        S->>N: Mentor: "learning_path_accepted"
+        S-->>C: 200 { learningPath }
+    else Ứng viên yêu cầu sửa
+        C->>R: POST /:id/request-revision { note }
+        R->>S: requestLearningPathRevision(actor, id, body)
+        S->>DB: findOneAndUpdate({ status: "proposed", version }, { status: "revision_requested", revisionNote })
+        S->>N: Mentor: "learning_path_revision_requested"
+        S-->>C: 200 { learningPath }
+        Note over M,S: Mentor sửa (PATCH /:id) rồi gửi lại (POST /:id/propose) → chia tiền lại, version + 1
+    end
+```
+
+##### 3.28.2 Sequence Diagram: Thanh toán trọn gói bằng chuyển khoản, SePay hoặc admin xác nhận (LP-10, LP-11)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Ứng viên
+    actor A as Admin
+    participant R as learningPathsRouter
+    participant P as learningPathPaymentService
+    participant Bank as Ngân hàng + SePay
+    participant W as sepayWebhookService
+    participant DB as MongoDB (LearningPath, Payment, SepayWebhookEvent)
+    participant N as deliverNotification
+
+    C->>R: POST /:id/checkout
+    R->>P: checkoutLearningPath(actor, id)
+    Note over P: Chỉ khi pending_payment, Payment pending còn hạn cùng mã → trả lại giao dịch cũ
+    P->>DB: LearningPath.updateOne({ paymentRef cũ }, { paymentRef: generatePiOrderRef() }) — giành mã, bấm 2 lần không sinh 2 mã
+    P->>DB: recordTransferPending(Payment { type: "learning_path", amount: T, providerRef: PI…, paymentExpiresAt })
+    P-->>C: 200 { learningPath, payment (mã PI…, số tiền, hạn) }
+    C->>R: PATCH /:id/submit-transfer (bấm "Đã chuyển khoản")
+    R->>P: submitLearningPathTransfer → recordTransferSubmitted (providerResponse.submittedAt)
+
+    C->>Bank: Chuyển khoản nội dung chứa PI…
+    Bank->>W: POST /api/payments/webhook/sepay (Authorization: Apikey)
+    W->>W: receivedAt = now, verifySepayAuthorization
+    W->>DB: SepayWebhookEvent: sepayId đã processed → trả idempotent
+    W->>W: parsePiOrderFromText(content) → findPendingTargets(orderRef)
+    W->>P: findPendingLearningPathTargets(orderRef) (bỏ giao dịch hết hạn, mã cũ)
+    alt Không có mã, sai tiền hoặc nhiều đơn khớp
+        W->>DB: SepayWebhookEvent.status = "unmatched"
+    else Khớp 1 đơn, đúng tiền
+        W->>P: confirmLearningPathTransfer(pathId, { force, forceNote, amount })
+        P->>DB: Transaction: Payment → "success" (recordAdminTransferSuccess) + LearningPath "pending_payment" → "active", paidAt
+        P->>N: Ứng viên + Mentor: "learning_path_paid"
+        W->>DB: SepayWebhookEvent "processed" + receivedAt, processedAt, processingMs (QA-04)
+    end
+    W-->>Bank: 200 { success }
+    C->>R: GET /api/payments/transfer-status?orderRef=PI… (poll) → "paid", redirectTo /learning-paths/:id
+
+    Note over A,P: Đối soát tay (LP-11): GET /api/admin/payments/learning-path-transfers
+    A->>P: PATCH /api/admin/payments/:id/confirm-learning-path-transfer { force, forceNote, amount }
+    Note over P: Không force: ứng viên phải đã báo "Đã chuyển khoản",<br/>force + lý do ≥ 3 ký tự: nhận cả giao dịch đã hết hạn (tiền đến muộn),<br/>amount khác T → 400
+    P->>P: confirmLearningPathTransfer(...) — cùng hàm, idempotent (đã active thì không báo lần 2)
+```
+
+##### 3.28.3 Sequence Diagram: Đặt lịch buổi, hoàn thành, ghi kết quả và thu nhập mentor (LP-12, LP-13, LP-14)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Ứng viên
+    actor M as Mentor
+    participant R as learningPathsRouter
+    participant SS as learningPathSessionsService
+    participant B as bookingsService
+    participant E as mentorEarningsService
+    participant DB as MongoDB (LearningPathSession, Booking, Mentor)
+    participant N as deliverNotification
+
+    C->>R: POST /:id/sessions/:sid/schedule { date, timeSlot, durationMinutes }
+    R->>SS: scheduleLearningPathSession(actor, id, sid, body)
+    Note over SS: checkSessionSchedulable: lộ trình active, buổi là buổi đang mở<br/>(buổi trước đã passed), giờ tương lai, slot mentor mở và trống,<br/>findCandidateBookingConflict (ứng viên không trùng giờ)
+    SS->>DB: LearningPathSession: planned → scheduled, gắn bookingId (cập nhật có điều kiện)
+    SS->>DB: Booking.create({ learningPathId, learningPathSessionId, status: "confirmed", ...learningPathBookingMoney(shareAmount, platformFeeRate) })
+    Note over SS: paymentStatus "paid", paymentMethod "learning_path", platformFee ghi sẵn,<br/>tạo Booking lỗi → trả buổi về planned
+    SS->>N: Mentor: "booking_confirmed"
+    SS-->>C: 201 { learningPath, booking }
+
+    M->>B: PATCH /api/bookings/:id/complete (sau buổi học)
+    B->>DB: Booking.status = "completed", completedAt
+    B->>E: tryCreditMentorForCompletedBooking(bookingId)
+    E->>DB: Booking.mentorEarningsCreditedAt, earningsClearAt, earningsNetAmount = totalAmount − platformFee
+    E->>DB: Mentor.finance.clearingBalance += net (buổi học lại 0đ → net 0)
+    Note over E: earningsClearanceJob chuyển clearingBalance → availableBalance khi đủ ngày giữ tiền
+
+    M->>R: PATCH /:id/sessions/:sid/outcome { outcome, feedback, scores[] }
+    R->>SS: recordLearningPathSessionOutcome(actor, id, sid, body)
+    Note over SS: lộ trình active, buổi scheduled, Booking của buổi completed
+    SS->>SS: suggestOutcome(scores, shrmKeys) (gợi ý, mentor quyết định)
+    SS->>DB: LearningPathSession: scheduled → done, outcome, feedback
+    SS->>SS: resolveOutcomeNextStep(session, outcome, sessions)
+    alt passed và mọi buổi đã passed
+        SS->>DB: LearningPath: active → completed
+    else passed
+        Note over SS: Mở buổi tiếp theo để đặt lịch
+    else not_passed, attempt 1
+        SS->>DB: Tạo buổi học lại attempt 2, shareAmount 0, planned (đặt lịch được ngay)
+    else not_passed, attempt ≥ 2
+        Note over SS,M: Mentor đề xuất buổi bổ sung có phí:<br/>POST /:id/sessions/:sid/supplementary → buổi mới pending_payment
+    end
+    SS->>N: Ứng viên: "learning_path_session_result"
+    SS-->>M: 200 { learningPath, nextStep, suggestedOutcome }
+```
+
+##### 3.28.4 Sequence Diagram: Hủy hoặc vắng buổi lộ trình, chặn luồng hoàn tiền theo buổi (LP-22)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Ứng viên / Mentor / Admin
+    participant B as bookingsService
+    participant G as isLearningPathOrAssessmentBooking
+    participant DB as MongoDB (Booking, LearningPathSession)
+    participant N as Thông báo
+
+    U->>B: DELETE /api/bookings/:id (ứng viên hủy) · PATCH /api/bookings/mentor/:id/cancel (mentor hủy) · POST /api/bookings/:id/report-no-show (báo vắng)
+    B->>G: Booking có learningPathId, hoặc sessionType "assessment", hoặc paymentMethod "learning_path"?
+    alt Booking thường
+        B->>B: Luồng cũ: hoàn tiền theo % / rebook credit / đổi mentor
+    else Booking lộ trình hoặc buổi đánh giá 0đ
+        B->>DB: closeLearningPathOrAssessmentBooking: findOneAndUpdate({ status ∉ cancelled, completed, no_show },<br/>{ status: cancelled | no_show, cancelledBy, cancelRefundAmountVnd: 0, cancelRefundPercent: 0 })
+        Note over B: Không hoàn tiền, không sinh rebook credit (tiền đã thu trọn gói,<br/>hoàn tiền chỉ qua hủy cả lộ trình, LP-15)
+        opt Booking của một buổi lộ trình
+            B->>DB: LearningPathSession: scheduled → planned, bookingId = null (đặt lại đúng buổi đó)
+        end
+        Note over B: Buổi 0đ: cancelledBy dùng để tính lượt theo quyết định 13 (LP-06)
+        B->>N: "booking_cancelled" cho ứng viên và mentor (nêu rõ không hoàn tiền theo buổi)
+    end
+    U->>B: PATCH /api/bookings/:id/mentor-cancel-resolution (chọn đổi mentor / hoàn tiền)
+    B->>G: Booking lộ trình hoặc buổi 0đ → 400 "đặt lại buổi trên trang lộ trình"
+```
