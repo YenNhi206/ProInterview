@@ -29,6 +29,7 @@ Phạm vi chính thức của đồ án là `docs/plan/REGISTRATION_V3.md` (thay
 ## 3. Quy ước code tối thiểu (chi tiết trong CLAUDE.md)
 
 - Response API dạng `{ success, <key> }`; thông báo lỗi và chữ trên giao diện viết bằng tiếng Việt.
+- Làm hoặc sửa giao diện: theo `docs/UI_STYLE_GUIDE.md` (màu, cỡ chữ, bo góc, nút, form, sáng/tối) và chạy danh sách kiểm ở mục 18 của file đó.
 - Route gắn `authJwt` và `requireRole`. Mở rộng router có sẵn, không tạo prefix song song cho cùng domain.
 - FE gọi API bằng `apiUrl()` + `authFetch()`.
 - Tên role trong code: `customer`, `mentor`, `admin`, `moderator`, `company_moderator`. Trong báo cáo và giao diện: Candidate, Mentor, Admin, Platform Moderator, Company Moderator.

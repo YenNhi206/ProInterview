@@ -372,6 +372,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REG
 2. Dùng `apiUrl(path)` từ `api/http.js`, không hardcode URL.
 3. Route cần đăng nhập dùng `authFetch()` từ `utils/auth/auth.js`.
 4. Không đưa dữ liệu giả hay state demo vào màn hình.
+5. Giao diện theo `docs/UI_STYLE_GUIDE.md` (màu, cỡ chữ, bo góc, nút, form, sáng/tối); xong thì chạy danh sách kiểm mục 18.
 
 ### Conventions
 
