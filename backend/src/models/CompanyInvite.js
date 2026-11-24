@@ -37,6 +37,16 @@ const companyInviteSchema = new Schema(
       type: Date,
       default: null,
     },
+    /** CO-02: thời điểm người nhận lời mời đồng ý điều khoản dùng rubric ẩn danh (quyết định AI-18). */
+    rubricTermsAcceptedAt: {
+      type: Date,
+      default: null,
+    },
+    /** Version điều khoản đã đồng ý (`RUBRIC_SHARING_TERMS.version`). */
+    rubricTermsVersion: {
+      type: String,
+      default: "",
+    },
     invitedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",

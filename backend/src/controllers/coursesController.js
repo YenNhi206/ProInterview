@@ -15,7 +15,7 @@ import {
   isAllowedMediaUrl,
 } from "../utils/resolveStoredUploadUrl.js";
 import * as courseMentorInsights from "../services/courseMentorInsightsService.js";
-import { schedulePrescreen } from "../services/coursePrescreenService.js";
+import { PRESCREEN_RULES, ruleFlags, schedulePrescreen } from "../services/coursePrescreenService.js";
 import * as reviewsService from "../services/reviewsService.js";
 import {
   getCourseArchiveEligibility,
@@ -108,6 +108,15 @@ function findInvalidMediaUrl(body = {}) {
 }
 
 export const CoursesController = {
+  /**
+   * AI-09: mentor xem trước cờ sàng lọc theo luật (cùng `ruleFlags` của AI-08) trên nội dung đang soạn,
+   * trước khi gửi duyệt. Không gọi LLM, không ghi DB. Body cùng dạng tạo / sửa khóa (`chapters`, `outcomes`).
+   */
+  prescreenPreview: async (req, res) => {
+    const flags = ruleFlags(normalizeCoursePayload(req.body ?? {}));
+    res.json({ success: true, flags, rules: PRESCREEN_RULES });
+  },
+
   /** Danh sách khóa học */
   list: async (req, res, next) => {
     try {

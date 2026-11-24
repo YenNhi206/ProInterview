@@ -30,6 +30,8 @@ export function CompanyInviteAccept() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  // CO-02: đồng ý điều khoản dùng rubric ẩn danh (bắt buộc để nhận lời mời)
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export function CompanyInviteAccept() {
         const res = await companyApi.verifyInvite(token);
         if (!mounted) return;
         if (res.success) {
-          setInviteData(res);
+          setInviteData({ ...res.invite, terms: res.terms });
         } else {
           setVerifyError(res.error || "Mã lời mời không hợp lệ hoặc đã hết hạn.");
         }
@@ -64,6 +66,14 @@ export function CompanyInviteAccept() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!name.trim()) {
+      toastApiError("Vui lòng nhập họ và tên.");
+      return;
+    }
+    if (!acceptTerms) {
+      toastApiError("Bạn cần đồng ý điều khoản dùng rubric ẩn danh để nhận lời mời.");
+      return;
+    }
     if (password.length < 6) {
       toastApiError("Mật khẩu phải có ít nhất 6 ký tự.");
       return;
@@ -77,8 +87,10 @@ export function CompanyInviteAccept() {
     try {
       const res = await companyApi.acceptInvite({
         token,
-        name: name.trim() || undefined,
+        name: name.trim(),
         password,
+        acceptRubricTerms: true,
+        termsVersion: inviteData?.terms?.version,
       });
 
       if (res.success && res.user && res.token) {
@@ -139,6 +151,7 @@ export function CompanyInviteAccept() {
 
   const company = inviteData?.company || {};
   const email = inviteData?.email || "";
+  const terms = inviteData?.terms;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-4 py-12 text-slate-100 selection:bg-indigo-500 selection:text-white">
@@ -193,6 +206,7 @@ export function CompanyInviteAccept() {
                 <input
                   type="text"
                   placeholder="Nguyễn Văn A"
+                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full rounded-xl border border-slate-800 bg-slate-950/80 pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -245,9 +259,31 @@ export function CompanyInviteAccept() {
               </div>
             </div>
 
+            {/* CO-02: điều khoản dùng rubric ẩn danh (quyết định AI-18) */}
+            {terms && (
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{terms.title}</p>
+                <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-relaxed text-slate-300">
+                  {terms.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+                <label className="mt-3 flex items-start gap-2.5 text-sm text-slate-200">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className="mt-0.5 size-4 shrink-0 accent-indigo-500"
+                  />
+                  <span>Tôi đồng ý thay mặt {company.name || "doanh nghiệp"} với điều khoản trên.</span>
+                </label>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !acceptTerms}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-500 disabled:opacity-50"
             >
               {submitting ? (

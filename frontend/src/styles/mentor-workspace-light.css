@@ -174,7 +174,7 @@ html[data-workspace-theme="light"] body { background-color: #f3f1f9 !important; 
 :root[data-workspace-theme="light"] :is(.mentor-eyebrow, .mentor-eyebrow svg) { color: var(--mw-accent); }
 :root[data-workspace-theme="light"] :is(.mentor-eyebrow--on-dark, .mentor-eyebrow--on-dark svg) { color: var(--mw-accent); }
 /* Đốm tím mờ theo từng trang (MentorPageShell) chồng lên nền sáng thành vệt bẩn. */
-:root[data-workspace-theme="light"] .mentor-surface > .pointer-events-none.fixed { display: none; }
+:root[data-workspace-theme="light"] .mentor-surface > .pointer-events-none.fixed[class*="-z-["] { display: none; }
 
 /* Chữ lime đọc không được trên nền trắng: đổi sang xanh lá đậm; nền lime vẫn giữ. */
 :root[data-workspace-theme="light"] :is([class*="text-[#93f72b]"], [class*="text-[#b8ff78]"], [class*="text-[#a8ff4e]"], .text-lime-300, .text-lime-400) { color: var(--mw-lime); }

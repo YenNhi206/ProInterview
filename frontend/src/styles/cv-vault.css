@@ -23,3 +23,38 @@
 @keyframes cv-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .cv-spin { animation: none; } }
 @media (max-width: 800px) { .cv-vault .cv-upload-submit { padding-top: 0; } }
+
+/* PR-13: trình sửa CV /cvs/:id/edit */
+.cv-editor .mr-heading { align-items: flex-end; }
+.cv-editor-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cv-editor-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+.cv-editor-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.cv-editor-aside { position: sticky; top: 88px; min-width: 0; }
+.cv-editor-aside h3 { display: flex; align-items: center; gap: 6px; }
+.cv-editor-aside label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; margin-bottom: 12px; }
+.cv-editor-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.cv-editor-section-heading h3 { margin: 0; }
+.cv-editor-item { border-top: 1px solid #ffffff14; padding-top: 14px; margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.cv-editor-item-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+.cv-editor-item-toolbar > div { display: flex; gap: 4px; }
+.cv-editor-full { display: flex; flex-direction: column; gap: 6px; font-size: 12px; width: 100%; }
+.cv-editor-check { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+.cv-editor-check input { width: auto; }
+.cv-editor-label { font-size: 12px; font-weight: 600; }
+.cv-editor-bullets { display: flex; flex-direction: column; gap: 8px; }
+.cv-editor-bullet { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: start; }
+.cv-editor-bullet > span { padding-top: 10px; color: #93f72b; }
+.cv-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; border: 1px solid #ffffff1f; background: transparent; color: inherit; cursor: pointer; }
+.cv-icon-button:disabled { opacity: 0.35; cursor: not-allowed; }
+.cv-icon-button.cv-danger:hover:not(:disabled) { border-color: #fda4af80; color: #fecdd3; }
+.cv-suggestions { display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; margin-bottom: 10px; }
+.cv-suggestion { border: 1px solid #ffffff1a; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.cv-suggestion.is-applied { border-color: #93f72b55; }
+.cv-suggestion-before { text-decoration: line-through; opacity: 0.6; margin: 0; }
+.cv-suggestion-after { font-weight: 600; margin: 0; }
+.cv-suggestion-append { display: flex; flex-direction: column; gap: 6px; }
+.cv-suggestion .mr-secondary { align-self: flex-start; padding: 7px 11px; font-size: 11px; }
+@media (max-width: 1024px) {
+  .cv-editor-layout { grid-template-columns: minmax(0, 1fr); }
+  .cv-editor-aside { position: static; }
+}

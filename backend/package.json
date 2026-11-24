@@ -39,6 +39,7 @@
     "db:migrate-cv-analysis": "node src/scripts/migrate-cv-analysis.js",
     "db:migrate-cv-analysis:dry": "node src/scripts/migrate-cv-analysis.js --dry-run",
     "db:migrate-enterprise-role": "node src/scripts/migrateEnterpriseRole.js",
+    "db:migrate-enterprise-role:dry": "node src/scripts/migrateEnterpriseRole.js --dry-run",
     "db:audit-past-bookings": "node src/scripts/auditPastBookings.js",
     "db:sync-moderation-indexes": "node src/scripts/syncModerationIndexes.js",
     "db:sync-booking-indexes": "node src/scripts/syncBookingIndexes.js",

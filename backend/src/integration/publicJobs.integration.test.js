@@ -244,7 +244,8 @@ describe("Danh sách roleCategory chung (đề xuất (l))", () => {
     assert.equal(defaults.status, 201, defaults.error);
     assert.equal(defaults.question.competencyId, "technical_learning", "mặc định là key có trong bộ tiêu chí");
     assert.equal((await call(modA, `/api/company/questions/${created.question._id}`, "PATCH", { roleCategory: "khong_co" })).status, 400);
-    assert.equal((await call(modA, "/api/company/questions/generate-starter", "POST", { roleCategory: "khong_co" })).status, 400);
+    // Route `generate-starter` đã gỡ (đề xuất o): sinh bộ câu nháp dùng `POST /api/company/questions/generate` (CO-04).
+    assert.equal((await call(modA, "/api/company/questions/generate-starter", "POST", { roleCategory: "frontend" })).status, 404);
   });
 });
 

@@ -41,6 +41,8 @@ npm run db:sync-booking-indexes:dry  # xem trước thay đổi index Booking (k
 npm run db:sync-booking-indexes      # drop index cũ mentorshipRequestId_1, tạo index mới (LP-02)
 npm run db:migrate-lp-shrm-keys:dry  # xem trước đổi key năng lực tạm của LP-20 sang bộ tiêu chí LP-01 (không ghi DB)
 npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần trên production sau khi merge
+npm run db:migrate-enterprise-role:dry  # N-03: đếm user role cũ `enterprise` (không ghi DB); production: đặt TARGET_MONGO_URI
+npm run db:migrate-enterprise-role      # N-03: đổi `enterprise` → `company_moderator`; chạy lại được
 npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
 npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08)
 node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy
@@ -152,11 +154,11 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Mentor & đặt lịch | `/api/mentors`, `/api/mentor` (khu vực mentor), `/api/bookings`, `/api/mentorship-requests`, `/api/learning-paths` (capstone), `/api/reviews`, `/api/reports` |
 | Công ty & tuyển dụng (capstone) | `/api/company` (Company Mod: câu hỏi, rubric, `jobs`), `/api/company-invites`, `/api/jobs` (công khai, JB-03), `/api/role-categories` (nhóm vị trí từ `config/roleCategories.json`), `/api/profile`, `/api/cvs` |
 | Khóa học & bán hàng | `/api/courses`, `/api/enrollments`, `/api/cart`, `/api/coupons`, `/api/plans`, `/api/payments` |
-| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01) |
+| AI | `/api/cv` (`cv.js` CRUD/quota + `cvMatch.js` proxy Python), `/api/interviews`, `/api/ai`, `/api/competencies` (bộ tiêu chí SHRM/DDI từ `config/competencies.json`, LP-01), `/api/recommendations` (gợi ý mentor/khóa/job, AI-10) |
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
-`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu hỏi (`/questions/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
+`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
 ### Models (`models/`) — 38 schema
 
@@ -215,11 +217,11 @@ utils/        theo domain: auth/ (auth.js — authFetch, token; requireAuthLoade
 |:-----|:----------|:-------|
 | Công khai (`AppLayout`) | `/`, `/mentors`, `/mentors/:id`, `/courses`, `/courses/:id`, `/pricing`, `/about`, `/blog`, `/achievements`, `/terms`, `/privacy`, `/cv-analysis/*`, `/interview` | `/` chuyển mentor/admin/moderator về khu vực riêng (`roleHomeLoader`) |
 | Phỏng vấn | `/interview/room`, `/interview/feedback`, `/interview/trial`, `/interview/trial/done` | `requireCustomerAuthLoader` |
-| Ứng viên | `/dashboard`, `/my-bookings`, `/mentor-requests`, `/learning-paths`, `/learning-paths/:id` (LP-19), `/my-courses`, `/payment-history`, `/cart`, `/booking/:id`, `/session/:id`, `/review/:sessionId`, `/profile`, `/settings` | `requireAuthLoader` + `ProtectedOutlet` |
+| Ứng viên | `/dashboard`, `/my-bookings`, `/mentor-requests`, `/learning-paths`, `/learning-paths/:id` (LP-19), `/my-courses`, `/payment-history`, `/cart`, `/booking/:id`, `/session/:id`, `/review/:sessionId`, `/profile`, `/settings`, `/cvs` (PR-11), `/cvs/:id/edit` (PR-13) | `requireAuthLoader` + `ProtectedOutlet` |
 | Mentor (`MentorArea`) | `/mentor/dashboard`, `schedule`, `requests`, `learning-paths`, `learning-paths/new`, `learning-paths/:pathId/edit`, `finance`, `analytics`, `reviews`, `courses`, `courses/:id/edit`, `peer-review`, `meeting-detail/:id`; `/mentor/session-feedback/:sessionId` | như trên |
 | Toàn màn hình | `/checkout`, `/courses/:id/learn`, `/meeting/:sessionId`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, `/payment-*` | tùy trang |
 | Admin | `/admin`, `users`, `users/:id`, `mentors`, `mentors/pending`, `mentors/:id`, `bookings`, `bookings/check-ins`, `bookings/:id`, `finance`, `finance/operations`, `transactions`, `payouts`, `course-payments`, `subscription-payments`, `learning-path-payments`, `audit-log`, `analytics`, `content/questions`, `reviews`, `support`, `achievements`, `settings` | `adminLoader` |
-| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `quality`, `courses` | `createRoleLoader("moderator")` |
+| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `company-questions` (CO-16), `rubrics`, `quality`, `courses` | `createRoleLoader("moderator")` |
 
 Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transactions`, `payouts`, `content/questions`, `settings`) đều gọi API thật; tên file là di sản cũ.
 
@@ -319,7 +321,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REG
 ### Quy ước
 
 - **Mã task**: `N` nền tảng · `LP` Learning Path · `CO` Company/Rubric · `PR` Profile/CV · `JB` Job Post/Ứng tuyển · `AI` vòng AI · `QA` · `DOC`. Nhánh `feat/<mã>-<tên-ngắn>`, tên PR mở đầu bằng mã task.
-- **Tên role**: code giữ `customer` và `moderator`; UI hiển thị Candidate, Platform Moderator. Role `enterprise` được đổi thành `company_moderator` (task N-02). Chữ `enterprise` trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role, không đổi.
+- **Tên role**: code giữ `customer` và `moderator`; UI hiển thị Candidate, Platform Moderator, Company Moderator qua `roleLabel()` trong `frontend/src/app/utils/auth/roleLabels.js` (N-13); không in thẳng `user.role` ra giao diện. Role `enterprise` được đổi thành `company_moderator` (task N-02). Chữ `enterprise` trong `CVAnalysis.planAtTime` là **giá trị gói**, không phải role, không đổi.
 - **Tái dùng, không dựng song song**: Booking cho mọi buổi gặp; đường ray chuyển khoản + SePay cho mọi khoản thu; mở rộng router có sẵn (`/api/mentorship-requests`, không tạo `/api/mentor-requests`).
 - Thêm loại thông báo mới thì thêm vào `NOTIFICATION_TYPE_GROUPS` (`models/Notification.js`) trước, nếu không Mongoose từ chối bản ghi và `deliverNotification` chỉ log lỗi. Ref mới trong `metadata` cũng phải khai báo (sub-document strict). FE chọn icon theo tiền tố trong `utils/shared/notificationKind.js`.
 
@@ -336,7 +338,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REG
 | Booking của ứng viên (mọi luồng tạo / dời giờ) | Unique index `mentorId + date + timeSlot` chỉ chặn trùng **cùng mentor, cùng giờ bắt đầu**; ứng viên vẫn đặt được 2 mentor chồng giờ, hoặc 19:00 và 19:30 | Gọi `findCandidateBookingConflict` (`services/bookingConflictService.js`) trước khi tạo hoặc đổi giờ booking; trả `candidateConflictMessage` cho ứng viên, `MENTEE_BUSY_MESSAGE` cho mentor (không lộ lịch). Luồng tạo booking mới cũng phải gọi. Test tạo nhiều buổi cho cùng ứng viên phải cách nhau ≥ thời lượng buổi |
 | `services/sepayWebhookService.js` | `findPendingTargets` chỉ nhận cart, booking, booking_group, course, subscription, learning_path (LP-10); `parsePiOrderFromText` chỉ nhận mã `PI…` | Loại thanh toán mới cần target riêng, thêm vào `TRANSFER_REFERENCE_MODELS` (`paymentsService.js`), `PAYMENT_TYPES` (`Payment.js`), `SEPAY_ENTITY_TYPES` (`SepayWebhookEvent.js`), và sinh mã bằng `generatePiOrderRef()` (`utils/orderRef.js`). Mẫu đầy đủ: `services/learningPathPaymentService.js` |
 | `services/mentorshipRequestsService.js` `resolveRequestBooking` | Trước LP-05 chỉ cho tạo booking khi `request.status === "selected"` | Đã sửa ở LP-05: dùng `REQUEST_MENTOR_CHOSEN_STATUSES` (`selected`, `assessing`, `path_proposed`). Thêm status mới sau khi chọn mentor thì thêm vào hằng số này |
-| `controllers/interviewsController.js:476` | Trả `alreadyGenerated` khi `questions.length >= 5`; `questionsAllowed` lấy theo quota | Buổi có sẵn hơn 3 câu từ đầu (luyện theo job) phải xét theo câu follow-up thực tế |
+| `controllers/interviewsController.js` `generateFollowUpQuestions` | Trước JB-06 trả `alreadyGenerated` khi `questions.length >= 5` và trả `questions.slice(3)` | Đã sửa ở JB-06: buổi có câu doanh nghiệp có 5 câu từ đầu; xét và trả câu follow-up qua `followUpQuestionsOf()` (theo `questions[].source`). Code mới đọc câu theo vị trí phải dùng `source`, không giả định "3 baseline + 2 follow-up" |
 | `services/moderationQueueService.js` (`createItemForReport`, `listQueue`, `getQueueItem`, `claimItem`, `resolveItem`) | Đã sửa ở JB-04: `createItemForReport` chỉ nhận report AI (loại khác ném lỗi, trước đây thành `evaluation_report`). Hàng đợi mặc định và KPI hàng đợi chỉ lấy `HITL_QUEUE_TYPES` (3 loại phỏng vấn, AI-08); xem / nhận / xử lý và lọc `type` rõ ràng dùng `QUEUE_ITEM_TYPES` (thêm `job_post_report`, JB-04); `course_prescreen` (AI-08) không đi qua hàng đợi | Loại item mới tạo ở service riêng (mẫu: `jobPostModerationService.js`), thêm vào `MODERATION_ITEM_TYPES`, và quyết định có thêm vào `QUEUE_ITEM_TYPES` không; trang support admin lọc theo `MODERATOR_REPORT_TARGET_TYPES` |
 | `models/QuestionBank.js` | `orgId` đang `ref: "Organization"` (model không tồn tại); `status` đã có `draft`, `rejected`; `roleCategory` đã có index | Đổi ref sang `"Company"`; dùng lại field có sẵn, không thêm field mới |
 | `config/roleCategories.json` | Trước 22/11/2026 mỗi nơi tự đặt `roleCategory` (phỏng vấn AI dùng key của `ROLE_COMPETENCY_MAP`, khu công ty dùng danh sách riêng ở FE) nên câu hỏi, rubric, job không khớp nhau | BE kiểm bằng `isValidRoleCategory` (`services/roleCategories.js`), FE đọc `GET /api/role-categories` (hook `useRoleCategories`). Map sang phỏng vấn AI qua `interviewRole`. Không đặt danh sách vị trí riêng trong code |

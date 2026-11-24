@@ -19,6 +19,15 @@ const companySchema = new Schema(
       default: "active",
       index: true,
     },
+    /**
+     * CO-02: công ty đã đồng ý điều khoản dùng rubric ẩn danh (lần đồng ý đầu tiên, qua lời mời).
+     * Miner AI-18 chỉ lấy rubric của công ty có `acceptedAt`. Chi tiết từng lần đồng ý: `CompanyInvite`.
+     */
+    rubricSharingConsent: {
+      acceptedAt: { type: Date, default: null },
+      acceptedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+      termsVersion: { type: String, default: "" },
+    },
   },
   {
     timestamps: true,

@@ -480,7 +480,8 @@ erDiagram
         ObjectId userId FK "→ USER"
         enum hrGender "male|female"
         string planAtTime
-        int questionsAllowed "3 free / 5 Pro"
+        int questionsAllowed "3 free / 5 Pro; có câu doanh nghiệp: 5 free / 7 Pro (JB-06)"
+        array companyQuestions "questionId, companyId, jobPostId, rubricId (JB-06)"
         string inferredRole
         string inferredSeniority
         object competencyProfile
@@ -498,6 +499,7 @@ erDiagram
         string question
         object starGuidance
         ObjectId questionBankId FK "→ QUESTION_BANK"
+        enum source "baseline|company|llm_followup (JB-06; rỗng ở session cũ)"
         string promptVersion
     }
     INTERVIEW_ANSWER {
@@ -531,8 +533,9 @@ erDiagram
         string competencyId
         string roleCategory
         enum source "baseline|llm_followup|moderator|org_template"
-        ObjectId orgId FK "→ ORGANIZATION (chưa có)"
-        enum status "draft|pending_review|approved|rejected|deprecated"
+        ObjectId orgId FK "→ COMPANY"
+        ObjectId jobPostId FK "→ JOB_POST, câu doanh nghiệp (CO-05)"
+        enum status "draft|pending_review|pending_platform_review|approved|rejected|deprecated"
         object review "by → USER, at, note"
         object deprecation "by → USER, reason"
         array revisions

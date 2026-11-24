@@ -22,6 +22,7 @@ import { MentorshipRequests } from "./pages/mentorship/MentorshipRequests";
 import { LearningPaths } from "./pages/learningPaths/LearningPaths";
 import { LearningPathDetail } from "./pages/learningPaths/LearningPathDetail";
 import { CvVault } from "./pages/cv/CvVault";
+import { CvEditor } from "./pages/cv/CvEditor";
 import { Mentors } from "./pages/mentors/Mentors";
 import { MentorProfile } from "./pages/mentors/MentorProfile";
 import { Booking } from "./pages/booking/Booking";
@@ -98,6 +99,7 @@ import { ModeratorQueue } from "./pages/moderator/ModeratorQueue.jsx";
 import { ModeratorQueueItem } from "./pages/moderator/ModeratorQueueItem.jsx";
 import { ModeratorQuality } from "./pages/moderator/ModeratorQuality.jsx";
 import { ModeratorRubrics } from "./pages/moderator/ModeratorRubrics.jsx";
+import { ModeratorCompanyQuestions } from "./pages/moderator/ModeratorCompanyQuestions.jsx";
 import { AdminCompanies } from "./pages/admin/AdminCompanies.jsx";
 import { CompanyInviteAccept } from "./pages/auth/CompanyInviteAccept.jsx";
 import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
@@ -123,6 +125,8 @@ function roleHomeLoader() {
 }
 
 import { Jobs } from "./pages/jobs/Jobs.jsx";
+import { JobDetail } from "./pages/jobs/JobDetail.jsx";
+import { CvBestFit } from "./pages/cv/CvBestFit.jsx";
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -133,6 +137,7 @@ export const router = createBrowserRouter([
       { path: "mentors/:id", Component: MentorProfile },
       { path: "courses", Component: Courses },
       { path: "jobs", Component: Jobs },
+      { path: "jobs/:id", Component: JobDetail },
       { path: "courses/:id", Component: CourseDetail },
       { path: "pricing", Component: Pricing },
       { path: "about", Component: About },
@@ -181,6 +186,8 @@ export const router = createBrowserRouter([
           { path: "learning-paths/:id", loader: requireCustomerAuthLoader, Component: LearningPathDetail },
           // PR-11: kho CV (tải lên, nhân bản, đặt mặc định, xóa).
           { path: "cvs", loader: requireCustomerAuthLoader, Component: CvVault },
+          { path: "cv-analysis/best-fit", loader: requireCustomerAuthLoader, Component: CvBestFit },
+          { path: "cvs/:id/edit", loader: requireCustomerAuthLoader, Component: CvEditor },
           { path: "my-courses", Component: MyCourses },
           { path: "payment-history", loader: requireAuthLoader, Component: PaymentHistory },
       { path: "cart", loader: requireCustomerAuthLoader, Component: Cart },
@@ -277,6 +284,7 @@ export const router = createBrowserRouter([
       { index: true, loader: () => redirect("/moderator/queue") },
       { path: "courses", Component: AdminContentCourses },
       { path: "questions", Component: ModeratorQuestions },
+      { path: "company-questions", Component: ModeratorCompanyQuestions },
       { path: "rubrics", Component: ModeratorRubrics },
       { path: "queue", Component: ModeratorQueue },
       { path: "queue/:id", Component: ModeratorQueueItem },

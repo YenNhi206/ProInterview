@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { motion } from "motion/react";
 import { AlertCircle, Briefcase, Building2, Clock, MapPin, Search as MagnifyingGlass, Wallet, X } from "lucide-react";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
@@ -38,7 +38,10 @@ function JobCard({ job }) {
   const deadline = jobDeadlineInfo(job.closesAt);
   const company = job.company || {};
   return (
-    <article className="flex h-full flex-col rounded-3xl border border-white/10 bg-[#18113c]/80 p-5 shadow-sm backdrop-blur-xl">
+    <Link
+      to={`/jobs/${job.id}`}
+      className="flex h-full flex-col rounded-3xl border border-white/10 bg-[#18113c]/80 p-5 shadow-sm backdrop-blur-xl transition-colors hover:border-violet-400/50"
+    >
       <div className="flex items-start gap-3">
         <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/5">
           {company.logo ? (
@@ -95,7 +98,7 @@ function JobCard({ job }) {
           </p>
         ) : null}
       </div>
-    </article>
+    </Link>
   );
 }
 

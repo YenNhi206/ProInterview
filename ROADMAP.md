@@ -258,6 +258,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/cv/analyze/full` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/suggestions` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/field` | `[AUTH]` |
+| ✅ | POST | `/api/cv/best-fit` — xếp hạng 2–5 CV trong kho với một JD hoặc job, kèm lý do (PR-05; Python `POST /best-fit`) | `[AUTH]` |
 
 ### Payments & enrollments (chuyển khoản)
 
@@ -286,7 +287,8 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | GET | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` chi tiết (job công ty khác → 404) |
 | ✅ | PATCH | `/api/company/jobs/:id` | `[AUTH][COMPANY_MOD]` sửa khi `draft` / `published` |
 | ✅ | PATCH | `/api/company/jobs/:id/status` | `[AUTH][COMPANY_MOD]` `published` (đăng) / `closed` (đóng) |
-| ✅ | GET | `/api/jobs` · `/api/jobs/:id` | Công khai — chỉ job đang mở, lọc vị trí / cấp độ / công ty / từ khóa (JB-03) |
+| ✅ | GET | `/api/jobs` · `/api/jobs/:id` | Công khai — chỉ job đang mở, lọc vị trí / cấp độ / công ty / từ khóa (JB-03); `/:id` ghi lượt xem của ứng viên (JB-20) |
+| ✅ | GET | `/api/jobs/recent` | `[AUTH][CUSTOMER]` tối đa 5 job xem gần đây, chỉ job đang mở có câu doanh nghiệp hợp lệ (JB-20) |
 | ✅ | GET | `/api/jobs/:id/gap` | `[AUTH][customer]` khoảng thiếu: hồ sơ năng lực so với `requiredCompetencies`, CV mặc định so với `requiredSkills`, kèm mức độ và gợi ý bước tiếp (JB-05) |
 | ✅ | GET | `/api/role-categories` | Công khai — danh sách nhóm vị trí dùng chung (`config/roleCategories.json`) |
 
@@ -295,8 +297,15 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | BE | Method | Endpoint | Auth |
 |:---|:-------|:---------|:-----|
 | ✅ | POST | `/api/company/questions/generate` | `[AUTH][COMPANY_MOD]` AI sinh 8–12 câu `draft` theo `roleCategory`, chống trùng `textHash`, ghi `provenance.promptVersion` (prompt `company_question_gen`) |
+| ✅ | GET | `/api/company/questions` | `[AUTH][COMPANY_MOD]` lọc `status`, `roleCategory`, `jobPostId` (CO-05) |
+| ✅ | POST | `/api/company/questions` | `[AUTH][COMPANY_MOD]` tự thêm câu, gắn `jobPostId` tùy chọn → `pending_platform_review` (CO-05) |
+| ✅ | POST | `/api/company/questions/upload` | `[AUTH][COMPANY_MOD]` tải lên hàng loạt ≤ 50 câu theo job, bỏ câu trùng `textHash` → `pending_platform_review` (CO-05) |
+| ✅ | PATCH | `/api/company/questions/:id` | `[AUTH][COMPANY_MOD]` sửa câu, ghi `history`; đổi chữ câu `approved` → duyệt lại (CO-05) |
+| ✅ | POST | `/api/company/questions/:id/approve` · `/reject` · `batch-approve` · `batch-reject` | `[AUTH][COMPANY_MOD]` duyệt → `pending_platform_review` chờ Platform Mod (quyết định CO-16) |
+| ✅ | GET | `/api/moderator/company-questions` | `[AUTH][MODERATOR]` câu doanh nghiệp theo tab chờ duyệt / đã duyệt / từ chối, kèm công ty và job (CO-16) |
+| ✅ | POST | `/api/moderator/company-questions/:id/approve` · `/:id/reject` · `/bulk` | `[AUTH][MODERATOR]` duyệt → `approved` + render video avatar; từ chối bắt buộc lý do (CO-16) |
 
-Chi tiết: **API_INDEX.md A.18 (CO-04)**. FE: nút "Sinh bộ câu bằng AI" trên `/company/questions`.
+Chi tiết: **API_INDEX.md A.18 (CO-04, CO-05)**. FE `/company/questions`: nút "Sinh bộ câu bằng AI", "Tải câu theo job" (CO-13), lọc theo job, trạng thái "Chờ Platform Mod"; FE Platform Mod: `/moderator/company-questions` (CO-16).
 
 Job quá `closesAt` tự đóng trong nhịp 20 phút của `bookingStaleSweepJob` (JB-02). Chi tiết: **API_INDEX.md A.18, A.19**. FE `/company/jobs` ở JB-15, `/jobs` ở JB-11.
 
@@ -394,6 +403,7 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | POST | `/api/ai/interview/pregenerate`, `/api/ai/interview/pregen/start` | `[AUTH]` |
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
 | ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
+| ✅ | GET | `/api/recommendations/me` — gợi ý mentor, khóa học, job kèm một dòng lý do (AI-10) | `[AUTH]` customer |
 
 ### Upload, mentor, courses, admin
 
@@ -621,3 +631,11 @@ Chi tiết triển khai, tương thích dữ liệu cũ và cấu hình PDF: [FI
 | 0.6 | Consent camera | ✅ | `PUT /api/users/me/consent/camera`; `/interview` hỏi trước khi vào room; room không gọi `getUserMedia({video})` khi chưa đồng ý; BE `analyze-face` bỏ qua Vision |
 | 0.7 | Booking trả phí thiếu JaaS | ✅ | `createBooking` trả 503 ở production khi thiếu `JAAS_*` |
 | 0.8 | Body limit `analyze-face` | ✅ | `express.json` 1.5mb riêng cho route này |
+
+### AI-09: cờ sàng lọc khóa học trên giao diện
+
+✅ `/moderator/courses`: nhãn kết quả AI sàng lọc trên thẻ khóa chờ duyệt (tối đa 3 cờ nặng nhất) và khối đầy đủ (điểm, tóm tắt, mọi cờ) trong hộp thoại chi tiết. ✅ Mentor: bước "Xem lại & Gửi duyệt" khi tạo khóa hiện cờ theo luật; sửa khóa bấm "Lưu & gửi duyệt" mà còn cờ nghiêm trọng / cảnh báo thì hỏi lại (không chặn). API `POST /api/courses/prescreen-preview`.
+
+### PR-12: chọn CV hợp nhất cho JD (giao diện)
+
+✅ `/cv-analysis/best-fit` (lối vào từ `/cv-analysis`): chọn 2–5 CV trong kho, dán JD, xếp hạng qua `POST /api/cv/best-fit` (PR-05) với lý do, điểm mạnh, khoảng thiếu, kỹ năng khớp / thiếu; nút "Phân tích chi tiết CV này" mở `/cv-analysis/jd` với CV và JD điền sẵn.
