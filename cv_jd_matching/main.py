@@ -36,6 +36,7 @@ from llm_client import check_llm_health
 from field_analyzer import analyze_cv_by_field
 from best_fit import rank_cvs, docx_text, MIN_CVS, MAX_CVS
 from cv_validator import validate_cv_text
+from cv_content_extractor import extract_cv_content, file_lines_text
 import cache as cv_cache
 from cache import md5_of_bytes
 
@@ -469,3 +470,38 @@ async def best_fit(
         cvs.append(cv)
 
     return rank_cvs(jd_text, cvs, use_llm=use_llm)
+
+
+# ── PR-08: tách file CV thành content JSON cho editor ─────────────────────────
+
+@app.post("/extract-content")
+async def extract_content(
+    file:    UploadFile = File(...),
+    use_llm: bool = Form(default=True),
+):
+    """
+    PR-08: file CV (PDF / DOCX / TXT) → `content` theo shape CVDocument.content
+    (personalInfo, summary, experiences, educations, skills, projects, certifications).
+    Một lượt LLM; LLM lỗi hoặc trả rỗng thì tách theo tiêu đề mục (`method: "rules"`).
+    """
+    data = await file.read()
+    if not data:
+        raise HTTPException(400, "File rỗng.")
+    try:
+        text = file_lines_text(file.filename, data)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+    cache_key = md5_of_bytes(data)
+    if use_llm:
+        cached = cv_cache.get("extract-content", cache_key)
+        if cached:
+            return {**cached, "cached": True}
+    try:
+        result = extract_cv_content(text, use_llm=use_llm)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    response = {**result, "text_chars": len(text)}
+    if result["method"] == "llm":
+        cv_cache.set(response, "extract-content", cache_key)
+    return response

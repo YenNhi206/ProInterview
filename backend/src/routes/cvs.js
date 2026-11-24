@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { authJwt } from "../middleware/authJwt.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
+import { cvAnalyzeLimiter } from "../middleware/rateLimiters.js";
 import { CVDocumentController } from "../controllers/cvDocumentController.js";
 
 const upload = multer({
@@ -31,3 +32,6 @@ cvsRouter.delete("/:id", asyncHandler(CVDocumentController.deleteCv));
 // PR-09: Xuất PDF bằng pdfkit + font DejaVu
 cvsRouter.post("/:id/export-pdf", asyncHandler(CVDocumentController.exportPdf));
 cvsRouter.get("/:id/export-pdf", asyncHandler(CVDocumentController.exportPdf));
+
+// PR-08: tách tệp CV đã tải lên thành `content` JSON để mở trong editor (Python /extract-content)
+cvsRouter.post("/:id/extract-content", cvAnalyzeLimiter, asyncHandler(CVDocumentController.extractContent));
