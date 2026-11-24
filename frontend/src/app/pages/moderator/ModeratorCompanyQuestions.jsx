@@ -224,13 +224,17 @@ export function ModeratorCompanyQuestions() {
               {loading ? (
                 <tr>
                   <td colSpan={colCount} className="py-12 text-center text-slate-400">
-                    Đang tải danh sách câu hỏi...
+                    <div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">
+                      Đang tải danh sách câu hỏi...
+                    </div>
                   </td>
                 </tr>
               ) : questions.length === 0 ? (
                 <tr>
                   <td colSpan={colCount} className="py-12 text-center text-slate-400">
-                    Không có câu hỏi nào trong mục này.
+                    <div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">
+                      Không có câu hỏi nào trong mục này.
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -337,7 +341,7 @@ export function ModeratorCompanyQuestions() {
 
       {rejectTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+          <div className="max-h-[90vh] overflow-y-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
             <h2 className="mb-1 text-lg font-black text-slate-900">
               Từ chối {rejectTarget.ids.length > 1 ? `${rejectTarget.ids.length} câu hỏi` : "câu hỏi"}
             </h2>

@@ -439,7 +439,7 @@ function RejectDialog({ name, busy, onCancel, onConfirm }) {
   const [note, setNote] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="reject-title">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-[#120c22] p-5">
+      <div className="max-h-[90vh] overflow-y-auto w-full max-w-md rounded-2xl border border-slate-800 bg-[#120c22] p-5">
         <div className="flex items-start justify-between gap-3">
           <h2 id="reject-title" className="text-base font-bold text-white">Từ chối đơn của {name || "ứng viên"}?</h2>
           <button onClick={onCancel} aria-label="Đóng" className="text-slate-400 hover:text-white"><X className="size-4" /></button>
@@ -552,7 +552,7 @@ export function CompanyApplicationDetail() {
   const name = app.candidate?.name || s.candidate?.name || "Ứng viên";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 break-words">
       {back}
       <div className={`${cardCls} flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between`}>
         <div>

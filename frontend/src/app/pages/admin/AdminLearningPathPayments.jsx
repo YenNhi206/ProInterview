@@ -205,16 +205,20 @@ export function AdminLearningPathPayments() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className={`${tdCell} py-20 text-center text-[10px] font-black uppercase italic tracking-widest text-slate-500`}>
-                    Đang tải…
+                    <div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">
+                      Đang tải…
+                    </div>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5} className={`${tdCell} py-20 text-center`}>
-                    <Route className="mx-auto mb-3 h-10 w-10 text-slate-400" />
-                    <p className="text-[10px] font-black uppercase italic tracking-widest text-slate-500">
-                      {rows.length === 0 ? "Không có giao dịch nào" : "Không có dòng phù hợp từ khóa tìm kiếm"}
-                    </p>
+                    <div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">
+                      <Route className="mx-auto mb-3 h-10 w-10 text-slate-400" />
+                      <p className="text-[10px] font-black uppercase italic tracking-widest text-slate-500">
+                        {rows.length === 0 ? "Không có giao dịch nào" : "Không có dòng phù hợp từ khóa tìm kiếm"}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -389,7 +393,7 @@ function CancelLearningPathDialog({ row, onClose, onDone }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-      <form onSubmit={submit} className="w-full max-w-md space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+      <form onSubmit={submit} className="max-h-[90vh] overflow-y-auto w-full max-w-md space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
         <div>
           <h3 className="text-lg font-black text-slate-900">Hủy lộ trình</h3>
           <p className="mt-1 text-xs text-slate-500">
@@ -465,7 +469,7 @@ function ConfirmRefundDialog({ row, onClose, onDone }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+      <form onSubmit={submit} className="max-h-[90vh] overflow-y-auto w-full max-w-sm space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
         <div>
           <h3 className="text-lg font-black text-slate-900">Xác nhận đã hoàn tiền</h3>
           <p className="mt-1 text-xs text-slate-500">
