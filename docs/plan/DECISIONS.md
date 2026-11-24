@@ -55,3 +55,4 @@
 | 24/11/2026 | PR-06 | Mức năng lực trên hồ sơ = trung bình có trọng số của 5 điểm AI và 3 điểm mentor gần nhất, điểm mentor hệ số 2; điểm AI quy đổi bằng `aiAnswerToLevel` (dùng điểm moderator nếu đã chấm lại) | Janet |
 | 24/11/2026 | PR-06 | Khóa học hoàn thành chỉ được ghi vào danh sách nguồn của năng lực khớp theo từ khóa, không đổi mức, không tính vào số bằng chứng; năng lực chỉ có nguồn khóa học hiện "Chưa đủ dữ liệu" | Janet |
 | 24/11/2026 | JB-07 | Nhi nhận JB-07 (trước giao Văn ở dòng 24/11/2026 phía trên) vì Văn đang giữ đủ 2 task `Doing` (JB-17, LP-17) và JB-07 chặn JB-14, JB-19, JB-08. Task dừng ở `Review` cho tới khi có bộ AI-01 để chạy điều kiện "Xong khi" | Nhi |
+| 24/11/2026 | QA-05 | Nhi nhận QA-05 (trước giao Văn) vì Văn đang giữ QA-02, QA-03 và QA-05 chặn QA-06, DOC-06. Bổ sung vào `seedStagingDemo.js` sẵn có của Văn, không viết script mới. Task dừng ở `Review` cho tới khi có AI-18 để chạy ý "miner tạo được đề xuất `rubric_anchor`" | Nhi |
