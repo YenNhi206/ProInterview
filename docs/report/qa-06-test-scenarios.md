@@ -10,10 +10,11 @@
 | Việc | Cách làm |
 |:-----|:---------|
 | Môi trường | **Staging**, không chạy trên production (cổng GĐ 6) |
-| Dữ liệu | `npm run seed:demo-staging` trong `backend/` (QA-05). Script có `_devOnlyGuard.js` chặn production |
+| Dữ liệu | `npm run seed:demo-staging` trong `backend/` (QA-05); chạy lên DB staging thì đặt `TARGET_MONGO_URI=<chuỗi kết nối staging>` trước lệnh. Chạy lại được, không tạo bản trùng. Script có `_devOnlyGuard.js` chặn production |
 | Mật khẩu tài khoản seed | `Password123!` |
 | Ứng viên | `candidate.demo@prointerview.vn` |
-| Company Moderator | `hr.fpt@prointerview.vn` (công ty A), `hr.vng@prointerview.vn` (công ty B) |
+| Company Moderator | `hr.fpt@prointerview.vn` (công ty A), `hr.vng@prointerview.vn` (công ty B), `hr.lumen@prointerview.vn` (công ty C, hư cấu; cả 3 đã đồng ý điều khoản CO-02) |
+| Dữ liệu seed có sẵn | Job FPT Frontend và job VNG có câu doanh nghiệp đã duyệt (B3.8); ứng viên đã xem 2 job đó (thẻ chọn job JB-21) và có 1 buổi phỏng vấn câu doanh nghiệp FPT đã chấm rubric (B3.9, chỉ số B6.3); 5 lượt chấm lại có điểm moderator (B7.3); job FPT Backend Golang không có câu doanh nghiệp |
 | Platform Moderator | `moderator@dev.local` |
 | Mentor | `mentor.tu@prointerview.vn`, `mentor.minh@prointerview.vn`, `mentor.hang@prointerview.vn` |
 | Admin | Tài khoản admin của staging (seed staging không tạo admin; hỏi Janet nếu chưa có) |
