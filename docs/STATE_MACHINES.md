@@ -499,3 +499,31 @@ stateDiagram-v2
 | `legacy_mock` | Script `migrate-cv-analysis.js` gắn cho bản ghi giả cũ; không còn hàm nào ghi | — |
 
 Bản ghi `processing` / `failed` không hiện trong lịch sử ứng viên và không tính vào thống kê (`CV_ANALYSIS_DONE_FILTER`), chỉ dùng để đo thời gian và tỉ lệ lỗi (QA-03). Bản ghi kẹt ở `processing` (server tắt giữa chừng) tìm bằng index `{ status: 1, createdAt: 1 }`.
+
+---
+
+## 18. Đơn ứng tuyển — `Application.status` (JB-08, JB-09)
+
+```mermaid
+stateDiagram-v2
+    [*] --> submitted : Ứng viên nộp<br/>[consent = true, job đang mở, chưa có đơn]
+    submitted --> viewed : Company Mod mở chi tiết / PATCH status viewed
+    submitted --> shortlisted : Company Mod shortlist
+    submitted --> rejected : Company Mod từ chối
+    viewed --> shortlisted : Company Mod shortlist
+    viewed --> rejected : Company Mod từ chối
+    submitted --> withdrawn : Ứng viên rút (xóa snapshot)
+    viewed --> withdrawn : Ứng viên rút (xóa snapshot)
+    shortlisted --> [*]
+    rejected --> [*]
+    withdrawn --> [*]
+```
+
+| Chuyển | Hàm / endpoint | Task |
+|:-------|:---------------|:-----|
+| → `submitted` | `POST /api/jobs/:id/apply` (`applyToJob`, `services/applicationsService.js`); thông báo `application_submitted` cho Company Mod của công ty | JB-08 |
+| `submitted` → `viewed` | `GET /api/company/applications/:id` (tự chuyển khi mở lần đầu) hoặc `PATCH /api/company/applications/:id/status { status: "viewed" }` | JB-09 |
+| `submitted` / `viewed` → `shortlisted` / `rejected` | `PATCH /api/company/applications/:id/status`; ghi `decidedAt` (và `viewedAt` nếu chưa có) | JB-09 |
+| `submitted` / `viewed` → `withdrawn` | `PATCH /api/applications/:id/withdraw` (`withdrawApplication`): `snapshot = null`, giữ `candidateName`; thông báo cho Company Mod | JB-08 |
+
+Mọi chuyển trạng thái của công ty gửi `application_status_changed` cho ứng viên (N-06). Chuyển bằng cập nhật có điều kiện theo `status` nên công ty đổi trạng thái và ứng viên rút đơn cùng lúc chỉ một bên thắng (bên kia 409). `shortlisted` / `rejected` / `withdrawn` là trạng thái cuối. Company Mod chỉ đọc đơn của công ty mình có `consent.given = true`; đơn công ty khác trả 404; đơn đã rút chỉ trả `candidateName` và "Đã rút" (quyết định 14). Job bị ẩn hoặc đóng sau khi nộp không chặn công ty xử lý đơn đã có và không chặn ứng viên rút đơn; chỉ chặn nộp đơn mới.

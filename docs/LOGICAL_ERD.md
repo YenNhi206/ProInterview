@@ -292,6 +292,27 @@ erDiagram
         ObjectId createdBy FK "→ USER"
         ObjectId updatedBy FK "→ USER"
     }
+    JOB_POST ||--o{ APPLICATION : "nhận đơn (JB-08)"
+    USER ||--o{ APPLICATION : "ứng viên nộp"
+    COMPANY ||--o{ APPLICATION : "Company Mod xử lý (JB-09)"
+    CV_DOCUMENT |o--o{ APPLICATION : "CV chọn khi nộp"
+    APPLICATION {
+        ObjectId _id PK
+        ObjectId jobPostId FK "→ JOB_POST"
+        ObjectId companyId FK "→ COMPANY"
+        ObjectId candidateId FK "→ USER (customer)"
+        ObjectId cvId FK "→ CV_DOCUMENT"
+        string candidateName "giữ lại sau khi rút"
+        string jobTitle
+        object consent "given, at, scope, version (NFR-06)"
+        object snapshot "candidate, profile (PR-07), cv, companyMetrics (JB-19); null sau khi rút"
+        enum status "submitted|viewed|shortlisted|rejected|withdrawn"
+        array history "status, at, by, note"
+        date submittedAt
+        date viewedAt
+        date decidedAt
+        date withdrawnAt
+    }
 ```
 
 ### Hồ sơ ứng viên (PR-01, gộp năng lực PR-06)
@@ -725,6 +746,7 @@ erDiagram
 | LEARNING_PATH – LEARNING_PATH_SESSION | 1 – 1..n | Unique `{pathId, order, attempt}`: buổi học lại cùng `order`, `attempt` + 1 |
 | LEARNING_PATH_SESSION – BOOKING | 0..1 – 0..1 | Partial unique `{bookingId}` khi có `bookingId` |
 | Mã CK lộ trình đang chờ | — | Partial unique `LearningPath.paymentRef` khi `status=pending_payment` |
+| JOB_POST + USER – APPLICATION | 1 – 0..1 | Unique `{jobPostId, candidateId}`: mỗi job mỗi người 1 đơn, rút rồi không nộp lại (JB-08). Company Mod chỉ đọc đơn có `consent.given` của công ty mình (JB-09, NFR-06) |
 | COMPANY – JOB_POST | 1 – 0..n | Index `{companyId, status, updatedAt}`; mọi API `/api/company/jobs` lọc theo `companyId` của Company Mod (JB-01) |
 | BOOKING – MENTOR_KNOWLEDGE | 1 – 0..1 | `MentorKnowledge.bookingId` unique |
 | USER – COURSE (ENROLLMENT) | n – n | Unique `{userId, courseId}` |
