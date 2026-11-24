@@ -294,6 +294,31 @@ erDiagram
     }
 ```
 
+### Hồ sơ ứng viên (PR-01, gộp năng lực PR-06)
+
+```mermaid
+erDiagram
+    USER ||--o| CANDIDATE_PROFILE : "1 hồ sơ"
+    CANDIDATE_PROFILE |o--o| CV_DOCUMENT : "CV mặc định"
+    INTERVIEW_SESSION }o--o{ CANDIDATE_PROFILE : "nguồn ai_interview"
+    LEARNING_PATH_SESSION }o--o{ CANDIDATE_PROFILE : "nguồn mentor_session"
+    ENROLLMENT }o--o{ CANDIDATE_PROFILE : "nguồn course (không cho mức)"
+    CANDIDATE_PROFILE {
+        ObjectId _id PK
+        ObjectId userId FK,UK "→ USER"
+        string headline
+        string targetRole
+        array targetRoles
+        ObjectId defaultCvId FK "→ CV_DOCUMENT"
+        array competencies "{key LP-01, level 0–5|null, evidenceCount, sources[] {type, refId, title, level, at}}"
+        string competenciesVersion "pr06-v1"
+        date competenciesComputedAt
+        bool isVerified
+    }
+```
+
+`sources[].refId` là tham chiếu đa hình theo `type` (InterviewSession, LearningPathSession, Course), không có FK.
+
 Rubric chỉ được gắn khi `approved`, cùng `companyId` và cùng `roleCategory` với job (kiểm ở service, không có ràng buộc DB). `MentorshipRequest.jobPostId`, `LearningPath.jobPostId` đã có từ LP-05/LP-03 và trỏ tới model này.
 
 ---

@@ -75,7 +75,8 @@ describe("Giai đoạn 3: Candidate Profile và kho CV (PR-01, PR-02, PR-04, PR-
     assert.ok(body.profile);
     assert.equal(String(body.profile.userId), String(candidateUser._id));
     assert.ok(Array.isArray(body.profile.competencies));
-    assert.ok(body.profile.competencies.length >= 6);
+    // PR-06: không tạo sẵn năng lực khung; năng lực chỉ xuất hiện khi có nguồn thật.
+    assert.equal(body.profile.competencies.length, 0);
 
     // Kiểm tra DB thực sự đã có document
     const inDb = await CandidateProfile.findOne({ userId: candidateUser._id });
@@ -337,15 +338,18 @@ describe("Giai đoạn 3: Candidate Profile và kho CV (PR-01, PR-02, PR-04, PR-
 
   // ── PR-07: API Competencies và DTO cho Application Snapshot ──
   it("PR-07: GET /api/profile/me/competencies trả DTO đầy đủ kèm bằng chứng từ phỏng vấn AI", async () => {
-    // Tạo 1 buổi phỏng vấn AI completed có overallScore cho candidate
+    // PR-06: gộp theo key năng lực từng câu (bộ tiêu chí LP-01), không gộp cả buổi vào technical_mastery.
     await InterviewSession.create({
       userId: candidateUser._id,
       hrGender: "female",
       roleCategory: "frontend",
       status: "completed",
+      questions: [{ id: "q1", competencyId: "technical_learning", question: "Kể về lần bạn học nhanh một công nghệ mới." }],
+      answers: [{ questionIndex: 0, transcript: "Em học Docker trong một tuần và đóng gói ba dịch vụ." }],
       feedback: {
         overallScore: 88,
         summary: "Ứng viên có phản xạ kỹ thuật vững vàng.",
+        perQuestion: [{ questionIndex: 0, overall5: 4.4, score: 88 }],
       },
     });
 
@@ -357,14 +361,13 @@ describe("Giai đoạn 3: Candidate Profile và kho CV (PR-01, PR-02, PR-04, PR-
     assert.equal(res.status, 200);
     assert.equal(body.success, true);
     assert.ok(Array.isArray(body.competencies));
-    assert.ok(body.competencies.length >= 6);
+    assert.equal(body.competencies.some((c) => c.key === "technical_mastery"), false);
 
-    // Kiểm tra technical_mastery đã nhận evidence từ buổi phỏng vấn
-    const tech = body.competencies.find((c) => c.key === "technical_mastery");
+    const tech = body.competencies.find((c) => c.key === "technical_learning");
     assert.ok(tech);
-    assert.ok(tech.evidenceCount >= 1);
-    assert.equal(tech.score, 88);
-    assert.equal(tech.level, 4); // 88 / 20 = ~4
+    assert.equal(tech.evidenceCount, 1);
+    assert.equal(tech.level, 3.4); // aiAnswerToLevel: 4.4 − 1
+    assert.equal(tech.sources[0].type, "ai_interview");
 
     // Kiểm tra Application Snapshot DTO (dùng cho JB-08)
     assert.ok(body.snapshot);

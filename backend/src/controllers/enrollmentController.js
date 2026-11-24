@@ -13,6 +13,7 @@ import { expireEnrollmentTransferIfNeeded } from "../services/transferPaymentExp
 import { enforceExpiry } from "../utils/planGuard.js";
 import { resolvePlanPerkDiscountRate } from "../constants/planCatalog.js";
 import { validateCoupon } from "../services/couponService.js";
+import { scheduleCompetencyRecompute } from "../services/competencyProfileService.js";
 
 function genOrderRef() {
   return `PI${Math.floor(Math.random() * 900000 + 100000)}`;
@@ -390,7 +391,10 @@ export const EnrollmentController = {
         }
       }
 
+      const justCompleted = enrollment.progressPercent >= 100 && !enrollment.completedAt;
+      if (justCompleted) enrollment.completedAt = new Date();
       await enrollment.save();
+      if (justCompleted) scheduleCompetencyRecompute(enrollment.userId); // PR-06: khóa hoàn thành vào nguồn hồ sơ
       res.json({ success: true, enrollment });
     } catch (error) {
       next(error);

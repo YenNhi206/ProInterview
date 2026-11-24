@@ -18,6 +18,7 @@ import {
   buildDistributionGuide,
   COMPETENCY_LIBRARY,
   getFramework,
+  isValidCompetencyKey,
 } from "./competencyFramework.js";
 import { sanitizeUserInput } from "../utils/promptSafety.js";
 import { validateQuestionSet } from "../utils/outputValidator.js";
@@ -261,8 +262,8 @@ export async function callLLM(system, user, { maxTokens = 4000, temp = 0.6, retr
           id: "mock_q1",
           layer: "theory",
           seniority: "junior",
-          competencyId: "technical_mastery",
-          competencyName: "Technical Mastery",
+          competencyId: "technical_learning",
+          competencyName: "Học hỏi kỹ thuật & Tự phát triển",
           question: "Bạn hãy giải thích cơ chế Event Loop trong JavaScript?",
           starGuidance: {
             situation: ["Khi xử lý tác vụ bất đồng bộ"],
@@ -628,7 +629,10 @@ export async function generateQuestionsFromText({
       id: q.id || `q${i + 1}`,
       layer: LAYER_ENUM.includes(q.layer) ? q.layer : "theory",
       seniority: SENIORITY_ENUM.includes(q.seniority) ? q.seniority : "junior",
-      competencyId:   q.competency_id   || competencyIds[i] || "problem_solving",
+      // PR-06 (đề xuất e): key LLM trả phải có trong bộ tiêu chí LP-01; sai thì lấy key mục tiêu của câu.
+      competencyId:   isValidCompetencyKey(q.competency_id)
+        ? q.competency_id
+        : isValidCompetencyKey(competencyIds[i]) ? competencyIds[i] : "",
       competencyName: q.competency_name || libEntry?.nameVi || "",
       ddiKeyActionTargeted: q.ddi_key_action_targeted || "",
       question: q.question || "",

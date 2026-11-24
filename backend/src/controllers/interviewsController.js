@@ -10,7 +10,8 @@ import {
   evaluateTranscripts,
 } from "../services/interviewQuestionService.js";
 import { resolveTopCompetencies } from "../services/competencyFramework.js";
-import { BASELINE_QUESTIONS } from "../config/baselineQuestions.js";
+import { BASELINE_QUESTIONS, baselineQuestionByText } from "../config/baselineQuestions.js";
+import { scheduleCompetencyRecompute } from "../services/competencyProfileService.js";
 import { logger } from "../config/logger.js";
 import { syncPlanExpiry } from "../services/plansService.js";
 import { harvest as harvestQuestions, applyDeprecationPolicy, toSessionQuestion } from "../services/questionBankService.js";
@@ -231,7 +232,10 @@ export const InterviewsController = {
       // JB-06: câu doanh nghiệp đi sau 3 câu baseline (chỉ buổi tạo kèm câu baseline từ FE).
       // Lỗi chọn câu không được chặn buổi phỏng vấn: log rồi chạy như cũ.
       const baseQuestions = (Array.isArray(questions) ? questions : []).map((q) =>
-        BASELINE_TEXTS.has(q?.question) ? { ...q, source: "baseline" } : q,
+        // PR-06: key năng lực của câu baseline lấy từ config, không tin giá trị FE gửi.
+        BASELINE_TEXTS.has(q?.question)
+          ? { ...q, source: "baseline", competencyId: baselineQuestionByText(q.question)?.competencyId ?? "" }
+          : q,
       );
       let companyItems = [];
       if (baseQuestions.length) {
@@ -823,6 +827,7 @@ export const InterviewsController = {
         answer.incompleteFields = q.incompleteFields ?? [];
       }
       await session.save();
+      scheduleCompetencyRecompute(session.userId); // PR-06: cập nhật hồ sơ năng lực
 
       // Vẫn thiếu sau retry → hàng đợi moderator (priority high), idempotent theo (session, câu).
       for (const q of evalResult.perQuestion.filter((x) => x.evaluationIncomplete)) {

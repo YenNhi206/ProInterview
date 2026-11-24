@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { competencyCards, isVerifiedCompetency, parseTargetRoles } from "./candidateProfile.js";
+import { competencyCards, displayLevel, isVerifiedCompetency, parseTargetRoles } from "./candidateProfile.js";
 
 test("parseTargetRoles: tách dấu phẩy, bỏ rỗng và trùng (không phân biệt hoa thường), tối đa 5", () => {
   assert.deepEqual(parseTargetRoles("Frontend, React Developer ,, frontend"), ["Frontend", "React Developer"]);
@@ -11,7 +11,7 @@ test("parseTargetRoles: tách dấu phẩy, bỏ rỗng và trùng (không phân
 test("competencyCards: tên theo LP-01, có bằng chứng lên trước, nguồn mới nhất trước", () => {
   const framework = { competencies: [{ key: "communication", nameVi: "Giao tiếp & Trình bày" }] };
   const cards = competencyCards([
-    { key: "teamwork", name: "Làm việc nhóm", level: 1, evidenceCount: 0, sources: [] },
+    { key: "teamwork", name: "Làm việc nhóm", level: null, evidenceCount: 0, sources: [] },
     { key: "communication", name: "x", level: 3, evidenceCount: 2, sources: [{ at: "2026-11-01", title: "cũ" }, { at: "2026-11-10", title: "mới" }] },
   ], framework);
   assert.equal(cards[0].key, "communication");
@@ -22,7 +22,21 @@ test("competencyCards: tên theo LP-01, có bằng chứng lên trước, nguồ
   assert.equal(cards[1].verified, false);
 });
 
-test("isVerifiedCompetency: cần ít nhất 1 bằng chứng", () => {
-  assert.equal(isVerifiedCompetency({ evidenceCount: 0, sources: [] }), false);
-  assert.equal(isVerifiedCompetency({ sources: [{}] }), true);
+test("isVerifiedCompetency: cần ít nhất 1 bằng chứng có mức (PR-06)", () => {
+  assert.equal(isVerifiedCompetency({ evidenceCount: 0, level: null, sources: [] }), false);
+  assert.equal(isVerifiedCompetency({ evidenceCount: 0, level: null, sources: [{ type: "course" }] }), false, "chỉ có khóa học");
+  assert.equal(isVerifiedCompetency({ evidenceCount: 2, level: 2.67 }), true);
+  assert.equal(isVerifiedCompetency({ evidenceCount: 1, level: 0 }), true, "mức 0 vẫn là dữ liệu");
+});
+
+test("competencyCards: mức làm tròn 1 chữ số, năng lực chỉ có khóa học không có mức (PR-06)", () => {
+  const cards = competencyCards([
+    { key: "teamwork", level: null, evidenceCount: 0, sources: [{ type: "course", at: "2026-11-01" }] },
+    { key: "communication", level: 2.6667, evidenceCount: 3, sources: [] },
+  ]);
+  assert.equal(cards[0].key, "communication");
+  assert.equal(cards[0].level, 2.7);
+  assert.equal(cards[1].level, null);
+  assert.equal(cards[1].verified, false);
+  assert.equal(displayLevel(null), null);
 });

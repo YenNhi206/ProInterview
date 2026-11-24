@@ -712,6 +712,19 @@ Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, t
 |:-------|:-----|:-----|:--------|
 | GET | `/api/recommendations/me` | `[AUTH][customer]` | Query `limit?` 1–10 (mặc định 5; sai → 400). `{ success, recommendations: { basis { gaps[] { key, name, level }, targetRoles[], passThreshold }, mentors[], courses[], jobs[] } }`. Mỗi gợi ý có `score` (0–1), `reason` (một dòng) và `actionUrl`. **Năng lực còn thiếu** = năng lực trong `CandidateProfile` có bằng chứng, key có trong bộ tiêu chí LP-01, `level < passThreshold`. **Mentor** (đã xác minh, đang hoạt động; `id` = `publicId`, `actionUrl /mentors/:id`): 0,6 × khớp năng lực thiếu (đã dạy buổi lộ trình `done` có `shrmKeys` đó = 1, khớp từ khóa năng lực trong chức danh / lĩnh vực / chuyên môn / giới thiệu = 0,7; trọng số theo độ thiếu) + 0,3 × sao + 0,1 × số lượt đánh giá. **Khóa** (`published`, `pending_update`; bỏ khóa đã ghi danh; `actionUrl /courses/:id`): như mentor, khớp từ khóa trong tiêu đề / thẻ / mô tả / "bạn sẽ học được". **Job** (đang mở; `actionUrl /jobs/:id`): 0,7 × tỉ lệ năng lực yêu cầu đã đạt + 0,3 × đúng vị trí mục tiêu của hồ sơ. Mục khớp đứng trước, thiếu thì lấp bằng mục còn lại theo điểm. Chưa có hồ sơ → gợi ý theo đánh giá / tin mới |
 
+
+### A.21. Hồ sơ ứng viên — `/api/profile` (PR-01, PR-07; gộp năng lực PR-06)
+
+**File:** `backend/src/routes/profile.js` · **Service:** `candidateProfileService.js`, `competencyProfileService.js` · **Model:** `CandidateProfile` · Mọi route cần Bearer.
+
+| Method | Path | Ghi chú |
+|:-------|:-----|:--------|
+| GET | `/api/profile/me` | `{ success, profile }`; chưa có thì tạo (headline, vị trí mục tiêu lấy từ tài khoản), `competencies: []` (không tạo năng lực khung) |
+| PATCH | `/api/profile/me` | `headline`, `targetRole`, `targetRoles[]`, `summary`, `yearsOfExperience`, `defaultCvId` (CV của chính user, đồng bộ `CVDocument.isDefault`) |
+| GET | `/api/profile/me/competencies` | `{ success, competencies[], snapshot }`. Mỗi năng lực: `key` (LP-01), `name`, `level` 0–5 thập phân hoặc `null` (chỉ có nguồn khóa học, "Chưa đủ dữ liệu"), `score` (= level × 20), `evidenceCount` (bằng chứng có mức), `sources[] { type ai_interview \| mentor_session \| course, refId, title, level, score, at }` (mới nhất trước, tối đa 20). Gộp bằng `competencyProfileService` (PR-06): câu phỏng vấn AI theo key từng câu (`aiAnswerToLevel`, điểm moderator chấm lại nếu có), điểm mentor buổi lộ trình `done`; mức = trung bình có trọng số 5 điểm AI + 3 điểm mentor gần nhất, mentor hệ số 2; khóa học hoàn thành chỉ ghi nguồn. Hồ sơ gộp bằng cách cũ thì gộp lại khi gọi API này. `snapshot` là DTO rút gọn cho đơn ứng tuyển (JB-08) |
+
+Hệ A cũ `/api/users/me/cvs*`, `/api/users/me/verified-competencies*` đã gỡ ở PR-06 (đề xuất k); kho CV dùng `/api/cvs`.
+
 ---
 
 ## Phần B — Tích hợp ngoài (FE gọi trực tiếp)

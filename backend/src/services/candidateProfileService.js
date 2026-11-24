@@ -1,18 +1,8 @@
 import { CandidateProfile } from "../models/CandidateProfile.js";
 import { CVDocument } from "../models/CVDocument.js";
 import { User } from "../models/User.js";
-import { InterviewSession } from "../models/InterviewSession.js";
-import { Booking } from "../models/Booking.js";
+import { COMPETENCY_PROFILE_VERSION, recomputeCompetencyProfile } from "./competencyProfileService.js";
 import { httpError } from "../utils/apiErrors.js";
-
-const DEFAULT_COMPETENCY_KEYS = [
-  { key: "technical_mastery", name: "Chuyên môn kỹ thuật (Technical Mastery)", category: "Kỹ năng chuyên môn" },
-  { key: "problem_solving", name: "Giải quyết vấn đề (Problem Solving)", category: "Năng lực tư duy" },
-  { key: "communication", name: "Giao tiếp & Truyền đạt (Communication)", category: "Kỹ năng mềm" },
-  { key: "teamwork", name: "Làm việc nhóm (Teamwork & Collaboration)", category: "Kỹ năng phối hợp" },
-  { key: "leadership", name: "Khả năng dẫn dắt (Leadership)", category: "Năng lực lãnh đạo" },
-  { key: "adaptability", name: "Thích ứng & Học hỏi (Adaptability & Learning)", category: "Phát triển bản thân" },
-];
 
 /**
  * PR-01: Lấy CandidateProfile của user.
@@ -33,16 +23,6 @@ export async function getOrCreateCandidateProfile(userId) {
     const targetRole = user.desiredPosition || user.position || user.field || (Array.isArray(user.expertise) ? user.expertise[0] : "") || (Array.isArray(user.skills) ? user.skills[0] : "") || "";
     const targetRoles = targetRole ? [targetRole] : (Array.isArray(user.skills) && user.skills.length > 0 ? user.skills : (Array.isArray(user.expertise) ? user.expertise : []));
 
-    // Khởi tạo các competency khung cơ sở
-    const initialCompetencies = DEFAULT_COMPETENCY_KEYS.map((k) => ({
-      key: k.key,
-      name: k.name,
-      category: k.category,
-      level: 1,
-      score: 0,
-      evidenceCount: 0,
-      sources: [],
-    }));
 
     profile = await CandidateProfile.create({
       userId,
@@ -51,7 +31,8 @@ export async function getOrCreateCandidateProfile(userId) {
       targetRoles,
       summary: user.bio || "",
       defaultCvId: defaultCv?._id || null,
-      competencies: initialCompetencies,
+      // PR-06: không tạo sẵn năng lực khung; chỉ năng lực có nguồn thật mới xuất hiện (competencyProfileService).
+      competencies: [],
     });
 
     if (defaultCv) {
@@ -104,122 +85,18 @@ export async function updateCandidateProfile(userId, updateData) {
 }
 
 /**
- * PR-07: Lấy hồ sơ năng lực đã gộp (competencies) và DTO cho Application snapshot
+ * PR-07 / PR-06: hồ sơ năng lực đã gộp và DTO cho Application snapshot.
+ * Hồ sơ gộp bằng cách cũ (hoặc chưa gộp) thì gộp lại một lần theo `competencyProfileService` rồi trả về;
+ * các lần sau đọc bản đã lưu (cập nhật theo sự kiện).
  */
 export async function getProfileCompetencies(userId) {
   const profile = await getOrCreateCandidateProfile(userId);
-
-  // Đọc thêm các buổi phỏng vấn đã hoàn thành (bỏ abandoned)
-  const interviewSessions = await InterviewSession.find({
-    userId,
-    status: "completed",
-  })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-
-  // Đọc thêm các buổi mentor đánh giá hoặc lộ trình hoàn thành
-  const mentorBookings = await Booking.find({
-    menteeId: userId,
-    status: "completed",
-  })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-
-  // Tổng hợp bằng chứng cho từng competency
-  const competenciesMap = new Map();
-
-  for (const c of profile.competencies || []) {
-    competenciesMap.set(c.key, {
-      key: c.key,
-      name: c.name,
-      category: c.category,
-      level: c.level || 1,
-      score: c.score || 0,
-      evidenceCount: c.evidenceCount || 0,
-      sources: Array.isArray(c.sources) ? [...c.sources] : [],
-    });
+  if (profile.competenciesVersion !== COMPETENCY_PROFILE_VERSION) {
+    profile.competencies = await recomputeCompetencyProfile(userId);
+    profile.isVerified = profile.competencies.some((c) => c.evidenceCount > 0);
   }
-
-  // Đảm bảo đủ các key cơ sở
-  for (const def of DEFAULT_COMPETENCY_KEYS) {
-    if (!competenciesMap.has(def.key)) {
-      competenciesMap.set(def.key, {
-        key: def.key,
-        name: def.name,
-        category: def.category,
-        level: 1,
-        score: 0,
-        evidenceCount: 0,
-        sources: [],
-      });
-    }
-  }
-
-  // Gộp bằng chứng từ InterviewSessions
-  for (const s of interviewSessions) {
-    const score = Number(s.feedback?.overallScore) || 0;
-    if (score > 0) {
-      const targetKey = "technical_mastery";
-      const item = competenciesMap.get(targetKey);
-      if (item) {
-        const alreadyHas = item.sources.some((src) => src.refId && String(src.refId) === String(s._id));
-        if (!alreadyHas) {
-          item.sources.push({
-            type: "ai_interview",
-            refId: s._id,
-            title: `Phỏng vấn AI: ${s.roleCategory || "Kỹ thuật"} (${score}/100)`,
-            score,
-            at: s.createdAt || new Date(),
-          });
-          item.evidenceCount = item.sources.length;
-          item.score = Math.round(
-            item.sources.reduce((sum, x) => sum + (x.score || 0), 0) / item.sources.length
-          );
-          item.level = Math.min(5, Math.max(1, Math.round(item.score / 20)));
-        }
-      }
-    }
-  }
-
-  // Gộp bằng chứng từ MentorBookings
-  for (const b of mentorBookings) {
-    const targetKey = "problem_solving";
-    const item = competenciesMap.get(targetKey);
-    if (item) {
-      const alreadyHas = item.sources.some((src) => src.refId && String(src.refId) === String(b._id));
-      if (!alreadyHas) {
-        item.sources.push({
-          type: "mentor_session",
-          refId: b._id,
-          title: `Buổi hướng dẫn cùng Mentor (${b.date || "Hoàn thành"})`,
-          score: 85,
-          at: b.createdAt || new Date(),
-        });
-        item.evidenceCount = item.sources.length;
-        item.score = Math.round(
-          item.sources.reduce((sum, x) => sum + (x.score || 0), 0) / item.sources.length
-        );
-        item.level = Math.min(5, Math.max(1, Math.round(item.score / 20)));
-      }
-    }
-  }
-
-  const resultCompetencies = Array.from(competenciesMap.values());
-
-  // Lưu cache lại profile nếu có cập nhật bằng chứng mới
-  profile.competencies = resultCompetencies;
-  profile.isVerified = resultCompetencies.some((c) => c.evidenceCount > 0);
-  if (profile.isVerified && !profile.verifiedAt) {
-    profile.verifiedAt = new Date();
-  }
-  await profile.save();
-
-  return {
-    competencies: resultCompetencies,
-    snapshot: toApplicationCompetencySnapshot(profile),
-  };
+  const competencies = (profile.competencies ?? []).map((c) => (c.toObject ? c.toObject() : c));
+  return { competencies, snapshot: toApplicationCompetencySnapshot({ ...(profile.toObject?.() ?? profile), competencies }) };
 }
 
 /**

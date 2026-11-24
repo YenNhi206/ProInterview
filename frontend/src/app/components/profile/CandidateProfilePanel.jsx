@@ -4,7 +4,7 @@ import { BadgeCheck, Briefcase, ChevronDown, ChevronUp, FileText, Loader2, Save,
 import { profileApi } from "../../api/profileApi.js";
 import { competenciesApi } from "../../api/competenciesApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
-import { SOURCE_TYPE_LABEL, competencyCards, parseTargetRoles } from "../../utils/profile/candidateProfile.js";
+import { SOURCE_TYPE_LABEL, competencyCards, displayLevel, parseTargetRoles } from "../../utils/profile/candidateProfile.js";
 
 const card = "rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6";
 const input = "w-full rounded-xl border border-white/15 bg-[#120e2a] px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-violet-400 focus:outline-none";
@@ -144,22 +144,22 @@ export function CandidateProfilePanel({ onSummary }) {
 
       <div className="border-t border-white/10 pt-5">
         <h3 className="flex items-center gap-2 text-sm font-black text-white"><BadgeCheck size={15} /> Năng lực</h3>
-        <p className="mt-1 text-xs text-slate-400">Mức 1–5 gộp từ phỏng vấn AI, buổi mentor và khóa học. Bấm vào năng lực để xem nguồn.</p>
+        <p className="mt-1 text-xs text-slate-400">Mức 0–5 gộp từ phỏng vấn AI và buổi mentor (điểm mentor tính gấp đôi); khóa học hoàn thành được ghi vào nguồn. Bấm vào năng lực để xem nguồn.</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {cards.map((c) => {
             const open = openKey === c.key;
             return (
               <div key={c.key} className={`rounded-2xl border p-4 ${c.verified ? "border-lime-400/25 bg-lime-400/[0.04]" : "border-white/10 bg-white/[0.02]"}`}>
-                <button type="button" data-button-surface="none" onClick={() => setOpenKey(open ? "" : c.key)} aria-expanded={open} disabled={!c.verified} className="flex w-full items-start justify-between gap-3 text-left disabled:cursor-default">
+                <button type="button" data-button-surface="none" onClick={() => setOpenKey(open ? "" : c.key)} aria-expanded={open} disabled={!c.sources.length} className="flex w-full items-start justify-between gap-3 text-left disabled:cursor-default">
                   <span className="min-w-0">
                     <span className="block text-sm font-bold text-white">{c.name}</span>
                     <span className="mt-0.5 block text-[11px] text-slate-400">
-                      {c.verified ? `Đã xác thực · ${c.evidenceCount} bằng chứng` : "Chưa có bằng chứng"}
+                      {c.verified ? `Đã xác thực · ${c.evidenceCount} bằng chứng` : c.sources.length ? "Chưa đủ dữ liệu · có khóa học liên quan" : "Chưa có bằng chứng"}
                     </span>
                   </span>
                   <span className="flex shrink-0 items-center gap-2">
                     <span className={`text-sm font-black tabular-nums ${c.verified ? "text-lime-300" : "text-slate-500"}`}>{c.verified ? `${c.level}/5` : "—"}</span>
-                    {c.verified && (open ? <ChevronUp size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />)}
+                    {c.sources.length > 0 && (open ? <ChevronUp size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />)}
                   </span>
                 </button>
                 {c.verified && (
@@ -172,7 +172,7 @@ export function CandidateProfilePanel({ onSummary }) {
                     {c.sources.map((s, i) => (
                       <li key={`${s.refId || i}`} className="flex items-start justify-between gap-2 text-[11px] text-slate-300">
                         <span><strong className="text-slate-200">{SOURCE_TYPE_LABEL[s.type] || s.type}</strong> · {s.title}</span>
-                        <span className="shrink-0 text-slate-500">{s.score != null ? `${s.score}/100 · ` : ""}{date(s.at)}</span>
+                        <span className="shrink-0 text-slate-500">{s.level != null ? `mức ${displayLevel(s.level)}/5 · ` : s.score != null ? `${s.score}/100 · ` : ""}{date(s.at)}</span>
                       </li>
                     ))}
                   </ul>

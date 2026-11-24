@@ -64,7 +64,8 @@ before(async () => {
   await models.LearningPath.updateOne({ _id: pathId }, { $set: { jobPostId: job._id } });
   await models.CandidateProfile.findOneAndUpdate(
     { userId: mentee._id },
-    { $set: { userId: mentee._id, competencies: [
+    // competenciesVersion hiện hành: dùng hồ sơ dựng sẵn, không gộp lại từ nguồn (PR-06).
+    { $set: { userId: mentee._id, competenciesVersion: (await import("../services/competencyProfileService.js")).COMPETENCY_PROFILE_VERSION, competencies: [
       { key: "problem_solving", name: "Giải quyết vấn đề", level: 2, score: 40, evidenceCount: 2, sources: [] },
       { key: "teamwork", name: "Làm việc nhóm", level: 4, score: 80, evidenceCount: 1, sources: [] },
       { key: "leadership", name: "Dẫn dắt", level: 1, score: 20, evidenceCount: 1, sources: [] },
