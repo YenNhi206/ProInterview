@@ -289,10 +289,10 @@ describe("syncPromptVersions", () => {
     ]);
 
     const first = await sync.syncPromptVersions({ log: silent });
-    assert.deepEqual(first.created.sort(), ["companyq-v1", "eval-v1", "followup-v1", "prescreen-v1"]);
+    assert.deepEqual(first.created.sort(), ["companyq-v1", "eval-v1", "followup-v1", "prescreen-v1", "rubric-v1"]);
     assert.deepEqual(first.legacyCreated.sort(), ["eval-legacy", "followup-v0", "prov-only", "qgen-2025"]);
     const count = await PromptVersion.countDocuments();
-    assert.equal(count, 8);
+    assert.equal(count, 9);
 
     const second = await sync.syncPromptVersions({ log: silent });
     assert.deepEqual(second, { created: [], activated: [], legacyCreated: [], mismatched: [], conflicts: [] });
@@ -304,7 +304,7 @@ describe("syncPromptVersions", () => {
     assert.equal(legacy.legacy, true);
     assert.equal(legacy.active, false);
     assert.equal((await PromptVersion.findOne({ version: "qgen-2025" })).key, "question_gen");
-    for (const key of ["evaluation", "question_gen", "company_question_gen", "course_prescreen"]) {
+    for (const key of ["evaluation", "question_gen", "company_question_gen", "course_prescreen", "rubric_scoring"]) {
       assert.equal(await PromptVersion.countDocuments({ key, active: true }), 1, `${key}: đúng 1 bản active`);
     }
   });
@@ -320,7 +320,7 @@ describe("syncPromptVersions", () => {
 
   it("không bật lại bản mặc định khi đã có version khác active; dry run không ghi", async () => {
     const dry = await sync.syncPromptVersions({ dryRun: true, log: silent });
-    assert.deepEqual(dry.created.sort(), ["companyq-v1", "eval-v1", "followup-v1", "prescreen-v1"]);
+    assert.deepEqual(dry.created.sort(), ["companyq-v1", "eval-v1", "followup-v1", "prescreen-v1", "rubric-v1"]);
     assert.equal(await PromptVersion.countDocuments(), 0);
 
     await sync.syncPromptVersions({ log: silent });

@@ -18,6 +18,9 @@ import {
 import {
   COURSE_PRESCREEN_KEY, COURSE_PRESCREEN_DEFAULT_VERSION, COURSE_PRESCREEN_SPEC, COURSE_PRESCREEN_DEFAULT_TEMPLATE,
 } from "./coursePrescreenPrompt.js";
+import {
+  RUBRIC_SCORING_KEY, RUBRIC_SCORING_DEFAULT_VERSION, RUBRIC_SCORING_SPEC, RUBRIC_SCORING_DEFAULT_TEMPLATE,
+} from "./rubricScoringPrompt.js";
 
 export const PROMPT_REGISTRY = deepFreezeModule({
   [QUESTION_GEN_KEY]: {
@@ -44,6 +47,14 @@ export const PROMPT_REGISTRY = deepFreezeModule({
     spec: COURSE_PRESCREEN_SPEC,
     default: {
       version: COURSE_PRESCREEN_DEFAULT_VERSION, template: COURSE_PRESCREEN_DEFAULT_TEMPLATE, fewShotExamples: [],
+    },
+  },
+  // JB-07: chấm câu doanh nghiệp theo rubric công ty (thang 0–5 + trích dẫn bằng chứng).
+  [RUBRIC_SCORING_KEY]: {
+    versionPrefix: "rubric",
+    spec: RUBRIC_SCORING_SPEC,
+    default: {
+      version: RUBRIC_SCORING_DEFAULT_VERSION, template: RUBRIC_SCORING_DEFAULT_TEMPLATE, fewShotExamples: [],
     },
   },
 });

@@ -81,6 +81,41 @@ const interviewSessionSchema = new Schema(
         // LLM chấm thiếu tiêu chí (sau retry) → điểm fallback 3 + vào hàng đợi moderator
         evaluationIncomplete: { type: Boolean, default: false },
         incompleteFields:     [{ type: String }],
+        // JB-07: câu doanh nghiệp chấm thêm theo rubric công ty (bên cạnh SHRM/DDI ở feedback.perQuestion).
+        // Mỗi tiêu chí: điểm 0–5 và trích dẫn nguyên văn từ transcript (server đã kiểm, không khớp thì "").
+        // Tên tiêu chí / shrmKey chụp lại lúc chấm, vì rubric có thể đổi version sau đó.
+        rubricScores: {
+          type: [
+            new Schema(
+              {
+                criterionKey:  { type: String, required: true }, // _id của tiêu chí trong CompanyRubric.criteria
+                criterionName: { type: String, default: "" },
+                shrmKey:       { type: String, default: "" },
+                weight:        { type: Number, default: 0 },
+                score:         { type: Number, min: 0, max: 5, required: true },
+                evidenceQuote: { type: String, default: "" },
+              },
+              { _id: false },
+            ),
+          ],
+          default: undefined,
+        },
+        // Trạng thái chấm rubric: có `scoredAt` thì không chấm lại. `failed` được chấm bù ở lần evaluate sau.
+        rubricScoring: {
+          type: new Schema(
+            {
+              status:        { type: String, enum: ["scored", "no_answer", "failed"], required: true },
+              rubricId:      { type: Schema.Types.ObjectId, ref: "CompanyRubric", default: null },
+              companyId:     { type: Schema.Types.ObjectId, ref: "Company", default: null },
+              promptVersion: { type: String, default: "" },
+              model:         { type: String, default: "" },
+              scoredAt:      { type: Date, default: null },
+              error:         { type: String, default: "" },
+            },
+            { _id: false },
+          ),
+          default: null,
+        },
         // Moderator chấm lại — KHÔNG ghi đè điểm AI gốc (feedback.perQuestion), lưu song song
         moderatorOverride: {
           type: new Schema(
@@ -197,6 +232,8 @@ const interviewSessionSchema = new Schema(
     /** N-07: lúc job đánh `abandoned` (buổi `in_progress` quá `INTERVIEW_ABANDON_AFTER_MS`). */
     abandonedAt: { type: Date },
     feedbackGeneratedAt: { type: Date },
+    // JB-07: khóa ngắn khi đang chấm rubric, để 2 request evaluate cùng lúc không gọi LLM 2 lần.
+    rubricScoringClaimedAt: { type: Date, default: null },
 
     reportPdfUrl: { type: String, default: "" },
     shareToken: { type: String, default: "", index: true },
