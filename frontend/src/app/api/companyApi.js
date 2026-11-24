@@ -125,6 +125,18 @@ export const companyApi = {
       body: JSON.stringify({ status }),
     }),
 
+  // Đơn ứng tuyển (JB-09 API, JB-16 UI). Chỉ đơn có đồng ý; đơn đã rút chỉ còn tên và "Đã rút".
+  /** params: { status, jobPostId, page, limit } → { applications, pagination, counts }. */
+  listApplications: (params = {}) => authedFetch(`/api/company/applications${toQuery(params)}`),
+  /** Mở đơn `submitted` lần đầu → backend tự chuyển `viewed`. */
+  getApplication: (id) => authedFetch(`/api/company/applications/${encodeURIComponent(id)}`),
+  /** `status`: "shortlisted" | "rejected" | "viewed"; `note` ≤ 1000 ký tự (gửi kèm thông báo từ chối). */
+  changeApplicationStatus: (id, status, note = "") =>
+    authedFetch(`/api/company/applications/${encodeURIComponent(id)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, note }),
+    }),
+
   // ── Platform Moderator: Duyệt Rubric (CO-08 & CO-15) ──
   listModeratorRubrics: (params = {}) => authedFetch(`/api/moderator/rubrics${toQuery(params)}`),
   getModeratorRubric: (id) => authedFetch(`/api/moderator/rubrics/${id}`),

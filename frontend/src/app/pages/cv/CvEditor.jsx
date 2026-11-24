@@ -1,18 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowDown, ArrowLeft, ArrowUp, Download, Loader2, Plus, RefreshCw, Save, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Download, FileText, Loader2, Plus, RefreshCw, Save, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { cvsApi } from "../../api/cvsApi.js";
 import { tryApi, toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
 import {
   appendBullet,
   applyBulletSuggestion,
+  applyExtractedContent,
   emptyCertification,
   emptyEducation,
   emptyExperience,
   emptyProject,
   extractBulletSuggestions,
+  extractedSectionsLabel,
   findBulletMatches,
   isContentChanged,
+  isContentEmpty,
   normalizeCvContent,
   pdfFileName,
   splitList,
@@ -35,6 +38,7 @@ export function CvEditor() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [suggestionGroups, setSuggestionGroups] = useState([]);
   const [groupId, setGroupId] = useState("");
   const [appliedKeys, setAppliedKeys] = useState(() => new Set());
@@ -106,6 +110,17 @@ export function CvEditor() {
     setSaved({ content: next, title: res.cv?.title ?? meta.title.trim(), targetRole: res.cv?.targetRole ?? meta.targetRole.trim() });
     toastApiSuccess(`Đã lưu CV (bản ${res.cv?.version ?? ""}).`);
     return res;
+  };
+
+  // PR-08: tách tệp CV gốc thành từng mục và điền vào bản nháp; chưa lưu cho tới khi bấm Lưu.
+  const fillFromFile = async () => {
+    setExtracting(true);
+    const res = await tryApi(() => cvsApi.extractContent(id), { fallback: "Không tách được nội dung từ tệp CV." });
+    setExtracting(false);
+    if (!res.success || !res.extracted?.content) return;
+    setDraft((d) => applyExtractedContent(d, res.extracted.content));
+    const label = extractedSectionsLabel(res.extracted.sections);
+    toastApiSuccess(`Đã điền ${label || "nội dung"} từ tệp gốc. Kiểm tra lại rồi bấm Lưu.`);
   };
 
   const downloadPdf = async () => {
@@ -199,6 +214,18 @@ export function CvEditor() {
           </p>
         </div>
         <div className="cv-editor-actions">
+          {cv?.fileUrl && !isContentEmpty(draft) && (
+            <button
+              type="button"
+              data-button-surface="none"
+              className="mr-secondary"
+              disabled={extracting || saving}
+              onClick={fillFromFile}
+              title="Thay nội dung đang sửa bằng nội dung tách từ tệp gốc (chưa lưu cho tới khi bấm Lưu)"
+            >
+              {extracting ? <Loader2 size={15} className="cv-spin" /> : <FileText size={15} />} Lấy lại từ tệp gốc
+            </button>
+          )}
           <button type="button" data-button-surface="none" className="mr-secondary" disabled={downloading || saving} onClick={downloadPdf}>
             {downloading ? <Loader2 size={15} className="cv-spin" /> : <Download size={15} />}
             {dirty ? "Lưu và tải PDF" : "Tải PDF"}
@@ -211,6 +238,21 @@ export function CvEditor() {
 
       <div className="cv-editor-layout">
         <div className="cv-editor-main">
+          {cv?.fileUrl && isContentEmpty(draft) && (
+            <section className="mr-panel cv-editor-extract">
+              <div>
+                <h3>Lấy nội dung từ tệp gốc</h3>
+                <p className="mr-muted">
+                  CV này mới có tệp {cv.fileName || "tải lên"}. AI tách tệp thành từng mục (thông tin cá nhân, kinh nghiệm, học vấn,
+                  kỹ năng, …) để bạn sửa. Kết quả chỉ được lưu khi bạn bấm Lưu.
+                </p>
+              </div>
+              <button type="button" data-button-surface="none" className="mr-primary" disabled={extracting || saving} onClick={fillFromFile}>
+                {extracting ? <Loader2 size={15} className="cv-spin" /> : <FileText size={15} />}
+                {extracting ? "Đang tách nội dung…" : "Lấy nội dung"}
+              </button>
+            </section>
+          )}
           <section className="mr-panel">
             <h3>Thông tin CV</h3>
             <div className="mr-form-grid">

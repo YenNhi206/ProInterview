@@ -32,6 +32,7 @@ npm run dev                    # nodemon → src/server.js (port 5000)
 npm start                      # node src/server.js (production)
 npm run seed:all               # users dev (chỉ khi collection rỗng) + hồ sơ mentor
 npm run seed:samples           # mentor + khóa học mẫu
+npm run seed:demo-staging      # QA-05: dữ liệu kịch bản demo 7 bước (3 công ty, rubric, câu doanh nghiệp, ứng viên, 5 lượt chấm lại); chạy lại được; staging: đặt TARGET_MONGO_URI
 npm run sync:mentor-profiles   # đồng bộ Mentor với User role mentor
 npm run db:prune-fake-mentors  # xóa Mentor không có User tương ứng
 npm run warmup:baseline-videos # làm nóng cache video 3 câu baseline
@@ -371,6 +372,7 @@ Công việc hiện tại bám theo đơn đăng ký capstone V3 (`docs/plan/REG
 2. Dùng `apiUrl(path)` từ `api/http.js`, không hardcode URL.
 3. Route cần đăng nhập dùng `authFetch()` từ `utils/auth/auth.js`.
 4. Không đưa dữ liệu giả hay state demo vào màn hình.
+5. Giao diện theo `docs/UI_STYLE_GUIDE.md` (màu, cỡ chữ, bo góc, nút, form, sáng/tối); xong thì chạy danh sách kiểm mục 18.
 
 ### Conventions
 

@@ -294,7 +294,7 @@ export async function listCompanyApplications(companyId, query = {}) {
   const countFilter = { ...companyScope(companyId), ...(filter.jobPostId ? { jobPostId: filter.jobPostId } : {}) };
   const [rows, total, grouped] = await Promise.all([
     Application.find(filter)
-      .select("-snapshot.cv.content -snapshot.profile.competencies -snapshot.companyMetrics.criteria -snapshot.companyMetrics.sessions -history")
+      .select("-snapshot.cv.content -snapshot.profile.competencies -snapshot.companyMetrics.criteria -snapshot.companyMetrics.sessions -snapshot.companyMetrics.answers -history")
       .sort({ submittedAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)

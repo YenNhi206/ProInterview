@@ -97,6 +97,36 @@ export function isContentChanged(saved, draft) {
   return JSON.stringify(toSavePayload(saved)) !== JSON.stringify(toSavePayload(draft));
 }
 
+/** PR-08: CV chưa soạn mục nào (bỏ qua kỹ năng, vì CV tải lên có sẵn kỹ năng tách tự động). */
+export function isContentEmpty(content) {
+  const c = toSavePayload(content);
+  return !hasText(c.personalInfo) && !c.summary && ["experiences", "educations", "projects", "certifications"].every((k) => c[k].length === 0);
+}
+
+/**
+ * PR-08: nội dung tách từ tệp gốc (`POST /api/cvs/:id/extract-content`) thay cho bản nháp.
+ * Tệp không có mục kỹ năng thì giữ kỹ năng đang có trong bản nháp.
+ */
+export function applyExtractedContent(draft, extracted) {
+  const next = normalizeCvContent(extracted);
+  if (next.skills.length === 0) next.skills = normalizeCvContent(draft).skills;
+  return next;
+}
+
+/** Tên tiếng Việt của các mục tách được, để báo cho người dùng. */
+const SECTION_LABELS = {
+  personalInfo: "thông tin cá nhân",
+  summary: "tóm tắt",
+  experiences: "kinh nghiệm",
+  educations: "học vấn",
+  skills: "kỹ năng",
+  projects: "dự án",
+  certifications: "chứng chỉ",
+};
+export function extractedSectionsLabel(sections) {
+  return (Array.isArray(sections) ? sections : []).map((s) => SECTION_LABELS[s]).filter(Boolean).join(", ");
+}
+
 /** Chuẩn hóa bullet để so khớp gợi ý AI: bỏ ký hiệu đầu dòng, gộp khoảng trắng, bỏ dấu câu cuối, chữ thường. */
 export function normalizeBulletText(text) {
   return str(text)

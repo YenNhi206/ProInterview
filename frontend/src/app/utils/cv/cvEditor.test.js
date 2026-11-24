@@ -11,6 +11,9 @@ import {
   applyBulletSuggestion,
   appendBullet,
   pdfFileName,
+  isContentEmpty,
+  applyExtractedContent,
+  extractedSectionsLabel,
 } from "./cvEditor.js";
 
 const cv = (experiences) => normalizeCvContent({ experiences });
@@ -119,5 +122,30 @@ describe("pdfFileName", () => {
   it("giữ chữ có dấu, bỏ ký tự cấm, rỗng thì CV.pdf", () => {
     assert.equal(pdfFileName("CV Frontend / bản tiếng Việt"), "CV Frontend bản tiếng Việt.pdf");
     assert.equal(pdfFileName(""), "CV.pdf");
+  });
+});
+
+describe("tách nội dung từ tệp gốc (PR-08)", () => {
+  it("isContentEmpty: chỉ có kỹ năng hoặc ô trắng vẫn là rỗng", () => {
+    assert.equal(isContentEmpty(null), true);
+    assert.equal(isContentEmpty({ skills: ["React"], personalInfo: { fullName: "  " }, experiences: [{ company: " " }] }), true);
+    assert.equal(isContentEmpty({ summary: "Dev" }), false);
+    assert.equal(isContentEmpty({ personalInfo: { email: "a@b.vn" } }), false);
+    assert.equal(isContentEmpty(cv([{ company: "ACME" }])), false);
+  });
+
+  it("applyExtractedContent thay bản nháp, giữ kỹ năng cũ khi tệp không có kỹ năng", () => {
+    const draft = normalizeCvContent({ summary: "cũ", skills: ["React"] });
+    const next = applyExtractedContent(draft, { summary: "mới", experiences: [{ company: "A" }] });
+    assert.equal(next.summary, "mới");
+    assert.equal(next.experiences[0].company, "A");
+    assert.deepEqual(next.experiences[0].bullets, []);
+    assert.deepEqual(next.skills, ["React"]);
+    assert.deepEqual(applyExtractedContent(draft, { skills: ["Go"] }).skills, ["Go"]);
+  });
+
+  it("extractedSectionsLabel đọc tên mục tiếng Việt, bỏ mục lạ", () => {
+    assert.equal(extractedSectionsLabel(["experiences", "skills", "x"]), "kinh nghiệm, kỹ năng");
+    assert.equal(extractedSectionsLabel(null), "");
   });
 });

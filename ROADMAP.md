@@ -259,6 +259,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/cv/analyze/suggestions` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/field` | `[AUTH]` |
 | ✅ | POST | `/api/cv/best-fit` — xếp hạng 2–5 CV trong kho với một JD hoặc job, kèm lý do (PR-05; Python `POST /best-fit`) | `[AUTH]` |
+| ✅ | POST | `/api/cvs/:id/extract-content` — tách tệp CV đã tải lên thành `content` JSON cho editor, không ghi DB (PR-08; Python `POST /extract-content`) | `[AUTH]` |
 
 ### Payments & enrollments (chuyển khoản)
 
