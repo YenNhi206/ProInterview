@@ -332,6 +332,8 @@ export function InterviewFeedback() {
   const [evalError,            setEvalError]            = useState(null);
   const [retryKey,             setRetryKey]             = useState(0);
   const [realFeedback,         setRealFeedback]         = useState(null);
+  // JB-06: user free xem được 3 câu baseline + câu doanh nghiệp (server trả `freeQuestionCount`).
+  const [freeLimit,            setFreeLimit]            = useState(FREE_LIMIT);
   const [sessionMeta,          setSessionMeta]          = useState({ position: "", duration: 0, overallComment: "" });
   const [behavioralSummary,    setBehavioralSummary]    = useState(null);
   const [behavioralPerQuestion, setBehavioralPerQuestion] = useState([]);
@@ -391,6 +393,7 @@ export function InterviewFeedback() {
           ...effectiveEvaluation(evalQ),
         }));
         setRealFeedback(mapped);
+        if (res.freeQuestionCount) setFreeLimit(res.freeQuestionCount);
         setEvalError(null);
         setSessionMeta({
           position:       res.inferredRole || "",
@@ -420,7 +423,7 @@ export function InterviewFeedback() {
   }, [realFeedback]);
 
   const allQuestions = realFeedback ?? [];
-  const visibleQuestions = isPro ? allQuestions : allQuestions.slice(0, FREE_LIMIT);
+  const visibleQuestions = isPro ? allQuestions : allQuestions.slice(0, freeLimit);
 
   const hasAnyTranscript = transcripts.some((t) => t && t.trim().length > 0);
 
@@ -580,7 +583,7 @@ export function InterviewFeedback() {
             <p className="mt-1.5 text-sm text-violet-600">
               {sessionMeta.position || "Phỏng vấn AI"}
               {sessionMeta.duration > 0 ? ` · ${sessionMeta.duration} phút` : ""} ·{" "}
-              {isPro ? allQuestions.length : FREE_LIMIT}/{allQuestions.length} câu hỏi
+              {isPro ? allQuestions.length : Math.min(freeLimit, allQuestions.length)}/{allQuestions.length} câu hỏi
               {!isPro && (
                 <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-violet-200 bg-white px-2 py-0.5 text-xs font-semibold text-[#630ed4]">
                   <Lock className="h-3 w-3" /> 2 câu bị khóa
@@ -596,7 +599,7 @@ export function InterviewFeedback() {
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="flex-shrink-0 text-center">
               <div className="mb-1 text-sm text-white/80">
-                Tổng điểm{!isPro && <span className="ml-1 text-xs text-white/55">({FREE_LIMIT} câu)</span>}
+                Tổng điểm{!isPro && <span className="ml-1 text-xs text-white/55">({freeLimit} câu)</span>}
               </div>
               <div style={{ fontSize: "4rem", fontWeight: 800, lineHeight: 1 }}>{overallAvg.toFixed(1)}</div>
               <div className="text-sm text-white/80">/5 sao</div>
@@ -1150,8 +1153,8 @@ export function InterviewFeedback() {
           ))}
 
           {/* ── Câu hỏi bị khóa (non-Pro) ─── */}
-          {!isPro && allQuestions.slice(FREE_LIMIT).map((item, idx) => {
-            const i = FREE_LIMIT + idx;
+          {!isPro && allQuestions.slice(freeLimit).map((item, idx) => {
+            const i = freeLimit + idx;
             return (
               <div
                 key={`locked-${i}`}

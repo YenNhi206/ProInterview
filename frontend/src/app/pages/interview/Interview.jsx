@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import {
   BrowserCompatibilityWarning,
   checkSTTSupport,
@@ -26,7 +26,7 @@ import { hasCameraConsent } from "../../utils/interview/cameraConsent.js";
 import { CameraConsentDialog } from "../../components/interview/CameraConsentDialog";
 import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
-import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos, saveCameraConsent } from "../../api/interviewsApi.js";
+import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos, pregenerateInterviewVideos, saveCameraConsent } from "../../api/interviewsApi.js";
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
 import { InterviewHistoryPanel } from "../../components/interview/InterviewHistoryPanel";
 import { InterviewPageTabs } from "../../components/interview/InterviewPageTabs";
@@ -235,6 +235,10 @@ const HR_PREVIEWS = {
 
 export function Interview() {
   const navigate = useNavigate();
+  // JB-06: `/interview?jobPostId=…` (trang job JB-12, thẻ "job quan tâm gần đây" JB-21) → buổi có câu của job đó;
+  // không có thì server tự chọn ngẫu nhiên một doanh nghiệp cùng vị trí.
+  const [searchParams] = useSearchParams();
+  const jobPostId = searchParams.get("jobPostId") || "";
 
   const [option, setOption] = useState(null);
   const [cvUploaded, setCvUploaded] = useState(false);
@@ -493,12 +497,15 @@ export function Interview() {
       try {
         const created = await createInterviewSession(hrGender, {
           ...(questions && { questions }),
+          ...(jobPostId && { jobPostId }),
           // cvText/jdText không lưu vào session (giống generateQuestions cũ) — chỉ dùng để BE
           // tính competencyProfile rẻ (zero LLM cost) cho few-shot accumulation/analytics.
           cvText, jdText, position, field,
         });
         if (created.success) {
           sessionId = created.sessionId;
+          // JB-06: server có thể chèn tối đa 2 câu doanh nghiệp sau 3 câu baseline.
+          if (created.questions?.length > (questions?.length ?? 0)) questions = created.questions;
         } else {
           // InterviewRoom luôn yêu cầu sessionId hợp lệ (bounce về /interview nếu thiếu) — báo lỗi
           // ngay tại đây (vd hết quota free) thay vì âm thầm điều hướng vào room rồi bị đẩy ngược lại.
@@ -536,6 +543,20 @@ export function Interview() {
           ]);
           if (pregenResult.success && pregenResult.videoUrls?.some(Boolean)) {
             videoUrls = pregenResult.videoUrls;
+          }
+          // JB-06: video câu doanh nghiệp đã render sẵn lúc Platform Mod duyệt (CO-06, CO-16) nên thường
+          // trúng cache; lỗi / quá giờ thì câu đó dùng giọng trình duyệt như follow-up.
+          const companyTexts = (questions ?? []).filter((q) => q?.source === "company").map((q) => q.question);
+          if (companyTexts.length) {
+            const base = Array.from({ length: (questions?.length ?? 0) - companyTexts.length }, (_, i) => videoUrls?.[i] ?? null);
+            const companyTimeout = new Promise((resolve) => setTimeout(() => resolve({ success: false }), 60_000));
+            const companyRes = await Promise.race([
+              pregenerateInterviewVideos(companyTexts, { gender: hrGender }),
+              companyTimeout,
+            ]);
+            const companyUrls = companyRes.success ? companyRes.videoUrls ?? [] : [];
+            const merged = [...base, ...companyTexts.map((_, i) => companyUrls[i] ?? null)];
+            videoUrls = merged.some(Boolean) ? merged : null;
           }
         }
       } catch {

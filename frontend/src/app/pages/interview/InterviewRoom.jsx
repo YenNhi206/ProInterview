@@ -582,10 +582,20 @@ export default function InterviewRoom() {
   );
   const hasPregenVideos = Array.isArray(videoUrls) && videoUrls.some(Boolean);
 
-  // Pro user, session mới có baseline (≤3 câu) lúc mount → còn 2 câu cá nhân hóa cần sinh giữa
-  // buổi. Free user/trial/session cũ đã có sẵn ≥4 câu (trước khi refactor này) đều bỏ qua.
+  // JB-06: câu đầu buổi = 3 baseline + tối đa 2 câu doanh nghiệp (server đánh `source`), mọi gói đều trả lời
+  // được. Session cũ không có `source` thì giữ mốc 3 câu như trước.
+  const companyQuestionCount = (apiQuestions ?? []).filter((q) => q?.source === "company").length;
+  const hasSourceTags = (apiQuestions ?? []).some((q) => q?.source);
+  const freeLimit = hasSourceTags
+    ? (apiQuestions ?? []).filter((q) => q?.source !== "llm_followup").length
+    : FREE_LIMIT;
+
+  // Pro user, session mới chưa có câu follow-up lúc mount → còn 2 câu cá nhân hóa cần sinh giữa
+  // buổi (sau câu baseline / câu doanh nghiệp cuối). Free user/trial/session cũ đã có follow-up đều bỏ qua.
   const [personalizedPending, setPersonalizedPending] = useState(
-    () => isPro && !trialMode && Boolean(resolvedSessionId) && (apiQuestions?.length ?? 0) <= 3,
+    () => isPro && !trialMode && Boolean(resolvedSessionId)
+      && !(apiQuestions ?? []).some((q) => q?.source === "llm_followup")
+      && (apiQuestions?.length ?? 0) <= 3 + companyQuestionCount,
   );
   const followUpInFlightRef = useRef(false);
   const [generatingFollowUp, setGeneratingFollowUp] = useState(false);
@@ -612,9 +622,9 @@ export default function InterviewRoom() {
     return () => clearInterval(interval);
   }, [generatingFollowUp]);
 
-  // Lobby/ready screen: trial luôn hiện đúng số câu thật (3, cố định). Flow chính luôn hiện "5"
+  // Lobby/ready screen: trial luôn hiện đúng số câu thật (3, cố định). Flow chính hiện câu đầu buổi + 2 follow-up
   // ngay cả khi 2 câu follow-up chưa sinh xong — tránh hiểu nhầm "chỉ có 3 câu" cho Pro user.
-  const displayQuestionCount = trialMode ? QUESTIONS.length : 5;
+  const displayQuestionCount = trialMode ? QUESTIONS.length : freeLimit + 2;
 
   /* ── UI state ─────────────────────────────────────────── */
   const [phase,             setPhase]             = useState("ready");
@@ -1270,7 +1280,7 @@ export default function InterviewRoom() {
     captureAndAnalyzeFace(currentQ);
 
     // Free user vừa xong câu baseline cuối — chặn ở đây, KHÔNG bao giờ tốn LLM/D-ID cho 2 câu sau
-    if (!isPro && currentQ >= FREE_LIMIT - 1) {
+    if (!isPro && currentQ >= freeLimit - 1) {
       setShowUpgradeModal(true);
       return;
     }
@@ -1362,7 +1372,7 @@ export default function InterviewRoom() {
                     <p className="mt-1.5 text-sm leading-relaxed text-violet-600">
                       Buổi phỏng vấn gồm{" "}
                       <span className="font-semibold text-violet-900">{displayQuestionCount} câu hỏi</span>
-                      {!isPro && !trialMode && <span className="text-violet-700"> · 3 câu miễn phí, 2 câu sau cần Pro</span>}.
+                      {!isPro && !trialMode && <span className="text-violet-700"> · {freeLimit} câu miễn phí, 2 câu sau cần Pro</span>}.
                       AI sẽ phân tích giọng nói, ánh mắt và ngôn ngữ cơ thể.
                     </p>
                   </div>
@@ -1370,8 +1380,8 @@ export default function InterviewRoom() {
                   <ul className="flex flex-col gap-2">
                     {Array.from({ length: displayQuestionCount }).map((_, i) => {
                       const q = QUESTIONS[i];
-                      const isLocked  = !isPro && i >= FREE_LIMIT;
-                      const isPending = isPro && i >= FREE_LIMIT && !q;
+                      const isLocked  = !isPro && i >= freeLimit;
+                      const isPending = isPro && i >= freeLimit && !q;
                       const dimmed = isLocked || isPending;
                       return (
                         <li key={i}
@@ -1467,7 +1477,7 @@ export default function InterviewRoom() {
 
         {showUpgradeModal && (
           <UpgradeModal
-            completedCount={FREE_LIMIT}
+            completedCount={freeLimit}
             totalCount={QUESTIONS.length}
             onUpgrade={() => navigate("/pricing")}
             onFinish={() => { setShowUpgradeModal(false); goToFeedback(allTranscripts); }}
@@ -1557,7 +1567,7 @@ export default function InterviewRoom() {
           <div className="flex items-center gap-3">
             <div className="flex gap-1.5">
               {QUESTIONS.map((_, i) => {
-                const locked = !isPro && i >= FREE_LIMIT;
+                const locked = !isPro && i >= freeLimit;
                 return (
                   <div key={i} className={`h-1.5 w-7 rounded-full transition-all duration-500 ${
                     locked ? "bg-white/10"
@@ -1961,7 +1971,7 @@ export default function InterviewRoom() {
           {currentQ < QUESTIONS.length - 1 || personalizedPending ? (
             <button type="button" onClick={handleNextQuestion}
               className="liquid-glass-strong flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white transition-all hover:scale-[1.02]">
-              {!isPro && currentQ === FREE_LIMIT - 1 ? <><Lock className="h-4 w-4 text-[#c7f36b]" /> Câu tiếp theo</> : <>Câu tiếp theo <CaretRight className="h-4 w-4 text-[#c7f36b]" /></>}
+              {!isPro && currentQ === freeLimit - 1 ? <><Lock className="h-4 w-4 text-[#c7f36b]" /> Câu tiếp theo</> : <>Câu tiếp theo <CaretRight className="h-4 w-4 text-[#c7f36b]" /></>}
             </button>
           ) : (
             <button type="button" onClick={handleNextQuestion}

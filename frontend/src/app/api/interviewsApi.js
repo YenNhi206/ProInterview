@@ -29,7 +29,13 @@ export async function createInterviewSession(hrGender = "female", sessionData = 
     }
     const id = body.session?._id;
     if (!id) return { success: false, error: "Không nhận được id phiên." };
-    return { success: true, sessionId: String(id) };
+    // JB-06: server chèn câu doanh nghiệp sau 3 câu baseline → FE dùng danh sách câu của server.
+    return {
+      success: true,
+      sessionId: String(id),
+      questions: Array.isArray(body.session?.questions) ? body.session.questions : [],
+      companyQuestions: Array.isArray(body.session?.companyQuestions) ? body.session.companyQuestions : [],
+    };
   } catch {
     return { success: false, error: "Không kết nối được backend." };
   }
@@ -157,6 +163,8 @@ export async function evaluateInterviewSession(sessionId, answers = [], question
       totalDurationSeconds:  body.totalDurationSeconds,
       behavioralSummary:     body.behavioralSummary     ?? null,
       behavioralPerQuestion: body.behavioralPerQuestion ?? [],
+      // JB-06: số câu user free xem được (3 baseline + câu doanh nghiệp); thiếu thì trang dùng 3.
+      freeQuestionCount:     Number.isInteger(body.freeQuestionCount) ? body.freeQuestionCount : null,
     };
   } catch {
     return { success: false, error: "Không kết nối được backend." };

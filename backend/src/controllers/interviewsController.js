@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { InterviewSession } from "../models/InterviewSession.js";
 import { Report, AI_REPORT_TARGET_TYPES } from "../models/Report.js";
 import { MentorKnowledge } from "../models/MentorKnowledge.js";
@@ -12,7 +13,9 @@ import { resolveTopCompetencies } from "../services/competencyFramework.js";
 import { BASELINE_QUESTIONS } from "../config/baselineQuestions.js";
 import { logger } from "../config/logger.js";
 import { syncPlanExpiry } from "../services/plansService.js";
-import { harvest as harvestQuestions, applyDeprecationPolicy } from "../services/questionBankService.js";
+import { harvest as harvestQuestions, applyDeprecationPolicy, toSessionQuestion } from "../services/questionBankService.js";
+import { selectCompanyQuestionsForSession } from "../services/companyInterviewQuestionService.js";
+import { roleCategoryKeysForInterviewRole } from "../services/roleCategories.js";
 import { upsertIncompleteEvaluationItem } from "../services/moderationQueueService.js";
 import { Sentry, isSentryEnabled } from "../config/sentry.js";
 
@@ -45,6 +48,35 @@ function moderationFieldsFor(session, questionIndex, openReports = new Map()) {
     moderatorOverride:    answer?.moderatorOverride ?? null,
     openReports:          openReports.get(questionIndex) ?? [],
   };
+}
+
+const BASELINE_TEXTS = new Set(BASELINE_QUESTIONS.map((q) => q.question));
+
+/** Gói Pro còn hạn (cùng điều kiện chặn sinh câu follow-up). */
+function isProUser(user) {
+  return ["starter_pro", "elite_pro"].includes(user?.plan) &&
+    (!user?.planExpiresAt || new Date(user.planExpiresAt) > new Date());
+}
+
+/**
+ * Câu follow-up LLM đã sinh của buổi (JB-06 sửa (1)). Session mới đánh `source`; session cũ (trước JB-06,
+ * không có câu doanh nghiệp) thì follow-up là mọi câu sau 3 câu baseline.
+ */
+function followUpQuestionsOf(session) {
+  const questions = session.questions ?? [];
+  const tagged = questions.filter((q) => q.source === "llm_followup");
+  if (tagged.length || questions.some((q) => q.source)) return tagged;
+  return session.companyQuestions?.length ? [] : questions.slice(3);
+}
+
+/**
+ * Số câu đầu buổi user free xem được kết quả: 3 câu baseline + câu doanh nghiệp (JB-06, mọi gói).
+ * Câu follow-up (Pro) không tính. Session cũ không đánh nguồn → 3.
+ */
+function freeQuestionCountOf(session) {
+  const questions = session.questions ?? [];
+  if (!questions.some((q) => q.source)) return 3;
+  return questions.filter((q) => q.source !== "llm_followup").length;
 }
 
 /** Lỗi ngân hàng câu hỏi chỉ log + Sentry, không bao giờ chặn luồng phỏng vấn. */
@@ -154,9 +186,14 @@ export const InterviewsController = {
     try {
       const {
         hrGender = "female", competencyProfile, questions, inferredRole, inferredSeniority, coverageScore,
-        cvText = "", jdText = "", position = "", field = "",
+        cvText = "", jdText = "", position = "", field = "", jobPostId = null,
       } = req.body;
       const userId = req.userId;
+
+      // JB-06: kiểm định dạng trước khi trừ lượt; job đóng / không có câu hợp lệ thì buổi chạy như cũ.
+      if (jobPostId && !mongoose.isValidObjectId(jobPostId)) {
+        return res.status(400).json({ success: false, error: "Mã tin tuyển dụng không hợp lệ." });
+      }
 
       await syncPlanExpiry(userId);
 
@@ -191,19 +228,63 @@ export const InterviewsController = {
         };
       }
 
+      // JB-06: câu doanh nghiệp đi sau 3 câu baseline (chỉ buổi tạo kèm câu baseline từ FE).
+      // Lỗi chọn câu không được chặn buổi phỏng vấn: log rồi chạy như cũ.
+      const baseQuestions = (Array.isArray(questions) ? questions : []).map((q) =>
+        BASELINE_TEXTS.has(q?.question) ? { ...q, source: "baseline" } : q,
+      );
+      let companyItems = [];
+      if (baseQuestions.length) {
+        try {
+          companyItems = await selectCompanyQuestionsForSession({
+            jobPostId,
+            roleCategoryKeys: roleCategoryKeysForInterviewRole(resolvedProfile?.roleCategory),
+          });
+        } catch (err) {
+          logger.error("company_questions_select_failed", { userId, jobPostId, error: err?.message });
+        }
+      }
+      const companyQuestions = companyItems.map((item, i) => ({
+        ...toSessionQuestion(item.question, baseQuestions.length + i),
+        id: `company${i + 1}`,
+        source: "company",
+      }));
+
+      // JB-06 sửa (2): buổi có câu doanh nghiệp được 5 câu (free) / 7 câu (Pro), không theo quota thường.
+      const questionsAllowed = companyItems.length
+        ? (isProUser(user) ? 7 : 5)
+        : user.quota.interviewQuestionsAllowed || 3;
+
       const session = await InterviewSession.create({
         userId,
         hrGender,
-        questionsAllowed: user.quota.interviewQuestionsAllowed || 3,
+        questionsAllowed,
         status: "in_progress",
         planAtTime: user.plan,
         // Lưu competency data từ generate step (passed from frontend)
         ...(resolvedProfile    && { competencyProfile: resolvedProfile }),
-        ...(questions?.length  && { questions }),
+        ...(baseQuestions.length && { questions: [...baseQuestions, ...companyQuestions] }),
+        ...(companyItems.length && {
+          companyQuestions: companyItems.map((item) => ({
+            questionId: item.question._id,
+            companyId: item.companyId,
+            jobPostId: item.jobPostId,
+            rubricId: item.rubricId,
+          })),
+        }),
         ...(inferredRole       && { inferredRole }),
         ...(inferredSeniority  && { inferredSeniority }),
         ...(coverageScore      && { coverageScore }),
       });
+
+      if (companyItems.length) {
+        logger.info("company_questions_inserted", {
+          sessionId: String(session._id),
+          companyId: String(companyItems[0].companyId),
+          count: companyItems.length,
+          byJob: Boolean(jobPostId),
+        });
+      }
 
       res.status(201).json({ success: true, session });
     } catch (error) {
@@ -488,9 +569,7 @@ export const InterviewsController = {
       if (!userForPlan) {
         return res.status(404).json({ success: false, error: "Người dùng không tồn tại." });
       }
-      const isPro = ["starter_pro", "elite_pro"].includes(userForPlan.plan) &&
-        (!userForPlan.planExpiresAt || new Date(userForPlan.planExpiresAt) > new Date());
-      if (!isPro) {
+      if (!isProUser(userForPlan)) {
         return res.status(403).json({
           success: false,
           error: "Tính năng câu hỏi cá nhân hóa chỉ dành cho gói Pro. Vui lòng nâng cấp tài khoản.",
@@ -503,9 +582,11 @@ export const InterviewsController = {
       }
 
       // Idempotency: double-click / retry / back-forward-cache replay → trả lại kết quả đã có,
-      // không gọi LLM lại lần thứ 2.
-      if (session.questions.length >= 5) {
-        return res.json({ success: true, questions: session.questions.slice(3), alreadyGenerated: true });
+      // không gọi LLM lại lần thứ 2. JB-06 sửa (1): xét câu follow-up thực tế, không đếm "đủ 5 câu"
+      // (buổi có câu doanh nghiệp đã có 5 câu từ đầu nhưng chưa có follow-up).
+      const existingFollowUps = followUpQuestionsOf(session);
+      if (existingFollowUps.length) {
+        return res.json({ success: true, questions: existingFollowUps, alreadyGenerated: true });
       }
 
       const { cvText = "", jdText = "", position = "", field = "", level = "", baselineAnswers = [] } = req.body;
@@ -526,7 +607,7 @@ export const InterviewsController = {
         sessionId: id,
       };
       const result = await generateQuestionsFromText({ ...genArgs, questionCount: 2 });
-      let followUps = result.questions.map((q) => ({ ...q, promptVersion: result.promptVersion }));
+      let followUps = result.questions.map((q) => ({ ...q, promptVersion: result.promptVersion, source: "llm_followup" }));
 
       // Chính sách #2 (spec S1): câu deprecated không được phục vụ lại. Lỗi bank → giữ câu LLM.
       try {
@@ -534,7 +615,7 @@ export const InterviewsController = {
           excludeTexts: session.questions.map((q) => q.question),
           regenerate: async (count) => {
             const again = await generateQuestionsFromText({ ...genArgs, questionCount: count });
-            return again.questions.map((q) => ({ ...q, promptVersion: again.promptVersion }));
+            return again.questions.map((q) => ({ ...q, promptVersion: again.promptVersion, source: "llm_followup" }));
           },
         });
         followUps = policy.questions;
@@ -555,7 +636,8 @@ export const InterviewsController = {
         reportBankError("question_bank_harvest_failed", err, id);
       }
 
-      session.questions.push(...followUps);
+      // Câu thay thế từ ngân hàng (chính sách deprecated) cũng là follow-up của buổi.
+      session.questions.push(...followUps.map((q) => ({ ...q, source: "llm_followup" })));
       if (!session.competencyProfile?.competencyIds?.length) {
         session.competencyProfile = result.competencyProfile;
       }
@@ -566,7 +648,7 @@ export const InterviewsController = {
 
       logger.info("generate_followup_ok", { userId: req.userId, sessionId: id, questionCount: followUps.length });
 
-      res.json({ success: true, questions: session.questions.slice(3) });
+      res.json({ success: true, questions: followUpQuestionsOf(session) });
     } catch (error) {
       logger.error("generate_followup_failed", { userId: req.userId, sessionId: req.params.id, error: error.message });
 
@@ -654,6 +736,7 @@ export const InterviewsController = {
           totalDurationSeconds: session.totalDurationSeconds,
           behavioralSummary:      session.behavioralSummary ?? null,
           behavioralPerQuestion:  cachedBehavioralPerQuestion,
+          freeQuestionCount:      freeQuestionCountOf(session),
         });
       }
 
@@ -772,6 +855,7 @@ export const InterviewsController = {
         totalDurationSeconds: session.totalDurationSeconds,
         behavioralSummary:      session.behavioralSummary ?? null,
         behavioralPerQuestion,
+        freeQuestionCount:      freeQuestionCountOf(session),
       });
     } catch (error) {
       // Release the evaluation claim so the user can retry after a transient LLM/network failure.

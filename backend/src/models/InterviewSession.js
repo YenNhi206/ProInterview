@@ -33,8 +33,26 @@ const interviewSessionSchema = new Schema(
         // Câu trong QuestionBank (harvest follow-up) — null với câu chưa thu hoạch
         questionBankId: { type: Schema.Types.ObjectId, ref: "QuestionBank", default: null },
         promptVersion:  { type: String, default: "" },
+        // JB-06: nguồn câu. "" = session cũ (trước JB-06), không suy ra được.
+        source: { type: String, enum: ["", "baseline", "company", "llm_followup"], default: "" },
       },
     ],
+    // JB-06 (quyết định JB-06 ngày 23/11/2026): câu doanh nghiệp chèn sau 3 câu baseline, tối đa 2 câu,
+    // cùng một doanh nghiệp. Chấm rubric (JB-07) đọc `rubricId` ở đây.
+    companyQuestions: {
+      type: [
+        new Schema(
+          {
+            questionId: { type: Schema.Types.ObjectId, ref: "QuestionBank", required: true },
+            companyId:  { type: Schema.Types.ObjectId, ref: "Company", required: true },
+            jobPostId:  { type: Schema.Types.ObjectId, ref: "JobPost", default: null },
+            rubricId:   { type: Schema.Types.ObjectId, ref: "CompanyRubric", default: null },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
     inferredRole:      { type: String, default: "" },
     inferredSeniority: { type: String, default: "" },
     coverageScore: {
