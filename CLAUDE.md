@@ -79,7 +79,7 @@ Mật khẩu: **`Dev123456`**
 | `mentor@dev.local` | mentor |
 | `admin@dev.local` | admin |
 | `moderator@dev.local` | moderator (→ `/moderator/queue`) |
-| `enterprise@dev.local` | enterprise — đổi thành `company_moderator` ở task N-02/N-03 |
+| `enterprise@dev.local` | company_moderator (→ `/company`) |
 
 ---
 
@@ -178,7 +178,7 @@ Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed
 - `authJwt` — verify Bearer JWT, gắn `req.user` / `req.userId`; `optionalAuth`.
 - `requireRole(...roles)`, `requireModerator`, `requireEnterprise` (`requireRole.js`), `requireMentor`, `requireAdmin`. **Admin không đi vòng cổng moderator** (cố ý tách vận hành khỏi kiểm định nội dung).
 - `rateLimiters`, `injectionRateLimit` (chặn prompt injection), `adminAuditLog`, `asyncHandler`, `errorHandler`, `upload` (multer).
-- `User.role`: `customer | mentor | admin | moderator | enterprise`. Admin gán qua `PATCH /api/users/:id/role` (`ASSIGNABLE_ROLES` không có `admin`).
+- `User.role`: `customer | mentor | admin | moderator | company_moderator`. Admin gán qua `PATCH /api/users/:id/role` (`ASSIGNABLE_ROLES` không có `admin`).
 
 ### Response shape
 
