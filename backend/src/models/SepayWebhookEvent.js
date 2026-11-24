@@ -18,6 +18,14 @@ const sepayWebhookEventSchema = new mongoose.Schema(
     entityId: { type: String, default: "" },
     resultMessage: { type: String, default: "" },
     rawPayload: { type: mongoose.Schema.Types.Mixed },
+    /**
+     * QA-04 (NFR-03): mốc đo đối soát. `receivedAt` = lúc handler nhận request của lần gọi
+     * xử lý xong; `processedAt` = lúc đơn đã xác nhận (Payment/đơn chuyển sang đã thanh toán);
+     * `processingMs` = processedAt − receivedAt. Chỉ ghi khi status `processed`.
+     */
+    receivedAt: { type: Date },
+    processedAt: { type: Date },
+    processingMs: { type: Number },
   },
   { timestamps: true },
 );

@@ -243,6 +243,8 @@ async function autoConfirmTarget(target, { sepayId, amount }) {
  * Trả HTTP 200 + `{ success: true }` khi nhận hợp lệ (kể cả không khớp đơn).
  */
 export async function handleSepayWebhook(body, authHeader) {
+  // QA-04: mốc "webhook đến" lấy ngay đầu handler, trước mọi truy vấn DB.
+  const receivedAt = new Date();
   if (!isMongoReady()) return { ok: false, status: 503, error: MONGO_ERR };
   if (!verifySepayAuthorization(authHeader)) {
     return { ok: false, status: 401, error: "Unauthorized" };
@@ -341,11 +343,15 @@ export async function handleSepayWebhook(body, authHeader) {
     return { ok: true, confirmed: false, error: confirm.error, orderRef };
   }
 
+  const processedAt = new Date();
   await upsertSepayLog(sepayId, {
     status: "processed",
     orderRef,
     entityType: target.entityType,
     entityId: target.entityId,
+    receivedAt,
+    processedAt,
+    processingMs: processedAt.getTime() - receivedAt.getTime(),
     resultMessage: target.entityType === "booking_group"
       ? `auto confirmed group (${target.entityIds.length} bookings)`
       : "auto confirmed",
