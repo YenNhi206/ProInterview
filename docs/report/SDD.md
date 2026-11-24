@@ -1018,9 +1018,82 @@ sequenceDiagram
     JMS->>N: Company Moderator: "system" (tin hiển thị lại)
 ```
 
-##### 3.24.4 Sequence Diagram: Ứng tuyển (JB-08, JB-09, JB-10)
+##### 3.24.4 Sequence Diagram: Ứng viên nộp đơn và rút đơn (JB-08)
 
-Chưa vẽ: `Application`, `POST /api/jobs/:id/apply`, `GET /api/applications/me` và API công ty xem đơn chưa có trong code (JB-08 chờ JB-07, JB-19). DOC-02 bổ sung mục này sau khi JB-10 xong để sequence khớp code.
+> Khớp code của PR JB-08/JB-09/JB-10 (`services/applicationsService.js`, `routes/applications.js`); merge PR đó trước PR này.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Ứng viên
+    participant R as jobsRouter / applicationsRouter
+    participant A as applicationsService
+    participant Pub as publicJobsService
+    participant P as candidateProfileService + companyMetricsService
+    participant DB as MongoDB (Application, CVDocument, JobPost)
+    participant N as deliverNotification
+
+    C->>R: POST /api/jobs/:id/apply { cvId, consent: true } (authJwt, role customer)
+    R->>A: applyToJob(userId, jobId, body)
+    Note over A: consent khác true → 400, thiếu cvId → 400
+    A->>Pub: findPublicJob(jobId) — published, chưa quá hạn, công ty không bị khóa
+    alt Job không mở (draft, hidden, closed, quá hạn)
+        A-->>C: 404
+    end
+    A->>DB: Application.exists({ jobPostId, candidateId }) → đã có thì 409
+    A->>DB: CVDocument.findOne({ _id: cvId, userId }) → không có 404, isValidCv false → 400
+    A->>P: getProfileCompetencies (DTO PR-07) + companyMetricsSnapshot (JB-19)
+    A->>DB: Application.create({ consent { given, at, scope, version }, snapshot { candidate, profile, cv, companyMetrics }, status: "submitted" })
+    Note over A,DB: Unique { jobPostId, candidateId }: bấm nộp 2 lần cùng lúc → lần sau 409
+    A->>N: Company Moderator của công ty: "application_submitted"
+    A-->>C: 201 { application }
+
+    C->>R: GET /api/applications/me
+    R-->>C: 200 { applications[] } (job, công ty, trạng thái, canWithdraw)
+
+    C->>R: PATCH /api/applications/:id/withdraw
+    R->>A: withdrawApplication(userId, id)
+    A->>DB: findOneAndUpdate({ candidateId, status ∈ [submitted, viewed] }, { status: "withdrawn", snapshot: null })
+    Note over A: Đã shortlisted / rejected / withdrawn → 409. Giữ candidateName (quyết định 14)
+    A->>N: Company Moderator: "application_status_changed" (ứng viên rút đơn)
+    A-->>C: 200 { application }
+```
+
+##### 3.24.5 Sequence Diagram: Company Moderator xem và xử lý đơn (JB-09)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor HR as Company Moderator
+    participant R as companyRouter (authJwt + requireCompanyModerator + companyModeratorAuditLog)
+    participant A as applicationsService
+    participant DB as MongoDB (Application)
+    participant N as deliverNotification
+
+    HR->>R: GET /api/company/applications?status&jobPostId&page
+    R->>A: listCompanyApplications(req.companyId, query)
+    A->>DB: find({ companyId, "consent.given": true, ... }) + đếm theo trạng thái
+    Note over A: Đơn đã rút chỉ trả candidateName + "Đã rút" (không CV, không email, không chỉ số)
+    A-->>HR: 200 { applications, pagination, counts }
+
+    HR->>R: GET /api/company/applications/:id
+    R->>A: getCompanyApplication(companyId, userId, id)
+    alt Đơn của công ty khác hoặc không có consent
+        A-->>HR: 404
+    else Đơn submitted
+        A->>DB: findOneAndUpdate({ status: "submitted" }, { status: "viewed", viewedAt }, push history)
+        A->>N: Ứng viên: "application_status_changed" (đã xem hồ sơ)
+        A-->>HR: 200 { application: snapshot (hồ sơ, CV, chỉ số JB-19), consent, history }
+    end
+
+    HR->>R: PATCH /api/company/applications/:id/status { status: shortlisted | rejected, note }
+    R->>A: changeCompanyApplicationStatus(...)
+    Note over A: Trạng thái khác viewed / shortlisted / rejected → 400.<br/>Đơn đã shortlisted / rejected / withdrawn → 409
+    A->>DB: findOneAndUpdate({ status ∈ [submitted, viewed] }, { status, decidedAt }, push history)
+    Note over A,DB: Ứng viên rút đơn cùng lúc → chỉ một bên thắng, bên kia 409
+    A->>N: Ứng viên: "application_status_changed" (vào danh sách chọn / chưa phù hợp + ghi chú)
+    A-->>HR: 200 { application }
+    Note over R: companyModeratorAuditLog ghi SecurityLog cho request PATCH
+```
 
 #### 3.25 Partner Companies (Quản lý Công ty & Lời mời HR)
 
