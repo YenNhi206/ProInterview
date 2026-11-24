@@ -138,6 +138,12 @@ export const companyApi = {
       method: "POST",
       body: JSON.stringify({ comment }),
     }),
+  /** CO-09: chạy (lại) AI kiểm tra rubric → `{ success, aiReview }`. `force` gọi LLM kể cả khi nội dung không đổi. */
+  reviewModeratorRubric: (id, force = false) =>
+    authedFetch(`/api/moderator/rubrics/${id}/ai-review`, {
+      method: "POST",
+      body: JSON.stringify({ force }),
+    }),
 
   // ── Platform Moderator: Duyệt câu hỏi doanh nghiệp (CO-16) ──
   listModeratorCompanyQuestions: (params = {}) =>

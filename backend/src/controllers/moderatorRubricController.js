@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import { CompanyRubric } from "../models/CompanyRubric.js";
+import { reviewRubric } from "../services/rubricReviewService.js";
 
 export const ModeratorRubricController = {
   // Danh sách rubric cần duyệt hoặc đã duyệt
@@ -101,5 +103,20 @@ export const ModeratorRubricController = {
       message: "Đã từ chối rubric kèm ghi chú.",
       rubric,
     });
+  },
+
+  /**
+   * CO-09: chạy (lại) AI kiểm tra rubric và trả `aiReview`. Rubric không đổi nội dung thì dùng lại kết quả
+   * cũ, trừ khi `force: true`. Chỉ là gợi ý, không đổi trạng thái rubric.
+   */
+  async aiReview(req, res) {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, error: "Mã rubric không hợp lệ." });
+    }
+    const aiReview = await reviewRubric(req.params.id, { force: req.body?.force === true, userId: req.userId });
+    if (!aiReview) {
+      return res.status(404).json({ success: false, error: "Không tìm thấy rubric." });
+    }
+    return res.json({ success: true, aiReview });
   },
 };

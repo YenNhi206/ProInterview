@@ -662,7 +662,7 @@ Route duyệt của ngân hàng câu chung (`PATCH /api/moderator/questions/:id/
 Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, tức là lúc Platform Mod duyệt (CO-16). Company Mod duyệt không xếp hàng render. Render nền cho cả 2 giới tính (`persistVideo: true`, mirror Cloudinary), không chặn response. Cache tính theo nội dung câu, nên buổi luyện theo job gọi `POST /api/ai/interview/pregenerate` với câu này sẽ trúng cache, không gọi provider video. Backfill hoặc render lại sau khi đổi provider: `npm run warmup:company-videos`.
 
 
-### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-14)
+### A.18. Rubric công ty — `/api/company/rubrics`, `/api/moderator/rubrics` (CO-07, CO-08, CO-09, CO-14)
 
 **File:** `backend/src/routes/company.js` (`requireCompanyModerator`, lọc theo `companyId`) · `backend/src/routes/moderator.js` · **Model:** `CompanyRubric`
 
@@ -672,10 +672,13 @@ Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, t
 | GET | `/api/company/rubrics/:id` | Company Moderator | Khác công ty → 403. Lý do từ chối ở `moderationNote.comment` |
 | POST | `/api/company/rubrics` | Company Moderator | Body `{ title, roleCategory, description?, criteria?: [{ name, weight (nguyên 1–100), shrmKey, levels: {"0".."5": string ≤ 500}, questionIds?[] }] }` (≤ 10 tiêu chí). `shrmKey` phải thuộc bộ tiêu chí LP-01 và không `deprecated`; `questionIds` phải là câu `approved` của chính công ty; field ngoài model bị bỏ. **201** bản nháp (`version` tự tăng theo `roleCategory`) |
 | PATCH | `/api/company/rubrics/:id` | Company Moderator | Sửa `title`, `description`, `criteria` (kiểm như POST). Chỉ khi `draft` / `rejected`; `pending_review` → 409; `approved` / `archived` → 400 |
-| POST | `/api/company/rubrics/:id/submit` | Company Moderator | Chỉ từ `draft` / `rejected` (khác → 409). Cần ≥ 1 tiêu chí, tổng trọng số 100%, **mỗi tiêu chí đủ mô tả 6 mức 0–5** (thiếu → 400). Chuyển `pending_review`, không tạo ModerationItem |
+| POST | `/api/company/rubrics/:id/submit` | Company Moderator | Chỉ từ `draft` / `rejected` (khác → 409). Cần ≥ 1 tiêu chí, tổng trọng số 100%, **mỗi tiêu chí đủ mô tả 6 mức 0–5** (thiếu → 400). Chuyển `pending_review`, không tạo ModerationItem. CO-09: chạy nền AI kiểm tra rubric, ghi `aiReview` |
 | GET | `/api/moderator/rubrics` | Platform Moderator | Query `status` (vd `pending_review`) |
 | POST | `/api/moderator/rubrics/:id/approve` | Platform Moderator | Duyệt; bản `approved` cũ cùng công ty + `roleCategory` → `archived` |
 | POST | `/api/moderator/rubrics/:id/reject` | Platform Moderator | Body `{ comment }` bắt buộc → `rejected`, lưu `moderationNote.comment` |
+| POST | `/api/moderator/rubrics/:id/ai-review` | Platform Moderator | CO-09, `rubricReviewService.js`. Body `{ force? }`. Chạy (lại) AI kiểm tra rubric; nội dung không đổi và lần trước `done` thì trả kết quả cũ, trừ khi `force: true`. Chỉ là gợi ý, không đổi `status`. → `{ success, aiReview }`. 400 mã sai, 404 không có rubric |
+
+**`aiReview` (CO-09)** có trong `GET /api/moderator/rubrics` và `/:id`: `{ status pending \| done \| failed \| null, summary, flags[] { code, severity info \| warning \| critical, criterionIndex (0-based) \| null, message, evidence, suggestedShrmKey, source rule \| ai }, model, promptVersion, contentHash, error, at }`. Cờ luật: `no_criteria`, `weight_sum`, `invalid_shrm_key`, `duplicate_shrm_key`, `duplicate_name`, `missing_level`, `duplicate_level`, `short_level` (< 15 ký tự), `copied_scale`. Cờ AI (prompt `rubric_review`, model `activeLLMModel("prescreen")`): `shrm_mismatch` (kèm `suggestedShrmKey` thuộc LP-01), `vague_scale`, `overlapping_levels`, `non_progressive_scale`, `duplicate_criteria`. LLM lỗi → `status: "failed"`, cờ luật vẫn ghi.
 
 `questionIds` gắn được câu `pending_platform_review` hoặc `approved` của chính công ty (CO-05).
 

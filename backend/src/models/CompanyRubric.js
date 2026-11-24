@@ -27,6 +27,35 @@ const moderationNoteSchema = new Schema(
   { _id: false }
 );
 
+// CO-09: một cờ cảnh báo cho Platform Moderator (luật hoặc AI). `criterionIndex` 0-based, null = cả rubric.
+const reviewFlagSchema = new Schema(
+  {
+    code: { type: String, required: true },
+    severity: { type: String, enum: ["info", "warning", "critical"], default: "warning" },
+    criterionIndex: { type: Number, default: null },
+    message: { type: String, default: "" },
+    evidence: { type: String, default: "" },
+    suggestedShrmKey: { type: String, default: "" },
+    source: { type: String, enum: ["rule", "ai"], default: "rule" },
+  },
+  { _id: false }
+);
+
+// CO-09: kết quả AI kiểm tra rubric lần gửi duyệt gần nhất. Chỉ là gợi ý, không đổi `status` rubric.
+const aiReviewSchema = new Schema(
+  {
+    status: { type: String, enum: ["pending", "done", "failed"], default: null },
+    summary: { type: String, default: "" },
+    flags: { type: [reviewFlagSchema], default: [] },
+    model: { type: String, default: "" },
+    promptVersion: { type: String, default: "" },
+    contentHash: { type: String, default: "" },
+    error: { type: String, default: "" },
+    at: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const companyRubricSchema = new Schema(
   {
     companyId: {
@@ -66,6 +95,10 @@ const companyRubricSchema = new Schema(
     },
     moderationNote: {
       type: moderationNoteSchema,
+      default: () => ({}),
+    },
+    aiReview: {
+      type: aiReviewSchema,
       default: () => ({}),
     },
     createdBy: {
