@@ -1,0 +1,355 @@
+{
+  "version": "ai01-v1",
+  "generatedAt": "2026-11-24T08:37:24.213Z",
+  "graders": [
+    "janet",
+    "tram"
+  ],
+  "stats": {
+    "itemCount": 20,
+    "alphaInterval": 1,
+    "exactAgreement": 1,
+    "withinOneLevel": 1,
+    "meanAbsPairDiff": 0,
+    "needsDiscussion": [],
+    "goldDistribution": {
+      "0": 2,
+      "1": 3,
+      "2": 5,
+      "3": 5,
+      "4": 5
+    },
+    "graderBias": {
+      "janet": {
+        "meanSigned": 0,
+        "meanAbs": 0
+      },
+      "tram": {
+        "meanSigned": 0,
+        "meanAbs": 0
+      }
+    }
+  },
+  "items": [
+    {
+      "id": "ai01-01",
+      "competencyId": "problem_solving",
+      "gold": 4,
+      "mean": 4,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 4,
+        "tram": 4
+      },
+      "notes": {
+        "janet": "Đủ STAR, tìm điểm chung các ca lỗi, so 2 phương án có lý do, số đo rõ (0 đơn trùng 3 tháng, -40 phiếu/tuần), có bài học và đề xuất cho cả nhóm",
+        "tram": "HR chuan Strong Hire: dung log tim root cause, so sanh 2 giai phap, so lieu ro, de xuat cai tien he thong va co bai hoc"
+      }
+    },
+    {
+      "id": "ai01-02",
+      "competencyId": "problem_solving",
+      "gold": 2,
+      "mean": 2,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 2,
+        "tram": 2
+      },
+      "notes": {
+        "janet": "Chỉ nói cách làm thường ngày (\"thường thì em sẽ...\"), không có tình huống cụ thể nào, tiêu chí so sánh chung chung",
+        "tram": "Tra loi gia dinh chung chung (thuong thi em se), khong co bang chung hanh vi qua khu"
+      }
+    },
+    {
+      "id": "ai01-03",
+      "competencyId": "communication",
+      "gold": 3,
+      "mean": 3,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 3,
+        "tram": 3
+      },
+      "notes": {
+        "janet": "Tình huống cụ thể, rõ phần việc của bản thân, cách điều chỉnh theo người nghe tốt; kết quả định tính, không có bài học nên chưa tới 4",
+        "tram": "Dat chuan giao tiep fresher/junior, dieu chinh ngon ngu tot, thieu tinh huong khang cu va bai hoc de len 4"
+      }
+    },
+    {
+      "id": "ai01-04",
+      "competencyId": "communication",
+      "gold": 1,
+      "mean": 1,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 1,
+        "tram": 1
+      },
+      "notes": {
+        "janet": "Kể chuyện mất file và trễ hạn, không phải thông tin bị hiểu sai; hiểu sai câu hỏi",
+        "tram": "Lac nang luc: ke chuyen hong may mat file thay vi xu ly hieu sai thong tin"
+      }
+    },
+    {
+      "id": "ai01-05",
+      "competencyId": "teamwork",
+      "gold": 2,
+      "mean": 2,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 2,
+        "tram": 2
+      },
+      "notes": {
+        "janet": "Toàn \"nhóm em/chúng em\", không rõ vai trò cá nhân; kết quả 80% không gán được cho ứng viên",
+        "tram": "Dinh bay chung em: ket qua nhom 80% nhung khong ro dong gop ca nhan, chua qua nguong dat"
+      }
+    },
+    {
+      "id": "ai01-06",
+      "competencyId": "teamwork",
+      "gold": 4,
+      "mean": 4,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 4,
+        "tram": 4
+      },
+      "notes": {
+        "janet": "Có xung đột thật, hỏi nguyên nhân trước khi báo cấp trên, chia lại việc, kết quả đo được (xong sớm 2 ngày, demo 0 lỗi), có bài học",
+        "tram": "EQ va teamwork vuot chuan: khong do loi, tim nguyen nhan that, can bang viec, lap co che daily, ket qua do duoc va co bai hoc"
+      }
+    },
+    {
+      "id": "ai01-07",
+      "competencyId": "leadership",
+      "gold": 2,
+      "mean": 2,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 2,
+        "tram": 2
+      },
+      "notes": {
+        "janet": "Có việc cá nhân làm nhưng kể chung chung, không có kết quả (bao nhiêu sách, bao nhiêu người), không có khó khăn hay cách vượt qua",
+        "tram": "Co tinh than dan dat nhung thieu ket qua thuc te (chi noi khong khi vui ve)"
+      }
+    },
+    {
+      "id": "ai01-08",
+      "competencyId": "leadership",
+      "gold": 4,
+      "mean": 4,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 4,
+        "tram": 4
+      },
+      "notes": {
+        "janet": "Quyết định khó, xử lý hai phe bằng thử nghiệm và số liệu, kết quả đo được, có bài học; có dấu hiệu mức 5 nhưng phiếu không dùng mức 5",
+        "tram": "Dan dat khong can chuc danh rat manh: dung POC 200 dia chi va so lieu giai quyet chia phe, nhan viec kho, duoc nhan rong"
+      }
+    },
+    {
+      "id": "ai01-09",
+      "competencyId": "adaptability",
+      "gold": 3,
+      "mean": 3,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 3,
+        "tram": 3
+      },
+      "notes": {
+        "janet": "Đủ STAR, phản ứng nhanh và có cấu trúc; kết quả đúng hạn nhưng không có số đo hay bài học",
+        "tram": "Thich nghi tot, biet lam ban thu kiem chung va bao tien do deu, chua co bai hoc hoac tac dong vuot pham vi"
+      }
+    },
+    {
+      "id": "ai01-10",
+      "competencyId": "adaptability",
+      "gold": 0,
+      "mean": 0,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 0,
+        "tram": 0
+      },
+      "notes": {
+        "janet": "Không đưa ra ví dụ nào; trong phỏng vấn thật đây là tín hiệu xấu với câu hỏi thất bại",
+        "tram": "Tu choi tra loi, khong co du lieu danh gia"
+      }
+    },
+    {
+      "id": "ai01-11",
+      "competencyId": "technical_learning",
+      "gold": 4,
+      "mean": 4,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 4,
+        "tram": 4
+      },
+      "notes": {
+        "janet": "Cách học có chủ đích, kết quả đo được (5 ngày; dựng môi trường 1 ngày xuống 20 phút), chia sẻ tài liệu cho nhóm, có bài học",
+        "tram": "Tu hoc thuc chien: hoc theo dau viec, gom cau hoi hoi senior, giam setup tu 1 ngay xuong 20 phut, viet doc cho nhom va co bai hoc"
+      }
+    },
+    {
+      "id": "ai01-12",
+      "competencyId": "technical_learning",
+      "gold": 1,
+      "mean": 1,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 1,
+        "tram": 1
+      },
+      "notes": {
+        "janet": "Có tự học nhưng là kỹ năng ngoài kỹ thuật, không áp dụng vào công việc; không thể hiện năng lực được hỏi",
+        "tram": "Vi du tu hoc nau an khong lien quan nang luc ky thuat hay cong viec"
+      }
+    },
+    {
+      "id": "ai01-13",
+      "competencyId": "planning_execution",
+      "gold": 3,
+      "mean": 3,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 3,
+        "tram": 3
+      },
+      "notes": {
+        "janet": "Kế hoạch rõ, theo dõi hằng ngày, chủ động cắt tính năng khi trễ; kết quả định tính, không có bài học. Ranh giới 3/4",
+        "tram": "Lap ke hoach ro va biet cat tinh nang phu de giu deadline, quy mo ca nhan va thieu so lieu/bai hoc de len 4"
+      }
+    },
+    {
+      "id": "ai01-14",
+      "competencyId": "planning_execution",
+      "gold": 2,
+      "mean": 2,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 2,
+        "tram": 2
+      },
+      "notes": {
+        "janet": "Dài nhưng không có một tình huống cụ thể nào, chỉ nói thói quen và tự nhận xét",
+        "tram": "Bay noi dai nhung rong: toan ly thuyet quan ly thoi gian, khong co vi du thuc te"
+      }
+    },
+    {
+      "id": "ai01-15",
+      "competencyId": "customer_focus",
+      "gold": 4,
+      "mean": 4,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 4,
+        "tram": 4
+      },
+      "notes": {
+        "janet": "Ưu tiên cho khách chạy được trước, tìm nguyên nhân gốc, chủ động báo 12 quán khác, kết quả đo được (gia hạn 1 năm, khiếu nại 30 về 0), có bài học",
+        "tram": "Xu ly khung hoang khach hang tot, cam mau nhanh roi sua goc, chu dong bao truoc 12 quan khac, ket qua do duoc va co bai hoc"
+      }
+    },
+    {
+      "id": "ai01-16",
+      "competencyId": "customer_focus",
+      "gold": 3,
+      "mean": 3,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 3,
+        "tram": 3
+      },
+      "notes": {
+        "janet": "Cụ thể, rõ phần việc của bản thân, có số đo (bỏ app 60% xuống 35%); thiếu bài học và không có khó khăn. Ranh giới 3/4",
+        "tram": "Co so lieu 60% xuong 35% nhung la viec duoc giao, phan Action qua mong va chua co bai hoc de len 4"
+      }
+    },
+    {
+      "id": "ai01-17",
+      "competencyId": "accountability",
+      "gold": 2,
+      "mean": 2,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 2,
+        "tram": 2
+      },
+      "notes": {
+        "janet": "Có nhắc một sự việc nhưng không rõ mức ảnh hưởng, việc khắc phục do leader cùng làm, không có kết quả, bài học chung chung",
+        "tram": "Co thai do nhan loi nhung khong ro vai tro khi khac phuc, thieu ket qua cu the va thieu bien phap phong ngua tai dien"
+      }
+    },
+    {
+      "id": "ai01-18",
+      "competencyId": "integrity",
+      "gold": 3,
+      "mean": 3,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 3,
+        "tram": 3
+      },
+      "notes": {
+        "janet": "Tình huống có thể che giấu, chủ động báo, đề xuất chấm lại cả lớp, kết quả rõ; thiếu bài học. Ranh giới 3/4",
+        "tram": "Xu ly chinh truc dep va chu dong cham lai ca lop, nhung chua thay xu ly ap luc/sua goc script va chua co bai hoc de len 4"
+      }
+    },
+    {
+      "id": "ai01-19",
+      "competencyId": "data_driven_decision",
+      "gold": 1,
+      "mean": 1,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 1,
+        "tram": 1
+      },
+      "notes": {
+        "janet": "Quyết định theo cảm tính, không có dữ liệu; ví dụ ngược với năng lực được hỏi",
+        "tram": "Quyet dinh 100% theo cam tinh, trai nguoc nang luc dung du lieu"
+      }
+    },
+    {
+      "id": "ai01-20",
+      "competencyId": "data_driven_decision",
+      "gold": 0,
+      "mean": 0,
+      "range": 0,
+      "needsDiscussion": false,
+      "levels": {
+        "janet": 0,
+        "tram": 0
+      },
+      "notes": {
+        "janet": "Lạc đề hoàn toàn (sở thích cá nhân)",
+        "tram": "Lac de hoan toan, ke so thich ca nhan"
+      }
+    }
+  ]
+}

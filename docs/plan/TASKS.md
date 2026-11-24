@@ -233,7 +233,7 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 
 | Mã | REQ | Trạng thái | Task | Người | Cần xong trước | Xong khi | Mức |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| AI-01 | AIS-02 (+AIS-06) | Doing · Janet | Bộ 20 câu trả lời chuẩn: cả nhóm chấm độc lập theo SHRM/DDI, Janet tổng hợp điểm chuẩn | Janet | LP-01 | File dữ liệu trong repo, có độ lệch giữa người chấm | P0 |
+| AI-01 | AIS-02 (+AIS-06) | Review · Janet · PR #281 | Bộ 20 câu trả lời chuẩn: cả nhóm chấm độc lập theo SHRM/DDI, Janet tổng hợp điểm chuẩn | Janet | LP-01 | File dữ liệu trong repo, có độ lệch giữa người chấm | P0 |
 | AI-02 | AIS-06 (+PM-04) | Done | Model `PromptVersion` làm bảng đăng ký cho các chuỗi `promptVersion` đã có; seed version hiện tại; loader đọc prompt theo version `active`; không thêm field mới vào `InterviewSession` | Janet |  | Đổi version không cần deploy lại; chuỗi cũ vẫn khớp; đã chạy `db:sync-prompt-versions` trên staging và production, mỗi key có đúng một bản active | P0 |
 | AI-03 | AIS-06 | Done | Model `AIImprovementProposal`; `aiImprovementMinerJob` gom ModerationItem đã xử lý (`override_score`, sửa hoặc khai tử câu) theo ngưỡng cấu hình (mặc định 5); thêm `createVersion(key, { baseVersion, template, fewShotExamples })` vào `promptVersionService`, kiểm tên `<tiền tố>-vN` và `validateTemplate` như `activate()` (đề xuất h) | Janet | AI-02 | Test: đủ ngưỡng thì tạo đúng 1 đề xuất | P0 |
 | AI-04 | AIS-06 | Todo | Backtest: chạy đề xuất trên AI-01 và 10 câu trả lời cũ, lưu điểm trước/sau vào đề xuất; backtest cần đổi phần chữ do `competencyFramework.js` sinh thì chuyển phần đó vào template PromptVersion (đề xuất g) | Janet | AI-01, AI-03 | Hiện được độ lệch so với điểm chuẩn | P0 |
