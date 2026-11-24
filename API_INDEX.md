@@ -728,6 +728,19 @@ Video avatar câu công ty (CO-06): chỉ render cho câu công ty `approved`, t
 
 Hệ A cũ `/api/users/me/cvs*`, `/api/users/me/verified-competencies*` đã gỡ ở PR-06 (đề xuất k); kho CV dùng `/api/cvs`.
 
+### A.22. Ứng tuyển — `POST /api/jobs/:id/apply`, `/api/applications`, `/api/company/applications` (JB-08, JB-09)
+
+**File:** `backend/src/routes/jobs.js`, `routes/applications.js`, `routes/company.js` · **Service:** `applicationsService.js` · **Model:** `Application`. Trạng thái và chuyển: `docs/STATE_MACHINES.md` mục 18.
+
+| Method | Path | Ghi chú |
+|:-------|:-----|:--------|
+| POST | `/api/jobs/:id/apply` | `[CUSTOMER]` body `{ cvId, consent: true }`. `consent` phải đúng `true` (thiếu / false / chuỗi → 400 "Bạn cần đồng ý chia sẻ…"); thiếu `cvId` 400; CV không phải của mình 404; CV `isValidCv: false` 400; job không mở (draft, hidden, closed, quá hạn, công ty bị khóa) 404; đã có đơn (kể cả đã rút) 409. Lưu `consent` {given, at, scope, version} và `snapshot` {candidate {name, email}, profile (DTO PR-07), cv, companyMetrics (DTO JB-19), capturedAt}; báo `application_submitted` cho Company Mod của công ty. Trả 201 `{ success, application }` |
+| GET | `/api/applications/me` | `[CUSTOMER]` `{ success, applications[] }` mới nhất trước: `id`, `status`, `statusLabel`, `canWithdraw`, `submittedAt`, `viewedAt`, `decidedAt`, `withdrawnAt`, `cv` {id, title} (null sau khi rút), `job` {id, title, status, company {id, name, slug}} |
+| PATCH | `/api/applications/:id/withdraw` | `[CUSTOMER]` chỉ đơn của mình ở `submitted` / `viewed` → `withdrawn`, **xóa snapshot** (quyết định 14); đã rút / đã xử lý 409; đơn người khác 404. Báo `application_status_changed` cho Company Mod |
+| GET | `/api/company/applications` | `[COMPANY_MOD]` `{ success, applications[], pagination, counts }`; lọc `status`, `jobPostId`; `page`, `limit` (≤ 50). Chỉ đơn của công ty mình có `consent.given`. Mỗi dòng: `candidate` {name, email}, `cv` {id, title}, `competencyCount`, `isVerified`, `companyMetrics` {answeredCount, scoredCount, rubricScoreAvg}, `status`, mốc thời gian. Đơn đã rút chỉ có `candidateName`, `status: withdrawn`, `withdrawnAt` |
+| GET | `/api/company/applications/:id` | `[COMPANY_MOD]` chi tiết kèm `snapshot`, `consent`, `history[]`. Đơn `submitted` mở lần đầu → `viewed` + báo ứng viên. Đơn công ty khác 404; đơn đã rút chỉ trả tên và "Đã rút" |
+| PATCH | `/api/company/applications/:id/status` | `[COMPANY_MOD]` `{ status: "viewed" \| "shortlisted" \| "rejected", note? }`; trạng thái khác 400; đơn `shortlisted` / `rejected` / `withdrawn` 409. Báo `application_status_changed` cho ứng viên (từ chối kèm `note`) |
+
 ---
 
 ## Phần B — Tích hợp ngoài (FE gọi trực tiếp)
