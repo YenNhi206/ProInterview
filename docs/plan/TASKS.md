@@ -223,7 +223,7 @@ Văn làm sau khi xong Company. Hiện chưa có model CV nào (chỉ có `CVAna
 | JB-17 | PM-05 | Todo | FE moderator: màn xử lý báo cáo job (loại `job_post_report`, tách khỏi hàng đợi phỏng vấn), nút ẩn/hiện | Trầm | JB-04 | Xử lý được một báo cáo job trên UI | P0 |
 | JB-19 | CM-04 (+C-02, AIS-07) | Todo | Chỉ số theo cặp ứng viên và doanh nghiệp (quyết định JB-19 ngày 23/11/2026): số câu đã trả lời, điểm trung bình từng tiêu chí rubric, ngày gần nhất, danh sách buổi; API cho ứng viên xem chỉ số của mình; DTO đưa vào snapshot của JB-08. Doanh nghiệp chỉ xem qua đơn ứng tuyển có đồng ý | Janet | JB-07 | Chỉ số khớp truy vấn tay trên dữ liệu test; doanh nghiệp không đọc được chỉ số khi chưa có đơn kèm đồng ý; test | P0 |
 | JB-20 | C-05 | Done | Lưu tối đa 5 job xem gần nhất của ứng viên khi gọi `GET /api/jobs/:id`; API `GET /api/jobs/recent`, chỉ trả job đang mở và có câu doanh nghiệp hợp lệ | Văn | JB-03 | Xem job thứ 6 thì job cũ nhất bị bỏ; job đóng hoặc không có câu hợp lệ không được trả; test | P1 |
-| JB-21 | C-05 (+C-03) | Review · Nhi · PR #266 | FE màn cài đặt buổi phỏng vấn AI: thẻ "Luyện theo job bạn quan tâm gần đây" (tối đa 3 job từ `GET /api/jobs/recent`); chọn thì gửi `jobPostId`, bỏ qua thì chạy ngẫu nhiên | Nhi | JB-06, JB-20 | Chọn job thì buổi có câu của doanh nghiệp đó; không có job gần đây thì không hiện thẻ | P1 |
+| JB-21 | C-05 (+C-03) | Done | FE màn cài đặt buổi phỏng vấn AI: thẻ "Luyện theo job bạn quan tâm gần đây" (tối đa 3 job từ `GET /api/jobs/recent`); chọn thì gửi `jobPostId`, bỏ qua thì chạy ngẫu nhiên | Nhi | JB-06, JB-20 | Chọn job thì buổi có câu của doanh nghiệp đó; không có job gần đây thì không hiện thẻ | P1 |
 
 ## GĐ 5: Vòng AI và gợi ý
 
