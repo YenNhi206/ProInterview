@@ -46,14 +46,53 @@ export function normalizeForQuote(text) {
 }
 
 /**
+ * Chuẩn hóa transcript như `normalizeForQuote` (trừ bước bỏ dấu câu hai đầu) và giữ vị trí từng ký tự
+ * trong bản gốc, để từ đoạn khớp lấy lại đúng đoạn chữ gốc.
+ */
+function normalizeWithMap(text) {
+  const src = String(text ?? "").normalize("NFC");
+  let out = "";
+  const map = [];
+  let prevSpace = false;
+  for (let i = 0; i < src.length; i += 1) {
+    const ch = src[i];
+    if (/\s/.test(ch)) {
+      if (!prevSpace && out.length) {
+        out += " ";
+        map.push(i);
+      }
+      prevSpace = true;
+      continue;
+    }
+    prevSpace = false;
+    for (const c of ch.toLowerCase().replace(/[“”«»„]/g, '"').replace(/[‘’‚`]/g, "'")) {
+      out += c;
+      map.push(i);
+    }
+  }
+  return { src, out, map };
+}
+
+/**
  * Trích dẫn hợp lệ khi (sau chuẩn hóa) dài ≥ EVIDENCE_MIN_CHARS và nằm nguyên trong transcript.
- * @returns {string} trích dẫn đã cắt gọn, hoặc "" khi không hợp lệ
+ * Trả về ĐÚNG đoạn chữ trong transcript (không phải chữ LLM trả về), nên luôn là chuỗi con của transcript.
+ * Dài quá EVIDENCE_MAX_CHARS thì cắt ở ranh giới từ, không thêm "…".
+ * @returns {string} đoạn trích từ transcript, hoặc "" khi không hợp lệ
  */
 export function verifyEvidenceQuote(quote, transcript) {
   const q = normalizeForQuote(quote);
   if (q.length < EVIDENCE_MIN_CHARS) return "";
-  if (!normalizeForQuote(transcript).includes(q)) return "";
-  return clip(String(quote).replace(/\s+/g, " ").replace(/^["'“”]+|["'“”]+$/g, ""), EVIDENCE_MAX_CHARS);
+  const { src, out, map } = normalizeWithMap(transcript);
+  const at = out.indexOf(q);
+  if (at < 0) return "";
+  let exact = src.slice(map[at], map[at + q.length - 1] + 1);
+  if (exact.length > EVIDENCE_MAX_CHARS) {
+    exact = exact.slice(0, EVIDENCE_MAX_CHARS);
+    const cut = exact.search(/\s\S*$/);
+    if (cut > EVIDENCE_MAX_CHARS * 0.6) exact = exact.slice(0, cut);
+    exact = exact.trimEnd();
+  }
+  return exact;
 }
 
 /** Tiêu chí áp dụng cho một câu: tiêu chí có gắn câu đó; rubric chưa gắn câu nào cho câu này thì mọi tiêu chí. */

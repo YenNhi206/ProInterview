@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   applicableCriteria,
+  EVIDENCE_MAX_CHARS,
   formatCriteria,
   normalizeForQuote,
   sanitizeRubricScores,
@@ -25,6 +26,21 @@ describe("verifyEvidenceQuote: trích dẫn phải có thật trong transcript",
     assert.equal(verifyEvidenceQuote("index", TRANSCRIPT), "");
     assert.equal(verifyEvidenceQuote("", TRANSCRIPT), "");
     assert.equal(verifyEvidenceQuote(null, TRANSCRIPT), "");
+  });
+
+  it("luôn trả đúng đoạn chữ trong transcript, kể cả khi LLM viết khác hoa thường / khoảng trắng / nháy", () => {
+    const t = "Em nói: “Mình thử lại nhé”.\nSau đó   cả nhóm đồng ý chạy lại bài test.";
+    const got = verifyEvidenceQuote('"mình thử lại nhé". sau đó cả nhóm đồng ý', t);
+    assert.ok(t.includes(got), got);
+    assert.equal(got, "Mình thử lại nhé”.\nSau đó   cả nhóm đồng ý");
+  });
+
+  it("trích dẫn dài quá giới hạn bị cắt ở ranh giới từ, vẫn là chuỗi con, không có dấu …", () => {
+    const long = Array.from({ length: 80 }, (_, i) => `từ${i}`).join(" ");
+    const got = verifyEvidenceQuote(long, `Mở đầu. ${long}. Kết thúc.`);
+    assert.ok(got.length <= EVIDENCE_MAX_CHARS && got.length > EVIDENCE_MAX_CHARS * 0.6);
+    assert.ok(long.startsWith(got));
+    assert.ok(!got.endsWith("…") && !got.endsWith(" "));
   });
 
   it("normalizeForQuote gộp khoảng trắng và bỏ dấu câu hai đầu", () => {
