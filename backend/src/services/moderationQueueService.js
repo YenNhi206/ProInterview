@@ -12,6 +12,7 @@ import { QuestionBank } from "../models/QuestionBank.js";
 import { deprecateQuestion, editQuestion } from "./questionBankService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { logger } from "../config/logger.js";
+import { scheduleCompetencyRecompute } from "./competencyProfileService.js";
 
 /** Chụp câu hỏi / transcript / điểm AI của 1 câu tại thời điểm tạo item. */
 export function buildSessionSnapshot(session, questionIndex) {
@@ -212,6 +213,11 @@ export async function resolveItem(id, { action, note = "", payload = {} }, moder
     outcome = await writeModeratorOverride(item, payload, note, moderatorId);
   }
   if (!outcome.ok) return outcome;
+  if (action === "override_score") {
+    // PR-06: điểm moderator thay điểm AI trong hồ sơ năng lực của chủ buổi.
+    const owner = await InterviewSession.findById(item.refs.sessionId).select("userId").lean();
+    if (owner?.userId) scheduleCompetencyRecompute(owner.userId);
+  }
 
   const now = new Date();
   item.status = action === "dismiss" ? "dismissed" : "resolved";

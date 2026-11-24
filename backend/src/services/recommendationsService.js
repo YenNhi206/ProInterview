@@ -23,7 +23,9 @@ import { JobPost } from "../models/JobPost.js";
 import { Company } from "../models/Company.js";
 import { LearningPath } from "../models/LearningPath.js";
 import { LearningPathSession } from "../models/LearningPathSession.js";
-import { getCompetency, getFramework, isValidCompetencyKey, scoreCompetenciesInText } from "./competencyFramework.js";
+import {
+  competencyTextScores, getCompetency, getFramework, isValidCompetencyKey, normalizeLoose as normalize, TEXT_MATCH_MIN,
+} from "./competencyFramework.js";
 import { openJobFilter } from "./publicJobsService.js";
 import { requiredCompetencyRows } from "./jobPostsService.js";
 import { getRoleCategory, roleCategoryName } from "./roleCategories.js";
@@ -37,33 +39,8 @@ export const RECOMMENDATION_WEIGHTS = Object.freeze({
   taughtMatch: 1,
   textMatch: 0.7,
 });
-/** Điểm từ khóa tối thiểu để coi là khớp (1 từ khóa chính = 3). */
-export const TEXT_MATCH_MIN = 3;
 export const DEFAULT_LIMIT = 5;
 const CANDIDATE_POOL = 300;
-
-function normalize(text) {
-  return String(text ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/** Điểm khớp chữ của một năng lực: từ khóa / từ đồng nghĩa (bộ tiêu chí) + tên năng lực. */
-function competencyTextScore(scores, normText, key) {
-  const meta = getCompetency(key);
-  let score = scores[key] ?? 0;
-  const names = [meta?.nameVi, meta?.nameEn]
-    .flatMap((n) => String(n ?? "").split("&"))
-    .map(normalize)
-    .filter((n) => n.length > 3);
-  if (names.some((n) => ` ${normText} `.includes(` ${n} `))) score += 3;
-  return score;
-}
 
 const ratingPart = (rating) => Math.max(0, Math.min(1, (Number(rating) || 0) / 5));
 const reviewsPart = (count) => Math.min(1, Math.log10(1 + (Number(count) || 0)) / 2);
@@ -150,13 +127,12 @@ async function recommendMentors(basis, limit) {
 
   const scored = mentors.map((m) => {
     const text = [m.title, ...(m.fields ?? []), ...(m.specialties ?? []), m.bio].join(" ");
-    const scores = scoreCompetenciesInText(text);
-    const norm = normalize(text);
+    const scores = competencyTextScores(text);
     const taughtCounts = taught.get(String(m._id)) ?? new Map();
     const matches = gapKeys
       .map((key) => {
         if (taughtCounts.get(key)) return { key, strength: RECOMMENDATION_WEIGHTS.taughtMatch, sessions: taughtCounts.get(key) };
-        if (competencyTextScore(scores, norm, key) >= TEXT_MATCH_MIN) return { key, strength: RECOMMENDATION_WEIGHTS.textMatch };
+        if ((scores[key] ?? 0) >= TEXT_MATCH_MIN) return { key, strength: RECOMMENDATION_WEIGHTS.textMatch };
         return null;
       })
       .filter(Boolean);
@@ -209,10 +185,9 @@ async function recommendCourses(basis, limit, userId) {
 
   const scored = courses.map((c) => {
     const text = [c.title, c.shortDescription, c.description, ...(c.tags ?? []), ...(c.whatYoullLearn ?? [])].join(" ");
-    const scores = scoreCompetenciesInText(text);
-    const norm = normalize(text);
+    const scores = competencyTextScores(text);
     const matches = gapKeys
-      .filter((key) => competencyTextScore(scores, norm, key) >= TEXT_MATCH_MIN)
+      .filter((key) => (scores[key] ?? 0) >= TEXT_MATCH_MIN)
       .map((key) => ({ key, strength: RECOMMENDATION_WEIGHTS.textMatch }));
     const gap = gapScore(basis.gaps, matches);
     const rating = c.stats?.rating ?? 0;

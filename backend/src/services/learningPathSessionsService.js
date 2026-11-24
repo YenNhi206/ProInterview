@@ -33,6 +33,7 @@ import { learningPathDTO, loadPathForCandidate, loadPathForMentor } from "./lear
 import { getFramework, suggestOutcome } from "./competencyFramework.js";
 import { retakeShareAmount } from "../utils/learningPathMoney.js";
 import { LEARNING_PATH_OUTCOME_NEXT as NEXT, needsSupplementarySession, resolveOutcomeNextStep } from "../utils/learningPathOutcome.js";
+import { scheduleCompetencyRecompute } from "./competencyProfileService.js";
 
 /** Loại buổi của booking lộ trình lấy theo yêu cầu mentor; yêu cầu thiếu hoặc lạ thì coi là phỏng vấn thử. */
 const PATH_BOOKING_SESSION_TYPES = new Set(["mock_interview", "cv_review", "career_consulting"]);
@@ -339,6 +340,7 @@ export async function recordLearningPathSessionOutcome(actor, pathId, sessionId,
   }
 
   await notifyCandidateOfOutcome(path, done, nextStep);
+  scheduleCompetencyRecompute(path.candidateId); // PR-06: điểm mentor vào hồ sơ năng lực
   return { learningPath: await learningPathDTO(path._id), nextStep, suggestedOutcome: suggested };
 }
 

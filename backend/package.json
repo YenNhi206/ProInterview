@@ -48,6 +48,8 @@
     "db:migrate-lp-shrm-keys:dry": "node src/scripts/migrateLearningPathShrmKeys.js --dry-run",
     "db:sync-prompt-versions": "node src/scripts/syncPromptVersions.js",
     "db:sync-prompt-versions:dry": "node src/scripts/syncPromptVersions.js --dry-run",
+    "db:recompute-competency-profiles": "node src/scripts/recomputeCompetencyProfiles.js",
+    "db:recompute-competency-profiles:dry": "node src/scripts/recomputeCompetencyProfiles.js --dry-run",
     "db:sync-fallback-questions": "node src/scripts/syncFallbackQuestions.js",
     "warmup:baseline-videos": "node src/scripts/warmupBaselineVideos.js",
     "warmup:company-videos": "node src/scripts/warmupCompanyQuestionVideos.js",

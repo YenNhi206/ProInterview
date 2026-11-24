@@ -11,6 +11,9 @@ const competencySourceSchema = new Schema(
     },
     refId: { type: Schema.Types.ObjectId, default: null },
     title: { type: String, default: "" },
+    /** PR-06: mức 0–5 (thang LP-01) của bằng chứng này; `null` với nguồn không cho mức (khóa học). */
+    level: { type: Number, min: 0, max: 5, default: null },
+    /** = level × 20, giữ cho FE cũ. */
     score: { type: Number, min: 0, max: 100, default: null },
     at: { type: Date, default: Date.now },
   },
@@ -19,11 +22,16 @@ const competencySourceSchema = new Schema(
 
 const competencyItemSchema = new Schema(
   {
-    key: { type: String, required: true }, // e.g. "technical_mastery", "problem_solving", "communication"
+    key: { type: String, required: true }, // key trong config/competencies.json (LP-01)
     name: { type: String, default: "" },
     category: { type: String, default: "" },
-    level: { type: Number, min: 1, max: 5, default: 1 },
+    /**
+     * PR-06: mức 0–5 (thập phân) gộp từ bằng chứng có mức; `null` = "Chưa đủ dữ liệu" (chỉ có nguồn
+     * khóa học). Công thức: `competencyProfileService.computeCompetencyLevel`.
+     */
+    level: { type: Number, min: 0, max: 5, default: null },
     score: { type: Number, min: 0, max: 100, default: 0 },
+    /** Số bằng chứng có mức (phỏng vấn AI + buổi mentor); khóa học không tính. */
     evidenceCount: { type: Number, default: 0 },
     sources: { type: [competencySourceSchema], default: [] },
   },
@@ -75,6 +83,9 @@ const candidateProfileSchema = new Schema(
       type: [competencyItemSchema],
       default: [],
     },
+    /** PR-06: phiên bản cách gộp và lúc gộp gần nhất; khác `COMPETENCY_PROFILE_VERSION` thì gộp lại. */
+    competenciesVersion: { type: String, default: "" },
+    competenciesComputedAt: { type: Date, default: null },
     isVerified: {
       type: Boolean,
       default: false,

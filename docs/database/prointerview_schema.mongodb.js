@@ -229,6 +229,20 @@ ensureCollection("job_posts", {
   [{ status: 1, closesAt: 1 }, { partialFilterExpression: { closesAt: { $type: "date" } } }],
 ]);
 
+// PR-01 / PR-06: hồ sơ ứng viên, năng lực gộp bằng competencyProfileService.
+ensureCollection("candidateprofiles", {
+  required: ["userId"],
+  properties: {
+    userId: oid,
+    defaultCvId: oidOrNull,
+    competencies: { bsonType: "array" },
+    competenciesVersion: str,
+    isVerified: { bsonType: "bool" },
+  },
+}, [
+  [{ userId: 1 }, { unique: true }],
+]);
+
 ensureCollection("mentor_knowledge", {
   required: ["bookingId", "mentorId", "mentorUserId"],
   properties: { bookingId: oid, mentorId: oid, mentorUserId: oid },

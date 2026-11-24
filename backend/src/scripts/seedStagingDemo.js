@@ -17,6 +17,7 @@ import { LearningPath } from "../models/LearningPath.js";
 import { LearningPathSession } from "../models/LearningPathSession.js";
 import { MentorshipRequest } from "../models/MentorshipRequest.js";
 import { ModerationItem } from "../models/ModerationItem.js";
+import { recomputeCompetencyProfile } from "../services/competencyProfileService.js";
 
 const SALT_ROUNDS = 10;
 const DEMO_PASSWORD = "Password123!";
@@ -367,34 +368,10 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
       summary: "Kỹ sư phần mềm 4 năm kinh nghiệm chuyên sâu về Single Page Applications, Design Systems và tối ưu hiệu năng web.",
       defaultCvId: cv1._id,
       yearsOfExperience: 4,
-      isVerified: true,
-      verifiedAt: new Date(),
-      competencies: [
-        {
-          key: "technical_mastery",
-          name: "Chuyên môn kỹ thuật (Technical Mastery)",
-          category: "Kỹ năng chuyên môn",
-          level: 4,
-          score: 88,
-          evidenceCount: 2,
-          sources: [
-            { type: "ai_interview", title: "Phỏng vấn AI Kỹ thuật Frontend (88/100)", score: 88, at: new Date() },
-          ],
-        },
-        {
-          key: "problem_solving",
-          name: "Giải quyết vấn đề (Problem Solving)",
-          category: "Năng lực tư duy",
-          level: 4,
-          score: 85,
-          evidenceCount: 1,
-          sources: [
-            { type: "mentor_session", title: "Buổi học cùng Mentor Lê Nguyễn Anh Tú", score: 85, at: new Date() },
-          ],
-        },
-      ],
+      // PR-06: năng lực gộp từ buổi phỏng vấn và buổi lộ trình bên dưới (recomputeCompetencyProfile ở cuối seed).
+      competencies: [],
     });
-    console.log("  ✓ Đã tạo CandidateProfile kèm verified competencies");
+    console.log("  ✓ Đã tạo CandidateProfile (năng lực gộp ở cuối seed)");
   }
 
   // Tạo 1 buổi phỏng vấn AI completed
@@ -403,6 +380,16 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
     hrGender: "female",
     roleCategory: "frontend",
     status: "completed",
+    completedAt: new Date(Date.now() - 4 * 86400 * 1000),
+    // PR-06: câu có key năng lực LP-01 để gộp vào hồ sơ.
+    questions: [
+      { id: "q1", layer: "theory", competencyId: "technical_learning", question: "Bạn hãy giải thích cơ chế Event Loop trong JavaScript?" },
+      { id: "q2", layer: "behavior", competencyId: "problem_solving", question: "Kể về lần bạn tối ưu một trang React bị render chậm. Bạn tìm nguyên nhân thế nào?" },
+    ],
+    answers: [
+      { questionIndex: 0, transcript: "Event Loop hoạt động với Call Stack, Web API và Task Queue..." },
+      { questionIndex: 1, transcript: "Em dùng React Profiler tìm component render lại, thêm memo và tách state, thời gian render giảm 60%." },
+    ],
     feedback: {
       overallScore: 88,
       overall5: 4.4,
@@ -410,7 +397,8 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
       strengths: ["Lập luận STAR rõ ràng", "Phân tích Trade-off kỹ thuật sắc bén"],
       improvements: ["Cần đào sâu hơn về kiến trúc Micro-Frontend"],
       perQuestion: [
-        { questionIndex: 0, overallScore: 88, overall5: 4.4, score: 88, shrmLevel: "Vững" },
+        { questionIndex: 0, overall5: 4.4, score: 88, shrmLevel: "excellent" },
+        { questionIndex: 1, overall5: 4, score: 80, shrmLevel: "proficient" },
       ],
     },
   });
@@ -452,11 +440,13 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
       pathId: lp._id,
       order: 1,
       title: "Buổi 1: Thao tác DOM, Event Loop & Tối ưu Render React",
+      shrmKeys: ["technical_learning", "problem_solving"],
       status: "done",
       outcome: "passed",
       shareAmount: 350000,
       feedback: {
         summary: "Đạt chuẩn kiến thức cốt lõi.",
+        scores: [{ shrmKey: "technical_learning", score: 4 }, { shrmKey: "problem_solving", score: 3 }],
         strengths: ["Hiểu rõ callstack", "Tối ưu render tốt"],
         improvements: ["Đọc thêm về Concurrent Mode"],
       },
@@ -467,10 +457,12 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
       pathId: lp._id,
       order: 2,
       title: "Buổi 2: State Management & Data Fetching Patterns",
+      shrmKeys: ["planning_execution"],
       status: "done",
       outcome: "not_passed",
       shareAmount: 350000,
       feedback: {
+        scores: [{ shrmKey: "planning_execution", score: 2 }],
         summary: "Cần cải thiện cách xử lý race condition và cache invalidation.",
         strengths: ["Biết dùng Redux Toolkit"],
         improvements: ["Chưa nắm kỹ stale-while-revalidate"],
@@ -484,10 +476,12 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
       attempt: 2,
       retakeOf: s2._id,
       title: "Buổi 2 (Học lại): State Management & Data Fetching Patterns",
+      shrmKeys: ["planning_execution"],
       status: "done",
       outcome: "passed",
       shareAmount: 0,
       feedback: {
+        scores: [{ shrmKey: "planning_execution", score: 3 }],
         summary: "Đã khắc phục hoàn toàn các lỗ hổng về cache invalidation và race condition.",
         strengths: ["Làm bài test xử lý debounce/cancel token xuất sắc"],
       },
@@ -534,6 +528,10 @@ export async function seedStagingDemo({ shouldDisconnect = false } = {}) {
     await ModerationItem.insertMany(items);
     console.log("  ✓ Đã tạo 5 ModerationItems được chấm lại để đủ điều kiện cho aiImprovementMinerJob");
   }
+
+  // PR-06: gộp hồ sơ năng lực từ dữ liệu nguồn vừa tạo (không ghi tay).
+  await recomputeCompetencyProfile(candidate._id);
+  console.log("  ✓ Đã gộp hồ sơ năng lực của Candidate từ buổi phỏng vấn và buổi lộ trình");
 
   console.log("🎉 Hoàn tất seed dữ liệu demo staging thành công!");
   if (shouldDisconnect) {

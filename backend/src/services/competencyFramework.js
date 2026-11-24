@@ -304,6 +304,48 @@ export function scoreCompetenciesInText(text = "") {
   return scores;
 }
 
+/** Điểm từ khóa tối thiểu để coi một đoạn chữ là "nói về" năng lực (1 từ khóa chính = 3). */
+export const TEXT_MATCH_MIN = 3;
+
+export function normalizeLoose(text) {
+  return String(text ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Điểm khớp chữ của từng năng lực: từ khóa / từ đồng nghĩa (`scoreCompetenciesInText`) + 3 nếu chữ
+ * chứa tên năng lực (nameVi / nameEn, tách theo "&"). Dùng cho gợi ý (AI-10) và khóa học trong hồ sơ
+ * năng lực (PR-06).
+ * @returns {Record<string, number>}
+ */
+export function competencyTextScores(text = "") {
+  const scores = scoreCompetenciesInText(text);
+  const norm = ` ${normalizeLoose(text)} `;
+  for (const key of Object.keys(scores)) {
+    const meta = COMPETENCY_BY_KEY.get(key);
+    const names = [meta?.nameVi, meta?.nameEn]
+      .flatMap((n) => String(n ?? "").split("&"))
+      .map(normalizeLoose)
+      .filter((n) => n.length > 3);
+    if (names.some((n) => norm.includes(` ${n} `))) scores[key] += 3;
+  }
+  return scores;
+}
+
+/** Key năng lực mà đoạn chữ khớp (điểm ≥ `min`), điểm cao trước. */
+export function matchCompetencyKeysInText(text = "", { min = TEXT_MATCH_MIN } = {}) {
+  return Object.entries(competencyTextScores(text))
+    .filter(([, score]) => score >= min)
+    .sort(([, a], [, b]) => b - a)
+    .map(([key]) => key);
+}
+
 // ── 5. MERGE: ROLE MAP + TEXT DETECTION ──────────────────────────────────────
 // Kết hợp role priority + keyword evidence → top N competency ids
 
