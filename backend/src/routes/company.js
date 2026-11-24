@@ -6,6 +6,11 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import { companyQuestionGenLimiter } from "../middleware/rateLimiters.js";
 import { CompanyWorkspaceController } from "../controllers/companyWorkspaceController.js";
 import { CompanyJobsController } from "../controllers/companyJobsController.js";
+import {
+  listCompanyApplications,
+  getCompanyApplication,
+  changeCompanyApplicationStatus,
+} from "../services/applicationsService.js";
 
 export const companyRouter = Router();
 
@@ -41,3 +46,15 @@ companyRouter.post("/jobs", asyncHandler(CompanyJobsController.create));
 companyRouter.get("/jobs/:id", asyncHandler(CompanyJobsController.get));
 companyRouter.patch("/jobs/:id", asyncHandler(CompanyJobsController.update));
 companyRouter.patch("/jobs/:id/status", asyncHandler(CompanyJobsController.changeStatus));
+
+// JB-09: đơn ứng tuyển vào job của công ty. Chỉ đơn có đồng ý; đơn công ty khác → 404; đơn đã rút chỉ còn tên.
+companyRouter.get("/applications", asyncHandler(async (req, res) => {
+  const { applications, pagination, counts } = await listCompanyApplications(req.companyId, req.query);
+  res.json({ success: true, applications, pagination, counts });
+}));
+companyRouter.get("/applications/:id", asyncHandler(async (req, res) => {
+  res.json({ success: true, application: await getCompanyApplication(req.companyId, req.userId, req.params.id) });
+}));
+companyRouter.patch("/applications/:id/status", asyncHandler(async (req, res) => {
+  res.json({ success: true, application: await changeCompanyApplicationStatus(req.companyId, req.userId, req.params.id, req.body) });
+}));

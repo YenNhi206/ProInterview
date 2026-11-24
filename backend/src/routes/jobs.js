@@ -1,7 +1,7 @@
 /**
  * /api/jobs — tin tuyển dụng công khai (JB-03), không cần đăng nhập.
  * Chỉ trả job đang mở: `published`, chưa quá `closesAt`, công ty không bị khóa.
- * `GET /:id/gap` (JB-05) cần đăng nhập ứng viên. Sắp có: `/:id/apply` (JB-08).
+ * `GET /:id/gap` (JB-05) cần đăng nhập ứng viên. `POST /:id/apply` (JB-08) ứng viên nộp đơn kèm CV và đồng ý chia sẻ.
  * `GET /recent` (JB-20): job ứng viên xem gần đây; `GET /:id` ghi lượt xem khi có token ứng viên.
  */
 import { Router } from "express";
@@ -12,6 +12,7 @@ import { getPublicJob, listPublicJobs } from "../services/publicJobsService.js";
 import { getJobGap } from "../services/jobGapService.js";
 import { optionalAuth } from "../middleware/optionalAuth.js";
 import { listRecentJobs, recordJobView } from "../services/recentJobsService.js";
+import { applyToJob } from "../services/applicationsService.js";
 import { logger } from "../config/logger.js";
 
 export const jobsRouter = Router();
@@ -40,4 +41,9 @@ jobsRouter.get("/:id", optionalAuth, asyncHandler(async (req, res) => {
 /** JB-05: khoảng thiếu năng lực và kỹ năng của ứng viên đang đăng nhập so với job. */
 jobsRouter.get("/:id/gap", authJwt, requireRole("customer"), asyncHandler(async (req, res) => {
   res.json({ success: true, gap: await getJobGap(req.params.id, req.userId) });
+}));
+
+/** JB-08: ứng viên nộp đơn { cvId, consent: true }. Không đồng ý → 400; đã nộp → 409; job không mở → 404. */
+jobsRouter.post("/:id/apply", authJwt, requireRole("customer"), asyncHandler(async (req, res) => {
+  res.status(201).json({ success: true, application: await applyToJob(req.userId, req.params.id, req.body) });
 }));

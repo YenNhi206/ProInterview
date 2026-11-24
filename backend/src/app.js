@@ -32,6 +32,7 @@ import { moderatorRouter } from "./routes/moderator.js";
 import { companyRouter } from "./routes/company.js";
 import { companyInvitesRouter } from "./routes/companyInvites.js";
 import { jobsRouter } from "./routes/jobs.js";
+import { applicationsRouter } from "./routes/applications.js";
 import { recommendationsRouter } from "./routes/recommendations.js";
 import { roleCategoriesRouter } from "./routes/roleCategories.js";
 import { profileRouter } from "./routes/profile.js";
@@ -229,6 +230,7 @@ export function createApp() {
   app.use("/api/company", companyRouter);
   app.use("/api/company-invites", companyInvitesRouter);
   app.use("/api/jobs", jobsRouter);
+  app.use("/api/applications", applicationsRouter);
   app.use("/api/recommendations", recommendationsRouter);
   app.use("/api/role-categories", roleCategoriesRouter);
   app.use("/api/profile", profileRouter);
