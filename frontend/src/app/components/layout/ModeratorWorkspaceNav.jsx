@@ -1,4 +1,4 @@
-import { Inbox, Library, Building2, Sliders, BarChart3, GraduationCap, User, Settings } from "lucide-react";
+import { Inbox, Library, Building2, Sliders, BarChart3, GraduationCap, User, Settings, Flag } from "lucide-react";
 import { WorkspaceNav } from "./WorkspaceNav.jsx";
 
 const MODERATOR_MAIN_NAV = [
@@ -6,6 +6,7 @@ const MODERATOR_MAIN_NAV = [
   { title: "Hàng đợi kiểm định", url: "/moderator/queue", icon: Inbox, end: false },
   { title: "Ngân hàng câu hỏi", url: "/moderator/questions", icon: Library },
   { title: "Câu hỏi doanh nghiệp", url: "/moderator/company-questions", icon: Building2 },
+  { title: "Báo cáo tin tuyển dụng", url: "/moderator/job-reports", icon: Flag },
   { title: "Duyệt Rubric", url: "/moderator/rubrics", icon: Sliders },
   { title: "Chất lượng AI", url: "/moderator/quality", icon: BarChart3 },
   { title: "Duyệt khóa học", url: "/moderator/courses", icon: GraduationCap },
@@ -25,7 +26,7 @@ export function ModeratorWorkspaceNav() {
       label="Kiểm duyệt"
       mainNav={MODERATOR_MAIN_NAV}
       secondaryNav={MODERATOR_SECONDARY_NAV}
-      separatorIndex={4}
+      separatorIndex={5}
     />
   );
 }
