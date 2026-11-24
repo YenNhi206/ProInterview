@@ -99,6 +99,17 @@ export const adminApi = {
       method: "PATCH",
       body: JSON.stringify(body ?? {}),
     }),
+  /** LP-15: xem trước tiền hoàn khi hủy lộ trình (T − phần các buổi đã học). */
+  previewCancelLearningPath: (pathId) => authedFetch(`/api/admin/learning-paths/${pathId}/cancel-preview`),
+  /** LP-15: hủy lộ trình đang học; body `{ reason }` (≥ 5 ký tự). */
+  cancelLearningPath: (pathId, reason) =>
+    authedFetch(`/api/admin/learning-paths/${pathId}/cancel`, { method: "POST", body: JSON.stringify({ reason }) }),
+  /** LP-15: xác nhận đã chuyển khoản hoàn; body `{ transferRef }`. */
+  confirmLearningPathRefund: (paymentId, transferRef) =>
+    authedFetch(`/api/admin/payments/${paymentId}/confirm-learning-path-refund`, {
+      method: "PATCH",
+      body: JSON.stringify({ transferRef }),
+    }),
   getPayouts: () => authedFetch("/api/admin/payouts"),
   approvePayout: (id, note = "") =>
     authedFetch(`/api/admin/payouts/${id}/approve`, {

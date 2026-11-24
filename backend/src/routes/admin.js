@@ -11,6 +11,7 @@ import { AdminCostDashboardController } from "../controllers/adminCostDashboardC
 import { AdminCompanyController } from "../controllers/adminCompanyController.js";
 import { upload } from "../middleware/upload.js";
 import { adminConfirmLearningPathTransfer, listLearningPathTransfersForAdmin } from "../services/learningPathPaymentService.js";
+import { cancelLearningPathByAdmin, confirmLearningPathRefund, previewLearningPathCancel } from "../services/learningPathCancelService.js";
 import { getRevenueBySource, resolveRevenuePeriod } from "../services/revenueAnalyticsService.js";
 
 export const adminRouter = Router();
@@ -95,6 +96,17 @@ adminRouter.patch("/payments/:id/confirm-learning-path-transfer", asyncHandler(a
   if (!result.ok) return res.status(result.status || 400).json({ success: false, error: result.error });
   res.json({ success: true, payment: result.payment, learningPath: result.learningPath, idempotent: Boolean(result.idempotent) });
 }));
+// LP-15: admin hủy lộ trình đang học, hoàn phần chưa học (T − phần các buổi đã học), rồi xác nhận đã chuyển khoản hoàn.
+const sendResult = (res, result, extra = (r) => r) => {
+  if (!result.ok) return res.status(result.status || 400).json({ success: false, error: result.error });
+  const { ok, ...rest } = result;
+  return res.json({ success: true, ...extra(rest) });
+};
+adminRouter.get("/learning-paths/:id/cancel-preview", asyncHandler(async (req, res) => sendResult(res, await previewLearningPathCancel(req.params.id))));
+adminRouter.post("/learning-paths/:id/cancel", asyncHandler(async (req, res) =>
+  sendResult(res, await cancelLearningPathByAdmin(req.params.id, { adminUserId: req.userId, reason: req.body?.reason }))));
+adminRouter.patch("/payments/:id/confirm-learning-path-refund", asyncHandler(async (req, res) =>
+  sendResult(res, await confirmLearningPathRefund(req.params.id, { adminUserId: req.userId, transferRef: req.body?.transferRef }))));
 adminRouter.patch("/bookings/:id/status", asyncHandler(AdminController.updateBookingStatus));
 adminRouter.get("/payouts", asyncHandler(AdminController.getPayoutRequests));
 adminRouter.patch("/payouts/:id/approve", asyncHandler(AdminAccountController.approve));
