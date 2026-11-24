@@ -23,6 +23,9 @@ import { httpError } from "../utils/apiErrors.js";
 
 /** Số buổi tối đa đưa vào danh sách buổi của DTO / snapshot. */
 export const COMPANY_METRICS_MAX_SESSIONS = 20;
+/** JB-16: số câu trả lời tối đa (mới nhất trước) và độ dài transcript giữ trong DTO / snapshot. */
+export const COMPANY_METRICS_MAX_ANSWERS = 20;
+export const COMPANY_METRICS_TRANSCRIPT_MAX = 2000;
 
 const round1 = (n) => Math.round(n * 10) / 10;
 const avg = (xs) => (xs.length ? round1(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
@@ -47,7 +50,11 @@ export function companyQuestionsOfSession(session, companyId) {
     if (!sameId(cq.companyId, companyId)) continue;
     const index = (session.questions ?? []).findIndex((q) => sameId(q?.questionBankId, cq.questionId));
     if (index < 0) continue;
-    out.push({ questionIndex: index, answer: (session.answers ?? []).find((a) => a.questionIndex === index) ?? null });
+    out.push({
+      questionIndex: index,
+      question: session.questions[index]?.question || "",
+      answer: (session.answers ?? []).find((a) => a.questionIndex === index) ?? null,
+    });
   }
   return out;
 }
@@ -55,12 +62,14 @@ export function companyQuestionsOfSession(session, companyId) {
 /**
  * Gộp chỉ số từ các buổi (lean) của một ứng viên với một doanh nghiệp. Hàm thuần.
  * @returns {{ questionCount, answeredCount, scoredCount, pendingScoringCount, rubricScoreAvg, lastAnsweredAt,
- *   criteria: object[], sessions: object[], sessionCount }}
+ *   criteria: object[], sessions: object[], sessionCount, answers: object[] }}
+ * `answers` (JB-16, CM-04): câu đã trả lời kèm điểm từng tiêu chí rubric, mới nhất trước.
  */
 export function buildCompanyMetrics(sessions, companyId) {
   const byCriterion = new Map();
   const answerScores = [];
   const sessionRows = [];
+  const answerRows = [];
   let questionCount = 0;
   let answeredCount = 0;
   let scoredCount = 0;
@@ -72,13 +81,34 @@ export function buildCompanyMetrics(sessions, companyId) {
     const date = s.completedAt ?? s.createdAt ?? null;
     let sAnswered = 0;
     const sScores = [];
-    for (const { answer } of items) {
+    for (const { questionIndex, question, answer } of items) {
       questionCount += 1;
-      if (!String(answer?.transcript ?? "").trim()) continue;
+      const transcript = String(answer?.transcript ?? "").trim();
+      if (!transcript) continue;
       answeredCount += 1;
       sAnswered += 1;
       const scores = Array.isArray(answer?.rubricScores) ? answer.rubricScores : [];
-      if (answer?.rubricScoring?.status !== "scored" || !scores.length) continue;
+      const scored = answer?.rubricScoring?.status === "scored" && scores.length > 0;
+      answerRows.push({
+        sessionId: String(s._id),
+        date,
+        questionIndex,
+        question,
+        transcript: transcript.slice(0, COMPANY_METRICS_TRANSCRIPT_MAX),
+        scoringStatus: scored ? "scored" : "pending",
+        rubricScore: scored ? weightedRubricScore(scores) : null,
+        scores: scored
+          ? scores
+            .filter((r) => Number.isFinite(r?.score))
+            .map((r) => ({
+              criterionKey: String(r.criterionKey),
+              criterionName: r.criterionName || "",
+              score: r.score,
+              evidenceQuote: r.evidenceQuote || "",
+            }))
+          : [],
+      });
+      if (!scored) continue;
       scoredCount += 1;
       const score = weightedRubricScore(scores);
       if (Number.isFinite(score)) {
@@ -117,6 +147,7 @@ export function buildCompanyMetrics(sessions, companyId) {
   }
 
   sessionRows.sort((a, b) => new Date(b.date ?? 0) - new Date(a.date ?? 0));
+  answerRows.sort((a, b) => new Date(b.date ?? 0) - new Date(a.date ?? 0) || a.questionIndex - b.questionIndex);
   const criteria = [...byCriterion.values()]
     .map((r) => ({
       criterionKey: r.criterionKey,
@@ -138,6 +169,7 @@ export function buildCompanyMetrics(sessions, companyId) {
     criteria,
     sessionCount: sessionRows.length,
     sessions: sessionRows.slice(0, COMPANY_METRICS_MAX_SESSIONS),
+    answers: answerRows.slice(0, COMPANY_METRICS_MAX_ANSWERS),
   };
 }
 
@@ -151,7 +183,7 @@ async function completedSessionsWithCompany(userId, companyIds) {
     status: "completed",
     "companyQuestions.companyId": { $in: companyIds.map((id) => new mongoose.Types.ObjectId(String(id))) },
   })
-    .select("questions.questionBankId companyQuestions answers.questionIndex answers.transcript "
+    .select("questions.questionBankId questions.question companyQuestions answers.questionIndex answers.transcript "
       + "answers.rubricScores answers.rubricScoring completedAt createdAt")
     .sort({ completedAt: -1, createdAt: -1 })
     .lean();
@@ -198,7 +230,8 @@ export async function listCandidateCompanyMetrics(userId) {
 
 /**
  * DTO chụp vào Application lúc ứng tuyển (JB-08). Chỉ gọi khi ứng viên đã đồng ý chia sẻ.
- * Bỏ trường nội bộ, giữ đủ để Company Moderator xem: số câu, điểm từng tiêu chí, ngày gần nhất, buổi.
+ * Bỏ trường nội bộ, giữ đủ để Company Moderator xem: số câu, điểm từng tiêu chí, ngày gần nhất, buổi,
+ * câu trả lời kèm điểm rubric (JB-16, CM-04; nằm trong phạm vi đồng ý `company_metrics`).
  */
 export async function companyMetricsSnapshot(userId, companyId) {
   const m = await candidateCompanyMetrics(userId, companyId);
@@ -212,6 +245,7 @@ export async function companyMetricsSnapshot(userId, companyId) {
     criteria: m.criteria,
     sessionCount: m.sessionCount,
     sessions: m.sessions,
+    answers: m.answers,
     capturedAt: m.computedAt,
   };
 }
