@@ -75,10 +75,6 @@ export function calcTTSCost(characters = 0) {
   return { usd, vnd: usdToVnd(usd) };
 }
 
-// D-ID Express — Build plan $98/tháng / 300 credits (1 credit ≈ 1 phút video).
-// Video câu hỏi trung bình ~15-20s ≈ 0.25-0.33 phút → ~$0.08-0.11/video.
-const DID_COST_PER_VIDEO = Number(process.env.DID_COST_PER_VIDEO_USD) || 0.08;
-
 // ElevenLabs video (AI-16): tính theo credit. Tài liệu API không công bố số credit mỗi giây của
 // từng model, nên lấy từ lần chạy thử AI-14 (`scripts/trialElevenLabsVideo.js` đọc credit trước/sau).
 //   ELEVENLABS_VIDEO_CREDITS_PER_SECOND — credit mỗi giây video của model đang dùng (bắt buộc để tính phí)
@@ -112,12 +108,10 @@ export function calcElevenLabsVideoCost(seconds) {
 /**
  * @param {boolean} fromCache - true nếu video lấy từ cache (chi phí = 0)
  * @param {object} [opts]
- * @param {"did"|"elevenlabs"} [opts.provider="did"]
- * @param {number|null} [opts.seconds] - độ dài video, provider elevenlabs tính theo giây
+ * @param {number|null} [opts.seconds] - độ dài video, ElevenLabs tính theo giây (D-ID gỡ ở AI-17)
  * @returns {{usd: number, vnd: number, seconds?: number|null, credits?: number|null, priceUnconfigured?: boolean}}
  */
-export function calcAvatarVideoCost(fromCache = false, { provider = "did", seconds = null } = {}) {
+export function calcAvatarVideoCost(fromCache = false, { seconds = null } = {}) {
   if (fromCache) return { usd: 0, vnd: 0 };
-  if (provider === "elevenlabs") return calcElevenLabsVideoCost(seconds);
-  return { usd: DID_COST_PER_VIDEO, vnd: usdToVnd(DID_COST_PER_VIDEO) };
+  return calcElevenLabsVideoCost(seconds);
 }

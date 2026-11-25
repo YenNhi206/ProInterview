@@ -30,7 +30,7 @@ async function main() {
   const dryRun =
     process.argv.includes("--dry-run") || process.env.DRY_RUN === "1" || process.env.npm_config_dry_run === "true";
   if (!dryRun && !isCompanyVideoWarmEnabled()) {
-    console.error("Chưa cấu hình provider video (D_ID_API_KEY) hoặc đang bật MOCK_AI — không render được.");
+    console.error("Chưa cấu hình provider video (ELEVENLABS_API_KEY + giọng) hoặc đang bật MOCK_AI — không render được.");
     process.exit(1);
   }
 

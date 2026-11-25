@@ -10,7 +10,7 @@ export const REQUIRED_ENV = {
   JWT_SECRET:           { critical: true,  prodOnly: true, feature: "Ký access token (đăng nhập)" },
   REFRESH_TOKEN_PEPPER: { critical: true,  prodOnly: true, feature: "Hash refresh token" },
   CV_ANALYZER_URL:      { critical: false, feature: "CV text extraction (Python service)" },
-  DID_API_KEY:          { critical: false, feature: "D-ID avatar (fallback Cloudinary)" },
+  ELEVENLABS_API_KEY:   { critical: false, feature: "Giọng + video avatar ElevenLabs (thiếu → giọng trình duyệt + ảnh tĩnh)" },
 };
 
 /** @returns {{ critical: {key, feature}[], warnings: {key, feature}[] }} */

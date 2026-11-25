@@ -1,5 +1,5 @@
 /**
- * AvatarVideoPlayer, D-ID Express API pre-generated video player.
+ * AvatarVideoPlayer, trình phát video avatar pre-generated.
  *
  * Phát video MP4 đã pre-render (full khung, lipsync với ElevenLabs voice).
  * Thay thế WebRTC streaming, đơn giản hơn, chất lượng cao hơn, không có session limit.

@@ -1,7 +1,7 @@
 /**
  * ttsCleanupJob.js
  * Xóa audio TTS (ElevenLabs → Cloudinary `prointerview/tts-audio`) cũ hơn 7 ngày.
- * Audio TTS chỉ cần tồn tại đủ lâu để D-ID lipsync xong (vài giây) — giữ lại lâu dài chỉ
+ * Từ AI-17 avatar gửi audio thẳng cho ElevenLabs, không upload nữa; job còn dọn file cũ. Giữ lâu chỉ
  * tốn storage Cloudinary vô ích, không phục vụ cache (video kết quả đã mirror riêng, xem
  * avatarService.js mirrorVideoToCloudinary).
  *

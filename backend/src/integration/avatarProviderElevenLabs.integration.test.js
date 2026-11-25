@@ -1,10 +1,10 @@
 /**
  * AI-15 (+AI-16): lớp provider video avatar, provider ElevenLabs `POST /v1/flows/video`.
- * ElevenLabs (TTS + video), D-ID và ảnh avatar giả lập bằng mock `fetch`; không gọi mạng thật.
+ * ElevenLabs (TTS + video) và ảnh avatar giả lập bằng mock `fetch`; không gọi mạng thật. D-ID đã gỡ (AI-17).
  *
- * Kiểm: AVATAR_PROVIDER=elevenlabs chạy video ElevenLabs và không gọi D-ID; không trả video D-ID
- * cũ từ cache; `failed` ném lỗi + log; thiếu giọng ElevenLabs thì không tạo job; circuit breaker
- * tách theo provider; `GET /api/ai/config` báo provider + model; CostEvent đúng kind và đơn giá;
+ * Kiểm: chạy video ElevenLabs với ảnh + audio base64; đổi model không trả video model cũ từ cache;
+ * `failed` ném lỗi + log; thiếu giọng ElevenLabs thì không tạo job; circuit breaker mở sau 3 lỗi;
+ * `GET /api/ai/config` báo provider + model; CostEvent đúng kind và đơn giá;
  * mock QA-01 không gọi provider, không ghi CostEvent; provider giả lập qua `__setAvatarProviderForTest`.
  */
 import { describe, it, before, after, beforeEach, mock } from "node:test";
@@ -33,7 +33,6 @@ const ENV = {
   ELEVENLABS_VOICE_ID: "",
   ELEVENLABS_VIDEO_CREDITS_PER_SECOND: "",
   ELEVENLABS_USD_PER_CREDIT: "",
-  D_ID_API_KEY: "test:didkey",
   UPSTASH_REDIS_REST_URL: "",
   UPSTASH_REDIS_REST_TOKEN: "",
   CLOUDINARY_URL: "",
@@ -55,6 +54,7 @@ let calls;
 /** "ok" | "failed" | "create_401" */
 let elevenMode;
 let seq = 0;
+let genSeq = 0;
 
 const jsonRes = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -78,7 +78,7 @@ before(async () => {
     }
     if (u === "https://api.elevenlabs.io/v1/flows/video" && method === "POST") {
       if (elevenMode === "create_401") return new Response("invalid key", { status: 401 });
-      return jsonRes({ id: `gen_${calls.length}`, status: "pending" });
+      return jsonRes({ id: `gen_${++genSeq}`, status: "pending" });
     }
     if (u.startsWith("https://api.elevenlabs.io/v1/flows/video/")) {
       const id = u.split("/").pop();
@@ -93,10 +93,6 @@ before(async () => {
         content_mime_type: "video/mp4",
         content_url: `https://storage.elevenlabs.test/${id}.mp4?sig=abc`,
       });
-    }
-    if (u.startsWith("https://api.d-id.com/talks")) {
-      if (method === "POST") return jsonRes({ id: "tlk_did" }, 201);
-      return jsonRes({ status: "done", result_url: "https://d-id.example/video.mp4" });
     }
     if (u.startsWith("https://res.cloudinary.com/") && /\.png$/.test(u)) {
       return new Response(Buffer.from("PNGDATA"), { status: 200, headers: { "Content-Type": "image/png" } });
@@ -128,7 +124,6 @@ beforeEach(async () => {
 
 const newQuestion = () => `Câu hỏi AI-15 số ${++seq}: bạn xử lý xung đột trong nhóm thế nào?`;
 const flowsCreates = () => calls.filter((c) => c.method === "POST" && c.url.endsWith("/v1/flows/video"));
-const didCalls = () => calls.filter((c) => c.url.startsWith("https://api.d-id.com"));
 
 async function waitForCostEvents(filter, expected) {
   for (let i = 0; i < 50; i++) {
@@ -140,13 +135,12 @@ async function waitForCostEvents(filter, expected) {
 }
 
 describe("AI-15: provider ElevenLabs", () => {
-  it("AVATAR_PROVIDER=elevenlabs: gửi ảnh + audio base64 với creatify-aurora, trả content_url, không gọi D-ID", async () => {
+  it("mặc định chạy ElevenLabs: gửi ảnh + audio base64 với creatify-aurora, trả content_url", async () => {
     const out = await avatar.generateVideoForQuestion(newQuestion(), { gender: "female" });
 
     assert.equal(out.provider, "elevenlabs");
     assert.equal(out.fromCache, false);
     assert.match(out.videoUrl, /^https:\/\/storage\.elevenlabs\.test\/gen_\d+\.mp4/);
-    assert.equal(didCalls().length, 0, "không gọi D-ID");
 
     const [create] = flowsCreates();
     assert.ok(create, "có gọi POST /v1/flows/video");
@@ -172,37 +166,32 @@ describe("AI-15: provider ElevenLabs", () => {
     assert.equal(create.body.resolution, "480p");
   });
 
-  it("không trả video D-ID cũ từ cache khi đổi sang ElevenLabs; đổi lại D-ID vẫn trúng cache cũ", async () => {
+  it("đổi model không trả video model cũ từ cache; đổi lại model cũ vẫn trúng cache", async () => {
     const q = newQuestion();
-    setEnv({ AVATAR_PROVIDER: "did" });
-    const fromDid = await avatar.generateVideoForQuestion(q, { gender: "female" });
-    assert.equal(fromDid.videoUrl, "https://d-id.example/video.mp4");
+    const aurora = await avatar.generateVideoForQuestion(q, { gender: "female" });
 
-    setEnv({ AVATAR_PROVIDER: "elevenlabs" });
+    setEnv({ ELEVENLABS_VIDEO_MODEL: "veed-fabric" });
     calls = [];
-    const fromEleven = await avatar.generateVideoForQuestion(q, { gender: "female" });
-    assert.equal(fromEleven.fromCache, false);
-    assert.notEqual(fromEleven.videoUrl, fromDid.videoUrl);
+    const fabric = await avatar.generateVideoForQuestion(q, { gender: "female" });
+    assert.equal(fabric.fromCache, false);
+    assert.notEqual(fabric.videoUrl, aurora.videoUrl);
     assert.equal(flowsCreates().length, 1);
 
     calls = [];
     const again = await avatar.generateVideoForQuestion(q, { gender: "female" });
     assert.equal(again.fromCache, true);
-    assert.equal(again.videoUrl, fromEleven.videoUrl);
     assert.equal(flowsCreates().length, 0, "trúng cache thì không gọi ElevenLabs");
 
-    setEnv({ AVATAR_PROVIDER: "did" });
-    const backToDid = await avatar.generateVideoForQuestion(q, { gender: "female" });
-    assert.equal(backToDid.fromCache, true);
-    assert.equal(backToDid.videoUrl, fromDid.videoUrl);
+    setEnv();
+    const backToAurora = await avatar.generateVideoForQuestion(q, { gender: "female" });
+    assert.equal(backToAurora.fromCache, true);
+    assert.equal(backToAurora.videoUrl, aurora.videoUrl);
   });
 
   it("cache key có provider và model", () => {
-    const base = { questionText: "Câu?", avatarImageUrl: "img", azureVoiceId: "vi", elevenLabsVoiceId: "v" };
-    const did = avatar.buildCacheKey({ ...base, provider: "did", model: "express" });
+    const base = { questionText: "Câu?", avatarImageUrl: "img", voiceTag: "vi", elevenLabsVoiceId: "v" };
     const aurora = avatar.buildCacheKey({ ...base, provider: "elevenlabs", model: "creatify-aurora" });
     const fabric = avatar.buildCacheKey({ ...base, provider: "elevenlabs", model: "veed-fabric" });
-    assert.match(did, /^did:v3:/, "D-ID giữ key cũ để không render lại baseline");
     assert.match(aurora, /^avatar:elevenlabs:creatify-aurora:/);
     assert.notEqual(aurora, fabric);
   });
@@ -218,7 +207,7 @@ describe("AI-15: provider ElevenLabs", () => {
     assert.equal(lines[0].failedStep, "videoRenderMs");
   });
 
-  it("thiếu giọng ElevenLabs: không tạo job video (không có Azure TTS dự phòng như D-ID)", async () => {
+  it("thiếu giọng ElevenLabs: không tạo job video", async () => {
     setEnv({ ELEVENLABS_VOICE_ID_FEMALE: "", ELEVENLABS_VOICE_ID_MALE: "", ELEVENLABS_VOICE_ID: "" });
     await assert.rejects(avatar.generateVideoForQuestion(newQuestion()), /cần audio ElevenLabs/);
     assert.equal(flowsCreates().length, 0);
@@ -231,7 +220,7 @@ describe("AI-15: provider ElevenLabs", () => {
     assert.equal(calls.length, 0);
   });
 
-  it("circuit breaker tách theo provider: ElevenLabs lỗi 3 lần thì mở, D-ID không bị ảnh hưởng", async () => {
+  it("circuit breaker: ElevenLabs lỗi 3 lần thì mở, không gọi thêm", async () => {
     elevenMode = "create_401";
     for (let i = 0; i < 3; i++) {
       const [r] = await avatar.pregenerateVideos([newQuestion()]);
@@ -241,11 +230,6 @@ describe("AI-15: provider ElevenLabs", () => {
     calls = [];
     await assert.rejects(avatar.generateVideoForQuestion(newQuestion()), /elevenlabs circuit open/);
     assert.equal(calls.length, 0, "circuit mở thì không gọi ElevenLabs");
-
-    setEnv({ AVATAR_PROVIDER: "did" });
-    assert.equal(avatar.isCircuitOpen(), false);
-    const out = await avatar.generateVideoForQuestion(newQuestion());
-    assert.equal(out.provider, "did");
   });
 
   it("GET /api/ai/config báo provider, model và videoEnabled", async () => {
@@ -253,16 +237,15 @@ describe("AI-15: provider ElevenLabs", () => {
     assert.equal(body.providers.avatar.provider, "elevenlabs");
     assert.equal(body.providers.avatar.model, "creatify-aurora");
     assert.equal(body.providers.avatar.videoEnabled, true);
-    assert.equal(body.providers.avatar.did, true, "giữ field cũ cho FE bản trước");
+    assert.equal(body.providers.avatar.did, undefined, "field cũ `did` đã gỡ ở AI-17");
 
     setEnv({ ELEVENLABS_API_KEY: "" });
     body = await (await fetch(`${http.baseUrl}/api/ai/config`)).json();
-    assert.equal(body.providers.avatar.videoEnabled, false, "thiếu key ElevenLabs thì tắt video dù có D_ID_API_KEY");
+    assert.equal(body.providers.avatar.videoEnabled, false, "thiếu key ElevenLabs thì tắt video");
 
-    setEnv({ AVATAR_PROVIDER: "did" });
+    setEnv({ ELEVENLABS_API_KEY: "test-eleven-key", AVATAR_PROVIDER: "did" });
     body = await (await fetch(`${http.baseUrl}/api/ai/config`)).json();
-    assert.equal(body.providers.avatar.provider, "did");
-    assert.equal(body.providers.avatar.model, "express");
+    assert.equal(body.providers.avatar.provider, "elevenlabs", "giá trị cũ AVATAR_PROVIDER=did rơi về elevenlabs");
   });
 });
 
@@ -320,8 +303,6 @@ describe("AI-15: provider giả lập qua lớp provider", () => {
       model: () => "fake-v1",
       isEnabled: () => true,
       missingConfigMessage: "fake chưa cấu hình",
-      audioInput: "buffer",
-      requiresAudio: true,
       rawUrlTtlSec: 60,
       costKind: "avatar_video_elevenlabs",
       circuit: createCircuitBreaker("fake"),
@@ -341,7 +322,7 @@ describe("AI-15: provider giả lập qua lớp provider", () => {
     assert.equal(out.provider, "fake");
     assert.equal(seen.length, 1);
     assert.equal(seen[0].audio.buffer.length, TTS_BYTES);
-    assert.equal(seen[0].audio.url, null, "provider nhận buffer thì không upload Cloudinary");
+    assert.equal(seen[0].audio.url, undefined, "audio gửi thẳng dạng buffer, không upload Cloudinary");
     assert.match(seen[0].imageUrl, /AI-male/);
     assert.equal(avatar.getAvatarProvider(), "fake");
 

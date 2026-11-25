@@ -1,26 +1,24 @@
 /**
- * Chọn provider video avatar theo `AVATAR_PROVIDER=did | elevenlabs` (AI-15). Mặc định `did`
- * cho tới khi QA-08 đo ElevenLabs đạt rồi đổi env, không cần deploy lại code.
+ * Chọn provider video avatar theo `AVATAR_PROVIDER` (AI-15). Từ AI-17 chỉ còn `elevenlabs`
+ * (D-ID đã gỡ); giữ lớp provider để thêm nhà cung cấp khác không phải sửa avatarService.
  *
  * Mỗi provider có cùng hình dạng:
- *   { name, model(), isEnabled(), missingConfigMessage, audioInput: "url" | "buffer",
- *     requiresAudio, rawUrlTtlSec, costKind, circuit, createJob(p), waitForResult(id, { signal }) }
+ *   { name, model(), isEnabled(), missingConfigMessage, rawUrlTtlSec, costKind, circuit,
+ *     createJob({ imageUrl, audio: { buffer, contentType } }), waitForResult(id, { signal }) }
  */
-import { didProvider } from "./didProvider.js";
 import { elevenLabsVideoProvider } from "./elevenLabsVideoProvider.js";
 
 export const AVATAR_PROVIDERS = Object.freeze({
-  did: didProvider,
   elevenlabs: elevenLabsVideoProvider,
 });
 
 export const AVATAR_PROVIDER_NAMES = Object.freeze(Object.keys(AVATAR_PROVIDERS));
 
-const DEFAULT_PROVIDER = "did";
+const DEFAULT_PROVIDER = "elevenlabs";
 
 let testOverride = null;
 
-/** Tên provider đang chạy. Giá trị lạ trong env → mặc định (`did`). */
+/** Tên provider đang chạy. Giá trị lạ trong env (kể cả `did` cũ) → mặc định. */
 export function getAvatarProvider() {
   if (testOverride) return testOverride.name;
   const explicit = process.env.AVATAR_PROVIDER?.trim().toLowerCase();

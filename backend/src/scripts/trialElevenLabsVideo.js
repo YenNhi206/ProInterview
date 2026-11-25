@@ -135,7 +135,7 @@ async function main() {
   console.log(`\nMẫu gốc (có link video để xem, link hết hạn ~1 giờ): ${path.relative(process.cwd(), file)}`);
   console.log("Chọn model → đặt ELEVENLABS_VIDEO_MODEL; điền ELEVENLABS_VIDEO_CREDITS_PER_SECOND theo cột Credit / giây (AI-16).");
   if (!summary.some((s) => s.meetsP95)) {
-    console.log("Không model nào đạt p95 ≤ 130 giây: theo AI-14 thì dừng, giữ D-ID, báo nhóm.");
+    console.log("Không model nào đạt p95 ≤ 130 giây: báo nhóm (D-ID đã gỡ ở AI-17; còn giọng trình duyệt + ảnh tĩnh).");
   }
 }
 

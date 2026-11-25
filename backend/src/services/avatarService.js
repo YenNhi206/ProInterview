@@ -1,24 +1,22 @@
 /**
  * avatarService.js
- * Video avatar lip-sync cho câu hỏi phỏng vấn, qua lớp provider (AI-15).
- *
- * Provider chọn bằng `AVATAR_PROVIDER=did | elevenlabs` (mặc định `did`), xem `avatarProviders/`.
+ * Video avatar lip-sync cho câu hỏi phỏng vấn, qua lớp provider (AI-15). Từ AI-17 chỉ còn
+ * ElevenLabs (`POST /v1/flows/video`), xem `avatarProviders/`.
  *
  * Flow mỗi câu:
  *   1. Tra cache Redis (key có provider + model) → có thì trả ngay
- *   2. ElevenLabs TTS → audio buffer (ttsService.js)
- *      - D-ID cần URL công khai → upload Cloudinary; thiếu ElevenLabs thì D-ID tự đọc bằng Azure TTS
- *      - ElevenLabs video nhận audio base64 trực tiếp; thiếu audio thì không render được
- *   3. Provider tạo job → poll tới khi xong → URL video tự hết hạn (D-ID ~24h, ElevenLabs ~1h)
+ *   2. ElevenLabs TTS → audio buffer (ttsService.js); thiếu audio thì không render được
+ *   3. Provider tạo job → poll tới khi xong → `content_url` tự hết hạn ~1 giờ
  *   4. opts.persistVideo: mirror sang Cloudinary, cache không TTL.
  *      Ngược lại (hoặc mirror lỗi): cache link gốc với TTL ngắn của provider — không bao giờ cache
  *      link tự hết hạn với TTL dài.
+ *   Lỗi ở bước nào thì FE rơi về giọng trình duyệt + ảnh tĩnh.
  *
  * Env:
- *   AVATAR_PROVIDER=did | elevenlabs — provider đang chạy
+ *   AVATAR_PROVIDER=elevenlabs — provider đang chạy (giá trị khác → elevenlabs)
  *   HR_AVATAR_IMAGE_URL / HR_AVATAR_MALE_URL — ảnh tĩnh avatar nữ / nam
  *   AVATAR_PIPELINE_VERSION — đổi để vô hiệu toàn bộ cache video
- *   D_ID_API_KEY (provider did), ELEVENLABS_* (provider elevenlabs, xem elevenLabsVideoProvider.js)
+ *   ELEVENLABS_* — xem ttsService.js và avatarProviders/elevenLabsVideoProvider.js
  */
 
 import crypto from "crypto";
@@ -30,9 +28,8 @@ import { calcTTSCost, calcAvatarVideoCost } from "./costCalculator.js";
 import { logger } from "../config/logger.js";
 import { createStepTimer } from "../utils/stepTimer.js";
 import { getAvatarProvider, getActiveAvatarProvider } from "./avatarProviders/index.js";
-import { DID_BASE, didHeaders, isDIDEnabled } from "./avatarProviders/didProvider.js";
 
-export { getAvatarProvider, isDIDEnabled };
+export { getAvatarProvider };
 
 const DEFAULT_AVATAR_FEMALE_URL =
   "https://res.cloudinary.com/dee4bvivu/image/upload/v1778910708/AI-female_gxbcf1.png";
@@ -51,7 +48,7 @@ export function isAvatarVideoEnabled() {
   return getActiveAvatarProvider().isEnabled();
 }
 
-/** Model của provider đang chạy (D-ID: `express`; ElevenLabs: `ELEVENLABS_VIDEO_MODEL`). */
+/** Model của provider đang chạy (`ELEVENLABS_VIDEO_MODEL`, mặc định `creatify-aurora`). */
 export function getAvatarModel() {
   return getActiveAvatarProvider().model();
 }
@@ -66,27 +63,24 @@ export function isCircuitOpen() {
   return getActiveAvatarProvider().circuit.isOpen();
 }
 
-// ── Azure TTS voice map (chỉ D-ID dùng khi không có ElevenLabs) ───────────────
-
-const AZURE_VOICES = {
-  female: "vi-VN-HoaiMyNeural",
-  male:   "vi-VN-NamMinhNeural",
-};
-
 // ── Cache key ─────────────────────────────────────────────────────────────────
 
 const AVATAR_PIPELINE_VERSION = process.env.AVATAR_PIPELINE_VERSION ?? "";
 
+// Nhãn giọng theo giới tính trong cache key. Trước AI-17 đây là giọng Azure của D-ID; giữ nguyên
+// chuỗi để video ElevenLabs đã warm ở AI-15 vẫn trúng cache sau khi gỡ D-ID.
+const VOICE_TAGS = {
+  female: "vi-VN-HoaiMyNeural",
+  male:   "vi-VN-NamMinhNeural",
+};
+
 /**
- * Key gồm nội dung câu, ảnh, giọng, provider và model, để đổi provider/model không trả video cũ.
- * D-ID giữ nguyên dạng key cũ (`did:v3:`) để không phải render lại video baseline đã cache;
- * provider khác dùng `avatar:<provider>:<model>:`.
+ * Key gồm nội dung câu, ảnh, giọng, provider và model, để đổi giọng / ảnh / model không trả video cũ.
  */
-export function buildCacheKey({ provider, model, questionText, avatarImageUrl, azureVoiceId, elevenLabsVoiceId }) {
+export function buildCacheKey({ provider, model, questionText, avatarImageUrl, voiceTag, elevenLabsVoiceId }) {
   const versionPrefix = AVATAR_PIPELINE_VERSION ? `${AVATAR_PIPELINE_VERSION}::` : "";
-  const raw = `${versionPrefix}${questionText.trim()}::${avatarImageUrl}::${azureVoiceId ?? "default"}::${elevenLabsVoiceId ?? "azure"}`;
+  const raw = `${versionPrefix}${questionText.trim()}::${avatarImageUrl}::${voiceTag ?? "default"}::${elevenLabsVoiceId ?? "azure"}`;
   const hash = crypto.createHash("md5").update(raw).digest("hex");
-  if (provider === "did") return `did:v3:${hash}`;
   return `avatar:${provider}:${model}:${hash}`;
 }
 
@@ -101,14 +95,12 @@ function estimateAudioSeconds(buffer) {
 }
 
 /**
- * ElevenLabs TTS → audio buffer; `uploadUrl` thì upload thêm lên Cloudinary để lấy URL công khai.
- * Trả null khi ElevenLabs chưa cấu hình hoặc lỗi (D-ID sẽ dùng Azure TTS).
- *
- * @returns {Promise<{buffer: Buffer, contentType: string, url: string|null, seconds: number|null}|null>}
+ * ElevenLabs TTS → audio buffer. Trả null khi ElevenLabs chưa cấu hình giọng hoặc lỗi.
+ * @returns {Promise<{buffer: Buffer, contentType: string, seconds: number|null}|null>}
  */
-async function generateAudio(text, { gender = "female", traceId, uploadUrl }) {
+async function generateAudio(text, { gender = "female", traceId }) {
   if (!isElevenLabsEnabled()) {
-    logger.info("avatar_tts_provider", { provider: "did_azure", reason: "ElevenLabs voice ID not configured" });
+    logger.info("avatar_tts_provider", { provider: "none", reason: "ElevenLabs voice ID not configured" });
     return null;
   }
 
@@ -116,18 +108,6 @@ async function generateAudio(text, { gender = "female", traceId, uploadUrl }) {
     const elevenLabsVoiceId = getElevenLabsVoiceId(gender);
     const ttsResult = await synthesizeSpeech(text, { voiceId: elevenLabsVoiceId });
     if (!ttsResult) return null;
-
-    let url = null;
-    if (uploadUrl) {
-      const cdn = await uploadToCloudinary(ttsResult.buffer, {
-        folder:        "prointerview/tts-audio",
-        resource_type: "video",
-        format:        "mp3",
-        overwrite:     false,
-      });
-      if (!cdn) return null; // Cloudinary chưa cấu hình → D-ID không đọc được audio
-      url = cdn.url;
-    }
     logger.info("avatar_tts_provider", { provider: "elevenlabs", gender, voiceId: elevenLabsVoiceId });
 
     const ttsCost = calcTTSCost(text.length);
@@ -135,14 +115,13 @@ async function generateAudio(text, { gender = "female", traceId, uploadUrl }) {
       traceId,
       name: "tts_elevenlabs",
       input: { characters: text.length, gender, voiceId: elevenLabsVoiceId },
-      output: { audioUrl: url },
+      output: {},
       metadata: { costUsd: ttsCost.usd, costVnd: Math.round(ttsCost.vnd) },
     });
 
     return {
       buffer: ttsResult.buffer,
       contentType: ttsResult.contentType,
-      url,
       seconds: estimateAudioSeconds(ttsResult.buffer),
     };
   } catch (err) {
@@ -159,7 +138,6 @@ async function generateAudio(text, { gender = "female", traceId, uploadUrl }) {
  */
 async function mirrorVideoToCloudinary(resultUrl) {
   try {
-    // 60s: tải MP4 từ S3 không có CDN có thể chậm; 30s từng làm mirror luôn rớt về link gốc.
     const res = await fetch(resultUrl, { signal: AbortSignal.timeout(60_000) });
     if (!res.ok) {
       logger.warn("avatar_video_mirror_fetch_not_ok", { status: res.status });
@@ -192,7 +170,6 @@ function isMockMode() {
  * @param {string} questionText
  * @param {object} [opts]
  * @param {"female"|"male"} [opts.gender="female"]
- * @param {string} [opts.voiceId]         - Azure voice override (chỉ D-ID không có ElevenLabs)
  * @param {string} [opts.avatarImageUrl]  - Override ảnh avatar
  * @param {string} [opts.traceId]         - Langfuse trace ID (chi phí, cache hit/miss)
  * @param {boolean} [opts.persistVideo=false] - Mirror sang Cloudinary + cache không TTL
@@ -220,10 +197,9 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
   }
 
   const model = provider.model();
-  const { gender = "female", voiceId, avatarImageUrl, traceId } = opts;
+  const { gender = "female", avatarImageUrl, traceId } = opts;
   const { avatarUrl, maleUrl } = cfg();
   const resolvedAvatarUrl = avatarImageUrl ?? (gender === "male" ? maleUrl : avatarUrl);
-  const resolvedVoiceId = voiceId ?? AZURE_VOICES[gender] ?? AZURE_VOICES.female;
   // Voice ElevenLabs nằm trong cache key: đổi giọng clone phải render lại.
   const elevenLabsVoiceId = isElevenLabsEnabled() ? getElevenLabsVoiceId(gender) : null;
   const persistVideo = Boolean(opts.persistVideo);
@@ -234,12 +210,12 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
 
   const cacheKey = buildCacheKey({
     provider: provider.name, model, questionText,
-    avatarImageUrl: resolvedAvatarUrl, azureVoiceId: resolvedVoiceId, elevenLabsVoiceId,
+    avatarImageUrl: resolvedAvatarUrl, voiceTag: VOICE_TAGS[gender] ?? VOICE_TAGS.female, elevenLabsVoiceId,
   });
   const cached = await timing.step("cacheLookupMs", () => cacheGet(cacheKey));
   if (cached) {
     logger.info("avatar_video_timing", timing.summary({ ...logBase, fromCache: true, ok: true }));
-    const cacheCost = calcAvatarVideoCost(true, { provider: provider.name });
+    const cacheCost = calcAvatarVideoCost(true);
     logEvent({
       traceId,
       name: provider.costKind,
@@ -254,16 +230,11 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
   let talkId;
   let videoUrl;
   try {
-    audio = await timing.step("ttsMs", () => generateAudio(questionText, {
-      gender, traceId, uploadUrl: provider.audioInput === "url",
-    }));
-    if (provider.requiresAudio && !audio) {
+    audio = await timing.step("ttsMs", () => generateAudio(questionText, { gender, traceId }));
+    if (!audio) {
       throw new Error(`${provider.name} cần audio ElevenLabs TTS (thiếu ELEVENLABS_VOICE_ID_* hoặc TTS lỗi).`);
     }
-
-    talkId = await timing.step("videoCreateMs", () => provider.createJob({
-      imageUrl: resolvedAvatarUrl, audio, text: questionText, azureVoiceId: resolvedVoiceId,
-    }));
+    talkId = await timing.step("videoCreateMs", () => provider.createJob({ imageUrl: resolvedAvatarUrl, audio }));
     videoUrl = await timing.step("videoRenderMs", () => provider.waitForResult(talkId, { signal }));
   } catch (err) {
     logger.warn("avatar_video_timing", timing.summary({
@@ -273,7 +244,6 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
       failedStep: timing.current,
       error: err.message,
       talkId,
-      ttsProvider: audio ? "elevenlabs" : "did_azure",
     }));
     throw err;
   }
@@ -296,11 +266,10 @@ export async function generateVideoForQuestion(questionText, opts = {}, signal) 
     fromCache: false,
     ok: true,
     talkId,
-    ttsProvider: audio ? "elevenlabs" : "did_azure",
     mirrored: Boolean(mirrored),
   }));
 
-  const genCost = calcAvatarVideoCost(false, { provider: provider.name, seconds: audio?.seconds ?? null });
+  const genCost = calcAvatarVideoCost(false, { seconds: audio.seconds });
   logEvent({
     traceId,
     name: provider.costKind,
@@ -384,29 +353,4 @@ export async function pregenerateVideos(questions, opts = {}, onProgress, signal
   // Ghi lỗi Q2…N vào circuit để học được cả khi Q1 trúng cache (0 lời gọi provider).
   const remainingResults = await Promise.all(questions.slice(1).map((q) => runOne(q, { recordSuccess: false })));
   return [firstResult, ...remainingResults];
-}
-
-// ── D-ID riêng (gỡ ở AI-17) ──────────────────────────────────────────────────
-
-/** Thông tin usage của tài khoản D-ID. */
-export async function getDIDUsage() {
-  if (!isDIDEnabled()) return null;
-  const res = await fetch(`${DID_BASE}/credits`, {
-    headers: didHeaders(),
-    signal:  AbortSignal.timeout(10_000),
-  });
-  if (!res.ok) return null;
-  return res.json();
-}
-
-/** Danh sách presenter (avatar có sẵn) của D-ID. */
-export async function listDIDPresenters() {
-  if (!isDIDEnabled()) return [];
-  const res = await fetch(`${DID_BASE}/presenters`, {
-    headers: didHeaders(),
-    signal:  AbortSignal.timeout(10_000),
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.presenters ?? [];
 }

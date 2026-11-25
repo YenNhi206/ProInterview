@@ -48,7 +48,7 @@ function validateEnv() {
 /**
  * Redis (Upstash) là bắt buộc ở production — cacheService.js fail-fast (throw) khi Redis lỗi
  * thay vì fallback im lặng sang in-memory Map (mỗi Render instance có Map riêng, mất khi
- * restart → cache hit rate tụt không ai biết, tốn credit D-ID/LLM lãng phí). Chặn sớm ở đây
+ * restart → cache hit rate tụt không ai biết, tốn credit video avatar/LLM lãng phí). Chặn sớm ở đây
  * để server không khởi động được với cấu hình thiếu, thay vì lỗi rải rác ở runtime.
  */
 function validateRedisProd() {

@@ -52,7 +52,7 @@ Chi tiết triển khai và kiểm thử: [`docs/CART_BOOKING_PORT.md`](./docs/C
 | Phần | Nội dung |
 |:-----|:---------|
 | **A** | Backend Express — entrypoint `backend/src/server.js` |
-| **B** | Supabase Edge (CV), D-ID — FE gọi trực tiếp |
+| **B** | Supabase Edge (CV) — FE gọi trực tiếp. Video avatar ElevenLabs do backend gọi (`avatarProviders/`), FE không gọi thẳng |
 | **C** | Tham chiếu contract (method/path); **BE/FE** xem [`ROADMAP.md`](./ROADMAP.md) Phase 1–5 |
 
 ---
@@ -99,7 +99,7 @@ Chi tiết triển khai và kiểm thử: [`docs/CART_BOOKING_PORT.md`](./docs/C
 | `PORT` | Cổng backend (mặc định `5000`). |
 | `CORS_ORIGIN` | Danh sách origin CORS (tùy chọn). |
 | `VITE_API_URL` | FE: base URL backend production (`frontend/src/app/utils/api.js`). |
-| D-ID API key | FE phỏng vấn AI — `useDIDStream` / cấu hình trang Interview. |
+| `ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID_*` | BE: giọng và video avatar phỏng vấn AI (`AVATAR_PROVIDER=elevenlabs`; D-ID đã gỡ ở AI-17). |
 
 ---
 
@@ -109,13 +109,11 @@ Chi tiết triển khai và kiểm thử: [`docs/CART_BOOKING_PORT.md`](./docs/C
 |:------|:---------|
 | **Express** | Dev: cùng origin, Vite proxy `/api` → `http://localhost:5000`. Prod: `VITE_API_URL` (bỏ `/` cuối) hoặc `http://localhost:5000`. |
 | **Supabase Edge** | `https://<projectId>.supabase.co/functions/v1/make-server-64a0c849/` — `projectId` từ `/utils/supabase/info.js`. |
-| **D-ID** | `https://api.d-id.com` |
 
 | Nguồn | Header / auth |
 |:------|:--------------|
 | **Express** | `Authorization: Bearer <access_token>` từ `POST /api/auth/login` hoặc `/google`. **Không** dùng JWT Supabase cho `/api/*`. |
 | **Supabase Edge** | `Authorization: Bearer <token>` khi có. Edge có thể từ chối JWT backend — FE có fallback demo. **Không** gửi `apikey` (CORS). |
-| **D-ID** | `Authorization: Basic base64(<API_KEY> + ":")` và `Content-Type: application/json`. |
 
 ---
 
@@ -410,13 +408,11 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
-| GET | `/api/ai/config` | — | Cấu hình provider công khai. `providers.avatar`: `provider` (`did` | `elevenlabs`, env `AVATAR_PROVIDER`, AI-15), `model`, `videoEnabled` (provider đang chạy có key và circuit chưa mở; FE dựa vào đây để gọi pregen), `did` (tên cũ của `videoEnabled`, gỡ ở AI-17), `circuitOpen` |
+| GET | `/api/ai/config` | — | Cấu hình provider công khai. `providers.avatar`: `provider` (`elevenlabs`, env `AVATAR_PROVIDER`, AI-15), `model`, `videoEnabled` (provider đang chạy có key và circuit chưa mở; FE dựa vào đây để gọi pregen), `circuitOpen`. Field `did` và các route D-ID (`/api/ai/avatar/presenters`, `/api/ai/avatar/usage`, `/api/ai/did/streams*`) đã gỡ ở AI-17 |
 | POST | `/api/ai/transcribe` | Bearer | Speech-to-text |
 | POST | `/api/ai/tts` | Bearer | Text-to-speech |
 | GET | `/api/ai/tts/voices` | Bearer | Danh sách giọng |
 | POST | `/api/ai/emotion` | Bearer | Phân tích cảm xúc audio |
-| GET | `/api/ai/avatar/presenters` | Bearer | Presenter D-ID |
-| GET | `/api/ai/avatar/usage` | Bearer | Usage quota avatar |
 | POST | `/api/ai/interview/pregenerate` | Bearer | Pregen câu hỏi + TTS (sync) |
 | POST | `/api/ai/interview/pregen/start` | Bearer | Pregen async → `jobId` |
 | GET | `/api/ai/interview/pregen/:jobId` | Bearer | Poll trạng thái pregen |
@@ -787,21 +783,9 @@ Job `aiImprovementMinerJob` tự backtest đề xuất mới (`backtest: null`).
 
 ---
 
-### B.2. D-ID — streaming avatar
+### B.2. D-ID — đã gỡ (AI-17)
 
-| | |
-|:--|:--|
-| **File** | `frontend/src/app/hooks/useDIDStream.js` |
-| **Host** | `https://api.d-id.com` |
-| **Auth** | `Authorization: Basic base64(<API_KEY> + ":")` |
-
-| # | Method | Path | Mô tả |
-|--:|:-------|:-----|:------|
-| 1 | POST | `/talks/streams` | Tạo stream — ví dụ `{ "source_url": "..." }` |
-| 2 | POST | `/talks/streams/{id}/ice` | ICE |
-| 3 | POST | `/talks/streams/{id}/sdp` | SDP answer |
-| 4 | POST | `/talks/streams/{id}` | Script (audio / text) |
-| 5 | DELETE | `/talks/streams/{id}` | Đóng stream |
+Streaming WebRTC (`useDIDStream`, proxy `/api/ai/did/streams*`) và video `/talks` đã gỡ. Video avatar dùng ElevenLabs `POST /v1/flows/video` từ backend.
 
 ---
 
@@ -1063,8 +1047,6 @@ Danh sách phẳng method/path (C.1–C.17) để tra cứu nhanh. **Đã có ro
 | POST | `/api/ai/tts` |
 | GET | `/api/ai/tts/voices` |
 | POST | `/api/ai/emotion` |
-| GET | `/api/ai/avatar/presenters` |
-| GET | `/api/ai/avatar/usage` |
 | POST | `/api/ai/interview/pregenerate` |
 | POST | `/api/ai/interview/pregen/start` |
 | GET | `/api/ai/interview/pregen/:jobId` |
@@ -1205,7 +1187,7 @@ Field presence trên `User`: `lastSeenAt` (heartbeat `/api/auth/presence` + `aut
 | Upload client | `frontend/src/app/api/uploadApi.js` |
 | Mentor client | `frontend/src/app/utils/mentorApi.js` |
 | CV (Express + Python) | `frontend/src/app/utils/cv/cvApi.js`, `pages/cv/CVAnalysis.jsx` |
-| D-ID stream | `frontend/src/app/hooks/useDIDStream.js` |
+| Video avatar provider | `backend/src/services/avatarProviders/` |
 | AI proxy routes | `backend/src/routes/aiProviders.js` |
 | Analytics routes | `backend/src/routes/analytics.js` |
 | Achievements routes | `backend/src/routes/achievements.js` |

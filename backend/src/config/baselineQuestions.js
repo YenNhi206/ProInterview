@@ -3,7 +3,7 @@
  * 3 câu hỏi phỏng vấn "baseline" — CỐ ĐỊNH, dùng chung cho TẤT CẢ user ở stage 1
  * (free trial, không cần đăng nhập / CV).
  *
- * Vì text không đổi, video avatar D-ID cho các câu này được cache theo
+ * Vì text không đổi, video avatar cho các câu này được cache theo
  * MD5(questionText + avatarImageUrl + voiceId) trong avatarService.js — generate
  * 1 lần / gender, dùng lại cho mọi user sau đó (xem videoPregenService.pregenerateSync).
  *

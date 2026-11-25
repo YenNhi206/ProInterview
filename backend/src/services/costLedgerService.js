@@ -44,7 +44,7 @@ export async function recordCostEvent({
   fromCache = false,
   metadata = {},
 }) {
-  // QA-01: Chế độ mock LLM/D-ID/ElevenLabs bằng biến môi trường -> không phát sinh CostEvent
+  // QA-01: Chế độ mock LLM/video avatar/ElevenLabs bằng biến môi trường -> không phát sinh CostEvent
   if (process.env.MOCK_AI_SERVICES === "true" || process.env.MOCK_AI === "true") {
     return null;
   }
@@ -190,7 +190,7 @@ export async function getCostDashboard({ days = 14 } = {}) {
 
 /**
  * Cache hit/miss + số lần render baseline thực tế trong tháng — alert nếu > 6 (Task 1.3).
- * Baseline render = video avatar (D-ID hoặc ElevenLabs, AI-16), fromCache=false, metadata.persistVideo=true
+ * Baseline render = video avatar (ElevenLabs; D-ID trước AI-17), fromCache=false, metadata.persistVideo=true
  * (persistVideo chỉ được set true cho baseline questions — xem avatarService.js).
  * @param {number} [days=30] - phạm vi tính hit/miss rate
  */

@@ -6,7 +6,7 @@
  * - API không nhận URL công khai: ảnh và audio gửi dạng `inline_base64` (≤ 25MB sau giải mã).
  * - `content_url` khi `completed` là link ký, hết hạn ~1 giờ → link gốc chỉ cache 30 phút; muốn
  *   giữ lâu phải mirror Cloudinary (`persistVideo`).
- * - Không có Azure TTS dự phòng như D-ID: thiếu audio ElevenLabs thì không render được.
+ * - Thiếu audio ElevenLabs thì không render được (không có TTS dự phòng phía provider).
  * - Generation `failed` không bị tính phí (theo tài liệu ElevenLabs).
  *
  * Env:
@@ -14,7 +14,7 @@
  *   ELEVENLABS_VIDEO_MODEL        — mặc định `creatify-aurora`
  *   ELEVENLABS_VIDEO_RESOLUTION   — `480p` | `720p` (mặc định `720p`)
  *   ELEVENLABS_VIDEO_POLL_MS      — khoảng cách poll, mặc định 10000 (AI-14: poll cách ≥ 10 giây)
- *   ELEVENLABS_VIDEO_TIMEOUT_MS   — hạn chờ render, mặc định 120000 (như D-ID; FE chờ pregen 150 giây)
+ *   ELEVENLABS_VIDEO_TIMEOUT_MS   — hạn chờ render, mặc định 120000 (FE chờ pregen 150 giây)
  *   ELEVENLABS_API_BASE           — mặc định https://api.elevenlabs.io
  */
 import { logger } from "../../config/logger.js";
@@ -168,8 +168,6 @@ export const elevenLabsVideoProvider = {
   model: getElevenLabsVideoModel,
   isEnabled: isElevenLabsVideoEnabled,
   missingConfigMessage: "ELEVENLABS_API_KEY chưa được cấu hình.",
-  audioInput: "buffer",
-  requiresAudio: true,
   rawUrlTtlSec: RAW_URL_TTL_SEC,
   costKind: COST_EVENT_KIND.AVATAR_VIDEO_ELEVENLABS,
   circuit: createCircuitBreaker("elevenlabs"),

@@ -3,8 +3,8 @@
  * Không có script này, user đầu tiên của mỗi gender phải đợi provider video render thật (~60-130s)
  * thay vì cache-hit ngay — xem avatarService.js (persistVideo → mirror Cloudinary, no-TTL).
  *
- * Không cần MongoDB — chỉ cần key của provider đang chạy (`AVATAR_PROVIDER`: D_ID_API_KEY hoặc
- * ELEVENLABS_API_KEY + giọng) và Redis/Cloudinary nếu muốn cache thật sự lâu dài.
+ * Không cần MongoDB — chỉ cần ELEVENLABS_API_KEY + giọng và Redis/Cloudinary nếu muốn cache
+ * thật sự lâu dài.
  * Đổi provider (AI-15) thì chạy lại: cache key có provider + model nên video cũ không dùng lại.
  *
  * Chạy: npm run warmup:baseline-videos
