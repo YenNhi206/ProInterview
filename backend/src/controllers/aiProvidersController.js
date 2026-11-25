@@ -24,6 +24,9 @@ import { isElevenLabsEnabled, getTTSProvider, synthesizeSpeech, listVoices } fro
 import { isHumeEnabled, getEmotionProvider, analyzeAudioEmotion, analyzeFaceEmotion } from "../services/emotionService.js";
 import {
   isDIDEnabled,
+  isAvatarVideoEnabled,
+  avatarVideoMissingConfigMessage,
+  getAvatarModel,
   isCircuitOpen,
   getAvatarProvider,
   getDIDUsage,
@@ -67,14 +70,17 @@ export const AIProvidersController = {
           googleVision: Boolean(process.env.GOOGLE_VISION_API_KEY),
         },
         avatar: {
-          provider:        getAvatarProvider(),
-          // did=false khi key chưa set HOẶC circuit breaker đang open (D-ID degraded)
-          // → frontend dùng giá trị này để quyết định có call pregen không
-          did:             isDIDEnabled() && !isCircuitOpen(),
+          provider:        getAvatarProvider(),   // AI-15: did | elevenlabs
+          model:           getAvatarModel(),
+          // videoEnabled=false khi provider đang chạy thiếu key HOẶC circuit breaker đang mở
+          // → frontend dùng giá trị này để quyết định có gọi pregen không
+          videoEnabled:    isAvatarVideoEnabled() && !isCircuitOpen(),
+          /** @deprecated đọc `videoEnabled`; giữ cho FE bản cũ, gỡ ở AI-17. */
+          did:             isAvatarVideoEnabled() && !isCircuitOpen(),
           circuitOpen:     isCircuitOpen(),
-          mode:            "express",  // express = async REST (pre-generated MP4)
+          mode:            "express",  // async REST (pre-generated MP4)
           redis:           Boolean(process.env.UPSTASH_REDIS_REST_URL),
-          elevenlabsAudio: isElevenLabsEnabled(),  // ElevenLabs feeds into D-ID
+          elevenlabsAudio: isElevenLabsEnabled(),  // audio TTS ElevenLabs cho video
         },
       },
     });
@@ -232,12 +238,8 @@ export const AIProvidersController = {
    * cache → buffer giữa chừng → video VÀ audio (chung 1 file mp4) cùng bị ngắt quãng khi phát.
    */
   pregenerateSync: async (req, res) => {
-    if (!isDIDEnabled()) {
-      return res.status(503).json({
-        success: false,
-        error:   "D_ID_API_KEY chưa được cấu hình.",
-        hint:    "Đăng ký tại studio.d-id.com → API keys → set D_ID_API_KEY trong .env",
-      });
+    if (!isAvatarVideoEnabled()) {
+      return res.status(503).json({ success: false, error: avatarVideoMissingConfigMessage() });
     }
 
     const { questions, gender = "male", voiceId } = req.body ?? {};
@@ -291,12 +293,8 @@ export const AIProvidersController = {
    * đầu tiên (per gender) tốn D-ID credit, mọi lần sau (toàn hệ thống) cache-hit ($0).
    */
   pregenerateBaseline: async (req, res) => {
-    if (!isDIDEnabled()) {
-      return res.status(503).json({
-        success: false,
-        error:   "D_ID_API_KEY chưa được cấu hình.",
-        hint:    "Đăng ký tại studio.d-id.com → API keys → set D_ID_API_KEY trong .env",
-      });
+    if (!isAvatarVideoEnabled()) {
+      return res.status(503).json({ success: false, error: avatarVideoMissingConfigMessage() });
     }
 
     const { gender = "male" } = req.body ?? {};
@@ -341,11 +339,8 @@ export const AIProvidersController = {
    * Frontend poll GET /pregen/:jobId để theo dõi tiến độ.
    */
   startPregenJob: async (req, res) => {
-    if (!isDIDEnabled()) {
-      return res.status(503).json({
-        success: false,
-        error:   "D_ID_API_KEY chưa được cấu hình.",
-      });
+    if (!isAvatarVideoEnabled()) {
+      return res.status(503).json({ success: false, error: avatarVideoMissingConfigMessage() });
     }
 
     const { questions, gender = "male", voiceId } = req.body ?? {};
