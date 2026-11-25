@@ -747,6 +747,17 @@ Hệ A cũ `/api/users/me/cvs*`, `/api/users/me/verified-competencies*` đã g�
 | GET | `/api/company/applications/:id` | `[COMPANY_MOD]` chi tiết kèm `snapshot`, `consent`, `history[]`. `snapshot.companyMetrics.answers[]` là câu trả lời kèm điểm rubric (JB-16, cùng dạng API JB-19); danh sách không trả trường này. FE: `/company/applications/:id` (JB-16). Đơn `submitted` mở lần đầu → `viewed` + báo ứng viên. Đơn công ty khác 404; đơn đã rút chỉ trả tên và "Đã rút" |
 | PATCH | `/api/company/applications/:id/status` | `[COMPANY_MOD]` `{ status: "viewed" \| "shortlisted" \| "rejected", note? }`; trạng thái khác 400; đơn `shortlisted` / `rejected` / `withdrawn` 409. Báo `application_status_changed` cho ứng viên (từ chối kèm `note`) |
 
+### A.24. Quality Dashboard — `GET /api/moderator/quality/stats` (spec S1 §4, bổ sung AI-07)
+
+**Service:** `moderationQualityService.js` (cache 5 phút theo kỳ) · **FE:** `/moderator/quality` (`ModeratorQuality.jsx`)
+
+Query `from?`, `to?` (ISO; mặc định 30 ngày gần nhất). Trả `{ success, stats, cached }`. Các trường có từ trước: `bank`, `queue`, `approvalRate`, `editRate`, `flagRate`, `incompleteEvalRate`, `aiModeratorAgreement`, `byCompetency`, `byPromptVersion`, `weeklyTrend`. AI-07 thêm:
+
+| Trường | Nội dung |
+|:-------|:---------|
+| `rubrics` | `pendingReview` (hiện tại), `pendingOver7d`, `oldestPendingHours` (chờ từ `CompanyRubric.submittedAt`, rubric cũ thiếu thì từ `updatedAt`); trong kỳ theo `moderationNote.reviewedAt`: `reviewedInPeriod`, `approvedInPeriod` (gồm bản đã bị thay, `archived`), `rejectedInPeriod`, `medianReviewHours` (reviewedAt − `submittedAt`), `withoutSubmitTime` (rubric gửi trước AI-07, không tính thời gian) |
+| `promptVersionChanges[]` | Tối đa 10 lần đổi version của `evaluation` / `question_gen` có thời điểm ≤ cuối kỳ, mới nhất trước: `{ promptKey, fromVersion, toVersion, activatedAt, change: "activate" \| "rollback", proposal: { _id, kind, groupKey } \| null, before, after, rateDelta }`. `before` / `after` = `{ sample, corrected, rate }` của version trước / sau, tính trên **toàn bộ dữ liệu ghi version đó** (không theo kỳ): `evaluation` = câu được moderator chấm lại / câu đã chấm (session có `feedback.promptVersion`); `question_gen` = câu bị sửa (approved có `revisions`) + khai tử / câu AI sinh đã có quyết định (`generatedBy.promptVersion`, pool chung). Bản bật trước AI-07 không có lịch sử: `fromVersion: null`, `before: null` |
+
 ### A.23. Đề xuất cải tiến AI — `/api/moderator/ai-improvements` (AI-04, AI-05)
 
 **File:** `routes/moderator.js` (`requireModerator`, ghi `moderator_action`; admin bị chặn) · **Controller:** `moderatorController.js` · **Service:** `aiImprovementReviewService.js`, `aiImprovementBacktestService.js` · **FE:** `/moderator/ai-improvements` (AI-06)

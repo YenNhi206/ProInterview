@@ -93,6 +93,11 @@ const companyRubricSchema = new Schema(
       type: [criterionSchema],
       default: [],
     },
+    /** AI-07: lần gửi duyệt gần nhất (`draft` / `rejected` → `pending_review`); đo thời gian duyệt. */
+    submittedAt: {
+      type: Date,
+      default: null,
+    },
     moderationNote: {
       type: moderationNoteSchema,
       default: () => ({}),

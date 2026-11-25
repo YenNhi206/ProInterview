@@ -635,6 +635,7 @@ erDiagram
         bool legacy "chuỗi cũ không còn nội dung"
         date activatedAt
         ObjectId activatedBy FK "→ USER"
+        array activations "AI-07: at, by, previousVersion, note — mỗi lần bật"
         string note
     }
     AI_IMPROVEMENT_PROPOSAL {
