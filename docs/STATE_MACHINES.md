@@ -470,9 +470,11 @@ stateDiagram-v2
 | Chuyển | Hàm / endpoint | Task |
 |:-------|:---------------|:-----|
 | → `proposed` | `mineImprovementProposals` (`services/aiImprovementMinerService.js`) trong `jobs/aiImprovementMinerJob.js` (mỗi ngày, lượt đầu sau 10 phút) | AI-03 |
-| `proposed` → `approved` / `rejected`; `approved` → `rolled_back` | `PATCH /api/moderator/ai-improvements/:id` | AI-05 (chưa code) |
+| `proposed` → `approved` / `rejected`; `approved` → `rolled_back` | `PATCH /api/moderator/ai-improvements/:id` (`reviewProposal`, `services/aiImprovementReviewService.js`) | AI-05 |
 
-**Đã code (AI-03):** miner gom `ModerationItem` `resolved` có `resolution.action` là `override_score` (target `evaluation`, nhóm theo `competencyId` của câu) hoặc `edit_question` / `deprecate_question` (target `question_gen`, nhóm theo `roleCategory`; bỏ câu công ty có `orgId`). Nhóm có ≥ `AI_IMPROVEMENT_MIN_EVIDENCE` (mặc định 5) item chưa dùng thì tạo PromptVersion mới **chưa bật** (`createVersion`: bản active + tối đa 3 few-shot từ ca lệch nhiều nhất, tổng tối đa 9) và 1 đề xuất `few_shot`, báo `ai_improvement_proposed` cho moderator. Mỗi item chỉ làm bằng chứng một lần; nhóm đang có đề xuất `proposed` thì item mới để lại tới lượt sau khi đề xuất được xử lý. Không job nào khác lọc theo status này.
+**Đã code (AI-03):** miner gom `ModerationItem` `resolved` có `resolution.action` là `override_score` (target `evaluation`, nhóm theo `competencyId` của câu) hoặc `edit_question` / `deprecate_question` (target `question_gen`, nhóm theo `roleCategory`; bỏ câu công ty có `orgId`). Nhóm có ≥ `AI_IMPROVEMENT_MIN_EVIDENCE` (mặc định 5) item chưa dùng thì tạo PromptVersion mới **chưa bật** (`createVersion`: bản active + tối đa 3 few-shot từ ca lệch nhiều nhất, tổng tối đa 9) và 1 đề xuất `few_shot`, báo `ai_improvement_proposed` cho moderator. Mỗi item chỉ làm bằng chứng một lần; nhóm đang có đề xuất `proposed` thì item mới để lại tới lượt sau khi đề xuất được xử lý. Cùng job backtest đề xuất `proposed` có `backtest: null` (AI-04); ngoài ra không job nào lọc theo status này.
+
+**Đã code (AI-05):** chuyển trạng thái có điều kiện trạng thái cũ (hai moderator bấm cùng lúc chỉ một người thành công); bật version lỗi thì trả trạng thái cũ. Duyệt chỉ khi bản đang chạy vẫn là `before.version`, rollback chỉ khi bản đang chạy vẫn là `after.version` (không thì 409). `rebase` giữ `proposed`, dựng lại `before`/`after` trên bản đang chạy và xóa `backtest`. `before.version` là bản mặc định trong code chưa có trong DB thì rollback tạo bản ghi từ code rồi bật.
 
 ---
 

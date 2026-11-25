@@ -649,7 +649,7 @@ erDiagram
         number evidence_avgScoreDelta "điểm moderator − điểm AI (0–5)"
         object before "promptKey, version, fewShotExamples"
         object after "promptKey, version (→ PROMPT_VERSION chưa bật), fewShotExamples"
-        object backtest "AI-04"
+        object backtest "AI-04: độ lệch trước/sau so với điểm chuẩn AI-01 (mae, bias, verdict)"
         object review "by → USER, at, note"
     }
 ```

@@ -85,6 +85,27 @@ export async function getActivePrompt(key) {
 }
 
 /**
+ * Một version cụ thể của `key` (không cần active), dạng giống `getActivePrompt`. Dùng cho backtest
+ * (AI-04). Version trùng bản mặc định trong code mà DB chưa có → bản mặc định.
+ * Chuỗi cũ không có nội dung (`legacy`) hoặc template không hợp lệ → 400; không thấy → 404.
+ */
+export async function getPromptByVersion(key, version) {
+  const entry = PROMPT_REGISTRY[key];
+  if (!entry) throw httpError(400, `Key prompt "${key}" chưa được đăng ký.`);
+  const doc = await PromptVersion.findOne({ key, version }).lean();
+  if (!doc) {
+    if (version === entry.default.version) return defaultPrompt(key);
+    throw httpError(404, `Không tìm thấy phiên bản "${version}" của prompt "${key}".`);
+  }
+  if (doc.legacy || !doc.template) {
+    throw httpError(400, `Phiên bản "${version}" là chuỗi cũ không có nội dung prompt.`);
+  }
+  const errors = validateTemplate(entry.spec, doc.template);
+  if (errors.length) throw httpError(400, `Template của "${version}" chưa hợp lệ: ${errors.join("; ")}.`);
+  return { key, version: doc.version, template: doc.template, fewShotExamples: doc.fewShotExamples ?? [], source: "db" };
+}
+
+/**
  * Bật `version` làm bản active của `key`, tắt bản cũ.
  * @param {{ by?: import("mongoose").Types.ObjectId|string|null, note?: string }} [opts]
  * @returns {Promise<object>} bản ghi đã bật

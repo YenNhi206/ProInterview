@@ -50,6 +50,7 @@ node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đ�
 npm run db:recompute-competency-profiles:dry  # đếm hồ sơ năng lực cần gộp lại (PR-06, không ghi DB)
 npm run db:recompute-competency-profiles      # gộp lại hồ sơ năng lực theo cách PR-06; chạy 1 lần trên staging/production sau khi merge
 npm run ai01:sheet / ai01:aggregate           # AI-01: sinh phiếu chấm 20 câu chuẩn / tổng hợp điểm chuẩn từ grades/*.csv
+node src/scripts/backtestAiProposal.js <proposalId|--pending>   # AI-04: chấm bản prompt trước/sau trên AI-01 + 10 câu cũ (gọi LLM thật); job miner tự chạy cho đề xuất mới
 npm run qa:sepay-reconcile           # QA-04: p50/p95 đối soát SePay trên 20 webhook `processed` mới nhất (chỉ đọc); đặt TARGET_MONGO_URI, SINCE, SAMPLE_SIZE
 npm run qa:sepay-reconcile:write     # như trên, ghi mục QA-04 vào docs/report/nfr-results.md (chỉ thay mục giữa marker)
 npm test                       # node:test + jest DTO + unittest Python
@@ -164,7 +165,7 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
-`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
+`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), đề xuất cải tiến AI (`/ai-improvements/*`, AI-05), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
 ### Models (`models/`) — 39 schema
 
@@ -174,7 +175,7 @@ Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed
 
 ### Jobs (`jobs/`)
 
-`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob` · `aiImprovementMinerJob` (mỗi ngày: gom ModerationItem đã xử lý thành đề xuất cải tiến AI + PromptVersion chưa bật, AI-03).
+`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob` · `aiImprovementMinerJob` (mỗi ngày: gom ModerationItem đã xử lý thành đề xuất cải tiến AI + PromptVersion chưa bật, AI-03; rồi backtest đề xuất chưa có kết quả trên bộ AI-01, AI-04).
 
 ### Middleware
 
