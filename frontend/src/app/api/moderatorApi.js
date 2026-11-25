@@ -60,6 +60,17 @@ export const moderatorApi = {
       body: JSON.stringify(hidden ? { hidden: true, reason } : { hidden: false }),
     }),
 
+  // ── Đề xuất cải tiến AI (API AI-05, màn AI-06) ──
+  /** @param {{ status?, target?, page?, limit? }} params */
+  listAiImprovements: (params = {}) => authedFetch(`/api/moderator/ai-improvements${toQuery(params)}`),
+  /** → { proposal, activeVersion, actions { approve, reject, rebase, rollback } } */
+  getAiImprovement: (id) => authedFetch(`/api/moderator/ai-improvements/${id}`),
+  /** action: approve | reject | rollback | rebase; reject / rollback cần note ≥ 3 ký tự. */
+  reviewAiImprovement: (id, { action, note = "" }) =>
+    authedFetch(`/api/moderator/ai-improvements/${id}`, { method: "PATCH", body: JSON.stringify({ action, note }) }),
+  /** Chạy lại backtest ở nền (202); tải lại chi tiết để xem kết quả. */
+  backtestAiImprovement: (id) => authedFetch(`/api/moderator/ai-improvements/${id}/backtest`, { method: "POST" }),
+
   // ── Quality dashboard ──
   getQualityStats: ({ from, to } = {}) => authedFetch(`/api/moderator/quality/stats${toQuery({ from, to })}`),
 };
