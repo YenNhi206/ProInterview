@@ -20,7 +20,7 @@ import { AIImprovementProposal, AI_IMPROVEMENT_STATUSES, AI_IMPROVEMENT_TARGETS 
 import { PromptVersion } from "../models/PromptVersion.js";
 import { PROMPT_REGISTRY } from "../prompts/index.js";
 import { activate, createVersion } from "./promptVersionService.js";
-import { MAX_VERSION_EXAMPLES } from "./aiImprovementMinerService.js";
+import { mergeFewShotExamples } from "../utils/fewShotMerge.js";
 import { runBacktest } from "./aiImprovementBacktestService.js";
 import { httpError } from "../utils/apiErrors.js";
 import { logger } from "../config/logger.js";
@@ -186,7 +186,7 @@ async function rebase(proposal, { by }) {
   const oldBase = new Set((proposal.before?.fewShotExamples ?? []).map(exampleId));
   const have = new Set(baseExamples.map(exampleId));
   const added = (proposal.after?.fewShotExamples ?? []).filter((e) => !oldBase.has(exampleId(e)) && !have.has(exampleId(e)));
-  const merged = [...baseExamples, ...added].slice(-MAX_VERSION_EXAMPLES);
+  const merged = mergeFewShotExamples(baseExamples, added);
 
   const version = await createVersion(key, {
     baseVersion: activeDoc?.version ?? null,

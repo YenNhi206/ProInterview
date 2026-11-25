@@ -289,10 +289,10 @@ describe("syncPromptVersions", () => {
     ]);
 
     const first = await sync.syncPromptVersions({ log: silent });
-    assert.deepEqual(first.created.sort(), ["companyq-v1", "eval-v1", "followup-v1", "prescreen-v1", "rubric-v1", "rubricreview-v1"]);
+    assert.deepEqual(first.created.sort(), ["anchor-v1", "companyq-v1", "eval-v1", "followup-v1", "prescreen-v1", "rubric-v1", "rubricreview-v1"]);
     assert.deepEqual(first.legacyCreated.sort(), ["eval-legacy", "followup-v0", "prov-only", "qgen-2025"]);
     const count = await PromptVersion.countDocuments();
-    assert.equal(count, 10);
+    assert.equal(count, 11);
 
     const second = await sync.syncPromptVersions({ log: silent });
     assert.deepEqual(second, { created: [], activated: [], legacyCreated: [], mismatched: [], conflicts: [] });
@@ -320,7 +320,7 @@ describe("syncPromptVersions", () => {
 
   it("không bật lại bản mặc định khi đã có version khác active; dry run không ghi", async () => {
     const dry = await sync.syncPromptVersions({ dryRun: true, log: silent });
-    assert.deepEqual(dry.created.sort(), ["companyq-v1", "eval-v1", "followup-v1", "prescreen-v1", "rubric-v1", "rubricreview-v1"]);
+    assert.deepEqual(dry.created.sort(), ["anchor-v1", "companyq-v1", "eval-v1", "followup-v1", "prescreen-v1", "rubric-v1", "rubricreview-v1"]);
     assert.equal(await PromptVersion.countDocuments(), 0);
 
     await sync.syncPromptVersions({ log: silent });

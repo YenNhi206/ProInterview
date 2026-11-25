@@ -12,7 +12,8 @@
  *
  * Điểm AI (0–5) quy ra mức LP-01 bằng `aiAnswerToLevel` (cùng hệ số `aiCalibration` như production).
  * Chỉ áp dụng cho target `evaluation`: đề xuất `question_gen` không có bộ chuẩn để chấm, ghi
- * `status: "not_applicable"`. Backtest không đổi trạng thái đề xuất và không bật version nào.
+ * `status: "not_applicable"`. Backtest không bật version nào và không đổi trạng thái đề xuất, trừ đề xuất
+ * `rubric_anchor` (AI-18) làm tăng độ lệch: tự chuyển `rejected`.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -270,6 +271,14 @@ export async function runBacktest(proposalId, { evaluate = defaultEvaluate, data
       ...(gold.before.n && gold.after.n ? {} : { error: "LLM không chấm được câu nào trong bộ AI-01." }),
     };
     await AIImprovementProposal.updateOne({ _id: proposal._id }, { $set: { backtest } });
+    // AI-18: ví dụ neo từ rubric công ty làm tăng độ lệch so với điểm chuẩn → tự loại.
+    if (proposal.kind === "rubric_anchor" && backtest.verdict === "worse") {
+      const rejected = await AIImprovementProposal.updateOne(
+        { _id: proposal._id, status: "proposed" },
+        { $set: { status: "rejected", review: { by: null, at: new Date(), note: `Tự loại: backtest AI-01 tăng độ lệch (${gold.before.mae} → ${gold.after.mae}).` } } },
+      );
+      if (rejected.modifiedCount) backtest.autoRejected = true;
+    }
     logger.info("ai_backtest_done", {
       proposalId: String(proposal._id), before: backtest.beforeVersion, after: backtest.afterVersion,
       maeBefore: gold.before.mae, maeAfter: gold.after.mae, verdict: backtest.verdict,

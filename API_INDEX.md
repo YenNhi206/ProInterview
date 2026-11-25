@@ -758,6 +758,8 @@ Hệ A cũ `/api/users/me/cvs*`, `/api/users/me/verified-competencies*` đã g�
 | PATCH | `/api/moderator/ai-improvements/:id` | Body `{ action, note? }`. `approve`: `proposed` → `approved`, bật `after.version`; bản đang chạy khác `before.version` (đề xuất khác cùng key đã được duyệt) → **409**, cần `rebase`. `reject` (bắt buộc `note` ≥ 3 ký tự): → `rejected`. `rollback` (bắt buộc `note`): `approved` → `rolled_back`, bật lại `before.version`; bản đang chạy không phải `after.version` → **409**. `rebase`: dựng lại `after` = bản đang chạy + ví dụ mới của đề xuất, xóa `backtest`. Sai trạng thái **409**. → `{ success, proposal, activeVersion }` |
 | POST | `/api/moderator/ai-improvements/:id/backtest` | Chạy lại backtest AI-04 ở nền (khoảng 12 lần gọi LLM). Chỉ đề xuất `proposed`; đang chạy (< 15 phút) → **409**. **202** `{ success, backtest: { status: "running", ranAt } }`; tải lại chi tiết để xem kết quả |
 
+Đề xuất `kind: rubric_anchor` (AI-18): `groupKey` = `shrmKey`, `evidence` có `companyCount`, `rubricIds`, `roleCategories`, `redactedInInput` / `redactedInOutput`; `after.fewShotExamples` có 1 ví dụ neo `note: "rubric_anchor:<shrmKey>"` (mức 0–5, đã ẩn tên công ty). Backtest làm tăng độ lệch → tự `rejected` (`review.by: null`, `backtest.autoRejected: true`).
+
 Job `aiImprovementMinerJob` tự backtest đề xuất mới (`backtest: null`). Chạy tay: `node src/scripts/backtestAiProposal.js <proposalId|--pending>`.
 
 ---
