@@ -11,6 +11,12 @@ import { trackAction } from "../../utils/analytics/analyticsApi.js";
 import { PRICING_SUBTITLE, PRICING_FAQ } from "../../constants/brandVoice";
 import { buildPlanCheckoutPath, getPlanDisplayAmount } from "../../constants/planCatalog.js";
 import { formatVnd } from "../../utils/shared/formatVnd.js";
+import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+  CUSTOMER_PAGE_SUBTITLE_CLASS,
+} from "../../components/layout/CustomerPageHeader";
 import "../../../styles/pricing-card-3d.css";
 
 /* ─── Helpers ────────────────────────────────────────────────── */
@@ -20,9 +26,9 @@ const UNLIMITED_HIGHLIGHT = "KHÔNG GIỚI HẠN";
 const LEADING_NUMBER = /^(\d+)(.*)$/;
 const PERCENT_PREFIX = /^(Ưu đãi )(\d+%)(.*)$/;
 const NUMBER_ACCENT_BY_VARIANT = {
-  outline: "text-violet-300 font-extrabold",
-  lime: "text-violet-300 font-extrabold",
-  elite: "text-violet-300 font-extrabold",
+  outline: "text-violet-300 [html[data-workspace-theme=light]_&]:text-[#8037f4] font-extrabold",
+  lime: "text-violet-300 [html[data-workspace-theme=light]_&]:text-[#8037f4] font-extrabold",
+  elite: "text-violet-300 [html[data-workspace-theme=light]_&]:text-[#8037f4] font-extrabold",
 };
 
 function FeatureLabel({ text, variant = "lime" }) {
@@ -77,10 +83,10 @@ function FaqItem({ item, index, isOpen, onToggle }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-      className={`overflow-hidden rounded-2xl border transition-all ${
+      className={`overflow-hidden rounded-[16px] border transition-all ${
         isOpen
-          ? "border-violet-500/60 bg-white/[0.08] shadow-[0_0_30px_rgba(128,55,244,0.25)]"
-          : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]"
+          ? "border-violet-400/60 bg-white/[0.08] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#8037f4] [html[data-workspace-theme=light]_&]:shadow-md"
+          : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:hover:border-violet-300 [html[data-workspace-theme=light]_&]:shadow-sm"
       }`}
     >
       <button
@@ -89,13 +95,13 @@ function FaqItem({ item, index, isOpen, onToggle }) {
         aria-expanded={isOpen}
         onClick={onToggle}
       >
-        <h4 className="text-sm font-bold text-white sm:text-base">{item.q}</h4>
+        <h4 className="text-sm font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] sm:text-base">{item.q}</h4>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 24 }}
           className="shrink-0"
         >
-          <ChevronDown className={`h-5 w-5 ${isOpen ? "text-violet-400" : "text-slate-400"}`} />
+          <ChevronDown className={`h-5 w-5 ${isOpen ? "text-violet-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" : "text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500"}`} />
         </motion.span>
       </button>
 
@@ -110,15 +116,15 @@ function FaqItem({ item, index, isOpen, onToggle }) {
             style={{ overflow: "hidden" }}
           >
             <div className="px-5 pb-5">
-              <div className="mt-3 space-y-3 border-t border-white/10 pt-3 text-sm leading-relaxed text-slate-300">
+              <div className="mt-3 space-y-3 border-t border-white/10 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] pt-3 text-sm leading-relaxed text-slate-300 [html[data-workspace-theme=light]_&]:text-[#23252f]">
                 {item.paragraphs?.map((p, idx) => <p key={idx}>{p}</p>)}
                 {item.bullets?.length ? (
-                  <ul className="list-disc space-y-2 pl-5 marker:text-violet-400">
+                  <ul className="list-disc space-y-2 pl-5 marker:text-violet-400 [html[data-workspace-theme=light]_&]:marker:text-[#8037f4]">
                     {item.bullets.map((b, idx) => <li key={idx}>{b}</li>)}
                   </ul>
                 ) : null}
                 {item.note && (
-                  <p className="rounded-xl border border-violet-500/30 bg-violet-950/60 px-3.5 py-2.5 text-[13px] font-medium text-violet-200">
+                  <p className="rounded-xl border border-violet-500/30 bg-violet-950/60 px-3.5 py-2.5 text-[13px] font-medium text-violet-200 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:text-[#6d28d9]">
                     {item.note}
                   </p>
                 )}
@@ -204,26 +210,28 @@ export function Pricing() {
   return (
     <MentorPageShell className="pricing-page" bottomPad="pb-28 sm:pb-36" showAmbient={false}>
       <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12">
-        <div className="mx-auto w-full max-w-[1400px] pt-2 pb-16 sm:pt-4 sm:pb-24">
+        <div className="mx-auto w-full max-w-[1400px] pt-10 sm:pt-16 md:pt-20 pb-16 sm:pb-24">
 
           {/* ── Header ─────────────────────────────────────────── */}
-          <div className="mb-7 text-center sm:mb-9">
-            <motion.div
+          <div className="mb-8 text-center sm:mb-12">
+            <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="font-headline text-[clamp(1.75rem,3.2vw,2.75rem)] font-black leading-[1.15] tracking-tight text-white"
+              className={`font-headline ${CUSTOMER_PAGE_TITLE_CLASS} text-center`}
             >
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-300 to-lime-300 bg-clip-text text-transparent">
+              <span className={CUSTOMER_PAGE_TITLE_ACCENT}>
                 Sẵn sàng hơn cho
               </span>{" "}
-              mọi buổi phỏng vấn
-            </motion.div>
+              <span className={CUSTOMER_PAGE_TITLE_BASE}>
+                mọi buổi phỏng vấn
+              </span>
+            </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.12 }}
-              className="mx-auto mt-2.5 max-w-2xl text-sm font-medium leading-relaxed text-slate-300 sm:text-base"
+              className={CUSTOMER_PAGE_SUBTITLE_CLASS}
             >
               {PRICING_SUBTITLE}
             </motion.p>
@@ -272,7 +280,7 @@ export function Pricing() {
                       transition={{ type: "spring", stiffness: 400, damping: 18, delay: cardIndex * 0.12 + 0.3 }}
                       className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-20"
                     >
-                      <span className="relative inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-[0_0_20px_rgba(128,55,244,0.5)] border border-violet-400/30">
+                      <span className="relative inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#8037f4] px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-white border border-violet-400/30">
                         <Sparkles className="size-3.5 text-violet-200" />
                         <span>Phổ biến nhất</span>
                       </span>
@@ -288,7 +296,7 @@ export function Pricing() {
                           initial={{ scale: 0.7, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                          className="rounded-full border border-violet-500/40 bg-violet-500/20 px-3 py-0.5 text-[11px] font-bold text-violet-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                          className="rounded-full border border-violet-500/40 bg-violet-500/20 px-3 py-0.5 text-[11px] font-bold text-violet-300 [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-[#6d28d9]"
                         >
                           Gói hiện tại
                         </motion.span>
@@ -299,21 +307,21 @@ export function Pricing() {
 
                     {/* Title + price */}
                     <div className="shrink-0">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{plan.subtitle}</p>
-                      <h3 className="mt-1 font-headline text-2xl font-black text-white">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 [html[data-workspace-theme=light]_&]:text-[#5b5772]">{plan.subtitle}</p>
+                      <h3 className="mt-1 font-headline text-2xl font-black text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">
                         {plan.title}
                       </h3>
                       <div className="mt-3 min-h-[2.75rem]">
-                        <p className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+                        <p className="text-3xl font-black tracking-tight text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] sm:text-4xl">
                           {isFree ? "0 VND" : formatVnd(displayAmount)}
                           {!isFree && (
-                            <span className="ml-1 text-sm font-semibold text-slate-400">/tháng</span>
+                            <span className="ml-1 text-sm font-semibold text-slate-400 [html[data-workspace-theme=light]_&]:text-[#5b5772]">/tháng</span>
                           )}
                         </p>
                       </div>
                     </div>
 
-                    <div className="my-4 shrink-0 border-t border-white/10" />
+                    <div className="my-4 shrink-0 border-t border-white/10 [html[data-workspace-theme=light]_&]:border-[#ddd3f5]" />
 
                     {/* Features (Directly visible, clean and readable) */}
                     <ul className="flex flex-1 flex-col gap-3 py-1">
@@ -324,12 +332,12 @@ export function Pricing() {
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true }}
                           transition={{ duration: 0.3, delay: cardIndex * 0.12 + fi * 0.05 + 0.2 }}
-                          className="flex items-start gap-2.5 text-sm text-slate-200 leading-snug"
+                          className="flex items-start gap-2.5 text-sm text-slate-200 [html[data-workspace-theme=light]_&]:text-[#23252f] leading-snug"
                         >
                           {variant === "elite" ? (
-                            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
+                            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" />
                           ) : (
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
+                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" />
                           )}
                           <span className="min-w-0 flex-1"><FeatureLabel text={f} variant={variant} /></span>
                         </motion.li>
@@ -346,14 +354,14 @@ export function Pricing() {
                         whileHover={!(isCurrent || isLowerTier) ? { scale: 1.02 } : undefined}
                         whileTap={!(isCurrent || isLowerTier) ? { scale: 0.98 } : undefined}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className={`group relative flex w-full items-center justify-center overflow-hidden rounded-2xl py-3.5 px-4 text-center text-sm transition-all ${
+                        className={`group relative flex w-full items-center justify-center overflow-hidden rounded-full py-3.5 px-4 text-center text-sm transition-all ${
                           isCurrent || isLowerTier
-                            ? "cursor-not-allowed border border-white/15 bg-white/[0.08] text-slate-300 font-semibold"
+                            ? "cursor-not-allowed border border-white/10 bg-white/5 text-slate-400 [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-500 font-semibold"
                             : variant === "outline"
-                            ? "border border-violet-400/40 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30 hover:border-violet-300/60 font-bold shadow-sm cursor-pointer"
+                            ? "border border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-violet-400/60 font-bold cursor-pointer [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] [html[data-workspace-theme=light]_&]:hover:bg-violet-50 [html[data-workspace-theme=light]_&]:hover:border-[#8037f4]"
                             : variant === "lime"
-                            ? "bg-[#93f72b] hover:bg-[#85ea22] text-[#0a0a0c] font-black shadow-[0_0_25px_rgba(147,247,43,0.4)] cursor-pointer"
-                            : "bg-gradient-to-r from-[#93f72b] via-[#a8f946] to-[#7fe015] hover:brightness-105 text-[#0a0a0c] font-black shadow-[0_0_30px_rgba(147,247,43,0.5)] ring-1 ring-lime-300/50 cursor-pointer"
+                            ? "bg-[#8037f4] hover:bg-[#6d28d9] text-white font-bold cursor-pointer shadow-sm"
+                            : "bg-[#93f72b] hover:bg-[#a8ff4e] text-[#131f00] font-bold border border-[#b8ff78] [html[data-workspace-theme=light]_&]:border-[#7fd925] cursor-pointer shadow-sm"
                         }`}
                       >
                         <span>{isCurrent ? "Đang dùng" : plan.cta}</span>
@@ -374,10 +382,10 @@ export function Pricing() {
               transition={{ duration: 0.45 }}
               className="mb-8 text-center"
             >
-              <h2 className="font-headline text-2xl font-black text-white sm:text-3xl">
+              <h2 className="font-headline text-2xl font-black text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] sm:text-3xl">
                 Câu hỏi thường gặp
               </h2>
-              <p className="mt-2 text-sm text-slate-300 sm:text-base">
+              <p className="mt-2 text-sm text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-600 sm:text-base">
                 Hướng dẫn chi tiết về gói dịch vụ, thanh toán, quota và quyền lợi của bạn.
               </p>
             </motion.div>

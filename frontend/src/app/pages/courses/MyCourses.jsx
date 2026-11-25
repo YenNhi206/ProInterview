@@ -8,6 +8,11 @@ import { toastApiError } from "../../utils/shared/apiToast.js";
 import { enrollmentAccessGranted } from "../../utils/course/enrollmentAccess.js";
 import { mediaSrc } from "../../utils/shared/mediaUrl.js";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
+import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+} from "../../components/layout/CustomerPageHeader";
 import "../../../styles/my-courses.css";
 
 function AnimatedNumber({ value, duration = 1 }) {
@@ -237,9 +242,9 @@ const TABS = [
 ];
 
 const EMPTY_STATES = {
-  all: { title: "Chưa có khóa học", description: "Tìm khóa học phù hợp để bắt đầu nâng cao kỹ năng phỏng vấn của bạn." },
-  learning: { title: "Không có khóa học đang học", description: "Các khóa chưa hoàn thành sẽ hiển thị tại đây khi bạn tham gia." },
-  completed: { title: "Chưa có khóa học hoàn thành", description: "Tiếp tục học để hoàn thành khóa học đầu tiên của bạn!" },
+  all: { title: "Chưa có khóa học", description: "Tìm khóa học phù hợp để bắt đầu nâng cao kỹ năng phỏng vấn." },
+  learning: { title: "Không có khóa học đang học", description: "Các khóa chưa hoàn thành sẽ hiển thị tại đây khi tham gia." },
+  completed: { title: "Chưa có khóa học hoàn thành", description: "Tiếp tục học để hoàn thành khóa học đầu tiên!" },
 };
 
 export function MyCourses() {
@@ -332,8 +337,13 @@ export function MyCourses() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
           >
-            <h1>Khóa học của bạn</h1>
-            <p>Tiếp tục học và theo dõi tiến độ của bạn.</p>
+            <h1 className={`font-headline ${CUSTOMER_PAGE_TITLE_CLASS} tracking-tight`}>
+              <span className={CUSTOMER_PAGE_TITLE_BASE}>Khóa học</span>{" "}
+              <span className={CUSTOMER_PAGE_TITLE_ACCENT}>của tôi</span>
+            </h1>
+            <p className="mt-2 text-sm font-medium text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+              Tiếp tục học và theo dõi tiến độ của tôi.
+            </p>
           </motion.header>
 
           {/* Ambient Glow Orbs behind header & scoreboard */}

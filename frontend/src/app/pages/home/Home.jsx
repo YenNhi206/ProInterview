@@ -4,7 +4,6 @@ import { useNavigate } from "react-router";
 import {
   Star,
   CheckCircle2,
-  Award as Medal,
   ArrowRight,
   TrendingUp,
   FileSearch,
@@ -42,7 +41,6 @@ import {
   HOME_SECTION_TITLE_SIZE,
   homeSectionClasses as homeTy,
 } from "../../constants/homeTypography";
-import { achievementsApi } from "../../api/achievementsApi.js";
 import { publicApi } from "../../api/publicApi.js";
 
 const TESTIMONIAL_MASCOTS = [
@@ -64,25 +62,9 @@ const formatStatNumber = (num) => {
 
 export function Home() {
   const navigate = useNavigate();
-  const [achievements, setAchievements] = useState([]);
   
   const [homeData, setHomeData] = useState({ stats: null, reviews: [] });
   const [isLoadingHomeData, setIsLoadingHomeData] = useState(true);
-
-  useEffect(() => {
-    // Fetch achievements
-    const fetchAchievements = async () => {
-      try {
-        const res = await achievementsApi.getAll();
-        if (res.data?.success) {
-          setAchievements(res.data.achievements || []);
-        }
-      } catch (err) {
-        console.error("Failed to load achievements", err);
-      }
-    };
-    fetchAchievements();
-  }, []);
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -148,10 +130,15 @@ export function Home() {
       {/* ═══ FEATURE CARDS SECTION — Full Screen ═══ */}
       <section className="feature-summary-section w-full flex flex-col items-center px-6 sm:px-10 py-20">
         <FeatureShowcaseStack heading={
-        <div className="feature-summary-heading text-center">
-          <span className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">Lộ trình học tập</span>
-          <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">Chuẩn bị từng bước, <span className="text-[#a366ff]">tiến bộ mỗi ngày</span></h2>
-        </div>
+          <HomeSectionHeader
+            align="center"
+            badge="Lộ trình học tập"
+            lines={[
+              { text: "Chuẩn bị từng bước,", tone: "dark" },
+              { text: "tiến bộ mỗi ngày", tone: "accent" },
+            ]}
+            className="mb-6 sm:mb-8"
+          />
         }>
 
             {/* Card 1: CV Match */}
@@ -235,9 +222,9 @@ export function Home() {
             {/* Left Column: Recent Reviews */}
             <div className="liquid-glass-strong flex flex-col rounded-[2rem] p-6 md:p-8 shadow-sm h-[36rem] lg:h-[40rem]">
               <div className="flex justify-between items-center mb-6 shrink-0">
-                <h3 className="font-black text-white tracking-tight flex items-center flex-wrap gap-x-2 gap-y-1" style={{ fontSize: HOME_SECTION_TITLE_SIZE }}>
+                <h3 className="font-black text-white tracking-tight text-xl sm:text-2xl flex items-center flex-wrap gap-x-2 gap-y-1">
                   Phản hồi từ người dùng
-                  <img src="/Logo.png" alt="ProInterview" className="h-[1.1em] w-auto object-contain inline-block -translate-y-[2px] brightness-0 invert" />
+                  <img src="/Logo.png" alt="ProInterview" className="h-[1.1em] w-auto object-contain inline-block -translate-y-[2px]" />
                 </h3>
               </div>
               
@@ -274,17 +261,17 @@ export function Home() {
             </div>
 
             {/* Right Column: Key Statistics */}
-            <div className="liquid-glass-strong flex flex-col rounded-[2rem] p-6 md:p-8 shadow-sm relative h-[36rem] lg:h-[40rem]">
+            <div className="liquid-glass-strong flex flex-col rounded-[20px] p-6 md:p-8 shadow-sm relative h-[36rem] lg:h-[40rem]">
               {/* Background accent */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
 
               <div className="flex items-center gap-4 mb-5 relative z-10">
-                <div className="text-[#a3e635]">
+                <div className="text-[#93f72b]">
                   <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M4 19h16v2H4zM6 9h3v8H6zM11 4h3v13h-3zM16 12h3v5h-3z" />
                   </svg>
                 </div>
-                <h3 className="font-black text-[#a3e635] tracking-tight" style={{ fontSize: HOME_SECTION_TITLE_SIZE }}>Thống kê nền tảng</h3>
+                <h3 className="font-black text-[#93f72b] tracking-tight text-xl sm:text-2xl">Thống kê nền tảng</h3>
               </div>
               <p className="text-base text-white/80 mb-10 leading-relaxed relative z-10 font-medium">
                 Dữ liệu thực tế về số lượt luyện phỏng vấn, số lượng người dùng và đánh giá chất lượng.
@@ -292,8 +279,8 @@ export function Home() {
 
               <div className="grid grid-cols-2 gap-4 md:gap-6 flex-1 relative z-10">
                 {/* Stat 1 */}
-                <div className="liquid-glass rounded-[1.25rem] p-5 md:p-6 flex flex-col justify-center items-start gap-4 hover:scale-[1.02] transition-transform">
-                  <div className="h-12 w-12 rounded-2xl bg-[#eef2ff] text-[#4f46e5] flex items-center justify-center">
+                <div className="liquid-glass rounded-[16px] p-5 md:p-6 flex flex-col justify-center items-start gap-4 hover:scale-[1.02] transition-transform">
+                  <div className="h-12 w-12 rounded-[12px] bg-[#8037f4]/15 text-[#c4b5fd] flex items-center justify-center">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   </div>
                   <div>
@@ -351,95 +338,6 @@ export function Home() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ═══ ACHIEVEMENTS / NEWS SECTION ═══ */}
-      <section className={`${homeTy.section} py-8! mt-20 sm:mt-28 lg:mt-36 ${HOME_SECTION_INNER}`}>
-
-        <HomeSectionHeader
-          icon={Medal}
-          badge="Tin tức & Hoạt động"
-          lines={[
-            { text: "Tin tức và hoạt động", tone: "dark" },
-            { text: "từ ProInterview", tone: "accent" },
-          ]}
-          body="Cập nhật những tin tức, sự kiện và cột mốc phát triển mới nhất của chúng tôi."
-          align="center"
-          className="mb-6"
-        />
-
-        {achievements.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 mx-auto max-w-[24rem] md:max-w-none">
-            {achievements.slice(0, 3).map((item) => (
-              <article
-                key={item._id}
-                onClick={() => navigate(`/achievements/${item._id}`)}
-                className="liquid-glass-strong group cursor-pointer rounded-2xl shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_16px_40px_-8px_rgba(99,14,212,0.3)]"
-              >
-                {/* Image */}
-                <div className="relative aspect-[3/2] w-full overflow-hidden rounded-t-2xl bg-white/5">
-                  {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="relative h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-white/5" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex flex-col gap-3 p-5">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded bg-[#8b5cf6]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#c7f36b]">
-                      {item.category || "Hoạt động"}
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-400">
-                      {new Date(item.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base font-bold leading-snug tracking-[-0.02em] text-white line-clamp-2 transition-colors duration-300 group-hover:text-[#c7f36b] sm:text-[1.05rem]">
-                    {item.title}
-                  </h3>
-
-                  {/* Footer */}
-                  <div className="mt-1 flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/10 ring-1 ring-white/20">
-                      <img
-                        src="/logo-mark-circle.png"
-                        alt="ProInterview"
-                        className="h-full w-full object-contain brightness-0 invert"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[12px] font-bold leading-none text-white/90">ProInterview Team</span>
-                      <span className="mt-0.5 text-[11px] text-slate-400">prointerview.vn</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-
-        {/* CTA button with button-in-button pattern */}
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={() => navigate("/achievements")}
-            className="liquid-glass-strong group inline-flex items-center gap-3 rounded-full py-3 pl-6 pr-3 text-[15px] font-bold text-white transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.03] active:scale-[0.98] sm:text-base"
-          >
-            Xem tất cả
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-px">
-              <ArrowRight className="h-4 w-4" />
-            </span>
-          </button>
         </div>
       </section>
     </div>

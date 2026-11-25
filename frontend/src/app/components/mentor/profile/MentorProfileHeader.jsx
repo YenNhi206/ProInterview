@@ -61,8 +61,8 @@ export function MentorProfileHeader({ mentor, ratingDisplay, reviewCount, experi
             </div>
           )}
           {mentor.available ? (
-            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-300">
-              <span className="size-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
+            <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#93f72b]/15 border border-[#93f72b]/35 px-3 py-1 text-xs font-bold text-[#142008] [html[data-workspace-theme=dark]_&]:text-[#93f72b]">
+              <span className="size-2 rounded-full bg-[#93f72b] animate-pulse" aria-hidden />
               Sẵn sàng nhận lịch
             </span>
           ) : (

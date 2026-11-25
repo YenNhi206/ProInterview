@@ -7,6 +7,12 @@ import { MentorHeroAtmosphere } from "../../components/mentor/MentorHeroAtmosphe
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { ListPagination } from "../../components/shared/ListPagination";
 import { AppSelect } from "../../components/ui/AppSelect";
+import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+  CUSTOMER_PAGE_SUBTITLE_CLASS,
+} from "../../components/layout/CustomerPageHeader";
 import { useRoleCategories } from "../../hooks/useRoleCategories.js";
 import { listJobs } from "../../api/jobsApi.js";
 import {
@@ -168,15 +174,16 @@ export function Jobs() {
         <MentorHeroAtmosphere />
         <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-4">
           <motion.h1
-            className="font-headline mb-3 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl md:text-5xl"
+            className={`font-headline ${CUSTOMER_PAGE_TITLE_CLASS} mb-3 text-center`}
             initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
           >
-            Việc làm IT
+            <span className={CUSTOMER_PAGE_TITLE_BASE}>Việc làm</span>{" "}
+            <span className={CUSTOMER_PAGE_TITLE_ACCENT}>IT</span>
           </motion.h1>
           <motion.p
-            className="mb-10 max-w-2xl text-sm font-medium leading-relaxed text-slate-300 sm:text-base"
+            className={`${CUSTOMER_PAGE_SUBTITLE_CLASS} mb-10`}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut", delay: 0.18 }}
@@ -208,7 +215,7 @@ export function Jobs() {
                   value={searchInput}
                   maxLength={100}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full border-none bg-transparent px-4 py-3 text-xs font-semibold text-white placeholder-slate-400 outline-none"
+                  className="w-full border-none bg-transparent px-4 py-3 text-xs font-semibold text-white [html[data-workspace-theme=light]_&]:text-[#1e1338] placeholder-slate-400 [html[data-workspace-theme=light]_&]:placeholder-[#6b6785] outline-none"
                 />
                 {searchInput ? (
                   <button
@@ -218,7 +225,7 @@ export function Jobs() {
                       setSearchInput("");
                       updateFilters({ q: "" });
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white [html[data-workspace-theme=light]_&]:text-slate-500 [html[data-workspace-theme=light]_&]:hover:bg-violet-100 [html[data-workspace-theme=light]_&]:hover:text-[#8037f4]"
                   >
                     <X className="size-3.5" />
                   </button>
@@ -226,7 +233,7 @@ export function Jobs() {
               </div>
               <button
                 type="submit"
-                className="ms-cta-btn inline-flex w-full shrink-0 cursor-pointer items-center justify-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#93f72b] md:w-auto"
+                className="ms-cta-btn inline-flex w-full shrink-0 cursor-pointer items-center justify-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#131f00] md:w-auto"
               >
                 TÌM KIẾM
                 <span className="ms-cta-icon">

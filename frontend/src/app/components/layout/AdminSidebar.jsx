@@ -90,7 +90,6 @@ const MAIN_GROUPS = [
     items: [
       // "Khóa học" đã chuyển sang /moderator/courses — kiểm duyệt nội dung thuộc moderator.
       { to: "/admin/content/questions", label: "Phỏng vấn AI", icon: FileQuestion },
-      { to: "/admin/achievements", label: "Tin tức & Hoạt động", icon: Star },
     ],
   },
   {

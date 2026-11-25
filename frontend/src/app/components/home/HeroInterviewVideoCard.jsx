@@ -108,7 +108,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
             <div className="liquid-glass flex shrink-0 items-center justify-between border-b border-white/10 px-3 py-2 sm:px-4 sm:py-2.5">
               <div className="flex items-center gap-2">
                 <div className="liquid-glass-strong flex items-center gap-1.5 rounded-full px-2 py-1 sm:px-2.5">
-                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#c7f36b]" />
+                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#93f72b]" />
                   <span className="text-[10px] sm:text-xs font-semibold text-white">REC</span>
                 </div>
                 <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2 py-1 sm:px-2.5">
@@ -116,14 +116,14 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] sm:text-xs font-medium text-[#c7f36b]">Câu 2/5</span>
+                <span className="text-[10px] sm:text-xs font-medium text-[#93f72b]">Câu 2/5</span>
               </div>
             </div>
 
             {/* Question banner */}
             <div className="shrink-0 border-b border-white/10 px-3 py-2 sm:px-4 sm:py-3 liquid-glass">
-              <div className="liquid-glass flex items-start gap-2.5 rounded-md px-2.5 py-2 sm:px-3">
-                <span className="mt-0.5 flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full bg-[#c7f36b] text-[10px] sm:text-xs font-bold text-slate-900">
+              <div className="liquid-glass flex items-start gap-2.5 rounded-[12px] px-2.5 py-2 sm:px-3">
+                <span className="mt-0.5 flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full bg-[#93f72b] text-[10px] sm:text-xs font-bold text-[#131f00]">
                   2
                 </span>
                 <div className="min-w-0 flex-1">
@@ -138,14 +138,14 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
             <div className={`grid min-h-0 flex-1 gap-2 px-3 pb-2 grid-cols-2 ${compact ? "grid-rows-[minmax(0,1fr)_3.5rem]" : "grid-rows-[minmax(0,1fr)_4.5rem]"}`}>
 
               {/* HR panel */}
-              <div className="liquid-glass relative overflow-hidden rounded-lg sm:rounded-xl">
+              <div className="liquid-glass relative overflow-hidden rounded-[16px]">
                 <video autoPlay loop muted playsInline className="h-full w-full object-cover">
                   <source src={HOME_AI_DEMO_VIDEO} type="video/mp4" />
                 </video>
               </div>
 
               {/* User panel */}
-              <div className="liquid-glass relative overflow-hidden rounded-lg sm:rounded-xl">
+              <div className="liquid-glass relative overflow-hidden rounded-[16px]">
                 {/* Real User Video */}
                 <video
                   ref={videoRef}
@@ -158,8 +158,8 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
                 />
 
                 {cameraState !== "active" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center liquid-glass z-10 rounded-lg sm:rounded-xl">
-                    <div className="w-10 h-10 border-4 border-[#c7f36b] border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center liquid-glass z-10 rounded-[16px]">
+                    <div className="w-10 h-10 border-4 border-[#93f72b] border-t-transparent rounded-full animate-spin mb-3"></div>
                     <span className="text-white text-[10px] sm:text-xs font-medium animate-pulse">
                       Đang kết nối camera...
                     </span>
@@ -168,10 +168,10 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
               </div>
 
               {/* Transcript panel (Inside Grid) */}
-              <div className={`liquid-glass flex shrink-0 flex-col overflow-hidden rounded-md transition-all col-span-2 ${compact ? "h-[3.5rem] max-h-[3.5rem]" : "h-[4.5rem] max-h-[4.5rem]"}`}>
+              <div className={`liquid-glass flex shrink-0 flex-col overflow-hidden rounded-[12px] transition-all col-span-2 ${compact ? "h-[3.5rem] max-h-[3.5rem]" : "h-[4.5rem] max-h-[4.5rem]"}`}>
                 <div className="liquid-glass-strong flex shrink-0 items-center justify-between border-b border-white/10 px-2.5 py-1.5">
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-[#c7f36b]" />
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-[#93f72b]" />
                     <span className="text-xs font-semibold text-white">Đang ghi âm...</span>
 
                     {/* Waveform */}
@@ -221,7 +221,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
 
               {/* Next Question Button (Static) */}
               <div
-                className={`flex items-center gap-1.5 rounded-full bg-[#c7f36b] text-slate-900 shadow-[0_6px_20px_rgba(199,243,107,0.3)] ${compact ? "px-4 py-2 text-xs font-bold" : "px-6 py-2.5 text-sm font-black"}`}
+                className={`flex items-center gap-1.5 rounded-full bg-[#93f72b] text-[#131f00] border border-[#b8ff78] ${compact ? "px-4 py-2 text-xs font-bold" : "px-6 py-2.5 text-sm font-black"}`}
               >
                 <span>Câu tiếp theo</span>
                 <svg className="w-3.5 h-3.5 stroke-[3.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

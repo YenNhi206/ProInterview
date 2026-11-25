@@ -171,3 +171,78 @@
   border-radius: 9999px;
   padding: 0.25rem 0.65rem;
 }
+
+/* ═══════════ LIGHT THEME SUPPORT ═══════════ */
+:root[data-workspace-theme="light"] .pi-course-card-3d__inner,
+html[data-workspace-theme="light"] .pi-course-card-3d__inner {
+  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-workspace-theme="light"] .pi-course-card-3d__front,
+html[data-workspace-theme="light"] .pi-course-card-3d__front {
+  background: #ffffff !important;
+  border: 1px solid #ddd3f5;
+  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-workspace-theme="light"] .pi-course-card-3d:hover:not(.is-flipped) .pi-course-card-3d__front,
+html[data-workspace-theme="light"] .pi-course-card-3d:hover:not(.is-flipped) .pi-course-card-3d__front {
+  border-color: #8037f4;
+  box-shadow: 0 16px 36px -8px rgba(128, 55, 244, 0.16);
+}
+
+:root[data-workspace-theme="light"] .pi-course-card-3d:hover .pi-course-card-3d__front,
+html[data-workspace-theme="light"] .pi-course-card-3d:hover .pi-course-card-3d__front {
+  border-color: #8037f4;
+  box-shadow: 0 16px 36px -8px rgba(128, 55, 244, 0.16);
+}
+
+:root[data-workspace-theme="light"] .pi-course-card-3d__back,
+html[data-workspace-theme="light"] .pi-course-card-3d__back {
+  background: #ffffff !important;
+  border: 1px solid #ddd3f5;
+  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-workspace-theme="light"] .pi-course-card-3d__back::before,
+html[data-workspace-theme="light"] .pi-course-card-3d__back::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(128, 55, 244, 0.65) 30%,
+    rgba(147, 247, 43, 0.75) 50%,
+    rgba(128, 55, 244, 0.65) 70%,
+    transparent 100%
+  );
+}
+
+:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface,
+html[data-workspace-theme="light"] .pi-course-card-3d__back-surface {
+  background: #ffffff !important;
+  color: #1a1b23 !important;
+}
+
+:root[data-workspace-theme="light"] .pi-card-glow-orb,
+html[data-workspace-theme="light"] .pi-card-glow-orb {
+  opacity: 0.12;
+}
+
+:root[data-workspace-theme="light"] .pi-card-3d-info-box,
+html[data-workspace-theme="light"] .pi-card-3d-info-box {
+  background: #f6f3fc;
+  border: 1px solid #ddd3f5;
+  color: #4b4763;
+}
+
+:root[data-workspace-theme="light"] .pi-card-3d-hint,
+html[data-workspace-theme="light"] .pi-card-3d-hint {
+  color: #8037f4;
+  background: #efe9fc;
+  border: 1px solid #ddd3f5;
+}
+
+:root[data-workspace-theme="light"] .pi-card-3d-hint:hover,
+html[data-workspace-theme="light"] .pi-card-3d-hint:hover {
+  background: #e2d7fa;
+  border-color: #8037f4;
+}

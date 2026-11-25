@@ -3,8 +3,8 @@
  */
 export const HOME_HERO_TITLE_CLAMP = "clamp(2.6rem, 8vw, 8.5rem)";
 
-/** Tiêu đề section — đồng bộ, vừa phải (không quá đậm). */
-export const HOME_SECTION_TITLE_SIZE = "clamp(1.45rem, 2.8vw, 2.65rem)";
+/** Tiêu đề section — đồng bộ chuẩn H2 cho mọi block trên trang chủ. */
+export const HOME_SECTION_TITLE_SIZE = "clamp(1.65rem, 2.6vw, 2.5rem)";
 
 /** @deprecated dùng HOME_SECTION_TITLE_SIZE */
 export const HOME_SECTION_TITLE_CLAMP = HOME_SECTION_TITLE_SIZE;
@@ -30,16 +30,16 @@ export const homeSectionClasses = {
   badge:
     "liquid-glass inline-flex items-center gap-2 rounded-full px-3.5 py-1 font-semibold text-white/90 text-xs sm:text-sm",
   sectionTitle:
-    "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-extrabold leading-[1.15] tracking-tight text-white",
+    "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-black leading-[1.15] tracking-tight text-white",
   sectionTitleLineDark: "block text-white",
-  sectionTitleLineAccent: "block text-[#c7f36b]",
-  sectionTitleLineLime: "block text-[#a3e635]",
+  sectionTitleLineAccent: "block text-[#93f72b]",
+  sectionTitleLineLime: "block text-[#93f72b]",
   sectionBody: HOME_SECTION_BODY,
 
   /** Legacy aliases — giữ tương thích, trỏ về token mới */
-  title: "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-extrabold leading-[1.15] tracking-tight text-white",
+  title: "flex w-full max-w-full flex-col gap-1 font-headline text-pretty font-black leading-[1.15] tracking-tight text-white",
   titleLineDark: "block text-white",
-  titleLineAccent: "block text-[#c7f36b]",
+  titleLineAccent: "block text-[#93f72b]",
   titleLineSecond: "block w-full text-white/90",
   body: HOME_SECTION_BODY,
   cvShowcaseBadge:
@@ -49,7 +49,7 @@ export const homeSectionClasses = {
   coursesBulletList:
     "w-full !max-w-full space-y-3 text-pretty text-base font-normal leading-relaxed text-white/70 sm:text-lg",
   bulletList: `w-full !max-w-full space-y-3 ${HOME_SECTION_BODY}`,
-  bulletIcon: "mt-0.5 h-5 w-5 shrink-0 text-[#c7f36b]",
+  bulletIcon: "mt-0.5 h-5 w-5 shrink-0 text-[#93f72b] fill-[#93f72b]/20",
   cta: "liquid-glass-strong inline-flex shrink-0 items-center gap-2 rounded-full px-6 py-2.5 text-[15px] font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] sm:px-8 sm:py-3 sm:text-base",
   cardTitle: "font-headline text-lg font-bold text-white md:text-xl",
   cardScore: "shrink-0 rounded-2xl border border-white/10 px-4 py-1.5 text-sm font-bold sm:text-base bg-white/5 text-white/90",

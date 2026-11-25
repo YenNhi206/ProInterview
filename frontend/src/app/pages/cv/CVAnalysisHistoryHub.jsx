@@ -8,6 +8,11 @@ import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { AccountReveal, AccountTabIndicator } from "../../components/account/AccountMotion";
 import { AppSelect } from "../../components/ui/AppSelect";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
+import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+} from "../../components/layout/CustomerPageHeader";
 import { CV_JD_ANALYSIS_PATH, CV_FIELD_ANALYSIS_PATH, cvAnalysisResultPath } from "../../components/cv/CvJdAnalysisTabs";
 import "../../../styles/cv-history.css";
 
@@ -466,13 +471,18 @@ export function CVAnalysisHistoryHub() {
     <div className={"cv-history-page " + CUSTOMER_SHELL_GUTTER + " pb-24 pt-8 sm:pt-12"}>
       <div className={CUSTOMER_SHELL_MAX + " cv-history-frame"}>
         <motion.header
-          className="cv-history-header"
+          className="cv-history-header mb-6"
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
         >
-          <h1>Lịch sử phân tích CV</h1>
-          <p>Xem lại kết quả và cải thiện hồ sơ của bạn.</p>
+          <h1 className={`font-headline ${CUSTOMER_PAGE_TITLE_CLASS} tracking-tight`}>
+            <span className={CUSTOMER_PAGE_TITLE_BASE}>Lịch sử</span>{" "}
+            <span className={CUSTOMER_PAGE_TITLE_ACCENT}>phân tích CV</span>
+          </h1>
+          <p className="mt-2 text-sm sm:text-base font-medium text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+            Xem lại kết quả và cải thiện hồ sơ của tôi.
+          </p>
         </motion.header>
 
         {/* Prominent Scoreboard Cards with Rich Motion */}
@@ -632,7 +642,7 @@ export function CVAnalysisHistoryHub() {
           transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
         >
           <div
-            className="relative flex items-center p-1 sm:p-1.5 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl w-full sm:w-auto"
+            className="relative flex items-center p-1 sm:p-1.5 rounded-2xl border border-white/15 bg-gradient-to-b from-[#1c183d]/85 via-[#14122e]/90 to-[#0e0c24]/95 [html[data-workspace-theme=light]_&]:bg-white/90 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:shadow-sm shadow-[0_8px_32px_rgba(5,3,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.12)] backdrop-blur-2xl w-full sm:w-auto"
             role="tablist"
             aria-label="Loại phân tích"
           >
@@ -651,14 +661,14 @@ export function CVAnalysisHistoryHub() {
                   onKeyDown={(event) => onTabKeyDown(event, index)}
                   className={`relative flex-1 sm:flex-initial px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 sm:gap-2.5 select-none outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
                     isSelected
-                      ? "text-white font-bold"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                      ? "text-white font-bold [html[data-workspace-theme=light]_&]:text-[#8037f4]"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] [html[data-workspace-theme=light]_&]:text-[#5b5772] [html[data-workspace-theme=light]_&]:hover:text-[#1a1b23] [html[data-workspace-theme=light]_&]:hover:bg-slate-100/60"
                   }`}
                 >
                   {isSelected && (
                     <motion.div
                       layoutId="cv-segmented-glass-active"
-                      className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md"
+                      className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/[0.18] via-white/[0.08] to-transparent border border-white/20 border-t-white/35 shadow-[0_4px_16px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-md [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:shadow-[0_2px_8px_rgba(128,55,244,0.12)]"
                       transition={{ type: "spring", stiffness: 450, damping: 35 }}
                     />
                   )}
@@ -666,8 +676,8 @@ export function CVAnalysisHistoryHub() {
                   <span
                     className={`relative z-10 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums transition-colors duration-200 ${
                       isSelected
-                        ? "bg-violet-400/25 text-violet-200 border border-violet-400/40 shadow-[0_0_10px_rgba(167,139,250,0.3)]"
-                        : "bg-white/5 text-slate-400 border border-white/5"
+                        ? "bg-violet-400/25 text-violet-200 border border-violet-400/40 shadow-[0_0_10px_rgba(167,139,250,0.3)] [html[data-workspace-theme=light]_&]:bg-violet-100 [html[data-workspace-theme=light]_&]:text-[#8037f4] [html[data-workspace-theme=light]_&]:border-violet-200"
+                        : "bg-white/5 text-slate-400 border border-white/5 [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-[#6b6785] [html[data-workspace-theme=light]_&]:border-slate-200"
                     }`}
                   >
                     {counts[tab.value]}
@@ -682,7 +692,7 @@ export function CVAnalysisHistoryHub() {
               <input type="search" aria-label="Tìm CV, JD, công ty hoặc ngành" placeholder="Tìm CV, JD, công ty…" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} />
               {searchQuery && <button type="button" aria-label="Xóa tìm kiếm" onClick={() => setSearchQuery("")}><X size={15} aria-hidden="true" /></button>}
             </div>
-            <AppSelect value={sortBy} onValueChange={setSortBy} options={SORT_OPTIONS} theme="dark" size="compact" icon={ArrowDownWideNarrow} aria-label="Sắp xếp kết quả" triggerClassName="cv-history-sort" />
+            <AppSelect value={sortBy} onValueChange={setSortBy} options={SORT_OPTIONS} size="compact" icon={ArrowDownWideNarrow} aria-label="Sắp xếp kết quả" triggerClassName="cv-history-sort" />
             <motion.button
               type="button"
               className="cv-history-refresh"

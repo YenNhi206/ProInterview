@@ -366,8 +366,7 @@ export function WorkspaceShell({ nav, children, themeable = false, onNotificatio
   // Dialog / popover render qua portal ra ngoài khung này: gắn chế độ lên <html> để CSS sáng phủ tới.
   useLayoutEffect(() => {
     const root = document.documentElement;
-    if (light) root.dataset.workspaceTheme = "light";
-    else delete root.dataset.workspaceTheme;
+    root.dataset.workspaceTheme = light ? "light" : "dark";
   }, [light]);
 
   const layoutValue = {

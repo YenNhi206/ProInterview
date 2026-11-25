@@ -80,30 +80,84 @@
   }
 }
 
-/* Tier-specific custom palettes */
-/* Elite: Exact Uiverse colors (#00b7ff -> #ff30ff) */
+/* Tier-specific custom palettes strictly adhering to UI Style Guide (Lime #93f72b + Purple #8037f4) */
+/* Elite: Brand Violet & Lime */
 .pricing-card--elite {
-  --card-beam-gradient: linear-gradient(180deg, #00b7ff, #ff30ff);
-  --card-inner-bg: #0d0722;
-  --card-beam-glow: rgba(255, 48, 255, 0.7);
-  --card-hover-shadow: rgba(0, 183, 255, 0.4);
-  --card-top-glow: rgba(255, 48, 255, 0.22);
+  --card-beam-gradient: linear-gradient(180deg, #8037f4, #93f72b);
+  --card-inner-bg: #18113c;
+  --card-beam-glow: rgba(147, 247, 43, 0.4);
+  --card-hover-shadow: rgba(128, 55, 244, 0.35);
+  --card-top-glow: rgba(147, 247, 43, 0.12);
 }
 
-/* Pro: System Royal Violet & Electric Cyan */
+/* Pro: Brand Violet & Soft Purple */
 .pricing-card--pro {
-  --card-beam-gradient: linear-gradient(180deg, #a855f7, #06b6d4);
-  --card-inner-bg: #0c071d;
-  --card-beam-glow: rgba(168, 85, 247, 0.7);
-  --card-hover-shadow: rgba(168, 85, 247, 0.4);
-  --card-top-glow: rgba(168, 85, 247, 0.2);
+  --card-beam-gradient: linear-gradient(180deg, #8037f4, #c4b5fd);
+  --card-inner-bg: #18113c;
+  --card-beam-glow: rgba(128, 55, 244, 0.4);
+  --card-hover-shadow: rgba(128, 55, 244, 0.3);
+  --card-top-glow: rgba(128, 55, 244, 0.12);
 }
 
-/* Basic: System Sky Cyan & Indigo */
+/* Basic: Neutral Slate & Subtle Violet */
 .pricing-card--basic {
-  --card-beam-gradient: linear-gradient(180deg, #38bdf8, #818cf8);
-  --card-inner-bg: #090818;
-  --card-beam-glow: rgba(56, 189, 248, 0.7);
-  --card-hover-shadow: rgba(56, 189, 248, 0.35);
-  --card-top-glow: rgba(56, 189, 248, 0.2);
+  --card-beam-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.2), #8037f4);
+  --card-inner-bg: #18113c;
+  --card-beam-glow: rgba(255, 255, 255, 0.2);
+  --card-hover-shadow: rgba(128, 55, 244, 0.2);
+  --card-top-glow: rgba(255, 255, 255, 0.05);
+}
+
+/* ═══════════ LIGHT THEME PALETTES ═══════════ */
+:root[data-workspace-theme="light"] .pricing-card--elite,
+html[data-workspace-theme="light"] .pricing-card--elite {
+  --card-beam-gradient: linear-gradient(180deg, #8037f4, #7fd925);
+  --card-inner-bg: #ffffff;
+  --card-beam-glow: rgba(147, 247, 43, 0.3);
+  --card-hover-shadow: rgba(128, 55, 244, 0.16);
+  --card-top-glow: rgba(147, 247, 43, 0.1);
+}
+
+:root[data-workspace-theme="light"] .pricing-card--pro,
+html[data-workspace-theme="light"] .pricing-card--pro {
+  --card-beam-gradient: linear-gradient(180deg, #8037f4, #c4b5fd);
+  --card-inner-bg: #ffffff;
+  --card-beam-glow: rgba(128, 55, 244, 0.25);
+  --card-hover-shadow: rgba(128, 55, 244, 0.14);
+  --card-top-glow: rgba(128, 55, 244, 0.08);
+}
+
+:root[data-workspace-theme="light"] .pricing-card--basic,
+html[data-workspace-theme="light"] .pricing-card--basic {
+  --card-beam-gradient: linear-gradient(180deg, #ddd3f5, #8037f4);
+  --card-inner-bg: #ffffff;
+  --card-beam-glow: rgba(128, 55, 244, 0.2);
+  --card-hover-shadow: rgba(128, 55, 244, 0.1);
+  --card-top-glow: rgba(128, 55, 244, 0.05);
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card,
+html[data-workspace-theme="light"] .pricing-plan-card {
+  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card .pricing-border-beam-wrap::before,
+html[data-workspace-theme="light"] .pricing-plan-card .pricing-border-beam-wrap::before {
+  opacity: 0.7;
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card .pricing-border-beam-wrap::after,
+html[data-workspace-theme="light"] .pricing-plan-card .pricing-border-beam-wrap::after {
+  background: #ffffff !important;
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card:hover,
+html[data-workspace-theme="light"] .pricing-plan-card:hover {
+  box-shadow: 0 16px 40px -4px rgba(128, 55, 244, 0.18),
+              0 0 24px -2px var(--card-beam-glow, rgba(128, 55, 244, 0.25)) !important;
+}
+
+:root[data-workspace-theme="light"] .pricing-plan-card:hover .pricing-border-beam-wrap::after,
+html[data-workspace-theme="light"] .pricing-plan-card:hover .pricing-border-beam-wrap::after {
+  background: radial-gradient(circle at 50% 0%, var(--card-top-glow, rgba(128, 55, 244, 0.08)), transparent 75%), #ffffff !important;
 }

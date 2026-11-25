@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CheckCircle2, FileText, Mic, Search, Sparkles, XCircle } from "lucide-react";
 import "../../../styles/interview-preview.css";
 
@@ -6,7 +6,7 @@ const feedback = [
   { label: "Kiến thức chuyên môn", score: 8.5, color: "#80eaa7" },
   { label: "Tư duy & phân tích", score: 7.5, color: "#f5cf75" },
   { label: "Cách diễn đạt", score: 8, color: "#b176f5" },
-  { label: "Độ tự tin", score: 8, color: "#c7f36b" },
+  { label: "Độ tự tin", score: 8, color: "#93f72b" },
 ];
 const waveHeights = [5, 10, 7, 18, 12, 25, 10, 32, 19, 43, 24, 15, 30, 12, 18, 7, 11, 5];
 const INTERVIEW_VIDEO = "https://res.cloudinary.com/dee4bvivu/video/upload/v1774336640/Female_delxmy.mp4";
@@ -21,40 +21,14 @@ function ScoreRing({ value, text }) {
   );
 }
 
-// Bend the rendered React surface, including its border and text. A flat
-// perspective rotation cannot produce the reference's curved upper edge.
+// CurvedSurface renders the preview container with hardware-accelerated 3D
+// perspective and crisp native vector text, eliminating the blurriness
+// caused by raster SVG displacement filters.
 function CurvedSurface({ children }) {
-  const id = `ip-curve-${useId().replace(/:/g, "")}`;
-  const frame = useRef(null);
-  const [size, setSize] = useState({ width: 1120, height: 520 });
-  useEffect(() => {
-    const observer = new ResizeObserver(([entry]) => {
-      setSize({ width: entry.borderBoxSize?.[0]?.inlineSize || entry.contentRect.width, height: entry.borderBoxSize?.[0]?.blockSize || entry.contentRect.height });
-    });
-    observer.observe(frame.current);
-    return () => observer.disconnect();
-  }, []);
-  // Neutral R preserves horizontal positions. Opposite G gradients bend
-  // the upper edge down and the lower edge up, meeting halfway vertically.
-  const makeStops = (reverse = false) => Array.from({ length: 17 }, (_, i) => {
-    const position = i / 16;
-    const value = .1 + .8 * (2 * position - 1) ** 2;
-    const green = Math.round(255 * (reverse ? 1 - value : value));
-    return `<stop offset="${position * 100}%" stop-color="rgb(128,${green},128)"/>`;
-  }).join("");
-  const map = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="520"><defs><linearGradient id="top">${makeStops()}</linearGradient><linearGradient id="bottom">${makeStops(true)}</linearGradient><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="black"/><stop offset="1" stop-color="white"/></linearGradient><mask id="blend"><rect width="100%" height="100%" fill="url(#fade)"/></mask></defs><rect width="100%" height="100%" fill="url(#top)"/><rect width="100%" height="100%" fill="url(#bottom)" mask="url(#blend)"/></svg>`)}`;
   return (
-    <>
-      <svg className="ip-filter-definitions" aria-hidden="true">
-        <defs>
-          <filter id={id} filterUnits="userSpaceOnUse" x="-40" y="-40" width={size.width + 80} height={size.height + 80} colorInterpolationFilters="sRGB">
-            <feImage href={map} x="-40" y="-40" width={size.width + 80} height={size.height + 80} preserveAspectRatio="none" result="curve" />
-            <feDisplacementMap in="SourceGraphic" in2="curve" scale="32" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-      </svg>
-      <div ref={frame} className="ip-browser" style={{ "--ip-curve-filter": `url(#${id})` }}>{children}</div>
-    </>
+    <div className="ip-browser">
+      {children}
+    </div>
   );
 }
 

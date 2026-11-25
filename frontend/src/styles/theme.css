@@ -8,54 +8,54 @@
 
 :root {
   /* ─── Background / Foreground ─────────────────────────── */
-  --background: oklch(0.18 0.02 280); /* #0B0B12 approx */
-  --foreground: oklch(0.98 0 0); /* #F8FAFC approx */
+  --background: #120b2e;
+  --foreground: #ffffff;
 
   /* ─── Card ────────────────────────────────────────────── */
-  --card: rgba(255, 255, 255, 0.03);
-  --card-foreground: oklch(0.98 0 0);
+  --card: rgba(24, 17, 60, 0.8);
+  --card-foreground: #ffffff;
 
   /* ─── Popover ─────────────────────────────────────────── */
-  --popover: rgba(11, 11, 18, 0.95);
-  --popover-foreground: oklch(0.98 0 0);
+  --popover: rgba(24, 17, 60, 0.95);
+  --popover-foreground: #ffffff;
 
-  /* ─── Primary (Purple: #7C3AED / #8B5CF6) ──────────────── */
-  --primary: #8b5cf6;
-  --primary-foreground: #ffffff;
+  /* ─── Primary (Lime: #93F72B) ──────────────── */
+  --primary: #93f72b;
+  --primary-foreground: #131f00;
 
-  /* ─── Secondary (Lime: #C7F36B / #A3E635) ──────────────── */
-  --secondary: #c7f36b;
-  --secondary-foreground: #080811;
+  /* ─── Secondary (Purple: #8037F4) ──────────────── */
+  --secondary: #8037f4;
+  --secondary-foreground: #ffffff;
 
   /* ─── Muted ───────────────────────────────────────────── */
   --muted: rgba(255, 255, 255, 0.08);
   --muted-foreground: #94a3b8;
 
-  /* ─── Accent (Lime) ───────────────────── */
-  --accent: #c7f36b;
-  --accent-foreground: #080811;
+  /* ─── Accent (Lime: #93F72B) ───────────────────── */
+  --accent: #93f72b;
+  --accent-foreground: #131f00;
 
   /* ─── Destructive ─────────────────────────────────────── */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
   /* ─── Border / Input / Ring ──────────────────────────── */
-  --border: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.06);
-  --ring: #8b5cf6;
+  --ring: #93f72b;
 
   /* ─── Sidebar ──────────────────────── */
-  --sidebar: #080811;
-  --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #8b5cf6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(255, 255, 255, 0.08);
+  --sidebar: #120b2e;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #93f72b;
+  --sidebar-primary-foreground: #131f00;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-ring: #8b5cf6;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #93f72b;
 
   /* ─── Typography ──────────────────────────────────────── */
-  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Lexend', 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -63,14 +63,14 @@
   --radius: 16px;
 
   /* ─── Shadows ─────────────────────────────────────────── */
-  --shadow-2xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.4);
-  --shadow-xs: 0px 2px 4px 0px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0px 4px 8px 0px rgba(0, 0, 0, 0.4);
-  --shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0px 12px 24px 0px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0px 16px 32px 0px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0px 24px 48px 0px rgba(0, 0, 0, 0.7);
-  --shadow-2xl: 0px 32px 64px 0px rgba(0, 0, 0, 0.8);
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.2);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0px 2px 4px 0px rgba(0, 0, 0, 0.25);
+  --shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0px 8px 16px 0px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0px 12px 24px 0px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0px 16px 32px 0px rgba(0, 0, 0, 0.45);
+  --shadow-2xl: 0px 24px 48px 0px rgba(0, 0, 0, 0.5);
 
   --tracking-normal: -0.01em;
   --spacing: 0.25rem;
@@ -78,8 +78,8 @@
 
 /* Base forced dark overrides for app wrapper */
 body, .app-user-shell {
-  background-color: #0a0416 !important;
-  color: #F8FAFC !important;
+  background-color: #120b2e !important;
+  color: #ffffff !important;
   color-scheme: dark;
 }
 
@@ -89,19 +89,19 @@ body, .app-user-shell {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: #0a0416;
+  background-color: #120b2e;
   background-image:
-    radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 45%),
-    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 0% 0%, rgba(128, 55, 244, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(147, 247, 43, 0.08) 0%, transparent 45%),
     radial-gradient(circle at 100% 100%, rgba(37, 42, 120, 0.2) 0%, transparent 55%),
-    radial-gradient(circle at 0% 100%, rgba(147, 51, 234, 0.15) 0%, transparent 45%),
-    linear-gradient(135deg, #150a2e 0%, #0d0a26 50%, #070818 100%);
+    radial-gradient(circle at 0% 100%, rgba(128, 55, 244, 0.15) 0%, transparent 45%),
+    linear-gradient(135deg, #18113c 0%, #120b2e 50%, #0d0824 100%);
   background-size: cover;
   background-attachment: fixed;
 }
 
 .app-shell-ambient--legal {
-  background-color: #0a0416;
+  background-color: #120b2e;
   background-image: none;
 }
 
@@ -166,15 +166,15 @@ body, .app-user-shell {
   
   /* Glass card utility */
   .glass-card {
-    @apply bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-lg;
+    @apply bg-[#18113c]/80 border border-white/10 backdrop-blur-xl rounded-[16px];
   }
   
   .glass-card-hover {
-    @apply hover:bg-white/10 hover:border-white/20 transition-all duration-300;
+    @apply hover:bg-[#18113c] hover:border-violet-400/50 transition-all duration-200;
   }
   
   .glass-input {
-    @apply bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all;
+    @apply bg-white/[0.04] border border-white/10 rounded-[12px] px-3 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-400/60 focus:border-violet-400/60 backdrop-blur-sm transition-all;
   }
 }
 

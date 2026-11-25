@@ -8,8 +8,8 @@
   letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #f8fafc;
-  background-color: #0a0416 !important;
+  color: #ffffff;
+  background-color: #120b2e !important;
 }
 
 .admin-shell .font-headline {
@@ -17,15 +17,15 @@
 }
 
 .admin-shell {
-  --adm-bg: #0a0416;
-  --adm-surface: rgba(255, 255, 255, 0.035);
+  --adm-bg: #120b2e;
+  --adm-surface: rgba(24, 17, 60, 0.8);
   --adm-surface-hover: rgba(255, 255, 255, 0.06);
   --adm-border: rgba(255, 255, 255, 0.1);
   --adm-border-subtle: rgba(255, 255, 255, 0.06);
-  --adm-text: #f8fafc;
+  --adm-text: #ffffff;
   --adm-muted: #94a3b8;
   --adm-subtle: #64748b;
-  --adm-violet: #a855f7;
+  --adm-violet: #8037f4;
   --adm-lime: #93f72b;
 }
 

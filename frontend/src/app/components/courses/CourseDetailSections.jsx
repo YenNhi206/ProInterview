@@ -124,20 +124,20 @@ export function CoursePurchaseCard({
   );
 
   const ctaClassName =
-    "relative overflow-hidden group flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:via-indigo-500 hover:to-purple-500 text-sm font-bold text-white shadow-[0_10px_30px_-5px_rgba(139,92,246,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(139,92,246,0.7)] active:scale-[0.98] transition-all cursor-pointer";
+    "relative overflow-hidden group flex h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-[#93f72b] hover:bg-[#a8ff4e] text-sm font-black text-[#131f00] border border-[#7fd925] shadow-[0_4px_16px_rgba(147,247,43,0.35)] active:scale-[0.98] transition-all cursor-pointer";
 
   return (
     <motion.div
       whileHover={{ y: -3 }}
       transition={{ duration: 0.3 }}
-      className="relative w-full overflow-hidden rounded-3xl border border-violet-500/30 bg-gradient-to-b from-[#1d1245]/95 via-[#130c2e]/95 to-[#0b061c]/98 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(128,55,244,0.35)] transition-all"
+      className="relative w-full overflow-hidden rounded-3xl border border-violet-500/30 bg-gradient-to-b from-[#1d1245]/95 via-[#130c2e]/95 to-[#0b061c]/98 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(128,55,244,0.35)] [html[data-workspace-theme=light]_&]:shadow-[0_10px_30px_-5px_rgba(128,55,244,0.08)] transition-all"
     >
       {/* Top subtle ambient neon glow orb */}
-      <div className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-400/60 to-transparent" />
+      <div className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 blur-3xl [html[data-workspace-theme=light]_&]:hidden" />
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-400/60 to-transparent [html[data-workspace-theme=light]_&]:via-violet-300" />
 
       {/* Video / Thumbnail preview section */}
-      <div className="group/preview relative aspect-video w-full overflow-hidden bg-slate-950 cursor-pointer">
+      <div className="group/preview relative aspect-video w-full overflow-hidden bg-slate-950 [html[data-workspace-theme=light]_&]:bg-slate-100 cursor-pointer">
         {embed ? (
           <iframe
             title="Xem trước khóa học"
@@ -164,14 +164,14 @@ export function CoursePurchaseCard({
               className="h-full w-full object-cover transition-transform duration-500 group-hover/preview:scale-105"
             />
             {/* Glassmorphic Play Trigger Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b061c]/80 via-black/30 to-transparent flex flex-col items-center justify-center gap-2 transition-opacity group-hover/preview:from-[#0b061c]/60">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0b061c]/80 via-black/30 to-transparent [html[data-workspace-theme=light]_&]:from-black/50 [html[data-workspace-theme=light]_&]:via-black/20 flex flex-col items-center justify-center gap-2 transition-opacity group-hover/preview:from-[#0b061c]/60">
               <div className="relative flex items-center justify-center">
                 <div className="absolute size-14 rounded-full bg-violet-500/30 animate-ping opacity-60" />
                 <div className="size-13 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center shadow-[0_0_25px_rgba(168,85,247,0.6)] group-hover/preview:scale-110 transition-transform">
                   <PlayCircle className="size-7 text-white fill-white/80" />
                 </div>
               </div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-violet-200 bg-black/40 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-violet-200 [html[data-workspace-theme=light]_&]:text-white bg-black/40 [html[data-workspace-theme=light]_&]:bg-black/60 px-3 py-1 rounded-full border border-white/10 [html[data-workspace-theme=light]_&]:border-white/30 backdrop-blur-md">
                 Xem trước khóa học
               </span>
             </div>
@@ -184,18 +184,18 @@ export function CoursePurchaseCard({
         <div className="w-full">
           {price === 0 ? (
             <div className="flex items-center gap-2.5">
-              <span className="rounded-full bg-gradient-to-r from-emerald-500/25 to-teal-500/25 border border-emerald-400/40 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+              <span className="rounded-full bg-lime-100 border border-lime-300 text-lime-800 [html[data-workspace-theme=dark]_&]:bg-[#93f72b]/20 [html[data-workspace-theme=dark]_&]:border-[#93f72b]/40 [html[data-workspace-theme=dark]_&]:text-[#93f72b] px-3.5 py-1 text-xs font-black uppercase tracking-wider shadow-sm">
                 Miễn phí
               </span>
-              <span className="text-xs text-slate-400">Trọn đời khóa học</span>
+              <span className="text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-[#6b6785]">Trọn đời khóa học</span>
             </div>
           ) : (
             <div className="flex flex-wrap items-baseline gap-3">
-              <span className="text-3xl sm:text-[34px] font-black tracking-tight text-white drop-shadow-[0_2px_12px_rgba(168,85,247,0.3)]">
+              <span className="text-3xl sm:text-[34px] font-black tracking-tight text-white [html[data-workspace-theme=light]_&]:text-[#8037f4] drop-shadow-[0_2px_12px_rgba(168,85,247,0.3)]">
                 {formatCoursePrice(displayPrice)}
               </span>
               {perkDiscountAmount > 0 && (
-                <span className="text-xs font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-bold text-lime-800 bg-lime-100 border border-lime-300 [html[data-workspace-theme=dark]_&]:text-[#93f72b] [html[data-workspace-theme=dark]_&]:bg-[#93f72b]/15 [html[data-workspace-theme=dark]_&]:border-[#93f72b]/30 px-2.5 py-1 rounded-full">
                   Ưu đãi hội viên: {formatCoursePrice(perkFinalPrice)}
                 </span>
               )}
@@ -292,11 +292,11 @@ export function CoursePurchaseCard({
                 const el = document.getElementById("course-curriculum");
                 if (el) el.scrollIntoView({ behavior: "smooth" });
               }}
-              className="flex h-12 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer active:scale-[0.98]"
+              className="flex h-12 w-full items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 hover:bg-violet-100 [html[data-workspace-theme=dark]_&]:border-white/10 [html[data-workspace-theme=dark]_&]:bg-white/[0.04] [html[data-workspace-theme=dark]_&]:hover:bg-white/[0.08] [html[data-workspace-theme=dark]_&]:hover:border-white/20 text-sm font-bold text-[#8037f4] [html[data-workspace-theme=dark]_&]:text-slate-300 transition-all cursor-pointer active:scale-[0.98]"
             >
               <span className="inline-flex w-[185px] items-center justify-start gap-2.5">
                 <span className="flex size-5 shrink-0 items-center justify-center">
-                  <PlayCircle className="size-4.5 text-violet-400" />
+                  <PlayCircle className="size-4.5 text-[#8037f4] [html[data-workspace-theme=dark]_&]:text-violet-400" />
                 </span>
                 <span className="truncate">Học thử miễn phí</span>
               </span>
@@ -305,10 +305,10 @@ export function CoursePurchaseCard({
         </div>
 
         {/* Khóa học này bao gồm - Glowing Interactive Tiles */}
-        <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-4.5 backdrop-blur-md">
-          <p className="mb-3.5 text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+        <div className="rounded-2xl bg-white/[0.03] border border-white/10 [html[data-workspace-theme=light]_&]:bg-[#fcfbfe] [html[data-workspace-theme=light]_&]:border-[#ddd3f5] p-4.5 backdrop-blur-md">
+          <p className="mb-3.5 text-xs font-extrabold uppercase tracking-wider text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772] flex items-center justify-between">
             <span>Khóa học này bao gồm</span>
-            <span className="size-1.5 rounded-full bg-violet-400 animate-pulse" />
+            <span className="size-1.5 rounded-full bg-[#8037f4] [html[data-workspace-theme=dark]_&]:bg-violet-400 animate-pulse" />
           </p>
           <ul className="space-y-2.5">
             {includes.map((item) => {
@@ -320,10 +320,10 @@ export function CoursePurchaseCard({
                   transition={{ duration: 0.15 }}
                   className="flex items-center gap-3 text-sm text-slate-200 group/item cursor-default"
                 >
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/25 to-purple-500/30 text-violet-300 border border-violet-400/30 shadow-[0_0_12px_rgba(139,92,246,0.25)] group-hover/item:border-violet-400/60 group-hover/item:text-white transition-colors">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-violet-100 border border-violet-200 text-[#8037f4] [html[data-workspace-theme=dark]_&]:bg-gradient-to-br [html[data-workspace-theme=dark]_&]:from-violet-500/25 [html[data-workspace-theme=dark]_&]:to-purple-500/30 [html[data-workspace-theme=dark]_&]:text-violet-300 [html[data-workspace-theme=dark]_&]:border-violet-400/30 shadow-sm transition-colors">
                     <Icon className="size-3.5 shrink-0" />
                   </span>
-                  <span className="min-w-0 leading-snug font-medium text-[13px] text-slate-300 group-hover/item:text-white transition-colors">
+                  <span className="min-w-0 leading-snug font-medium text-[13px] text-slate-300 [html[data-workspace-theme=light]_&]:text-[#4b4763] group-hover/item:text-white [html[data-workspace-theme=light]_&]:group-hover/item:text-[#1a1b23] transition-colors">
                     {item.text}
                   </span>
                 </motion.li>
@@ -333,12 +333,12 @@ export function CoursePurchaseCard({
         </div>
 
         {/* Micro Trust Guarantee footer */}
-        <div className="pt-2 border-t border-white/10 flex items-center justify-around text-[11px] text-slate-400">
+        <div className="pt-2 border-t border-white/10 [html[data-workspace-theme=light]_&]:border-slate-100 flex items-center justify-around text-[11px] text-slate-400 [html[data-workspace-theme=light]_&]:text-[#6b6785]">
           <span className="flex items-center gap-1">
-            <Check className="size-3 text-emerald-400" /> Truy cập trọn đời
+            <Check className="size-3 text-lime-600 [html[data-workspace-theme=dark]_&]:text-emerald-400" /> Truy cập trọn đời
           </span>
           <span className="flex items-center gap-1">
-            <Check className="size-3 text-emerald-400" /> Cấp chứng chỉ
+            <Check className="size-3 text-lime-600 [html[data-workspace-theme=dark]_&]:text-emerald-400" /> Cấp chứng chỉ
           </span>
         </div>
       </div>
@@ -374,18 +374,18 @@ export function CourseCurriculumAccordion({ modules, certificateEnabled, enrolle
       {modules.map((mod, modIndex) => (
         <div
           key={mod.id}
-          className="rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden transition-all hover:border-violet-500/30"
+          className="rounded-2xl border border-white/10 bg-white/[0.02] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:shadow-sm overflow-hidden transition-all hover:border-violet-500/30 [html[data-workspace-theme=light]_&]:hover:border-[#8037f4]/40"
         >
           <button
             type="button"
             onClick={() => setOpen((v) => ({ ...v, [modIndex]: !v[modIndex] }))}
-            className="flex w-full items-center justify-between gap-3 bg-white/[0.02] px-5 sm:px-6 py-4 text-left transition-colors hover:bg-white/[0.05] cursor-pointer"
+            className="flex w-full items-center justify-between gap-3 bg-white/[0.02] [html[data-workspace-theme=light]_&]:bg-white px-5 sm:px-6 py-4 text-left transition-colors hover:bg-white/[0.05] [html[data-workspace-theme=light]_&]:hover:bg-violet-50/50 cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <span className="flex size-7 items-center justify-center rounded-xl bg-violet-500/20 border border-violet-500/30 text-xs font-bold text-violet-300">
+              <span className="flex size-7 items-center justify-center rounded-xl bg-violet-500/20 border border-violet-500/30 text-xs font-bold text-violet-300 [html[data-workspace-theme=light]_&]:bg-violet-100 [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:text-[#8037f4]">
                 {modIndex + 1}
               </span>
-              <span className="text-sm font-bold text-white sm:text-base">
+              <span className="text-sm font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] sm:text-base">
                 {mod.title || `Phần ${modIndex + 1}`}
               </span>
             </div>
@@ -393,7 +393,7 @@ export function CourseCurriculumAccordion({ modules, certificateEnabled, enrolle
               animate={{ rotate: open[modIndex] ? 180 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              <ChevronDown className="size-4 shrink-0 text-slate-400" />
+              <ChevronDown className="size-4 shrink-0 text-slate-400 [html[data-workspace-theme=light]_&]:text-[#6b6785]" />
             </motion.div>
           </button>
           <AnimatePresence initial={false}>
@@ -403,7 +403,7 @@ export function CourseCurriculumAccordion({ modules, certificateEnabled, enrolle
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden divide-y divide-white/5 bg-black/15"
+                className="overflow-hidden divide-y divide-white/5 [html[data-workspace-theme=light]_&]:divide-slate-100 bg-black/15 [html[data-workspace-theme=light]_&]:bg-[#fcfbfe]"
               >
                 {mod.lessons.map((lesson) => (
                   <motion.li
@@ -416,19 +416,19 @@ export function CourseCurriculumAccordion({ modules, certificateEnabled, enrolle
                     <span
                       className={`min-w-0 flex-1 truncate text-sm ${
                         lesson.isPreview || enrolled
-                          ? "font-medium text-violet-300 hover:text-violet-200 hover:underline cursor-pointer"
-                          : "text-slate-300"
+                          ? "font-medium text-violet-300 [html[data-workspace-theme=light]_&]:text-[#8037f4] hover:text-violet-200 [html[data-workspace-theme=light]_&]:hover:text-[#6d28d9] hover:underline cursor-pointer"
+                          : "text-slate-300 [html[data-workspace-theme=light]_&]:text-[#4b4763]"
                       }`}
                     >
                       {lesson.title}
                     </span>
                     {lesson.isPreview && !enrolled ? (
-                      <span className="rounded-full bg-violet-500/20 border border-violet-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-violet-300">
+                      <span className="rounded-full bg-violet-500/20 border border-violet-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-violet-300 [html[data-workspace-theme=light]_&]:bg-violet-100 [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:text-[#8037f4]">
                         Xem thử
                       </span>
                     ) : null}
                     {!lesson.isPreview && !enrolled ? (
-                      <Lock className="size-3.5 shrink-0 text-slate-500" />
+                      <Lock className="size-3.5 shrink-0 text-slate-500 [html[data-workspace-theme=light]_&]:text-slate-400" />
                     ) : null}
                   </motion.li>
                 ))}
@@ -438,7 +438,7 @@ export function CourseCurriculumAccordion({ modules, certificateEnabled, enrolle
         </div>
       ))}
       {certificateEnabled ? (
-        <div className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.01] px-5 sm:px-6 py-3.5 text-sm text-slate-400">
+        <div className="flex items-center gap-3 rounded-2xl border border-white/5 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] bg-white/[0.01] [html[data-workspace-theme=light]_&]:bg-white px-5 sm:px-6 py-3.5 text-sm text-slate-400 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
           <Award className="size-4 shrink-0 text-amber-400" />
           <span>Chứng chỉ hoàn thành khóa học</span>
         </div>

@@ -311,52 +311,55 @@ export function CourseDetail() {
             >
               {/* Breadcrumb — mentors view this page read-only, so no catalog link */}
               {!isMentorViewer ? (
-                <nav className="mb-4 flex flex-wrap items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
-                  <Link to="/courses" className="hover:text-white transition-colors">
+                <nav className="mb-4 flex flex-wrap items-center gap-2 text-sm sm:text-base font-medium text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+                  <Link
+                    to="/courses"
+                    className="font-bold text-[#8037f4] [html[data-workspace-theme=dark]_&]:text-violet-300 hover:text-[#6d28d9] [html[data-workspace-theme=dark]_&]:hover:text-[#93f72b] transition-colors"
+                  >
                     Khóa học
                   </Link>
-                  <span className="text-slate-500">›</span>
-                  <span className="text-slate-100 font-semibold truncate max-w-lg">{course.title}</span>
+                  <span className="text-slate-500 [html[data-workspace-theme=light]_&]:text-slate-400">›</span>
+                  <span className="text-slate-100 font-semibold truncate max-w-lg [html[data-workspace-theme=light]_&]:text-[#1a1b23]">{course.title}</span>
                 </nav>
               ) : null}
 
-              <h1 className="mb-4 text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-[34px] text-white">
+              <h1 className="mb-4 text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-[34px] text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">
                 {course.title}
               </h1>
 
               {/* Meta Chips Row */}
               <div className="mb-4 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
                 {course.category && (
-                  <span className="rounded-lg bg-blue-500/20 border border-blue-500/30 px-2.5 py-1 text-xs font-semibold text-blue-300">
+                  <span className="rounded-lg bg-violet-100 border border-violet-200 px-2.5 py-1 text-xs font-bold text-[#8037f4] [html[data-workspace-theme=dark]_&]:bg-violet-950/60 [html[data-workspace-theme=dark]_&]:border-violet-500/30 [html[data-workspace-theme=dark]_&]:text-violet-300">
                     {course.category}
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1.5 text-slate-300">
-                  <span className="font-bold text-amber-300">★ {course.rating ? course.rating.toFixed(1) : "5.0"}</span>
-                  <span className="text-slate-400">· {course.reviewsCount || 0} đánh giá</span>
+                <span className="inline-flex items-center gap-1.5 text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+                  <span className="font-bold text-amber-500 [html[data-workspace-theme=dark]_&]:text-amber-300">★ {course.rating ? course.rating.toFixed(1) : "5.0"}</span>
+                  <span className="text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">· {course.reviewsCount || 0} đánh giá</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-slate-300">
-                  <Users className="size-3.5 text-slate-400" />
+                <span className="inline-flex items-center gap-1.5 text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+                  <Users className="size-3.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" />
                   <span>{course.studentsCount || 0} học viên</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-slate-300">
-                  <Layers className="size-3.5 text-slate-400" />
+                <span className="inline-flex items-center gap-1.5 text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+                  <Layers className="size-3.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" />
                   <span>{course.modulesCount} chương</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-slate-300">
-                  <FileText className="size-3.5 text-slate-400" />
+                <span className="inline-flex items-center gap-1.5 text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+                  <FileText className="size-3.5 text-slate-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" />
                   <span>{course.lessonsCount} bài</span>
                 </span>
               </div>
 
               {course.description ? (
-                <p className="mb-4 text-sm leading-relaxed text-slate-300 sm:text-base">
+                <p className="mb-4 text-sm leading-relaxed text-slate-300 sm:text-base [html[data-workspace-theme=light]_&]:text-[#4b4763]">
                   {course.description}
                 </p>
               ) : null}
 
-              <p className="text-sm text-slate-400">
-                Giảng viên <span className="font-semibold text-white">{course.mentorName}</span>
+              <p className="text-sm text-slate-400 [html[data-workspace-theme=light]_&]:text-[#6b6785]">
+                Giảng viên <span className="font-semibold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">{course.mentorName}</span>
               </p>
             </motion.header>
 
@@ -369,20 +372,20 @@ export function CourseDetail() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.15 }}
-                className="border-b border-white/10 pb-8"
+                className="border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-200 pb-8"
               >
-                <h2 className="mb-4 text-xl font-bold text-white">Bạn sẽ học được gì</h2>
+                <h2 className="mb-4 text-xl font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">Bạn sẽ học được gì</h2>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {course.learningOutcomes.map((outcome, i) => (
                     <div
                       key={i}
-                      className="flex items-start gap-2.5 text-sm font-medium text-slate-200 leading-snug"
+                      className="flex items-start gap-2.5 text-sm font-medium text-slate-200 [html[data-workspace-theme=light]_&]:text-[#23252f] leading-snug"
                     >
-                      <span className="size-5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0 mt-0.5 shadow-[0_0_8px_rgba(59,130,246,0.2)]">
+                      <span className="size-5 rounded-full bg-lime-100 border border-lime-300 text-lime-700 [html[data-workspace-theme=dark]_&]:bg-[#93f72b]/20 [html[data-workspace-theme=dark]_&]:border-[#93f72b]/40 [html[data-workspace-theme=dark]_&]:text-[#93f72b] flex items-center justify-center shrink-0 mt-0.5">
                         <Check className="size-3" strokeWidth={2.5} />
                       </span>
                       <span>
-                        <span className="text-slate-400 mr-1">{i + 1}.</span>
+                        <span className="text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 mr-1">{i + 1}.</span>
                         {outcome}
                       </span>
                     </div>
@@ -397,11 +400,11 @@ export function CourseDetail() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="border-b border-white/10 pb-8 scroll-mt-24"
+              className="border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-200 pb-8 scroll-mt-24"
             >
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Nội dung khóa học</h2>
-                <span className="text-xs font-semibold text-slate-400">
+                <h2 className="text-xl font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">Nội dung khóa học</h2>
+                <span className="text-xs font-semibold text-slate-400 [html[data-workspace-theme=light]_&]:text-[#6b6785]">
                   {course.modulesCount} học phần · {course.lessonsCount} bài học
                 </span>
               </div>

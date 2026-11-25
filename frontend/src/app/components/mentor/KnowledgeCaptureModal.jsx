@@ -188,16 +188,17 @@ export function KnowledgeCaptureModal({ bookingId, defaultRole = "", defaultFiel
           </button>
           <button
             type="button"
+            data-button-surface="none"
             onClick={handleSubmit}
             disabled={saving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 py-2.5 text-sm font-bold text-white shadow-lg hover:brightness-110 disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet-600 bg-gradient-to-r from-violet-600 to-violet-500 py-2.5 text-sm font-bold !text-white shadow-lg hover:brightness-110 disabled:opacity-60"
           >
             {saving ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
             ) : (
               <>
-                {hasContent ? "Lưu & tiếp tục" : "Tiếp tục"}
-                <ChevronRight className="h-4 w-4" {...IS} />
+                <span className="!text-white">{hasContent ? "Lưu & tiếp tục" : "Tiếp tục"}</span>
+                <ChevronRight className="h-4 w-4 text-white" {...IS} />
               </>
             )}
           </button>

@@ -65,8 +65,8 @@ export function MyApplications() {
     <div className="mr-page cv-vault my-applications">
       <header className="mr-heading">
         <div>
-          <h1>Đơn ứng tuyển của bạn</h1>
-          <p>Theo dõi trạng thái các đơn đã nộp. Doanh nghiệp xem hồ sơ bạn đã đồng ý chia sẻ lúc nộp; rút đơn thì doanh nghiệp không còn xem được.</p>
+          <h1>Đơn ứng tuyển của tôi</h1>
+          <p>Theo dõi trạng thái các đơn đã nộp. Doanh nghiệp xem hồ sơ đã đồng ý chia sẻ lúc nộp; rút đơn thì doanh nghiệp không còn xem được.</p>
         </div>
         <button type="button" data-button-surface="none" className="mr-secondary" disabled={loading} onClick={() => setReload((v) => v + 1)}>
           <RefreshCw size={14} /> Tải lại

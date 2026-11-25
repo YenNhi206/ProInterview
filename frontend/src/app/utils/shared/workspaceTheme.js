@@ -33,11 +33,7 @@ export function applyWorkspaceTheme(mode) {
     typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches === true;
   const resolved = resolveWorkspaceTheme(mode, prefersDark);
   const root = document.documentElement;
-  if (resolved === "light") {
-    root.dataset.workspaceTheme = "light";
-  } else {
-    delete root.dataset.workspaceTheme;
-  }
+  root.dataset.workspaceTheme = resolved === "light" ? "light" : "dark";
 }
 
 export function writeWorkspaceTheme(mode) {

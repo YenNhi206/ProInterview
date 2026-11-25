@@ -4,6 +4,11 @@ import { AccountReveal } from "../../components/account/AccountMotion";
 import { AlertCircle, ArrowUpRight, Calendar, CheckCircle2, Clock, RefreshCw, Star, Video, Trophy, Sparkles, CreditCard } from "lucide-react";
 import { motion } from "motion/react";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
+import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+} from "../../components/layout/CustomerPageHeader";
 import { listBookings } from "../../api/bookingsApi.js";
 import { apiBookingToLocal } from "../../utils/booking/bookingMappers.js";
 import { parseDateMs } from "../../utils/booking/bookings.js";
@@ -374,8 +379,13 @@ export function MyBookings() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
           >
-            <h1>Lịch hẹn</h1>
-            <p>Quản lý các buổi mentor 1:1 của bạn.</p>
+            <h1 className={`font-headline ${CUSTOMER_PAGE_TITLE_CLASS} tracking-tight`}>
+              <span className={CUSTOMER_PAGE_TITLE_BASE}>Lịch hẹn</span>{" "}
+              <span className={CUSTOMER_PAGE_TITLE_ACCENT}>của tôi</span>
+            </h1>
+            <p className="mt-2 text-sm font-medium text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+              Quản lý các buổi mentor 1:1 của tôi.
+            </p>
           </motion.header>
 
           {/* Prominent Hero Metrics Scoreboard */}

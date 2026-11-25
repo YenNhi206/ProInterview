@@ -51,7 +51,7 @@ import { WorkspaceThemeContext } from "./WorkspaceNav.jsx";
 const PAGE_TITLES = {
   "/cart": { label: "Giỏ hàng", sub: "Khóa học đã chọn và thanh toán" },
   "/my-bookings": {
-    label: "Lịch hẹn của bạn",
+    label: "Lịch hẹn của tôi",
     sub: "Buổi Mentor đã đặt, lịch sắp tới và trạng thái",
   },
   "/cv-analysis": { label: "Phân tích CV", sub: "Phân tích CV với JD hoặc chuẩn ngành, biết chỗ cần chỉnh" },
@@ -60,17 +60,17 @@ const PAGE_TITLES = {
   "/cv-analysis/jd": { label: "Phân tích CV + JD", sub: "Phân tích CV với Job Description" },
   "/cv-analysis/field": { label: "Phân tích theo ngành", sub: "Đánh giá CV theo chuẩn ngành nghề" },
   "/interview": { label: "Phỏng vấn AI", sub: "Thiết lập buổi luyện, Pio hỏi, bạn trả lời" },
-  "/mentor-requests": { label: "Yêu cầu Mentor", sub: "Nhu cầu và đề nghị hỗ trợ" },
-  "/learning-paths": { label: "Lộ trình học", sub: "Lộ trình mentor soạn riêng cho bạn" },
-  "/cvs": { label: "Kho CV", sub: "Các phiên bản CV và CV mặc định" },
-  "/my-applications": { label: "Đơn ứng tuyển", sub: "Trạng thái các đơn bạn đã nộp" },
+  "/mentor-requests": { label: "Yêu cầu Mentor của tôi", sub: "Nhu cầu và đề nghị hỗ trợ" },
+  "/learning-paths": { label: "Lộ trình học của tôi", sub: "Lộ trình mentor soạn riêng theo mục tiêu" },
+  "/cvs": { label: "Kho CV của tôi", sub: "Các phiên bản CV và CV mặc định" },
+  "/my-applications": { label: "Đơn ứng tuyển của tôi", sub: "Trạng thái các đơn đã nộp" },
   "/mentors": { label: "Tìm Mentor", sub: "Đặt lịch 1:1 với anh/chị mentor" },
-  "/profile": { label: "Hồ sơ cá nhân", sub: "Thông tin và thành tích của bạn" },
+  "/profile": { label: "Hồ sơ cá nhân", sub: "Thông tin tài khoản và thành tích" },
   "/settings": { label: "Cài đặt", sub: "Tuỳ chỉnh tài khoản" },
   "/pricing": { label: "Bảng giá", sub: "Chọn gói phù hợp, luyện và nhận góp ý đầy đủ hơn" },
   "/booking": { label: "Đặt lịch", sub: "Chọn thời gian phù hợp với mentor" },
   "/courses": { label: "Khóa học", sub: "Video ngắn từ mentor, ôn kỹ năng trước phỏng vấn" },
-  "/my-courses": { label: "Khóa học của tôi", sub: "Tiến độ và khóa bạn đã đăng ký" },
+  "/my-courses": { label: "Khóa học của tôi", sub: "Tiến độ và các khóa học đã đăng ký" },
   "/mentor/dashboard": { label: "Mentor", sub: "Bảng điều khiển mentor" },
   "/mentor/schedule": { label: "Lịch họp", sub: "Lịch rảnh và các buổi hẹn" },
   "/mentor/courses": { label: "Khóa học", sub: "Quản lý nội dung khóa học" },
@@ -107,6 +107,7 @@ function ShellNavLinks({ items, pathname, isActive, onNavigate, className = "", 
             key={item.url}
             to={item.url}
             onClick={onNavigate}
+            aria-current={active ? "page" : undefined}
             className="relative shrink-0 cursor-pointer whitespace-nowrap py-1 text-sm transition-all duration-300"
             style={{
               color: active ? "#c7f36b" : "rgba(255, 255, 255, 0.7)",
@@ -215,8 +216,8 @@ function CustomerNavbar() {
         >
           <img
             src="/Logo.png"
-            alt=""
-            className="block h-7 w-auto shrink-0 object-contain brightness-0 invert opacity-90"
+            alt="ProInterview"
+            className="block h-7 w-auto shrink-0 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
           />
         </Link>
 
@@ -326,47 +327,6 @@ function CustomerNavbar() {
                       Quản trị hệ thống
                     </DropdownMenuItem>
                   ) : null}
-
-                  <DropdownMenuSeparator />
-
-                  <div className="px-2 py-2">
-                    <div className="mb-1.5 px-1 text-[11px] font-semibold text-slate-400">Giao diện</div>
-                    <div className="grid grid-cols-3 gap-1 rounded-lg border border-white/10 bg-white/5 p-1 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => theme.setMode("light")}
-                        className={`flex items-center justify-center gap-1 rounded py-1 transition-colors ${
-                          theme.mode === "light"
-                            ? "bg-violet-600 text-white font-semibold shadow-sm"
-                            : "text-slate-300 hover:text-white"
-                        }`}
-                      >
-                        <Sun className="size-3" /> Sáng
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => theme.setMode("dark")}
-                        className={`flex items-center justify-center gap-1 rounded py-1 transition-colors ${
-                          theme.mode === "dark"
-                            ? "bg-violet-600 text-white font-semibold shadow-sm"
-                            : "text-slate-300 hover:text-white"
-                        }`}
-                      >
-                        <Moon className="size-3" /> Tối
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => theme.setMode("system")}
-                        className={`flex items-center justify-center gap-1 rounded py-1 transition-colors ${
-                          theme.mode === "system"
-                            ? "bg-violet-600 text-white font-semibold shadow-sm"
-                            : "text-slate-300 hover:text-white"
-                        }`}
-                      >
-                        <Monitor className="size-3" /> Auto
-                      </button>
-                    </div>
-                  </div>
 
                   <DropdownMenuSeparator />
 
@@ -540,8 +500,8 @@ function MentorNavbar() {
         >
           <img
             src="/Logo.png"
-            alt=""
-            className="block h-7 w-auto shrink-0 object-contain brightness-0 invert opacity-90"
+            alt="ProInterview"
+            className="block h-7 w-auto shrink-0 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
           />
         </Link>
 

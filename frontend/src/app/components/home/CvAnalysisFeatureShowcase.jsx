@@ -127,8 +127,8 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
                 <CardReveal delayMs={140} className="relative z-20">
                   <div className="liquid-glass-strong rounded-3xl p-[1.5rem] shadow-xl transition-all duration-300 hover:scale-[1.02] sm:px-[1.75rem] sm:py-[1.15rem]">
                     <div className="mb-3 flex items-center gap-2.5 sm:mb-3.5">
-                      <div className="flex h-[1.7rem] w-[1.7rem] shrink-0 items-center justify-center rounded-lg bg-[#c7f36b]/20 sm:h-[1.95rem] sm:w-[1.95rem]">
-                        <FileText className="h-[0.7rem] w-[0.7rem] text-[#c7f36b] sm:h-[0.825rem] sm:w-[0.825rem]" />
+                      <div className="flex h-[1.7rem] w-[1.7rem] shrink-0 items-center justify-center rounded-lg bg-[#93f72b]/20 sm:h-[1.95rem] sm:w-[1.95rem]">
+                        <FileText className="h-[0.7rem] w-[0.7rem] text-[#93f72b] sm:h-[0.825rem] sm:w-[0.825rem]" />
                       </div>
                       <h3 className={ty.cardTitle}>Từ khóa khớp với JD</h3>
                     </div>
@@ -138,7 +138,7 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
                           key={kw}
                           className="liquid-glass rounded-full px-2.5 py-1 text-sm font-semibold lowercase text-white/90 sm:text-base"
                         >
-                          {kw} <span className="text-[#c7f36b]">✓</span>
+                          {kw} <span className="text-[#93f72b]">✓</span>
                         </span>
                       ))}
                     </div>

@@ -8,6 +8,11 @@ import {
 import { CV_HUB_HERO_COPY, CV_SHOWCASE_COPY } from "../../constants/brandVoice";
 import { HOME_SECTION_TITLE_CLAMP } from "../../constants/homeTypography";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../layout/customerShellLayout";
+import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+} from "../layout/CustomerPageHeader";
 
 const HUB_STYLES = `
   .cv-hub-enter {
@@ -178,26 +183,23 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
               }`}
           >
             <div className="relative z-10 flex min-w-0 flex-col gap-2.5 sm:gap-3">
-              <h1 className="min-w-0 max-w-full font-headline tracking-tight">
-                {/* Desktop, cùng cỡ tiêu đề section Home (Mentor, Khóa học, …) */}
-                <span
-                  className="hidden flex-col gap-[0.25rem] font-extrabold leading-[1.06] lg:flex"
-                  style={{ fontSize: HOME_SECTION_TITLE_CLAMP }}
-                >
-                  <span className="block text-pretty text-[#c7f36b]">
+              <h1 className={`min-w-0 max-w-full ${CUSTOMER_PAGE_TITLE_CLASS}`}>
+                {/* Desktop */}
+                <span className="hidden flex-col gap-1 lg:flex">
+                  <span className={`block text-pretty ${CUSTOMER_PAGE_TITLE_ACCENT}`}>
                     {CV_HUB_HERO_COPY.titleAccent}
                   </span>
-                  <span className="block text-white lg:whitespace-nowrap">
+                  <span className={`block ${CUSTOMER_PAGE_TITLE_BASE} lg:whitespace-nowrap`}>
                     {CV_HUB_HERO_COPY.titleRest}
                   </span>
                 </span>
 
-                {/* Mobile, giữ cỡ hub riêng */}
-                <span className="block text-[clamp(1.5rem,3.5vw,3.25rem)] font-extrabold leading-[1.12] lg:hidden">
-                  <span className="block text-[#c7f36b]">Làm sao để CV ấn tượng</span>
-                  <span className="mt-0.5 block text-white sm:whitespace-nowrap">trong mắt nhà tuyển dụng?</span>
+                {/* Mobile */}
+                <span className="block lg:hidden">
+                  <span className={`block ${CUSTOMER_PAGE_TITLE_ACCENT}`}>Làm sao để CV ấn tượng</span>
+                  <span className={`mt-0.5 block ${CUSTOMER_PAGE_TITLE_BASE} sm:whitespace-nowrap`}>trong mắt nhà tuyển dụng?</span>
                 </span>
-                <p className="mt-2 min-w-0 max-w-full text-sm font-medium leading-relaxed text-slate-300 sm:text-lg">
+                <p className="mt-3 min-w-0 max-w-full text-sm font-medium leading-relaxed text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772] sm:text-base">
                   ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà
                   <br className="hidden lg:block" />
                   tuyển dụng.
@@ -208,14 +210,14 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
                 <button
                   type="button"
                   onClick={onJd}
-                  className="cv-hub-cta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c7f36b] inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-2xl border border-white/20 bg-violet-300/10 px-4 py-2 text-sm font-bold text-white shadow-sm backdrop-blur-sm hover:border-[#93f72b] hover:text-[#93f72b] sm:px-5 sm:py-2.5 sm:text-base"
+                  className="cv-hub-cta cv-hub-cta--primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c7f36b] inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-2xl bg-[#93f72b] px-5 py-2.5 text-sm font-extrabold text-[#131f00] border border-[#7fd925] shadow-md hover:bg-[#a8ff4e] sm:px-6 sm:py-3 sm:text-base cursor-pointer"
                 >
                   {CV_HUB_HERO_COPY.ctaJd}
                 </button>
                 <button
                   type="button"
                   onClick={onField}
-                  className="cv-hub-cta focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c7f36b] inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-violet-300/30 bg-violet-300/10 px-4 py-2 text-sm font-bold text-violet-100 shadow-sm backdrop-blur-sm hover:border-violet-300/60 hover:bg-violet-300/20 hover:shadow-md sm:px-5 sm:py-2.5 sm:text-base"
+                  className="cv-hub-cta cv-hub-cta--secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-400 inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-violet-300/40 bg-violet-950/40 text-violet-100 shadow-sm hover:bg-violet-900/40 sm:px-6 sm:py-3 px-5 py-2.5 text-sm font-extrabold sm:text-base cursor-pointer"
                 >
                   {CV_HUB_HERO_COPY.ctaField}
                 </button>
@@ -224,7 +226,7 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
                 <button
                   type="button"
                   onClick={onBestFit}
-                  className="self-start text-sm font-semibold text-violet-200 underline-offset-4 hover:text-[#93f72b] hover:underline"
+                  className="self-start text-sm font-semibold text-violet-200 [html[data-workspace-theme=light]_&]:text-[#8037f4] underline-offset-4 hover:text-[#93f72b] [html[data-workspace-theme=light]_&]:hover:text-[#6d28d9] hover:underline"
                   data-button-surface="none"
                 >
                   Có nhiều bản CV? So sánh để chọn CV hợp nhất với JD →
@@ -236,78 +238,75 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
           {/* Cột phải — demo kết quả */}
           <div className="cv-hub-unified-col cv-hub-unified-col--demo flex w-full min-w-0 shrink-0 flex-col gap-0 lg:w-[33rem] xl:w-[34.5rem]">
             {/* Demo KQ: banner + 2 ô + bảng — căn trái trong cột */}
-            <div className="cv-hub-demo-stack -mt-0.5 flex w-full min-w-0 max-w-full flex-col gap-2.5 sm:gap-3 lg:mt-0 lg:gap-4 lg:pt-0">
+            <div className="cv-hub-demo-stack -mt-0.5 flex w-full min-w-0 max-w-full flex-col gap-2 sm:gap-2.5 lg:mt-0 lg:gap-2.5 lg:pt-0">
               <div
-                className="liquid-glass-strong w-full shrink-0 overflow-hidden rounded-xl sm:rounded-[1.15rem]"
-                style={{ background: "linear-gradient(135deg,#35205e 0%,#452976 55%,#5b3891 100%)" }}
+                className="liquid-glass-strong w-full shrink-0 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#35205e_0%,#452976_55%,#5b3891_100%)] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:border [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:shadow-sm"
               >
-                <div className="relative px-3.5 py-4 text-white sm:px-4 sm:py-5 lg:px-4 lg:py-7">
+                <div className="relative px-3.5 py-3 text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] sm:px-4 sm:py-3.5 lg:px-4 lg:py-3.5">
                   <div
-                    className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl"
+                    className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl [html[data-workspace-theme=light]_&]:hidden"
                     aria-hidden
                   />
-                  <p className="relative mb-1.5 text-[11px] font-medium text-indigo-100/90 sm:text-xs">
+                  <p className="relative mb-1 text-[11px] font-medium text-indigo-100/90 [html[data-workspace-theme=light]_&]:text-[#5b5772] sm:text-xs">
                     Mức độ phù hợp CV
                   </p>
                   <div className="relative flex flex-wrap items-end gap-2.5">
-                    <span className="font-headline text-[1.65rem] text-[#c7f36b] font-extrabold leading-none tracking-tight sm:text-[2rem]">
+                    <span className="font-headline text-[1.65rem] text-[#c7f36b] [html[data-workspace-theme=light]_&]:text-[#8037f4] font-extrabold leading-none tracking-tight sm:text-[1.85rem]">
                       {percent}%
                     </span>
-                    <div className="mb-1 flex flex-col gap-1">
-                      <span className="text-[11px] text-indigo-200/90 sm:text-xs">keyword match</span>
+                    <div className="mb-0.5 flex flex-col gap-1">
+                      <span className="text-[11px] text-indigo-200/90 [html[data-workspace-theme=light]_&]:text-[#6b6785] sm:text-xs">keyword match</span>
                       <div className="flex gap-0.5">
                         {Array.from({ length: 10 }).map((_, i) => (
                           <div
                             key={i}
-                            className="h-1.5 w-3.5 rounded-full sm:w-4"
-                            style={{
-                              background:
-                                i < Math.round(percent / 10)
-                                  ? "rgba(255,255,255,0.9)"
-                                  : "rgba(255,255,255,0.22)",
-                            }}
+                            className={`h-1.5 w-3.5 rounded-full sm:w-4 ${
+                              i < Math.round(percent / 10)
+                                ? "bg-white/90 [html[data-workspace-theme=light]_&]:bg-[#8037f4]"
+                                : "bg-white/22 [html[data-workspace-theme=light]_&]:bg-violet-100"
+                            }`}
                           />
                         ))}
                       </div>
                     </div>
                   </div>
-                  <p className="relative mt-2 line-clamp-2 text-[11px] leading-snug text-indigo-50/95 sm:text-xs">
+                  <p className="relative mt-1.5 line-clamp-2 text-[11px] leading-snug text-indigo-50/95 [html[data-workspace-theme=light]_&]:text-[#23252f] sm:text-xs">
                     {summary}
                   </p>
                 </div>
               </div>
 
               <div className="relative z-10 grid w-full shrink-0 grid-cols-10 gap-1.5 sm:gap-2">
-                <div className="liquid-glass-strong col-span-6 rounded-md border-0 !bg-[#201938]/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+                <div className="liquid-glass-strong col-span-6 rounded-2xl border-0 !bg-[#201938]/95 [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:border [html[data-workspace-theme=light]_&]:border-[#ddd3f5] p-2.5 shadow-sm backdrop-blur-sm sm:p-3">
                   <div className="mb-1 flex items-center gap-1.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#93f72b]/15 sm:h-7 sm:w-7">
-                      <FileText className="h-3.5 w-3.5 text-[#c7f36b] sm:h-4 sm:w-4" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#93f72b]/15 [html[data-workspace-theme=light]_&]:bg-lime-100 sm:h-7 sm:w-7">
+                      <FileText className="h-3.5 w-3.5 text-[#c7f36b] [html[data-workspace-theme=light]_&]:text-lime-700 sm:h-4 sm:w-4" />
                     </div>
-                    <h3 className="text-[11px] font-semibold text-white sm:text-xs">Từ khóa khớp</h3>
+                    <h3 className="text-[11px] font-semibold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] sm:text-xs">Từ khóa khớp</h3>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {matched.map((kw) => (
                       <span
                         key={kw}
-                        className="rounded-md border border-[#93f72b]/30 bg-[#93f72b]/10 px-2 py-0.5 text-[10px] font-semibold text-[#c7f36b] sm:text-[11px]"
+                        className="rounded-md border border-[#93f72b]/30 bg-[#93f72b]/10 [html[data-workspace-theme=light]_&]:bg-lime-50 [html[data-workspace-theme=light]_&]:border-lime-300 [html[data-workspace-theme=light]_&]:text-lime-800 px-2 py-0.5 text-[10px] font-semibold text-[#c7f36b] sm:text-[11px]"
                       >
                         {kw} ✓
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="liquid-glass-strong col-span-4 rounded-md border-0 !bg-[#201938]/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+                <div className="liquid-glass-strong col-span-4 rounded-2xl border-0 !bg-[#201938]/95 [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:border [html[data-workspace-theme=light]_&]:border-[#ddd3f5] p-2.5 shadow-sm backdrop-blur-sm sm:p-3">
                   <div className="mb-1 flex items-center gap-1.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-violet-300/15 sm:h-7 sm:w-7">
-                      <Briefcase className="h-3.5 w-3.5 text-violet-200 sm:h-4 sm:w-4" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-violet-300/15 [html[data-workspace-theme=light]_&]:bg-violet-100 sm:h-7 sm:w-7">
+                      <Briefcase className="h-3.5 w-3.5 text-violet-200 [html[data-workspace-theme=light]_&]:text-[#8037f4] sm:h-4 sm:w-4" />
                     </div>
-                    <h3 className="text-[11px] font-semibold text-white sm:text-xs">Cần bổ sung</h3>
+                    <h3 className="text-[11px] font-semibold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] sm:text-xs">Cần bổ sung</h3>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {missing.map((kw) => (
                       <span
                         key={kw}
-                        className="rounded-md border border-violet-300/30 bg-violet-300/10 px-2 py-0.5 text-[10px] font-semibold text-violet-200 sm:text-[11px]"
+                        className="rounded-md border border-violet-300/30 bg-violet-300/10 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:text-[#6d28d9] px-2 py-0.5 text-[10px] font-semibold text-violet-200 sm:text-[11px]"
                       >
                         {kw}
                       </span>
@@ -317,9 +316,9 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
               </div>
 
               {/* Card đánh giá, hubPreview; gấu trong vùng padding trái, không clip */}
-              <div className="relative hidden w-full min-w-0 shrink-0 overflow-visible pb-2 lg:block lg:pb-4">
+              <div className="relative hidden w-full min-w-0 shrink-0 overflow-visible lg:block">
                 <div
-                  className="pointer-events-none absolute bottom-0 left-0 z-20 max-w-[min(100%,18rem)] -translate-x-[calc(24%+7.6rem)] translate-y-[calc(4%+0.85rem)] 2xl:max-w-[19rem] 2xl:-translate-x-[calc(26%+7.6rem)]"
+                  className="pointer-events-none absolute bottom-0 left-0 z-20 max-w-[min(100%,16rem)] -translate-x-[calc(24%+7.6rem)] translate-y-[calc(4%+2.05rem)] 2xl:max-w-[17.5rem] 2xl:-translate-x-[calc(26%+7.6rem)]"
                   aria-hidden
                 >
                   <MascotSparkle className="left-[27%] top-[8%] h-2.5 w-2.5" />
@@ -336,7 +335,7 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
                   compact
                   hubPreview
                   showHeader={false}
-                  className="relative z-10 w-full min-w-0 overflow-hidden !rounded-md liquid-glass-strong !border-0 !bg-[#201938]/95 p-0 shadow-sm backdrop-blur-sm"
+                  className="relative z-10 w-full min-w-0 overflow-hidden !rounded-2xl liquid-glass-strong !border-0 !bg-[#201938]/95 [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:border [html[data-workspace-theme=light]_&]:border-[#ddd3f5] p-0 shadow-sm backdrop-blur-sm"
                 />
               </div>
 
@@ -347,7 +346,7 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
                   compact
                   hubPreview
                   showHeader={false}
-                  className="w-full !rounded-md liquid-glass-strong !border-0 !bg-[#201938]/95 shadow-sm backdrop-blur-sm"
+                  className="w-full !rounded-2xl liquid-glass-strong !border-0 !bg-[#201938]/95 [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:border [html[data-workspace-theme=light]_&]:border-[#ddd3f5] shadow-sm backdrop-blur-sm"
                 />
               </div>
             </div>

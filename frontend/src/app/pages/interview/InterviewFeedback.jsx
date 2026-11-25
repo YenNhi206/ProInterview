@@ -588,7 +588,7 @@ export function InterviewFeedback() {
               {sessionMeta.duration > 0 ? ` · ${sessionMeta.duration} phút` : ""} ·{" "}
               {isPro ? allQuestions.length : Math.min(freeLimit, allQuestions.length)}/{allQuestions.length} câu hỏi
               {!isPro && (
-                <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-violet-200 bg-white px-2 py-0.5 text-xs font-semibold text-[#630ed4]">
+                <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-violet-200 bg-white px-2 py-0.5 text-xs font-semibold text-[#6d28d9]">
                   <Lock className="h-3 w-3" /> 2 câu bị khóa
                 </span>
               )}
@@ -596,7 +596,7 @@ export function InterviewFeedback() {
           </header>
 
       {/* ── Overall Score Banner ─────────────────────────── */}
-      <div className="rounded-2xl mb-6 overflow-hidden" style={{ background: "#8037f4" }}>
+      <div className="rounded-[20px] mb-6 overflow-hidden" style={{ background: "#8037f4" }}>
         {/* Top: big score + STAR */}
         <div className="p-6 text-white">
           <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -750,9 +750,9 @@ export function InterviewFeedback() {
           {/* Header */}
           <div className="border-b border-violet-100 bg-violet-50/60 px-5 py-3.5">
             <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-[#6E35E8]" />
+              <Activity className="h-4 w-4 text-[#8037f4]" />
               <h2 className="text-sm font-bold text-violet-950">Phân tích hành vi &amp; Ngôn ngữ cơ thể</h2>
-              <span className="ml-auto rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-[#630ed4]">
+              <span className="ml-auto rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-[#6d28d9]">
                 Tin cậy tổng hợp: {behavioralSummary.overallConfidenceScore?.toFixed(1) ?? "—"}/5
               </span>
             </div>

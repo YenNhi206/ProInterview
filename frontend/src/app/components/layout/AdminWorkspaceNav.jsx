@@ -53,7 +53,6 @@ export const ADMIN_MAIN_NAV = [
   },
   { section: "Nội dung & Báo cáo" },
   { title: "Phỏng vấn AI", url: "/admin/content/questions", icon: FileQuestion },
-  { title: "Tin tức & Hoạt động", url: "/admin/achievements", icon: Star },
   { title: "Đánh giá", url: "/admin/reviews", icon: Star },
   { title: "Phân tích", url: "/admin/analytics", icon: LineChart },
   { title: "Nhật ký admin", url: "/admin/audit-log", icon: BookOpen },

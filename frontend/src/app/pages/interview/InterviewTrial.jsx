@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
-import { CustomerPageHeader } from "../../components/layout/CustomerPageHeader";
+import {
+  CustomerPageHeader,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+} from "../../components/layout/CustomerPageHeader";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { CV_JD_CARD_CLASS } from "../../components/cv/CvJdAnalysisFrame";
 import { Check, Mars, Venus, Mic, AlertCircle } from "lucide-react";
@@ -193,8 +197,8 @@ export function InterviewTrial() {
             badge="Miễn phí · Không cần đăng ký"
             title={
               <>
-                <span className="font-extrabold text-[#630ed4]">Thử ngay 3 câu hỏi</span>{" "}
-                <span className="font-extrabold text-[#1a1b23]">phỏng vấn AI</span>
+                <span className={CUSTOMER_PAGE_TITLE_ACCENT}>Thử ngay 3 câu hỏi</span>{" "}
+                <span className={CUSTOMER_PAGE_TITLE_BASE}>phỏng vấn AI</span>
               </>
             }
             subtitle="Trải nghiệm nhanh với HR AI — không cần CV, không cần tài khoản. Sau khi xong, đăng ký miễn phí để lưu kết quả và mở khoá câu hỏi cá nhân hoá."

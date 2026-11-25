@@ -60,8 +60,6 @@ import { Terms } from "./pages/home/Terms";
 import { Privacy } from "./pages/home/Privacy";
 import { About } from "./pages/home/About";
 import { Blog } from "./pages/home/Blog";
-import { Achievements } from "./pages/home/Achievements";
-import { AchievementDetail } from "./pages/home/AchievementDetail";
 import { AdminLayout } from "./pages/admin/AdminLayout.jsx";
 import { adminLoader } from "./pages/admin/adminLoader.js";
 import { AdminDashboard } from "./pages/admin/AdminDashboard.jsx";
@@ -92,7 +90,6 @@ import { AdminSupport } from "./pages/admin/AdminSupport.jsx";
 import { AdminMentorDetail } from "./pages/admin/AdminMentorDetail.jsx";
 import { AdminBookingDetail } from "./pages/admin/AdminBookingDetail.jsx";
 import { AdminBookingCheckIns } from "./pages/admin/AdminBookingCheckIns.jsx";
-import { AdminAchievements } from "./pages/admin/AdminAchievements.jsx";
 import { ModeratorLayout } from "./pages/moderator/ModeratorLayout.jsx";
 import { ModeratorQuestions } from "./pages/moderator/ModeratorQuestions.jsx";
 import { ModeratorQueue } from "./pages/moderator/ModeratorQueue.jsx";
@@ -143,8 +140,8 @@ export const router = createBrowserRouter([
       { path: "courses/:id", Component: CourseDetail },
       { path: "pricing", Component: Pricing },
       { path: "about", Component: About },
-      { path: "achievements", Component: Achievements },
-      { path: "achievements/:id", Component: AchievementDetail },
+      { path: "achievements", loader: () => redirect("/") },
+      { path: "achievements/:id", loader: () => redirect("/") },
       { path: "blog", Component: Blog },
       { path: "terms", Component: Terms },
       { path: "privacy", Component: Privacy },
@@ -275,7 +272,7 @@ export const router = createBrowserRouter([
       { path: "settings", Component: AdminSystemSettings },
       { path: "reviews", Component: AdminReviews },
       { path: "support", Component: AdminSupport },
-      { path: "achievements", Component: AdminAchievements },
+      { path: "achievements", loader: () => redirect("/admin") },
       { path: "interview-metrics", loader: () => redirect("/admin/content/questions") },
     ],
   },

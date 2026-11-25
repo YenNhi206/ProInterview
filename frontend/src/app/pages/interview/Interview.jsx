@@ -32,11 +32,15 @@ import { buildLoginPath } from "../../utils/auth/authGate.js";
 import { trackAction } from "../../utils/analytics/analyticsApi.js";
 import { getBaselineQuestions, extractCvTextFromFile, createInterviewSession, pregenerateBaselineVideos, pregenerateInterviewVideos, saveCameraConsent } from "../../api/interviewsApi.js";
 import { fetchCvAnalysisById } from "../../api/cvApi.js";
-import { InterviewHistoryPanel } from "../../components/interview/InterviewHistoryPanel";
-import { InterviewPageTabs } from "../../components/interview/InterviewPageTabs";
 import { CV_JD_CARD_CLASS } from "../../components/cv/CvJdAnalysisFrame";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
-import { CustomerPageHeader } from "../../components/layout/CustomerPageHeader";
+import {
+  CustomerPageHeader,
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+  CUSTOMER_PAGE_SUBTITLE_CLASS,
+} from "../../components/layout/CustomerPageHeader";
 
 const CTA_LIME =
   "bg-[#93f72b] text-slate-950 font-extrabold shadow-[0_0_25px_rgba(147,247,43,0.3)] hover:brightness-110 active:scale-[0.99] transition-all";
@@ -52,17 +56,17 @@ function saveInterviewSetupDraft(draft) {
 /** Stroke Lucide chuẩn UI, đồng bộ toàn trang */
 const IS = { strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" };
 
-/** Khung card đen khớp nền */
+/** Khung card trong suốt khớp nền ambient, sắc nét không bị mờ đục */
 const INTERVIEW_CARD_DARK =
-  "w-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#120926]/90 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl";
+  "w-full overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#120826]/75 shadow-[0_24px_60px_rgba(0,0,0,0.45)] backdrop-blur-md [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white/90 [html[data-workspace-theme=light]_&]:shadow-sm";
 
 /** Chiều cao cố định ô chi tiết bước 1 */
 const SOURCE_DETAIL_PANEL_CLASS =
-  "flex h-[15rem] flex-col rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 sm:h-[16rem] sm:px-5 sm:py-5 md:h-[18rem] lg:h-[20rem] backdrop-blur-sm";
+  "flex h-[15rem] flex-col rounded-xl border border-white/15 bg-[#1a0f38]/60 px-4 py-4 sm:h-[16rem] sm:px-5 sm:py-5 md:h-[18rem] lg:h-[20rem] backdrop-blur-sm [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:shadow-sm";
 
 /** Ô xem trước HR, cao hơn để video lớn hơn */
 const HR_PREVIEW_PANEL_CLASS =
-  "flex h-[16rem] flex-col rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:h-[18rem] sm:px-5 md:h-[20rem] lg:h-[22rem] backdrop-blur-sm";
+  "flex h-[16rem] flex-col rounded-xl border border-white/15 bg-[#1a0f38]/60 px-4 py-3 sm:h-[18rem] sm:px-5 md:h-[20rem] lg:h-[22rem] backdrop-blur-sm [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:shadow-sm";
 
 function formatCvAnalysisDate(value) {
   if (!value) return "";
@@ -319,7 +323,6 @@ export function Interview() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [hrGender, setHrGender] = useState(null);
   const [flowStep, setFlowStep] = useState(1);
-  const [setupSubTab, setSetupSubTab] = useState("analysis"); // "analysis" | "history"
   const [loadingStep, setLoadingStep] = useState(null); // null | "extracting_cv" | "generating_questions" | "creating_session"
   const [extractWarning, setExtractWarning] = useState("");
   const [showBrowserWarning, setShowBrowserWarning] = useState(false);
@@ -672,8 +675,9 @@ export function Interview() {
   const optBase =
     "group relative w-full rounded-xl border-2 p-4 text-left transition-all duration-200 sm:p-5";
   const optIdle =
-    "cursor-pointer border-white/10 bg-white/[0.03] hover:border-violet-500/40 hover:bg-white/[0.06]";
-  const optOn = "border-[#93f72b] bg-[#93f72b]/[0.08] ring-1 ring-[#93f72b]/40 shadow-[0_0_20px_rgba(147,247,43,0.12)]";
+    "cursor-pointer border-white/15 bg-[#1a0f38]/60 hover:border-[#8037f4]/60 hover:bg-[#201344]/80 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:shadow-sm [html[data-workspace-theme=light]_&]:hover:border-[#8037f4]/40 [html[data-workspace-theme=light]_&]:hover:bg-slate-50";
+  const optOn =
+    "border-[#93f72b] bg-[#93f72b]/10 ring-1 ring-[#93f72b]/50 shadow-[0_0_20px_rgba(147,247,43,0.15)] [html[data-workspace-theme=light]_&]:border-[#8037f4] [html[data-workspace-theme=light]_&]:bg-[#8037f4]/[0.08] [html[data-workspace-theme=light]_&]:ring-[#8037f4]/30";
 
   return (
     <MentorPageShell bottomPad="pb-16">
@@ -706,27 +710,20 @@ export function Interview() {
             className="mb-5 w-full text-center"
             title={
               <>
-                <span className="font-extrabold text-white">Luyện phỏng vấn với AI</span>{" "}
-                <span className="font-extrabold bg-gradient-to-r from-[#93f72b] to-[#a6ff42] bg-clip-text text-transparent">
+                <span className={CUSTOMER_PAGE_TITLE_BASE}>Luyện phỏng vấn với AI</span>{" "}
+                <span className={CUSTOMER_PAGE_TITLE_ACCENT}>
                   từ CV của bạn
                 </span>
               </>
             }
-            titleClassName="font-headline text-[clamp(1.45rem,2.8vw,2.65rem)] font-extrabold leading-[1.12] tracking-tight text-white"
+            titleClassName={`${CUSTOMER_PAGE_TITLE_CLASS} text-center`}
             subtitle="Từ CV của bạn, ProInterview tạo buổi phỏng vấn thử với HR AI và góp ý sau từng câu trả lời để bạn tự tin hơn trước buổi thật."
-            subtitleClassName="mt-3 max-w-none text-base font-medium leading-relaxed text-slate-300 lg:whitespace-nowrap"
+            subtitleClassName={`${CUSTOMER_PAGE_SUBTITLE_CLASS} max-w-none lg:whitespace-nowrap`}
           />
 
           <div className={INTERVIEW_CARD_DARK}>
-            <InterviewPageTabs activeTab={setupSubTab} onTabChange={setSetupSubTab} />
-
-            {setupSubTab === "history" ? (
-              <div className="px-6 py-5 sm:px-8 sm:py-6">
-                <InterviewHistoryPanel />
-              </div>
-            ) : (
-              <div className="px-4 py-5 sm:px-6 sm:py-6">
-                <InterviewStepBar current={flowStep} />
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
+              <InterviewStepBar current={flowStep} />
 
                 {flowStep === 1 && (
                   <section className="space-y-5">
@@ -749,8 +746,8 @@ export function Interview() {
                       onChange={handleJdFileUpload}
                     />
                     <div>
-                      <h2 className="text-sm sm:text-base font-bold text-white">Bước 1: Chọn nguồn CV</h2>
-                      <p className="mt-0.5 text-xs sm:text-sm text-slate-400">
+                      <h2 className="text-sm sm:text-base font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">Bước 1: Chọn nguồn CV</h2>
+                      <p className="mt-0.5 text-xs sm:text-sm text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
                         AI đọc CV của bạn để tạo bộ câu hỏi phỏng vấn phù hợp.
                       </p>
                     </div>
@@ -761,16 +758,16 @@ export function Interview() {
                         aria-pressed={option === "A"}
                         onClick={handleSelectAnalyzedCv}
                         disabled={!latestCV}
-                        className={`${optBase} ${option === "A" ? optOn : optIdle} ${!latestCV ? "cursor-not-allowed opacity-40" : ""}`}
+                        className={`${optBase} ${option === "A" ? optOn : optIdle} ${!latestCV ? "cursor-not-allowed opacity-60" : ""}`}
                       >
                         <div className="flex items-start gap-3">
                           <SelectOptionRing selected={option === "A"} />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <FileStack className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
-                              <p className="font-bold text-white">CV đã phân tích</p>
+                              <FileStack className="h-5 w-5 shrink-0 text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]" {...IS} />
+                              <p className="font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">CV đã phân tích</p>
                             </div>
-                            <p className="mt-0.5 text-xs text-slate-400">
+                            <p className="mt-0.5 text-xs text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
                               {latestCV ? "Kết quả CV + JD đã lưu trên hệ thống" : "Cần phân tích CV trước"}
                             </p>
                           </div>
@@ -787,10 +784,10 @@ export function Interview() {
                           <SelectOptionRing selected={option === "B"} />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <CloudUpload className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
-                              <p className="font-bold text-white">Tải CV mới</p>
+                              <CloudUpload className="h-5 w-5 shrink-0 text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]" {...IS} />
+                              <p className="font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">Tải CV mới</p>
                             </div>
-                            <p className="mt-0.5 text-xs text-slate-400">Chọn thẻ, rồi upload file trong ô bên dưới</p>
+                            <p className="mt-0.5 text-xs text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">Chọn thẻ, rồi upload file trong ô bên dưới</p>
                           </div>
                         </div>
                       </button>
@@ -819,34 +816,34 @@ export function Interview() {
                     />
 
                     {/* JD optional, giúp câu hỏi sát yêu cầu công ty hơn */}
-                    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition-all">
+                    <div className="overflow-hidden rounded-xl border border-white/15 bg-[#1a0f38]/60 transition-all [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:shadow-sm">
                       <button
                         type="button"
                         onClick={() => setJdExpanded(v => !v)}
-                        className="flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-white/[0.03]"
+                        className="flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-white/[0.04] [html[data-workspace-theme=light]_&]:hover:bg-slate-50"
                       >
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-violet-400/40 bg-violet-500/20 text-[10px] font-bold text-[#c084fc]">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-violet-400/40 bg-violet-500/20 text-[10px] font-bold text-[#c084fc] [html[data-workspace-theme=light]_&]:border-violet-300 [html[data-workspace-theme=light]_&]:bg-violet-100 [html[data-workspace-theme=light]_&]:text-violet-700">
                           JD
                         </span>
-                        <span className="flex-1 text-sm font-medium text-slate-200">
+                        <span className="flex-1 text-sm font-medium text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">
                           Thêm mô tả công việc
                           {(jdFile || jdInputText.trim()) ? (
-                            <span className="ml-1.5 text-xs font-normal text-[#93f72b]">
+                            <span className="ml-1.5 text-xs font-normal text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]">
                               ✓ {jdFile ? jdFile.name : `${jdInputText.trim().slice(0, 30)}…`}
                             </span>
                           ) : (
-                            <span className="ml-1 text-xs font-normal text-slate-400">(tùy chọn)</span>
+                            <span className="ml-1 text-xs font-normal text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">(tùy chọn)</span>
                           )}
                         </span>
                         <ChevronDown
-                          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${jdExpanded ? "rotate-180" : ""}`}
+                          className={`h-4 w-4 shrink-0 text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772] transition-transform ${jdExpanded ? "rotate-180" : ""}`}
                           strokeWidth={1.75}
                         />
                       </button>
 
                       {jdExpanded && (
-                        <div className="space-y-2.5 border-t border-white/10 bg-black/20 px-4 pb-4 pt-3">
-                          <p className="text-xs text-slate-400">
+                        <div className="space-y-2.5 border-t border-white/10 bg-black/20 px-4 pb-4 pt-3 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-slate-50/70">
+                          <p className="text-xs text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
                             Dán nội dung JD hoặc upload file, AI sẽ bám sát yêu cầu tuyển dụng thực tế khi tạo câu hỏi.
                           </p>
                           <textarea
@@ -854,16 +851,16 @@ export function Interview() {
                             onChange={e => { setJdInputText(e.target.value); if (e.target.value.trim()) setJdFile(null); }}
                             placeholder="Dán mô tả công việc (Job Description) vào đây..."
                             rows={5}
-                            className="w-full resize-none rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-[#93f72b] focus:outline-none focus:ring-1 focus:ring-[#93f72b]"
+                            className="w-full resize-none rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:border-[#93f72b] focus:outline-none focus:ring-1 focus:ring-[#93f72b] [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] [html[data-workspace-theme=light]_&]:placeholder:text-slate-400 [html[data-workspace-theme=light]_&]:focus:border-[#8037f4] [html[data-workspace-theme=light]_&]:focus:ring-[#8037f4]"
                           />
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-400">hoặc</span>
+                            <span className="text-xs text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">hoặc</span>
                             <button
                               type="button"
                               onClick={() => jdFileInputRef.current?.click()}
-                              className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                              className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] [html[data-workspace-theme=light]_&]:hover:bg-slate-100"
                             >
-                              <FileText className="h-3.5 w-3.5 text-[#93f72b]" strokeWidth={1.75} />
+                              <FileText className="h-3.5 w-3.5 text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]" strokeWidth={1.75} />
                               {jdFile ? jdFile.name : "Upload file JD (PDF)"}
                             </button>
                             {jdFile && (
@@ -885,7 +882,9 @@ export function Interview() {
                       onClick={handleContinueToHr}
                       disabled={!canProceedSetup}
                       className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
-                        canProceedSetup ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
+                        canProceedSetup
+                          ? CTA_LIME
+                          : "cursor-not-allowed border border-white/10 bg-white/[0.06] text-slate-400 font-bold [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-400"
                       }`}
                     >
                       Tiếp tục
@@ -897,8 +896,8 @@ export function Interview() {
                 {flowStep === 2 && (
                   <section className="space-y-5">
                     <div>
-                      <h2 className="text-sm sm:text-base font-bold text-white">Bước 2: Chọn HR AI</h2>
-                      <p className="mt-0.5 text-xs sm:text-sm text-slate-400">Chọn một HR, có thể xem video ngắn bên dưới trước khi bắt đầu.</p>
+                      <h2 className="text-sm sm:text-base font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">Bước 2: Chọn HR AI</h2>
+                      <p className="mt-0.5 text-xs sm:text-sm text-slate-400 [html[data-workspace-theme=light]_&]:text-[#5b5772]">Chọn một HR, có thể xem video ngắn bên dưới trước khi bắt đầu.</p>
                     </div>
 
                     <div className="grid items-stretch gap-3 sm:grid-cols-2">
@@ -917,10 +916,10 @@ export function Interview() {
                               <SelectOptionRing selected={hrGender === g} />
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
-                                  <Icon className="h-5 w-5 shrink-0 text-[#93f72b]" {...IS} />
-                                  <p className="font-bold text-white">{preview.name}</p>
+                                  <Icon className="h-5 w-5 shrink-0 text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]" {...IS} />
+                                  <p className="font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">{preview.name}</p>
                                 </div>
-                                <p className="mt-0.5 text-xs text-slate-400">{preview.subtitle}</p>
+                                <p className="mt-0.5 text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-[#5b5772]">{preview.subtitle}</p>
                               </div>
                             </div>
                           </button>
@@ -967,7 +966,9 @@ export function Interview() {
                       onClick={handleStart}
                       disabled={!canStart || Boolean(loadingStep)}
                       className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
-                        canStart && !loadingStep ? CTA_LIME : "cursor-not-allowed border border-white/5 bg-white/5 text-slate-500"
+                        canStart && !loadingStep
+                          ? CTA_LIME
+                          : "cursor-not-allowed border border-white/10 bg-white/[0.06] text-slate-400 font-bold [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-400"
                       }`}
                     >
                       {loadingStep ? (
@@ -989,7 +990,6 @@ export function Interview() {
                   </section>
                 )}
               </div>
-            )}
           </div>
         </div>
       </div>

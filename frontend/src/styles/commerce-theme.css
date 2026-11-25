@@ -4,9 +4,9 @@
   --commerce-blue: #3b82f6;
   --commerce-orchid: #9333ea;
   --commerce-indigo: #252a78;
-  --commerce-base-start: #150a2e;
-  --commerce-base-middle: #0d0a26;
-  --commerce-base-end: #070818;
+  --commerce-base-start: #0e0722;
+  --commerce-base-middle: #0a061b;
+  --commerce-base-end: #060412;
   --commerce-text: #f1f5f9;
   --commerce-muted: #cbd5e1;
   --commerce-accent: #c4b5fd;
@@ -30,11 +30,11 @@
 .app-shell-ambient--commerce {
   overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(124, 58, 237, 0.55) 0%, transparent 55%),
-    radial-gradient(ellipse 75% 55% at 85% 15%, rgba(59, 130, 246, 0.45) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 20% 60%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse 85% 65% at 80% 85%, rgba(37, 42, 120, 0.75) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 50% 95%, rgba(168, 85, 247, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 15% 10%, rgba(124, 58, 237, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 75% 55% at 85% 15%, rgba(59, 130, 246, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 20% 60%, rgba(147, 51, 234, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 85% 65% at 80% 85%, rgba(37, 42, 120, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 95%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
     linear-gradient(135deg, var(--commerce-base-start) 0%, var(--commerce-base-middle) 50%, var(--commerce-base-end) 100%);
 }
 
@@ -45,10 +45,10 @@
   border-radius: 50%;
   filter: blur(140px);
 }
-.commerce-glow--top-left { top: -128px; left: -128px; background: var(--commerce-violet); opacity: 0.4; }
-.commerce-glow--top-right { top: -128px; right: -128px; background: var(--commerce-blue); opacity: 0.35; }
-.commerce-glow--bottom-left { bottom: -128px; left: -128px; background: var(--commerce-orchid); opacity: 0.35; }
-.commerce-glow--bottom-right { bottom: -128px; right: -128px; width: 700px; height: 700px; background: var(--commerce-indigo); opacity: 0.65; filter: blur(150px); }
+.commerce-glow--top-left { top: -128px; left: -128px; background: var(--commerce-violet); opacity: 0.14; }
+.commerce-glow--top-right { top: -128px; right: -128px; background: var(--commerce-blue); opacity: 0.14; }
+.commerce-glow--bottom-left { bottom: -128px; left: -128px; background: var(--commerce-orchid); opacity: 0.20; }
+.commerce-glow--bottom-right { bottom: -128px; right: -128px; width: 700px; height: 700px; background: var(--commerce-indigo); opacity: 0.40; filter: blur(150px); }
 
 .commerce-panel {
   border: 1px solid var(--commerce-border);
