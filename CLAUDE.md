@@ -165,7 +165,7 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
-`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
+`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), đề xuất cải tiến AI (`/ai-improvements/*`, AI-05), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
 ### Models (`models/`) — 39 schema
 
