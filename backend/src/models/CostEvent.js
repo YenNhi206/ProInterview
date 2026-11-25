@@ -9,7 +9,7 @@ import { COST_EVENT_KINDS } from "../constants/costEventKinds.js";
  */
 const CostEventSchema = new mongoose.Schema(
   {
-    // llm_call | tts_elevenlabs | avatar_video_did | rubric_scoring | course_prescreen (AI-12)
+    // llm_call | tts_elevenlabs | avatar_video_did | avatar_video_elevenlabs | rubric_scoring | course_prescreen (AI-12)
     kind:      { type: String, required: true, enum: COST_EVENT_KINDS, index: true },
     tags:      { type: [String], default: [], index: true },
     userId:    { type: String, default: null },

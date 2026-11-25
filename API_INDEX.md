@@ -410,7 +410,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
-| GET | `/api/ai/config` | — | Cấu hình provider công khai |
+| GET | `/api/ai/config` | — | Cấu hình provider công khai. `providers.avatar`: `provider` (`did` | `elevenlabs`, env `AVATAR_PROVIDER`, AI-15), `model`, `videoEnabled` (provider đang chạy có key và circuit chưa mở; FE dựa vào đây để gọi pregen), `did` (tên cũ của `videoEnabled`, gỡ ở AI-17), `circuitOpen` |
 | POST | `/api/ai/transcribe` | Bearer | Speech-to-text |
 | POST | `/api/ai/tts` | Bearer | Text-to-speech |
 | GET | `/api/ai/tts/voices` | Bearer | Danh sách giọng |

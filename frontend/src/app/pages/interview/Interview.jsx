@@ -616,7 +616,9 @@ export function Interview() {
       try {
         const configRes = await fetch("/api/ai/config");
         const configBody = configRes.ok ? await configRes.json().catch(() => ({})) : {};
-        const didEnabled = configBody?.providers?.avatar?.did === true;
+        // AI-15: `videoEnabled` theo provider đang chạy (D-ID hoặc ElevenLabs); `did` là tên cũ.
+        const avatarCfg = configBody?.providers?.avatar ?? {};
+        const didEnabled = (avatarCfg.videoEnabled ?? avatarCfg.did) === true;
 
         if (didEnabled) {
           setLoadingStep("pregenerating_videos");

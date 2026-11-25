@@ -1,6 +1,6 @@
 /**
  * N-11 (NFR-02): mỗi video avatar ghi đúng 1 dòng log `avatar_video_timing` có `durationMs` và thời gian từng bước
- * (cache, TTS, D-ID tạo, D-ID render, mirror, ghi cache), kể cả khi lỗi (`failedStep`).
+ * (cache, TTS, tạo job video, render, mirror, ghi cache), kể cả khi lỗi (`failedStep`), kèm provider + model (AI-15).
  * D-ID được giả lập bằng mock `fetch`; ElevenLabs và Cloudinary không cấu hình (D-ID tự dùng Azure TTS).
  */
 import { describe, it, before, after, beforeEach, mock } from "node:test";
@@ -73,13 +73,15 @@ describe("Log thời gian video avatar (N-11)", () => {
     assert.equal(line.talkId, "tlk_test");
     assert.equal(line.ttsProvider, "did_azure");
     assert.equal(line.mirrored, false);
-    for (const k of ["cacheLookupMs", "ttsMs", "didCreateMs", "didRenderMs", "cacheWriteMs", "durationMs"]) {
+    assert.equal(line.provider, "did");
+    assert.equal(line.model, "express");
+    for (const k of ["cacheLookupMs", "ttsMs", "videoCreateMs", "videoRenderMs", "cacheWriteMs", "durationMs"]) {
       assert.equal(typeof line[k], "number", k);
       assert.ok(line[k] >= 0, k);
     }
     assert.equal(line.mirrorMs, undefined, "không persistVideo thì không có bước mirror");
-    assert.ok(line.didRenderMs >= 1_500, "poll D-ID chờ ít nhất 1 nhịp (2 giây)");
-    assert.ok(line.durationMs >= line.didRenderMs);
+    assert.ok(line.videoRenderMs >= 1_500, "poll D-ID chờ ít nhất 1 nhịp (2 giây)");
+    assert.ok(line.durationMs >= line.videoRenderMs);
 
     infoMock.mock.resetCalls();
     const cached = await avatar.generateVideoForQuestion(question, { gender: "female" });
@@ -92,7 +94,7 @@ describe("Log thời gian video avatar (N-11)", () => {
     assert.equal(lines[0].ttsMs, undefined);
   });
 
-  it("D-ID lỗi khi tạo talk: 1 dòng warn ok=false, failedStep = didCreateMs, lỗi vẫn ném ra", async () => {
+  it("D-ID lỗi khi tạo talk: 1 dòng warn ok=false, failedStep = videoCreateMs, lỗi vẫn ném ra", async () => {
     didMode = "create_fails";
     seq += 1;
     await assert.rejects(avatar.generateVideoForQuestion(`Câu lỗi ${seq}`, { gender: "male" }), /D-ID create talk failed/);
@@ -100,9 +102,9 @@ describe("Log thời gian video avatar (N-11)", () => {
     assert.equal(lines.length, 1);
     assert.equal(lines[0].level, "warn");
     assert.equal(lines[0].ok, false);
-    assert.equal(lines[0].failedStep, "didCreateMs");
+    assert.equal(lines[0].failedStep, "videoCreateMs");
     assert.match(lines[0].error, /500/);
-    assert.equal(typeof lines[0].didCreateMs, "number");
-    assert.equal(lines[0].didRenderMs, undefined);
+    assert.equal(typeof lines[0].videoCreateMs, "number");
+    assert.equal(lines[0].videoRenderMs, undefined);
   });
 });

@@ -109,6 +109,9 @@ CV_ANALYZER_URL=http://localhost:8000
 # Tùy chọn — thiếu thì tính năng degrade
 ELEVENLABS_API_KEY=<sk_...>  ELEVENLABS_VOICE_ID_MALE=<id>  ELEVENLABS_VOICE_ID_FEMALE=<id>
 D_ID_API_KEY=<key>
+AVATAR_PROVIDER=did                         # did | elevenlabs (AI-15); elevenlabs cần ELEVENLABS_API_KEY gói Pro + giọng
+ELEVENLABS_VIDEO_MODEL=creatify-aurora  ELEVENLABS_VIDEO_RESOLUTION=720p  ELEVENLABS_VIDEO_POLL_MS=10000
+ELEVENLABS_VIDEO_CREDITS_PER_SECOND=     # AI-16: lấy từ `npm run trial:elevenlabs-video -- --yes` (AI-14); trống → CostEvent 0 USD, `priceUnconfigured`
 GOOGLE_VISION_API_KEY=<key>
 CLOUDINARY_URL=<cloudinary://...>           # thiếu → lưu public/uploads
 UPSTASH_REDIS_REST_URL=<https://...>  UPSTASH_REDIS_REST_TOKEN=<token>   # bắt buộc ở production
@@ -255,6 +258,7 @@ Pipeline pre-generated: ElevenLabs TTS (giọng theo gender) → upload audio Cl
 - **Circuit breaker** (`avatarService.js`): mở sau 3 lỗi D-ID liên tiếp, reset sau 5 phút; pregen luôn thử câu đầu trước khi chạy song song.
 - Fallback cuối: Web Speech API (TTS trình duyệt) + ảnh tĩnh.
 - Trạng thái tổng hợp: `GET /api/ai/config`.
+- **Lớp provider (AI-15):** `services/avatarProviders/` (`didProvider`, `elevenLabsVideoProvider`, circuit breaker riêng từng provider), chọn bằng `AVATAR_PROVIDER`. ElevenLabs (`POST /v1/flows/video`, model `creatify-aurora`) nhận ảnh + audio base64, không có Azure TTS dự phòng; `content_url` hết hạn ~1h nên link gốc chỉ cache 30 phút. Cache key có provider + model (D-ID giữ key cũ `did:v3:`); đổi provider thì chạy lại `warmup:baseline-videos` và `warmup:company-videos`. CostEvent video ElevenLabs có kind `avatar_video_elevenlabs`. Bước trong log `avatar_video_timing` đổi tên `videoCreateMs` / `videoRenderMs`, thêm `provider`, `model`.
 - Luồng phỏng vấn: `POST /api/interviews/sessions` (3 câu baseline) → `PATCH /sessions/:id` mỗi câu + `analyze-face` → `POST /sessions/:id/generate-followup-questions` (chỉ Pro) → `complete` → `evaluate`. Đánh giá thiếu trường sau 1 lần retry → `ModerationItem` `evaluation_incomplete`. Route cũ `POST /api/interviews/generate-questions` còn nhưng FE không gọi.
 
 ### Thanh toán

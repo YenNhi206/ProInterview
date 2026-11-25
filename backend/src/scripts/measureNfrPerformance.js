@@ -10,7 +10,8 @@
  *   node src/scripts/measureNfrPerformance.js cv --log render-backend.log [--limit 30]
  *
  *   # Avatar ≤ 130 giây — đọc log `avatar_video_timing` (N-11), tách video mới / đã cache
- *   node src/scripts/measureNfrPerformance.js avatar --log render-backend.log [--limit 20]
+ *   node src/scripts/measureNfrPerformance.js avatar --log render-backend.log [--limit 20] [--provider elevenlabs]
+ *   (`--provider`: chỉ lấy dòng của provider đó; dòng log trước AI-15 không có `provider` được tính là `did`. QA-08)
  *
  * Kết quả in ra bảng và ghi toàn bộ mẫu vào `docs/report/nfr-raw/<loại>-<thời điểm>.json` để kiểm lại.
  * DB khác .env: đặt TARGET_MONGO_URI. Không ghi gì vào DB.
@@ -102,6 +103,12 @@ export function cvSamplesFromLog(rows) {
 }
 
 /** Avatar từ log: tách video đã cache / video mới; video mới lỗi đếm riêng, không tính vào thời gian. */
+/** Lọc dòng `avatar_video_timing` theo provider (AI-15); dòng cũ không có `provider` là D-ID. */
+export function filterAvatarRowsByProvider(rows, provider) {
+  if (!provider) return rows;
+  return rows.filter((r) => (r.provider ?? "did") === provider);
+}
+
 export function avatarSamplesFromLog(rows) {
   const ok = rows.filter((r) => typeof r.durationMs === "number" && r.ok);
   return {
@@ -180,16 +187,24 @@ async function main() {
   if (kind === "avatar") {
     if (!log) throw new Error("Avatar chỉ đo được từ log: thêm --log <file log backend>.");
     const limit = Number(argValue(args, "--limit") ?? TARGETS.avatarNew.minSamples);
-    const { cached, fresh, failedFresh } = avatarSamplesFromLog(parseLogLines(readFileSync(log, "utf8"), "avatar_video_timing"));
+    const provider = argValue(args, "--provider");
+    const rows = filterAvatarRowsByProvider(parseLogLines(readFileSync(log, "utf8"), "avatar_video_timing"), provider);
+    const { cached, fresh, failedFresh } = avatarSamplesFromLog(rows);
+    const models = [...new Set(rows.map((r) => r.model).filter(Boolean))];
     const freshL = latest(fresh, limit);
     const cachedL = latest(cached, limit);
     report("avatar", {
       "Avatar câu mới (NFR-02)": { stats: summarize(freshL.map((r) => r.durationMs), TARGETS.avatarNew), samples: freshL },
       "Avatar câu đã cache (NFR-02)": { stats: summarize(cachedL.map((r) => r.durationMs), TARGETS.avatarCached), samples: cachedL },
-    }, { source: `log:${path.basename(log)} avatar_video_timing`, failedFresh });
+    }, {
+      source: `log:${path.basename(log)} avatar_video_timing`,
+      failedFresh,
+      ...(provider ? { provider } : {}),
+      ...(models.length ? { models } : {}),
+    });
     return;
   }
-  console.error("Cách dùng: node src/scripts/measureNfrPerformance.js <cv|avatar> [--log file] [--since ngày] [--until ngày] [--limit n]");
+  console.error("Cách dùng: node src/scripts/measureNfrPerformance.js <cv|avatar> [--log file] [--since ngày] [--until ngày] [--limit n] [--provider did|elevenlabs]");
   process.exit(1);
 }
 

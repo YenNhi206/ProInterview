@@ -11,11 +11,11 @@
  * hàng chục job render song song. Lỗi render chỉ ghi log; người dùng đầu tiên của câu lỗi
  * sẽ render lúc luyện như trước đây.
  *
- * Provider đang chạy do avatarService quyết định (D-ID; ElevenLabs sau AI-15). Đổi provider
+ * Provider đang chạy do avatarService quyết định (`AVATAR_PROVIDER`, AI-15). Đổi provider
  * làm đổi cache key → chạy lại `npm run warmup:company-videos`.
  */
 import { QuestionBank } from "../models/QuestionBank.js";
-import { isDIDEnabled } from "./avatarService.js";
+import { isAvatarVideoEnabled } from "./avatarService.js";
 import { pregenerateSync } from "./videoPregenService.js";
 import { logger } from "../config/logger.js";
 
@@ -42,7 +42,7 @@ function isMockMode() {
 /** Có render video được không: cần key provider và không ở chế độ mock (QA-01). */
 export function isCompanyVideoWarmEnabled() {
   if (pregenImpl) return true;
-  return isDIDEnabled() && !isMockMode();
+  return isAvatarVideoEnabled() && !isMockMode();
 }
 
 function uniqueTexts(texts) {
