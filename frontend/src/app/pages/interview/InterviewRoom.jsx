@@ -40,7 +40,11 @@ import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { InterviewStepBar } from "../../components/interview/InterviewStepBar";
 import { MascotVideo, TIPS } from "../../components/shared/AiLoadingState";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
-import { CustomerPageHeader } from "../../components/layout/CustomerPageHeader";
+import {
+  CustomerPageHeader,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+} from "../../components/layout/CustomerPageHeader";
 
 /* ── Session storage keys ────────────────────────────────── */
 const TRANSCRIPT_KEY = "prointerview_transcripts";
@@ -1331,15 +1335,15 @@ export default function InterviewRoom() {
               className="mb-5 w-full"
               title={
                 <>
-                  <span className="font-extrabold text-[#630ed4]">Luyện phỏng vấn với AI</span>{" "}
-                  <span className="font-extrabold text-[#1a1b23]">từ CV của bạn</span>
+                  <span className={CUSTOMER_PAGE_TITLE_BASE}>Luyện phỏng vấn với AI</span>{" "}
+                  <span className={CUSTOMER_PAGE_TITLE_ACCENT}>từ CV của bạn</span>
                 </>
               }
               subtitle="Từ CV của bạn, ProInterview tạo buổi phỏng vấn thử với HR AI (~30 phút), phân tích hành vi và góp ý sau từng câu trả lời để bạn tự tin hơn trước buổi thật."
               subtitleClassName="mt-3 max-w-full text-sm font-medium leading-relaxed text-slate-600 sm:text-base"
             />
 
-            <div className="w-full rounded-md border border-violet-200/80 bg-white px-4 py-5 shadow-sm sm:px-6 sm:py-6">
+            <div className="w-full rounded-[20px] border border-violet-200/80 bg-white px-4 py-5 shadow-sm sm:px-6 sm:py-6">
               <InterviewStepBar current={3} />
               <div className="mb-6">
                 <h2 className="text-sm sm:text-base font-bold text-violet-950">Bước 3: Phỏng vấn</h2>
@@ -1350,14 +1354,14 @@ export default function InterviewRoom() {
 
               <div className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-x-10">
                 <div className="relative mx-auto w-[300px] shrink-0 lg:mx-0">
-                  <div className="h-[420px] overflow-hidden rounded-2xl border-2 border-violet-200/80 shadow-[0_12px_32px_rgba(110,53,232,0.12)]">
+                  <div className="h-[420px] overflow-hidden rounded-[16px] border-2 border-violet-200/80 shadow-[0_12px_32px_rgba(110,53,232,0.12)]">
                     <video src={hrVideoUrl} autoPlay loop muted playsInline className="h-full w-full object-cover" />
                   </div>
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-[#630ed4]/90 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#b5e636]" />
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-[#8037f4] px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#93f72b]" />
                     LIVE
                   </div>
-                  <div className="absolute right-3 bottom-3 left-3 rounded-lg border border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
+                  <div className="absolute right-3 bottom-3 left-3 rounded-[12px] border border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
                     <p className="text-sm font-semibold text-white">{hrName}</p>
                     <p className="text-xs text-white/65">{hrTitle}</p>
                   </div>
@@ -1367,7 +1371,7 @@ export default function InterviewRoom() {
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-violet-500">Sẵn sàng</p>
                     <h3 className="mt-1 text-xl font-bold leading-tight text-violet-950 sm:text-2xl">
-                      Phỏng vấn với <span className="text-[#630ed4]">{hrName}</span>
+                      Phỏng vấn với <span className="text-[#6d28d9]">{hrName}</span>
                     </h3>
                     <p className="mt-1.5 text-sm leading-relaxed text-violet-600">
                       Buổi phỏng vấn gồm{" "}
@@ -1385,11 +1389,11 @@ export default function InterviewRoom() {
                       const dimmed = isLocked || isPending;
                       return (
                         <li key={i}
-                          className={`flex min-h-[2.5rem] items-center gap-3 rounded-md border px-3 py-2 ${
+                          className={`flex min-h-[2.5rem] items-center gap-3 rounded-[12px] border px-3 py-2 ${
                             dimmed ? "border-violet-100 bg-violet-50/40 opacity-65" : "border-violet-200/70 bg-violet-50/30"
                           }`}>
                           <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                            dimmed ? "bg-violet-100 text-violet-300" : "bg-violet-200/80 text-[#630ed4]"
+                            dimmed ? "bg-violet-100 text-violet-300" : "bg-violet-200/80 text-[#6d28d9]"
                           }`}>
                             {isLocked ? <Lock className="h-3 w-3" /> : i + 1}
                           </span>
@@ -1397,7 +1401,7 @@ export default function InterviewRoom() {
                             {isLocked ? "Yêu cầu gói Pro" : isPending ? "Sẽ được tạo từ câu trả lời của bạn" : q}
                           </p>
                           {isLocked && (
-                            <span className="shrink-0 rounded-full border border-violet-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#630ed4]">Pro</span>
+                            <span className="shrink-0 rounded-full border border-violet-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#6d28d9]">Pro</span>
                           )}
                         </li>
                       );
@@ -1406,7 +1410,7 @@ export default function InterviewRoom() {
 
                   <div className="mt-1 flex flex-col gap-2.5 pt-1">
                     <button type="button" onClick={() => setPhase("question")}
-                      className="w-full rounded-md bg-gradient-to-r from-[#c4ff47] to-[#d4ff00] py-3.5 text-sm font-bold text-violet-950 shadow-[0_8px_24px_rgba(196,255,71,0.22)] transition-all hover:brightness-105">
+                      className="w-full rounded-full bg-[#93f72b] py-3.5 text-sm font-bold text-[#131f00] border border-[#7fd925] hover:bg-[#a8ff4e] transition-all">
                       Bắt đầu phỏng vấn →
                     </button>
                   </div>
@@ -1435,7 +1439,7 @@ export default function InterviewRoom() {
           <button
             type="button"
             onClick={() => navigate("/interview")}
-            className="rounded-md bg-[#a3e635] px-5 py-2.5 text-sm font-semibold text-slate-900 hover:bg-[#84cc16]"
+            className="rounded-full bg-[#93f72b] px-5 py-2.5 text-sm font-semibold text-[#131f00] border border-[#7fd925] hover:bg-[#a8ff4e] transition-colors"
           >
             Quay lại thiết lập
           </button>
@@ -1501,7 +1505,7 @@ export default function InterviewRoom() {
                     <button
                       type="button"
                       onClick={() => triggerFollowUpGeneration(followUpTranscriptsRef.current ?? allTranscripts)}
-                      className="w-full rounded-md bg-[#630ed4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#520bb0]"
+                      className="w-full rounded-full bg-[#8037f4] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
                     >
                       Thử lại
                     </button>
@@ -1512,7 +1516,7 @@ export default function InterviewRoom() {
                         setPersonalizedPending(false);
                         goToFeedback(followUpTranscriptsRef.current ?? allTranscripts);
                       }}
-                      className="w-full rounded-md border border-violet-200 px-4 py-2.5 text-sm font-medium text-violet-700 transition hover:bg-violet-50"
+                      className="w-full rounded-full border border-violet-200 px-4 py-2.5 text-sm font-medium text-violet-700 transition hover:bg-violet-50"
                     >
                       Kết thúc &amp; xem kết quả
                     </button>
@@ -1525,7 +1529,7 @@ export default function InterviewRoom() {
                   </p>
                   <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-violet-100">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#630ed4] to-[#93f72b] transition-all duration-700 ease-out"
+                      className="h-full rounded-full bg-gradient-to-r from-[#8037f4] to-[#93f72b] transition-all duration-700 ease-out"
                       style={{ width: `${followUpProgress}%` }}
                     />
                   </div>
@@ -1542,7 +1546,7 @@ export default function InterviewRoom() {
         <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-2">
           <div className="flex items-center gap-2">
             <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2.5 py-1">
-              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#b5e636]" />
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#93f72b]" />
               <span className="text-xs font-semibold text-white">REC</span>
             </div>
             <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2.5 py-1">
@@ -1551,7 +1555,7 @@ export default function InterviewRoom() {
             </div>
             {isListening && (
               <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2.5 py-1">
-                <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#b5e636]" />
+                <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#93f72b]" />
                 <span className="text-xs font-medium text-white">Ghi âm</span>
               </div>
             )}
@@ -1571,8 +1575,8 @@ export default function InterviewRoom() {
                 return (
                   <div key={i} className={`h-1.5 w-7 rounded-full transition-all duration-500 ${
                     locked ? "bg-white/10"
-                    : i < currentQ ? "bg-[#b5e636]/55"
-                    : i === currentQ ? "bg-[#b5e636]"
+                    : i < currentQ ? "bg-[#93f72b]/55"
+                    : i === currentQ ? "bg-[#93f72b]"
                     : "bg-white/20"
                   }`} />
                 );
@@ -1584,8 +1588,8 @@ export default function InterviewRoom() {
 
         {/* Question banner */}
         <div className="shrink-0 border-b border-white/10 px-4 py-2">
-          <div className="liquid-glass flex items-start gap-2.5 rounded-md px-3 py-2">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#c7f36b] text-xs font-bold text-black">
+          <div className="liquid-glass flex items-start gap-2.5 rounded-[12px] px-3 py-2">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#93f72b] text-xs font-bold text-[#131f00]">
               {currentQ + 1}
             </span>
             <div className="min-w-0 flex-1">
@@ -1593,9 +1597,9 @@ export default function InterviewRoom() {
               {QUESTION_OBJECTS && (() => {
                 const layer = QUESTION_OBJECTS[currentQ]?.layer;
                 const layerMap = {
-                  theory:   { label: "Lý thuyết",     color: "#c7f36b", bg: "rgba(199,243,107,0.12)", border: "rgba(199,243,107,0.28)" },
-                  project:  { label: "Dự án",          color: "#c7f36b", bg: "rgba(199,243,107,0.12)", border: "rgba(199,243,107,0.28)" },
-                  behavior: { label: "Hành vi · STAR", color: "#c7f36b", bg: "rgba(199,243,107,0.1)",  border: "rgba(199,243,107,0.22)" },
+                  theory:   { label: "Lý thuyết",     color: "#93f72b", bg: "rgba(147,247,43,0.12)", border: "rgba(147,247,43,0.28)" },
+                  project:  { label: "Dự án",          color: "#93f72b", bg: "rgba(147,247,43,0.12)", border: "rgba(147,247,43,0.28)" },
+                  behavior: { label: "Hành vi · STAR", color: "#93f72b", bg: "rgba(147,247,43,0.1)",  border: "rgba(147,247,43,0.22)" },
                 };
                 const lm = layerMap[layer];
                 if (!lm) return null;
@@ -1622,7 +1626,7 @@ export default function InterviewRoom() {
                   onClick={() => setShowStarHints((p) => !p)}
                   className="flex w-full items-center justify-between px-4 py-2 text-left transition-colors hover:bg-white/5">
                   <div className="flex items-center gap-2">
-                    <Star className="h-3.5 w-3.5 text-[#c7f36b]" />
+                    <Star className="h-3.5 w-3.5 text-[#93f72b]" />
                     <span className="text-xs font-semibold text-white">Gợi ý STAR</span>
                     <span className="text-xs text-white/50">— nhấn để {showStarHints ? "ẩn" : "xem"}</span>
                   </div>
@@ -1631,10 +1635,10 @@ export default function InterviewRoom() {
                 {showStarHints && (
                   <div className="grid max-h-24 grid-cols-2 gap-2 overflow-y-auto px-4 pb-2 sm:grid-cols-4">
                     {[
-                      { key: "situation", label: "S · Tình huống", color: "#c7f36b", border: "border-white/10" },
-                      { key: "task",      label: "T · Nhiệm vụ",   color: "#c7f36b", border: "border-white/10" },
-                      { key: "action",    label: "A · Hành động",  color: "#c7f36b", border: "border-white/10" },
-                      { key: "result",    label: "R · Kết quả",    color: "#c7f36b", border: "border-white/10" },
+                      { key: "situation", label: "S · Tình huống", color: "#93f72b", border: "border-white/10" },
+                      { key: "task",      label: "T · Nhiệm vụ",   color: "#93f72b", border: "border-white/10" },
+                      { key: "action",    label: "A · Hành động",  color: "#93f72b", border: "border-white/10" },
+                      { key: "result",    label: "R · Kết quả",    color: "#93f72b", border: "border-white/10" },
                     ].map(({ key, label, color, border }) => {
                       const hints = sg[key] ?? [];
                       if (!hints.length) return null;
@@ -1877,7 +1881,7 @@ export default function InterviewRoom() {
                     }}
                     placeholder="Gõ câu trả lời của bạn vào đây..."
                     rows={2}
-                    className="w-full flex-1 resize-none rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#c7f36b]"
+                    className="w-full flex-1 resize-none rounded-[12px] border border-white/20 bg-white/5 p-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#93f72b]"
                   />
                 </div>
               ) : !hasTranscript && !interimTranscript && !isListening ? null : (
@@ -1886,11 +1890,11 @@ export default function InterviewRoom() {
                   {interimTranscript && (
                     <p className="line-clamp-2 text-xs leading-snug text-white/70 italic">
                       {interimTranscript}
-                      {isListening && <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-[#b5e636] align-middle" />}
+                      {isListening && <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-[#93f72b] align-middle" />}
                     </p>
                   )}
                   {isListening && !hasTranscript && !interimTranscript && (
-                    <span className="inline-block h-5 w-0.5 animate-pulse bg-[#b5e636]" />
+                    <span className="inline-block h-5 w-0.5 animate-pulse bg-[#93f72b]" />
                   )}
                 </div>
               )}
@@ -1954,29 +1958,29 @@ export default function InterviewRoom() {
           </button>
 
           <div className="relative">
-            {isListening && <div className="absolute inset-0 rounded-full bg-[#b5e636]/32 animate-ping" />}
+            {isListening && <div className="absolute inset-0 rounded-full bg-[#93f72b]/30 animate-ping" />}
             <button onClick={toggleListening} disabled={!sttSupported}
               title={isListening ? "Dừng ghi âm" : "Bắt đầu trả lời"}
-              className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-40"
+              className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-40"
               style={{
-                background: "linear-gradient(135deg,#c7f36b,#b5e636)",
-                boxShadow: isListening ? "0 0 24px rgba(199,243,107,0.55)" : "0 0 24px rgba(199,243,107,0.2)",
+                background: "#93f72b",
+                border: "2px solid #b8ff78",
               }}>
               {isListening
-                ? <Microphone className="h-7 w-7 text-black" />
-                : <MicrophoneSlash className="h-7 w-7 text-black" />}
+                ? <Microphone className="h-7 w-7 text-[#131f00]" />
+                : <MicrophoneSlash className="h-7 w-7 text-[#131f00]" />}
             </button>
           </div>
 
           {currentQ < QUESTIONS.length - 1 || personalizedPending ? (
             <button type="button" onClick={handleNextQuestion}
               className="liquid-glass-strong flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white transition-all hover:scale-[1.02]">
-              {!isPro && currentQ === freeLimit - 1 ? <><Lock className="h-4 w-4 text-[#c7f36b]" /> Câu tiếp theo</> : <>Câu tiếp theo <CaretRight className="h-4 w-4 text-[#c7f36b]" /></>}
+              {!isPro && currentQ === freeLimit - 1 ? <><Lock className="h-4 w-4 text-[#93f72b]" /> Câu tiếp theo</> : <>Câu tiếp theo <CaretRight className="h-4 w-4 text-[#93f72b]" /></>}
             </button>
           ) : (
             <button type="button" onClick={handleNextQuestion}
               className="liquid-glass-strong flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white transition-all hover:scale-[1.02]">
-              Hoàn thành <CheckCircle className="h-4 w-4 text-[#c7f36b]" />
+              Hoàn thành <CheckCircle className="h-4 w-4 text-[#93f72b]" />
             </button>
           )}
         </div>

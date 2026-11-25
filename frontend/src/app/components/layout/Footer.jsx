@@ -53,7 +53,6 @@ const NAV_LINKS = {
   ],
   "Về ProInterview": [
     { label: "Giới thiệu", path: "/about" },
-    { label: "Tin tức & Hoạt động", path: "/achievements" },
     { label: "Điều khoản dịch vụ", path: "/terms" },
     { label: "Chính sách bảo mật", path: "/privacy" },
   ],

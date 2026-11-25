@@ -29,11 +29,11 @@ export function AddCourseToCartButton({ courseId, className = "", contentClassNa
       disabled={busy}
       onClick={handleClick}
       aria-busy={busy}
-      className={`inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/20 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-white/[0.12] hover:border-white/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 active:scale-[0.98] cursor-pointer disabled:cursor-wait disabled:opacity-50 ${className}`}
+      className={`inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/20 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-white/[0.12] hover:border-white/30 [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-[#8037f4] [html[data-workspace-theme=light]_&]:hover:bg-violet-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 active:scale-[0.98] cursor-pointer disabled:cursor-wait disabled:opacity-50 ${className}`}
     >
       <span className={`inline-flex items-center gap-2.5 ${contentClassName}`}>
         <span className="flex size-5 shrink-0 items-center justify-center">
-          <Icon className="size-4.5 text-violet-300" strokeWidth={1.8} aria-hidden="true" />
+          <Icon className="size-4.5 text-violet-300 [html[data-workspace-theme=light]_&]:text-[#8037f4]" strokeWidth={1.8} aria-hidden="true" />
         </span>
         <span className="truncate">{busy ? "Đang thêm…" : inCart ? "Xem trong giỏ hàng" : "Thêm vào giỏ"}</span>
       </span>

@@ -12,11 +12,11 @@
 @theme {
   /* Lime chủ đạo — dùng với nền #120B2E + chữ sáng */
   --color-secondary-fixed-dim: #cfbdff;
-  --color-on-primary: #0a0a0c;
-  --color-primary-fixed-dim: #7fe015;
+  --color-on-primary: #131f00;
+  --color-primary-fixed-dim: #7fd925;
   --color-surface-container-lowest: #120b2e;
-  --color-secondary: #7000ff;
-  --color-on-tertiary-container: #980de8;
+  --color-secondary: #8037f4;
+  --color-on-tertiary-container: #8037f4;
   --color-outline-variant: #434933;
   --color-surface-variant: #2a2730;
   --color-on-tertiary: #ffffff;
@@ -25,10 +25,10 @@
   --color-on-secondary-fixed: #ffffff;
   --color-tertiary-fixed-dim: #e3b5ff;
   --color-on-error-container: #ffdad6;
-  --color-secondary-fixed: #7000ff;
+  --color-secondary-fixed: #8037f4;
   --color-on-background: #e6e0ee;
   --color-surface-container-highest: #36333e;
-  --color-secondary-container: #7000ff;
+  --color-secondary-container: #8037f4;
   --color-on-surface: #f1eff4;
   --color-inverse-surface: #e6e0ee;
   --color-surface-tint: #93f72b;
@@ -41,7 +41,7 @@
   --color-outline: #8d9479;
   --color-on-secondary-container: #ffffff;
   --color-on-error: #690005;
-  --color-surface: #150d32;
+  --color-surface: #18113c;
   --color-on-primary-fixed-variant: #384e00;
   --color-on-tertiary-fixed-variant: #6e00ab;
   --color-surface-container: #181621;
@@ -51,7 +51,7 @@
   --color-inverse-primary: #4b6700;
   --color-inverse-on-surface: #322f39;
   --color-primary-fixed: #93f72b;
-  --color-on-primary-fixed: #0a0a0c;
+  --color-on-primary-fixed: #131f00;
   --color-tertiary: #ffffff;
   --color-surface-container-low: #160f36;
   --color-primary-container: #d4ff7a;
@@ -59,9 +59,9 @@
   --color-primary: #93f72b;
   --color-surface-container-high: #1f1c2b;
 
-  --radius-DEFAULT: 1rem;
-  --radius-lg: 2rem;
-  --radius-xl: 3rem;
+  --radius-DEFAULT: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
 
   --font-headline: "Lexend", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-body: "Lexend", "Plus Jakarta Sans", system-ui, sans-serif;

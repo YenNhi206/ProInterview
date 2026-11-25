@@ -30,7 +30,7 @@ export function TopNavShell({
     >
 
       <div
-        className={`top-nav-pill pointer-events-auto mx-auto flex min-h-[44px] w-full max-w-full min-w-0 flex-nowrap items-center justify-between gap-2 px-3 py-1 max-lg:px-3.5 sm:h-12 sm:min-h-12 sm:py-0 sm:px-6 md:h-14 md:min-h-14 md:px-8 liquid-glass-strong ${shellMax}`}
+        className={`top-nav-pill pointer-events-auto mx-auto flex min-h-[44px] w-full max-w-full min-w-0 flex-nowrap items-center justify-between gap-2 px-3 py-1 max-lg:px-3.5 sm:h-12 sm:min-h-12 sm:py-0 sm:px-6 md:h-14 md:min-h-14 md:px-8 liquid-glass-strong bg-[#0e0722]/70 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.35)] ${shellMax}`}
         style={pillStyle}
       >
 

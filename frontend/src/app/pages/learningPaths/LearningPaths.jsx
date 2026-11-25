@@ -45,8 +45,8 @@ export function LearningPaths() {
     <div className="mr-page lp-page">
       <header className="mr-heading">
         <div>
-          <h1>Lộ trình học của bạn</h1>
-          <p>Lộ trình nhiều buổi mentor soạn riêng cho bạn sau buổi đánh giá 0đ. Chấp nhận, thanh toán trọn gói rồi học lần lượt từng buổi.</p>
+          <h1>Lộ trình học của tôi</h1>
+          <p>Lộ trình nhiều buổi mentor soạn riêng sau buổi đánh giá 0đ. Chấp nhận, thanh toán trọn gói rồi học lần lượt từng buổi.</p>
         </div>
         <button type="button" data-button-surface="none" className="mr-secondary" disabled={loading} onClick={() => setReload((v) => v + 1)}>
           <RefreshCw size={15} /> Làm mới

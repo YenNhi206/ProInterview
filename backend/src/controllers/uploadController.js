@@ -183,17 +183,4 @@ export const UploadController = {
       });
     } catch (err) { next(err); }
   },
-
-  /** Upload ảnh thành tựu (Achievement) */
-  uploadAchievementImage: async (req, res, next) => {
-    try {
-      if (!req.file) return res.status(400).json({ success: false, error: "Không tìm thấy file" });
-      const { url, absoluteUrl } = await resolveUrl(req, req.file, {
-        folder:        "prointerview/achievements",
-        resource_type: "image",
-        transformation: [{ width: 1200, height: 800, crop: "limit", quality: "auto:good", fetch_format: "auto" }],
-      });
-      res.json({ success: true, url, absoluteUrl, message: "Upload ảnh thành tựu thành công" });
-    } catch (error) { next(error); }
-  },
 };

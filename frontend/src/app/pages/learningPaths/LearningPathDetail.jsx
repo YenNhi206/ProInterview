@@ -77,7 +77,7 @@ export function LearningPathDetail() {
   if (!path) {
     return (
       <div className="mr-page lp-page">
-        <Link to="/learning-paths" className="mr-back"><ArrowLeft size={15} /> Lộ trình của bạn</Link>
+        <Link to="/learning-paths" className="mr-back"><ArrowLeft size={15} /> Lộ trình học của tôi</Link>
         <div className="mr-error" role="alert">{error || "Không tìm thấy lộ trình."}</div>
       </div>
     );
@@ -114,7 +114,7 @@ export function LearningPathDetail() {
 
   return (
     <div className="mr-page lp-page lp-detail">
-      <Link to="/learning-paths" className="mr-back"><ArrowLeft size={15} /> Lộ trình của bạn</Link>
+      <Link to="/learning-paths" className="mr-back"><ArrowLeft size={15} /> Lộ trình học của tôi</Link>
 
       <header className="mr-panel mr-detail-overview">
         <div className="mr-meta">

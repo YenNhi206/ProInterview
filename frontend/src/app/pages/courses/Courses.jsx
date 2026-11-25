@@ -28,6 +28,12 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { AppSelect } from "../../components/ui/AppSelect";
 import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+  CUSTOMER_PAGE_SUBTITLE_CLASS,
+} from "../../components/layout/CustomerPageHeader";
+import {
   buildCourseFilterCategories,
   courseMatchesTopic,
   getCourseTopicLabel,
@@ -91,7 +97,7 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
       <div className="pi-course-card-3d__inner">
         {/* ════════ FRONT FACE ════════ */}
         <div
-          className="pi-course-card-3d__front group cursor-pointer"
+          className="pi-course-card-3d__front group cursor-pointer bg-[#140d30] [html[data-workspace-theme=light]_&]:bg-white"
           onClick={(e) => {
             e.stopPropagation();
             setFlipped(true);
@@ -99,13 +105,13 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
           title="Rà chuột hoặc click để lật xem tổng quan khóa học"
         >
           {/* Thumbnail */}
-          <div className="relative aspect-video w-full overflow-hidden bg-[#18113c] shrink-0">
+          <div className="relative aspect-video w-full overflow-hidden bg-[#18113c] [html[data-workspace-theme=light]_&]:bg-slate-100 shrink-0">
             <ImageWithFallback
               src={course.thumbnail}
               alt=""
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#140d30] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent [html[data-workspace-theme=light]_&]:from-black/50 [html[data-workspace-theme=light]_&]:via-transparent" />
 
             {/* Mentor avatar overlay */}
             <div className="absolute bottom-3 left-3 flex items-center gap-2">
@@ -113,64 +119,64 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
                 src={course.mentorAvatar || avatarFallback}
                 onError={(e) => { e.currentTarget.src = avatarFallback; }}
                 alt=""
-                className="h-7 w-7 rounded-full border border-[#93f72b]/50 object-cover shadow-sm"
+                className="h-7 w-7 rounded-full border border-[#93f72b]/50 [html[data-workspace-theme=light]_&]:border-white/80 object-cover shadow-sm"
               />
-              <p className="truncate text-[11px] font-bold text-white drop-shadow-sm max-w-[140px]">
+              <p className="truncate text-[11px] font-bold text-white [html[data-workspace-theme=light]_&]:!text-white drop-shadow-sm max-w-[140px]">
                 {course.mentorName}
               </p>
             </div>
 
             {/* Level Badge */}
             {course.level && (
-              <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-bold text-[#93f72b] backdrop-blur-md border border-[#93f72b]/30">
+              <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-bold text-[#93f72b] backdrop-blur-md border border-[#93f72b]/30 [html[data-workspace-theme=light]_&]:bg-white/95 [html[data-workspace-theme=light]_&]:text-[#8037f4] [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:shadow-sm">
                 {course.level}
               </span>
             )}
           </div>
 
           {/* Body */}
-          <div className="flex flex-1 flex-col justify-between p-4">
+          <div className="flex flex-1 flex-col justify-between p-4 bg-transparent [html[data-workspace-theme=light]_&]:bg-white">
             <div>
-              <h3 className="line-clamp-2 text-sm font-black leading-snug text-white transition-colors duration-200 group-hover:text-[#93f72b]">
+              <h3 className="line-clamp-2 text-sm font-black leading-snug text-white transition-colors duration-200 group-hover:text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#1a1b23] [html[data-workspace-theme=light]_&]:group-hover:text-[#8037f4]">
                 {course.title}
               </h3>
               {course.description && (
-                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-300">
+                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
                   {course.description}
                 </p>
               )}
             </div>
 
-            <div className="mt-3 pt-3 border-t border-white/10">
+            <div className="mt-3 pt-3 border-t border-white/10 [html[data-workspace-theme=light]_&]:border-[#ddd3f5]">
               {/* Stats row */}
-              <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-300">
+              <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
                 {ratingDisplay ? (
-                  <span className="inline-flex items-center gap-1 font-bold text-amber-400">
-                    <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                  <span className="inline-flex items-center gap-1 font-bold text-amber-400 [html[data-workspace-theme=light]_&]:text-amber-600">
+                    <Star className="size-3.5 fill-amber-400 text-amber-400 [html[data-workspace-theme=light]_&]:fill-amber-500 [html[data-workspace-theme=light]_&]:text-amber-500" />
                     {ratingDisplay}
                   </span>
                 ) : (
-                  <span className="text-slate-400">Chưa có đánh giá</span>
+                  <span className="text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-400">Chưa có đánh giá</span>
                 )}
                 {durationHours > 0 && (
-                  <span className="inline-flex items-center gap-1 text-slate-300">
-                    <Clock className="size-3 text-violet-400" />
+                  <span className="inline-flex items-center gap-1 text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
+                    <Clock className="size-3 text-violet-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" />
                     {durationHours}h học
                   </span>
                 )}
                 {course.mentorTitle && (
-                  <span className="truncate text-slate-400 max-w-[110px]">{course.mentorTitle}</span>
+                  <span className="truncate text-slate-400 [html[data-workspace-theme=light]_&]:text-[#5b5772] max-w-[110px]">{course.mentorTitle}</span>
                 )}
               </div>
 
               {/* Price & Hint */}
               <div className="mt-3 flex items-center justify-between">
                 <div>
-                  <span className="text-base font-black text-[#93f72b]">
+                  <span className="text-base font-black text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]">
                     {formatPrice(perkFinalPrice)}
                   </span>
                   {perkDiscountAmount > 0 && (
-                    <span className="ml-1.5 text-xs font-semibold text-slate-400 line-through">
+                    <span className="ml-1.5 text-xs font-semibold text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-400 line-through">
                       {formatPrice(coursePrice)}
                     </span>
                   )}
@@ -197,7 +203,7 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
                   e.stopPropagation();
                   setFlipped(true);
                 }}
-                className="mt-3.5 flex md:hidden w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-1.5 text-[11px] font-bold text-violet-300 hover:text-white"
+                className="mt-3.5 flex md:hidden w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-1.5 text-[11px] font-bold text-violet-300 hover:text-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-[#8037f4]"
               >
                 <Repeat className="size-3" /> Lật xem nhanh
               </button>
@@ -220,12 +226,12 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
             <div className="pi-card-glow-orb pi-card-glow-orb--bottom" aria-hidden="true" />
 
             {/* Back Header */}
-            <div className="relative z-10 flex items-start justify-between gap-2 border-b border-white/10 pb-2.5">
+            <div className="relative z-10 flex items-start justify-between gap-2 border-b border-white/10 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] pb-2.5">
               <div>
-                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#93f72b]">
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]">
                   <Sparkles className="size-3" /> Tổng quan khóa học
                 </span>
-                <h4 className="mt-0.5 line-clamp-1 text-sm font-black text-white">
+                <h4 className="mt-0.5 line-clamp-1 text-sm font-black text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">
                   {course.title}
                 </h4>
               </div>
@@ -236,7 +242,7 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
                   setFlipped(false);
                 }}
                 title="Lật lại mặt trước"
-                className="rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white cursor-pointer shrink-0"
+                className="rounded-full p-1 text-slate-400 hover:bg-white/10 hover:text-white [html[data-workspace-theme=light]_&]:hover:bg-slate-100 [html[data-workspace-theme=light]_&]:hover:text-[#1a1b23] cursor-pointer shrink-0"
               >
                 <RotateCcw className="size-3.5" />
               </button>
@@ -245,32 +251,32 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
             {/* Back Content Highlights */}
             <div className="relative z-10 flex-1 py-2.5 flex flex-col justify-between gap-2 text-xs">
               <div className="pi-card-3d-info-box">
-                <p className="text-[11px] font-medium text-slate-200 line-clamp-3 leading-relaxed">
+                <p className="text-[11px] font-medium text-slate-200 [html[data-workspace-theme=light]_&]:text-[#4b4763] line-clamp-3 leading-relaxed">
                   {course.description || "Khóa học thực chiến chuyên sâu rèn luyện tư duy, kỹ năng phỏng vấn và giải quyết bài toán thực tế."}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="rounded-xl bg-white/5 p-2 border border-white/5">
-                  <p className="text-[10px] text-slate-400 font-semibold">Giảng viên</p>
-                  <p className="text-xs font-bold text-white truncate mt-0.5">{course.mentorName}</p>
+                <div className="rounded-xl bg-white/5 p-2 border border-white/5 [html[data-workspace-theme=light]_&]:bg-[#f6f3fc] [html[data-workspace-theme=light]_&]:border-[#ddd3f5]">
+                  <p className="text-[10px] text-slate-400 [html[data-workspace-theme=light]_&]:text-[#6b6785] font-semibold">Giảng viên</p>
+                  <p className="text-xs font-bold text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23] truncate mt-0.5">{course.mentorName}</p>
                 </div>
-                <div className="rounded-xl bg-white/5 p-2 border border-white/5">
-                  <p className="text-[10px] text-slate-400 font-semibold">Thời lượng</p>
-                  <p className="text-xs font-bold text-[#93f72b] mt-0.5">{durationHours > 0 ? `${durationHours}h video` : "Tự học"}</p>
+                <div className="rounded-xl bg-white/5 p-2 border border-white/5 [html[data-workspace-theme=light]_&]:bg-[#f6f3fc] [html[data-workspace-theme=light]_&]:border-[#ddd3f5]">
+                  <p className="text-[10px] text-slate-400 [html[data-workspace-theme=light]_&]:text-[#6b6785] font-semibold">Thời lượng</p>
+                  <p className="text-xs font-bold text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4] mt-0.5">{durationHours > 0 ? `${durationHours}h video` : "Tự học"}</p>
                 </div>
               </div>
 
               {perkDiscountAmount > 0 && (
-                <div className="flex items-center justify-between rounded-xl bg-violet-950/60 border border-violet-500/30 px-3 py-1.5 text-[11px]">
-                  <span className="text-violet-300 font-medium">Gói {perkPlanLabel}:</span>
-                  <span className="font-bold text-[#93f72b]">Tiết kiệm {formatPrice(perkDiscountAmount)}</span>
+                <div className="flex items-center justify-between rounded-xl bg-violet-950/60 border border-violet-500/30 px-3 py-1.5 text-[11px] [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:border-violet-200">
+                  <span className="text-violet-300 [html[data-workspace-theme=light]_&]:text-[#6d28d9] font-medium">Gói {perkPlanLabel}:</span>
+                  <span className="font-bold text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]">Tiết kiệm {formatPrice(perkDiscountAmount)}</span>
                 </div>
               )}
             </div>
 
             {/* Back CTA Buttons */}
-            <div className="relative z-10 pt-2.5 border-t border-white/10 flex flex-col gap-2">
+            <div className="relative z-10 pt-2.5 border-t border-white/10 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] flex flex-col gap-2">
               <motion.button
                 type="button"
                 onClick={(e) => {
@@ -279,7 +285,7 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
                 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.96 }}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#93f72b] hover:bg-[#84cc16] py-2 text-xs font-black uppercase tracking-wide text-slate-950 shadow-[0_4px_16px_rgba(147,247,43,0.35)] transition-all cursor-pointer"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#93f72b] hover:bg-[#a8ff4e] py-2 text-xs font-black uppercase tracking-wide text-[#131f00] border border-[#b8ff78] [html[data-workspace-theme=light]_&]:border-[#7fd925] shadow-[0_4px_16px_rgba(147,247,43,0.35)] transition-all cursor-pointer"
               >
                 <PlayCircle className="size-3.5" />
                 Vào xem khóa học
@@ -466,9 +472,10 @@ export function Courses() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
-            className="font-headline text-3xl font-extrabold uppercase tracking-wider text-white sm:text-4xl md:text-5xl"
+            className={`font-headline ${CUSTOMER_PAGE_TITLE_CLASS} mb-3 text-center`}
           >
-            KHÓA HỌC KỸ NĂNG
+            <span className={CUSTOMER_PAGE_TITLE_BASE}>Khóa học</span>{" "}
+            <span className={CUSTOMER_PAGE_TITLE_ACCENT}>kỹ năng</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -476,7 +483,7 @@ export function Courses() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.18 }}
-            className="mb-12 mt-4 max-w-2xl text-center text-sm font-normal leading-relaxed text-slate-300 sm:text-base"
+            className={`${CUSTOMER_PAGE_SUBTITLE_CLASS} mb-12`}
           >
             Các khóa học do Mentor xây dựng, giúp bạn bổ sung kỹ năng cần thiết cho hành trình ứng tuyển.
           </motion.p>
@@ -498,27 +505,27 @@ export function Courses() {
             {/* Bar content */}
             <div className="ms-inner">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 [html[data-workspace-theme=light]_&]:text-[#8037f4]" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm khóa học..."
-                  className="w-full bg-transparent py-3 pl-11 pr-4 text-xs font-semibold text-white placeholder-slate-400 outline-none"
+                  className="w-full bg-transparent py-3 pl-11 pr-4 text-xs font-semibold text-white [html[data-workspace-theme=light]_&]:text-[#1e1338] placeholder-slate-400 [html[data-workspace-theme=light]_&]:placeholder-[#6b6785] outline-none"
                 />
               </div>
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-800/60 text-slate-300 hover:text-white"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-800/60 text-slate-300 hover:text-white [html[data-workspace-theme=light]_&]:bg-violet-100 [html[data-workspace-theme=light]_&]:text-[#8037f4]"
                 >
                   <X className="size-3.5" />
                 </button>
               )}
               <button
                 type="button"
-                className="ms-cta-btn inline-flex shrink-0 items-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#93f72b] cursor-pointer"
+                className="ms-cta-btn inline-flex shrink-0 items-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#131f00] cursor-pointer"
               >
                 TÌM KIẾM
                 <span className="ms-cta-icon">
@@ -534,7 +541,7 @@ export function Courses() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[11px] font-semibold text-violet-300/80"
+              className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[11px] font-semibold text-violet-300/80 [html[data-workspace-theme=light]_&]:text-[#5b5772]"
             >
               <span className="flex items-center gap-1.5">
                 <BookOpen className="h-3.5 w-3.5" />
@@ -557,12 +564,12 @@ export function Courses() {
 
           {/* Results bar + filter toggle */}
           <motion.div
-            className="mb-6 flex items-center justify-between border-b border-white/10 pb-3 px-1"
+            className="mb-6 flex items-center justify-between border-b border-white/10 [html[data-workspace-theme=light]_&]:border-slate-200 pb-3 px-1"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
-            <p className="text-sm font-semibold text-slate-300">
+            <p className="text-sm font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-[#23252f]">
               Tìm thấy{" "}
               <span className="text-base font-extrabold text-[#8037f4]">{filteredCourses.length}</span>{" "}
               khóa học cho bạn!
@@ -586,13 +593,13 @@ export function Courses() {
                 animate={{ opacity: 1, y: 0, scaleY: 1 }}
                 exit={{ opacity: 0, y: -8, scaleY: 0.96 }}
                 transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="mb-8 rounded-3xl border border-violet-950/20 bg-[#1a132f] p-5 shadow-xl"
+                className="mb-8 rounded-3xl border border-violet-950/20 bg-[#1a132f] p-5 shadow-xl [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:shadow-md"
                 style={{ transformOrigin: "top" }}
               >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 items-end">
                   {/* Cấp độ */}
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="course-selectedlevel" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Cấp độ</label>
+                    <label htmlFor="course-selectedlevel" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80 [html[data-workspace-theme=light]_&]:text-[#5b5772]">Cấp độ</label>
                     <AppSelect
                       id="course-selectedlevel"
                       value={selectedLevel}
@@ -601,14 +608,13 @@ export function Courses() {
                         { value: "", label: "Tất cả cấp độ" },
                         ...LEVEL_OPTIONS
                       ]}
-                      theme="dark"
                       size="compact"
                     />
                   </div>
 
                   {/* Danh mục */}
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="course-selectedcategory" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Danh mục</label>
+                    <label htmlFor="course-selectedcategory" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80 [html[data-workspace-theme=light]_&]:text-[#5b5772]">Danh mục</label>
                     <AppSelect
                       id="course-selectedcategory"
                       value={selectedCategory}
@@ -617,14 +623,13 @@ export function Courses() {
                         { value: "", label: "Tất cả danh mục" },
                         ...filterCategories
                       ]}
-                      theme="dark"
                       size="compact"
                     />
                   </div>
 
                   {/* Học phí */}
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="course-selectedfee" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Học phí</label>
+                    <label htmlFor="course-selectedfee" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80 [html[data-workspace-theme=light]_&]:text-[#5b5772]">Học phí</label>
                     <AppSelect
                       id="course-selectedfee"
                       value={selectedFee}
@@ -633,20 +638,18 @@ export function Courses() {
                         { value: "", label: "Tất cả" },
                         ...FEE_OPTIONS
                       ]}
-                      theme="dark"
                       size="compact"
                     />
                   </div>
 
                   {/* Sắp xếp */}
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="course-sortby" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80">Sắp xếp</label>
+                    <label htmlFor="course-sortby" className="px-1 text-[10px] font-extrabold uppercase tracking-wider text-violet-300/80 [html[data-workspace-theme=light]_&]:text-[#5b5772]">Sắp xếp</label>
                     <AppSelect
                       id="course-sortby"
                       value={sortBy}
                       onValueChange={setSortBy}
                       options={SORT_OPTIONS}
-                      theme="dark"
                       size="compact"
                     />
                   </div>
@@ -657,14 +660,14 @@ export function Courses() {
                       type="button"
                       onClick={clearFilters}
                       disabled={!hasFilter}
-                      className="flex-1 rounded-2xl border border-violet-800 bg-violet-950/30 py-2.5 text-xs font-extrabold text-slate-300 transition-all hover:bg-violet-900/20 disabled:cursor-not-allowed disabled:opacity-30"
+                      className="flex-1 rounded-2xl border border-violet-800 bg-violet-950/30 py-2.5 text-xs font-extrabold text-slate-300 transition-all hover:bg-violet-900/20 disabled:cursor-not-allowed disabled:opacity-30 [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-600 [html[data-workspace-theme=light]_&]:hover:bg-slate-200"
                     >
                       Xóa lọc
                     </button>
                     <button
                       type="button"
                       onClick={() => setFiltersOpen(false)}
-                      className="flex-1 rounded-2xl bg-lime-400 py-2.5 text-xs font-black text-violet-950 shadow-sm transition-all hover:bg-lime-300"
+                      className="flex-1 rounded-2xl bg-[#93f72b] py-2.5 text-xs font-black text-[#131f00] border border-[#b8ff78] [html[data-workspace-theme=light]_&]:border-[#7fd925] shadow-sm transition-all hover:bg-[#a8ff4e]"
                     >
                       ÁP DỤNG
                     </button>
@@ -676,13 +679,13 @@ export function Courses() {
 
           {/* Error */}
           {error && !loading && (
-            <div className="mb-6 rounded-3xl border border-violet-100 bg-white py-16 text-center shadow-sm">
+            <div className="mb-6 rounded-[20px] border border-violet-100 bg-white py-16 text-center shadow-sm">
               <AlertCircle className="mx-auto mb-3 size-10 text-violet-400" />
               <p className="font-semibold text-violet-950">Không thể tải danh sách khóa học</p>
               <button
                 type="button"
                 onClick={loadCourses}
-                className="mt-4 rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-[#84cc16]"
+                className="mt-4 rounded-full bg-[#93f72b] px-6 py-2.5 text-sm font-bold text-[#131f00] border border-[#7fd925] hover:bg-[#a8ff4e] transition-colors"
               >
                 Thử lại
               </button>
@@ -698,7 +701,7 @@ export function Courses() {
 
           {/* Empty state */}
           {!loading && !error && filteredCourses.length === 0 && (
-            <div className="rounded-3xl border border-violet-100 bg-white py-16 text-center shadow-sm">
+            <div className="rounded-[20px] border border-violet-100 bg-white py-16 text-center shadow-sm">
               <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 2.8, ease: "easeInOut" }}>
                 <Search className="mx-auto mb-4 size-12 text-violet-300" />
               </motion.div>
@@ -711,7 +714,7 @@ export function Courses() {
                 onClick={clearFilters}
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.95 }}
-                className="rounded-xl bg-[#a3e635] px-6 py-2.5 text-sm font-bold text-slate-900"
+                className="rounded-full bg-[#93f72b] px-6 py-2.5 text-sm font-bold text-[#131f00] border border-[#7fd925] hover:bg-[#a8ff4e] transition-colors"
               >
                 Xóa bộ lọc
               </motion.button>

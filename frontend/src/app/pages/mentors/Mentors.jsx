@@ -25,6 +25,12 @@ import {
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { ListPagination } from "../../components/shared/ListPagination";
 import { AppSelect } from "../../components/ui/AppSelect";
+import {
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+  CUSTOMER_PAGE_TITLE_ACCENT,
+  CUSTOMER_PAGE_SUBTITLE_CLASS,
+} from "../../components/layout/CustomerPageHeader";
 
 const MENTORS_PAGE_SIZE = 8;
 
@@ -166,17 +172,18 @@ export function Mentors() {
 
           {/* Heading */}
           <motion.h1
-            className="font-headline text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white mb-3"
+            className={`font-headline ${CUSTOMER_PAGE_TITLE_CLASS} mb-3 text-center`}
             initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
           >
-            CỘNG ĐỒNG MENTOR
+            <span className={CUSTOMER_PAGE_TITLE_BASE}>Cộng đồng</span>{" "}
+            <span className={CUSTOMER_PAGE_TITLE_ACCENT}>Mentor</span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p
-            className="text-sm sm:text-base font-medium text-slate-300 max-w-2xl mb-10 leading-relaxed"
+            className={`${CUSTOMER_PAGE_SUBTITLE_CLASS} mb-10`}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut", delay: 0.18 }}
@@ -206,13 +213,13 @@ export function Mentors() {
                   placeholder="Tìm mentor IT (React, Node.js, AI, DevOps...)"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-transparent text-white placeholder-slate-400 text-xs font-semibold px-4 py-3 outline-none border-none"
+                  className="w-full bg-transparent text-white [html[data-workspace-theme=light]_&]:text-[#1e1338] placeholder-slate-400 [html[data-workspace-theme=light]_&]:placeholder-[#6b6785] text-xs font-semibold px-4 py-3 outline-none border-none"
                 />
                 {search && (
                   <button
                     type="button"
                     onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-violet-900/40 hover:text-white [html[data-workspace-theme=light]_&]:text-slate-500 [html[data-workspace-theme=light]_&]:hover:bg-violet-100 [html[data-workspace-theme=light]_&]:hover:text-[#8037f4]"
                   >
                     <X className="size-3.5" />
                   </button>
@@ -220,7 +227,7 @@ export function Mentors() {
               </div>
 
               {/* Separator */}
-              <div className="hidden md:block h-6 w-px bg-violet-700/30 shrink-0" />
+              <div className="hidden md:block h-6 w-px bg-violet-700/30 [html[data-workspace-theme=light]_&]:bg-[#e4daf4] shrink-0" />
 
               {/* Dropdown Field */}
               <div className="w-full md:w-52 shrink-0">
@@ -231,16 +238,15 @@ export function Mentors() {
                     { value: "", label: "Tất cả chuyên môn IT" },
                     ...MENTOR_FILTER_FIELDS.map((opt) => ({ value: opt, label: opt }))
                   ]}
-                  theme="dark"
                   noRing
-                  triggerClassName="w-full !bg-transparent !border-none !text-white hover:!bg-violet-900/30 rounded-none shadow-none text-xs font-bold h-11 px-4 !ring-0 !outline-none focus-visible:!ring-0 focus-visible:!border-transparent"
+                  triggerClassName="w-full !bg-transparent !border-none text-white [html[data-workspace-theme=light]_&]:!text-[#1e1338] hover:!bg-violet-900/30 [html[data-workspace-theme=light]_&]:hover:!bg-violet-50 rounded-none shadow-none text-xs font-bold h-11 px-4 !ring-0 !outline-none focus-visible:!ring-0 focus-visible:!border-transparent"
                 />
               </div>
 
               {/* Button TÌM KIẾM */}
               <button
                 type="button"
-                className="ms-cta-btn inline-flex shrink-0 items-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#93f72b] w-full md:w-auto justify-center cursor-pointer"
+                className="ms-cta-btn inline-flex shrink-0 items-center gap-3 rounded-full py-2.5 pl-5 pr-2.5 text-[13px] font-black text-[#131f00] w-full md:w-auto justify-center cursor-pointer"
               >
                 TÌM KIẾM
                 <span className="ms-cta-icon">

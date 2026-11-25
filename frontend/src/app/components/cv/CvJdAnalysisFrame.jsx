@@ -5,7 +5,11 @@ import {
 } from "../layout/customerShellLayout";
 import { MentorPageShell } from "../mentor/MentorPageShell";
 import { CvJdAnalysisTabs } from "./CvJdAnalysisTabs";
-import { CustomerPageHeader } from "../layout/CustomerPageHeader";
+import {
+  CustomerPageHeader,
+  CUSTOMER_PAGE_TITLE_CLASS,
+  CUSTOMER_PAGE_TITLE_BASE,
+} from "../layout/CustomerPageHeader";
 
 export const CV_JD_CARD_CLASS =
   "w-full overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#211a36] text-[#f5f2ff] shadow-[0_20px_60px_rgba(5,3,18,0.3)]";
@@ -80,7 +84,7 @@ export function CvJdAnalysisPage({
               <CustomerPageHeader
                 badge={badge}
                 title={title}
-                titleClassName="font-headline text-[clamp(1.75rem,3.5vw,2.5rem)] font-black leading-[1.12] tracking-tight text-[#f5f2ff]"
+                titleClassName={`${CUSTOMER_PAGE_TITLE_CLASS} ${CUSTOMER_PAGE_TITLE_BASE}`}
                 subtitle={subtitle}
                 subtitleClassName={subtitleClassName}
                 className="w-full"

@@ -1,8 +1,8 @@
 import React from "react";
 import { Brain } from "lucide-react";
-import { HOME_SECTION_INNER } from "../layout/customerShellLayout";
-import { HOME_SECTION_TITLE_SIZE, homeSectionClasses as ty } from "../../constants/homeTypography";
+import { homeSectionClasses as ty } from "../../constants/homeTypography";
 import { HeroInterviewVideoCard } from "./HeroInterviewVideoCard";
+import { HomeSectionHeader } from "./HomeSectionHeader";
 
 /** Showcase phỏng vấn AI — khớp mock: mockup trái + mascot, copy phải gọn */
 export function InterviewFeatureShowcase() {
@@ -12,7 +12,7 @@ export function InterviewFeatureShowcase() {
         <div className="mx-auto grid w-full min-w-0 grid-cols-1 items-center gap-8 max-lg:gap-10 lg:grid-cols-[minmax(0,5.5fr)_minmax(0,4.5fr)] lg:gap-6 xl:gap-8">
           {/* Mockup trái */}
           <div className="relative order-2 min-w-0 lg:order-1 lg:w-[calc(100%+3.2rem)]">
-             <HeroInterviewVideoCard overlap />
+            <HeroInterviewVideoCard overlap />
             <div
               className="pointer-events-none absolute -bottom-3 right-[-0.5rem] z-20 hidden sm:block lg:-bottom-[1.2rem] lg:right-[-2.5rem]"
               aria-hidden
@@ -26,25 +26,21 @@ export function InterviewFeatureShowcase() {
           </div>
 
           {/* Copy phải */}
-          <div className={`${ty.sectionCopy} order-1 lg:order-2 lg:translate-x-[2.3rem]`}>
-             <span className={ty.badge}>
-               <Brain className="h-3.5 w-3.5 shrink-0" aria-hidden />
-               Luyện phỏng vấn với AI
-            </span>
-            <h2
-              className="flex w-full flex-col gap-0.5 font-headline font-bold leading-[1.1] tracking-tight"
-              style={{ fontSize: HOME_SECTION_TITLE_SIZE }}
-            >
-              <span className="text-white sm:whitespace-nowrap">Luyện phỏng vấn với AI</span>
-              <div className="sm:whitespace-nowrap">
-                <span className="text-white">sẵn sàng </span>
-                <span className="text-[#c7f36b]">cho cơ hội thật</span>
-              </div>
-            </h2>
-            <p className={`${ty.sectionBody} max-w-md lg:max-w-none`}>
-              Thực chiến phỏng vấn 1-1 cùng AI với bộ câu hỏi được <br className="hidden lg:block" /> cá nhân hóa theo CV & JD.
-            </p>
-          </div>
+          <HomeSectionHeader
+            icon={Brain}
+            badge="Luyện phỏng vấn với AI"
+            lines={[
+              { text: "Luyện phỏng vấn với AI", tone: "dark" },
+              { text: "sẵn sàng cho cơ hội thật", tone: "accent" },
+            ]}
+            body={
+              <>
+                Thực chiến phỏng vấn 1-1 cùng AI với bộ câu hỏi được{" "}
+                <br className="hidden lg:block" /> cá nhân hóa theo CV & JD.
+              </>
+            }
+            className="order-1 lg:order-2 lg:translate-x-[2.3rem]"
+          />
         </div>
       </div>
     </section>

@@ -22,7 +22,7 @@ function getPaginationItems(currentPage, totalPages) {
 }
 
 function cnPageNav(disabled) {
-  return `gap-1 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors ${
+  return `gap-1 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 [html[data-workspace-theme=light]_&]:text-[#5b5772] [html[data-workspace-theme=light]_&]:hover:bg-slate-100 [html[data-workspace-theme=light]_&]:hover:text-[#1a1b23] rounded-xl transition-colors ${
     disabled ? "pointer-events-none opacity-30" : ""
   }`;
 }
@@ -32,7 +32,7 @@ function changePage(onPageChange, page) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-export function ListPagination({ currentPage, totalPages, onPageChange, className = "mt-8 border-t border-white/10 pt-6" }) {
+export function ListPagination({ currentPage, totalPages, onPageChange, className = "mt-8 border-t border-white/10 [html[data-workspace-theme=light]_&]:border-slate-200 pt-6" }) {
   if (totalPages <= 1) return null;
 
   const items = getPaginationItems(currentPage, totalPages);
@@ -69,8 +69,8 @@ export function ListPagination({ currentPage, totalPages, onPageChange, classNam
                 size="icon"
                 className={
                   item === currentPage
-                    ? "min-w-9 border border-[#93f72b] bg-[#93f72b] font-black text-[#0a0518] shadow-sm rounded-xl"
-                    : "min-w-9 font-medium text-slate-300 hover:bg-white/10 hover:text-white border border-transparent rounded-xl transition-colors"
+                    ? "min-w-9 border border-[#93f72b] bg-[#93f72b] font-black text-[#0a0518] shadow-sm rounded-xl [html[data-workspace-theme=light]_&]:border-[#7fd925]"
+                    : "min-w-9 font-medium text-slate-300 hover:bg-white/10 hover:text-white [html[data-workspace-theme=light]_&]:text-[#5b5772] [html[data-workspace-theme=light]_&]:hover:bg-slate-100 [html[data-workspace-theme=light]_&]:hover:text-[#1a1b23] border border-transparent rounded-xl transition-colors"
                 }
                 onClick={(e) => {
                   e.preventDefault();

@@ -51,7 +51,7 @@ export function CvVault() {
     <div className="mr-page cv-vault">
       <header className="mr-heading">
         <div>
-          <h1>Kho CV của bạn</h1>
+          <h1>Kho CV của tôi</h1>
           <p>Lưu nhiều phiên bản CV cho từng vị trí. CV mặc định được dùng khi ứng tuyển và hiển thị trên hồ sơ.</p>
         </div>
         <button type="button" data-button-surface="none" className="mr-secondary" disabled={loading} onClick={() => setReload((v) => v + 1)}>

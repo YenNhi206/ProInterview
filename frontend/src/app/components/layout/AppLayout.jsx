@@ -32,8 +32,7 @@ export function AppLayout() {
 
   useLayoutEffect(() => {
     const root = document.documentElement;
-    if (light) root.dataset.workspaceTheme = "light";
-    else delete root.dataset.workspaceTheme;
+    root.dataset.workspaceTheme = light ? "light" : "dark";
   }, [light]);
   const isMentor = user?.role === "mentor";
   const isCompany = COMPANY_ROLES.includes(user?.role);
@@ -41,23 +40,6 @@ export function AppLayout() {
   const isHome = location.pathname === "/" || location.pathname === "";
   const pathNorm = location.pathname.replace(/^\/+/, "");
   const isAbout = pathNorm === "about";
-  const usesDarkPalette =
-    ["cart", "checkout", "payment-history", "settings", "profile", "my-bookings", "my-courses"].includes(pathNorm) ||
-    pathNorm.startsWith("courses/") ||
-    pathNorm.startsWith("mentors/") ||
-    pathNorm.startsWith("mentor-requests") ||
-    pathNorm.startsWith("learning-paths") ||
-    pathNorm === "cvs" ||
-    pathNorm === "my-applications" ||
-    pathNorm === "cv-analysis/best-fit" ||
-    pathNorm.startsWith("booking/") ||
-    pathNorm.includes("cv-analysis/history") ||
-    pathNorm.includes("cv-analysis/jd/result") ||
-    pathNorm.includes("cv-analysis/field/result") ||
-    pathNorm.includes("cv-analysis/jd/history") ||
-    pathNorm.includes("cv-analysis/field/history");
-  const isCvAnalysisHub = pathNorm === "cv-analysis";
-  const allowHorizontalScroll = isCvAnalysisHub;
   const isLegalDoc = pathNorm === "terms" || pathNorm === "privacy";
   const hideNavbar = pathNorm === "interview/room";
   const hideFooter = hideNavbar;
@@ -68,13 +50,11 @@ export function AppLayout() {
   const showPromoBanner = showPromo && !isMentor && !hideNavbar;
   const [promoModalOpen, setPromoModalOpen] = useState(false);
   const [promoModalPulse, setPromoModalPulse] = useState(0);
-  const ambientModifier = isHome
-    ? " app-shell-ambient--commerce commerce-theme"
-    : usesDarkPalette
-      ? " app-shell-ambient--commerce"
-      : isLegalDoc
-        ? " app-shell-ambient--legal"
-        : "";
+  const ambientModifier = isLegalDoc
+    ? " app-shell-ambient--legal"
+    : light
+      ? ""
+      : " app-shell-ambient--commerce commerce-theme";
 
   useEffect(() => {
     document.title = resolveDocumentTitle(location.pathname);
@@ -114,18 +94,16 @@ export function AppLayout() {
     }
   };
 
+  const shellThemeClass = light
+    ? "bg-transparent text-slate-900"
+    : "bg-transparent text-white commerce-theme";
+
   const shellClass =
     `pi-typography-shell app-user-shell relative min-h-svh w-full max-w-full min-w-0 antialiased selection:bg-violet-100 selection:text-violet-900 ${isLegalDoc
       ? "overflow-x-hidden bg-slate-50 text-slate-900"
       : isAbout
         ? "bg-[#F9F6F0] text-slate-900"
-        : isHome
-          ? (light ? "overflow-x-clip bg-transparent text-slate-900" : "overflow-x-clip bg-transparent text-white")
-          : allowHorizontalScroll
-            ? "bg-transparent text-slate-900"
-            : usesDarkPalette
-              ? (light ? "overflow-x-hidden bg-transparent text-slate-900" : "overflow-x-hidden bg-transparent text-white")
-              : "overflow-x-hidden bg-[#f3f0f9] text-slate-900"
+        : `${isHome ? "overflow-x-clip" : "overflow-x-hidden"} ${shellThemeClass}`
     }`;
 
   const shellStyle = {
@@ -137,7 +115,7 @@ export function AppLayout() {
       className={`app-shell-ambient${ambientModifier}${light ? " mw-light-ambient" : ""}`}
       aria-hidden
     >
-      {(usesDarkPalette || isHome) && !light && (
+      {!light && !isLegalDoc && (
         <>
           <span className="commerce-glow commerce-glow--top-left" />
           <span className="commerce-glow commerce-glow--top-right" />
@@ -160,7 +138,7 @@ export function AppLayout() {
   return (
     <WorkspaceThemeContext.Provider value={theme}>
       <SelectThemeContext.Provider value={light ? "light" : "dark"}>
-        <div className={`${shellClass}${usesDarkPalette && !light ? " commerce-theme" : ""}`} style={shellStyle}>
+        <div className={`${shellClass}${!light && !isLegalDoc ? " commerce-theme" : ""}`} style={shellStyle}>
           {pageAmbient}
           <div
             className="relative z-[1] flex min-h-svh w-full max-w-full min-w-0 flex-col"

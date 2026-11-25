@@ -1,11 +1,11 @@
 /* Shared, role-scoped workspace theme. Customer pages keep their existing styles. */
 .mentor-workspace {
-  --mw-bg: #0a0416;
-  --mw-surface: rgba(255, 255, 255, 0.04);
-  --mw-raised: rgba(255, 255, 255, 0.06);
+  --mw-bg: #120b2e;
+  --mw-surface: rgba(24, 17, 60, 0.8);
+  --mw-raised: rgba(255, 255, 255, 0.04);
   --mw-border: rgba(255, 255, 255, 0.1);
-  --mw-text: #f1f5f9;
-  --mw-muted: #cbd5e1;
+  --mw-text: #ffffff;
+  --mw-muted: #94a3b8;
   --mw-lime: #93f72b;
   min-height: 100svh;
 }
@@ -698,7 +698,6 @@
   width: 160px;
   max-width: 100%;
   height: auto;
-  filter: brightness(0) invert(1);
 }
 
 .mentor-workspace-nav-heading {

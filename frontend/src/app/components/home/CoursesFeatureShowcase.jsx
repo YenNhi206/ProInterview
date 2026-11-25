@@ -115,7 +115,7 @@ function CoursesLearningMockup() {
             key={label}
             className={`inline-flex items-center rounded-xl px-3 py-1.5 text-[11px] font-bold sm:px-3.5 sm:py-2 sm:text-xs ${
               idx === 0
-                ? "liquid-glass !bg-[#c7f36b]/20 text-[#c7f36b] shadow-md"
+                ? "liquid-glass !bg-[#93f72b]/20 text-[#93f72b] shadow-md"
                 : "text-white/70"
             }`}
           >
@@ -148,7 +148,7 @@ function CoursesLearningMockup() {
               </p>
             </div>
           </div>
-          <p className="mb-2.5 text-xs font-bold text-[#c7f36b] sm:text-sm">
+          <p className="mb-2.5 text-xs font-bold text-[#93f72b] sm:text-sm">
             Gồm {DEMO_COURSE.lessonsCount} bài video · {formatDurationMinutes(DEMO_COURSE.duration)}
           </p>
           <ul className="space-y-1.5">
@@ -171,7 +171,7 @@ function CoursesLearningMockup() {
         <div className="flex h-full flex-col justify-between gap-2.5 sm:gap-3">
           <div className="liquid-glass rounded-2xl px-3.5 py-2.5 shadow-sm sm:px-4 sm:py-3">
             <div className="flex items-center gap-2 text-[11px] font-bold text-white sm:text-xs">
-              <Video className="h-4 w-4 shrink-0 text-[#c7f36b]" />
+              <Video className="h-4 w-4 shrink-0 text-[#93f72b]" />
               {COURSES_SHOWCASE_COPY.panelVideoTitle}
             </div>
             <p className="mt-1.5 text-[11px] font-medium leading-snug text-slate-400 sm:text-xs">
@@ -191,13 +191,13 @@ function CoursesLearningMockup() {
                 <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white sm:text-xs">
                   {mod.title}
                 </p>
-                <span className="shrink-0 text-[11px] font-bold text-[#c7f36b]">
+                <span className="shrink-0 text-[11px] font-bold text-[#93f72b]">
                   {mod.done}/{mod.total}
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#c7f36b] to-[#a3e635]"
+                  className="h-full rounded-full bg-[#93f72b]"
                   style={{ width: `${mod.pct}%` }}
                 />
               </div>

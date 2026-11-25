@@ -74,12 +74,13 @@ export function MentorProfileAside({
 
         <button
           type="button"
+          data-button-surface="none"
           onClick={onBook}
-          className="group relative overflow-hidden flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:via-indigo-500 hover:to-purple-500 py-3.5 text-sm font-bold text-white shadow-[0_10px_30px_-5px_rgba(139,92,246,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(139,92,246,0.7)] transition-all active:scale-[0.98] cursor-pointer"
+          className="mentor-booking-cta group relative overflow-hidden flex w-full items-center justify-center gap-2 rounded-2xl bg-[#93f72b] hover:bg-[#a8ff4e] py-3.5 text-sm font-black text-[#131f00] border border-[#7fd925] shadow-[0_8px_24px_-4px_rgba(147,247,43,0.45)] hover:shadow-[0_12px_28px_-4px_rgba(147,247,43,0.65)] transition-all active:scale-[0.98] cursor-pointer"
         >
-          <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-          <span>Đặt lịch ngay</span>
-          <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" aria-hidden />
+          <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+          <span className="font-black text-[#131f00]">Đặt lịch ngay</span>
+          <ArrowRight size={18} className="text-[#131f00] transition-transform group-hover:translate-x-1" aria-hidden />
         </button>
 
         <button

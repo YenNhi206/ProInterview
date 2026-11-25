@@ -22,8 +22,8 @@ export function FlowStepBar({
           aria-hidden
           className={`mx-1 mt-[1.125rem] h-0.5 w-10 shrink-0 rounded-full sm:mx-2 sm:w-16 transition-all ${
             lineDone
-              ? "bg-[#93f72b]/70"
-              : "bg-white/15"
+              ? "bg-[#93f72b]/70 [html[data-workspace-theme=light]_&]:bg-[#8037f4]/70"
+              : "bg-white/25 [html[data-workspace-theme=light]_&]:bg-slate-200"
           }`}
         />,
       );
@@ -42,10 +42,10 @@ export function FlowStepBar({
           onClick={() => isClickable && onStepClick(s.n)}
           className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#93f72b] ${
             active
-              ? "bg-[#93f72b] text-[#1b2410] border border-[#d9ff97]"
+              ? "bg-[#93f72b] text-[#1b2410] border border-[#d9ff97] [html[data-workspace-theme=light]_&]:bg-[#8037f4] [html[data-workspace-theme=light]_&]:text-white [html[data-workspace-theme=light]_&]:border-[#8037f4]"
               : done
-                ? "bg-[#263324] text-[#93f72b] border border-[#93f72b]/40 hover:brightness-110 cursor-pointer active:scale-95"
-                : "border border-white/20 bg-white/[0.05] text-slate-400 cursor-default"
+                ? "bg-[#263324] text-[#93f72b] border border-[#93f72b]/40 hover:brightness-110 cursor-pointer active:scale-95 [html[data-workspace-theme=light]_&]:bg-[#f3e8ff] [html[data-workspace-theme=light]_&]:text-[#8037f4] [html[data-workspace-theme=light]_&]:border-[#d8b4fe]"
+                : "border border-white/25 bg-white/[0.08] text-slate-300 cursor-default [html[data-workspace-theme=light]_&]:border-slate-300 [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-500"
           }`}
         >
           {done ? <Check className="h-4 w-4" strokeWidth={3} /> : s.n}
@@ -53,10 +53,10 @@ export function FlowStepBar({
         <span
           className={`max-w-[6rem] text-center text-xs font-medium leading-snug sm:max-w-none sm:text-sm ${
             active
-              ? "text-[#93f72b]"
+              ? "text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4] font-semibold"
               : done
-                ? "text-[#93f72b]"
-                : "text-slate-400 cursor-default"
+                ? "text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#8037f4]"
+                : "text-slate-300 cursor-default [html[data-workspace-theme=light]_&]:text-slate-500"
           }`}
         >
           {s.label}

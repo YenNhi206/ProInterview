@@ -19,6 +19,8 @@ import {
   LogIn,
   UserPlus,
   Briefcase,
+  Route,
+  CreditCard,
 } from "lucide-react";
 import {
   Sidebar,
@@ -457,9 +459,21 @@ export function AppSidebar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/learning-paths" className="flex items-center gap-2.5 cursor-pointer">
+                        <Route className="size-4 text-violet-400" />
+                        Lộ trình học của tôi
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/my-courses" className="flex items-center gap-2.5 cursor-pointer">
                         <BookOpen className="size-4 text-violet-400" />
                         Khóa học của tôi
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/cvs" className="flex items-center gap-2.5 cursor-pointer">
+                        <FileText className="size-4 text-violet-400" />
+                        Kho CV của tôi
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -470,6 +484,13 @@ export function AppSidebar() {
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
+
+                    <DropdownMenuItem asChild>
+                      <Link to="/payment-history" className="flex items-center gap-2.5 cursor-pointer">
+                        <CreditCard className="size-4 text-violet-400" />
+                        Lịch sử thanh toán
+                      </Link>
+                    </DropdownMenuItem>
 
                     <DropdownMenuItem asChild>
                       <Link to="/settings" className="flex items-center gap-2.5 cursor-pointer">

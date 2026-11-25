@@ -27,6 +27,10 @@
   font-variation-settings: "wght" 900; 
   letter-spacing: -0.022em; 
 }
+:root[data-workspace-theme="light"] .my-courses-page .my-courses-header h1,
+html[data-workspace-theme="light"] .my-courses-page .my-courses-header h1 { 
+  color: #1a1b23; 
+}
 .my-courses-page .my-courses-header p { 
   margin-top: 4px; 
   color: #c7bddd; 
@@ -34,6 +38,10 @@
   font-weight: 600; 
   font-variation-settings: "wght" 600; 
   line-height: 1.7; 
+}
+:root[data-workspace-theme="light"] .my-courses-page .my-courses-header p,
+html[data-workspace-theme="light"] .my-courses-page .my-courses-header p { 
+  color: #5b5772; 
 }
 
 /* ========================================================

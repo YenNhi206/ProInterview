@@ -13,8 +13,7 @@ export function AuthShell({ children, headerRight }) {
 
   useLayoutEffect(() => {
     const root = document.documentElement;
-    if (light) root.dataset.workspaceTheme = "light";
-    else delete root.dataset.workspaceTheme;
+    root.dataset.workspaceTheme = light ? "light" : "dark";
   }, [light]);
 
   return (

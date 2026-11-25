@@ -534,7 +534,7 @@ export function PaymentHistory() {
               </div>
 
               <p className="text-xs sm:text-sm font-medium text-slate-300/80">
-                Tra cứu toàn bộ lịch sử thanh toán, theo dõi trạng thái và tải hóa đơn PDF của bạn.
+                Tra cứu toàn bộ lịch sử thanh toán, theo dõi trạng thái và tải hóa đơn PDF của tôi.
               </p>
             </div>
           </motion.div>

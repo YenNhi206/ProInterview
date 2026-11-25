@@ -44,7 +44,6 @@ import { interviewsRouter } from "./routes/interviews.js";
 import { uploadRouter } from "./routes/upload.js";
 import { mockCoursesRouter } from "./routes/mockCourses.js";
 import { aiProvidersRouter } from "./routes/aiProviders.js";
-import { achievementsRouter } from "./routes/achievements.js";
 import { analyticsRouter } from "./routes/analytics.js";
 import { publicRouter } from "./routes/public.js";
 import { couponsRouter } from "./routes/coupons.js";
@@ -171,7 +170,6 @@ export function createApp() {
       notifications: "/api/notifications",
       admin: "/api/admin",
       enrollments: "/api/enrollments",
-      achievements: "/api/achievements",
 
       cv: "/api/cv",
       interviews: "/api/interviews",
@@ -243,7 +241,6 @@ export function createApp() {
   // Dữ liệu khóa học giả (MOCK_COURSES) — chỉ cho dev/test, không mount ở production.
   if (!isProd) app.use("/api/mock", mockCoursesRouter);
   app.use("/api/ai", aiProvidersRouter);
-  app.use("/api/achievements", achievementsRouter);
   app.use("/api/analytics", analyticsRouter);
   app.use("/api/public", publicRouter);
   app.use("/api/coupons", couponsRouter);

@@ -44,11 +44,10 @@ function TabBar({ activeTab, onChange }) {
             role="tab"
             aria-selected={active}
             onClick={() => onChange(tab.id)}
-            className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition-all cursor-pointer ${
-              active
-                ? "bg-violet-600/30 border border-violet-400/40 text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]"
-                : "border border-transparent text-slate-400 hover:text-white hover:bg-white/[0.04]"
-            }`}
+            className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition-all cursor-pointer ${active
+              ? "bg-violet-600/30 border border-violet-400/40 text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+              : "border border-transparent text-slate-400 hover:text-white hover:bg-white/[0.04]"
+              }`}
           >
             {tab.label}
           </button>
