@@ -756,6 +756,7 @@ export const CompanyWorkspaceController = {
     }
 
     rubric.status = "pending_review";
+    rubric.submittedAt = new Date(); // AI-07: đo thời gian Platform Mod duyệt
     await rubric.save();
     // CO-09: AI kiểm tra rubric cho Platform Moderator, chạy nền, không chặn gửi duyệt.
     scheduleRubricReview(rubric._id, req.userId);

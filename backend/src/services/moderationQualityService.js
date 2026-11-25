@@ -8,11 +8,23 @@
  *  - incompleteEvalRate: câu evaluationIncomplete / tổng câu được chấm, session chấm trong kỳ.
  *  - aiModeratorAgreement: override (moderatorOverride.at) trong kỳ.
  *  - bank, byCompetency: trạng thái hiện tại toàn kho (flagCount là bộ đếm cộng dồn).
+ *  - rubrics (AI-07): `pendingReview` là hiện tại; số đã duyệt / từ chối và thời gian duyệt tính theo
+ *    `moderationNote.reviewedAt` trong kỳ, thời gian duyệt = reviewedAt − `submittedAt` (rubric gửi trước
+ *    AI-07 không có `submittedAt` thì không tính thời gian, đếm ở `withoutSubmitTime`).
+ *  - promptVersionChanges (AI-07): mỗi lần đổi version của prompt chấm điểm / sinh câu (theo
+ *    `PromptVersion.activations`) có `at` ≤ cuối kỳ, mới nhất trước, tối đa 10. Tỉ lệ bị sửa tính theo
+ *    version ghi trên dữ liệu (không theo khoảng thời gian), toàn bộ dữ liệu của version đó:
+ *      evaluation  : câu được moderator chấm lại / câu đã chấm, session có `feedback.promptVersion` = version;
+ *      question_gen: câu bị sửa (approved có `revisions`) hoặc khai tử / câu đã có quyết định, câu AI sinh
+ *                    (`generatedBy.promptVersion` = version, pool chung).
  */
 import { QuestionBank } from "../models/QuestionBank.js";
 import { ModerationItem, HITL_QUEUE_TYPES } from "../models/ModerationItem.js";
 import { Report, AI_REPORT_TARGET_TYPES } from "../models/Report.js";
 import { InterviewSession } from "../models/InterviewSession.js";
+import { CompanyRubric } from "../models/CompanyRubric.js";
+import { PromptVersion } from "../models/PromptVersion.js";
+import { AIImprovementProposal } from "../models/AIImprovementProposal.js";
 import { cacheGetOrSet } from "./cacheService.js";
 
 const CACHE_TTL_SECONDS = 5 * 60;
@@ -171,8 +183,141 @@ async function reportPromptVersions(aiReports) {
   });
 }
 
+// ── AI-07: rubric doanh nghiệp ─────────────────────────────────────────────────────────────────
+
+const round2 = (n) => (n === null ? null : Math.round(n * 100) / 100);
+
+async function rubricStats(range, now) {
+  const [pending, reviewed] = await Promise.all([
+    CompanyRubric.find({ status: "pending_review" }, { submittedAt: 1, updatedAt: 1 }).lean(),
+    // Đã duyệt rồi bị thay bản (`archived`) vẫn là một lượt duyệt trong kỳ.
+    CompanyRubric.find(
+      { status: { $in: ["approved", "rejected", "archived"] }, "moderationNote.reviewedAt": { $gte: range.from, $lte: range.to } },
+      { status: 1, submittedAt: 1, "moderationNote.reviewedAt": 1 },
+    ).lean(),
+  ]);
+  // Chờ từ lúc gửi; rubric cũ không có `submittedAt` thì từ lần sửa cuối (lúc chuyển sang pending).
+  const waitingHours = pending.map((r) => Math.max(0, (now - new Date(r.submittedAt ?? r.updatedAt)) / 3_600_000));
+  const reviewHours = reviewed
+    .filter((r) => r.submittedAt)
+    .map((r) => Math.max(0, (new Date(r.moderationNote.reviewedAt) - new Date(r.submittedAt)) / 3_600_000));
+  return {
+    pendingReview: pending.length,
+    pendingOver7d: waitingHours.filter((h) => h > 7 * 24).length,
+    oldestPendingHours: waitingHours.length ? round2(Math.max(...waitingHours)) : null,
+    reviewedInPeriod: reviewed.length,
+    approvedInPeriod: reviewed.filter((r) => r.status !== "rejected").length,
+    rejectedInPeriod: reviewed.filter((r) => r.status === "rejected").length,
+    medianReviewHours: round2(median(reviewHours)),
+    withoutSubmitTime: reviewed.length - reviewHours.length,
+  };
+}
+
+// ── AI-07: tỉ lệ bị sửa trước / sau mỗi lần đổi version ───────────────────────────────────────
+
+const VERSION_CHANGE_KEYS = ["evaluation", "question_gen"];
+const MAX_VERSION_CHANGES = 10;
+
+/** { sample, corrected, rate } của một version prompt chấm điểm. */
+async function evaluationCorrection(version) {
+  const [row] = await InterviewSession.aggregate([
+    { $match: { "feedback.promptVersion": version } },
+    {
+      $project: {
+        graded: { $size: { $ifNull: ["$feedback.perQuestion", []] } },
+        corrected: {
+          $size: {
+            $filter: { input: { $ifNull: ["$answers", []] }, as: "a", cond: { $gt: ["$$a.moderatorOverride.at", null] } },
+          },
+        },
+      },
+    },
+    { $group: { _id: null, sample: { $sum: "$graded" }, corrected: { $sum: "$corrected" } } },
+  ]);
+  const sample = row?.sample ?? 0;
+  const corrected = row?.corrected ?? 0;
+  return { sample, corrected, rate: ratio(corrected, sample) };
+}
+
+/** { sample, corrected, rate } của một version prompt sinh câu (câu AI sinh, pool chung). */
+async function questionGenCorrection(version) {
+  const base = { orgId: null, source: { $in: AI_GENERATED_SOURCES }, "generatedBy.promptVersion": version };
+  const [approved, edited, deprecated] = await Promise.all([
+    QuestionBank.countDocuments({ ...base, status: "approved" }),
+    QuestionBank.countDocuments({ ...base, status: "approved", "revisions.0": { $exists: true } }),
+    QuestionBank.countDocuments({ ...base, status: "deprecated" }),
+  ]);
+  const sample = approved + deprecated;
+  const corrected = edited + deprecated;
+  return { sample, corrected, rate: ratio(corrected, sample) };
+}
+
+const correctionOf = (key, version) =>
+  (key === "evaluation" ? evaluationCorrection(version) : questionGenCorrection(version));
+
+async function promptVersionChanges(range) {
+  const docs = await PromptVersion.find(
+    { key: { $in: VERSION_CHANGE_KEYS }, $or: [{ "activations.0": { $exists: true } }, { activatedAt: { $ne: null } }] },
+    { key: 1, version: 1, activatedAt: 1, activations: 1 },
+  ).lean();
+
+  const events = [];
+  for (const d of docs) {
+    const log = d.activations?.length
+      ? d.activations
+      // Bật trước AI-07 (chưa có lịch sử): chỉ biết lần bật gần nhất, không biết bản trước.
+      : [{ at: d.activatedAt, previousVersion: "" }];
+    for (const a of log) {
+      if (a.at && new Date(a.at) <= range.to) {
+        events.push({ promptKey: d.key, fromVersion: a.previousVersion || null, toVersion: d.version, activatedAt: new Date(a.at) });
+      }
+    }
+  }
+  events.sort((a, b) => b.activatedAt - a.activatedAt);
+  const recent = events.slice(0, MAX_VERSION_CHANGES);
+
+  // Đề xuất cải tiến AI gắn với lần đổi (duyệt: before → after; rollback: after → before).
+  const versions = [...new Set(recent.flatMap((e) => [e.toVersion, e.fromVersion]).filter(Boolean))];
+  const proposals = versions.length
+    ? await AIImprovementProposal.find(
+        { status: { $in: ["approved", "rolled_back"] }, "after.version": { $in: versions } },
+        { status: 1, kind: 1, groupKey: 1, "before.version": 1, "after.version": 1 },
+      ).lean()
+    : [];
+
+  const cache = new Map();
+  const correction = (key, version) => {
+    if (!version) return null;
+    const k = `${key}:${version}`;
+    if (!cache.has(k)) cache.set(k, correctionOf(key, version));
+    return cache.get(k);
+  };
+
+  return Promise.all(
+    recent.map(async (e) => {
+      const [before, after] = await Promise.all([correction(e.promptKey, e.fromVersion), correction(e.promptKey, e.toVersion)]);
+      const approvedBy = proposals.find((p) => p.after?.version === e.toVersion && p.before?.version === e.fromVersion);
+      const rolledBack = proposals.find(
+        (p) => p.status === "rolled_back" && p.after?.version === e.fromVersion && p.before?.version === e.toVersion,
+      );
+      const proposal = approvedBy ?? rolledBack;
+      return {
+        promptKey: e.promptKey,
+        fromVersion: e.fromVersion,
+        toVersion: e.toVersion,
+        activatedAt: e.activatedAt.toISOString(),
+        change: rolledBack && !approvedBy ? "rollback" : "activate",
+        proposal: proposal ? { _id: String(proposal._id), kind: proposal.kind, groupKey: proposal.groupKey } : null,
+        before,
+        after,
+        rateDelta: before?.rate != null && after?.rate != null ? Math.round((after.rate - before.rate) * 10000) / 10000 : null,
+      };
+    }),
+  );
+}
+
 async function computeStats(range, now) {
-  const [bank, queue, decisions, flags, evaluated, overrides, competencies] = await Promise.all([
+  const [bank, queue, decisions, flags, evaluated, overrides, competencies, rubrics, versionChanges] = await Promise.all([
     bankStats(now),
     queueStats(range),
     decisionsInRange(range),
@@ -180,6 +325,8 @@ async function computeStats(range, now) {
     evaluatedSessions(range),
     overridesInRange(range),
     byCompetency(),
+    rubricStats(range, now),
+    promptVersionChanges(range),
   ]);
 
   const approvedCount = decisions.approved.length;
@@ -259,6 +406,8 @@ async function computeStats(range, now) {
     byCompetency: competencies,
     byPromptVersion,
     weeklyTrend,
+    rubrics,
+    promptVersionChanges: versionChanges,
   };
 }
 

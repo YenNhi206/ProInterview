@@ -127,15 +127,20 @@ export async function activate(key, version, { by = null, note = "" } = {}) {
     return target;
   }
 
-  const previous = await PromptVersion.findOne({ key, active: true }).select("_id").lean();
-  const activation = { active: true, activatedAt: new Date(), activatedBy: by || null, ...(note ? { note } : {}) };
+  const previous = await PromptVersion.findOne({ key, active: true }).select("_id version").lean();
+  const at = new Date();
+  const activation = { active: true, activatedAt: at, activatedBy: by || null, ...(note ? { note } : {}) };
+  // AI-07: lịch sử bật để Quality Dashboard so trước / sau mỗi lần đổi version.
+  // Chưa có bản active trong DB → đang chạy bản mặc định trong code.
+  const previousVersion = previous?.version ?? (entry.default.version !== version ? entry.default.version : "");
+  const logEntry = { at, by: by || null, previousVersion, note: note || "" };
 
   try {
     await runInTransaction(async (session) => {
       const opts = session ? { session } : {};
       // Tắt trước rồi bật: partial unique index `key_single_active` không cho tồn tại 2 bản active.
       await PromptVersion.updateMany({ key, active: true, _id: { $ne: target._id } }, { $set: { active: false } }, opts);
-      await PromptVersion.updateOne({ _id: target._id }, { $set: activation }, opts);
+      await PromptVersion.updateOne({ _id: target._id }, { $set: activation, $push: { activations: logEntry } }, opts);
     });
   } catch (err) {
     // Không có transaction (standalone): bật lỗi thì bật lại bản cũ để key không mất bản active.
