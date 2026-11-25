@@ -553,8 +553,8 @@ export function Interview() {
         }
       }
 
-      // 3 câu hỏi đầu = baseline cố định (text không đổi → video D-ID cache dùng chung toàn hệ
-      // thống, không tốn LLM/D-ID nào). 2 câu cá nhân hóa tiếp theo sẽ được sinh GIỮA buổi phỏng
+      // 3 câu hỏi đầu = baseline cố định (text không đổi → video avatar cache dùng chung toàn hệ
+      // thống, không tốn LLM/video nào). 2 câu cá nhân hóa tiếp theo sẽ được sinh GIỮA buổi phỏng
       // vấn (sau khi trả lời xong 3 câu này) dựa trên CV/JD + câu trả lời thật — xem InterviewRoom.
       setLoadingStep("generating_questions");
       const qRes = await getBaselineQuestions();
@@ -606,21 +606,20 @@ export function Interview() {
       }
     }
 
-    // Bước cuối: pre-generate video HR lipsync cho 3 câu baseline (D-ID Express API, cache dùng
+    // Bước cuối: pre-generate video HR lipsync cho 3 câu baseline (ElevenLabs, cache dùng
     // chung toàn hệ thống — nhanh ngay từ lần render đầu tiên/gender, gần như instant sau đó).
     // sessionId luôn có giá trị ở đây (đã return sớm phía trên nếu tạo session thất bại) —
     // guard if (sessionId) chỉ còn để an toàn khi !hasAuthCredentials().
-    // Timeout — nếu D-ID render chậm (cold-cache), graceful fallback sang TTS thay vì chặn user.
+    // Timeout — nếu video render chậm (cold-cache), graceful fallback sang TTS thay vì chặn user.
     let videoUrls = null;
     if (sessionId) {
       try {
         const configRes = await fetch("/api/ai/config");
         const configBody = configRes.ok ? await configRes.json().catch(() => ({})) : {};
-        // AI-15: `videoEnabled` theo provider đang chạy (D-ID hoặc ElevenLabs); `did` là tên cũ.
-        const avatarCfg = configBody?.providers?.avatar ?? {};
-        const didEnabled = (avatarCfg.videoEnabled ?? avatarCfg.did) === true;
+        // AI-15: provider video đang chạy có key và circuit chưa mở.
+        const videoEnabled = configBody?.providers?.avatar?.videoEnabled === true;
 
-        if (didEnabled) {
+        if (videoEnabled) {
           setLoadingStep("pregenerating_videos");
           const pregenTimeout = new Promise((resolve) =>
             setTimeout(() => resolve({ success: false, timedOut: true }), 150_000)
@@ -648,7 +647,7 @@ export function Interview() {
           }
         }
       } catch {
-        // D-ID chưa set hoặc lỗi mạng — phỏng vấn vẫn chạy với TTS fallback
+        // Provider video chưa cấu hình hoặc lỗi mạng — phỏng vấn vẫn chạy với TTS fallback
       }
     }
 

@@ -35,7 +35,7 @@ Hai file dùng **cùng contract**: mọi endpoint 📋 trong các bảng phase b
 |:--|:-------------|:---------------|
 | **Roadmap** | Bảng theo **phase + màn FE** | **Phần C** — cùng path/method |
 | **Đã chạy** | Bảng “API đã có” | **Phần A** |
-| **Ngoài Express** | Ghi nhắc Supabase / D-ID | **Phần B** |
+| **Ngoài Express** | Ghi nhắc Supabase | **Phần B** |
 
 Khi merge xong một route: cập nhật **Phần A** trong `API_INDEX`, đổi **📋 → ✅** ở đây.
 
@@ -103,7 +103,7 @@ Các nhóm endpoint theo phase (bookings, payments, plans, courses, enrollments,
 
 **Mở rộng sau Phase 4:** auth email, booking/payment CK, admin finance, `/api/ai/*`, **user presence**, **platform analytics**, **achievements** — xem [Phase 5 — Mở rộng](#phase-5--mở-rộng-đã-có-trong-code).
 
-**Ngoài Express:** Avatar — D-ID qua FE (`useDIDStream`) và/hoặc proxy `/api/ai/*` (`API_INDEX.md` phần B). **CV:** Express `/api/cv/analyses` + proxy `/api/cv/analyze*` → Python `cv_jd_matching` (FE: `cvApi.js`, `CVAnalysis.jsx`).
+**Avatar:** video ElevenLabs do backend gọi qua `/api/ai/interview/pregen*` (D-ID đã gỡ ở AI-17). **CV:** Express `/api/cv/analyses` + proxy `/api/cv/analyze*` → Python `cv_jd_matching` (FE: `cvApi.js`, `CVAnalysis.jsx`).
 
 ---
 
@@ -405,7 +405,7 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | POST | `/api/interviews/extract-cv-text` | `[AUTH]` |
 | ✅ | GET | `/api/ai/config` | — |
 | ✅ | POST | `/api/ai/transcribe`, `/api/ai/tts`, `/api/ai/emotion` | `[AUTH]` |
-| ✅ | GET | `/api/ai/tts/voices`, `/api/ai/avatar/presenters`, `/api/ai/avatar/usage` | `[AUTH]` |
+| ✅ | GET | `/api/ai/tts/voices` | `[AUTH]` |
 | ✅ | POST | `/api/ai/interview/pregenerate`, `/api/ai/interview/pregen/start` | `[AUTH]` |
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
 | ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
@@ -470,7 +470,7 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | Upload | ✅ FE | `uploadApi.js` — avatar, CV/JD, course media, check-in, achievement image |
 | Static pages (Terms/Privacy/About) | ✅ FE | Không cần API |
 
-**Còn thiếu / mỏng:** một số luồng Session detail demo, avatar D-ID prod hardening, vài màn admin chỉ read-only (settings).
+**Còn thiếu / mỏng:** một số luồng Session detail demo, avatar ElevenLabs prod hardening (QA-08), vài màn admin chỉ read-only (settings).
 
 ---
 
@@ -610,7 +610,7 @@ Chi tiết response lỗi / thành công: tham chiếu `API_INDEX.md` (phần đ
 
 | File | Nội dung |
 |:-----|:---------|
-| [API_INDEX.md](./API_INDEX.md) | API đang chạy + Supabase + D-ID |
+| [API_INDEX.md](./API_INDEX.md) | API đang chạy + Supabase |
 | [backend/DATABASE.md](./backend/DATABASE.md) | Collection / field MongoDB |
 
 ---

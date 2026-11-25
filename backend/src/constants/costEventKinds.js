@@ -7,7 +7,7 @@
 export const COST_EVENT_KIND = Object.freeze({
   LLM_CALL:         "llm_call",
   TTS_ELEVENLABS:   "tts_elevenlabs",
-  AVATAR_VIDEO_DID: "avatar_video_did",
+  AVATAR_VIDEO_DID: "avatar_video_did", // D-ID đã gỡ (AI-17); giữ để đọc CostEvent cũ
   AVATAR_VIDEO_ELEVENLABS: "avatar_video_elevenlabs", // AI-15/AI-16: video avatar ElevenLabs
   RUBRIC_SCORING:   "rubric_scoring",   // JB-07: chấm câu trả lời theo rubric công ty
   COURSE_PRESCREEN: "course_prescreen", // AI-08: AI sàng lọc khóa học trước khi moderator duyệt

@@ -40,7 +40,7 @@ export const analyzeFaceLimiter = rateLimit({
 /**
  * Pregen video baseline (free trial, public) — giới hạn theo IP.
  * Cache key cố định (3 câu × gender) nên sau lần đầu luôn cache-hit; limiter chỉ
- * để chặn flood request, không liên quan chi phí D-ID.
+ * để chặn flood request, không liên quan chi phí video avatar.
  */
 export const baselineTrialLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,

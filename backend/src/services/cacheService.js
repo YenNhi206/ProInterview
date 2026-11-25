@@ -8,7 +8,7 @@
  *      Note: Node 20 không có native Redis client; dùng Upstash REST nếu muốn cloud.
  *   3. In-memory Map fallback — CHỈ cho phép ở dev/test. Ở production, fallback im lặng
  *      sang Map làm cache hit rate tụt không ai biết (mỗi Render instance có Map riêng,
- *      mất khi restart) → tốn credit D-ID/LLM lãng phí. Vì vậy production fail-fast:
+ *      mất khi restart) → tốn credit video avatar/LLM lãng phí. Vì vậy production fail-fast:
  *      lỗi Redis sẽ throw ra ngoài thay vì fallback (xem `isProd()` trong cacheGet/cacheSet).
  *      Việc thiếu cấu hình Redis hoàn toàn ở production được chặn sớm hơn, ở server.js
  *      (process.exit trước khi nhận request).

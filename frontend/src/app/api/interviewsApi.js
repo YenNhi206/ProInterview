@@ -383,7 +383,7 @@ export async function synthesizeSpeech(text, opts = {}) {
 }
 
 /**
- * Tạo blob URL từ ArrayBuffer audio để play hoặc gửi cho D-ID.
+ * Tạo blob URL từ ArrayBuffer audio để play.
  * @param {ArrayBuffer} audioBuffer
  * @param {string} [contentType="audio/mpeg"]
  * @returns {string} objectURL — nhớ URL.revokeObjectURL(url) khi xong
@@ -417,11 +417,11 @@ export async function analyzeEmotion(audioBlob, type = "audio") {
   }
 }
 
-// ── D-ID Avatar — Pre-generation ─────────────────────────────────────────────
+// ── Video avatar — Pre-generation ─────────────────────────────────────────────
 
 /**
  * Pre-generate tất cả video phỏng vấn trước khi bắt đầu (sync — đợi ~60-90s).
- * Render song song tất cả câu hỏi → D-ID Express API → trả mảng video URLs.
+ * Render song song tất cả câu hỏi → provider video avatar (ElevenLabs) → trả mảng video URLs.
  *
  * @param {string[]} questions - Danh sách câu hỏi text
  * @param {object} [opts]
@@ -549,16 +549,3 @@ export async function waitForPregenJob(jobId, opts = {}) {
   return { success: false, error: "Pre-generation timed out" };
 }
 
-/**
- * Lấy danh sách D-ID stock presenters (avatars sẵn có).
- */
-export async function listDIDPresenters() {
-  if (!hasAuthCredentials()) return { success: false, presenters: [] };
-  try {
-    const res = await authFetch("/api/ai/avatar/presenters");
-    const body = await res.json().catch(() => ({}));
-    return res.ok ? { success: true, presenters: body.presenters ?? [] } : { success: false, presenters: [] };
-  } catch {
-    return { success: false, presenters: [] };
-  }
-}

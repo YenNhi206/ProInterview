@@ -17,7 +17,7 @@
 **ProInterview** là ứng dụng web giúp ứng viên (đặc biệt sinh viên mới tốt nghiệp) chuẩn bị phỏng vấn
 và kết nối với việc làm thật. Năm thành phần chính:
 
-- **Phỏng vấn AI** — avatar D-ID đặt câu hỏi (giọng ElevenLabs): 3 câu baseline cố định + 2 câu follow-up sinh
+- **Phỏng vấn AI** — avatar video ElevenLabs đặt câu hỏi (giọng ElevenLabs): 3 câu baseline cố định + 2 câu follow-up sinh
   giữa buổi từ CV/JD và câu trả lời thật (Pro); câu hỏi của doanh nghiệp được đưa vào buổi phỏng vấn khi ứng viên
   luyện cho một tin tuyển dụng. Chấm theo bộ tiêu chí năng lực **SHRM/DDI**, kèm rubric riêng của công ty.
 - **Lộ trình mentor cá nhân hóa** — ứng viên gửi yêu cầu, mentor đánh giá ở buổi đầu miễn phí, đề xuất lộ trình
@@ -88,7 +88,7 @@ LLM_MODEL=gpt-4o-mini
 
 # ── Tùy chọn — thiếu thì tính năng degrade, server vẫn chạy ──────────────────
 CV_ANALYZER_URL=http://localhost:8000     # Python CV service
-D_ID_API_KEY=<key D-ID>                   # avatar lipsync
+AVATAR_PROVIDER=elevenlabs                # video avatar (D-ID đã gỡ ở AI-17)
 ELEVENLABS_API_KEY=<sk_...>               # giọng nói avatar
 ELEVENLABS_VOICE_ID_MALE=<voice id>
 ELEVENLABS_VOICE_ID_FEMALE=<voice id>
@@ -308,8 +308,7 @@ có câu trả lời thật làm ngữ cảnh — chất lượng cao hơn hẳn
 Mount InterviewRoom  →  các hệ thống khởi tạo song song
   │
   ├─► [A] Avatar HR
-  │       Ưu tiên 1: Pregen video (ElevenLabs TTS → Cloudinary → D-ID /talks lipsync)
-  │       Ưu tiên 2: D-ID WebRTC live  →  POST /api/ai/did/streams  (BE proxy, key server-side)
+  │       Ưu tiên 1: Pregen video (ElevenLabs TTS → ElevenLabs /v1/flows/video lipsync → Cloudinary)
   │       Fallback : Web Speech API (TTS trình duyệt) + ảnh avatar tĩnh, không lipsync
   │
   ├─► [B] Web Audio API  (phân tích giọng nói)
@@ -325,7 +324,7 @@ VÒNG LẶP MỖI CÂU HỎI
 ══════════════════════════════════════════════════════
 
   [①] HR đặt câu hỏi
-      Phát pregen video, hoặc D-ID stream speak(), hoặc browser TTS
+      Phát pregen video, hoặc browser TTS
       ─── latencyStartRef = Date.now() ───────────────────────────► BẮT ĐẦU ĐO
 
   [②] User trả lời  (isListening = true)
@@ -479,17 +478,17 @@ Pipeline chính là **pre-generated video**, không phải live stream:
 
 ```
 ElevenLabs TTS (giọng theo gender)
-   → upload audio lên Cloudinary
-   → D-ID /talks lipsync với audio đó
-   → poll tới status=done  →  result_url
+   → ElevenLabs POST /v1/flows/video (creatify-aurora, ảnh + audio base64)
+   → poll mỗi 10 giây tới status=completed  →  content_url
    → mirror về Cloudinary (prointerview/avatar-videos/)  →  cache Redis
 ```
 
-- ⚠️ `result_url` của D-ID là **presigned S3 URL tự hết hạn (~24h)**. Chỉ link đã mirror sang
-  Cloudinary mới được cache TTL dài (180 ngày); link D-ID gốc chỉ cache 1h để lần sau tự retry.
-- **Circuit breaker:** mở sau 3 lỗi D-ID liên tiếp, tự reset sau 5 phút. Pregen luôn probe câu đầu
-  trước khi chạy song song các câu còn lại → fail-fast, không đốt credit khi D-ID down.
-- Nếu ElevenLabs chưa cấu hình, D-ID tự dùng Azure TTS (text script).
+- ⚠️ `content_url` của ElevenLabs là **link ký tự hết hạn (~1 giờ)**. Chỉ link đã mirror sang
+  Cloudinary mới được cache không TTL; link gốc chỉ cache 30 phút để lần sau tự retry.
+- **Circuit breaker:** mở sau 3 lỗi liên tiếp, tự reset sau 5 phút. Pregen luôn probe câu đầu
+  trước khi chạy song song các câu còn lại → fail-fast, không đốt credit khi ElevenLabs down.
+- ElevenLabs chưa cấu hình hoặc lỗi → không có video, phòng phỏng vấn dùng giọng trình duyệt + ảnh tĩnh.
+  (D-ID và Azure TTS đã gỡ ở AI-17.)
 - Kiểm tra trạng thái tổng hợp: `GET /api/ai/config`.
 - Warmup cache baseline: `cd backend && npm run warmup:baseline-videos`.
 
@@ -509,7 +508,7 @@ Base URL: `/api` · Auth: `Authorization: Bearer <jwt>`
 | Danh mục chuẩn | `/api/role-categories` (nhóm vị trí), `/api/competencies` (bộ tiêu chí SHRM/DDI) |
 | Khóa học & bán hàng | `/api/courses/*`, `/api/enrollments/*`, `/api/cart/*`, `/api/coupons/*`, `/api/plans/*`, `/api/payments/*` |
 | CV/JD | `/api/cv/*` (lịch sử, quota + proxy sang Python) |
-| Phỏng vấn & AI | `/api/interviews/*`, `/api/ai/*` (TTS, STT, emotion, avatar pregen, D-ID proxy), `/api/recommendations/*` |
+| Phỏng vấn & AI | `/api/interviews/*`, `/api/ai/*` (TTS, STT, emotion, avatar pregen), `/api/recommendations/*` |
 | Reviews / Reports | `/api/reviews/*`, `/api/reports/*` |
 | Vận hành | `/api/admin/*`, `/api/moderator/*`, `/api/upload/*`, `/api/achievements/*`, `/api/public/*` |
 | Chỉ dev | `/api/mock/*` (không mount khi `NODE_ENV=production`) |
@@ -690,11 +689,11 @@ Chi tiết mọi chuyển trạng thái: [docs/STATE_MACHINES.md](./docs/STATE_M
 | Audit | `adminAuditLog` middleware + `SecurityLog` model, trang `/admin/audit-log` |
 | Error tracking | Sentry (`config/sentry.js`), bắt cả `uncaughtException`/`unhandledRejection` |
 | Alerting | `alertService` + `errorRateMonitor` — cảnh báo cost spike / error rate qua Slack webhook |
-| Cost ledger | `costLedgerService` + `CostEvent` — chi phí LLM/D-ID/TTS, chấm rubric, AI sàng lọc khóa học |
+| Cost ledger | `costLedgerService` + `CostEvent` — chi phí LLM/video avatar/TTS, chấm rubric, AI sàng lọc khóa học |
 
 **Redis fail-fast:** ở production `cacheService.js` **throw** khi Redis lỗi thay vì âm thầm fallback
 sang in-memory Map; `server.js` exit(1) nếu thiếu `UPSTASH_REDIS_*`. Lý do: mỗi instance Render có
-Map riêng, mất khi restart → cache hit rate tụt không ai biết, đốt credit D-ID/LLM.
+Map riêng, mất khi restart → cache hit rate tụt không ai biết, đốt credit video avatar/LLM.
 
 ---
 
@@ -711,7 +710,7 @@ backend Render (tránh CORS). Chỉ set `VITE_GOOGLE_CLIENT_ID`.
 
 **Backend trên Render** — set: `NODE_ENV=production`, `MONGO_URI`, `JWT_SECRET`, `CORS_ORIGIN`,
 `GOOGLE_CLIENT_ID`, `LLM_API_KEY`, `LLM_BASE_URL`, `CV_ANALYZER_URL`, `UPSTASH_REDIS_REST_URL`,
-`UPSTASH_REDIS_REST_TOKEN`, `REFRESH_TOKEN_PEPPER`, `D_ID_API_KEY`, `ELEVENLABS_API_KEY` + voice IDs, `JAAS_*`.
+`UPSTASH_REDIS_REST_TOKEN`, `REFRESH_TOKEN_PEPPER`, `ELEVENLABS_API_KEY` (gói Pro, cho cả video) + voice IDs, `JAAS_*`.
 
 Sau khi merge thay đổi liên quan, nhớ chạy migration một lần trên production
 (`db:sync-booking-indexes`, `db:sync-prompt-versions`, `db:migrate-enterprise-role`, …) — xem [CLAUDE.md](./CLAUDE.md).
@@ -739,7 +738,7 @@ Cần cả hai, nếu không sẽ gặp `404` (sai host) hoặc `503` (analyzer 
 | Đánh giá năng lực | Bộ tiêu chí SHRM/DDI (`config/competencies.json`) + rubric riêng của công ty |
 | CV Analysis | Python FastAPI, pdf parsing, NLP skill extraction, semantic matcher |
 | LLM | Đa provider — OpenAI-compatible / Anthropic / Gemini / Ollama |
-| Avatar & Voice | D-ID (`/talks` pregen + WebRTC stream), ElevenLabs TTS, Google Cloud Vision |
+| Avatar & Voice | ElevenLabs (TTS + video `/v1/flows/video`, model `creatify-aurora`), Google Cloud Vision |
 | Meeting | Jitsi / JaaS (fallback `meet.jit.si`) |
 | Media | Cloudinary (fallback local `/uploads`) |
 | Auth | Google Identity Services (FedCM), JWT + refresh session |

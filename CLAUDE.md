@@ -107,9 +107,7 @@ GOOGLE_CLIENT_ID=<từ GCP>
 LLM_MODEL=gpt-4o-mini
 CV_ANALYZER_URL=http://localhost:8000
 # Tùy chọn — thiếu thì tính năng degrade
-ELEVENLABS_API_KEY=<sk_...>  ELEVENLABS_VOICE_ID_MALE=<id>  ELEVENLABS_VOICE_ID_FEMALE=<id>
-D_ID_API_KEY=<key>
-AVATAR_PROVIDER=did                         # did | elevenlabs (AI-15); elevenlabs cần ELEVENLABS_API_KEY gói Pro + giọng
+ELEVENLABS_API_KEY=<sk_...>  ELEVENLABS_VOICE_ID_MALE=<id>  ELEVENLABS_VOICE_ID_FEMALE=<id>   # giọng + video avatar; API video cần gói Pro
 ELEVENLABS_VIDEO_MODEL=creatify-aurora  ELEVENLABS_VIDEO_RESOLUTION=720p  ELEVENLABS_VIDEO_POLL_MS=10000
 ELEVENLABS_VIDEO_CREDITS_PER_SECOND=     # AI-16: lấy từ `npm run trial:elevenlabs-video -- --yes` (AI-14); trống → CostEvent 0 USD, `priceUnconfigured`
 GOOGLE_VISION_API_KEY=<key>
@@ -248,17 +246,20 @@ Các trang admin `/admin/analytics`, `/admin/users`, `/admin/users/:id`, `/admin
 - Chế độ "theo lĩnh vực" tự rơi về `data/cvFieldAnalysisMock.js` khi API lỗi (ghi `fallbackTriggered`).
 - Một lần phân tích = một bản ghi `CVAnalysis` (N-11): `/api/cv/analyze*` mở bản ghi `processing` trước khi gọi Python, ghi `completed` (trừ 1 lượt, `quotaCharged`) hoặc `failed`, trả `analysisId`; FE gửi lại `analysisId` ở bậc thử sau và khi `POST /api/cv/analyses`. Đếm hoặc liệt kê phân tích thì trải `CV_ANALYSIS_DONE_FILTER` (`models/CVAnalysis.js`) để bỏ bản ghi đang chạy hoặc lỗi.
 
-### D-ID / ElevenLabs / Cloudinary — Avatar phỏng vấn
+### ElevenLabs / Cloudinary — Avatar phỏng vấn
 
-Pipeline pre-generated: ElevenLabs TTS (giọng theo gender) → upload audio Cloudinary → D-ID `/talks` lipsync → poll `status=done` → `result_url`. Thiếu ElevenLabs thì D-ID dùng Azure TTS.
+Pipeline pre-generated: ElevenLabs TTS (giọng theo gender) → ElevenLabs `POST /v1/flows/video` (model `ELEVENLABS_VIDEO_MODEL`, mặc định `creatify-aurora`; ảnh + audio gửi `inline_base64`) → poll `GET /v1/flows/video/:id` mỗi 10 giây tới `completed` → `content_url`. D-ID và Azure TTS đã gỡ ở AI-17: thiếu key hoặc giọng ElevenLabs thì không có video.
 
-- **Baseline (3 câu cố định, `config/baselineQuestions.js`):** `persistVideo: true`, mirror về Cloudinary (`prointerview/avatar-videos/`), cache Redis dùng chung toàn hệ thống.
+- **Lớp provider (AI-15):** `services/avatarProviders/` (`elevenLabsVideoProvider`, circuit breaker `circuitBreaker.js`), chọn bằng `AVATAR_PROVIDER` (chỉ còn `elevenlabs`; giá trị khác rơi về `elevenlabs`). Thêm nhà cung cấp mới thì thêm provider, không sửa `avatarService.js`.
+- **Baseline (3 câu cố định, `config/baselineQuestions.js`):** `persistVideo: true`, mirror về Cloudinary (`prointerview/avatar-videos/`), cache Redis không TTL, dùng chung toàn hệ thống.
 - **Follow-up (2 câu Pro):** `POST /api/ai/interview/pregenerate`, không cache lâu dài.
-- ⚠️ `result_url` của D-ID là presigned S3 URL hết hạn ~24h. Chỉ link đã mirror Cloudinary mới cache dài (180 ngày); link gốc chỉ cache 1h (`RAW_DID_URL_FALLBACK_TTL`). Không bao giờ cache link tự hết hạn với TTL dài.
-- **Circuit breaker** (`avatarService.js`): mở sau 3 lỗi D-ID liên tiếp, reset sau 5 phút; pregen luôn thử câu đầu trước khi chạy song song.
-- Fallback cuối: Web Speech API (TTS trình duyệt) + ảnh tĩnh.
-- Trạng thái tổng hợp: `GET /api/ai/config`.
-- **Lớp provider (AI-15):** `services/avatarProviders/` (`didProvider`, `elevenLabsVideoProvider`, circuit breaker riêng từng provider), chọn bằng `AVATAR_PROVIDER`. ElevenLabs (`POST /v1/flows/video`, model `creatify-aurora`) nhận ảnh + audio base64, không có Azure TTS dự phòng; `content_url` hết hạn ~1h nên link gốc chỉ cache 30 phút. Cache key có provider + model (D-ID giữ key cũ `did:v3:`); đổi provider thì chạy lại `warmup:baseline-videos` và `warmup:company-videos`. CostEvent video ElevenLabs có kind `avatar_video_elevenlabs`. Bước trong log `avatar_video_timing` đổi tên `videoCreateMs` / `videoRenderMs`, thêm `provider`, `model`.
+- ⚠️ `content_url` của ElevenLabs là link ký, hết hạn ~1 giờ. Chỉ link đã mirror Cloudinary mới cache dài; link gốc chỉ cache 30 phút (`rawUrlTtlSec`). Không bao giờ cache link tự hết hạn với TTL dài.
+- Cache key `avatar:<provider>:<model>:<md5>` gồm câu, ảnh, giọng, provider, model; đổi model thì chạy lại `warmup:baseline-videos` và `warmup:company-videos`.
+- **Circuit breaker:** mở sau 3 lỗi liên tiếp, reset sau 5 phút; pregen luôn thử câu đầu trước khi chạy song song.
+- Fallback cuối: Web Speech API (TTS trình duyệt) + ảnh tĩnh. Rủi ro đã chấp nhận: ElevenLabs lỗi là mất cả giọng lẫn video.
+- Chi phí: CostEvent kind `avatar_video_elevenlabs`, credit theo `ELEVENLABS_VIDEO_CREDITS_PER_SECOND` (AI-16). Kind `avatar_video_did` chỉ còn trong dữ liệu cũ.
+- Log `avatar_video_timing` (N-11) có `provider`, `model`, các bước `ttsMs`, `videoCreateMs`, `videoRenderMs`, `mirrorMs`; đo NFR-02 bằng `measureNfrPerformance.js avatar --log <file> --provider elevenlabs`.
+- Trạng thái tổng hợp: `GET /api/ai/config` (`providers.avatar.provider`, `model`, `videoEnabled`).
 - Luồng phỏng vấn: `POST /api/interviews/sessions` (3 câu baseline) → `PATCH /sessions/:id` mỗi câu + `analyze-face` → `POST /sessions/:id/generate-followup-questions` (chỉ Pro) → `complete` → `evaluate`. Đánh giá thiếu trường sau 1 lần retry → `ModerationItem` `evaluation_incomplete`. Route cũ `POST /api/interviews/generate-questions` còn nhưng FE không gọi.
 
 ### Thanh toán

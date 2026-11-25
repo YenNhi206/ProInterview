@@ -10,9 +10,6 @@
  *   GET  /tts/voices                    — Danh sách voices ElevenLabs
  *   POST /emotion                       — Audio/image → emotion (Hume AI)
  *
- *   GET  /avatar/presenters             — D-ID stock presenters
- *   GET  /avatar/usage                  — D-ID credits usage
- *
  *   POST /interview/pregenerate         — Pre-gen tất cả video + đợi kết quả (sync)
  *   POST /interview/pregen/start        — Bắt đầu pre-gen async (trả jobId)
  *   GET  /interview/pregen/:jobId       — Poll tiến độ pre-gen
@@ -23,14 +20,11 @@ import { isAssemblyAIEnabled, getSTTProvider, transcribeAudio } from "../service
 import { isElevenLabsEnabled, getTTSProvider, synthesizeSpeech, listVoices } from "../services/ttsService.js";
 import { isHumeEnabled, getEmotionProvider, analyzeAudioEmotion, analyzeFaceEmotion } from "../services/emotionService.js";
 import {
-  isDIDEnabled,
   isAvatarVideoEnabled,
   avatarVideoMissingConfigMessage,
   getAvatarModel,
   isCircuitOpen,
   getAvatarProvider,
-  getDIDUsage,
-  listDIDPresenters,
 } from "../services/avatarService.js";
 import {
   pregenerateSync,
@@ -70,13 +64,11 @@ export const AIProvidersController = {
           googleVision: Boolean(process.env.GOOGLE_VISION_API_KEY),
         },
         avatar: {
-          provider:        getAvatarProvider(),   // AI-15: did | elevenlabs
+          provider:        getAvatarProvider(),   // AI-15: elevenlabs (D-ID gỡ ở AI-17)
           model:           getAvatarModel(),
           // videoEnabled=false khi provider đang chạy thiếu key HOẶC circuit breaker đang mở
           // → frontend dùng giá trị này để quyết định có gọi pregen không
           videoEnabled:    isAvatarVideoEnabled() && !isCircuitOpen(),
-          /** @deprecated đọc `videoEnabled`; giữ cho FE bản cũ, gỡ ở AI-17. */
-          did:             isAvatarVideoEnabled() && !isCircuitOpen(),
           circuitOpen:     isCircuitOpen(),
           mode:            "express",  // async REST (pre-generated MP4)
           redis:           Boolean(process.env.UPSTASH_REDIS_REST_URL),
@@ -132,8 +124,8 @@ export const AIProvidersController = {
   tts: async (req, res) => {
     if (!isElevenLabsEnabled()) {
       return res.status(503).json({
-        success: false, provider: "did",
-        error: "ElevenLabs không được cấu hình. D-ID tự dùng Azure TTS khi render.",
+        success: false, provider: "browser",
+        error: "ElevenLabs không được cấu hình.",
       });
     }
     const { text, voiceId, modelId, stability, similarityBoost, style } = req.body ?? {};
@@ -195,34 +187,6 @@ export const AIProvidersController = {
     }
   },
 
-  // ── D-ID Avatar ──────────────────────────────────────────────────────────────
-
-  /**
-   * GET /api/ai/avatar/presenters
-   * Danh sách stock presenters từ D-ID (ảnh tĩnh + metadata).
-   */
-  listPresenters: async (_req, res) => {
-    try {
-      const presenters = await listDIDPresenters();
-      res.json({ success: true, provider: "did", presenters });
-    } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-  },
-
-  /**
-   * GET /api/ai/avatar/usage
-   * Credits còn lại trong D-ID account.
-   */
-  getAvatarUsage: async (_req, res) => {
-    try {
-      const usage = await getDIDUsage();
-      res.json({ success: true, provider: "did", usage });
-    } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-  },
-
   // ── Interview Pre-generation ──────────────────────────────────────────────────
 
   /**
@@ -233,9 +197,8 @@ export const AIProvidersController = {
    * Frontend hiện progress bar trong lúc chờ.
    * Dùng khi muốn đơn giản hóa: 1 request → tất cả URLs.
    *
-   * persistVideo: true — mirror result_url D-ID (S3 us-west-2, không CDN) sang Cloudinary trước
-   * khi trả về. Không mirror sẽ khiến browser phát thẳng từ S3 Oregon → khoảng cách xa, không edge
-   * cache → buffer giữa chừng → video VÀ audio (chung 1 file mp4) cùng bị ngắt quãng khi phát.
+   * persistVideo: true — mirror link video của provider (tự hết hạn, không CDN gần) sang Cloudinary
+   * trước khi trả về; phát thẳng từ link gốc dễ buffer giữa chừng, video và audio cùng ngắt quãng.
    */
   pregenerateSync: async (req, res) => {
     if (!isAvatarVideoEnabled()) {
@@ -252,9 +215,7 @@ export const AIProvidersController = {
 
     logger.info("pregen_sync_start", { userId: req.userId, count: questions.length, gender });
 
-    // Wire client disconnect → abort D-ID polling immediately.
-    // When the frontend's 45s Promise.race times out and closes the connection,
-    // req fires 'close' → signal aborts → pollDIDTalk stops → no more D-ID calls.
+    // Client ngắt kết nối (FE hết thời gian chờ) → signal abort → dừng poll provider, không tạo thêm job.
     const ac = new AbortController();
     req.on("close", () => {
       if (!res.headersSent) ac.abort();
@@ -290,7 +251,7 @@ export const AIProvidersController = {
    *
    * Pre-gen video cho 3 câu hỏi baseline CỐ ĐỊNH (baselineQuestions.js). Vì text + gender
    * cố định → cache key (avatarService.buildCacheKey) giống nhau cho mọi user — lần gọi
-   * đầu tiên (per gender) tốn D-ID credit, mọi lần sau (toàn hệ thống) cache-hit ($0).
+   * đầu tiên (per gender) tốn credit video, mọi lần sau (toàn hệ thống) cache-hit ($0).
    */
   pregenerateBaseline: async (req, res) => {
     if (!isAvatarVideoEnabled()) {
@@ -373,39 +334,4 @@ export const AIProvidersController = {
     res.json({ success: true, ...status });
   },
 
-  // ── D-ID WebRTC Streaming Proxy ───────────────────────────────────────────────
-  // Giữ D_ID_API_KEY server-side — FE không cần (và không được) biết key này.
-
-  didProxy: async (req, res) => {
-    if (!isDIDEnabled()) {
-      return res.status(503).json({ success: false, error: "D-ID chưa được cấu hình." });
-    }
-    const apiKey = process.env.D_ID_API_KEY ?? "";
-    const auth = "Basic " + Buffer.from(`${apiKey}:`).toString("base64");
-
-    // req.path is relative to the router mount (/api/ai), e.g. /did/streams/abc123/sdp
-    const subpath = req.path.replace(/^\/did\/streams/, "");
-    const target = `https://api.d-id.com/talks/streams${subpath}`;
-
-    const headers = { Authorization: auth, "Content-Type": "application/json" };
-    const body = req.method !== "GET" && req.body && Object.keys(req.body).length > 0
-      ? JSON.stringify(req.body)
-      : undefined;
-    const fetchOpts = { method: req.method, headers, ...(body !== undefined ? { body } : {}) };
-
-    try {
-      const upstream = await fetch(target, fetchOpts);
-      const ct = upstream.headers.get("content-type") ?? "";
-      const text = await upstream.text();
-      res.status(upstream.status);
-      if (ct.includes("json")) {
-        res.json(JSON.parse(text));
-      } else {
-        res.set("Content-Type", ct || "application/json").send(text);
-      }
-    } catch (err) {
-      logger.error("did_proxy_error", { err: err.message });
-      res.status(502).json({ success: false, error: "Không thể kết nối tới D-ID." });
-    }
-  },
 };

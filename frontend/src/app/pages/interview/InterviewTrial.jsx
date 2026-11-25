@@ -127,17 +127,16 @@ export function InterviewTrial() {
       return;
     }
 
-    // Pre-generate video HR lipsync (D-ID Express, cache toàn hệ thống).
-    // Nếu D-ID chưa cấu hình hoặc render quá lâu, vẫn tiếp tục với TTS fallback.
+    // Pre-generate video HR lipsync (ElevenLabs, cache toàn hệ thống).
+    // Nếu provider video chưa cấu hình hoặc render quá lâu, vẫn tiếp tục với TTS fallback.
     let videoUrls = null;
     try {
       const configRes = await fetch(apiUrl("/api/ai/config"));
       const configBody = configRes.ok ? await configRes.json().catch(() => ({})) : {};
-      // AI-15: `videoEnabled` theo provider đang chạy (D-ID hoặc ElevenLabs); `did` là tên cũ.
-      const avatarCfg = configBody?.providers?.avatar ?? {};
-      const didEnabled = (avatarCfg.videoEnabled ?? avatarCfg.did) === true;
+      // AI-15: provider video đang chạy có key và circuit chưa mở.
+      const videoEnabled = configBody?.providers?.avatar?.videoEnabled === true;
 
-      if (didEnabled) {
+      if (videoEnabled) {
         setLoadingStep("pregenerating_videos");
         const pregenTimeout = new Promise((resolve) =>
           setTimeout(() => resolve({ success: false, timedOut: true }), 120_000)
@@ -151,7 +150,7 @@ export function InterviewTrial() {
         }
       }
     } catch {
-      // D-ID chưa set hoặc lỗi mạng — phỏng vấn vẫn chạy với TTS fallback
+      // Provider video chưa cấu hình hoặc lỗi mạng — phỏng vấn vẫn chạy với TTS fallback
     }
 
     setLoadingStep(null);

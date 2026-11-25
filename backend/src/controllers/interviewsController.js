@@ -561,14 +561,14 @@ export const InterviewsController = {
    * Sinh 2 câu hỏi cá nhân hóa GIỮA buổi phỏng vấn — dựa trên CV/JD + câu trả lời thật của
    * ứng viên cho 3 câu baseline (đào sâu vào điều ứng viên vừa nói, không chỉ CV facts chung).
    * Chỉ Pro user gọi tới đây (free user bị chặn ở UpgradeModal trước khi tới bước này) — đây
-   * chính là cost-win của refactor: free user không tốn LLM/D-ID nào cho 2 câu này nữa.
+   * chính là cost-win của refactor: free user không tốn LLM/video avatar nào cho 2 câu này nữa.
    */
   generateFollowUpQuestions: async (req, res) => {
     try {
       const { id } = req.params;
 
       // Backend guard: chỉ Pro user được sinh câu hỏi cá nhân hóa (FE chặn bằng UpgradeModal
-      // nhưng không đủ — user có thể gọi API trực tiếp để tốn LLM/D-ID credit của hệ thống).
+      // nhưng không đủ — user có thể gọi API trực tiếp để tốn LLM/video credit của hệ thống).
       await syncPlanExpiry(req.userId);
       const userForPlan = await User.findById(req.userId).select("plan planExpiresAt").lean();
       if (!userForPlan) {

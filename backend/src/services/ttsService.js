@@ -1,16 +1,15 @@
 /**
  * ttsService.js
  * Text-to-Speech provider: ElevenLabs (giọng clone, chất lượng cao).
- * Khi ELEVENLABS_API_KEY không set → avatar D-ID tự dùng Azure TTS (không cần service này).
+ * Khi ELEVENLABS_API_KEY / giọng không set → không có video avatar, FE đọc câu bằng giọng trình duyệt.
  *
  * Env vars:
  *   ELEVENLABS_API_KEY=sk_...
  *   ELEVENLABS_VOICE_ID=...         (voice clone ID hoặc voice library ID)
  *   ELEVENLABS_MODEL_ID=eleven_flash_v2_5   (optional, default shown)
- *   TTS_PROVIDER=did | elevenlabs   (mặc định: did nếu không có key)
  *
  * Note: ElevenLabs trả về audio binary (mp3). Backend endpoint /api/ai/tts trả response binary
- * cho frontend — frontend tạo blob URL để play hoặc gửi URL cho D-ID speakWithAudio().
+ * cho frontend — frontend tạo blob URL để play.
  */
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
@@ -59,13 +58,11 @@ export function getElevenLabsVoiceId(gender = "female") {
 
 /**
  * Trả về TTS provider đang active.
- * @returns {"elevenlabs"|"did"}
+ * `browser` = FE tự đọc bằng Web Speech API (D-ID và Azure TTS đã gỡ ở AI-17).
+ * @returns {"elevenlabs"|"browser"}
  */
 export function getTTSProvider() {
-  const explicit = process.env.TTS_PROVIDER?.toLowerCase();
-  if (explicit === "elevenlabs" && isElevenLabsEnabled()) return "elevenlabs";
-  if (explicit === "did") return "did";
-  return isElevenLabsEnabled() ? "elevenlabs" : "did";
+  return isElevenLabsEnabled() ? "elevenlabs" : "browser";
 }
 
 /**
