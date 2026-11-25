@@ -407,7 +407,7 @@ function ReportDialog({ jobId, onClose, onDone }) {
         aria-labelledby="job-report-title"
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-[#18113c] p-5 shadow-2xl sm:p-6"
+        className="max-h-[90vh] overflow-y-auto w-full max-w-md rounded-3xl border border-white/10 bg-[#18113c] p-5 shadow-2xl sm:p-6"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <h2 id="job-report-title" className="font-headline text-lg font-black text-white">Báo cáo tin tuyển dụng</h2>
