@@ -79,11 +79,45 @@ export function calcTTSCost(characters = 0) {
 // Video câu hỏi trung bình ~15-20s ≈ 0.25-0.33 phút → ~$0.08-0.11/video.
 const DID_COST_PER_VIDEO = Number(process.env.DID_COST_PER_VIDEO_USD) || 0.08;
 
+// ElevenLabs video (AI-16): tính theo credit. Tài liệu API không công bố số credit mỗi giây của
+// từng model, nên lấy từ lần chạy thử AI-14 (`scripts/trialElevenLabsVideo.js` đọc credit trước/sau).
+//   ELEVENLABS_VIDEO_CREDITS_PER_SECOND — credit mỗi giây video của model đang dùng (bắt buộc để tính phí)
+//   ELEVENLABS_USD_PER_CREDIT           — mặc định gói Pro: $99 / 500.000 credit
+const DEFAULT_ELEVENLABS_USD_PER_CREDIT = 99 / 500_000;
+
+function envPositive(name) {
+  const raw = process.env[name];
+  if (raw === undefined || String(raw).trim() === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
+ * @param {number|null} seconds - độ dài video (≈ độ dài audio TTS)
+ * @returns {{usd: number, vnd: number, seconds: number|null, credits: number|null, priceUnconfigured?: boolean}}
+ */
+export function calcElevenLabsVideoCost(seconds) {
+  const creditsPerSecond = envPositive("ELEVENLABS_VIDEO_CREDITS_PER_SECOND");
+  const usdPerCredit = envPositive("ELEVENLABS_USD_PER_CREDIT") ?? DEFAULT_ELEVENLABS_USD_PER_CREDIT;
+  const secs = Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+  if (creditsPerSecond == null || secs == null) {
+    // Không đoán giá: ghi 0 và đánh dấu để dashboard/QA biết số này chưa đúng.
+    return { usd: 0, vnd: 0, seconds: secs, credits: null, priceUnconfigured: true };
+  }
+  const credits = Math.ceil(secs * creditsPerSecond);
+  const usd = credits * usdPerCredit;
+  return { usd, vnd: usdToVnd(usd), seconds: secs, credits };
+}
+
 /**
  * @param {boolean} fromCache - true nếu video lấy từ cache (chi phí = 0)
- * @returns {{usd: number, vnd: number}}
+ * @param {object} [opts]
+ * @param {"did"|"elevenlabs"} [opts.provider="did"]
+ * @param {number|null} [opts.seconds] - độ dài video, provider elevenlabs tính theo giây
+ * @returns {{usd: number, vnd: number, seconds?: number|null, credits?: number|null, priceUnconfigured?: boolean}}
  */
-export function calcAvatarVideoCost(fromCache = false) {
-  const usd = fromCache ? 0 : DID_COST_PER_VIDEO;
-  return { usd, vnd: usdToVnd(usd) };
+export function calcAvatarVideoCost(fromCache = false, { provider = "did", seconds = null } = {}) {
+  if (fromCache) return { usd: 0, vnd: 0 };
+  if (provider === "elevenlabs") return calcElevenLabsVideoCost(seconds);
+  return { usd: DID_COST_PER_VIDEO, vnd: usdToVnd(DID_COST_PER_VIDEO) };
 }

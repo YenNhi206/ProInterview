@@ -144,13 +144,15 @@ function ReportsTab({ reloadKey, onHide, onChanged }) {
           <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
             {loading ? (
               <tr>
-                <td colSpan={4} className="py-12 text-center text-slate-400">Đang tải báo cáo...</td>
+                <td colSpan={4} className="py-12 text-center text-slate-400"><div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">Đang tải báo cáo...</div></td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
                 <td colSpan={4} className="py-12 text-center text-slate-400">
-                  <ShieldCheck className="mx-auto mb-2 h-6 w-6 text-emerald-500" />
-                  Không có báo cáo tin tuyển dụng nào đang chờ.
+                  <div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">
+                    <ShieldCheck className="mx-auto mb-2 h-6 w-6 text-emerald-500" />
+                    Không có báo cáo tin tuyển dụng nào đang chờ.
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -369,11 +371,11 @@ function JobsTab({ reloadKey, onHide, onChanged }) {
             <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">Đang tải tin tuyển dụng...</td>
+                  <td colSpan={4} className="py-12 text-center text-slate-400"><div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">Đang tải tin tuyển dụng...</div></td>
                 </tr>
               ) : jobs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">Không có tin nào khớp bộ lọc.</td>
+                  <td colSpan={4} className="py-12 text-center text-slate-400"><div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">Không có tin nào khớp bộ lọc.</div></td>
                 </tr>
               ) : (
                 jobs.map((job) => (
@@ -457,7 +459,7 @@ function HideJobDialog({ target, onClose, onDone }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+      <div className="max-h-[90vh] overflow-y-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
         <h2 className="mb-1 text-lg font-black text-slate-900">Ẩn tin tuyển dụng</h2>
         <p className="mb-4 text-xs text-slate-500">
           {target.title ? <>Tin “{target.title}” sẽ</> : "Tin sẽ"} biến khỏi trang việc làm. Doanh nghiệp nhận thông báo kèm lý do.

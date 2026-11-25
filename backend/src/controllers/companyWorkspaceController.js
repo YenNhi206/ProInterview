@@ -9,6 +9,7 @@ import { CompanyRubric } from "../models/CompanyRubric.js";
 import { JobPost } from "../models/JobPost.js";
 import { assertSameCompany } from "../utils/assertSameCompany.js";
 import { isValidCompetencyKey } from "../services/competencyFramework.js";
+import { scheduleRubricReview } from "../services/rubricReviewService.js";
 import { isValidRoleCategory } from "../services/roleCategories.js";
 import { COMPANY_QUESTION_COUNT, generateCompanyQuestionDrafts } from "../services/companyQuestionGenService.js";
 
@@ -755,7 +756,10 @@ export const CompanyWorkspaceController = {
     }
 
     rubric.status = "pending_review";
+    rubric.submittedAt = new Date(); // AI-07: đo thời gian Platform Mod duyệt
     await rubric.save();
+    // CO-09: AI kiểm tra rubric cho Platform Moderator, chạy nền, không chặn gửi duyệt.
+    scheduleRubricReview(rubric._id, req.userId);
 
     return res.json({
       success: true,

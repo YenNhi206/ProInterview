@@ -1,9 +1,11 @@
 /**
- * AI-03: mỗi ngày đào ModerationItem đã xử lý thành đề xuất cải tiến AI (`aiImprovementMinerService`).
+ * AI-03: mỗi ngày đào ModerationItem đã xử lý thành đề xuất cải tiến AI (`aiImprovementMinerService`),
+ * rồi backtest các đề xuất mới trên bộ AI-01 (`aiImprovementBacktestService`, AI-04).
  * Lượt đầu chạy sau 10 phút để không tranh tài nguyên lúc khởi động.
  */
 import mongoose from "mongoose";
 import { mineImprovementProposals } from "../services/aiImprovementMinerService.js";
+import { backtestPendingProposals } from "../services/aiImprovementBacktestService.js";
 import { logger } from "../config/logger.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -17,7 +19,11 @@ export function startAiImprovementMinerJob() {
   running = true;
   const tick = async () => {
     try {
-      if (mongoose.connection.readyState === 1) await mineImprovementProposals();
+      if (mongoose.connection.readyState === 1) {
+        await mineImprovementProposals();
+        // AI-04: chấm thử bản trước/sau trên bộ AI-01 cho đề xuất chưa có backtest.
+        await backtestPendingProposals();
+      }
     } catch (error) {
       logger.error("ai_improvement_miner_failed", { error: error?.message });
     }

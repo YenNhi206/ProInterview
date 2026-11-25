@@ -217,7 +217,7 @@ function CustomerNavbar() {
           <img
             src="/Logo.png"
             alt="ProInterview"
-            className="block h-7 w-auto shrink-0 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+            className="block h-6 w-auto shrink-0 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] sm:h-7"
           />
         </Link>
 
@@ -230,13 +230,14 @@ function CustomerNavbar() {
           }`}
         />
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        {/* QA-07: ở 375px cụm phải phải vừa nút menu; đã đăng nhập thì đổi giao diện trong menu tài khoản. */}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <button
             type="button"
             onClick={() => theme.setMode(theme.resolved === "light" ? "dark" : "light")}
             aria-label={theme.resolved === "light" ? "Chuyển sang giao diện tối" : "Chuyển sang giao diện sáng"}
             title={theme.resolved === "light" ? "Giao diện: Sáng (bấm để đổi tối)" : "Giao diện: Tối (bấm để đổi sáng)"}
-            className="inline-flex size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+            className={`${loggedIn ? "hidden sm:inline-flex" : "inline-flex"} size-9 items-center justify-center rounded-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white`}
           >
             {theme.resolved === "light" ? (
               <Moon className="size-4 text-violet-700" />

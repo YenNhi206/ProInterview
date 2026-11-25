@@ -45,11 +45,12 @@ npm run db:migrate-lp-shrm-keys      # đổi thật (PR #204); chạy 1 lần t
 npm run db:migrate-enterprise-role:dry  # N-03: đếm user role cũ `enterprise` (không ghi DB); production: đặt TARGET_MONGO_URI
 npm run db:migrate-enterprise-role      # N-03: đổi `enterprise` → `company_moderator`; chạy lại được
 npm run db:sync-prompt-versions:dry  # xem trước đồng bộ bảng PromptVersion (AI-02, không ghi DB)
-npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1/rubric-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08, JB-07)
+npm run db:sync-prompt-versions      # tạo eval-v1/followup-v1/companyq-v1/prescreen-v1/rubric-v1/rubricreview-v1/anchor-v1 + chuỗi cũ legacy; chạy lại được (chạy lại sau khi merge CO-04, AI-08, JB-07, CO-09, AI-18)
 node src/scripts/activatePromptVersion.js <key> <version> [--note "..."]   # đổi bản prompt active, không cần deploy
 npm run db:recompute-competency-profiles:dry  # đếm hồ sơ năng lực cần gộp lại (PR-06, không ghi DB)
 npm run db:recompute-competency-profiles      # gộp lại hồ sơ năng lực theo cách PR-06; chạy 1 lần trên staging/production sau khi merge
 npm run ai01:sheet / ai01:aggregate           # AI-01: sinh phiếu chấm 20 câu chuẩn / tổng hợp điểm chuẩn từ grades/*.csv
+node src/scripts/backtestAiProposal.js <proposalId|--pending>   # AI-04: chấm bản prompt trước/sau trên AI-01 + 10 câu cũ (gọi LLM thật); job miner tự chạy cho đề xuất mới
 npm run qa:sepay-reconcile           # QA-04: p50/p95 đối soát SePay trên 20 webhook `processed` mới nhất (chỉ đọc); đặt TARGET_MONGO_URI, SINCE, SAMPLE_SIZE
 npm run qa:sepay-reconcile:write     # như trên, ghi mục QA-04 vào docs/report/nfr-results.md (chỉ thay mục giữa marker)
 npm test                       # node:test + jest DTO + unittest Python
@@ -108,6 +109,9 @@ CV_ANALYZER_URL=http://localhost:8000
 # Tùy chọn — thiếu thì tính năng degrade
 ELEVENLABS_API_KEY=<sk_...>  ELEVENLABS_VOICE_ID_MALE=<id>  ELEVENLABS_VOICE_ID_FEMALE=<id>
 D_ID_API_KEY=<key>
+AVATAR_PROVIDER=did                         # did | elevenlabs (AI-15); elevenlabs cần ELEVENLABS_API_KEY gói Pro + giọng
+ELEVENLABS_VIDEO_MODEL=creatify-aurora  ELEVENLABS_VIDEO_RESOLUTION=720p  ELEVENLABS_VIDEO_POLL_MS=10000
+ELEVENLABS_VIDEO_CREDITS_PER_SECOND=     # AI-16: lấy từ `npm run trial:elevenlabs-video -- --yes` (AI-14); trống → CostEvent 0 USD, `priceUnconfigured`
 GOOGLE_VISION_API_KEY=<key>
 CLOUDINARY_URL=<cloudinary://...>           # thiếu → lưu public/uploads
 UPSTASH_REDIS_REST_URL=<https://...>  UPSTASH_REDIS_REST_TOKEN=<token>   # bắt buộc ở production
@@ -164,7 +168,7 @@ Domain nhiều logic có service (auth, bookings, payments, plans, cart, mentor 
 | Vận hành | `/api/admin`, `/api/moderator`, `/api/upload`, `/api/achievements`, `/api/public` |
 | Chỉ dev | `/api/mock` (không mount khi `NODE_ENV=production`) |
 
-`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
+`/api/moderator` (`requireModerator` + `adminAuditLog`): duyệt khóa học (`/courses/*`), ngân hàng câu chung (`/questions/*`, chỉ `orgId: null`), duyệt tầng hai câu doanh nghiệp (`/company-questions/*`, CO-16), rubric (`/rubrics/*`), đề xuất cải tiến AI (`/ai-improvements/*`, AI-05), hàng đợi kiểm định (`/queue/*`), KPI chất lượng (`/quality/stats`), `/content/stats`.
 
 ### Models (`models/`) — 39 schema
 
@@ -174,7 +178,7 @@ Plan và quota lưu trên `User` (`plan`, `planExpiresAt`, quota `cvAnalysisUsed
 
 ### Jobs (`jobs/`)
 
-`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob` · `aiImprovementMinerJob` (mỗi ngày: gom ModerationItem đã xử lý thành đề xuất cải tiến AI + PromptVersion chưa bật, AI-03).
+`bookingReminderJob` (nhắc lịch) · `bookingStaleSweepJob` (20 phút: hủy booking `pending` chưa trả đã qua giờ bắt đầu; gắn `staleFlaggedAt` booking đã trả quá giờ kết thúc + 60 phút; đóng job quá hạn (JB-02); đánh `abandoned` buổi phỏng vấn AI `in_progress` quá 24h (N-07)) · `earningsClearanceJob` (`clearingBalance` → `availableBalance`) · `ttsCleanupJob` · `aiImprovementMinerJob` (mỗi ngày: gom ModerationItem đã xử lý thành đề xuất cải tiến AI + PromptVersion chưa bật, AI-03; ví dụ neo từ rubric ≥ 3 công ty đã đồng ý CO-02 cùng `shrmKey`, AI-18; rồi backtest đề xuất chưa có kết quả trên bộ AI-01, AI-04).
 
 ### Middleware
 
@@ -227,7 +231,7 @@ utils/        theo domain: auth/ (auth.js — authFetch, token; requireAuthLoade
 | Mentor (`MentorArea`) | `/mentor/dashboard`, `schedule`, `requests`, `learning-paths`, `learning-paths/new`, `learning-paths/:pathId/edit`, `finance`, `analytics`, `reviews`, `courses`, `courses/:id/edit`, `peer-review`, `meeting-detail/:id`; `/mentor/session-feedback/:sessionId` | như trên |
 | Toàn màn hình | `/checkout`, `/courses/:id/learn`, `/meeting/:sessionId`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, `/payment-*` | tùy trang |
 | Admin | `/admin`, `users`, `users/:id`, `mentors`, `mentors/pending`, `mentors/:id`, `bookings`, `bookings/check-ins`, `bookings/:id`, `finance`, `finance/operations`, `transactions`, `payouts`, `course-payments`, `subscription-payments`, `learning-path-payments`, `audit-log`, `analytics`, `content/questions`, `reviews`, `support`, `achievements`, `settings` | `adminLoader` |
-| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `company-questions` (CO-16), `job-reports` (JB-17), `rubrics`, `quality`, `courses` | `createRoleLoader("moderator")` |
+| Moderator | `/moderator/queue`, `queue/:id`, `questions`, `company-questions` (CO-16), `job-reports` (JB-17), `rubrics`, `quality`, `ai-improvements` (AI-06), `courses` | `createRoleLoader("moderator")` |
 
 Các trang admin trong `AdminPlaceholders.jsx` (`users/:id`, `finance`, `transactions`, `payouts`, `content/questions`, `settings`) đều gọi API thật; tên file là di sản cũ.
 
@@ -254,6 +258,7 @@ Pipeline pre-generated: ElevenLabs TTS (giọng theo gender) → upload audio Cl
 - **Circuit breaker** (`avatarService.js`): mở sau 3 lỗi D-ID liên tiếp, reset sau 5 phút; pregen luôn thử câu đầu trước khi chạy song song.
 - Fallback cuối: Web Speech API (TTS trình duyệt) + ảnh tĩnh.
 - Trạng thái tổng hợp: `GET /api/ai/config`.
+- **Lớp provider (AI-15):** `services/avatarProviders/` (`didProvider`, `elevenLabsVideoProvider`, circuit breaker riêng từng provider), chọn bằng `AVATAR_PROVIDER`. ElevenLabs (`POST /v1/flows/video`, model `creatify-aurora`) nhận ảnh + audio base64, không có Azure TTS dự phòng; `content_url` hết hạn ~1h nên link gốc chỉ cache 30 phút. Cache key có provider + model (D-ID giữ key cũ `did:v3:`); đổi provider thì chạy lại `warmup:baseline-videos` và `warmup:company-videos`. CostEvent video ElevenLabs có kind `avatar_video_elevenlabs`. Bước trong log `avatar_video_timing` đổi tên `videoCreateMs` / `videoRenderMs`, thêm `provider`, `model`.
 - Luồng phỏng vấn: `POST /api/interviews/sessions` (3 câu baseline) → `PATCH /sessions/:id` mỗi câu + `analyze-face` → `POST /sessions/:id/generate-followup-questions` (chỉ Pro) → `complete` → `evaluate`. Đánh giá thiếu trường sau 1 lần retry → `ModerationItem` `evaluation_incomplete`. Route cũ `POST /api/interviews/generate-questions` còn nhưng FE không gọi.
 
 ### Thanh toán

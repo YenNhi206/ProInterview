@@ -85,6 +85,27 @@ export async function getActivePrompt(key) {
 }
 
 /**
+ * Một version cụ thể của `key` (không cần active), dạng giống `getActivePrompt`. Dùng cho backtest
+ * (AI-04). Version trùng bản mặc định trong code mà DB chưa có → bản mặc định.
+ * Chuỗi cũ không có nội dung (`legacy`) hoặc template không hợp lệ → 400; không thấy → 404.
+ */
+export async function getPromptByVersion(key, version) {
+  const entry = PROMPT_REGISTRY[key];
+  if (!entry) throw httpError(400, `Key prompt "${key}" chưa được đăng ký.`);
+  const doc = await PromptVersion.findOne({ key, version }).lean();
+  if (!doc) {
+    if (version === entry.default.version) return defaultPrompt(key);
+    throw httpError(404, `Không tìm thấy phiên bản "${version}" của prompt "${key}".`);
+  }
+  if (doc.legacy || !doc.template) {
+    throw httpError(400, `Phiên bản "${version}" là chuỗi cũ không có nội dung prompt.`);
+  }
+  const errors = validateTemplate(entry.spec, doc.template);
+  if (errors.length) throw httpError(400, `Template của "${version}" chưa hợp lệ: ${errors.join("; ")}.`);
+  return { key, version: doc.version, template: doc.template, fewShotExamples: doc.fewShotExamples ?? [], source: "db" };
+}
+
+/**
  * Bật `version` làm bản active của `key`, tắt bản cũ.
  * @param {{ by?: import("mongoose").Types.ObjectId|string|null, note?: string }} [opts]
  * @returns {Promise<object>} bản ghi đã bật
@@ -106,15 +127,20 @@ export async function activate(key, version, { by = null, note = "" } = {}) {
     return target;
   }
 
-  const previous = await PromptVersion.findOne({ key, active: true }).select("_id").lean();
-  const activation = { active: true, activatedAt: new Date(), activatedBy: by || null, ...(note ? { note } : {}) };
+  const previous = await PromptVersion.findOne({ key, active: true }).select("_id version").lean();
+  const at = new Date();
+  const activation = { active: true, activatedAt: at, activatedBy: by || null, ...(note ? { note } : {}) };
+  // AI-07: lịch sử bật để Quality Dashboard so trước / sau mỗi lần đổi version.
+  // Chưa có bản active trong DB → đang chạy bản mặc định trong code.
+  const previousVersion = previous?.version ?? (entry.default.version !== version ? entry.default.version : "");
+  const logEntry = { at, by: by || null, previousVersion, note: note || "" };
 
   try {
     await runInTransaction(async (session) => {
       const opts = session ? { session } : {};
       // Tắt trước rồi bật: partial unique index `key_single_active` không cho tồn tại 2 bản active.
       await PromptVersion.updateMany({ key, active: true, _id: { $ne: target._id } }, { $set: { active: false } }, opts);
-      await PromptVersion.updateOne({ _id: target._id }, { $set: activation }, opts);
+      await PromptVersion.updateOne({ _id: target._id }, { $set: activation, $push: { activations: logEntry } }, opts);
     });
   } catch (err) {
     // Không có transaction (standalone): bật lỗi thì bật lại bản cũ để key không mất bản active.

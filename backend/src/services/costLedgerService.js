@@ -11,6 +11,7 @@ import { CostEvent } from "../models/CostEvent.js";
 import { logger } from "../config/logger.js";
 import { sendSlackAlert } from "./alertService.js";
 import {
+  COST_EVENT_KIND,
   COST_KINDS_WITH_DAILY_THRESHOLD,
   getCostKindDailyThreshold,
   isValidCostEventKind,
@@ -189,10 +190,12 @@ export async function getCostDashboard({ days = 14 } = {}) {
 
 /**
  * Cache hit/miss + số lần render baseline thực tế trong tháng — alert nếu > 6 (Task 1.3).
- * Baseline render = avatar_video_did, fromCache=false, metadata.persistVideo=true
+ * Baseline render = video avatar (D-ID hoặc ElevenLabs, AI-16), fromCache=false, metadata.persistVideo=true
  * (persistVideo chỉ được set true cho baseline questions — xem avatarService.js).
  * @param {number} [days=30] - phạm vi tính hit/miss rate
  */
+const AVATAR_VIDEO_KINDS = [COST_EVENT_KIND.AVATAR_VIDEO_DID, COST_EVENT_KIND.AVATAR_VIDEO_ELEVENLABS];
+
 export async function getCacheMetrics({ days = 30 } = {}) {
   if (!isMongoReady()) return { ok: false, error: "MongoDB chưa kết nối." };
 
@@ -203,11 +206,11 @@ export async function getCacheMetrics({ days = 30 } = {}) {
 
   const [hitMissRows, baselineRendersThisMonth] = await Promise.all([
     CostEvent.aggregate([
-      { $match: { kind: "avatar_video_did", createdAt: { $gte: since } } },
+      { $match: { kind: { $in: AVATAR_VIDEO_KINDS }, createdAt: { $gte: since } } },
       { $group: { _id: "$fromCache", count: { $sum: 1 } } },
     ]),
     CostEvent.countDocuments({
-      kind:                    "avatar_video_did",
+      kind:                    { $in: AVATAR_VIDEO_KINDS },
       fromCache:               false,
       "metadata.persistVideo": true,
       createdAt:               { $gte: monthStart },

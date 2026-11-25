@@ -21,6 +21,12 @@ import {
 import {
   RUBRIC_SCORING_KEY, RUBRIC_SCORING_DEFAULT_VERSION, RUBRIC_SCORING_SPEC, RUBRIC_SCORING_DEFAULT_TEMPLATE,
 } from "./rubricScoringPrompt.js";
+import {
+  RUBRIC_REVIEW_KEY, RUBRIC_REVIEW_DEFAULT_VERSION, RUBRIC_REVIEW_SPEC, RUBRIC_REVIEW_DEFAULT_TEMPLATE,
+} from "./rubricReviewPrompt.js";
+import {
+  RUBRIC_ANCHOR_KEY, RUBRIC_ANCHOR_DEFAULT_VERSION, RUBRIC_ANCHOR_SPEC, RUBRIC_ANCHOR_DEFAULT_TEMPLATE,
+} from "./rubricAnchorPrompt.js";
 
 export const PROMPT_REGISTRY = deepFreezeModule({
   [QUESTION_GEN_KEY]: {
@@ -55,6 +61,22 @@ export const PROMPT_REGISTRY = deepFreezeModule({
     spec: RUBRIC_SCORING_SPEC,
     default: {
       version: RUBRIC_SCORING_DEFAULT_VERSION, template: RUBRIC_SCORING_DEFAULT_TEMPLATE, fewShotExamples: [],
+    },
+  },
+  // CO-09: AI gợi ý cho Platform Moderator khi duyệt rubric công ty (map SHRM, thang mơ hồ / trùng lặp).
+  [RUBRIC_REVIEW_KEY]: {
+    versionPrefix: "rubricreview",
+    spec: RUBRIC_REVIEW_SPEC,
+    default: {
+      version: RUBRIC_REVIEW_DEFAULT_VERSION, template: RUBRIC_REVIEW_DEFAULT_TEMPLATE, fewShotExamples: [],
+    },
+  },
+  // AI-18: tóm tắt ví dụ neo 0–5 từ rubric công ty đã duyệt (ẩn danh) để thêm vào prompt chấm.
+  [RUBRIC_ANCHOR_KEY]: {
+    versionPrefix: "anchor",
+    spec: RUBRIC_ANCHOR_SPEC,
+    default: {
+      version: RUBRIC_ANCHOR_DEFAULT_VERSION, template: RUBRIC_ANCHOR_DEFAULT_TEMPLATE, fewShotExamples: [],
     },
   },
 });

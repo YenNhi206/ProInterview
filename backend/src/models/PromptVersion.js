@@ -32,6 +32,24 @@ const promptVersionSchema = new Schema(
     legacy: { type: Boolean, default: false },
     activatedAt: { type: Date, default: null },
     activatedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    /**
+     * AI-07: mỗi lần bản này được bật (kể cả bật lại khi rollback). `activatedAt` chỉ giữ lần gần nhất,
+     * Quality Dashboard cần cả chuỗi để so tỉ lệ bị sửa trước / sau mỗi lần đổi version.
+     */
+    activations: {
+      type: [
+        new Schema(
+          {
+            at: { type: Date, required: true },
+            by: { type: Schema.Types.ObjectId, ref: "User", default: null },
+            previousVersion: { type: String, default: "" },
+            note: { type: String, default: "" },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
     note: { type: String, default: "" },
   },
   { collection: "prompt_versions", timestamps: true },

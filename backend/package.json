@@ -54,6 +54,7 @@
     "db:recompute-competency-profiles:dry": "node src/scripts/recomputeCompetencyProfiles.js --dry-run",
     "db:sync-fallback-questions": "node src/scripts/syncFallbackQuestions.js",
     "warmup:baseline-videos": "node src/scripts/warmupBaselineVideos.js",
+    "trial:elevenlabs-video": "node src/scripts/trialElevenLabsVideo.js",
     "warmup:company-videos": "node src/scripts/warmupCompanyQuestionVideos.js",
     "warmup:company-videos:dry": "node src/scripts/warmupCompanyQuestionVideos.js --dry-run",
     "test": "npm run test:node && npm run test:dto && npm run test:python-cv",

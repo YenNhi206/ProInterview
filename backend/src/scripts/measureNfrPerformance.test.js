@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
-  percentile, summarize, parseLogLines, cvSamplesFromLog, avatarSamplesFromLog, TARGETS,
+  percentile, summarize, parseLogLines, cvSamplesFromLog, avatarSamplesFromLog, filterAvatarRowsByProvider, TARGETS,
 } from "./measureNfrPerformance.js";
 
 describe("QA-03: thống kê", () => {
@@ -57,6 +57,17 @@ describe("QA-03: đọc log", () => {
     assert.deepEqual(fresh.map((r) => r.durationMs), [52000]);
     assert.deepEqual(cached.map((r) => r.durationMs), [120]);
     assert.equal(failedFresh, 1);
+  });
+
+  it("avatar --provider (QA-08): dòng không có provider là D-ID, lọc đúng provider", () => {
+    const rows = [
+      { durationMs: 1, ok: true, fromCache: false },
+      { durationMs: 2, ok: true, fromCache: false, provider: "did" },
+      { durationMs: 3, ok: true, fromCache: false, provider: "elevenlabs", model: "creatify-aurora" },
+    ];
+    assert.deepEqual(filterAvatarRowsByProvider(rows, "did").map((r) => r.durationMs), [1, 2]);
+    assert.deepEqual(filterAvatarRowsByProvider(rows, "elevenlabs").map((r) => r.durationMs), [3]);
+    assert.equal(filterAvatarRowsByProvider(rows, undefined).length, 3);
   });
 
   it("script không còn sinh số (sin / cos / random) hay gõ cứng kết quả k6", () => {

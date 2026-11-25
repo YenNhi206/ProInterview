@@ -259,6 +259,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/cv/analyze/suggestions` | `[AUTH]` |
 | ✅ | POST | `/api/cv/analyze/field` | `[AUTH]` |
 | ✅ | POST | `/api/cv/best-fit` — xếp hạng 2–5 CV trong kho với một JD hoặc job, kèm lý do (PR-05; Python `POST /best-fit`) | `[AUTH]` |
+| ✅ | POST | `/api/cvs/:id/extract-content` — tách tệp CV đã tải lên thành `content` JSON cho editor, không ghi DB (PR-08; Python `POST /extract-content`) | `[AUTH]` |
 
 ### Payments & enrollments (chuyển khoản)
 
@@ -308,6 +309,7 @@ Các endpoint triển khai sau Phase 1–4 gốc. Chi tiết contract: [`API_IND
 | ✅ | POST | `/api/company/questions/:id/approve` · `/reject` · `batch-approve` · `batch-reject` | `[AUTH][COMPANY_MOD]` duyệt → `pending_platform_review` chờ Platform Mod (quyết định CO-16) |
 | ✅ | GET | `/api/moderator/company-questions` | `[AUTH][MODERATOR]` câu doanh nghiệp theo tab chờ duyệt / đã duyệt / từ chối, kèm công ty và job (CO-16) |
 | ✅ | POST | `/api/moderator/company-questions/:id/approve` · `/:id/reject` · `/bulk` | `[AUTH][MODERATOR]` duyệt → `approved` + render video avatar; từ chối bắt buộc lý do (CO-16) |
+| ✅ | POST | `/api/moderator/rubrics/:id/ai-review` | `[AUTH][MODERATOR]` AI kiểm tra rubric công ty: map SHRM, thang mơ hồ / chồng lấn / trùng lặp; chạy nền khi công ty gửi duyệt, cảnh báo hiện trong `/moderator/rubrics` (CO-09) |
 
 Chi tiết: **API_INDEX.md A.18 (CO-04, CO-05)**. FE `/company/questions`: nút "Sinh bộ câu bằng AI", "Tải câu theo job" (CO-13), lọc theo job, trạng thái "Chờ Platform Mod"; FE Platform Mod: `/moderator/company-questions` (CO-16).
 
@@ -408,6 +410,9 @@ Admin list user/mentor trả thêm `isOnline`, `lastSeenAt` (cửa sổ 3 phút 
 | ✅ | GET | `/api/ai/interview/pregen/:jobId` | `[AUTH]` |
 | ✅ | GET | `/api/competencies` — bộ tiêu chí SHRM/DDI, thang 0–5 (LP-01) | `[AUTH]` mọi role |
 | ✅ | GET | `/api/recommendations/me` — gợi ý mentor, khóa học, job kèm một dòng lý do (AI-10) | `[AUTH]` customer |
+| ✅ | GET | `/api/moderator/ai-improvements` · `/:id` — đề xuất cải tiến AI kèm backtest trước/sau trên bộ AI-01 (AI-04, AI-05) | `[AUTH][MODERATOR]` |
+| ✅ | PATCH | `/api/moderator/ai-improvements/:id` — `approve` bật PromptVersion mới, `reject`, `rollback` bật lại bản trước, `rebase` (AI-05) | `[AUTH][MODERATOR]` |
+| ✅ | POST | `/api/moderator/ai-improvements/:id/backtest` — chạy lại backtest ở nền, 202 (AI-05) | `[AUTH][MODERATOR]` |
 
 ### Upload, mentor, courses, admin
 

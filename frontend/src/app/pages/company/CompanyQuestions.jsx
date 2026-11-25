@@ -479,18 +479,22 @@ export function CompanyQuestions() {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="mx-auto size-6 animate-spin text-indigo-500" />
-                    <span className="mt-2 block text-xs">Đang tải danh sách câu hỏi...</span>
+                    <div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">
+                      <Loader2 className="mx-auto size-6 animate-spin text-indigo-500" />
+                      <span className="mt-2 block text-xs">Đang tải danh sách câu hỏi...</span>
+                    </div>
                   </td>
                 </tr>
               ) : filteredQuestions.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <HelpCircle className="mx-auto size-8 text-slate-600" />
-                    <p className="mt-2 font-medium text-slate-300">Chưa có câu hỏi nào</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Bạn có thể bấm "Sinh bộ câu bằng AI" hoặc "Thêm câu hỏi mới" để bắt đầu.
-                    </p>
+                    <div className="sticky left-0 w-[min(100%,calc(100vw-4rem))]">
+                      <HelpCircle className="mx-auto size-8 text-slate-600" />
+                      <p className="mt-2 font-medium text-slate-300">Chưa có câu hỏi nào</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Bạn có thể bấm "Sinh bộ câu bằng AI" hoặc "Thêm câu hỏi mới" để bắt đầu.
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -644,7 +648,7 @@ export function CompanyQuestions() {
       {/* Modal: AI sinh bộ câu nháp (CO-04) */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="max-h-[90vh] overflow-y-auto w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
                 <Sparkles className="size-5" />
@@ -731,7 +735,7 @@ export function CompanyQuestions() {
       {/* Modal: Tải câu lên theo job (CO-05, CO-13) */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="max-h-[90vh] overflow-y-auto w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <h3 className="font-bold text-white text-base flex items-center gap-2">
               <Upload className="size-5 text-indigo-400" />
               Tải câu hỏi lên theo job
@@ -858,7 +862,7 @@ export function CompanyQuestions() {
       {/* Modal: Thêm câu hỏi mới */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="max-h-[90vh] overflow-y-auto w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <h3 className="font-bold text-white text-base flex items-center gap-2">
               <Plus className="size-5 text-indigo-400" />
               Thêm câu hỏi mới vào ngân hàng
@@ -946,7 +950,7 @@ export function CompanyQuestions() {
       {/* Modal: Chỉnh sửa câu hỏi */}
       {editQuestion && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="max-h-[90vh] overflow-y-auto w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <h3 className="font-bold text-white text-base flex items-center gap-2">
               <Edit3 className="size-5 text-indigo-400" />
               Chỉnh sửa câu hỏi
@@ -1047,7 +1051,7 @@ export function CompanyQuestions() {
       {/* Modal: Xem lịch sử thay đổi */}
       {viewHistoryQuestion && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className="max-h-[90vh] overflow-y-auto w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-white text-base flex items-center gap-2">
                 <History className="size-5 text-indigo-400" />

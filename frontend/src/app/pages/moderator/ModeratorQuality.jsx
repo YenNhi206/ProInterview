@@ -14,7 +14,16 @@ import {
 import { moderatorApi } from "../../api/moderatorApi.js";
 import { tryApi } from "../../utils/shared/apiToast.js";
 import { ModeratorPageHeader } from "./ModeratorPageHeader.jsx";
-import { competencyLabel, formatHours, formatRate } from "../../utils/moderator/moderationLabels.js";
+import { Link } from "react-router";
+import { competencyLabel, formatDateTime, formatHours, formatRate } from "../../utils/moderator/moderationLabels.js";
+import {
+  changeTitle,
+  correctionText,
+  promptKeyLabel,
+  rateDeltaBadge,
+  rubricPendingHint,
+  rubricReviewHint,
+} from "../../utils/moderator/qualityAi07.js";
 
 /**
  * /moderator/quality — KPI chất lượng AI (GET /api/moderator/quality/stats, cache 5 phút).
@@ -78,6 +87,107 @@ function DataTable({ columns, rows }) {
         ))}
       </tbody>
     </table>
+  );
+}
+
+const DELTA_TONE = {
+  better: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  worse: "border-amber-200 bg-amber-50 text-amber-800",
+  same: "border-[#ddd3f5] bg-[#f6f3fc] text-[#5b5772]",
+};
+
+const ProposalLink = () => (
+  <Link to="/moderator/ai-improvements" className="mt-0.5 block font-semibold text-violet-300 hover:underline">
+    Từ đề xuất cải tiến AI
+  </Link>
+);
+
+function DeltaBadge({ value }) {
+  const delta = rateDeltaBadge(value);
+  if (!delta.tone) return <span className="text-slate-500">—</span>;
+  return (
+    <span className={`inline-flex whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-bold tabular-nums ${DELTA_TONE[delta.tone]}`}>
+      {delta.text}
+    </span>
+  );
+}
+
+/** AI-07: mỗi lần đổi version prompt chấm điểm / sinh câu, tỉ lệ bị sửa của bản trước và bản sau. */
+function VersionChanges({ changes }) {
+  return (
+    <section className={card}>
+      <h3 className="text-sm font-extrabold text-slate-900">Tỉ lệ bị sửa trước / sau mỗi lần đổi version</h3>
+      <p className="mt-0.5 text-xs text-slate-500">
+        Chấm điểm: câu bị moderator chấm lại / câu đã chấm. Sinh câu hỏi: câu bị sửa hoặc khai tử / câu đã duyệt hoặc khai tử.
+        Tính trên toàn bộ dữ liệu của từng version, không theo kỳ. Giảm là tốt hơn.
+      </p>
+      {changes.length ? (
+        <>
+        {/* Điện thoại: mỗi lần đổi một khối, không cuộn ngang. */}
+        <ul className="mt-4 space-y-3 sm:hidden">
+          {changes.map((c, i) => (
+            <li key={`m-${c.promptKey}-${c.toVersion}-${c.activatedAt}-${i}`} className="border-t border-slate-100 pt-3 text-xs text-slate-700">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-semibold text-slate-900">{changeTitle(c)}</span>
+                <DeltaBadge value={c.rateDelta} />
+              </div>
+              <p className="mt-0.5 text-slate-500">
+                {promptKeyLabel(c.promptKey)} · {formatDateTime(c.activatedAt)}
+              </p>
+              <dl className="mt-1.5 grid grid-cols-2 gap-2 tabular-nums">
+                <div>
+                  <dt className="text-slate-500">Bản trước</dt>
+                  <dd>{correctionText(c.before)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Bản sau</dt>
+                  <dd>{correctionText(c.after)}</dd>
+                </div>
+              </dl>
+              {c.proposal ? <ProposalLink /> : null}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 hidden overflow-x-auto sm:block">
+          <table className="w-full min-w-[720px] text-left text-xs">
+            <thead className="text-slate-500">
+              <tr>
+                <th scope="col" className="py-1.5 pr-3 font-bold">Thời điểm</th>
+                <th scope="col" className="py-1.5 pr-3 font-bold">Prompt</th>
+                <th scope="col" className="py-1.5 pr-3 font-bold">Thay đổi</th>
+                <th scope="col" className="py-1.5 pr-3 text-right font-bold">Bản trước</th>
+                <th scope="col" className="py-1.5 pr-3 text-right font-bold">Bản sau</th>
+                <th scope="col" className="py-1.5 text-right font-bold">Chênh</th>
+              </tr>
+            </thead>
+            <tbody>
+              {changes.map((c, i) => {
+                return (
+                  <tr key={`${c.promptKey}-${c.toVersion}-${c.activatedAt}-${i}`} className="border-t border-slate-100 align-top text-slate-700">
+                    <td className="py-2 pr-3 tabular-nums">{formatDateTime(c.activatedAt)}</td>
+                    <td className="py-2 pr-3">{promptKeyLabel(c.promptKey)}</td>
+                    <td className="py-2 pr-3">
+                      <span className="font-semibold text-slate-900">{changeTitle(c)}</span>
+                      {c.proposal ? (
+                        <ProposalLink />
+                      ) : null}
+                    </td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{correctionText(c.before)}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{correctionText(c.after)}</td>
+                    <td className="py-2 text-right">
+                      <DeltaBadge value={c.rateDelta} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        </>
+      ) : (
+        <p className="mt-4 text-sm text-slate-500">Chưa có lần đổi version nào. Duyệt một đề xuất ở trang Cải tiến AI để bắt đầu so sánh.</p>
+      )}
+    </section>
   );
 }
 
@@ -163,6 +273,28 @@ export function ModeratorQuality() {
             />
             <Tile label="Thời gian xử lý (trung vị)" value={formatHours(stats.queue.medianTimeToResolveHours)} hint="Từ lúc tạo tới lúc xử lý xong" />
           </div>
+
+          {stats.rubrics ? (
+            <section aria-labelledby="quality-rubrics" className="space-y-3">
+              <h2 id="quality-rubrics" className="text-lg font-black text-white">Rubric doanh nghiệp</h2>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Tile label="Rubric chờ duyệt" value={stats.rubrics.pendingReview} hint={rubricPendingHint(stats.rubrics)} />
+                <Tile
+                  label="Đã xử lý trong kỳ"
+                  compact
+                  value={`${stats.rubrics.approvedInPeriod} duyệt · ${stats.rubrics.rejectedInPeriod} từ chối`}
+                  hint="Theo thời điểm Platform Moderator duyệt / từ chối"
+                />
+                <Tile
+                  label="Thời gian duyệt (trung vị)"
+                  value={formatHours(stats.rubrics.medianReviewHours)}
+                  hint={rubricReviewHint(stats.rubrics)}
+                />
+              </div>
+            </section>
+          ) : null}
+
+          {stats.promptVersionChanges ? <VersionChanges changes={stats.promptVersionChanges} /> : null}
 
           <ChartCard
             title="Xu hướng theo tuần"

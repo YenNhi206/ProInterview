@@ -58,6 +58,12 @@ moderatorRouter.patch("/jobs/:id/visibility", asyncHandler(ModeratorController.s
 // ── Quality dashboard ────────────────────────────────────────────────────────
 moderatorRouter.get("/quality/stats", asyncHandler(ModeratorController.qualityStats));
 
+// ── AI-05: Learning from Reviews — duyệt / từ chối / rollback đề xuất cải tiến AI ──
+moderatorRouter.get("/ai-improvements", asyncHandler(ModeratorController.listAiImprovements));
+moderatorRouter.get("/ai-improvements/:id", asyncHandler(ModeratorController.getAiImprovement));
+moderatorRouter.patch("/ai-improvements/:id", asyncHandler(ModeratorController.reviewAiImprovement));
+moderatorRouter.post("/ai-improvements/:id/backtest", asyncHandler(ModeratorController.backtestAiImprovement));
+
 // ── CO-08: Phê duyệt Rubric doanh nghiệp ─────────────────────────────────────
 // ── Câu hỏi doanh nghiệp: duyệt tầng hai (CO-16), tách khỏi ngân hàng câu chung ở trên ──
 moderatorRouter.get("/company-questions", asyncHandler(ModeratorCompanyQuestionController.list));
@@ -69,3 +75,4 @@ moderatorRouter.get("/rubrics", asyncHandler(ModeratorRubricController.list));
 moderatorRouter.get("/rubrics/:id", asyncHandler(ModeratorRubricController.getById));
 moderatorRouter.post("/rubrics/:id/approve", asyncHandler(ModeratorRubricController.approve));
 moderatorRouter.post("/rubrics/:id/reject", asyncHandler(ModeratorRubricController.reject));
+moderatorRouter.post("/rubrics/:id/ai-review", asyncHandler(ModeratorRubricController.aiReview)); // CO-09

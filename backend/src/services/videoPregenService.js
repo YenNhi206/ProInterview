@@ -15,7 +15,7 @@
  */
 
 import { randomUUID } from "crypto";
-import { pregenerateVideos, isDIDEnabled } from "./avatarService.js";
+import { pregenerateVideos, isAvatarVideoEnabled, avatarVideoMissingConfigMessage } from "./avatarService.js";
 import { createTrace, finalizeTrace } from "./langfuseService.js";
 import { logger } from "../config/logger.js";
 
@@ -163,8 +163,8 @@ export function getPregenerationStatus(jobId) {
  * @returns {Promise<{videoUrls: string[], errors: object[], durationMs: number, cacheHits: number}>}
  */
 export async function pregenerateSync(questions, opts = {}, signal) {
-  if (!isDIDEnabled()) {
-    throw new Error("D_ID_API_KEY chưa được cấu hình.");
+  if (!isAvatarVideoEnabled()) {
+    throw new Error(avatarVideoMissingConfigMessage());
   }
 
   const startMs = Date.now();

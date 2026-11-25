@@ -29,6 +29,9 @@
 .cv-editor-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .cv-editor-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
 .cv-editor-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.cv-editor-extract { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.cv-editor-extract > div { flex: 1 1 260px; min-width: 0; }
+.cv-editor-extract p { margin: 6px 0 0; }
 .cv-editor-aside { position: sticky; top: 88px; min-width: 0; }
 .cv-editor-aside h3 { display: flex; align-items: center; gap: 6px; }
 .cv-editor-aside label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; margin-bottom: 12px; }

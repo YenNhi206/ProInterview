@@ -21,7 +21,7 @@ describe("costEventKinds (AI-12)", () => {
   it("giữ 3 kind cũ và thêm rubric_scoring, course_prescreen", () => {
     assert.deepEqual(
       [...COST_EVENT_KINDS].sort(),
-      ["avatar_video_did", "course_prescreen", "llm_call", "rubric_scoring", "tts_elevenlabs"],
+      ["avatar_video_did", "avatar_video_elevenlabs", "course_prescreen", "llm_call", "rubric_scoring", "tts_elevenlabs"],
     );
     assert.equal(COST_EVENT_KIND.RUBRIC_SCORING, "rubric_scoring");
     assert.equal(COST_EVENT_KIND.COURSE_PRESCREEN, "course_prescreen");
