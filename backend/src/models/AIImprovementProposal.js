@@ -15,6 +15,9 @@ const { Schema } = mongoose;
  * - Mỗi ModerationItem chỉ làm bằng chứng cho 1 đề xuất (`evidence.moderationItemIds`, unique).
  * - Mỗi (target, kind, groupKey) tối đa 1 đề xuất `proposed` (partial unique index).
  *
+ * - `rubric_anchor` (AI-18): ví dụ neo từ rubric ≥ 3 công ty cùng `shrmKey`; `groupKey` = shrmKey,
+ *   không có ModerationItem. Backtest làm tăng độ lệch → tự `rejected` (`review.by` null).
+ *
  * State machine: `proposed` → `approved` | `rejected`; `approved` → `rolled_back`.
  */
 export const AI_IMPROVEMENT_TARGETS = ["question_gen", "evaluation"];
@@ -57,6 +60,12 @@ const aiImprovementProposalSchema = new Schema(
       shrmKey: { type: String, default: "" },
       companyCount: { type: Number, default: 0 },
       rubricIds: [{ type: Schema.Types.ObjectId, ref: "CompanyRubric" }],
+      roleCategories: { type: [String], default: undefined },
+      /** Version prompt `rubric_anchor` đã tóm tắt ví dụ neo. */
+      anchorPromptVersion: { type: String, default: "" },
+      /** Số chỗ tên / slug / tên miền công ty bị thay khi gửi LLM và khi nhận kết quả (kiểm ẩn danh). */
+      redactedInInput: { type: Number, default: 0 },
+      redactedInOutput: { type: Number, default: 0 },
     },
 
     /** Bản đang active lúc tạo đề xuất. */

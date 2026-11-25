@@ -12,6 +12,8 @@
  * `proposed` → tạo PromptVersion mới chưa bật (bản active + few-shot từ các ca lệch nhiều nhất) và
  * 1 `AIImprovementProposal` kind `few_shot`, rồi báo cho Platform Moderator.
  * Mỗi item chỉ làm bằng chứng một lần (unique index trên `evidence.moderationItemIds`).
+ *
+ * Nguồn thứ hai (AI-18): ví dụ neo từ rubric công ty đã duyệt, xem `rubricAnchorMinerService.js`.
  */
 import { AIImprovementProposal } from "../models/AIImprovementProposal.js";
 import { ModerationItem } from "../models/ModerationItem.js";
@@ -24,12 +26,14 @@ import { QUESTION_GEN_KEY } from "../prompts/questionGenPrompt.js";
 import { createVersion, getActivePrompt } from "./promptVersionService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { logger } from "../config/logger.js";
+import { MAX_VERSION_EXAMPLES, mergeFewShotExamples } from "../utils/fewShotMerge.js";
+import { mineRubricAnchorProposals } from "./rubricAnchorMinerService.js";
 
 export const DEFAULT_MIN_EVIDENCE = 5;
 /** Số few-shot mới thêm vào mỗi đề xuất. */
 export const NEW_EXAMPLES_PER_PROPOSAL = 3;
-/** Trần tổng few-shot của một version (giữ các ví dụ mới nhất) để prompt không phình. */
-export const MAX_VERSION_EXAMPLES = 9;
+/** Trần tổng few-shot thường của một version (giữ các ví dụ mới nhất); ví dụ neo AI-18 không tính. */
+export { MAX_VERSION_EXAMPLES };
 export const GENERAL_GROUP = "_general";
 const TEXT_LIMIT = 1200;
 
@@ -162,7 +166,7 @@ const TARGET_LABEL = { evaluation: "chấm điểm", question_gen: "sinh câu fo
 async function createProposal({ target, promptKey, groupKey, rows }) {
   const base = await getActivePrompt(promptKey);
   const newExamples = pickExamples(rows);
-  const merged = [...(base.fewShotExamples ?? []), ...newExamples].slice(-MAX_VERSION_EXAMPLES);
+  const merged = mergeFewShotExamples(base.fewShotExamples, newExamples);
   const deltas = rows.map((r) => r.delta).filter((d) => d !== null);
   const avgScoreDelta = deltas.length ? round2(deltas.reduce((s, d) => s + d, 0) / deltas.length) : null;
   const summary =
@@ -212,10 +216,13 @@ async function notifyModerators(proposals) {
 
 /**
  * Một lượt đào. Gọi từ `aiImprovementMinerJob` (mỗi ngày) hoặc test.
- * @param {{ threshold?: number, notify?: boolean }} [opts]
+ * @param {{ threshold?: number, notify?: boolean, rubricAnchors?: boolean, rubricAnchorOptions?: object }} [opts]
+ *   `rubricAnchors: false` bỏ nguồn AI-18; `rubricAnchorOptions` truyền cho `mineRubricAnchorProposals` (test).
  * @returns {Promise<{ created: object[], skipped: { target: string, groupKey: string, reason: string }[] }>}
  */
-export async function mineImprovementProposals({ threshold = minEvidenceThreshold(), notify = true } = {}) {
+export async function mineImprovementProposals({
+  threshold = minEvidenceThreshold(), notify = true, rubricAnchors = true, rubricAnchorOptions = {},
+} = {}) {
   const consumed = await consumedItemIds();
   const sources = [
     { target: "evaluation", promptKey: EVALUATION_KEY, rows: await collectEvaluationEvidence(consumed) },
@@ -243,6 +250,16 @@ export async function mineImprovementProposals({ threshold = minEvidenceThreshol
         skipped.push({ target, groupKey, reason: "error" });
       }
     }
+  }
+
+  // AI-18: ví dụ neo từ rubric công ty đã duyệt (ẩn danh).
+  if (rubricAnchors) {
+    const anchors = await mineRubricAnchorProposals(rubricAnchorOptions).catch((err) => {
+      logger.error("rubric_anchor_mine_failed", { error: err?.message });
+      return { created: [], skipped: [{ target: "evaluation", groupKey: "*", reason: "error" }] };
+    });
+    created.push(...anchors.created);
+    skipped.push(...anchors.skipped);
   }
 
   if (created.length) {

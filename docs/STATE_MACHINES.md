@@ -461,7 +461,7 @@ stateDiagram-v2
 stateDiagram-v2
     [*] --> proposed : aiImprovementMinerJob<br/>[nhóm đủ ngưỡng, chưa có đề xuất chờ duyệt]
     proposed --> approved : Platform Mod duyệt (AI-05)<br/>bật PromptVersion `after.version`
-    proposed --> rejected : Platform Mod từ chối (AI-05)
+    proposed --> rejected : Platform Mod từ chối (AI-05)<br/>hoặc tự loại: rubric_anchor có backtest tăng độ lệch (AI-18)
     approved --> rolled_back : Platform Mod rollback (AI-05)<br/>bật lại `before.version`
     rejected --> [*]
     rolled_back --> [*]
@@ -470,6 +470,8 @@ stateDiagram-v2
 | Chuyển | Hàm / endpoint | Task |
 |:-------|:---------------|:-----|
 | → `proposed` | `mineImprovementProposals` (`services/aiImprovementMinerService.js`) trong `jobs/aiImprovementMinerJob.js` (mỗi ngày, lượt đầu sau 10 phút) | AI-03 |
+| → `proposed` (kind `rubric_anchor`) | `mineRubricAnchorProposals` (`services/rubricAnchorMinerService.js`), gọi trong `mineImprovementProposals` | AI-18 |
+| `proposed` → `rejected` (tự loại, `review.by = null`) | `runBacktest` (`services/aiImprovementBacktestService.js`) khi đề xuất `rubric_anchor` có `verdict: worse` | AI-18 |
 | `proposed` → `approved` / `rejected`; `approved` → `rolled_back` | `PATCH /api/moderator/ai-improvements/:id` (`reviewProposal`, `services/aiImprovementReviewService.js`) | AI-05 |
 
 **Đã code (AI-03):** miner gom `ModerationItem` `resolved` có `resolution.action` là `override_score` (target `evaluation`, nhóm theo `competencyId` của câu) hoặc `edit_question` / `deprecate_question` (target `question_gen`, nhóm theo `roleCategory`; bỏ câu công ty có `orgId`). Nhóm có ≥ `AI_IMPROVEMENT_MIN_EVIDENCE` (mặc định 5) item chưa dùng thì tạo PromptVersion mới **chưa bật** (`createVersion`: bản active + tối đa 3 few-shot từ ca lệch nhiều nhất, tổng tối đa 9) và 1 đề xuất `few_shot`, báo `ai_improvement_proposed` cho moderator. Mỗi item chỉ làm bằng chứng một lần; nhóm đang có đề xuất `proposed` thì item mới để lại tới lượt sau khi đề xuất được xử lý. Cùng job backtest đề xuất `proposed` có `backtest: null` (AI-04); ngoài ra không job nào lọc theo status này.
