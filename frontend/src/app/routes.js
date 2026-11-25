@@ -101,6 +101,7 @@ import { ModeratorQuality } from "./pages/moderator/ModeratorQuality.jsx";
 import { ModeratorRubrics } from "./pages/moderator/ModeratorRubrics.jsx";
 import { ModeratorCompanyQuestions } from "./pages/moderator/ModeratorCompanyQuestions.jsx";
 import { ModeratorJobReports } from "./pages/moderator/ModeratorJobReports.jsx";
+import { ModeratorAiImprovements } from "./pages/moderator/ModeratorAiImprovements.jsx";
 import { AdminCompanies } from "./pages/admin/AdminCompanies.jsx";
 import { CompanyInviteAccept } from "./pages/auth/CompanyInviteAccept.jsx";
 import { CompanyLayout } from "./pages/company/CompanyLayout.jsx";
@@ -293,6 +294,7 @@ export const router = createBrowserRouter([
       { path: "queue", Component: ModeratorQueue },
       { path: "queue/:id", Component: ModeratorQueueItem },
       { path: "quality", Component: ModeratorQuality },
+      { path: "ai-improvements", Component: ModeratorAiImprovements },
     ],
   },
   { path: "/company-invite/:token", Component: CompanyInviteAccept },
