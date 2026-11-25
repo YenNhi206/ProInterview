@@ -1,4 +1,4 @@
-import { Inbox, Library, Building2, Sliders, BarChart3, GraduationCap, User, Settings, Flag } from "lucide-react";
+import { Inbox, Library, Building2, Sliders, BarChart3, GraduationCap, User, Settings, Flag, Sparkles } from "lucide-react";
 import { WorkspaceNav } from "./WorkspaceNav.jsx";
 
 const MODERATOR_MAIN_NAV = [
@@ -9,6 +9,7 @@ const MODERATOR_MAIN_NAV = [
   { title: "Báo cáo tin tuyển dụng", url: "/moderator/job-reports", icon: Flag },
   { title: "Duyệt Rubric", url: "/moderator/rubrics", icon: Sliders },
   { title: "Chất lượng AI", url: "/moderator/quality", icon: BarChart3 },
+  { title: "Cải tiến AI", url: "/moderator/ai-improvements", icon: Sparkles },
   { title: "Duyệt khóa học", url: "/moderator/courses", icon: GraduationCap },
 ];
 
