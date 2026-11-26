@@ -76,5 +76,5 @@ export function useWorkspaceTheme(enabled = true) {
   }, []);
 
   const resolved = enabled ? resolveWorkspaceTheme(mode, prefersDark) : "dark";
-  return { mode: enabled ? mode : "dark", resolved, setMode };
+  return { mode: enabled ? mode : "dark", resolved, setMode, setTheme: setMode };
 }

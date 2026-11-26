@@ -40,7 +40,7 @@ const CARDS = [
         <div className="flex flex-col gap-3 mt-4">
           <div className="w-[90%] h-10 bg-white/5 rounded-xl border border-white/10 flex items-center px-4 shadow-sm relative overflow-hidden">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#a78bfa]"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-[#a78bfa] mr-3 animate-pulse"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#a78bfa] mr-3"></div>
             <span className="text-xs sm:text-sm text-white/90 font-medium truncate">"Giải thích React Hooks?"</span>
           </div>
           <div className="w-[90%] self-end h-10 bg-[#8b5cf6]/20 rounded-xl border border-[#8b5cf6]/30 flex items-center px-4 justify-end shadow-sm relative overflow-hidden">

@@ -231,7 +231,7 @@ export const router = createBrowserRouter([
   { path: "/forgot-password", Component: ForgotPassword },
   { path: "/reset-password", Component: ResetPassword },
   { path: "/verify-email", Component: VerifyEmail },
-  { path: "/checkout", loader: requireAuthLoader, Component: Checkout },
+  { path: "/checkout", loader: requireCustomerAuthLoader, Component: Checkout },
   { path: "/payment-return", Component: PaymentReturn },
   { path: "/payment-success", Component: SuccessPage },
   { path: "/payment-failure", Component: FailurePage },

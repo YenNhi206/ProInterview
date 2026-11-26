@@ -43,7 +43,7 @@ import {
 } from "../../components/layout/CustomerPageHeader";
 
 const CTA_LIME =
-  "bg-[#93f72b] text-slate-950 font-extrabold shadow-[0_0_25px_rgba(147,247,43,0.3)] hover:brightness-110 active:scale-[0.99] transition-all";
+  "bg-[#93f72b] text-slate-950 font-extrabold shadow-[0_6px_20px_-4px_rgba(147,247,43,0.35)] hover:brightness-110 active:scale-[0.99] transition-all";
 
 const INTERVIEW_SETUP_DRAFT_KEY = "prointerview_setup_draft";
 
@@ -132,7 +132,7 @@ function UploadCvDetailPanel({ cvUploaded, uploadedFile, onPickFile }) {
       <p className="mb-3 shrink-0 text-xs font-bold uppercase tracking-wide text-[#93f72b]">Tải file CV</p>
       {cvUploaded && uploadedFile ? (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#93f72b]/20 text-[#93f72b] shadow-[0_0_15px_rgba(147,247,43,0.3)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#93f72b]/20 text-[#93f72b] shadow-[0_2px_8px_rgba(147,247,43,0.2)]">
             <Check className="h-6 w-6" {...IS} strokeWidth={2.5} />
           </div>
           <p className="text-sm font-semibold text-white">{uploadedFile.name}</p>
@@ -214,7 +214,7 @@ function SelectOptionRing({ selected }) {
     <div
       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
         selected
-          ? "border-[#93f72b] bg-[#93f72b] shadow-[0_0_12px_rgba(147,247,43,0.5)]"
+          ? "border-[#93f72b] bg-[#93f72b] shadow-[0_4px_12px_rgba(147,247,43,0.35)]"
           : "border-white/30 bg-white/5 group-hover:border-white/50"
       }`}
       aria-hidden
@@ -679,7 +679,7 @@ export function Interview() {
   const optIdle =
     "cursor-pointer border-white/15 bg-[#1a0f38]/60 hover:border-[#8037f4]/60 hover:bg-[#201344]/80 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:shadow-sm [html[data-workspace-theme=light]_&]:hover:border-[#8037f4]/40 [html[data-workspace-theme=light]_&]:hover:bg-slate-50";
   const optOn =
-    "border-[#93f72b] bg-[#93f72b]/10 ring-1 ring-[#93f72b]/50 shadow-[0_0_20px_rgba(147,247,43,0.15)] [html[data-workspace-theme=light]_&]:border-[#8037f4] [html[data-workspace-theme=light]_&]:bg-[#8037f4]/[0.08] [html[data-workspace-theme=light]_&]:ring-[#8037f4]/30";
+    "border-[#93f72b] bg-[#93f72b]/10 ring-1 ring-[#93f72b]/50 shadow-[0_4px_16px_rgba(147,247,43,0.18)] [html[data-workspace-theme=light]_&]:border-[#8037f4] [html[data-workspace-theme=light]_&]:bg-[#8037f4]/[0.08] [html[data-workspace-theme=light]_&]:ring-[#8037f4]/30";
 
   return (
     <MentorPageShell bottomPad="pb-16">
@@ -824,7 +824,7 @@ export function Interview() {
                         onClick={() => setJdExpanded(v => !v)}
                         className="flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-white/[0.04] [html[data-workspace-theme=light]_&]:hover:bg-slate-50"
                       >
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-violet-400/40 bg-violet-500/20 text-[10px] font-bold text-[#c084fc] [html[data-workspace-theme=light]_&]:border-violet-300 [html[data-workspace-theme=light]_&]:bg-violet-100 [html[data-workspace-theme=light]_&]:text-violet-700">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-violet-400/40 bg-violet-500/20 text-[11px] font-bold text-[#c084fc] [html[data-workspace-theme=light]_&]:border-violet-300 [html[data-workspace-theme=light]_&]:bg-violet-100 [html[data-workspace-theme=light]_&]:text-violet-700">
                           JD
                         </span>
                         <span className="flex-1 text-sm font-medium text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">

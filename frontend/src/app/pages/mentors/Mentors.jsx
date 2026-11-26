@@ -347,6 +347,7 @@ export function Mentors() {
             </div>
           ) : (
             <>
+              <h2 className="sr-only">Danh sách chuyên gia mentor</h2>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentPage}

@@ -151,8 +151,8 @@ export function AdminReviews() {
     <div className={adminPageWrap}>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={adminHeaderRow}>
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Đánh giá</span>
+          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Đánh giá</span>
           </h2>
         </div>
         <AdminPageToolbar
@@ -268,7 +268,7 @@ export function AdminReviews() {
                               ? `/admin/mentors/${r.targetId}`
                               : `/courses/${r.targetId}?adminPreview=1`
                           }
-                          className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-violet-400 hover:text-violet-300"
+                          className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9] hover:underline"
                         >
                           Xem <ExternalLink className="h-3 w-3" />
                         </Link>

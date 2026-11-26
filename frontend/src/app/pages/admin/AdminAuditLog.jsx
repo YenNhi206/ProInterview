@@ -28,7 +28,7 @@ export function AdminAuditLog() {
       .then((res) => { if (active) setData(res); }).catch((err) => { if (active) setError(err.message); });
     return () => { active = false; };
   }, [page, success, method, actor, revision]);
-  return <div className="space-y-6"><h1 className="text-3xl font-black">Nhật ký thao tác</h1><p className="text-slate-500">Ghi lại thao tác của admin, Platform Moderator, Company Moderator và thao tác tiền của mentor (rút tiền, đổi tài khoản nhận tiền, đổi giá). Mật khẩu, token bị che; số tài khoản chỉ giữ 4 số cuối.</p>
+  return <div className="space-y-6"><div><h1 className="text-3xl font-black text-white [html[data-workspace-theme=light]_&]:text-slate-900"><span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Nhật ký</span> thao tác</h1><p className="mt-1 text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">Ghi lại thao tác của admin, Platform Moderator, Company Moderator và thao tác tiền của mentor (rút tiền, đổi tài khoản nhận tiền, đổi giá). Mật khẩu, token bị che; số tài khoản chỉ giữ 4 số cuối.</p></div>
     <div className="flex flex-wrap gap-3">
       <AppSelect
         aria-label="Người thao tác"

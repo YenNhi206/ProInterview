@@ -46,25 +46,25 @@ function JobCard({ job }) {
   return (
     <Link
       to={`/jobs/${job.id}`}
-      className="flex h-full flex-col rounded-3xl border border-white/10 bg-[#18113c]/80 p-5 shadow-sm backdrop-blur-xl transition-colors hover:border-violet-400/50"
+      className="flex h-full flex-col rounded-3xl border border-white/10 bg-[#18113c]/80 p-5 shadow-sm backdrop-blur-xl transition-colors hover:border-violet-400/50 [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:shadow-md [html[data-workspace-theme=light]_&]:hover:border-violet-300"
     >
       <div className="flex items-start gap-3">
-        <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/5 [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-slate-50">
           {company.logo ? (
             <img src={company.logo} alt="" className="size-full object-cover" />
           ) : (
-            <Building2 className="size-5 text-violet-300" aria-hidden />
+            <Building2 className="size-5 text-violet-300 [html[data-workspace-theme=light]_&]:text-violet-600" aria-hidden />
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-headline text-base font-black leading-snug text-white">{job.title}</h3>
-          <p className="mt-0.5 truncate text-xs font-semibold text-slate-400">{company.name || "Công ty đối tác"}</p>
+          <h3 className="font-headline text-base font-black leading-snug text-white [html[data-workspace-theme=light]_&]:text-slate-900">{job.title}</h3>
+          <p className="mt-0.5 truncate text-xs font-semibold text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">{company.name || "Công ty đối tác"}</p>
         </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
         {job.roleCategoryName ? (
-          <span className="rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#93f72b]">
+          <span className="job-role-badge rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#93f72b] [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-[#6d28d9]">
             {job.roleCategoryName}
           </span>
         ) : null}
@@ -72,22 +72,22 @@ function JobCard({ job }) {
         {[...new Set([JOB_LEVEL_LABELS[job.level], JOB_EMPLOYMENT_TYPE_LABELS[job.employmentType], JOB_WORK_MODE_LABELS[job.workMode]])]
           .filter(Boolean)
           .map((label) => (
-            <span key={label} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
+            <span key={label} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-slate-100 [html[data-workspace-theme=light]_&]:text-slate-700">
               {label}
             </span>
           ))}
       </div>
 
-      {job.summary ? <p className="mt-3 line-clamp-3 text-xs leading-relaxed text-slate-400">{job.summary}</p> : null}
+      {job.summary ? <p className="mt-3 line-clamp-3 text-xs leading-relaxed text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-600">{job.summary}</p> : null}
 
       {job.requiredSkills?.length ? (
-        <p className="mt-3 text-[11px] font-semibold text-slate-300">
+        <p className="mt-3 text-[11px] font-semibold text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-700">
           <span className="text-slate-500">Kỹ năng: </span>
           {job.requiredSkills.slice(0, 5).join(" · ")}
         </p>
       ) : null}
 
-      <div className="mt-auto space-y-1.5 border-t border-white/10 pt-3 text-[11px] font-semibold text-slate-400">
+      <div className="mt-auto space-y-1.5 border-t border-white/10 pt-3 text-[11px] font-semibold text-slate-400 [html[data-workspace-theme=light]_&]:border-slate-100 [html[data-workspace-theme=light]_&]:text-slate-500">
         {job.location ? (
           <p className="flex items-center gap-1.5">
             <MapPin className="size-3.5 shrink-0" aria-hidden /> {job.location}
@@ -97,7 +97,7 @@ function JobCard({ job }) {
           <Wallet className="size-3.5 shrink-0" aria-hidden /> {job.salaryRange || "Lương thỏa thuận"}
         </p>
         {deadline ? (
-          <p className={`flex items-center gap-1.5 ${deadline.urgent ? "text-amber-300" : ""}`}>
+          <p className={`flex items-center gap-1.5 ${deadline.urgent ? "text-amber-300 [html[data-workspace-theme=light]_&]:text-amber-700" : ""}`}>
             <Clock className="size-3.5 shrink-0" aria-hidden />
             Hạn nộp {deadline.date}
             {deadline.urgent ? ` · còn ${Math.max(deadline.daysLeft, 0)} ngày` : ""}
@@ -247,6 +247,7 @@ export function Jobs() {
 
       <div className={`relative z-10 flex flex-col pb-8 pt-2 ${CUSTOMER_SHELL_GUTTER}`}>
         <div className={`${CUSTOMER_SHELL_MAX} w-full`}>
+          <h2 className="sr-only">Danh sách việc làm IT</h2>
           <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" role="group" aria-label="Bộ lọc việc làm">
             <AppSelect
               aria-label="Nhóm vị trí"

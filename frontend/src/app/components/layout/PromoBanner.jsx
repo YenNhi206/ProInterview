@@ -10,18 +10,18 @@ export function PromoBanner({ onClose, onOpenPromoModal }) {
       }}
       role="banner"
     >
-      <Sparkles className="hidden size-4 shrink-0 text-[#a3e635] sm:block" aria-hidden />
+      <Sparkles className="hidden size-4 shrink-0 text-[#d9f99d] sm:block" aria-hidden />
       <button
         type="button"
         onClick={onOpenPromoModal}
         className="min-w-0 flex-1 truncate text-[11px] font-semibold text-white underline decoration-white/40 decoration-dotted underline-offset-2 sm:flex-initial sm:text-sm"
       >
         <span className="sm:hidden">
-          Giảm giá <span className="font-black text-[#a3e635]">50%</span> khi nâng cấp gói!
+          Giảm giá <span className="font-black text-[#d9f99d]">50%</span> khi nâng cấp gói!
         </span>
         <span className="hidden sm:inline">
           Đang có mã giảm giá{" "}
-          <span className="font-black text-[#a3e635]">50%</span>{" "}
+          <span className="font-black text-[#d9f99d]">50%</span>{" "}
           khi nâng cấp gói — bấm để xem mã!
         </span>
       </button>

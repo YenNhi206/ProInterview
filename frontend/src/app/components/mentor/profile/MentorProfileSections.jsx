@@ -267,7 +267,7 @@ export function MentorSkillsSection({ skillTags, compactTitle = false }) {
           {skillTags.map((tag) => (
             <span
               key={tag}
-              className="rounded-xl border border-violet-500/25 bg-violet-500/15 px-3.5 py-2 text-xs sm:text-sm font-semibold text-violet-200"
+              className="mentor-card-skill-tag rounded-xl border border-violet-500/25 bg-violet-500/15 px-3.5 py-2 text-xs sm:text-sm font-semibold text-violet-200 [html[data-workspace-theme=light]_&]:bg-[#f5f0ff] [html[data-workspace-theme=light]_&]:border-[#ddd6fe] [html[data-workspace-theme=light]_&]:text-[#6d28d9]"
             >
               {tag}
             </span>

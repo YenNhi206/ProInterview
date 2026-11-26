@@ -163,7 +163,7 @@ export async function authFetch(path, init = {}) {
 
 const AUTH_ONLY_PATHS = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
-/** `?redirect=` hợp lệ — không trỏ trang auth; /admin chỉ admin; /mentor/* chỉ mentor. */
+/** `?redirect=` hợp lệ — không trỏ trang auth; /admin chỉ admin; /mentor/* chỉ mentor; /moderator chỉ moderator; /company chỉ company_moderator. */
 export function isSafeAppRedirect(path, user) {
   const r = typeof path === "string" ? path.trim() : "";
   if (!r.startsWith("/") || r.startsWith("//")) return false;
@@ -172,6 +172,8 @@ export function isSafeAppRedirect(path, user) {
   }
   if (r.startsWith("/admin") && user?.role !== "admin") return false;
   if (r.startsWith("/mentor") && user?.role !== "mentor") return false;
+  if (r.startsWith("/moderator") && user?.role !== "moderator") return false;
+  if (r.startsWith("/company") && user?.role !== "company_moderator" && user?.role !== "enterprise") return false;
   return true;
 }
 
@@ -193,23 +195,49 @@ function isCustomerHubRedirect(path) {
 }
 
 /** Mentor sau login chỉ giữ redirect thuộc khu mentor hoặc phòng họp. */
-function isMentorPostLoginRedirect(path) {
+export function isMentorPostLoginRedirect(path) {
   const r = typeof path === "string" ? path.trim() : "";
   return r.startsWith("/mentor") || r.startsWith("/meeting/");
 }
 
-/** Đường dẫn sau đăng nhập: admin → /admin, mentor → /mentor/dashboard, customer → ?redirect hoặc /. */
+/** Admin sau login chỉ giữ redirect thuộc khu admin hoặc phòng họp. */
+export function isAdminPostLoginRedirect(path) {
+  const r = typeof path === "string" ? path.trim() : "";
+  return r.startsWith("/admin") || r.startsWith("/meeting/");
+}
+
+/** Moderator sau login chỉ giữ redirect thuộc khu moderator hoặc phòng họp. */
+export function isModeratorPostLoginRedirect(path) {
+  const r = typeof path === "string" ? path.trim() : "";
+  return r.startsWith("/moderator") || r.startsWith("/meeting/");
+}
+
+/** Company moderator sau login chỉ giữ redirect thuộc khu company hoặc phòng họp. */
+export function isCompanyPostLoginRedirect(path) {
+  const r = typeof path === "string" ? path.trim() : "";
+  return r.startsWith("/company") || r.startsWith("/meeting/");
+}
+
+/** Đường dẫn sau đăng nhập theo từng role: admin → /admin, mentor → /mentor/dashboard, moderator → /moderator, company → /company, customer → ?redirect hoặc /. */
 export function getPostLoginPath(user, redirectParam) {
   const r = typeof redirectParam === "string" ? redirectParam.trim() : "";
   const role = user?.role;
 
   if (role === "admin") {
-    if (r && isSafeAppRedirect(r, user) && !isCustomerHubRedirect(r)) return r;
+    if (r && isSafeAppRedirect(r, user) && isAdminPostLoginRedirect(r)) return r;
     return "/admin";
   }
   if (role === "mentor") {
     if (r && isSafeAppRedirect(r, user) && isMentorPostLoginRedirect(r)) return r;
     return "/mentor/dashboard";
+  }
+  if (role === "moderator") {
+    if (r && isSafeAppRedirect(r, user) && isModeratorPostLoginRedirect(r)) return r;
+    return "/moderator";
+  }
+  if (role === "company_moderator" || role === "enterprise") {
+    if (r && isSafeAppRedirect(r, user) && isCompanyPostLoginRedirect(r)) return r;
+    return "/company";
   }
 
   if (isSafeAppRedirect(r, user)) return resolveLegacyCustomerPath(r);

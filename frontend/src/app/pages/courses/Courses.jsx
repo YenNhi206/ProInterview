@@ -128,7 +128,7 @@ function CourseCard({ course, formatPrice, onOpen, index }) {
 
             {/* Level Badge */}
             {course.level && (
-              <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-bold text-[#93f72b] backdrop-blur-md border border-[#93f72b]/30 [html[data-workspace-theme=light]_&]:bg-white/95 [html[data-workspace-theme=light]_&]:text-[#8037f4] [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:shadow-sm">
+              <span className="absolute top-3 right-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-bold text-[#93f72b] backdrop-blur-md border border-[#93f72b]/30 [html[data-workspace-theme=light]_&]:bg-white/95 [html[data-workspace-theme=light]_&]:text-[#8037f4] [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:shadow-sm">
                 {course.level}
               </span>
             )}
@@ -724,6 +724,7 @@ export function Courses() {
           {/* Course grid */}
           {!loading && !error && filteredCourses.length > 0 && (
             <>
+              <h2 className="sr-only">Danh sách khóa học kỹ năng</h2>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${currentPage}-${selectedLevel}-${selectedCategory}-${selectedFee}-${sortBy}-${searchQuery}`}

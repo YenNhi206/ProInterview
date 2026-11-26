@@ -30,48 +30,59 @@
 }
 
 /* ── Typography hierarchy ─────────────────────────────────────────── */
-.admin-shell [data-admin-content] h1,
-.admin-shell [data-admin-content] h2,
-.admin-shell [data-admin-content] h3,
-.admin-shell [data-admin-content] h4 {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) h1,
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) h2,
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) h3,
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) h4 {
   font-family: var(--font-headline), "Plus Jakarta Sans", system-ui, sans-serif;
   letter-spacing: -0.022em;
   color: #ffffff;
 }
 
 /* Mapping màu chữ: chữ tối trong template chuyển thành chữ sáng trên nền dark */
-.admin-shell [data-admin-content] :is(.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-zinc-900) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-zinc-900) {
   color: #ffffff !important;
 }
-.admin-shell [data-admin-content] :is(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
   color: #cbd5e1 !important;
 }
-.admin-shell [data-admin-content] :is(.text-slate-500, .text-gray-500, .text-zinc-500) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.text-slate-500, .text-gray-500, .text-zinc-500) {
   color: #94a3b8 !important;
 }
-.admin-shell [data-admin-content] :is(.text-slate-400, .text-gray-400) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.text-slate-400, .text-gray-400) {
   color: #94a3b8 !important;
 }
 
-/* Màu tím nhấn (accent) trên nền tối sáng và rực rỡ hơn */
-.admin-shell [data-admin-content] :is(.text-violet-700, .text-violet-800, .text-purple-700, .text-purple-800) {
+/* ── Tiêu đề & Kicker trong Admin: Nền tối dùng màu LIME (#93f72b), Nền sáng dùng TÍM ĐẬM (#6d28d9) ── */
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(h1, h2, h3, h4, .font-headline) :is(span[class*="text-violet"], span[class*="text-purple"], span[class*="bg-clip-text"], .admin-title-accent) {
+  color: #93f72b !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.admin-kicker, [class*="tracking-[0.16em]"], [class*="tracking-[0.22em]"]):is([class*="text-violet"], [class*="text-purple"]) {
+  color: #93f72b !important;
+}
+
+/* Accent tím trong nội dung bảng / thẻ ở dark mode */
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.text-violet-700, .text-violet-800, .text-purple-700, .text-purple-800) {
   color: #c084fc !important;
 }
-.admin-shell [data-admin-content] :is(.text-violet-600, .text-purple-600, .text-indigo-600) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.text-violet-600, .text-purple-600, .text-indigo-600) {
   color: #a78bfa !important;
 }
 
 /* ── Surfaces & Glass Cards ────────────────────────────────────────── */
-.admin-shell [data-admin-content] .glass-card,
-.admin-shell [data-admin-content] :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) .glass-card,
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
   background-color: var(--adm-surface) !important;
   border-color: var(--adm-border) !important;
 }
-.admin-shell [data-admin-content] :is(.bg-white\/90, .bg-white\/95, .bg-white\/80, .bg-slate-50\/90, .bg-slate-50\/80, .bg-slate-50\/70, .bg-slate-50\/50, .bg-slate-50\/40) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.bg-white\/90, .bg-white\/95, .bg-white\/80, .bg-slate-50\/90, .bg-slate-50\/80, .bg-slate-50\/70, .bg-slate-50\/50, .bg-slate-50\/40) {
   background-color: var(--adm-surface) !important;
   border-color: var(--adm-border) !important;
 }
-.admin-shell [data-admin-content] :is(.border-slate-100, .border-slate-200, .border-slate-200\/90, .border-slate-200\/80, .border-slate-300, .border-gray-200) {
+:root:not([data-workspace-theme="light"]) :is(.admin-shell, [data-admin-content]) :is(.border-slate-100, .border-slate-200, .border-slate-200\/90, .border-slate-200\/80, .border-slate-300, .border-gray-200) {
   border-color: var(--adm-border) !important;
 }
 
@@ -226,7 +237,7 @@
 }
 
 /* Table Action Buttons & Badges: phẳng, rực rỡ, không bị bóng 3D đen thui */
-.admin-shell table td :is(button, a[role="button"], a:has(svg)) {
+:root:not([data-workspace-theme="light"]) .admin-shell table td :is(button, a[role="button"], a:has(svg)) {
   background-image: none !important;
   box-shadow: none !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -235,33 +246,33 @@
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
-.admin-shell table td :is(button, a[role="button"], a:has(svg)):hover {
+:root:not([data-workspace-theme="light"]) .admin-shell table td :is(button, a[role="button"], a:has(svg)):hover {
   transform: translateY(-2px) scale(1.15) !important;
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(168, 85, 247, 0.6) !important;
   background-color: rgba(168, 85, 247, 0.22) !important;
   color: #ffffff !important;
 }
-.admin-shell table td :is(button, a[role="button"], a:has(svg)):hover svg {
+:root:not([data-workspace-theme="light"]) .admin-shell table td :is(button, a[role="button"], a:has(svg)):hover svg {
   color: #ffffff !important;
   transform: scale(1.12);
   transition: transform 0.2s ease !important;
 }
 
 /* Đảm bảo chữ trạng thái và nút bấm trong admin luôn tương phản cao, rực rỡ trên nền tối */
-.admin-shell [data-admin-content] :is(.text-amber-900, .text-amber-950, .text-orange-900, .text-orange-950) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(.text-amber-900, .text-amber-950, .text-orange-900, .text-orange-950) {
   color: #fbbf24 !important;
 }
-.admin-shell [data-admin-content] :is(.text-lime-900, .text-lime-950, .text-emerald-900, .text-emerald-950, .text-green-900) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(.text-lime-900, .text-lime-950, .text-emerald-900, .text-emerald-950, .text-green-900) {
   color: #34d399 !important;
 }
-.admin-shell [data-admin-content] :is(.text-red-900, .text-red-950, .text-rose-900, .text-rose-950) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(.text-red-900, .text-red-950, .text-rose-900, .text-rose-950) {
   color: #fb7185 !important;
 }
-.admin-shell [data-admin-content] :is(.text-sky-900, .text-sky-950, .text-blue-900, .text-blue-950) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(.text-sky-900, .text-sky-950, .text-blue-900, .text-blue-950) {
   color: #38bdf8 !important;
 }
-.admin-shell [data-admin-content] :is(.text-violet-900, .text-violet-950, .text-purple-900, .text-purple-950) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(.text-violet-900, .text-violet-950, .text-purple-900, .text-purple-950) {
   color: #c084fc !important;
 }
 
@@ -409,7 +420,7 @@
   background-color: rgba(139, 92, 246, 0.12) !important;
   border-color: rgba(139, 92, 246, 0.3) !important;
 }
-.admin-shell [data-admin-content] :is(.text-violet-800, .text-purple-800) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(.text-violet-800, .text-purple-800) {
   color: #c084fc !important;
 }
 
