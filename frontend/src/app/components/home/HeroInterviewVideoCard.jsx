@@ -108,7 +108,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
             <div className="liquid-glass flex shrink-0 items-center justify-between border-b border-white/10 px-3 py-2 sm:px-4 sm:py-2.5">
               <div className="flex items-center gap-2">
                 <div className="liquid-glass-strong flex items-center gap-1.5 rounded-full px-2 py-1 sm:px-2.5">
-                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#93f72b]" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-[#93f72b]" />
                   <span className="text-[10px] sm:text-xs font-semibold text-white">REC</span>
                 </div>
                 <div className="liquid-glass flex items-center gap-1.5 rounded-full px-2 py-1 sm:px-2.5">
@@ -160,7 +160,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
                 {cameraState !== "active" && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center liquid-glass z-10 rounded-[16px]">
                     <div className="w-10 h-10 border-4 border-[#93f72b] border-t-transparent rounded-full animate-spin mb-3"></div>
-                    <span className="text-white text-[10px] sm:text-xs font-medium animate-pulse">
+                    <span className="text-white text-[10px] sm:text-xs font-medium">
                       Đang kết nối camera...
                     </span>
                   </div>
@@ -171,7 +171,7 @@ export function HeroInterviewVideoCard({ overlap = false, center = false, compac
               <div className={`liquid-glass flex shrink-0 flex-col overflow-hidden rounded-[12px] transition-all col-span-2 ${compact ? "h-[3.5rem] max-h-[3.5rem]" : "h-[4.5rem] max-h-[4.5rem]"}`}>
                 <div className="liquid-glass-strong flex shrink-0 items-center justify-between border-b border-white/10 px-2.5 py-1.5">
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-[#93f72b]" />
+                    <div className="h-2 w-2 rounded-full bg-[#93f72b]" />
                     <span className="text-xs font-semibold text-white">Đang ghi âm...</span>
 
                     {/* Waveform */}

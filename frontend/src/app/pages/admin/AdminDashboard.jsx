@@ -116,11 +116,11 @@ export function AdminDashboard() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div>
-        <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.22em] text-violet-400 [html[data-workspace-theme=light]_&]:text-violet-600">
+        <p className="admin-kicker mb-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">
           ProInterview Command Center
         </p>
         <h1 className="font-headline text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold leading-[1.15] tracking-tight text-white [html[data-workspace-theme=light]_&]:text-[#1a1b23]">
-          Xin chào, <span className="text-violet-400 [html[data-workspace-theme=light]_&]:text-violet-600">Admin!</span>
+          Xin chào, <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Admin!</span>
         </h1>
         <p className="mt-1.5 text-sm font-medium text-slate-400 [html[data-workspace-theme=light]_&]:text-[#5b5772]">
           Trung tâm điều hành toàn bộ hệ thống ProInterview.

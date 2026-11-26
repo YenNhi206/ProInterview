@@ -12,17 +12,9 @@
   z-index: 1;
 }
 
-/* ── 1. Subtle Learning Tech Grid (Lưới tri thức công nghệ chìm) ── */
+/* ── 1. Subtle Learning Tech Grid (Gỡ bỏ lưới kẻ ô ma trận) ── */
 .hero-connected-grid {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(to right, rgba(128, 55, 244, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(128, 55, 244, 0.06) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 65% 50% at 50% 45%, black 15%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 65% 50% at 50% 45%, black 15%, transparent 75%);
-  opacity: 0.6;
+  display: none;
 }
 
 /* ── 2. Ambient Focus Glow (Tụ sáng nhẹ sau tiêu đề & Search, không chạm viền) ── */
@@ -48,7 +40,7 @@
   100% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.95; }
 }
 
-/* ── 3. Fluid Wave Tracks (Hiển thị sống động 2 bên cánh, làm mờ trung tâm để không đè lên chữ/search/stats) ── */
+/* ── 3. Fluid Wave Tracks (Nền sóng uốn lượn tĩnh, không auto-scroll marquee) ── */
 .hero-cwave-track {
   position: absolute;
   top: 50%;
@@ -57,27 +49,20 @@
   height: 280px;
   margin-top: -140px;
   display: flex;
-  will-change: transform;
-  /* Mask trung tâm: triệt tiêu đường dây cắt qua tiêu đề, mô tả, thanh tìm kiếm và stats */
   mask-image: radial-gradient(ellipse 520px 220px at 50% 50%, rgba(0, 0, 0, 0.06) 20%, rgba(0, 0, 0, 0.6) 70%, black 100%);
   -webkit-mask-image: radial-gradient(ellipse 520px 220px at 50% 50%, rgba(0, 0, 0, 0.06) 20%, rgba(0, 0, 0, 0.6) 70%, black 100%);
 }
 
-/* Sóng 1 (Tím neon - Luồng kiến thức) trôi từ phải sang trái liên tục & nhấp nhô mượt mà */
 .hero-cwave-track-1 {
-  animation: cwaveFlowLeft 18s linear infinite;
+  opacity: 0.85;
 }
 
-/* Sóng 2 (Xanh lime) trôi ngược chiều từ trái sang phải */
 .hero-cwave-track-2 {
-  animation: cwaveFlowRight 22s linear infinite;
-  opacity: 0.92;
+  opacity: 0.75;
 }
 
-/* Sóng 3 (Deep Indigo) trôi nhẹ tầng sâu */
 .hero-cwave-track-3 {
-  animation: cwaveFlowLeft 28s linear infinite;
-  opacity: 0.65;
+  opacity: 0.55;
 }
 
 /* Luồng trôi ngang vô tận kết hợp sóng nhấp nhô nhẹ */

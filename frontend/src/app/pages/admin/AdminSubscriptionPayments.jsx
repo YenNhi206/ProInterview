@@ -128,10 +128,10 @@ export function AdminSubscriptionPayments() {
         className="flex min-w-0 flex-col justify-between gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
-            <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">Gói</span> Pro / Elite
+          <h2 className="font-headline text-2xl font-black uppercase tracking-tight text-white [html[data-workspace-theme=light]_&]:text-slate-900 sm:text-3xl">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Gói</span> Pro / Elite
           </h2>
-          <p className="mt-1 text-xs text-slate-400">Theo dõi kích hoạt và đối soát các giao dịch nâng cấp tài khoản học viên.</p>
+          <p className="mt-1 text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">Theo dõi kích hoạt và đối soát các giao dịch nâng cấp tài khoản học viên.</p>
         </div>
         <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
           <button

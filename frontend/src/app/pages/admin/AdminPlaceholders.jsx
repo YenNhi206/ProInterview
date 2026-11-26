@@ -262,8 +262,8 @@ export function AdminFinance() {
         className="flex min-w-0 flex-col justify-between gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Tài chính</span> — Tổng quan
+          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Tài chính</span> — Tổng quan
           </h2>
         </div>
         <button
@@ -656,8 +656,8 @@ export function AdminTransactions() {
         className="flex min-w-0 flex-col justify-between gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Giao dịch</span>
+          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Giao dịch</span>
           </h2>
         </div>
         <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
@@ -989,8 +989,8 @@ export function AdminPayouts() {
         className="flex min-w-0 flex-col justify-between gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Rút tiền</span> cố vấn
+          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Rút tiền</span> cố vấn
           </h2>
         </div>
         <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
@@ -1475,8 +1475,8 @@ export function AdminContentQuestions() {
     <div className={adminPageWrap}>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={adminHeaderRow}>
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Câu hỏi</span> phỏng vấn AI
+          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Câu hỏi</span> phỏng vấn AI
           </h2>
         </div>
         <AdminPageToolbar

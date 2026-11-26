@@ -61,6 +61,8 @@ function WorkspaceMenu({ config, onClose, active }) {
   const location = useLocation();
   const name = getDisplayName(user);
   const initials = getInitials(name);
+  const theme = useContext(WorkspaceThemeContext);
+  const light = theme?.resolved === "light";
 
   const renderLink = (item, index) => {
     if (item.section) {
@@ -162,21 +164,29 @@ function WorkspaceMenu({ config, onClose, active }) {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              data-ui-theme="dark"
+              data-ui-theme={light ? "light" : "dark"}
               side="top"
               align="start"
-              className="mb-2 w-60 rounded-2xl border border-white/15 bg-[#140c26] p-1.5 text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)] backdrop-blur-2xl"
+              className={`mb-2 w-60 rounded-2xl border nav-user-dropdown-menu p-1.5 shadow-xl backdrop-blur-2xl ${
+                light
+                  ? "border-[#ddd3f5] bg-[#fcfbfe] text-[#23252f] shadow-[0_16px_36px_-4px_rgba(30,27,46,0.15)]"
+                  : "border-white/15 bg-[#140c26] text-white shadow-[0_16px_40px_rgba(0,0,0,0.7)]"
+              }`}
             >
               {/* User Header in Menu */}
-              <div className="flex items-center gap-3 px-3 py-2.5 border-b border-white/10 mb-1">
+              <div className={`flex items-center gap-3 px-3 py-2.5 border-b mb-1 ${light ? "border-slate-200/80" : "border-white/10"}`}>
                 <div className="size-8 overflow-hidden rounded-lg shrink-0">
                   <NavUserAvatar avatar={user?.avatar} initials={initials} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-white">{name}</p>
-                  <p className="truncate text-[10px] text-slate-400">{user?.email || ""}</p>
+                  <p className={`truncate text-xs font-bold ${light ? "text-slate-900" : "text-white"}`}>{name}</p>
+                  <p className={`truncate text-[10px] ${light ? "text-slate-500" : "text-slate-400"}`}>{user?.email || ""}</p>
                 </div>
-                <span className="shrink-0 rounded-full border border-violet-400/30 bg-violet-500/15 px-2 py-0.5 text-[8px] font-black text-violet-300">
+                <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-black ${
+                  light
+                    ? "border-[#ddd6fe] bg-[#f5f0ff] text-[#6d28d9]"
+                    : "border-violet-400/30 bg-violet-500/15 text-violet-300"
+                }`}>
                   {badgeText}
                 </span>
               </div>
@@ -187,9 +197,13 @@ function WorkspaceMenu({ config, onClose, active }) {
                   onClose?.();
                   navigate("/profile");
                 }}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 hover:bg-violet-600/20 hover:text-white transition-colors"
+                className={`flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
+                  light
+                    ? "text-slate-700 hover:bg-[#efe9fc] hover:text-[#5b21b6] data-[highlighted]:bg-[#efe9fc] data-[highlighted]:text-[#5b21b6]"
+                    : "text-slate-200 hover:bg-violet-600/20 hover:text-white data-[highlighted]:bg-violet-600/20 data-[highlighted]:text-white"
+                }`}
               >
-                <User size={15} className="text-violet-400" />
+                <User size={15} className={light ? "text-violet-600" : "text-violet-400"} />
                 <span>Hồ sơ cá nhân</span>
               </DropdownMenuItem>
 
@@ -198,13 +212,17 @@ function WorkspaceMenu({ config, onClose, active }) {
                   onClose?.();
                   navigate("/settings");
                 }}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 hover:bg-violet-600/20 hover:text-white transition-colors"
+                className={`flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
+                  light
+                    ? "text-slate-700 hover:bg-[#efe9fc] hover:text-[#5b21b6] data-[highlighted]:bg-[#efe9fc] data-[highlighted]:text-[#5b21b6]"
+                    : "text-slate-200 hover:bg-violet-600/20 hover:text-white data-[highlighted]:bg-violet-600/20 data-[highlighted]:text-white"
+                }`}
               >
-                <Settings size={15} className="text-violet-400" />
+                <Settings size={15} className={light ? "text-violet-600" : "text-violet-400"} />
                 <span>Cài đặt tài khoản</span>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="my-1 h-px bg-white/10" />
+              <DropdownMenuSeparator className={`my-1 h-px ${light ? "bg-slate-200/80" : "bg-white/10"}`} />
 
               <DropdownMenuItem
                 onClick={async () => {
@@ -212,9 +230,13 @@ function WorkspaceMenu({ config, onClose, active }) {
                   await logout();
                   navigate("/");
                 }}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-rose-400 hover:bg-rose-500/15 hover:text-rose-300 transition-colors"
+                className={`flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
+                  light
+                    ? "text-rose-600 hover:bg-rose-50 hover:text-rose-700 data-[highlighted]:bg-rose-50 data-[highlighted]:text-rose-700"
+                    : "text-rose-400 hover:bg-rose-500/15 hover:text-rose-300 data-[highlighted]:bg-rose-500/15 data-[highlighted]:text-rose-300"
+                }`}
               >
-                <LogOut size={15} className="text-rose-400" />
+                <LogOut size={15} className={light ? "text-rose-600" : "text-rose-400"} />
                 <span>Đăng xuất</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -306,7 +328,7 @@ export function WorkspaceTopBar({ onToggleSidebar, theme, themeable, light, onNo
         {themeable && (
           <button
             type="button"
-            onClick={() => theme?.setTheme(light ? "dark" : "light")}
+            onClick={() => (theme?.setMode || theme?.setTheme)?.(light ? "dark" : "light")}
             className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none [html[data-workspace-theme=dark]_&]:text-slate-300 [html[data-workspace-theme=dark]_&]:hover:bg-white/10 [html[data-workspace-theme=dark]_&]:hover:text-white cursor-pointer"
             title={light ? "Chuyển sang giao diện tối" : "Chuyển sang giao diện sáng"}
             aria-label={light ? "Chuyển sang giao diện tối" : "Chuyển sang giao diện sáng"}

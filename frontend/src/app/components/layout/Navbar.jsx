@@ -121,7 +121,7 @@ function ShellNavLinks({ items, pathname, isActive, onNavigate, className = "", 
               }`}
               style={{
                 background: "#93f72b",
-                boxShadow: "0 0 12px rgba(196, 255, 71, 0.8)",
+                boxShadow: "none",
               }}
               aria-hidden
             />

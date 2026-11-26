@@ -240,14 +240,14 @@ export function AdminMentorDetail() {
                     isActive={mentor.isActive !== false && mentor.userId?.isActive !== false}
                   />
                 </div>
-                <h3 className="mt-2 font-headline text-2xl font-black text-slate-900">{displayName}</h3>
-                <p className="mt-0.5 text-sm font-medium text-violet-800">{mentor.title || "—"}</p>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-600">
+                <h3 className="mt-2 font-headline text-2xl font-black text-white [html[data-workspace-theme=light]_&]:text-slate-900">{displayName}</h3>
+                <p className="mt-0.5 text-sm font-medium text-violet-400 [html[data-workspace-theme=light]_&]:text-violet-700">{mentor.title || "—"}</p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-600">
                   <Mail className="h-4 w-4 shrink-0" />
                   {email}
                 </p>
                 {mentor.company ? (
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-600">
+                  <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-300 [html[data-workspace-theme=light]_&]:text-slate-600">
                     <Building2 className="h-4 w-4 shrink-0" />
                     {mentor.company}
                   </p>
@@ -257,7 +257,7 @@ export function AdminMentorDetail() {
                     to={`/mentors/${publicPath}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-violet-700 hover:underline"
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9] hover:underline"
                   >
                     Xem hồ sơ công khai
                     <ExternalLink className="h-3.5 w-3.5" />

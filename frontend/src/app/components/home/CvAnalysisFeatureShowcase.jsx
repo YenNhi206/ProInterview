@@ -67,7 +67,7 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
         }
         .cv-score-card-reveal {
           transform-origin: center top;
-          animation: cv-score-card-grow 0.6s cubic-bezier(0.22, 1.12, 0.36, 1) both;
+          animation: cv-score-card-grow 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         @media (prefers-reduced-motion: reduce) {
           .cv-score-card-reveal { animation: none; opacity: 1; }
@@ -82,13 +82,7 @@ export function CvAnalysisFeatureShowcase({ onCtaClick }) {
               { text: "Làm sao để CV ấn tượng", tone: "accent" },
               { text: "trong mắt nhà tuyển dụng?", tone: "dark" },
             ]}
-            body={
-              <>
-                <span className="lg:whitespace-nowrap">ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà</span>
-                <br className="hidden lg:block" />
-                tuyển dụng.
-              </>
-            }
+            body="ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà tuyển dụng."
           >
             {onCtaClick ? (
               <button

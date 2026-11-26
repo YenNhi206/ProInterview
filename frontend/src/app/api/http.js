@@ -5,13 +5,14 @@
  * - Prod: set VITE_API_URL=https://prointerview-backend.onrender.com
  */
 function resolveApiBase() {
-  const fromEnv = import.meta.env.VITE_API_URL;
+  const env = (typeof import.meta !== "undefined" && import.meta?.env) || {};
+  const fromEnv = env.VITE_API_URL;
 
   if (fromEnv != null && String(fromEnv).trim() !== "") {
     return String(fromEnv).replace(/\/$/, "");
   }
 
-  if (import.meta.env.DEV) {
+  if (env.DEV) {
     return "";
   }
 
@@ -23,7 +24,8 @@ export const API_BASE_URL = resolveApiBase();
 
 /** True khi FE có backend Express (proxy dev hoặc VITE_API_URL prod). */
 export function isExpressBackendConfigured() {
-  if (import.meta.env.DEV && !(import.meta.env.VITE_API_URL || "").trim()) {
+  const env = (typeof import.meta !== "undefined" && import.meta?.env) || {};
+  if (env.DEV && !(env.VITE_API_URL || "").trim()) {
     return true;
   }
   return Boolean(API_BASE_URL && String(API_BASE_URL).trim());
