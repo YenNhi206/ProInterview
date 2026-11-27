@@ -86,55 +86,55 @@
   border-color: var(--adm-border) !important;
 }
 
-/* ── KPI & Summary Stat Cards (Đồng bộ Dark Glass tím sang trọng theo website ProInterview) ── */
-.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-amber-100"], [class*="bg-yellow-50"], [class*="bg-emerald-50"], [class*="bg-emerald-100"], [class*="bg-green-50"], [class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-orange-50"], [class*="bg-orange-100"]) {
+/* ── KPI & Summary Stat Cards (Đồng bộ Dark Glass tím sang trọng theo website ProInterview - Chế độ tối) ── */
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-amber-100"], [class*="bg-yellow-50"], [class*="bg-emerald-50"], [class*="bg-emerald-100"], [class*="bg-green-50"], [class*="bg-sky-50"], [class*="bg-sky-100"], [class*="bg-blue-50"], [class*="bg-violet-50"], [class*="bg-violet-100"], [class*="bg-purple-50"], [class*="bg-orange-50"], [class*="bg-orange-100"]) {
   background-color: rgba(255, 255, 255, 0.035) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
   backdrop-filter: blur(16px) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36) !important;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
-.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]):hover {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]):hover {
   border-color: rgba(167, 139, 250, 0.35) !important;
 }
 
 /* Nhãn tiêu đề của ô KPI */
-.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) p:first-child,
-.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-amber-900, .text-amber-950, .text-emerald-900, .text-emerald-950, .text-sky-900, .text-sky-950, .text-violet-900, .text-violet-950, .text-orange-900, .text-orange-950) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) p:first-child,
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-amber-900, .text-amber-950, .text-emerald-900, .text-emerald-950, .text-sky-900, .text-sky-950, .text-violet-900, .text-violet-950, .text-orange-900, .text-orange-950) {
   color: #94a3b8 !important;
   letter-spacing: 0.08em;
   font-weight: 700;
 }
 
 /* Số liệu chính (Value / Count) */
-.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-2xl, .text-3xl, .text-4xl) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-emerald-50"], [class*="bg-sky-50"], [class*="bg-violet-50"], [class*="bg-orange-50"]) :is(.text-2xl, .text-3xl, .text-4xl) {
   color: #ffffff !important;
   font-weight: 800 !important;
 }
 
 /* Số tiền / Phụ đề có màu nhấn nhẹ nhàng, tinh tế */
-.admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-orange-50"]) p:nth-child(3) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-amber-50"], [class*="bg-orange-50"]) p:nth-child(3) {
   color: #fbbf24 !important;
   font-weight: 600;
 }
-.admin-shell [data-admin-content] :is([class*="bg-emerald-50"], [class*="bg-green-50"]) p:nth-child(3) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-emerald-50"], [class*="bg-green-50"]) p:nth-child(3) {
   color: #34d399 !important;
   font-weight: 600;
 }
-.admin-shell [data-admin-content] :is([class*="bg-sky-50"], [class*="bg-blue-50"]) p:nth-child(3) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-sky-50"], [class*="bg-blue-50"]) p:nth-child(3) {
   color: #38bdf8 !important;
   font-weight: 600;
 }
-.admin-shell [data-admin-content] :is([class*="bg-violet-50"], [class*="bg-purple-50"]) p:nth-child(3) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is([class*="bg-violet-50"], [class*="bg-purple-50"]) p:nth-child(3) {
   color: #c084fc !important;
   font-weight: 600;
 }
 
 /* ── Dropdowns & Filters: Tuyệt đối không để ô trắng chọi với nền tối ── */
-.admin-shell .pi-select-trigger,
-.admin-shell .pi-dropdown-surface,
-[data-admin-content] .pi-select-trigger,
-[data-admin-content] .pi-dropdown-surface {
+:root:not([data-workspace-theme="light"]) .admin-shell .pi-select-trigger,
+:root:not([data-workspace-theme="light"]) .admin-shell .pi-dropdown-surface,
+:root:not([data-workspace-theme="light"]) [data-admin-content] .pi-select-trigger,
+:root:not([data-workspace-theme="light"]) [data-admin-content] .pi-dropdown-surface {
   --menu-bg: #140b2a !important;
   --menu-text: #f8fafc !important;
   --menu-muted: #94a3b8 !important;
@@ -146,52 +146,52 @@
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
-.admin-shell .pi-select-trigger svg,
-[data-admin-content] .pi-select-trigger svg {
+:root:not([data-workspace-theme="light"]) .admin-shell .pi-select-trigger svg,
+:root:not([data-workspace-theme="light"]) [data-admin-content] .pi-select-trigger svg {
   color: #94a3b8 !important;
 }
 
 /* ── Filter Tabs & Chips (Tránh nút màu trắng đục chọi với nền) ── */
-.admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]) {
   background-color: rgba(255, 255, 255, 0.05) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: #cbd5e1 !important;
   box-shadow: none !important;
 }
-.admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]):hover {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class*="bg-slate-50"], [class*="bg-slate-100"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]):hover {
   background-color: rgba(255, 255, 255, 0.09) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
   color: #ffffff !important;
 }
-.admin-shell [data-admin-content] :is(button, a):is([class*="bg-violet-100"], [class*="bg-violet-200"]) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(button, a):is([class*="bg-violet-100"], [class*="bg-violet-200"]) {
   background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
   border-color: rgba(167, 139, 250, 0.4) !important;
   color: #ffffff !important;
   box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
 }
-.admin-shell [data-admin-content] :is(button, a):is(.bg-slate-800, .bg-slate-900) {
+:root:not([data-workspace-theme="light"]) .admin-shell [data-admin-content] :is(button, a):is(.bg-slate-800, .bg-slate-900) {
   background-color: rgba(255, 255, 255, 0.15) !important;
   border-color: rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
 }
 
-/* ── Modals & Dialogs (Tránh nền trắng chói mắt khi mở modal) ─────── */
-.admin-shell [role="dialog"],
-.admin-shell [data-slot="dialog-content"],
-.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]):is(.bg-white, [class*="bg-white"]) {
+/* ── Modals & Dialogs (Tránh nền trắng chói mắt khi mở modal - Chế độ tối) ─────── */
+:root:not([data-workspace-theme="light"]) .admin-shell [role="dialog"],
+:root:not([data-workspace-theme="light"]) .admin-shell [data-slot="dialog-content"],
+:root:not([data-workspace-theme="light"]) .admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]):is(.bg-white, [class*="bg-white"]) {
   background-color: #0d061a !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   color: #f8fafc !important;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 30px rgba(124, 58, 237, 0.15) !important;
 }
-.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) :is(h1, h2, h3, h4) {
+:root:not([data-workspace-theme="light"]) .admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) :is(h1, h2, h3, h4) {
   color: #ffffff !important;
 }
-.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) p {
+:root:not([data-workspace-theme="light"]) .admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) p {
   color: #cbd5e1 !important;
 }
-.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) textarea,
-.admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) input {
+:root:not([data-workspace-theme="light"]) .admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) textarea,
+:root:not([data-workspace-theme="light"]) .admin-shell .fixed.inset-0 :is([class*="max-w-"], [role="dialog"]) input {
   background-color: rgba(255, 255, 255, 0.05) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: #ffffff !important;

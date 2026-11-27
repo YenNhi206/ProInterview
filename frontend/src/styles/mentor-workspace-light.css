@@ -1525,10 +1525,8 @@
    color: var(--mw-text) !important;
  }
 
- :root[data-workspace-theme="light"] .admin-shell .pi-select-trigger,
- :root[data-workspace-theme="light"] [data-admin-content] .pi-select-trigger,
- :root[data-workspace-theme="light"] .admin-shell .pi-dropdown-surface,
- :root[data-workspace-theme="light"] [data-admin-content] .pi-dropdown-surface {
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell, [data-mentor-content], .mentor-workspace) .pi-select-trigger,
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell, [data-mentor-content], .mentor-workspace) .pi-dropdown-surface {
    --menu-bg: var(--mw-surface) !important;
    --menu-text: var(--mw-text) !important;
    --menu-muted: var(--mw-muted) !important;
@@ -1541,8 +1539,7 @@
    border-color: var(--mw-border) !important;
  }
 
- :root[data-workspace-theme="light"] .admin-shell .pi-select-trigger svg,
- :root[data-workspace-theme="light"] [data-admin-content] .pi-select-trigger svg {
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell, [data-mentor-content], .mentor-workspace) .pi-select-trigger svg {
    color: var(--mw-muted) !important;
  }
 

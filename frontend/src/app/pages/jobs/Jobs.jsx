@@ -38,7 +38,7 @@ const EMPLOYMENT_OPTIONS = toOptions(JOB_EMPLOYMENT_TYPE_LABELS, "Mọi hình th
 const WORK_MODE_OPTIONS = toOptions(JOB_WORK_MODE_LABELS, "Mọi nơi làm việc");
 
 const FILTER_SELECT_CLASS =
-  "h-10 w-full rounded-full border border-white/10 bg-white/[0.04] px-4 text-xs font-bold text-white hover:border-violet-400/50";
+  "h-10 w-full rounded-full border border-white/10 bg-white/[0.04] px-4 text-xs font-bold text-white hover:border-violet-400/50 [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:text-slate-800 [html[data-workspace-theme=light]_&]:hover:border-violet-400";
 
 function JobCard({ job }) {
   const deadline = jobDeadlineInfo(job.closesAt);
@@ -254,7 +254,6 @@ export function Jobs() {
               value={filters.roleCategory || ""}
               onValueChange={(v) => updateFilters({ roleCategory: v })}
               options={roleOptions}
-              theme="dark"
               triggerClassName={FILTER_SELECT_CLASS}
             />
             <AppSelect
@@ -262,7 +261,6 @@ export function Jobs() {
               value={filters.level || ""}
               onValueChange={(v) => updateFilters({ level: v })}
               options={LEVEL_OPTIONS}
-              theme="dark"
               triggerClassName={FILTER_SELECT_CLASS}
             />
             <AppSelect
@@ -270,7 +268,6 @@ export function Jobs() {
               value={filters.employmentType || ""}
               onValueChange={(v) => updateFilters({ employmentType: v })}
               options={EMPLOYMENT_OPTIONS}
-              theme="dark"
               triggerClassName={FILTER_SELECT_CLASS}
             />
             <AppSelect
@@ -278,7 +275,6 @@ export function Jobs() {
               value={filters.workMode || ""}
               onValueChange={(v) => updateFilters({ workMode: v })}
               options={WORK_MODE_OPTIONS}
-              theme="dark"
               triggerClassName={FILTER_SELECT_CLASS}
             />
           </div>

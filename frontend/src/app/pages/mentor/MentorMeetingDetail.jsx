@@ -936,7 +936,6 @@ export function MentorMeetingDetail() {
                     Chọn thời gian mới <span className="text-red-500">*</span>
                   </label>
                   <AppSelect
-                    theme="dark"
                     id="reschedule-new-slot"
                     size="md"
                     value={`${rescheduleForm.newDate}|${rescheduleForm.newTimeSlot}`}
