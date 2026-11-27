@@ -26,11 +26,13 @@ export function requireAuthLoader({ request }) {
   return null;
 }
 
-/** Phỏng vấn AI / luyện tập — chỉ customer (ứng viên), không mentor/admin. */
+/** Phỏng vấn AI / thanh toán / luyện tập — chỉ customer (ứng viên), không mentor/admin/moderator/company. */
 export function customerOnlyLoader() {
   const user = getUser();
   if (user?.role === "mentor") throw redirect("/mentor/dashboard");
   if (user?.role === "admin") throw redirect("/admin");
+  if (user?.role === "moderator") throw redirect("/moderator");
+  if (user?.role === "company_moderator" || user?.role === "enterprise") throw redirect("/company");
   return null;
 }
 

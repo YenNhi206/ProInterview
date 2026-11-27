@@ -279,14 +279,14 @@ export function AdminBookings() {
         className="flex min-w-0 flex-col justify-between gap-4 lg:flex-row lg:items-start lg:gap-6"
       >
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Lịch hẹn</span> &amp; thanh toán
+          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Lịch hẹn</span> &amp; thanh toán
           </h2>
         </div>
         <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
           <Link
             to="/admin/bookings/check-ins"
-            className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 hover:bg-emerald-500/20 sm:px-4 sm:py-3 transition"
+            className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 [html[data-workspace-theme=light]_&]:border-emerald-300 [html[data-workspace-theme=light]_&]:bg-emerald-50 [html[data-workspace-theme=light]_&]:text-emerald-800 px-3 py-2.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 hover:bg-emerald-500/20 sm:px-4 sm:py-3 transition"
           >
             <Camera className="h-4 w-4" />
             Check-in mentor
@@ -295,7 +295,7 @@ export function AdminBookings() {
             type="button"
             onClick={() => void loadBookings()}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-50 transition"
+            className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:text-slate-700 [html[data-workspace-theme=light]_&]:hover:bg-slate-50 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-white disabled:opacity-50 transition"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Làm mới
@@ -304,7 +304,7 @@ export function AdminBookings() {
             type="button"
             onClick={() => setNormalizeModalOpen(true)}
             disabled={normalizeBusy}
-            className="shrink-0 rounded-2xl border border-violet-500/30 bg-violet-500/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-wider text-violet-300 hover:bg-violet-500/20 disabled:opacity-50 sm:px-4 sm:py-3 transition"
+            className="shrink-0 rounded-2xl border border-violet-500/30 bg-violet-500/10 [html[data-workspace-theme=light]_&]:border-violet-300 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-violet-800 px-3 py-2.5 text-[10px] font-black uppercase tracking-wider text-violet-300 hover:bg-violet-500/20 disabled:opacity-50 sm:px-4 sm:py-3 transition"
             title="Dọn dữ liệu mã chuyển khoản cũ bị nối dài"
           >
             {normalizeBusy ? "Đang chuẩn hóa..." : "Chuẩn hóa mã thanh toán"}
@@ -316,7 +316,7 @@ export function AdminBookings() {
               placeholder="Tìm học viên, cố vấn, mã thanh toán…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full min-w-0 rounded-2xl border border-white/10 bg-white/[0.05] py-3 pl-12 pr-6 text-sm text-white placeholder:text-slate-500 outline-none transition-all focus:border-violet-500/50 focus:bg-white/[0.08]"
+              className="w-full min-w-0 rounded-2xl border border-white/10 bg-white/[0.05] [html[data-workspace-theme=light]_&]:border-slate-200 [html[data-workspace-theme=light]_&]:bg-white [html[data-workspace-theme=light]_&]:text-slate-900 [html[data-workspace-theme=light]_&]:placeholder:text-slate-400 py-3 pl-12 pr-6 text-sm text-white placeholder:text-slate-500 outline-none transition-all focus:border-violet-500/50 focus:bg-white/[0.08]"
             />
           </div>
         </div>

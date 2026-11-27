@@ -146,11 +146,10 @@
 }
 
 .ip-cv-panel {
-  padding: 16px 14px 24px;
-  min-height: 385px;
-  border: 1px solid #ffffff10;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #39304c, #2e2841);
+  padding: 0;
+  min-height: auto;
+  border: none;
+  background: transparent;
 }
 
 .ip-role {
@@ -428,7 +427,7 @@
   border-radius: 50%;
   color: #e9dcff;
   background: radial-gradient(circle, #62359655, #181225);
-  box-shadow: 0 0 19px #904de055;
+  box-shadow: 0 6px 18px -2px rgba(144, 77, 224, 0.35);
   cursor: pointer;
 }
 
@@ -490,10 +489,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 12px;
-  border: 1px solid #ffffff0c;
-  border-radius: 10px;
-  background: #ffffff03;
+  padding: 8px 0 14px;
+  border: none;
+  border-bottom: 1px solid #ffffff12;
+  border-radius: 0;
+  background: transparent;
 }
 
 .ip-overview .ip-score-ring {
@@ -629,8 +629,9 @@ html[data-workspace-theme="light"] .interview-preview {
 
 :root[data-workspace-theme="light"] .ip-browser,
 html[data-workspace-theme="light"] .ip-browser {
+  border: 1px solid #dcd3f3;
   background: linear-gradient(180deg, #ffffff 0%, #faf8fe 50%, #f4effd 100%);
-  box-shadow: 0 20px 48px -10px rgba(124, 58, 237, 0.12), 0 4px 16px -2px rgba(124, 58, 237, 0.06), 0 0 0 1px #dcd3f3;
+  box-shadow: 0 20px 48px -10px rgba(30, 27, 46, 0.08), 0 4px 16px -2px rgba(30, 27, 46, 0.04);
 }
 
 :root[data-workspace-theme="light"] .ip-browser::before,
@@ -686,9 +687,10 @@ html[data-workspace-theme="light"] .ip-content p {
 
 :root[data-workspace-theme="light"] .ip-cv-panel,
 html[data-workspace-theme="light"] .ip-cv-panel {
-  border: 1px solid #dcd3f3;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.04);
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 :root[data-workspace-theme="light"] .ip-role > span,
@@ -820,9 +822,12 @@ html[data-workspace-theme="light"] .ip-tabs button[aria-selected="true"] {
 
 :root[data-workspace-theme="light"] .ip-overview,
 html[data-workspace-theme="light"] .ip-overview {
-  border: 1px solid #dcd3f3;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.04);
+  border: none;
+  border-bottom: 1px solid #e9e3f7;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 8px 0 14px;
 }
 
 :root[data-workspace-theme="light"] .ip-overview h4,

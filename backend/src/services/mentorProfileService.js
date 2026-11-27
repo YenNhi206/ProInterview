@@ -49,7 +49,10 @@ export function buildMentorProfileFieldsFromUser(user) {
  */
 export async function syncMentorProfileFromUser(user) {
   if (!user?._id) return null;
-  const fields = buildMentorProfileFieldsFromUser(user);
+  // Giá đã có hiệu lực chỉ đổi qua yêu cầu đổi giá + admin duyệt (`approveMentorPrice`).
+  // Hàm này chạy sau mỗi lần User.save (cả lúc đăng nhập), nên không được ghi lại giá
+  // từ `User.hourlyRate` (thường trống → 350.000) đè lên giá admin đã duyệt.
+  const { pricePerHour: _price, sessionTypes: _sessionTypes, ...fields } = buildMentorProfileFieldsFromUser(user);
   return Mentor.findOneAndUpdate({ userId: user._id }, { $set: fields }, { new: true });
 }
 

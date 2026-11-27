@@ -21,6 +21,7 @@ import { isUserOnline } from "../utils/userPresence.js";
 import { getPlatformBehavior, getUserJourney } from "../services/analyticsService.js";
 import { CVAnalysis, CV_ANALYSIS_DONE_FILTER } from "../models/CVAnalysis.js";
 import { EXCLUDE_LEARNING_PATH_BOOKINGS } from "../utils/learningPathBookingMoney.js";
+import { sessionTypesForHourly } from "../utils/mentorPricing.js";
 import { closePrescreenItem } from "../services/coursePrescreenService.js";
 import {
   bookingRevenueRow,
@@ -382,6 +383,9 @@ export const AdminController = {
       }
 
       mentor.pricePerHour = mentor.pendingPricePerHour;
+      // Booking tính tiền theo sessionTypes[].price trước pricePerHour: đổi cả hai, nếu không
+      // trang mentor hiện giá mới mà ứng viên vẫn bị thu giá cũ.
+      mentor.sessionTypes = sessionTypesForHourly(mentor.sessionTypes, mentor.pricePerHour);
       mentor.pendingPricePerHour = null;
       await mentor.save();
 

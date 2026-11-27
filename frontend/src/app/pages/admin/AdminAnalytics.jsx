@@ -169,7 +169,7 @@ function SectionHeader({ icon: Icon, kicker, title, desc, badge }) {
             <Icon className="h-5 w-5" aria-hidden />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-400">{kicker}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">{kicker}</p>
             <h3 className="font-headline mt-0.5 text-lg font-black tracking-tight text-white sm:text-xl">{title}</h3>
             {desc ? <p className="mt-1 text-sm font-medium leading-relaxed text-slate-400">{desc}</p> : null}
           </div>
@@ -411,7 +411,7 @@ export function AdminAnalytics() {
           kicker="Báo cáo nền tảng"
           title={
             <>
-              <span className="text-violet-700">Phân tích</span> &amp; hành vi
+              <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Phân tích</span> &amp; hành vi
             </>
           }
           subtitle="Tổng quan người dùng, lịch hẹn, nội dung và hành trình trên ProInterview (7 ngày gần nhất)."

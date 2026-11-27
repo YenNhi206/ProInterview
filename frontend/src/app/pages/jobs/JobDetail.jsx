@@ -538,7 +538,7 @@ export function JobDetail() {
                       <p className="mt-0.5 text-sm font-semibold text-slate-400">{company.name || "Công ty đối tác"}</p>
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         {job.roleCategoryName ? (
-                          <span className="rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#93f72b]">{job.roleCategoryName}</span>
+                          <span className="job-role-badge rounded-full border border-[#93f72b]/30 bg-[#93f72b]/10 px-2.5 py-0.5 text-[11px] font-bold text-[#93f72b] [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:bg-violet-50 [html[data-workspace-theme=light]_&]:text-[#6d28d9]">{job.roleCategoryName}</span>
                         ) : null}
                         {chips.map((label) => <span key={label} className={CHIP}>{label}</span>)}
                       </div>

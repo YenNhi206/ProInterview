@@ -159,9 +159,9 @@ export function AdminBookingDetail() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 flex-1">
                 {showSessionType ? (
-                  <p className="text-[10px] font-black uppercase tracking-widest text-violet-700">{sessionLabel}</p>
+                  <p className="admin-kicker text-[10px] font-black uppercase tracking-widest text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">{sessionLabel}</p>
                 ) : null}
-                <h3 className="mt-0.5 font-headline text-2xl font-black text-slate-900">{title}</h3>
+                <h3 className="mt-0.5 font-headline text-2xl font-black text-white [html[data-workspace-theme=light]_&]:text-slate-900">{title}</h3>
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
                   <Calendar className="h-4 w-4 shrink-0 text-violet-600" />
                   {formatWhen(booking.date, booking.timeSlot)}
@@ -187,11 +187,11 @@ export function AdminBookingDetail() {
               <div className="flex flex-wrap gap-6">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tổng</p>
-                  <p className="text-xl font-black text-slate-900">{vnd(booking.totalAmount || booking.price)}</p>
+                  <p className="text-xl font-black text-white [html[data-workspace-theme=light]_&]:text-slate-900">{vnd(booking.totalAmount || booking.price)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Mã PI</p>
-                  <p className="font-mono text-lg font-black text-violet-800">{paymentRef}</p>
+                  <p className="font-mono text-lg font-black text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">{paymentRef}</p>
                 </div>
               </div>
               {showSepayPending ? (
@@ -232,7 +232,7 @@ export function AdminBookingDetail() {
                   className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 object-cover"
                 />
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="font-bold text-slate-900">{student?.name || "—"}</p>
+                  <p className="font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900">{student?.name || "—"}</p>
                   <p className="flex items-center gap-1.5 text-sm text-slate-600">
                     <Mail className="h-4 w-4 shrink-0" />
                     {student?.email || "—"}
@@ -258,7 +258,7 @@ export function AdminBookingDetail() {
                 Cố vấn
               </h4>
               <div className="space-y-1">
-                <p className="text-lg font-bold text-slate-900">{mentor?.name || mentor?.userId?.name || "—"}</p>
+                <p className="text-lg font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900">{mentor?.name || mentor?.userId?.name || "—"}</p>
                 {mentor?.userId?.email ? (
                   <p className="flex items-center gap-1.5 text-sm text-slate-600">
                     <Mail className="h-4 w-4 shrink-0" />

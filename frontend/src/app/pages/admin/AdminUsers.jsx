@@ -57,13 +57,13 @@ export function AdminUsers() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-violet-400 mb-1">
+          <p className="admin-kicker text-[11px] font-bold uppercase tracking-[0.16em] text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9] mb-1">
             Hệ thống Người dùng
           </p>
-          <h2 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Quản lý <span className="text-violet-400">Người dùng</span>
+          <h2 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            Quản lý <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Người dùng</span>
           </h2>
-          <p className="text-sm font-medium text-slate-400 mt-1">Toàn bộ tài khoản đã đăng ký trên hệ thống ProInterview.</p>
+          <p className="text-sm font-medium text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500 mt-1">Toàn bộ tài khoản đã đăng ký trên hệ thống ProInterview.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative min-w-[240px] sm:w-72">

@@ -279,56 +279,56 @@ export function Home() {
 
               <div className="grid grid-cols-2 gap-4 md:gap-6 flex-1 relative z-10">
                 {/* Stat 1 */}
-                <div className="liquid-glass rounded-[16px] p-5 md:p-6 flex flex-col justify-center items-start gap-4 hover:scale-[1.02] transition-transform">
-                  <div className="h-12 w-12 rounded-[12px] bg-[#8037f4]/15 text-[#c4b5fd] flex items-center justify-center">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <div className="liquid-glass rounded-[16px] p-4 sm:p-5 flex items-center gap-3.5 hover:scale-[1.02] transition-transform">
+                  <div className="h-11 w-11 shrink-0 rounded-xl bg-[#8037f4]/15 text-[#c4b5fd] flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   </div>
-                  <div>
-                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                  <div className="min-w-0">
+                    <div className="text-2xl md:text-3xl font-black text-white mb-0.5">
                       {formatStatNumber(homeData.stats?.totalSessions)}
                     </div>
-                    <div className="text-sm text-white/80 font-bold sm:whitespace-nowrap tracking-tight">Lượt luyện tập với AI</div>
+                    <div className="text-xs sm:text-sm text-white/80 font-bold truncate">Lượt luyện tập với AI</div>
                   </div>
                 </div>
                 
                 {/* Stat 2 */}
-                <div className="liquid-glass rounded-[1.25rem] p-5 md:p-6 flex flex-col justify-center items-start gap-4 hover:scale-[1.02] transition-transform">
-                  <div className="h-12 w-12 rounded-2xl bg-[#fdf2f8] text-[#ec4899] flex items-center justify-center">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <div className="liquid-glass rounded-[16px] p-4 sm:p-5 flex items-center gap-3.5 hover:scale-[1.02] transition-transform">
+                  <div className="h-11 w-11 shrink-0 rounded-xl bg-[#fdf2f8] text-[#ec4899] flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                   </div>
-                  <div>
-                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                  <div className="min-w-0">
+                    <div className="text-2xl md:text-3xl font-black text-white mb-0.5">
                       {formatStatNumber(homeData.stats?.totalMentors)}
                     </div>
-                    <div className="text-sm text-white/80 font-bold">Mentor</div>
+                    <div className="text-xs sm:text-sm text-white/80 font-bold truncate">Mentor</div>
                   </div>
                 </div>
 
                 {/* Stat 3 */}
-                <div className="liquid-glass rounded-[1.25rem] p-5 md:p-6 flex flex-col justify-center items-start gap-4 hover:scale-[1.02] transition-transform">
-                  <div className="h-12 w-12 rounded-2xl bg-[#fff7ed] text-[#f97316] flex items-center justify-center">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div className="liquid-glass rounded-[16px] p-4 sm:p-5 flex items-center gap-3.5 hover:scale-[1.02] transition-transform">
+                  <div className="h-11 w-11 shrink-0 rounded-xl bg-[#fff7ed] text-[#f97316] flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
-                  <div>
-                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                  <div className="min-w-0">
+                    <div className="text-2xl md:text-3xl font-black text-white mb-0.5">
                       {homeData.stats?.averageRating ? homeData.stats.averageRating + "/5" : "0/5"}
                     </div>
-                    <div className="text-sm text-white/80 font-bold">Mức hài lòng</div>
+                    <div className="text-xs sm:text-sm text-white/80 font-bold truncate">Mức hài lòng</div>
                   </div>
                 </div>
 
                 {/* Stat 4 */}
-                <div className="liquid-glass rounded-[1.25rem] p-5 md:p-6 flex flex-col justify-center items-start gap-4 hover:scale-[1.02] transition-transform">
-                  <div className="h-12 w-12 rounded-2xl bg-[#fff1f2] text-[#e11d48] flex items-center justify-center">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div className="liquid-glass rounded-[16px] p-4 sm:p-5 flex items-center gap-3.5 hover:scale-[1.02] transition-transform">
+                  <div className="h-11 w-11 shrink-0 rounded-xl bg-[#fff1f2] text-[#e11d48] flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </div>
-                  <div>
-                    <div className="text-2xl md:text-3xl font-black text-white mb-1">
+                  <div className="min-w-0">
+                    <div className="text-2xl md:text-3xl font-black text-white mb-0.5">
                       {formatStatNumber(homeData.stats?.totalUsers)}
                     </div>
-                    <div className="text-sm text-white/80 font-bold">Người dùng</div>
+                    <div className="text-xs sm:text-sm text-white/80 font-bold truncate">Người dùng</div>
                   </div>
                 </div>
               </div>

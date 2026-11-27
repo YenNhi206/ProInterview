@@ -8,14 +8,15 @@ export function HomeHero() {
   return (
     <section id="home-hero-section" className="home-hero-section home-product-hero">
       <div className="home-product-hero-copy">
-        <div className="home-product-hero-badge liquid-glass-strong">
+        <div className="home-product-hero-badge">
           <GraduationCap size={17} aria-hidden="true" />
           Nền tảng dành cho sinh viên IT
         </div>
         <h1>
-          <span>Chuẩn bị vững vàng<em className="home-product-hero-highlight">.</em></span>
+          <span>Chuẩn bị vững vàng.</span>
           <span><em className="home-product-hero-highlight">Tự tin</em> bước vào phỏng vấn.</span>
         </h1>
+        <h2 className="sr-only">Nền tảng luyện phỏng vấn trực tuyến thông minh cùng AI và Mentor</h2>
         <p>Từ CV đến buổi phỏng vấn đầu tiên, luyện tập cùng AI, nhận góp ý từ mentor và biết rõ điều bạn cần cải thiện.</p>
         <div className="home-product-hero-actions">
           <Button asChild variant="outline" size="lg" data-button-surface="none" className="home-product-hero-primary">

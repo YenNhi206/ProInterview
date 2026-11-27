@@ -3,7 +3,7 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 
 const EASE = [0.22, 1, 0.36, 1];
 const EASE_OUT = [0.16, 1, 0.3, 1];
-const EASE_BOUNCE = [0.34, 1.45, 0.64, 1];
+const EASE_BOUNCE = [0.22, 1, 0.36, 1];
 
 /** Preset hiệu ứng theo section, mỗi block landing một “cảm giác” khác */
 export const SECTION_MOTION = {

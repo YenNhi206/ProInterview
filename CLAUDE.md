@@ -291,7 +291,8 @@ Nguồn sự thật: `backend/src/constants/planCatalog.js`.
 
 - User `role=mentor` phải có document `Mentor` (`userId`); hook `User.post("save")` tự tạo. Lệch thì chạy `sync:mentor-profiles`.
 - URL công khai dùng `publicId`, không dùng `_id`.
-- Thu nhập: `clearingBalance` → (`earningsClearanceJob`) → `availableBalance` → payout → `pendingBalance`.
+- Thu nhập: `clearingBalance` → (`earningsClearanceJob`, giữ `EARNINGS_HOLD_DAYS` = 7 ngày) → `availableBalance` → payout → `pendingBalance`.
+- Giá: booking tính theo `sessionTypes[].price` trước `pricePerHour`, hai chỗ phải khớp (`utils/mentorPricing.js`). Mentor đã duyệt chỉ đổi giá qua `POST /api/mentor/request-price-change` + admin `approve-price`. `PATCH /api/mentors/me`, nộp lại hồ sơ đã duyệt và đồng bộ User → Mentor (`syncMentorProfileFromUser`, chạy cả lúc đăng nhập) không được ghi giá (`mentorPriceApproval.integration.test.js`).
 
 ### Bookings
 

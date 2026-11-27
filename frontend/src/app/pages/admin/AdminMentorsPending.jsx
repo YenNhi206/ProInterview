@@ -232,8 +232,8 @@ export function AdminMentorsPending() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div>
-        <h2 className="font-headline mb-2 text-3xl font-black uppercase tracking-tighter text-slate-900">
-          Duyệt đăng ký <span className="text-violet-700">Cố vấn</span>
+        <h2 className="font-headline mb-2 text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+          Duyệt đăng ký <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Cố vấn</span>
         </h2>
         <p className="text-sm font-medium text-slate-600">
           Danh sách các chuyên gia đang chờ hệ thống phê duyệt hồ sơ.

@@ -228,11 +228,11 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | Method | Path | Auth | Mô tả |
 |:-------|:-----|:-----|:------|
 | GET | `/api/mentors` | — | Danh sách |
-| GET | `/api/mentors/me` | Bearer | Hồ sơ mentor của user đăng nhập |
-| POST | `/api/mentors/apply` | Bearer | Đăng ký làm mentor |
+| GET | `/api/mentors/me` | Bearer | Hồ sơ mentor của user đăng nhập; có `pendingPricePerHour` (giá đang chờ admin duyệt) |
+| POST | `/api/mentors/apply` | Bearer | Đăng ký làm mentor. Hồ sơ đã duyệt nộp lại: giữ nguyên giá đang áp dụng (`targetRate` bị bỏ qua) |
 | GET | `/api/mentors/:id/availability` | — | Lịch rảnh |
 | GET | `/api/mentors/:id/reviews` | — | Review theo mentor |
-| PATCH | `/api/mentors/me` | Bearer + Mentor | Sửa profile mentor |
+| PATCH | `/api/mentors/me` | Bearer + Mentor | Sửa profile mentor. **Không đổi giá**: bỏ qua `pricePerHour` và `sessionTypes[].price` (giá từng loại buổi tính lại từ giá đang áp dụng theo thời lượng). Đổi giá qua `POST /api/mentor/request-price-change` + admin duyệt |
 | PATCH | `/api/mentors/me/availability` | Bearer + Mentor | Cập nhật lịch rảnh |
 | PATCH | `/api/mentors/me/availability/block` | Bearer + Mentor | Chặn ngày |
 | GET | `/api/mentors/:id` | — | Chi tiết — `id` = `publicId` hoặc `_id` |
@@ -350,6 +350,8 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | PATCH | `/api/admin/mentors/:id/status` | Bật / tắt mentor |
 | PATCH | `/api/admin/mentors/:id/reject` | Từ chối đơn đăng ký mentor — body `{ reason? }` |
 | PATCH | `/api/admin/mentors/:id/commission` | Cập nhật hoa hồng mentor |
+| POST | `/api/admin/mentors/:id/approve-price` | Duyệt `pendingPricePerHour`: đổi `pricePerHour` **và** `sessionTypes[].price` (tỉ lệ theo thời lượng; booking tính tiền theo `sessionTypes`) |
+| POST | `/api/admin/mentors/:id/reject-price` | Từ chối yêu cầu đổi giá, giữ giá cũ |
 | GET | `/api/admin/bookings` | Tất cả booking |
 | GET | `/api/admin/bookings/:id` | Chi tiết booking (populate user/mentor) |
 | GET | `/api/admin/reports` | Danh sách báo cáo (`?status`, `?targetType`, `?page`, `?limit`) → `counts`, `pagination` |
@@ -1234,7 +1236,7 @@ Field presence trên `User`: `lastSeenAt` (heartbeat `/api/auth/presence` + `aut
 | GET | `/api/cart/orders/:id/invoice` | Chủ đơn hoặc admin; PDF toàn đơn đã hoàn tất |
 | GET | `/api/admin/audit-log` | Admin; phân trang, lọc `actor` (`admin`, `moderator` = Platform Moderator (`moderator_action`, kèm dòng `admin_action` cũ trên `/api/moderator/*`), `company_moderator` = Company Moderator (`company_moderator_action`, ghi ở mọi thao tác ghi trên `/api/company/*`; `userId.companyId.name` cho biết công ty), `mentor` = thao tác tiền của mentor; bỏ trống = tất cả, giá trị khác → 400), `adminId`, `method`, `success`, `from`, `to`. Mentor ghi `SecurityLog` `type: mentor_action` ở `POST /api/mentor/payout`, `PATCH /api/mentor/payout-account`, `POST /api/mentor/request-price-change`; `accountNumber` chỉ giữ 4 số cuối (`****1234`) |
 | GET | `/api/admin/finance/reconciliation` | Admin; `report.mismatches`, `payoutMismatches`, `alerts`; chỉ đọc |
-| POST | `/api/admin/finance/release-earnings` | Admin; giải phóng khoản đủ 3 ngày, không có report mở |
+| POST | `/api/admin/finance/release-earnings` | Admin; giải phóng khoản đủ 7 ngày, không có report mở |
 | GET | `/api/admin/users/:id/impact` | Admin; số dư, nghĩa vụ, `canClose`, `blockers` |
 | GET | `/api/auth/me/closure-impact` | Chủ tài khoản; xem trước tác động đóng |
 | POST | `/api/admin/users/:id/close` | Admin; `{confirmUserId, reason}`; 409 nếu còn ràng buộc |

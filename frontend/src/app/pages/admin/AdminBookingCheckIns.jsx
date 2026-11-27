@@ -182,17 +182,17 @@ export function AdminBookingCheckIns() {
 
                 <div className="space-y-3 p-4">
                   <div>
-                    <p className="text-sm font-bold text-slate-900">{mentorNameOf(b)}</p>
-                    <p className="text-xs text-slate-500">Học viên: {studentNameOf(b)}</p>
+                    <p className="text-sm font-bold text-white [html[data-workspace-theme=light]_&]:text-slate-900">{mentorNameOf(b)}</p>
+                    <p className="text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">Học viên: {studentNameOf(b)}</p>
                   </div>
                   <dl className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <dt className="font-bold uppercase tracking-wide text-slate-400">Buổi học</dt>
-                      <dd className="mt-0.5 font-semibold text-slate-800">{formatWhen(b.date, b.timeSlot)}</dd>
+                      <dd className="mt-0.5 font-semibold text-slate-200 [html[data-workspace-theme=light]_&]:text-slate-800">{formatWhen(b.date, b.timeSlot)}</dd>
                     </div>
                     <div>
                       <dt className="font-bold uppercase tracking-wide text-slate-400">Check-in lúc</dt>
-                      <dd className="mt-0.5 font-semibold text-slate-800">{formatCheckInAt(b.mentorCheckInAt)}</dd>
+                      <dd className="mt-0.5 font-semibold text-slate-200 [html[data-workspace-theme=light]_&]:text-slate-800">{formatCheckInAt(b.mentorCheckInAt)}</dd>
                     </div>
                   </dl>
 

@@ -70,7 +70,7 @@ function FooterNavColumn({ section, links, variant = "light" }) {
       : "mb-4 text-center sm:text-left text-[0.9375rem] font-bold tracking-tight text-slate-900";
   const linkClass =
     variant === "dark"
-      ? "text-white/75 hover:text-white decoration-white/40 focus-visible:outline-white/80"
+      ? "text-white/85 hover:text-white decoration-white/40 focus-visible:outline-white/80"
       : "text-slate-600 hover:text-[#8037f4] decoration-violet-300 focus-visible:outline-violet-600";
 
   return (
@@ -132,12 +132,12 @@ function FooterDark() {
             <div className="mb-1 flex items-center justify-center sm:justify-start gap-3">
               <BrandLogo size="footer" />
             </div>
-            <p className="text-white/65 text-sm leading-relaxed mb-6" style={{ maxWidth: 320 }}>
+            <p className="text-white/85 text-sm leading-relaxed mb-6" style={{ maxWidth: 320 }}>
               {FOOTER_TAGLINE}
             </p>
 
             <div className="mb-6 flex flex-col items-center sm:items-start">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-white/40">Liên hệ</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-white/75">Liên hệ</p>
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
                 className="inline-flex max-w-[min(100%,320px)] items-center sm:items-start justify-center sm:justify-start gap-2 break-all text-sm font-semibold text-[#93f72b] transition-colors hover:text-white"
@@ -149,7 +149,7 @@ function FooterDark() {
 
             {/* Social links */}
             <div className="mb-6 flex flex-col items-center sm:items-start relative group">
-              <p className="text-white/40 text-xs uppercase tracking-[0.15em] mb-4 font-bold relative z-10">Kết nối với ProInterview</p>
+              <p className="text-white/75 text-xs uppercase tracking-[0.15em] mb-4 font-bold relative z-10">Kết nối với ProInterview</p>
               
               {/* Vùng màu gradient phức tạp để nổi bật hiệu ứng Glassmorphism */}
               <div className="absolute top-9 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-[-15px] w-[260px] h-[75px] bg-gradient-to-r from-purple-600/60 via-purple-500/30 to-[#93f72b]/30 blur-[20px] rounded-full z-0 pointer-events-none transition-opacity duration-500 opacity-80 group-hover:opacity-100" />
@@ -204,17 +204,17 @@ function FooterDark() {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-white/35 text-xs">
+          <p className="text-white/70 text-xs">
             © {new Date().getFullYear()} ProInterview. All rights reserved.
           </p>
-          <div className="flex items-center gap-1.5 text-white/35 text-xs">
+          <div className="flex items-center gap-1.5 text-white/70 text-xs">
             <span>Made with</span>
-            <Heart className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+            <Heart className="w-3.5 h-3.5 text-red-400" />
             <span>in Vietnam</span>
             <span className="ml-1">🇻🇳</span>
           </div>
-          <div className="flex items-center gap-2 text-white/35 text-xs">
-            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#93f72b]" />
+          <div className="flex items-center gap-2 text-white/70 text-xs">
+            <div className="h-1.5 w-1.5 rounded-full bg-[#93f72b]" />
             <span>24/7 Support Available</span>
           </div>
         </div>
@@ -329,17 +329,17 @@ function FooterLight() {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-slate-500 text-xs">
+          <p className="text-slate-600 text-xs">
             © {new Date().getFullYear()} ProInterview. All rights reserved.
           </p>
-          <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+          <div className="flex items-center gap-1.5 text-slate-600 text-xs">
             <span>Made with</span>
-            <Heart className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+            <Heart className="w-3.5 h-3.5 text-red-500" />
             <span>in Vietnam</span>
             <span className="ml-1">🇻🇳</span>
           </div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs">
-            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#16a34a]" />
+          <div className="flex items-center gap-2 text-slate-600 text-xs">
+            <div className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
             <span>24/7 Support Available</span>
           </div>
         </div>

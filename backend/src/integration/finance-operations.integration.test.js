@@ -46,12 +46,12 @@ async function webhook(order, id) {
     body: JSON.stringify({ id, transferType: "in", transferAmount: order.totalAmount, content: order.orderRef }) });
 }
 
-it("holds new course income for exactly 3 days, then releases once under concurrent calls", async () => {
+it("holds new course income for exactly EARNINGS_HOLD_DAYS (7) days, then releases once under concurrent calls", async () => {
   const f = await fixture(), paidAt = new Date(); const row = await paidEnrollment(f, paidAt);
   await Promise.all([earnings.tryCreditMentorForPaidEnrollment(String(row._id)), earnings.tryCreditMentorForPaidEnrollment(String(row._id))]);
   let mentor = await models.Mentor.findById(f.mentor._id);
   assert.equal(mentor.finance.clearingBalance, 65000); assert.equal(mentor.finance.availableBalance, 0);
-  const recorded = await models.Enrollment.findById(row._id); assert.equal(recorded.earningsClearAt.getTime() - paidAt.getTime(), 3 * 86400000);
+  const recorded = await models.Enrollment.findById(row._id); assert.equal(earnings.EARNINGS_HOLD_DAYS, 7); assert.equal(recorded.earningsClearAt.getTime() - paidAt.getTime(), earnings.EARNINGS_HOLD_DAYS * 86400000);
   await earnings.releaseEligibleEarnings(new Date(recorded.earningsClearAt.getTime() - 1));
   assert.equal((await models.Mentor.findById(f.mentor._id)).finance.availableBalance, 0);
   await Promise.all([earnings.releaseEligibleEarnings(recorded.earningsClearAt), earnings.releaseEligibleEarnings(recorded.earningsClearAt)]);
@@ -60,7 +60,7 @@ it("holds new course income for exactly 3 days, then releases once under concurr
 });
 
 it("holds completed booking income during disputes and allows release to suspended mentors after resolution", async () => {
-  const f = await fixture(); const old = new Date(Date.now() - 5 * 86400000);
+  const f = await fixture(); const old = new Date(Date.now() - (earnings.EARNINGS_HOLD_DAYS + 2) * 86400000);
   const booking = await models.Booking.create({ userId: f.customer._id, mentorId: f.mentor._id, status: "completed", paymentStatus: "paid",
     date: "01/01/2020", timeSlot: "08:00", durationMinutes: 60, sessionType: "mock_interview", price: 100000, totalAmount: 100000, platformFee: 35000, vat: 0, completedAt: old });
   await earnings.tryCreditMentorForCompletedBooking(String(booking._id));
@@ -72,14 +72,14 @@ it("holds completed booking income during disputes and allows release to suspend
 });
 
 it("reports discrepancies without modifying balances and keeps legacy available income untouched", async () => {
-  const f = await fixture(); const row = await paidEnrollment(f, new Date(Date.now() - 5 * 86400000));
+  const f = await fixture(); const row = await paidEnrollment(f, new Date(Date.now() - (earnings.EARNINGS_HOLD_DAYS + 2) * 86400000));
   await models.Enrollment.updateOne({ _id: row._id }, { $set: { mentorEarningsCreditedAt: new Date() } });
   await models.Mentor.updateOne({ _id: f.mentor._id }, { $set: { "finance.availableBalance": 65000, "finance.pendingBalance": 1000 } });
   await earnings.releaseEligibleEarnings(); let report = await earnings.reconcileMentorClearingBalances();
   assert.ok(report.payoutMismatches.some((m) => m.mentorId === String(f.mentor._id) && m.diff === 1000));
   assert.equal((await models.Mentor.findById(f.mentor._id)).finance.availableBalance, 65000);
   assert.ok(!report.mismatches.some((m) => m.mentorId === String(f.mentor._id)));
-  const other = await fixture(); const held = await paidEnrollment(other, new Date(Date.now() - 5 * 86400000));
+  const other = await fixture(); const held = await paidEnrollment(other, new Date(Date.now() - (earnings.EARNINGS_HOLD_DAYS + 2) * 86400000));
   await earnings.tryCreditMentorForPaidEnrollment(String(held._id));
   await models.Mentor.updateOne({ _id: other.mentor._id }, { $set: { "finance.clearingBalance": 0 } });
   await earnings.releaseEligibleEarnings(); const after = await models.Enrollment.findById(held._id);

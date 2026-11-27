@@ -9,7 +9,7 @@ const messages = {
   bookings: "Còn buổi đã thanh toán chưa kết thúc hoặc chưa xử lý hoàn tiền.",
   plan: "Gói Pro/Elite còn hạn sử dụng.", payments: "Còn thanh toán đang chờ, tiền đang giữ hoặc khoản hoàn chưa xong.",
   cart: "Còn đơn giỏ hàng chưa hoàn tất.", available: "Còn số dư khả dụng cần giải ngân.",
-  clearing: "Còn tiền đang giữ 3 ngày.", pending: "Còn tiền trong yêu cầu rút đang xử lý.",
+  clearing: "Còn tiền đang giữ 7 ngày.", pending: "Còn tiền trong yêu cầu rút đang xử lý.",
   earnings: "Còn thu nhập chưa ghi nhận hoặc chưa giải phóng.", payouts: "Còn yêu cầu rút tiền chưa hoàn tất.",
   mentorBookings: "Mentor còn buổi hẹn đã thanh toán chưa kết thúc.", reports: "Còn khiếu nại chưa xử lý.",
   mentorOrders: "Còn đơn của học viên đang chờ thanh toán hoặc đối soát.",

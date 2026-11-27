@@ -239,8 +239,8 @@ export function AdminSupport() {
     <div className={adminPageWrap}>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={adminHeaderRow}>
         <div className="min-w-0 flex-1">
-          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-slate-900">
-            <span className="text-violet-700">Hỗ trợ</span> & khiếu nại
+          <h2 className="font-headline text-3xl font-black uppercase tracking-tighter text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Hỗ trợ</span> & khiếu nại
           </h2>
         </div>
         <AdminPageToolbar
@@ -388,7 +388,7 @@ export function AdminSupport() {
                         {link ? (
                           <Link
                             to={link}
-                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-violet-400 hover:text-violet-300 transition-colors"
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9] hover:underline transition-colors"
                           >
                             Xem <ExternalLink className="h-3 w-3" />
                           </Link>

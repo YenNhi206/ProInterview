@@ -125,7 +125,7 @@ export function MentorListCard({ mentor, onOpenProfile, onBook }) {
             {mentor.tags.slice(0, 3).map((tag, i) => (
               <motion.div
                 key={tag}
-                className="block w-fit max-w-full truncate rounded-full bg-violet-950/60 border border-violet-800/40 px-2.5 py-0.5 text-[10px] font-medium text-violet-300 cursor-default transition-colors hover:border-violet-500/50 hover:text-white"
+                className="mentor-card-skill-tag block w-fit max-w-full truncate rounded-full px-2.5 py-0.5 text-[11px] font-semibold cursor-default transition-all duration-200 bg-violet-500/15 border border-violet-400/30 text-violet-200 hover:border-violet-400/60 hover:text-white [html[data-workspace-theme=light]_&]:bg-[#f5f0ff] [html[data-workspace-theme=light]_&]:border-[#ddd6fe] [html[data-workspace-theme=light]_&]:text-[#6d28d9] [html[data-workspace-theme=light]_&]:hover:bg-[#ede5ff] [html[data-workspace-theme=light]_&]:hover:border-[#c4b5fd] [html[data-workspace-theme=light]_&]:hover:text-[#581c87]"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.05 * i, duration: 0.25 }}

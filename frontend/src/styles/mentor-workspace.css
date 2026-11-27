@@ -102,12 +102,14 @@
     display: flex;
     flex-direction: column;
     position: fixed;
-    top: 16px;
-    left: 16px;
-    bottom: 22px;
-    width: 208px;
-    padding: 16px 8px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 230px;
+    padding: 24px 16px 24px 20px;
     z-index: 30;
+    background: rgba(18, 11, 46, 0.85);
+    backdrop-filter: blur(16px);
     border-right: 1px solid var(--mw-border);
     overflow: hidden;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
@@ -247,14 +249,31 @@
   color: #a09cc4;
 }
 
-.mentor-workspace :is(.text-violet-600, .text-violet-700, .text-violet-800, .text-purple-600, .text-purple-700, .text-indigo-600, .text-indigo-700, .text-indigo-800) {
-  color: #c5a2ef;
+.mentor-workspace:not(:where(.mw-light)) :is(.text-violet-600, .text-violet-700, .text-violet-800, .text-purple-600, .text-purple-700, .text-indigo-600, .text-indigo-700, .text-indigo-800) {
+  color: #93f72b;
 }
 
-.mentor-workspace [class~="text-[#8037f4]"],
-.mentor-workspace [class~="text-[#7c3aed]"],
-.mentor-workspace .mentor-eyebrow {
-  color: #93f72b;
+.mentor-workspace:not(:where(.mw-light)) [class~="text-[#8037f4]"],
+.mentor-workspace:not(:where(.mw-light)) [class~="text-[#7c3aed]"],
+.mentor-workspace:not(:where(.mw-light)) .mentor-eyebrow,
+:root:not([data-workspace-theme="light"]) .admin-kicker {
+  color: #93f72b !important;
+}
+
+:root:not([data-workspace-theme="light"]) .admin-title-accent {
+  color: #93f72b !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+:root[data-workspace-theme="light"] .admin-kicker {
+  color: #6d28d9 !important;
+}
+
+:root[data-workspace-theme="light"] .admin-title-accent {
+  color: #6d28d9 !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
 }
 
 .mentor-workspace .mentor-stat-num {

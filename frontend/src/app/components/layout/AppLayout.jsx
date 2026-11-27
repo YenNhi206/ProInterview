@@ -8,7 +8,6 @@ import { ModeratorWorkspaceNav } from "./ModeratorWorkspaceNav.jsx";
 import { WorkspaceShell, WorkspaceThemeContext } from "./WorkspaceNav.jsx";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
-import { PromoBanner } from "./PromoBanner";
 import { DiscountPromoModal } from "../home/DiscountPromoModal";
 import { resolveDocumentTitle } from "../../utils/shared/documentTitle.js";
 import { getUser } from "../../utils/auth/auth.js";
@@ -18,9 +17,6 @@ import { useWorkspaceTheme } from "../../hooks/useWorkspaceTheme.js";
 import { SelectThemeContext } from "../ui/AppSelect";
 import "../../../styles/mentor-workspace.css";
 import "../../../styles/mentor-workspace-light.css";
-
-const PROMO_BANNER_KEY = "pi_promo_banner_dismissed_v1";
-const PROMO_BANNER_HEIGHT = 40;
 
 export function AppLayout() {
   const location = useLocation();
@@ -44,10 +40,6 @@ export function AppLayout() {
   const hideNavbar = pathNorm === "interview/room";
   const hideFooter = hideNavbar;
   const showSiteFooter = !isMentor && !hideFooter;
-  const [showPromo, setShowPromo] = useState(
-    () => typeof window !== "undefined" && !window.localStorage.getItem(PROMO_BANNER_KEY)
-  );
-  const showPromoBanner = showPromo && !isMentor && !hideNavbar;
   const [promoModalOpen, setPromoModalOpen] = useState(false);
   const [promoModalPulse, setPromoModalPulse] = useState(0);
   const ambientModifier = isLegalDoc
@@ -66,33 +58,10 @@ export function AppLayout() {
     return () => document.documentElement.classList.remove("app-route-home");
   }, [isHome]);
 
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--pi-promo-h",
-      showPromoBanner ? `${PROMO_BANNER_HEIGHT}px` : "0px"
-    );
-    return () => document.documentElement.style.setProperty("--pi-promo-h", "0px");
-  }, [showPromoBanner]);
-
-  const dismissPromoBanner = () => {
-    window.localStorage.setItem(PROMO_BANNER_KEY, "1");
-    setShowPromo(false);
-  };
-
   // Trang chủ tự mở popup ưu đãi mỗi lần ghé lại (không lưu trạng thái đã đóng).
   useEffect(() => {
     if (isHome) setPromoModalOpen(true);
   }, [isHome]);
-
-  // Banner "bấm để xem mã": nếu popup đã mở sẵn thì chỉ rung để gây chú ý,
-  // tránh mở chồng thêm một popup y hệt lên trên.
-  const handleOpenPromoModal = () => {
-    if (promoModalOpen) {
-      setPromoModalPulse((n) => n + 1);
-    } else {
-      setPromoModalOpen(true);
-    }
-  };
 
   const shellThemeClass = light
     ? "bg-transparent text-slate-900"
@@ -143,9 +112,6 @@ export function AppLayout() {
           <div
             className="relative z-[1] flex min-h-svh w-full max-w-full min-w-0 flex-col"
           >
-            {showPromoBanner && (
-              <PromoBanner onClose={dismissPromoBanner} onOpenPromoModal={handleOpenPromoModal} />
-            )}
             {!hideNavbar && <Navbar variant="customer" />}
             <main
               className={`relative z-[1] min-h-0 flex-1 ${hideNavbar
@@ -153,7 +119,6 @@ export function AppLayout() {
                 : `pt-[3.75rem] sm:pt-[4.25rem] md:pt-[4.75rem] ${isHome ? "overflow-x-clip" : "overflow-x-hidden"}`
                 }`}
             >
-              {showPromoBanner && <div style={{ height: PROMO_BANNER_HEIGHT }} aria-hidden />}
               <Outlet />
             </main>
             {showSiteFooter ? <Footer light={light} /> : null}

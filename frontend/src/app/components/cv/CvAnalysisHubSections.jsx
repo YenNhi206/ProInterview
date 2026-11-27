@@ -23,7 +23,7 @@ const HUB_STYLES = `
     to { opacity: 1; transform: translateY(0); }
   }
   .cv-hub-cta {
-    transition: transform 0.28s cubic-bezier(0.34, 1.45, 0.64, 1), box-shadow 0.28s ease, filter 0.2s ease, color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, filter 0.2s ease, color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   }
   .cv-hub-cta:hover {
     transform: scale(1.045) translateY(-2px);
@@ -199,12 +199,12 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
                   <span className={`block ${CUSTOMER_PAGE_TITLE_ACCENT}`}>Làm sao để CV ấn tượng</span>
                   <span className={`mt-0.5 block ${CUSTOMER_PAGE_TITLE_BASE} sm:whitespace-nowrap`}>trong mắt nhà tuyển dụng?</span>
                 </span>
-                <p className="mt-3 min-w-0 max-w-full text-sm font-medium leading-relaxed text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772] sm:text-base">
-                  ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà
-                  <br className="hidden lg:block" />
-                  tuyển dụng.
-                </p>
               </h1>
+              <p className="mt-3 min-w-0 max-w-full text-sm font-medium leading-relaxed text-slate-300 [html[data-workspace-theme=light]_&]:text-[#5b5772] sm:text-base tracking-normal">
+                ProInterview giúp bạn kiểm tra, góp ý và cải thiện CV trước khi gửi đến nhà
+                <br className="hidden lg:block" />
+                tuyển dụng.
+              </p>
 
               <div className="flex flex-col gap-2 pt-0.5 max-sm:items-stretch sm:flex-row sm:flex-nowrap sm:items-center sm:justify-start sm:gap-2.5 lg:gap-3">
                 <button
@@ -237,6 +237,7 @@ export function CvAnalysisHubHero({ onJd, onField, onBestFit, navShellAligned = 
 
           {/* Cột phải — demo kết quả */}
           <div className="cv-hub-unified-col cv-hub-unified-col--demo flex w-full min-w-0 shrink-0 flex-col gap-0 lg:w-[33rem] xl:w-[34.5rem]">
+            <h2 className="sr-only">Bản xem trước phân tích CV</h2>
             {/* Demo KQ: banner + 2 ô + bảng — căn trái trong cột */}
             <div className="cv-hub-demo-stack -mt-0.5 flex w-full min-w-0 max-w-full flex-col gap-2 sm:gap-2.5 lg:mt-0 lg:gap-2.5 lg:pt-0">
               <div

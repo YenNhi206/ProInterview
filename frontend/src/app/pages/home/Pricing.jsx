@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { CheckCircle2, ShieldCheck, ChevronDown, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { SparkleGlyph } from "../../components/decor/SparkleGlyph.jsx";
 import { MentorPageShell } from "../../components/mentor/MentorPageShell";
 import { requireLoginNavigate } from "../../utils/auth/authGate.js";
@@ -200,6 +201,15 @@ export function Pricing() {
   const toggleFaq = (i) => setOpenFaq(openFaq === i ? null : i);
 
   const handleCta = (plan) => {
+    const user = getUser();
+    if (user && user.role !== "customer") {
+      toast.error("Tài khoản quản trị/đối tác không áp dụng mua gói dịch vụ ứng viên.");
+      if (user.role === "admin") navigate("/admin");
+      else if (user.role === "mentor") navigate("/mentor/dashboard");
+      else if (user.role === "moderator") navigate("/moderator");
+      else if (user.role === "company_moderator" || user.role === "enterprise") navigate("/company");
+      return;
+    }
     if (plan.id === "free") { requireLoginNavigate(navigate, "/"); return; }
     if (currentPlan === plan.id) return;
     const path = buildPlanCheckoutPath(plan.id, "monthly");

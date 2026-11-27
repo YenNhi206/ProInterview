@@ -1,4 +1,4 @@
-/*
+ /*
  * Chế độ sáng của khu làm việc (`.mentor-workspace.mw-light`, hiện chỉ khu Mentor).
  * Lớp tối trong mentor-workspace.css đã tắt ở chế độ này, nên các trang hiện lại màu sáng gốc
  * (bg-white, text-slate-900, …). File này lo phần còn lại: khung, sidebar, và những chỗ trang
@@ -8,2345 +8,2474 @@
  * này lên <html> chỉ khi đang ở khu Mentor chế độ sáng), để cả dialog/popover render qua portal
  * ra ngoài khung cũng đổi màu theo.
  */
-:root[data-workspace-theme="light"],
-.mentor-workspace.mw-light {
-  --mw-bg: #efebfa;
-  --mw-surface: #fcfbfe;
-  --mw-raised: #f6f3fc;
-  --mw-border: #ddd3f5;
-  --mw-text: #23252f;
-  --mw-muted: #5b5772;
-  --mw-lime: #6d28d9;
-  --mw-accent: #6d28d9;
-}
+ :root[data-workspace-theme="light"],
+ .mentor-workspace.mw-light {
+   --mw-bg: #efebfa;
+   --mw-surface: #fcfbfe;
+   --mw-raised: #f6f3fc;
+   --mw-border: #ddd3f5;
+   --mw-text: #23252f;
+   --mw-muted: #5b5772;
+   --mw-lime: #6d28d9;
+   --mw-accent: #6d28d9;
+ }
 
-.mentor-workspace.mw-light {
-  background: transparent;
-  color: var(--mw-text);
-  color-scheme: light;
-}
+ .mentor-workspace.mw-light {
+   background: transparent;
+   color: var(--mw-text);
+   color-scheme: light;
+ }
 
-.app-shell-ambient.mw-light-ambient {
-  /* Nền cố định phủ cả màn hình (không bị cắt như đốm trong trang): vầng tím nhẹ ở 2 góc trên. */
-  background:
-    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(139, 92, 246, 0.24) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(124, 58, 237, 0.16) 0%, transparent 70%),
-    var(--mw-bg);
-}
+ .app-shell-ambient.mw-light-ambient {
+   /* Nền cố định phủ cả màn hình (không bị cắt như đốm trong trang): vầng tím nhẹ ở 2 góc trên. */
+   background:
+     radial-gradient(ellipse 60% 45% at 0% 0%, rgba(139, 92, 246, 0.24) 0%, transparent 70%),
+     radial-gradient(ellipse 55% 40% at 100% 0%, rgba(124, 58, 237, 0.16) 0%, transparent 70%),
+     var(--mw-bg);
+ }
 
-:root[data-workspace-theme="light"] ::selection {
-  background: #7c3aed30;
-  color: #1e1b2e;
-}
+ :root[data-workspace-theme="light"] ::selection {
+   background: #7c3aed30;
+   color: #1e1b2e;
+ }
 
-/* ── Sidebar ─────────────────────────────────────────────── */
-:root[data-workspace-theme="light"] .mentor-workspace-nav {
-  border-right: 1px solid var(--mw-border);
-  background: rgba(250, 248, 255, 0.8);
-}
+ /* ── Sidebar ─────────────────────────────────────────────── */
+ :root[data-workspace-theme="light"] .mentor-workspace-nav {
+   border-right: 1px solid var(--mw-border);
+   background: rgba(250, 248, 255, 0.85);
+   backdrop-filter: blur(16px);
+ }
 
-/* Có nền riêng thì sidebar phải dính mép trái, cao hết màn hình (bản tối nền trong suốt nên được đặt lơ lửng
-   cách mép 16px). Padding bù lại để nội dung bên trong giữ đúng vị trí cũ; rộng 230px = margin-left của nội dung. */
-@media (min-width: 1024px) {
-  :root[data-workspace-theme="light"] .mentor-workspace-nav {
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 230px;
-    padding: 24px 16px 24px 20px;
-    overflow: hidden;
-  }
-}
+ /* Giữ nguyên kích thước và toạ độ như bản tối (top: 0, bottom: 0, left: 0, width: 230px, padding: 24px 16px 24px 20px)
+   để khi người dùng bấm chuyển Sáng/Tối, cụm công cụ và theme switcher không bị nhảy toạ độ. */
+ @media (min-width: 1024px) {
+   :root[data-workspace-theme="light"] .mentor-workspace-nav {
+     top: 0;
+     left: 0;
+     bottom: 0;
+     width: 230px;
+     padding: 24px 16px 24px 20px;
+     overflow: hidden;
+   }
+ }
 
-.mentor-workspace.mw-light.mentor-workspace-mobile-nav {
-  background-color: var(--mw-surface);
-}
+ .mentor-workspace.mw-light.mentor-workspace-mobile-nav {
+   background-color: var(--mw-surface);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-heading {
-  color: var(--mw-muted);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-heading {
+   color: var(--mw-muted);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-section-title {
-  color: #6b6785;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-section-title {
+   color: #6b6785;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-dot {
-  background: #7c3aed;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-dot {
+   background: #7c3aed;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link {
-  border: 1px solid transparent;
-  color: #4b4763;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-link {
+   border: 1px solid transparent;
+   color: #4b4763;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link svg {
-  color: #7c5bc4;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-link svg {
+   color: #7c5bc4;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link:hover {
-  background: #efe9fc;
-  color: #5b21b6;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-link:hover {
+   background: #efe9fc;
+   color: #5b21b6;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active {
-  background: #93f72b;
-  color: #17210b;
-  border-color: #7fd925;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active {
+   background: #93f72b;
+   color: #17210b;
+   border-color: #7fd925;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active svg {
-  color: #17210b;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-link.is-active svg {
+   color: #17210b;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-link:focus-visible {
-  outline: 2px solid var(--mw-accent);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-link:focus-visible {
+   outline: 2px solid var(--mw-accent);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-account {
-  border-top: 1px solid var(--mw-border);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-account {
+   border-top: 1px solid var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-user {
-  color: var(--mw-text);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-user {
+   color: var(--mw-text);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-account>button {
-  color: var(--mw-muted);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-account>button {
+   color: var(--mw-muted);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-account>button:hover {
-  color: var(--mw-accent);
-  background: #efe9fc;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-account>button:hover {
+   color: var(--mw-accent);
+   background: #efe9fc;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-menu-toggle {
-  color: var(--mw-text);
-  background: var(--mw-surface);
-  border: 1px solid var(--mw-border);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-menu-toggle {
+   color: var(--mw-text);
+   background: var(--mw-surface);
+   border: 1px solid var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-nav-heading .notification-trigger {
-  color: var(--mw-muted);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-nav-heading .notification-trigger {
+   color: var(--mw-muted);
+ }
 
-/* Nhãn vai trò cạnh logo: chữ lime khó đọc trên nền sáng → xanh lá đậm. */
-:root[data-workspace-theme="light"] .mentor-workspace-badge {
-  color: #3f7a0a;
-  border-color: rgba(101, 181, 18, .45);
-  background: rgba(147, 247, 43, .18);
-  box-shadow: none;
-}
+ /* Nhãn vai trò cạnh logo: chữ lime khó đọc trên nền sáng → xanh lá đậm. */
+ :root[data-workspace-theme="light"] .mentor-workspace-badge {
+   color: #3f7a0a;
+   border-color: rgba(101, 181, 18, .45);
+   background: rgba(147, 247, 43, .18);
+   box-shadow: none;
+ }
 
-/* Nút chọn giao diện (dùng chung 2 chế độ; màu theo biến của từng chế độ). */
-.mentor-workspace-theme {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  margin: 14px 4px 0;
-  padding: 3px;
-  border-radius: 10px;
-  border: 1px solid var(--mw-border);
-  background: var(--mw-raised);
-}
+ /* Nút chọn giao diện (dùng chung 2 chế độ; màu theo biến của từng chế độ). */
+ .mentor-workspace-theme {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 2px;
+   margin: 14px 4px 0;
+   padding: 3px;
+   border-radius: 10px;
+   border: 1px solid var(--mw-border);
+   background: var(--mw-raised);
+ }
 
-.mentor-workspace-theme button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 6px 2px;
-  border-radius: 7px;
-  font-size: 10px;
-  line-height: 1.2;
-  color: var(--mw-muted);
-  background: transparent;
-  transition: background-color .18s, color .18s;
-}
+ .mentor-workspace-theme button {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 2px;
+   padding: 6px 2px;
+   border-radius: 7px;
+   font-size: 10px;
+   line-height: 1.2;
+   color: var(--mw-muted);
+   background: transparent;
+   transition: background-color .18s, color .18s;
+ }
 
-.mentor-workspace-theme button:hover {
-  color: var(--mw-text);
-}
+ .mentor-workspace-theme button:hover {
+   color: var(--mw-text);
+ }
 
-.mentor-workspace-theme button.is-active {
-  color: #17210b;
-  background: #93f72b;
-}
+ .mentor-workspace-theme button.is-active {
+   color: #17210b;
+   background: #93f72b;
+ }
 
-.mentor-workspace-theme button:focus-visible {
-  outline: 2px solid var(--mw-lime);
-  outline-offset: 1px;
-}
+ .mentor-workspace-theme button:focus-visible {
+   outline: 2px solid var(--mw-lime);
+   outline-offset: 1px;
+ }
 
-@media (prefers-reduced-motion: reduce) {
-  .mentor-workspace-theme button {
-    transition: none;
-  }
-}
+ @media (prefers-reduced-motion: reduce) {
+   .mentor-workspace-theme button {
+     transition: none;
+   }
+ }
 
-/* ── Màu tối viết thẳng trong trang → sáng ───────────────── */
-:root[data-workspace-theme="light"] :is(.text-white, [class~="text-white/80"], [class~="text-white/90"], [class*="text-[#f0edf7]"], [class*="text-[#ededf4]"], [class*="text-[#f5f5f7]"]) {
-  color: var(--mw-text);
-}
+ /* ── Màu tối viết thẳng trong trang → sáng ───────────────── */
+ :root[data-workspace-theme="light"] :is(.text-white, [class~="text-white/80"], [class~="text-white/90"], [class*="text-[#f0edf7]"], [class*="text-[#ededf4]"], [class*="text-[#f5f5f7]"]) {
+   color: var(--mw-text);
+ }
 
-:root[data-workspace-theme="light"] [class*="text-white/"] {
-  color: #8a85a3;
-}
+ :root[data-workspace-theme="light"] [class*="text-white/"] {
+   color: #8a85a3;
+ }
 
-:root[data-workspace-theme="light"] :is([class~="text-white/80"], [class~="text-white/90"]) {
-  color: var(--mw-muted);
-}
+ :root[data-workspace-theme="light"] :is([class~="text-white/80"], [class~="text-white/90"]) {
+   color: var(--mw-muted);
+ }
 
-:root[data-workspace-theme="light"] :is([class*="text-slate-100"], [class*="text-slate-200"], [class*="text-slate-300"],
-  [class*="text-gray-100"], [class*="text-gray-200"], [class*="text-gray-300"], [class*="text-zinc-100"], [class*="text-zinc-200"], [class*="text-zinc-300"]) {
-  color: #4b4763;
-}
+ :root[data-workspace-theme="light"] :is([class*="text-slate-100"], [class*="text-slate-200"], [class*="text-slate-300"],
+   [class*="text-gray-100"], [class*="text-gray-200"], [class*="text-gray-300"], [class*="text-zinc-100"], [class*="text-zinc-200"], [class*="text-zinc-300"]) {
+   color: #4b4763;
+ }
 
-:root[data-workspace-theme="light"] :is([class*="text-slate-400"], [class*="text-gray-400"], [class*="text-zinc-400"]) {
-  color: #6b6785;
-}
+ :root[data-workspace-theme="light"] :is([class*="text-slate-400"], [class*="text-gray-400"], [class*="text-zinc-400"]) {
+   color: #6b6785;
+ }
 
-:root[data-workspace-theme="light"] :is([class*="placeholder:text-slate-"], [class*="placeholder:text-white"])::placeholder {
-  color: #8a85a3;
-}
+ :root[data-workspace-theme="light"] :is([class*="placeholder:text-slate-"], [class*="placeholder:text-white"])::placeholder {
+   color: #8a85a3;
+ }
 
-/* Tím nhạt (violet/indigo/purple 100–300) chỉ đọc được trên nền tối → tím đậm. */
-:root[data-workspace-theme="light"] :is([class*="text-violet-100"], [class*="text-violet-200"], [class*="text-violet-300"],
-  [class*="text-indigo-200"], [class*="text-indigo-300"], [class*="text-purple-200"], [class*="text-purple-300"]) {
-  color: #6d4fc2;
-}
+ /* Tím nhạt (violet/indigo/purple 100–300) chỉ đọc được trên nền tối → tím đậm. */
+ :root[data-workspace-theme="light"] :is([class*="text-violet-100"], [class*="text-violet-200"], [class*="text-violet-300"],
+   [class*="text-indigo-200"], [class*="text-indigo-300"], [class*="text-purple-200"], [class*="text-purple-300"]) {
+   color: #6d4fc2;
+ }
 
-/* Màu trạng thái nhạt (200–300) dành cho nền tối → bản đậm cùng nghĩa. */
-:root[data-workspace-theme="light"] :is([class*="text-amber-2"], [class*="text-amber-3"], [class*="text-yellow-2"], [class*="text-yellow-3"], [class*="text-orange-2"], [class*="text-orange-3"]) {
-  color: #a15c07;
-}
+ /* Màu trạng thái nhạt (200–300) dành cho nền tối → bản đậm cùng nghĩa. */
+ :root[data-workspace-theme="light"] :is([class*="text-amber-2"], [class*="text-amber-3"], [class*="text-yellow-2"], [class*="text-yellow-3"], [class*="text-orange-2"], [class*="text-orange-3"]) {
+   color: #a15c07;
+ }
 
-:root[data-workspace-theme="light"] :is([class*="text-emerald-2"], [class*="text-emerald-3"], [class*="text-green-2"], [class*="text-green-3"]) {
-  color: #047857;
-}
+ :root[data-workspace-theme="light"] :is([class*="text-emerald-2"], [class*="text-emerald-3"], [class*="text-green-2"], [class*="text-green-3"]) {
+   color: #047857;
+ }
 
-:root[data-workspace-theme="light"] :is([class*="text-rose-2"], [class*="text-rose-3"], [class*="text-red-2"], [class*="text-red-3"], [class*="text-pink-3"]) {
-  color: #be123c;
-}
+ :root[data-workspace-theme="light"] :is([class*="text-rose-2"], [class*="text-rose-3"], [class*="text-red-2"], [class*="text-red-3"], [class*="text-pink-3"]) {
+   color: #be123c;
+ }
 
-:root[data-workspace-theme="light"] :is([class*="text-sky-2"], [class*="text-sky-3"], [class*="text-cyan-3"], [class*="text-blue-3"]) {
-  color: #0369a1;
-}
+ :root[data-workspace-theme="light"] :is([class*="text-sky-2"], [class*="text-sky-3"], [class*="text-cyan-3"], [class*="text-blue-3"]) {
+   color: #0369a1;
+ }
 
-/* Phần nằm ngoài khung (cuộn quá đà, vùng dưới nền fixed) cũng sáng. */
-/* theme.css ép `body` tối bằng !important → phải !important để thắng. Màu chữ body cũng đổi,
+ /* Phần nằm ngoài khung (cuộn quá đà, vùng dưới nền fixed) cũng sáng. */
+ /* theme.css ép `body` tối bằng !important → phải !important để thắng. Màu chữ body cũng đổi,
    vì dialog render qua portal kế thừa màu chữ từ body. */
-html[data-workspace-theme="light"] {
-  background-color: #f3f1f9;
-  color-scheme: light;
-}
+ html[data-workspace-theme="light"] {
+   background-color: #f3f1f9;
+   color-scheme: light;
+ }
 
-html[data-workspace-theme="light"] body {
-  background-color: #f3f1f9 !important;
-  color: #23252f !important;
-  color-scheme: light;
-}
+ html[data-workspace-theme="light"] body {
+   background-color: #f3f1f9 !important;
+   color: #23252f !important;
+   color-scheme: light;
+ }
 
-/* Bắt chung theo chuỗi con trong class: viền / nền trắng mờ (border-white/10, bg-white/[0.04]…). */
-:root[data-workspace-theme="light"] :is([class*="border-white/"], .border-white) {
-  border-color: var(--mw-border);
-}
+ /* Bắt chung theo chuỗi con trong class: viền / nền trắng mờ (border-white/10, bg-white/[0.04]…). */
+ :root[data-workspace-theme="light"] :is([class*="border-white/"], .border-white) {
+   border-color: var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] [class*="divide-white/"]> :not(:last-child) {
-  border-color: var(--mw-border);
-}
+ :root[data-workspace-theme="light"] [class*="divide-white/"]> :not(:last-child) {
+   border-color: var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] :is(.bg-white\/5, .bg-white\/10, .bg-white\/12, .bg-white\/15, .bg-white\/20, [class*="bg-white/["]) {
-  background-color: var(--mw-surface);
-}
+ :root[data-workspace-theme="light"] :is(.bg-white\/5, .bg-white\/10, .bg-white\/12, .bg-white\/15, .bg-white\/20, [class*="bg-white/["]) {
+   background-color: var(--mw-surface);
+ }
 
-:root[data-workspace-theme="light"] :is([class*="hover:bg-white/"]):hover {
-  background-color: #efe9fc;
-}
+ :root[data-workspace-theme="light"] :is([class*="hover:bg-white/"]):hover {
+   background-color: #efe9fc;
+ }
 
-/* Nền hex rất tối (#0…, #1…: #160f26, #0c0e15, #120a20…) và gradient tối → thẻ trắng. */
-:root[data-workspace-theme="light"] :is([class*="bg-[#0"], [class*="bg-[#1"]) {
-  background-color: var(--mw-surface);
-}
+ /* Nền hex rất tối (#0…, #1…: #160f26, #0c0e15, #120a20…) và gradient tối → thẻ trắng. */
+ :root[data-workspace-theme="light"] :is([class*="bg-[#0"], [class*="bg-[#1"]) {
+   background-color: var(--mw-surface);
+ }
 
-:root[data-workspace-theme="light"] :is([class*="from-[#0"], [class*="from-[#1"], [class*="via-[#0"], [class*="via-[#1"]) {
-  background-image: none;
-  background-color: var(--mw-surface);
-}
+ :root[data-workspace-theme="light"] :is([class*="from-[#0"], [class*="from-[#1"], [class*="via-[#0"], [class*="via-[#1"]) {
+   background-image: none;
+   background-color: var(--mw-surface);
+ }
 
-:root[data-workspace-theme="light"] :is([class*="ring-[#1"], [class*="border-[#1"]) {
-  --tw-ring-color: var(--mw-border);
-  border-color: var(--mw-border);
-}
+ :root[data-workspace-theme="light"] :is([class*="ring-[#1"], [class*="border-[#1"]) {
+   --tw-ring-color: var(--mw-border);
+   border-color: var(--mw-border);
+ }
 
-/* Nền trắng tinh của các trang → trắng ngà cho dịu mắt. */
-:root[data-workspace-theme="light"] .mentor-workspace :is(.bg-white, [class~="bg-white/90"], [class~="bg-white/95"], [class~="bg-white/80"], .bg-slate-50, [class~="bg-[#faf8ff]"], [class~="bg-[#f8f9fc]"]) {
-  background-color: var(--mw-surface);
-}
+ /* Nền trắng tinh của các trang → trắng ngà cho dịu mắt. */
+ :root[data-workspace-theme="light"] .mentor-workspace :is(.bg-white, [class~="bg-white/90"], [class~="bg-white/95"], [class~="bg-white/80"], .bg-slate-50, [class~="bg-[#faf8ff]"], [class~="bg-[#f8f9fc]"]) {
+   background-color: var(--mw-surface);
+ }
 
-:root[data-workspace-theme="light"] :is([role="dialog"], [data-slot="dialog-content"]).bg-white {
-  background-color: var(--mw-surface);
-}
+ :root[data-workspace-theme="light"] :is([role="dialog"], [data-slot="dialog-content"]).bg-white {
+   background-color: var(--mw-surface);
+ }
 
-/* Đốm màu làm mờ trang trí (pointer-events-none + blur): trên nền tối thì hòa vào, trên nền sáng
+ /* Đốm màu làm mờ trang trí (pointer-events-none + blur): trên nền tối thì hòa vào, trên nền sáng
    bị cắt ở mép vùng nội dung thành vệt tím và đường tách nền. */
-/* (ẩn đốm blur trang trí: đã chuyển sang mentor-workspace.css, áp cho cả 2 chế độ) */
-/* Bóng đổ đậm của thiết kế cũ → bóng mảnh, đỡ chói. Chỉ bắt class `shadow-…` (box-shadow),
+ /* (ẩn đốm blur trang trí: đã chuyển sang mentor-workspace.css, áp cho cả 2 chế độ) */
+ /* Bóng đổ đậm của thiết kế cũ → bóng mảnh, đỡ chói. Chỉ bắt class `shadow-…` (box-shadow),
    không bắt `drop-shadow-…` (bóng chữ) kẻo vẽ khung quanh chữ. */
-:root[data-workspace-theme="light"] .mentor-workspace-main :is([class^="shadow-"], [class*=" shadow-"]):not(button):not(a) {
-  box-shadow: 0 1px 2px rgba(35, 37, 47, 0.05);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main :is([class^="shadow-"], [class*=" shadow-"]):not(button):not(a) {
+   box-shadow: 0 1px 2px rgba(35, 37, 47, 0.05);
+ }
 
-/* Thẻ số liệu (MentorStatFrame) ở chế độ sáng: thẻ trắng ngà, dải tím trên đầu, số tím, icon tròn tím đặc. */
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame.mentor-stat-frame {
-  background: var(--mw-surface);
-  border: 1px solid #e2d6fb;
-  border-top: 4px solid #7c3aed;
-  box-shadow: 0 8px 22px -14px rgba(91, 33, 182, 0.35);
-}
+ /* Thẻ số liệu (MentorStatFrame) ở chế độ sáng: thẻ trắng ngà, dải tím trên đầu, số tím, icon tròn tím đặc. */
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame.mentor-stat-frame {
+   background: var(--mw-surface);
+   border: 1px solid #e2d6fb;
+   border-top: 4px solid #7c3aed;
+   box-shadow: 0 8px 22px -14px rgba(91, 33, 182, 0.35);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame .mentor-stat-num {
-  color: #6d28d9;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame .mentor-stat-num {
+   color: #6d28d9;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame .mentor-stat-num+p {
-  color: var(--mw-text);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame .mentor-stat-num+p {
+   color: var(--mw-text);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame .mentor-stat-num+p+p {
-  color: var(--mw-muted);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame .mentor-stat-num+p+p {
+   color: var(--mw-muted);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame>span[aria-hidden] {
-  background: #7c3aed;
-  border-color: #7c3aed;
-  box-shadow: none;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame>span[aria-hidden] {
+   background: #7c3aed;
+   border-color: #7c3aed;
+   box-shadow: none;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame>span[aria-hidden] svg {
-  color: #ffffff;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-stat-frame>span[aria-hidden] svg {
+   color: #ffffff;
+ }
 
-/* Thẻ nhận xét nổi bật (Bảng điều khiển) ở chế độ sáng: nền tím, chữ trắng, điểm nhấn lime. */
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card.mentor-quote-card {
-  background: radial-gradient(90% 140% at 100% 0%, rgba(255, 255, 255, 0.14) 0%, transparent 55%), linear-gradient(120deg, #7c3aed 0%, #5b21b6 100%);
-  border-color: #6d28d9;
-  box-shadow: 0 12px 28px -16px rgba(91, 33, 182, 0.6);
-}
+ /* Thẻ nhận xét nổi bật (Bảng điều khiển) ở chế độ sáng: nền tím, chữ trắng, điểm nhấn lime. */
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card.mentor-quote-card {
+   background: radial-gradient(90% 140% at 100% 0%, rgba(255, 255, 255, 0.14) 0%, transparent 55%), linear-gradient(120deg, #7c3aed 0%, #5b21b6 100%);
+   border-color: #6d28d9;
+   box-shadow: 0 12px 28px -16px rgba(91, 33, 182, 0.6);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card :is(p, span) {
-  color: #ffffff;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card :is(p, span) {
+   color: #ffffff;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .text-slate-600,
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .text-slate-400 {
-  color: rgba(255, 255, 255, 0.72);
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .text-slate-600,
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .text-slate-400 {
+   color: rgba(255, 255, 255, 0.72);
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-xl {
-  background: #93f72b;
-  border-color: #93f72b;
-  color: #17210b;
-  box-shadow: none;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-xl {
+   background: #93f72b;
+   border-color: #93f72b;
+   color: #17210b;
+   box-shadow: none;
+ }
 
-:root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-lg {
-  background: rgba(147, 247, 43, 0.16);
-  border-color: rgba(147, 247, 43, 0.55);
-  color: #c9ff8f;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace-main .mentor-quote-card .rounded-lg {
+   background: rgba(147, 247, 43, 0.16);
+   border-color: rgba(147, 247, 43, 0.55);
+   color: #c9ff8f;
+ }
 
-/* Nút bấm: buttons.css (toàn site) phủ hiệu ứng 3D (vòng sáng 1px + quầng 4px + bóng trong) bằng !important.
+ /* Nút bấm: buttons.css (toàn site) phủ hiệu ứng 3D (vòng sáng 1px + quầng 4px + bóng trong) bằng !important.
    Bản tối đã tắt trong mentor-workspace.css; bản sáng tắt ở đây để nút phẳng, sạch, chỉ hiện bóng mảnh khi rê chuột. */
-:root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-button-surface="none"]) {
-  background-image: none;
-  box-shadow: none !important;
-}
+ :root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-button-surface="none"]) {
+   background-image: none;
+   box-shadow: none !important;
+ }
 
-@media (hover: hover) {
-  :root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-button-surface="none"]):not(:disabled, [aria-disabled="true"]):hover {
-    box-shadow: 0 4px 12px -6px rgba(91, 33, 182, 0.35) !important;
-  }
-}
+ @media (hover: hover) {
+   :root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-button-surface="none"]):not(:disabled, [aria-disabled="true"]):hover {
+     box-shadow: 0 4px 12px -6px rgba(91, 33, 182, 0.35) !important;
+   }
+ }
 
-:root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-button-surface="none"]):not(:disabled, [aria-disabled="true"]):active {
-  box-shadow: none !important;
-}
+ :root[data-workspace-theme="light"] :is(button, input[type="submit"], input[type="button"], a[role="button"], a[data-slot="button"], a[class*="inline-flex"][class*="rounded"]):not([role="checkbox"], [role="switch"], [role="radio"], [role="slider"], [data-button-surface="none"]):not(:disabled, [aria-disabled="true"]):active {
+   box-shadow: none !important;
+ }
 
-/* Nút nền trắng không viền trước dựa vào vòng sáng của buttons.css để thấy mép; bỏ vòng sáng thì thêm viền. */
-:root[data-workspace-theme="light"] :is(button, a[class*="inline-flex"][class*="rounded"]).bg-white:not([class*="border"]) {
-  border: 1px solid #d9cdf6;
-}
+ /* Nút nền trắng không viền trước dựa vào vòng sáng của buttons.css để thấy mép; bỏ vòng sáng thì thêm viền. */
+ :root[data-workspace-theme="light"] :is(button, a[class*="inline-flex"][class*="rounded"]).bg-white:not([class*="border"]) {
+   border: 1px solid #d9cdf6;
+ }
 
-:root[data-workspace-theme="light"] :is(button, a[class*="inline-flex"][class*="rounded"]).bg-white:not([class*="border"]):hover {
-  border-color: #b9a2ee;
-  background-color: #f6f1ff;
-}
+ :root[data-workspace-theme="light"] :is(button, a[class*="inline-flex"][class*="rounded"]).bg-white:not([class*="border"]):hover {
+   border-color: #b9a2ee;
+   background-color: #f6f1ff;
+ }
 
-/* Chữ gradient bắt đầu từ trắng (from-white …) chỉ đọc được trên nền tối → gradient tím đậm; bản xanh ngọc giữ sắc xanh. */
-:root[data-workspace-theme="light"] .bg-clip-text[class*="from-white"] {
-  background-image: linear-gradient(90deg, #6d28d9 0%, #9333ea 100%);
-}
+ /* Chữ gradient bắt đầu từ trắng (from-white …) chỉ đọc được trên nền tối → gradient tím đậm; bản xanh ngọc giữ sắc xanh. */
+ :root[data-workspace-theme="light"] .bg-clip-text[class*="from-white"] {
+   background-image: linear-gradient(90deg, #6d28d9 0%, #9333ea 100%);
+ }
 
-:root[data-workspace-theme="light"] .bg-clip-text[class*="from-white"][class*="to-teal"] {
-  background-image: linear-gradient(90deg, #047857 0%, #0f766e 100%);
-}
+ :root[data-workspace-theme="light"] .bg-clip-text[class*="from-white"][class*="to-teal"] {
+   background-image: linear-gradient(90deg, #047857 0%, #0f766e 100%);
+ }
 
-/* Thẻ kính mờ (glass-card của MentorPageShell) → thẻ trắng có viền + bóng nhẹ. */
-:root[data-workspace-theme="light"] .glass-card {
-  background: var(--mw-surface);
-  border-color: var(--mw-border);
-  box-shadow: 0 1px 2px rgba(35, 37, 47, 0.04);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+ /* Thẻ kính mờ (glass-card của MentorPageShell) → thẻ trắng có viền + bóng nhẹ. */
+ :root[data-workspace-theme="light"] .glass-card {
+   background: var(--mw-surface);
+   border-color: var(--mw-border);
+   box-shadow: 0 1px 2px rgba(35, 37, 47, 0.04);
+   backdrop-filter: none;
+   -webkit-backdrop-filter: none;
+ }
 
-:root[data-workspace-theme="light"] .glass-card::before {
-  content: none;
-}
+ :root[data-workspace-theme="light"] .glass-card::before {
+   content: none;
+ }
 
-@media (hover: hover) {
-  :root[data-workspace-theme="light"] .glass-card:hover {
-    border-color: #cdbff0;
-    transform: none;
-    box-shadow: 0 2px 8px -2px rgba(35, 37, 47, 0.08);
-  }
-}
+ @media (hover: hover) {
+   :root[data-workspace-theme="light"] .glass-card:hover {
+     border-color: #cdbff0;
+     transform: none;
+     box-shadow: 0 2px 8px -2px rgba(35, 37, 47, 0.08);
+   }
+ }
 
-:root[data-workspace-theme="light"] :is(.mentor-stat-num, .mentor-stat-num--on-dark) {
-  color: var(--mw-text);
-  -webkit-text-stroke: 0;
-}
+ :root[data-workspace-theme="light"] :is(.mentor-stat-num, .mentor-stat-num--on-dark) {
+   color: var(--mw-text);
+   -webkit-text-stroke: 0;
+ }
 
-:root[data-workspace-theme="light"] :is(.mentor-label, .mentor-label--on-dark, .mentor-label svg) {
-  color: #6b6785;
-}
+ :root[data-workspace-theme="light"] :is(.mentor-label, .mentor-label--on-dark, .mentor-label svg) {
+   color: #6b6785;
+ }
 
-:root[data-workspace-theme="light"] :is(.mentor-eyebrow, .mentor-eyebrow svg) {
-  color: var(--mw-accent);
-}
+ :root[data-workspace-theme="light"] :is(.mentor-eyebrow, .mentor-eyebrow svg) {
+   color: var(--mw-accent);
+ }
 
-:root[data-workspace-theme="light"] :is(.mentor-eyebrow--on-dark, .mentor-eyebrow--on-dark svg) {
-  color: var(--mw-accent);
-}
+ :root[data-workspace-theme="light"] :is(.mentor-eyebrow--on-dark, .mentor-eyebrow--on-dark svg) {
+   color: var(--mw-accent);
+ }
 
-/* Đốm tím mờ theo từng trang (MentorPageShell) chồng lên nền sáng thành vệt bẩn. */
-:root[data-workspace-theme="light"] .mentor-surface>.pointer-events-none.fixed[class*="-z-["] {
-  display: none;
-}
+ /* Đốm tím mờ theo từng trang (MentorPageShell) chồng lên nền sáng thành vệt bẩn. */
+ :root[data-workspace-theme="light"] .mentor-surface>.pointer-events-none.fixed[class*="-z-["] {
+   display: none;
+ }
 
-/* Chữ lime đọc không được trên nền trắng: đổi sang xanh lá đậm; nền lime vẫn giữ. */
-:root[data-workspace-theme="light"] :is([class*="text-[#93f72b]"], [class*="text-[#b8ff78]"], [class*="text-[#a8ff4e]"], .text-lime-300, .text-lime-400) {
-  color: var(--mw-lime);
-}
+ /* Chữ lime đọc không được trên nền trắng: đổi sang xanh lá đậm; nền lime vẫn giữ. */
+ :root[data-workspace-theme="light"] :is([class*="text-[#93f72b]"], [class*="text-[#b8ff78]"], [class*="text-[#a8ff4e]"], .text-lime-300, .text-lime-400) {
+   color: var(--mw-lime);
+ }
 
-:root[data-workspace-theme="light"] :is([class~="border-[#93f72b]"]) {
-  border-color: #7fd925;
-}
+ :root[data-workspace-theme="light"] :is([class~="border-[#93f72b]"]) {
+   border-color: #7fd925;
+ }
 
-/* Chữ trắng trên nền màu đậm (nút tím, nền đen…) phải giữ trắng. */
-:root[data-workspace-theme="light"] :is([class~="bg-[#8037f4]"], [class~="bg-[#6E35E8]"], .bg-violet-600, .bg-violet-700, .bg-purple-600, .bg-slate-900, .bg-slate-800, .bg-black, .bg-emerald-600, .bg-red-600, .bg-rose-600, [class~="bg-black/75"], [class~="bg-black/60"], [class~="bg-black/50"]):is(.text-white, [class~="text-white/80"], [class~="text-white/90"]),
-:root[data-workspace-theme="light"] :is([class~="bg-[#8037f4]"], [class~="bg-[#6E35E8]"], .bg-violet-600, .bg-violet-700, .bg-purple-600, .bg-slate-900, .bg-slate-800, .bg-black, .bg-emerald-600, .bg-red-600, .bg-rose-600) .text-white {
-  color: #ffffff;
-}
+ /* Chữ trắng trên nền màu đậm (nút tím, nền đen…) phải giữ trắng. */
+ :root[data-workspace-theme="light"] :is([class~="bg-[#8037f4]"], [class~="bg-[#6E35E8]"], .bg-violet-600, .bg-violet-700, .bg-purple-600, .bg-slate-900, .bg-slate-800, .bg-black, .bg-emerald-600, .bg-red-600, .bg-rose-600, [class~="bg-black/75"], [class~="bg-black/60"], [class~="bg-black/50"]):is(.text-white, [class~="text-white/80"], [class~="text-white/90"]),
+ :root[data-workspace-theme="light"] :is([class~="bg-[#8037f4]"], [class~="bg-[#6E35E8]"], .bg-violet-600, .bg-violet-700, .bg-purple-600, .bg-slate-900, .bg-slate-800, .bg-black, .bg-emerald-600, .bg-red-600, .bg-rose-600) .text-white {
+   color: #ffffff;
+ }
 
-/* Nền lime luôn chữ tối. */
-:root[data-workspace-theme="light"] :is([class~="bg-[#93f72b]"], [class~="bg-[#a8ff4e]"], .bg-lime-400) :is(.text-white, h1, h2, h3, p, span, svg) {
-  color: #17210b;
-}
+ /* Nền lime luôn chữ tối. */
+ :root[data-workspace-theme="light"] :is([class~="bg-[#93f72b]"], [class~="bg-[#a8ff4e]"], .bg-lime-400) :is(.text-white, h1, h2, h3, p, span, svg) {
+   color: #17210b;
+ }
 
-/* Nút chính trong workspace đã đổi sang nền lime (mentor-workspace.css: `.mentor-workspace button:is(.bg-violet-600…)`)
+ /* Nút chính trong workspace đã đổi sang nền lime (mentor-workspace.css: `.mentor-workspace button:is(.bg-violet-600…)`)
    nên giữ chữ tối như chế độ tối; quy tắc chữ trắng ở trên chỉ đúng cho nút còn nền tím (phát hiện ở JB-15). */
-:root[data-workspace-theme="light"] .mentor-workspace :is(button:is(.bg-violet-600, .bg-purple-600, .bg-slate-900), [data-mentor-primary], button[class~="bg-[#6E35E8]"], button[class~="bg-[#8037f4]"]):is(.text-white, [class~="text-white/80"], [class~="text-white/90"]) {
-  color: #17210b;
-}
+ :root[data-workspace-theme="light"] .mentor-workspace :is(button:is(.bg-violet-600, .bg-purple-600, .bg-slate-900), [data-mentor-primary], button[class~="bg-[#6E35E8]"], button[class~="bg-[#8037f4]"]):is(.text-white, [class~="text-white/80"], [class~="text-white/90"]) {
+   color: #17210b;
+ }
 
-:root[data-workspace-theme="light"] .recharts-cartesian-grid line {
-  stroke: var(--mw-border);
-}
+ :root[data-workspace-theme="light"] .recharts-cartesian-grid line {
+   stroke: var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] .recharts-text {
-  fill: #6b6785;
-}
+ :root[data-workspace-theme="light"] .recharts-text {
+   fill: #6b6785;
+ }
 
-/* ── Trang Nhu cầu mentee / Lộ trình học (class mr-*, lp-* dùng chung với trang ứng viên) ──
+ /* ── Trang Nhu cầu mentee / Lộ trình học (class mr-*, lp-* dùng chung với trang ứng viên) ──
    Quy đổi từ màu tối trong mentorship-requests.css và learning-paths.css: nền tối đặc → trắng,
    chữ sáng → chữ đậm cùng sắc, viền trắng mờ → var(--mw-border). Chỉ áp trong khu Mentor ở chế độ sáng.
    Sửa màu ở 2 file gốc thì kiểm lại phần này. */
-:root[data-workspace-theme="light"] .mr-page {
-  color: #1e1b2e;
-}
+ :root[data-workspace-theme="light"] .mr-page {
+   color: #1e1b2e;
+ }
 
-:root[data-workspace-theme="light"] .mr-heading p {
-  color: #5b5772;
-}
+ :root[data-workspace-theme="light"] .mr-heading p {
+   color: #5b5772;
+ }
 
-:root[data-workspace-theme="light"] .mr-back {
-  color: #553876;
-}
+ :root[data-workspace-theme="light"] .mr-back {
+   color: #553876;
+ }
 
-:root[data-workspace-theme="light"] .mr-back:hover {
-  color: #467811;
-}
+ :root[data-workspace-theme="light"] .mr-back:hover {
+   color: #467811;
+ }
 
-:root[data-workspace-theme="light"] .mr-breadcrumb-link {
-  color: #6b21a8;
-}
+ :root[data-workspace-theme="light"] .mr-breadcrumb-link {
+   color: #6b21a8;
+ }
 
-:root[data-workspace-theme="light"] .mr-breadcrumb-link:hover {
-  color: #4c1d95 !important;
-  text-decoration: underline !important;
-  text-underline-offset: 3px;
-}
+ :root[data-workspace-theme="light"] .mr-breadcrumb-link:hover {
+   color: #4c1d95 !important;
+   text-decoration: underline !important;
+   text-underline-offset: 3px;
+ }
 
-:root[data-workspace-theme="light"] .mr-page .mr-secondary {
-  background: var(--mw-surface);
-  color: #452763;
-  border: 1px solid var(--mw-border);
-}
+ :root[data-workspace-theme="light"] .mr-page .mr-secondary {
+   background: var(--mw-surface);
+   color: #452763;
+   border: 1px solid var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] .mr-text-button {
-  color: #467811;
-}
+ :root[data-workspace-theme="light"] .mr-text-button {
+   color: #467811;
+ }
 
-:root[data-workspace-theme="light"] .mr-panel {
-  border: 1px solid var(--mw-border);
-  background: var(--mw-surface);
-  box-shadow: 0 16px 40px rgba(30, 27, 46, 0.12);
-}
+ :root[data-workspace-theme="light"] .mr-panel {
+   border: 1px solid var(--mw-border);
+   background: var(--mw-surface);
+   box-shadow: 0 16px 40px rgba(30, 27, 46, 0.12);
+ }
 
-:root[data-workspace-theme="light"] .mr-error {
-  background: var(--mw-surface);
-  color: #78111d;
-}
+ :root[data-workspace-theme="light"] .mr-error {
+   background: var(--mw-surface);
+   color: #78111d;
+ }
 
-:root[data-workspace-theme="light"] .mr-error button {
-  color: #1e1b2e;
-}
+ :root[data-workspace-theme="light"] .mr-error button {
+   color: #1e1b2e;
+ }
 
-:root[data-workspace-theme="light"] .mr-notice {
-  background: var(--mw-surface);
-  color: #3f6f1b;
-}
+ :root[data-workspace-theme="light"] .mr-notice {
+   background: var(--mw-surface);
+   color: #3f6f1b;
+ }
 
-:root[data-workspace-theme="light"] .mr-loading {
-  color: #553f6f;
-}
+ :root[data-workspace-theme="light"] .mr-loading {
+   color: #553f6f;
+ }
 
-:root[data-workspace-theme="light"] .mr-eyebrow {
-  color: #467811;
-}
+ :root[data-workspace-theme="light"] .mr-eyebrow {
+   color: #467811;
+ }
 
-:root[data-workspace-theme="light"] .mr-form-intro p {
-  color: #56416d;
-}
+ :root[data-workspace-theme="light"] .mr-form-intro p {
+   color: #56416d;
+ }
 
-:root[data-workspace-theme="light"] .mr-page label {
-  color: #442268;
-}
+ :root[data-workspace-theme="light"] .mr-page label {
+   color: #442268;
+ }
 
-/* Ô nhập trong workspace: mentor-workspace.css tô nền tím đậm cho mọi input/select/textarea (đúng ở chế độ tối);
+ /* Ô nhập trong workspace: mentor-workspace.css tô nền tím đậm cho mọi input/select/textarea (đúng ở chế độ tối);
    chế độ sáng chưa có quy tắc tương ứng nên ra chữ tối trên nền tối, không đọc được (phát hiện ở JB-15). */
-:root[data-workspace-theme="light"] .mentor-workspace :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
-  background-color: var(--mw-surface);
-  border-color: var(--mw-border);
-  color: var(--mw-text);
-}
-
-:root[data-workspace-theme="light"] .mr-page :is(input, select, textarea) {
-  background: var(--mw-surface);
-  border: 1px solid var(--mw-border);
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-page :is(input, select, textarea):focus {
-  box-shadow: 0 0 12px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .mr-divider {
-  background: rgba(30, 27, 46, 0.045);
-}
-
-:root[data-workspace-theme="light"] .mr-privacy {
-  color: #553d71;
-  background: rgba(30, 27, 46, 0.009);
-  border: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-privacy svg {
-  color: #543777;
-}
-
-:root[data-workspace-theme="light"] .mr-page .mr-upload {
-  background: var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .mr-form-bottom {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-form-bottom p {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-meta {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-status {
-  border: 1px solid var(--mw-border);
-  background: rgba(30, 27, 46, 0.012);
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-status.open {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-status.selected {
-  color: #417812;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-facts {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-description {
-  color: #573a73;
-}
-
-:root[data-workspace-theme="light"] .mr-budget {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-budget small {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-files button {
-  border: 1px solid var(--mw-border);
-  background: var(--mw-surface);
-  color: #562f7e;
-}
-
-:root[data-workspace-theme="light"] .mr-files button:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-next>p {
-  color: #573f6e;
-}
-
-:root[data-workspace-theme="light"] .mr-selected-mentor {
-  color: #3f7118;
-}
-
-:root[data-workspace-theme="light"] .mr-muted {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-offer {
-  border: 1px solid var(--mw-border);
-  background: var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .mr-offer.selected {
-  box-shadow: 0 0 20px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .mr-avatar {
-  background: var(--mw-surface);
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-offer-top a {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-offer-top a:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-offer-top p {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-estimate {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-estimate small {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-offer-time {
-  color: #563d71;
-}
-
-:root[data-workspace-theme="light"] .mr-offer-bottom {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-offer-bottom>span {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-empty {
-  color: #553678;
-}
-
-:root[data-workspace-theme="light"] .mr-empty p {
-  color: #56406e;
-}
-
-:root[data-workspace-theme="light"] .mr-empty h2,
-:root[data-workspace-theme="light"] .mr-empty h3 {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-offer-form {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page dialog.mr-confirm {
-  background: var(--mw-surface);
-  box-shadow: 0 16px 50px rgba(30, 27, 46, 0.12);
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-confirm::backdrop {
-  background: var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .mr-confirm h3 {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-confirm p {
-  color: #563876;
-}
-
-:root[data-workspace-theme="light"] .mr-tabs {
-  border-bottom: 1px solid #ddd3f5;
-  margin-bottom: 32px;
-}
-
-:root[data-workspace-theme="light"] .mr-tabs button {
-  color: #57406e;
-}
-
-:root[data-workspace-theme="light"] .mr-tabs button:hover:not(.active) {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-tabs button.active {
-  color: #6d28d9;
-  border-color: #7c3aed;
-}
-
-:root[data-workspace-theme="light"] .mr-list-item {
-  border: 1px solid var(--mw-border);
-  background: var(--mw-surface);
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-list-item:hover {
-  border-color: #a78bfa;
-  box-shadow: 0 8px 24px -6px rgba(109, 40, 217, 0.12);
-}
-
-:root[data-workspace-theme="light"] .mr-row-position {
-  color: #56327b;
-}
-
-:root[data-workspace-theme="light"] .mr-row-description {
-  color: #56406e;
-}
-
-:root[data-workspace-theme="light"] .mr-list-bottom {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-list-bottom>strong {
-  color: #3f6a1f;
-}
-
-:root[data-workspace-theme="light"] .mr-list-bottom small {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-list-link {
-  border-top: 1px solid var(--mw-border);
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-mentor-entry {
-  border: 1px solid var(--mw-border);
-  background: var(--mw-surface);
-  color: #421773;
-}
-
-:root[data-workspace-theme="light"] .mr-mentor-entry p {
-  color: #543d71;
-}
-
-:root[data-workspace-theme="light"] .mr-mentor-entry a {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-document-heading {
-  color: #461772;
-}
-
-:root[data-workspace-theme="light"] .mr-document-tabs button {
-  border: 1px solid var(--mw-border);
-  background: rgba(30, 27, 46, 0.009);
-  color: #553c71;
-}
-
-:root[data-workspace-theme="light"] .mr-document-tabs button.active {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-page .mr-document-hint {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-page-new .mr-form {
-  border-color: var(--mw-border);
-  background: var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .mr-page-new .mr-form :is(input, select, textarea) {
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page-new .mr-privacy {
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page-new .mr-upload {
-  background: var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .mr-cancel {
-  color: #563f6e;
-}
-
-:root[data-workspace-theme="light"] .mr-cancel:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-optional {
-  border-bottom: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-optional summary {
-  color: #58347a;
-}
-
-:root[data-workspace-theme="light"] .mr-optional summary::before {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-optional summary>span {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-document-section-heading>span {
-  color: #583f6e;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-heading>.mr-secondary {
-  background: var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-panel {
-  background: var(--mw-surface);
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-detail-type {
-  color: #553d71;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-goal {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-detail-goal h3 {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-goal .mr-description {
-  color: #442a60;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-offers .mr-empty {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-detail-offers .mr-empty>svg {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-section-label {
-  color: #56337a;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-section-label h2 {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-dl dt {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-dl dd {
-  color: #452961;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-dl dd.mr-detail-amount {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-documents {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-detail-file-list>button {
-  color: #573479;
-  border-bottom: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-detail-file-list>button:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-file-kind {
-  color: #55218d;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-private {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-tip {
-  color: #563e6f;
-}
-
-:root[data-workspace-theme="light"] .mr-close-request {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-close-request:hover {
-  color: #981626;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-booking .mr-detail-section-label {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-detail-chosen p {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-offer {
-  background: var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail {
-  --mr-detail-muted: #5b5772;
-  --mr-detail-border: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-layout {
-  background: var(--mw-surface);
-  box-shadow: 0 18px 45px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-panel {
-  background: var(--mw-surface);
-  box-shadow: none;
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview {
-  background: var(--mw-surface);
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.open,
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.selected,
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.assessing,
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.path_proposed {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.closed {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-type>svg,
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-section-label>svg {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-goal h3,
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-offers .mr-eyebrow {
-  color: #4d2489;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-heading>.mr-secondary {
-  background: var(--mw-surface);
-  box-shadow: none;
-  color: #3f2a60;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-heading>.mr-secondary:hover {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-file-list>button {
-  background: var(--mw-surface);
-  box-shadow: none;
-  color: #422961;
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-file-list>button:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-file-kind {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-file-list>button:nth-child(2) .mr-file-kind {
-  color: #4c1698;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-offers .mr-empty>svg {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-offer {
-  background: var(--mw-surface);
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-private>svg {
-  color: #51238a;
-}
-
-:root[data-workspace-theme="light"] .mr-page-detail .mr-detail-tip>svg {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .mr-status.assessing,
-:root[data-workspace-theme="light"] .mr-status.path_proposed {
-  color: #417812;
-}
-
-:root[data-workspace-theme="light"] .lp-page {
-  --lp-muted: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .lp-ready-card {
-  background: linear-gradient(180deg, rgba(147, 247, 43, .06), transparent 90px), var(--mw-surface);
-}
-
-:root[data-workspace-theme="light"] .lp-ready-card h3 {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .lp-ready-assess {
-  color: #553677;
-}
-
-:root[data-workspace-theme="light"] .lp-ready-assess.is-done {
-  color: #417812;
-}
-
-:root[data-workspace-theme="light"] .lp-page .mr-tabs button span {
-  background: #ede9fe;
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .lp-page .mr-tabs button.active span {
-  background: #7c3aed;
-  color: #ffffff;
-}
-
-:root[data-workspace-theme="light"] .mr-status.draft {
-  color: #5b21b6;
-  background: #ede9fe;
-  border-color: #ddd6fe;
-  font-weight: 600;
-}
-
-:root[data-workspace-theme="light"] .mr-status.proposed,
-:root[data-workspace-theme="light"] .mr-status.pending_payment {
-  color: #92400e;
-  background: #fef3c7;
-  border-color: #fde68a;
-  font-weight: 600;
-}
-
-:root[data-workspace-theme="light"] .mr-status.revision_requested {
-  color: #9f1239;
-  background: #ffe4e6;
-  border-color: #fecdd3;
-  font-weight: 600;
-}
-
-:root[data-workspace-theme="light"] .mr-status.active,
-:root[data-workspace-theme="light"] .mr-status.completed {
-  color: #166534;
-  background: #dcfce7;
-  border-color: #bbf7d0;
-  font-weight: 600;
-}
-
-:root[data-workspace-theme="light"] .mr-status.cancelled {
-  color: #475569;
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  font-weight: 600;
-}
-
-:root[data-workspace-theme="light"] .lp-card-facts {
-  color: #563c71;
-}
-
-:root[data-workspace-theme="light"] .lp-card-facts svg {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .lp-revision {
-  color: #78111d;
-}
-
-:root[data-workspace-theme="light"] .lp-revision strong {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .lp-block-heading .mr-eyebrow {
-  color: #4d2489;
-}
-
-:root[data-workspace-theme="light"] .lp-price-input span {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .lp-shares strong {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .lp-session-index {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .lp-icon-btn {
-  background: linear-gradient(180deg, rgba(221, 200, 255, .1), transparent), var(--mw-surface);
-  color: #422961;
-}
-
-:root[data-workspace-theme="light"] .lp-icon-btn:hover:not(:disabled) {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .lp-icon-btn.is-danger:hover:not(:disabled) {
-  color: #981626;
-}
-
-:root[data-workspace-theme="light"] .lp-field-hint {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .lp-chip-group>span {
-  color: #442268;
-}
-
-:root[data-workspace-theme="light"] .lp-page .lp-chip {
-  border: 1px solid var(--mw-border);
-  background: rgba(30, 27, 46, 0.012);
-  color: #573479;
-}
-
-:root[data-workspace-theme="light"] .lp-page .lp-chip:hover:not(:disabled) {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .lp-add-session {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .lp-readonly-objectives {
-  color: #573a73;
-}
-
-:root[data-workspace-theme="light"] .lp-readonly-title {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .lp-profile-need {
-  color: #573a73;
-}
-
-:root[data-workspace-theme="light"] .lp-send .mr-detail-section-label {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .lp-checklist li {
-  color: #563c71;
-}
-
-:root[data-workspace-theme="light"] .lp-checklist li svg {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .lp-checklist li.is-ok {
-  color: #1e1b2e;
-}
-
-:root[data-workspace-theme="light"] .lp-checklist li.is-ok svg {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .lp-dirty {
-  color: #785a11;
-}
-
-:root[data-workspace-theme="light"] .lp-mentor-link {
-  color: #421773;
-}
-
-:root[data-workspace-theme="light"] .lp-mentor-link:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .lp-next-step {
-  color: #442c5e;
-}
-
-/* ── Ô thông báo (notifications.css, mở qua portal) ── quy đổi từ màu tối như phần trên. */
-:root[data-workspace-theme="light"] .notification-trigger {
-  color: rgba(30, 27, 46, 0.65);
-}
-
-:root[data-workspace-theme="light"] .notification-trigger:hover,
-:root[data-workspace-theme="light"] .notification-trigger[data-state="open"] {
-  background-color: rgba(30, 27, 46, 0.06);
-  color: var(--mw-text);
-}
-
-:root[data-workspace-theme="light"] .notification-trigger-count {
-  border: 2px solid var(--mw-border);
-  box-shadow: 0 0 10px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .notification-center[data-slot="popover-content"] {
-  background: var(--mw-surface) !important;
-  color-scheme: light;
-  border: 1px solid var(--mw-border) !important;
-  box-shadow: 0 24px 60px rgba(30, 27, 46, 0.12), 0 0 25px rgba(30, 27, 46, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] .notification-header {
-  border-bottom: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-center .notification-header h2 {
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] .notification-read-all,
-:root[data-workspace-theme="light"] .notification-close {
-  color: #5b5772;
-  background: rgba(30, 27, 46, 0.03);
-  border: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-read-all:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .notification-close:hover {
-  background: rgba(30, 27, 46, 0.06);
-  border-color: var(--mw-border);
-  color: var(--mw-text);
-}
-
-:root[data-workspace-theme="light"] .notification-filters button {
-  color: #5b5772;
-  background: rgba(30, 27, 46, 0.03);
-  border: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-filters button:hover {
-  color: var(--mw-text);
-  background: rgba(30, 27, 46, 0.06);
-  border-color: var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-filters button[aria-pressed="true"] {
-  box-shadow: 0 0 14px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .notification-scroll {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-center .notification-footnote {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-center .notification-date-group h3 {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .notification-date-group+.notification-date-group {
-  border-top: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-row {
-  border-bottom: 1px solid var(--mw-border);
-}
-
-:root[data-workspace-theme="light"] .notification-row:hover,
-:root[data-workspace-theme="light"] .notification-row:focus-within {
-  background: rgba(30, 27, 46, 0.036);
-}
-
-:root[data-workspace-theme="light"] .notification-kind-icon--violet {
-  color: #311698;
-}
-
-:root[data-workspace-theme="light"] .notification-kind-icon--coral {
-  color: #981629;
-}
-
-:root[data-workspace-theme="light"] .notification-kind-icon--green {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .notification-kind-icon--blue {
-  color: #165398;
-}
-
-:root[data-workspace-theme="light"] .notification-kind-icon--teal {
-  color: #169883;
-}
-
-:root[data-workspace-theme="light"] .notification-kind-icon--amber {
-  color: #786011;
-}
-
-:root[data-workspace-theme="light"] .notification-delete:hover:not(:disabled) {
-  color: #981616;
-}
-
-:root[data-workspace-theme="light"] .notification-title {
-  color: var(--mw-text);
-}
-
-:root[data-workspace-theme="light"] .notification-row--unread .notification-title {
-  color: var(--mw-text);
-}
-
-:root[data-workspace-theme="light"] .notification-unread-dot {
-  box-shadow: 0 0 8px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .notification-body {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .notification-expand {
-  color: #311698;
-}
-
-:root[data-workspace-theme="light"] .notification-expand:hover {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .notification-empty-icon {
-  color: #311698;
-  box-shadow: 0 0 20px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .notification-empty-icon--done {
-  color: #467811;
-  box-shadow: 0 0 20px rgba(30, 27, 46, 0.12);
-}
-
-:root[data-workspace-theme="light"] .notification-center .notification-empty h3 {
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] .notification-center .notification-empty p {
-  color: #5b5772;
-}
-
-:root[data-workspace-theme="light"] .notification-show-all {
-  color: #467811;
-}
-
-:root[data-workspace-theme="light"] .notification-error {
-  color: #981616;
-}
-
-:root[data-workspace-theme="light"] .notification-error button {
-  color: var(--mw-text);
-}
-
-:root[data-workspace-theme="light"] .notification-skeleton>span {
-  background: rgba(30, 27, 46, 0.048);
-}
-
-:root[data-workspace-theme="light"] .notification-skeleton>div>span {
-  background: rgba(30, 27, 46, 0.048);
-}
-
-/* ── Admin Layout Light Theme ──────────────────────────────── */
-:root[data-workspace-theme="light"] {
-  --sidebar: #faf8ff;
-  --sidebar-foreground: #23252f;
-  --sidebar-border: #ddd3f5;
-  --sidebar-accent: #efe9fc;
-  --sidebar-accent-foreground: #5b21b6;
-  --sidebar-primary: #7c3aed;
-  --sidebar-primary-foreground: #ffffff;
-}
-
-:root[data-workspace-theme="light"] .admin-shell {
-  background-color: var(--mw-bg) !important;
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"], [data-slot="sidebar-inner"], [data-sidebar="sidebar"]) {
-  background-color: rgba(250, 248, 255, 0.98) !important;
-  border-right-color: var(--mw-border) !important;
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.bg-white\/10, [class*="bg-white/10"]) {
-  background-color: var(--mw-border) !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.border-white\/10, [class*="border-white/10"]) {
-  border-color: var(--mw-border) !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.bg-white\/\[0\.04\], [class*="bg-white/[0.04]"]) {
-  background-color: var(--mw-surface) !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.bg-white\/\[0\.08\], [class*="bg-white/[0.08]"]) {
-  background-color: #efe9fc !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.text-slate-400, [class*="text-slate-400"]) {
-  color: var(--mw-muted) !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.text-slate-300, [class*="text-slate-300"]) {
-  color: #4b4763 !important;
-}
-
-:root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) [data-slot="sidebar-menu-button"]:not([data-active="true"]):hover {
-  background-color: #efe9fc !important;
-  color: #5b21b6 !important;
-}
-
-:root[data-workspace-theme="light"] header.sticky:has([data-slot="sidebar-trigger"]) {
-  background-color: rgba(250, 248, 255, 0.9) !important;
-  border-bottom-color: var(--mw-border) !important;
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] header.sticky h1 {
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] header.sticky span {
-  color: var(--mw-muted) !important;
-}
-
-:root[data-workspace-theme="light"] header.sticky .bg-white\/10 {
-  background-color: var(--mw-border) !important;
-}
-
-:root[data-workspace-theme="light"] header.sticky [data-slot="sidebar-trigger"] {
-  background-color: var(--mw-surface) !important;
-  border-color: var(--mw-border) !important;
-  color: var(--mw-text) !important;
-}
-
-/* ── Overrides for Admin & Role Content (defeating admin-typography dark overrides) ── */
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) {
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(h1, h2, h3, h4) {
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-zinc-900) {
-  color: var(--mw-text) !important;
-}
-
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
-  color: #4b4763 !important;
-}
-
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-500, .text-slate-400, .text-gray-500, .text-gray-400) {
-  color: var(--mw-muted) !important;
-}
-
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) .glass-card,
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
-  background-color: var(--mw-surface) !important;
-  border-color: var(--mw-border) !important;
-  box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
-}
-
-/* Ô nền nhạt (bg-*-50 / bg-*-100, kể cả biến thể /opacity) → màu bề mặt. Khớp NGUYÊN class: `[class*="bg-violet-50"]` (khớp chuỗi con)
+ :root[data-workspace-theme="light"] .mentor-workspace :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+   background-color: var(--mw-surface);
+   border-color: var(--mw-border);
+   color: var(--mw-text);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page :is(input, select, textarea) {
+   background: var(--mw-surface);
+   border: 1px solid var(--mw-border);
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page :is(input, select, textarea):focus {
+   box-shadow: 0 0 12px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .mr-divider {
+   background: rgba(30, 27, 46, 0.045);
+ }
+
+ :root[data-workspace-theme="light"] .mr-privacy {
+   color: #553d71;
+   background: rgba(30, 27, 46, 0.009);
+   border: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-privacy svg {
+   color: #543777;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page .mr-upload {
+   background: var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .mr-form-bottom {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-form-bottom p {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-meta {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status {
+   border: 1px solid var(--mw-border);
+   background: rgba(30, 27, 46, 0.012);
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.open {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.selected {
+   color: #417812;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-facts {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-description {
+   color: #573a73;
+ }
+
+ :root[data-workspace-theme="light"] .mr-budget {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-budget small {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-files button {
+   border: 1px solid var(--mw-border);
+   background: var(--mw-surface);
+   color: #562f7e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-files button:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-next>p {
+   color: #573f6e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-selected-mentor {
+   color: #3f7118;
+ }
+
+ :root[data-workspace-theme="light"] .mr-muted {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer {
+   border: 1px solid var(--mw-border);
+   background: var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer.selected {
+   box-shadow: 0 0 20px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .mr-avatar {
+   background: var(--mw-surface);
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer-top a {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer-top a:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer-top p {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-estimate {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-estimate small {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer-time {
+   color: #563d71;
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer-bottom {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer-bottom>span {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-empty {
+   color: #553678;
+ }
+
+ :root[data-workspace-theme="light"] .mr-empty p {
+   color: #56406e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-empty h2,
+ :root[data-workspace-theme="light"] .mr-empty h3 {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-offer-form {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page dialog.mr-confirm {
+   background: var(--mw-surface);
+   box-shadow: 0 16px 50px rgba(30, 27, 46, 0.12);
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-confirm::backdrop {
+   background: var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .mr-confirm h3 {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-confirm p {
+   color: #563876;
+ }
+
+ :root[data-workspace-theme="light"] .mr-tabs {
+   border-bottom: 1px solid #ddd3f5;
+   margin-bottom: 32px;
+ }
+
+ :root[data-workspace-theme="light"] .mr-tabs button {
+   color: #57406e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-tabs button:hover:not(.active) {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-tabs button.active {
+   color: #6d28d9;
+   border-color: #7c3aed;
+ }
+
+ :root[data-workspace-theme="light"] .mr-list-item {
+   border: 1px solid var(--mw-border);
+   background: var(--mw-surface);
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-list-item:hover {
+   border-color: #a78bfa;
+   box-shadow: 0 8px 24px -6px rgba(109, 40, 217, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .mr-row-position {
+   color: #56327b;
+ }
+
+ :root[data-workspace-theme="light"] .mr-row-description {
+   color: #56406e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-list-bottom {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-list-bottom>strong {
+   color: #3f6a1f;
+ }
+
+ :root[data-workspace-theme="light"] .mr-list-bottom small {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-list-link {
+   border-top: 1px solid var(--mw-border);
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-mentor-entry {
+   border: 1px solid var(--mw-border);
+   background: var(--mw-surface);
+   color: #421773;
+ }
+
+ :root[data-workspace-theme="light"] .mr-mentor-entry p {
+   color: #543d71;
+ }
+
+ :root[data-workspace-theme="light"] .mr-mentor-entry a {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-document-heading {
+   color: #461772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-document-tabs button {
+   border: 1px solid var(--mw-border);
+   background: rgba(30, 27, 46, 0.009);
+   color: #553c71;
+ }
+
+ :root[data-workspace-theme="light"] .mr-document-tabs button.active {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page .mr-document-hint {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-new .mr-form {
+   border-color: var(--mw-border);
+   background: var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-new .mr-form :is(input, select, textarea) {
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-new .mr-privacy {
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-new .mr-upload {
+   background: var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .mr-cancel {
+   color: #563f6e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-cancel:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-optional {
+   border-bottom: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-optional summary {
+   color: #58347a;
+ }
+
+ :root[data-workspace-theme="light"] .mr-optional summary::before {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-optional summary>span {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-document-section-heading>span {
+   color: #583f6e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-heading>.mr-secondary {
+   background: var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-panel {
+   background: var(--mw-surface);
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-type {
+   color: #553d71;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-goal {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-goal h3 {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-goal .mr-description {
+   color: #442a60;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-offers .mr-empty {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-offers .mr-empty>svg {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-section-label {
+   color: #56337a;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-section-label h2 {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-dl dt {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-dl dd {
+   color: #452961;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-dl dd.mr-detail-amount {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-documents {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-file-list>button {
+   color: #573479;
+   border-bottom: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-file-list>button:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-file-kind {
+   color: #55218d;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-private {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-tip {
+   color: #563e6f;
+ }
+
+ :root[data-workspace-theme="light"] .mr-close-request {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-close-request:hover {
+   color: #981626;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-booking .mr-detail-section-label {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-detail-chosen p {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-offer {
+   background: var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail {
+   --mr-detail-muted: #5b5772;
+   --mr-detail-border: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-layout {
+   background: var(--mw-surface);
+   box-shadow: 0 18px 45px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-panel {
+   background: var(--mw-surface);
+   box-shadow: none;
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview {
+   background: var(--mw-surface);
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.open,
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.selected,
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.assessing,
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.path_proposed {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-overview .mr-status.closed {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-type>svg,
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-section-label>svg {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-goal h3,
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-offers .mr-eyebrow {
+   color: #4d2489;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-heading>.mr-secondary {
+   background: var(--mw-surface);
+   box-shadow: none;
+   color: #3f2a60;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-heading>.mr-secondary:hover {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-file-list>button {
+   background: var(--mw-surface);
+   box-shadow: none;
+   color: #422961;
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-file-list>button:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-file-kind {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-file-list>button:nth-child(2) .mr-file-kind {
+   color: #4c1698;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-offers .mr-empty>svg {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-offer {
+   background: var(--mw-surface);
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-private>svg {
+   color: #51238a;
+ }
+
+ :root[data-workspace-theme="light"] .mr-page-detail .mr-detail-tip>svg {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.assessing,
+ :root[data-workspace-theme="light"] .mr-status.path_proposed {
+   color: #417812;
+ }
+
+ :root[data-workspace-theme="light"] .lp-page {
+   --lp-muted: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .lp-ready-card {
+   background: linear-gradient(180deg, rgba(147, 247, 43, .06), transparent 90px), var(--mw-surface);
+ }
+
+ :root[data-workspace-theme="light"] .lp-ready-card h3 {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .lp-ready-assess {
+   color: #553677;
+ }
+
+ :root[data-workspace-theme="light"] .lp-ready-assess.is-done {
+   color: #417812;
+ }
+
+ :root[data-workspace-theme="light"] .lp-page .mr-tabs button span {
+   background: #ede9fe;
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .lp-page .mr-tabs button.active span {
+   background: #7c3aed;
+   color: #ffffff;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.draft {
+   color: #5b21b6;
+   background: #ede9fe;
+   border-color: #ddd6fe;
+   font-weight: 600;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.proposed,
+ :root[data-workspace-theme="light"] .mr-status.pending_payment {
+   color: #92400e;
+   background: #fef3c7;
+   border-color: #fde68a;
+   font-weight: 600;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.revision_requested {
+   color: #9f1239;
+   background: #ffe4e6;
+   border-color: #fecdd3;
+   font-weight: 600;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.active,
+ :root[data-workspace-theme="light"] .mr-status.completed {
+   color: #166534;
+   background: #dcfce7;
+   border-color: #bbf7d0;
+   font-weight: 600;
+ }
+
+ :root[data-workspace-theme="light"] .mr-status.cancelled {
+   color: #475569;
+   background: #f1f5f9;
+   border-color: #e2e8f0;
+   font-weight: 600;
+ }
+
+ :root[data-workspace-theme="light"] .lp-card-facts {
+   color: #563c71;
+ }
+
+ :root[data-workspace-theme="light"] .lp-card-facts svg {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .lp-revision {
+   color: #78111d;
+ }
+
+ :root[data-workspace-theme="light"] .lp-revision strong {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .lp-block-heading .mr-eyebrow {
+   color: #4d2489;
+ }
+
+ :root[data-workspace-theme="light"] .lp-price-input span {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .lp-shares strong {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .lp-session-index {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .lp-icon-btn {
+   background: linear-gradient(180deg, rgba(221, 200, 255, .1), transparent), var(--mw-surface);
+   color: #422961;
+ }
+
+ :root[data-workspace-theme="light"] .lp-icon-btn:hover:not(:disabled) {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .lp-icon-btn.is-danger:hover:not(:disabled) {
+   color: #981626;
+ }
+
+ :root[data-workspace-theme="light"] .lp-field-hint {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .lp-chip-group>span {
+   color: #442268;
+ }
+
+ :root[data-workspace-theme="light"] .lp-page .lp-chip {
+   border: 1px solid var(--mw-border);
+   background: rgba(30, 27, 46, 0.012);
+   color: #573479;
+ }
+
+ :root[data-workspace-theme="light"] .lp-page .lp-chip:hover:not(:disabled) {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .lp-add-session {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .lp-readonly-objectives {
+   color: #573a73;
+ }
+
+ :root[data-workspace-theme="light"] .lp-readonly-title {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .lp-profile-need {
+   color: #573a73;
+ }
+
+ :root[data-workspace-theme="light"] .lp-send .mr-detail-section-label {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .lp-checklist li {
+   color: #563c71;
+ }
+
+ :root[data-workspace-theme="light"] .lp-checklist li svg {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .lp-checklist li.is-ok {
+   color: #1e1b2e;
+ }
+
+ :root[data-workspace-theme="light"] .lp-checklist li.is-ok svg {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .lp-dirty {
+   color: #785a11;
+ }
+
+ :root[data-workspace-theme="light"] .lp-mentor-link {
+   color: #421773;
+ }
+
+ :root[data-workspace-theme="light"] .lp-mentor-link:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .lp-next-step {
+   color: #442c5e;
+ }
+
+ /* ── Ô thông báo (notifications.css, mở qua portal) ── quy đổi từ màu tối như phần trên. */
+ :root[data-workspace-theme="light"] .notification-trigger {
+   color: rgba(30, 27, 46, 0.65);
+ }
+
+ :root[data-workspace-theme="light"] .notification-trigger:hover,
+ :root[data-workspace-theme="light"] .notification-trigger[data-state="open"] {
+   background-color: rgba(30, 27, 46, 0.06);
+   color: var(--mw-text);
+ }
+
+ :root[data-workspace-theme="light"] .notification-trigger-count {
+   border: 2px solid var(--mw-border);
+   box-shadow: 0 0 10px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .notification-center[data-slot="popover-content"] {
+   background: var(--mw-surface) !important;
+   color-scheme: light;
+   border: 1px solid var(--mw-border) !important;
+   box-shadow: 0 24px 60px rgba(30, 27, 46, 0.12), 0 0 25px rgba(30, 27, 46, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] .notification-header {
+   border-bottom: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-center .notification-header h2 {
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] .notification-read-all,
+ :root[data-workspace-theme="light"] .notification-close {
+   color: #5b5772;
+   background: rgba(30, 27, 46, 0.03);
+   border: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-read-all:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .notification-close:hover {
+   background: rgba(30, 27, 46, 0.06);
+   border-color: var(--mw-border);
+   color: var(--mw-text);
+ }
+
+ :root[data-workspace-theme="light"] .notification-filters button {
+   color: #5b5772;
+   background: rgba(30, 27, 46, 0.03);
+   border: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-filters button:hover {
+   color: var(--mw-text);
+   background: rgba(30, 27, 46, 0.06);
+   border-color: var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-filters button[aria-pressed="true"] {
+   box-shadow: 0 0 14px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .notification-scroll {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-center .notification-footnote {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-center .notification-date-group h3 {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .notification-date-group+.notification-date-group {
+   border-top: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-row {
+   border-bottom: 1px solid var(--mw-border);
+ }
+
+ :root[data-workspace-theme="light"] .notification-row:hover,
+ :root[data-workspace-theme="light"] .notification-row:focus-within {
+   background: rgba(30, 27, 46, 0.036);
+ }
+
+ :root[data-workspace-theme="light"] .notification-kind-icon--violet {
+   color: #311698;
+ }
+
+ :root[data-workspace-theme="light"] .notification-kind-icon--coral {
+   color: #981629;
+ }
+
+ :root[data-workspace-theme="light"] .notification-kind-icon--green {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .notification-kind-icon--blue {
+   color: #165398;
+ }
+
+ :root[data-workspace-theme="light"] .notification-kind-icon--teal {
+   color: #169883;
+ }
+
+ :root[data-workspace-theme="light"] .notification-kind-icon--amber {
+   color: #786011;
+ }
+
+ :root[data-workspace-theme="light"] .notification-delete:hover:not(:disabled) {
+   color: #981616;
+ }
+
+ :root[data-workspace-theme="light"] .notification-title {
+   color: var(--mw-text);
+ }
+
+ :root[data-workspace-theme="light"] .notification-row--unread .notification-title {
+   color: var(--mw-text);
+ }
+
+ :root[data-workspace-theme="light"] .notification-unread-dot {
+   box-shadow: 0 0 8px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .notification-body {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .notification-expand {
+   color: #311698;
+ }
+
+ :root[data-workspace-theme="light"] .notification-expand:hover {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .notification-empty-icon {
+   color: #311698;
+   box-shadow: 0 0 20px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .notification-empty-icon--done {
+   color: #467811;
+   box-shadow: 0 0 20px rgba(30, 27, 46, 0.12);
+ }
+
+ :root[data-workspace-theme="light"] .notification-center .notification-empty h3 {
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] .notification-center .notification-empty p {
+   color: #5b5772;
+ }
+
+ :root[data-workspace-theme="light"] .notification-show-all {
+   color: #467811;
+ }
+
+ :root[data-workspace-theme="light"] .notification-error {
+   color: #981616;
+ }
+
+ :root[data-workspace-theme="light"] .notification-error button {
+   color: var(--mw-text);
+ }
+
+ :root[data-workspace-theme="light"] .notification-skeleton>span {
+   background: rgba(30, 27, 46, 0.048);
+ }
+
+ :root[data-workspace-theme="light"] .notification-skeleton>div>span {
+   background: rgba(30, 27, 46, 0.048);
+ }
+
+ /* ── Admin Layout Light Theme ──────────────────────────────── */
+ :root[data-workspace-theme="light"] {
+   --sidebar: #faf8ff;
+   --sidebar-foreground: #23252f;
+   --sidebar-border: #ddd3f5;
+   --sidebar-accent: #efe9fc;
+   --sidebar-accent-foreground: #5b21b6;
+   --sidebar-primary: #7c3aed;
+   --sidebar-primary-foreground: #ffffff;
+ }
+
+ :root[data-workspace-theme="light"] .admin-shell {
+   background-color: var(--mw-bg) !important;
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"], [data-slot="sidebar-inner"], [data-sidebar="sidebar"]) {
+   background-color: rgba(250, 248, 255, 0.98) !important;
+   border-right-color: var(--mw-border) !important;
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.bg-white\/10, [class*="bg-white/10"]) {
+   background-color: var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.border-white\/10, [class*="border-white/10"]) {
+   border-color: var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.bg-white\/\[0\.04\], [class*="bg-white/[0.04]"]) {
+   background-color: var(--mw-surface) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.bg-white\/\[0\.08\], [class*="bg-white/[0.08]"]) {
+   background-color: #efe9fc !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.text-slate-400, [class*="text-slate-400"]) {
+   color: var(--mw-muted) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) :is(.text-slate-300, [class*="text-slate-300"]) {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] :is([data-slot="sidebar"], [data-slot="sidebar-container"]) [data-slot="sidebar-menu-button"]:not([data-active="true"]):hover {
+   background-color: #efe9fc !important;
+   color: #5b21b6 !important;
+ }
+
+ :root[data-workspace-theme="light"] header.sticky:has([data-slot="sidebar-trigger"]) {
+   background-color: rgba(250, 248, 255, 0.9) !important;
+   border-bottom-color: var(--mw-border) !important;
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] header.sticky h1 {
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] header.sticky span {
+   color: var(--mw-muted) !important;
+ }
+
+ :root[data-workspace-theme="light"] header.sticky .bg-white\/10 {
+   background-color: var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] header.sticky [data-slot="sidebar-trigger"] {
+   background-color: var(--mw-surface) !important;
+   border-color: var(--mw-border) !important;
+   color: var(--mw-text) !important;
+ }
+
+ /* ── Overrides for Admin & Role Content (defeating admin-typography dark overrides) ── */
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) {
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(h1, h2, h3, h4) {
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-900, .text-slate-800, .text-gray-900, .text-gray-800, .text-zinc-900) {
+   color: var(--mw-text) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-700, .text-slate-600, .text-gray-700, .text-gray-600) {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.text-slate-500, .text-slate-400, .text-gray-500, .text-gray-400) {
+   color: var(--mw-muted) !important;
+ }
+
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) .glass-card,
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
+   background-color: var(--mw-surface) !important;
+   border-color: var(--mw-border) !important;
+   box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
+ }
+
+ /* Ô nền nhạt (bg-*-50 / bg-*-100, kể cả biến thể /opacity) → màu bề mặt. Khớp NGUYÊN class: `[class*="bg-violet-50"]` (khớp chuỗi con)
    từng bắt nhầm `hover:bg-violet-500`, `bg-emerald-500/10`… làm nút chính và huy hiệu trạng thái mất màu (phát hiện ở JB-15). */
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class~="bg-amber-50"], [class*="bg-amber-50/"], [class~="bg-amber-100"], [class*="bg-amber-100/"], [class~="bg-yellow-50"], [class*="bg-yellow-50/"], [class~="bg-emerald-50"], [class*="bg-emerald-50/"], [class~="bg-emerald-100"], [class*="bg-emerald-100/"], [class~="bg-green-50"], [class*="bg-green-50/"], [class~="bg-sky-50"], [class*="bg-sky-50/"], [class~="bg-sky-100"], [class*="bg-sky-100/"], [class~="bg-blue-50"], [class*="bg-blue-50/"], [class~="bg-violet-50"], [class*="bg-violet-50/"], [class~="bg-violet-100"], [class*="bg-violet-100/"], [class~="bg-purple-50"], [class*="bg-purple-50/"], [class~="bg-orange-50"], [class*="bg-orange-50/"], [class~="bg-orange-100"], [class*="bg-orange-100/"]) {
-  background-color: var(--mw-surface) !important;
-  border-color: var(--mw-border) !important;
-  box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class~="bg-amber-50"], [class*="bg-amber-50/"], [class~="bg-amber-100"], [class*="bg-amber-100/"], [class~="bg-yellow-50"], [class*="bg-yellow-50/"], [class~="bg-emerald-50"], [class*="bg-emerald-50/"], [class~="bg-emerald-100"], [class*="bg-emerald-100/"], [class~="bg-green-50"], [class*="bg-green-50/"], [class~="bg-sky-50"], [class*="bg-sky-50/"], [class~="bg-sky-100"], [class*="bg-sky-100/"], [class~="bg-blue-50"], [class*="bg-blue-50/"], [class~="bg-violet-50"], [class*="bg-violet-50/"], [class~="bg-violet-100"], [class*="bg-violet-100/"], [class~="bg-purple-50"], [class*="bg-purple-50/"], [class~="bg-orange-50"], [class*="bg-orange-50/"], [class~="bg-orange-100"], [class*="bg-orange-100/"]) {
+   background-color: var(--mw-surface) !important;
+   border-color: var(--mw-border) !important;
+   box-shadow: 0 1px 3px rgba(35, 37, 47, 0.05) !important;
+ }
 
-:root[data-workspace-theme="light"] :is(.admin-shell [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class~="bg-amber-50"], [class*="bg-amber-50/"], [class~="bg-emerald-50"], [class*="bg-emerald-50/"], [class~="bg-sky-50"], [class*="bg-sky-50/"], [class~="bg-violet-50"], [class*="bg-violet-50/"], [class~="bg-orange-50"], [class*="bg-orange-50/"]) :is(.text-2xl, .text-3xl, .text-4xl) {
-  color: var(--mw-text) !important;
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content], .mentor-role-shell [data-mentor-content], .mentor-role-shell) :is([class~="bg-amber-50"], [class*="bg-amber-50/"], [class~="bg-emerald-50"], [class*="bg-emerald-50/"], [class~="bg-sky-50"], [class*="bg-sky-50/"], [class~="bg-violet-50"], [class*="bg-violet-50/"], [class~="bg-orange-50"], [class*="bg-orange-50/"]) :is(.text-2xl, .text-3xl, .text-4xl) {
+   color: var(--mw-text) !important;
+ }
 
-:root[data-workspace-theme="light"] .admin-shell .pi-select-trigger,
-:root[data-workspace-theme="light"] [data-admin-content] .pi-select-trigger,
-:root[data-workspace-theme="light"] .admin-shell .pi-dropdown-surface,
-:root[data-workspace-theme="light"] [data-admin-content] .pi-dropdown-surface {
-  --menu-bg: var(--mw-surface) !important;
-  --menu-text: var(--mw-text) !important;
-  --menu-muted: var(--mw-muted) !important;
-  --menu-border: var(--mw-border) !important;
-  --menu-hover: #efe9fc !important;
-  --menu-selected: #e9e2fb !important;
-  --menu-accent: var(--mw-accent) !important;
-  background-color: var(--mw-surface) !important;
-  color: var(--mw-text) !important;
-  border-color: var(--mw-border) !important;
-}
+ :root[data-workspace-theme="light"] .admin-shell .pi-select-trigger,
+ :root[data-workspace-theme="light"] [data-admin-content] .pi-select-trigger,
+ :root[data-workspace-theme="light"] .admin-shell .pi-dropdown-surface,
+ :root[data-workspace-theme="light"] [data-admin-content] .pi-dropdown-surface {
+   --menu-bg: var(--mw-surface) !important;
+   --menu-text: var(--mw-text) !important;
+   --menu-muted: var(--mw-muted) !important;
+   --menu-border: var(--mw-border) !important;
+   --menu-hover: #efe9fc !important;
+   --menu-selected: #e9e2fb !important;
+   --menu-accent: var(--mw-accent) !important;
+   background-color: var(--mw-surface) !important;
+   color: var(--mw-text) !important;
+   border-color: var(--mw-border) !important;
+ }
 
-:root[data-workspace-theme="light"] .admin-shell .pi-select-trigger svg,
-:root[data-workspace-theme="light"] [data-admin-content] .pi-select-trigger svg {
-  color: var(--mw-muted) !important;
-}
+ :root[data-workspace-theme="light"] .admin-shell .pi-select-trigger svg,
+ :root[data-workspace-theme="light"] [data-admin-content] .pi-select-trigger svg {
+   color: var(--mw-muted) !important;
+ }
 
-:root[data-workspace-theme="light"] .admin-shell [data-admin-content] :is(button, a):is([class*="bg-white"], [class~="bg-slate-50"], [class*="bg-slate-50/"], [class~="bg-slate-100"], [class*="bg-slate-100/"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]) {
-  background-color: var(--mw-surface) !important;
-  border-color: var(--mw-border) !important;
-  color: #4b4763 !important;
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content]) :is(button, a):is([class*="bg-white"], [class~="bg-slate-50"], [class*="bg-slate-50/"], [class~="bg-slate-100"], [class*="bg-slate-100/"]):not(.bg-violet-600):not(.bg-red-600):not(.bg-emerald-600):not([class*="bg-gradient"]) {
+   background-color: var(--mw-surface) !important;
+   border-color: var(--mw-border) !important;
+   color: #4b4763 !important;
+ }
 
-/* ── Customer / Candidate App Shell Light Theme ────────────── */
-:root[data-workspace-theme="light"] .app-user-shell {
-  color: var(--mw-text);
-}
+ /* ── Admin Workspace: Tiêu đề & Kicker trên nền SÁNG dùng TÍM ĐẬM (#6d28d9 / #5b21b6), chống mờ nhạt ── */
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content]) :is(h1, h2, h3, h4, .font-headline) :is(span[class*="text-violet"], span[class*="text-purple"], span[class*="bg-clip-text"], .admin-title-accent, span[class*="text-[#93f72b]"]) {
+   color: #6d28d9 !important;
+   background: none !important;
+   -webkit-text-fill-color: initial !important;
+ }
 
-:root[data-workspace-theme="light"] .liquid-glass {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 4px 16px -2px rgba(99, 14, 212, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--mw-border);
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content]) :is(.admin-kicker, [class*="tracking-[0.16em]"], [class*="tracking-[0.22em]"]):is([class*="text-violet"], [class*="text-purple"], [class*="text-[#93f72b]"]) {
+   color: #6d28d9 !important;
+ }
 
-:root[data-workspace-theme="light"] .liquid-glass::before {
-  display: none;
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content]) :is(.text-violet-700, .text-violet-800, .text-purple-700, .text-purple-800) {
+   color: #6d28d9 !important;
+ }
 
-:root[data-workspace-theme="light"] .liquid-glass-strong {
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 8px 30px -4px rgba(99, 14, 212, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--mw-border);
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content]) :is(.text-violet-600, .text-purple-600, .text-indigo-600) {
+   color: #7c3aed !important;
+ }
 
-:root[data-workspace-theme="light"] .liquid-glass-strong::before {
-  display: none;
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content]) :is(.text-violet-400, .text-violet-500, .text-purple-400, .text-purple-500) {
+   color: #6d28d9 !important;
+ }
 
-/* Thanh điều hướng chính (TopNavShell / .top-nav-pill) */
-:root[data-workspace-theme="light"] .top-nav-pill {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border: 1px solid var(--mw-border) !important;
-  box-shadow: 0 4px 20px -2px rgba(99, 14, 212, 0.08) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
+ :root[data-workspace-theme="light"] :is(.admin-shell, [data-admin-content]) :is(.text-violet-900, .text-violet-950, .text-purple-900, .text-purple-950) {
+   color: #4c1d95 !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill img {
-  filter: none !important;
-  opacity: 1 !important;
-}
+ :root[data-workspace-theme="light"] .admin-shell table td :is(button, a[role="button"], a:has(svg)) {
+   background-color: #ffffff !important;
+   border: 1px solid #ddd6fe !important;
+   color: #6d28d9 !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell table td :is(button, a[role="button"], a:has(svg)):hover {
+   background-color: #f5f0ff !important;
+   border-color: #c4b5fd !important;
+   color: #5b21b6 !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill nav a {
-  color: #4b4763 !important;
-}
+ /* Bảng dữ liệu và thanh tìm kiếm admin ở chế độ sáng
+    (admin-typography.css tô chữ ô bảng gần trắng và ép #fff khi hover, không giới hạn ở chế độ tối) */
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table thead tr {
+   background-color: rgba(241, 245, 249, 0.95) !important;
+   border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table thead th {
+   color: #64748b !important;
+   font-weight: 700 !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody td {
+   color: #1e293b !important;
+   border-bottom: 1px solid rgba(241, 245, 249, 0.9) !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody tr:hover {
+   background: rgba(243, 232, 255, 0.45) !important;
+   box-shadow: inset 4px 0 0 #7c3aed !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody tr:hover td,
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody tr:hover td :is(.text-slate-900, .text-slate-800, .text-slate-700) {
+   color: #0f172a !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] input[type="search"] {
+   background-color: #ffffff !important;
+   border-color: rgba(203, 213, 225, 0.8) !important;
+   color: #1e293b !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] input[type="search"]::placeholder {
+   color: #94a3b8 !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill nav a[aria-current="page"] {
-  color: #1a1b23 !important;
-  font-weight: 800 !important;
-}
+ /* ── Customer / Candidate App Shell Light Theme ────────────── */
+ :root[data-workspace-theme="light"] .app-user-shell {
+   color: var(--mw-text);
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill nav a:hover {
-  color: #6d28d9 !important;
-}
+ :root[data-workspace-theme="light"] .liquid-glass {
+   background: rgba(255, 255, 255, 0.75);
+   box-shadow: 0 4px 16px -2px rgba(99, 14, 212, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+   border: 1px solid var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill nav a span[aria-hidden] {
-  background: #7c3aed !important;
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.5) !important;
-}
+ :root[data-workspace-theme="light"] .liquid-glass::before {
+   display: none;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill button,
-:root[data-workspace-theme="light"] .top-nav-pill a {
-  color: #4b4763;
-}
+ :root[data-workspace-theme="light"] .liquid-glass-strong {
+   background: rgba(255, 255, 255, 0.88);
+   box-shadow: 0 8px 30px -4px rgba(99, 14, 212, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+   border: 1px solid var(--mw-border);
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill :is(.text-white, .text-white\/80, .text-white\/70, .text-white\/90) {
-  color: #23252f !important;
-}
+ :root[data-workspace-theme="light"] .liquid-glass-strong::before {
+   display: none;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill .border-white\/20 {
-  border-color: var(--mw-border) !important;
-}
+ /* Thanh điều hướng chính (TopNavShell / .top-nav-pill) */
+ :root[data-workspace-theme="light"] .top-nav-pill {
+   background: rgba(255, 255, 255, 0.85) !important;
+   border: 1px solid var(--mw-border) !important;
+   box-shadow: 0 4px 20px -2px rgba(99, 14, 212, 0.08) !important;
+   backdrop-filter: blur(16px);
+   -webkit-backdrop-filter: blur(16px);
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill .bg-white\/5 {
-  background-color: var(--mw-surface) !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill img {
+   filter: none !important;
+   opacity: 1 !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-pill .hover\:bg-white\/10:hover {
-  background-color: #efe9fc !important;
-  color: #5b21b6 !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill nav a {
+   color: #4b4763 !important;
+ }
 
-/* User dropdown menu */
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu[data-ui-theme="dark"] {
-  background-color: var(--mw-surface) !important;
-  border-color: var(--mw-border) !important;
-  color: var(--mw-text) !important;
-  box-shadow: 0 16px 36px -4px rgba(30, 27, 46, 0.15) !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill nav a[aria-current="page"] {
+   color: #1a1b23 !important;
+   font-weight: 800 !important;
+ }
 
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"] {
-  color: #4b4763 !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill nav a:hover {
+   color: #6d28d9 !important;
+ }
 
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"]:hover {
-  background-color: #efe9fc !important;
-  color: #5b21b6 !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill nav a span[aria-hidden] {
+   background: #7c3aed !important;
+   box-shadow: none !important;
+ }
 
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-separator"] {
-  background-color: var(--mw-border) !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill button,
+ :root[data-workspace-theme="light"] .top-nav-pill a {
+   color: #4b4763;
+ }
 
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu .text-slate-400 {
-  color: var(--mw-muted) !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill :is(.text-white, .text-white\/80, .text-white\/70, .text-white\/90) {
+   color: #23252f !important;
+ }
 
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu .border-white\/10 {
-  border-color: var(--mw-border) !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill .border-white\/20 {
+   border-color: var(--mw-border) !important;
+ }
 
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu .bg-white\/5 {
-  background-color: var(--mw-raised) !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill .bg-white\/5 {
+   background-color: var(--mw-surface) !important;
+ }
 
-:root[data-workspace-theme="light"] .nav-user-dropdown-menu .text-slate-300 {
-  color: var(--mw-muted) !important;
-}
+ :root[data-workspace-theme="light"] .top-nav-pill .hover\:bg-white\/10:hover {
+   background-color: #efe9fc !important;
+   color: #5b21b6 !important;
+ }
 
-/* Mobile drawer on light */
-:root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass {
-  background-color: var(--mw-surface) !important;
-  border: 1px solid var(--mw-border) !important;
-}
+ /* User dropdown menu */
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu {
+   background-color: var(--mw-surface) !important;
+   background-image: none !important;
+   border-color: var(--mw-border) !important;
+   color: var(--mw-text) !important;
+   box-shadow: 0 16px 36px -4px rgba(30, 27, 46, 0.15) !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass a {
-  color: #4b4763 !important;
-}
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .pi-dropdown-item,
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"] {
+   color: #4b4763 !important;
+   background-image: none !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass a:hover {
-  background-color: #efe9fc !important;
-  color: #5b21b6 !important;
-}
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .pi-dropdown-item:is([data-highlighted], :focus-visible, [data-state="open"], :hover),
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"]:is([data-highlighted], :focus-visible, [data-state="open"], :hover) {
+   background: #efe9fc !important;
+   background-image: none !important;
+   border-color: #ddd6fe !important;
+   box-shadow: none !important;
+   color: #5b21b6 !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .border-white\/10 {
-  border-color: var(--mw-border) !important;
-}
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .pi-dropdown-item:is([data-highlighted], :focus-visible, [data-state="open"], :hover) > svg,
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"]:is([data-highlighted], :focus-visible, [data-state="open"], :hover) svg {
+   color: #7c3aed !important;
+   filter: none !important;
+   transform: none !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .bg-white\/5 {
-  background-color: var(--mw-raised) !important;
-}
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .pi-dropdown-item[data-variant="destructive"]:is([data-highlighted], :focus-visible, :hover),
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"][data-variant="destructive"]:is([data-highlighted], :focus-visible, :hover),
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"]:is([class*="text-rose"], [class*="text-red"]):is([data-highlighted], :focus-visible, :hover) {
+   background: #ffe4e6 !important;
+   background-image: none !important;
+   border-color: #fecdd3 !important;
+   box-shadow: none !important;
+   color: #be123c !important;
+ }
 
-:root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .text-white\/70,
-:root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .text-white\/50 {
-  color: var(--mw-muted) !important;
-}
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .pi-dropdown-item[data-variant="destructive"]:is([data-highlighted], :focus-visible, :hover) > svg,
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-item"]:is([class*="text-rose"], [class*="text-red"]):is([data-highlighted], :focus-visible, :hover) svg {
+   color: #e11d48 !important;
+   filter: none !important;
+   transform: none !important;
+ }
 
-/* ══════════════════════════════════════════════════════════════
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu [data-slot="dropdown-menu-separator"] {
+   background-color: var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .text-slate-400 {
+   color: var(--mw-muted) !important;
+ }
+
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .border-white\/10 {
+   border-color: var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .bg-white\/5 {
+   background-color: var(--mw-raised) !important;
+ }
+
+ :root[data-workspace-theme="light"] .nav-user-dropdown-menu .text-slate-300 {
+   color: var(--mw-muted) !important;
+ }
+
+ /* Mobile drawer on light */
+ :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass {
+   background-color: var(--mw-surface) !important;
+   border: 1px solid var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass a {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass a:hover {
+   background-color: #efe9fc !important;
+   color: #5b21b6 !important;
+ }
+
+ :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .border-white\/10 {
+   border-color: var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .bg-white\/5 {
+   background-color: var(--mw-raised) !important;
+ }
+
+ :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .text-white\/70,
+ :root[data-workspace-theme="light"] .top-nav-shell-outer .liquid-glass .text-white\/50 {
+   color: var(--mw-muted) !important;
+ }
+
+ /* ══════════════════════════════════════════════════════════════
    USER / CANDIDATE WORKSPACE — HOME & LANDING PAGES (LIGHT THEME)
    ══════════════════════════════════════════════════════════════ */
 
-/* ── 1. Hero Section (.home-product-hero) ─────────────────── */
-:root[data-workspace-theme="light"] .home-product-hero {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .home-product-hero-copy::before {
-  background: radial-gradient(ellipse at 50% 35%, rgba(139, 92, 246, 0.14) 0%, rgba(124, 58, 237, 0.04) 40%, transparent 70%) !important;
-}
-
-/* Badge "Nền tảng dành cho sinh viên IT" */
-:root[data-workspace-theme="light"] .home-product-hero-badge {
-  color: #6d28d9 !important;
-  background: rgba(124, 58, 237, 0.08) !important;
-  border: 1px solid rgba(124, 58, 237, 0.22) !important;
-  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.06) !important;
-}
-
-:root[data-workspace-theme="light"] .home-product-hero-badge svg {
-  color: #7c3aed !important;
-}
-
-/* Headline "Chuẩn bị vững vàng." */
-:root[data-workspace-theme="light"] .home-product-hero-copy h1,
-:root[data-workspace-theme="light"] .home-product-hero-copy h1>span {
-  color: #1e1338 !important;
-}
-
-/* "Tự tin" & highlight accents */
-:root[data-workspace-theme="light"] .home-product-hero-copy h1 .home-product-hero-highlight,
-:root[data-workspace-theme="light"] .home-product-hero-copy em {
-  color: #6d28d9 !important;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #4f46e5 100%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  filter: none !important;
-  text-shadow: none !important;
-}
-
-/* Subtitle description */
-:root[data-workspace-theme="light"] .home-product-hero-copy p {
-  color: #4b4763 !important;
-}
-
-/* Benefits below CTAs ("Lộ trình rõ ràng", etc.) */
-:root[data-workspace-theme="light"] .home-product-hero-benefits,
-:root[data-workspace-theme="light"] .home-product-hero-benefits li {
-  color: #4b4763 !important;
-}
-
-:root[data-workspace-theme="light"] .home-product-hero-benefits svg {
-  color: #93f72b !important;
-  fill: rgba(147, 247, 43, 0.15);
-}
-
-/* Hero Action Buttons */
-:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-primary {
-  background-color: #93f72b !important;
-  background-image: none !important;
-  color: #131f00 !important;
-  border: 1px solid #7fd925 !important;
-  box-shadow: none !important;
-}
-
-:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-primary:hover {
-  background-color: #a8ff4e !important;
-  border-color: #7fd925 !important;
-  color: #131f00 !important;
-  transform: translateY(-2px);
-  box-shadow: none !important;
-}
-
-:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-secondary {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  color: #3b2d54 !important;
-  border: 1px solid #ddd3f5 !important;
-  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.08) !important;
-}
-
-:root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-secondary:hover {
-  background-color: #f6f1ff !important;
-  border-color: #7c3aed !important;
-  color: #6d28d9 !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.15) !important;
-}
-
-/* ── 2. Feature Summary Section (.feature-summary-section) ─ */
-:root[data-workspace-theme="light"] .feature-summary-heading span {
-  color: #6b6785 !important;
-}
-
-:root[data-workspace-theme="light"] .feature-summary-heading h2 {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .feature-summary-heading h2 span {
-  color: #7c3aed !important;
-}
-
-:root[data-workspace-theme="light"] .feature-window {
-  background: rgba(255, 255, 255, 0.88) !important;
-  color: #1e1338 !important;
-  border: 1px solid rgba(124, 58, 237, 0.18) !important;
-  border-bottom: 3px solid #7c3aed !important;
-  box-shadow: 0 10px 30px -4px rgba(99, 14, 212, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
-}
-
-:root[data-workspace-theme="light"] .feature-window:is(:hover, :focus-within) {
-  background: rgba(255, 255, 255, 0.98) !important;
-  border-color: #7c3aed !important;
-  box-shadow: 0 16px 40px -4px rgba(99, 14, 212, 0.14) !important;
-}
-
-:root[data-workspace-theme="light"] .feature-cv-heading h3 {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .feature-cv-number,
-:root[data-workspace-theme="light"] .feature-interview-number {
-  color: #7c3aed !important;
-}
-
-:root[data-workspace-theme="light"] .feature-cv-icon,
-:root[data-workspace-theme="light"] .feature-interview-icon,
-:root[data-workspace-theme="light"] .feature-course-icon {
-  background: rgba(124, 58, 237, 0.08) !important;
-  border-color: rgba(124, 58, 237, 0.25) !important;
-  color: #7c3aed !important;
-}
-
-:root[data-workspace-theme="light"] .feature-window p,
-:root[data-workspace-theme="light"] .feature-window-grid--horizontal .feature-window p {
-  color: #4b4763 !important;
-}
-
-:root[data-workspace-theme="light"] .feature-window-connector {
-  color: #a78bfa !important;
-}
-
-/* ── 3. Section Flow & Typography Tokens (homeTypography.js) */
-:root[data-workspace-theme="light"] .landing-section-flow h2:not([class*="text-violet"]),
-:root[data-workspace-theme="light"] .landing-section-flow .font-headline {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .landing-section-flow :is(.text-white, .text-white\/90, .text-white\/80) {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .landing-section-flow :is(.text-white\/70, .text-white\/60, .text-white\/50) {
-  color: #4b4763 !important;
-}
-
-/* Neon lime text on landing sections converts to high-contrast brand purple in light mode */
-:root[data-workspace-theme="light"] .landing-section-flow :is(.text-\[\#93f72b\], .text-\[\#c7f36b\], .text-\[\#a3e635\]):not(button):not(a):not(svg) {
-  color: #8037f4 !important;
-}
-
-:root[data-workspace-theme="light"] .landing-section-flow svg:is(.text-\[\#93f72b\], .text-\[\#c7f36b\], .text-\[\#a3e635\]) {
-  color: #93f72b !important;
-  fill: rgba(147, 247, 43, 0.2) !important;
-}
-
-/* Badges across sections */
-:root[data-workspace-theme="light"] .landing-section-flow .liquid-glass:is(span) {
-  color: #6d28d9 !important;
-  background: rgba(255, 255, 255, 0.85) !important;
-  border: 1px solid var(--mw-border) !important;
-}
-
-:root[data-workspace-theme="light"] .landing-section-flow .liquid-glass:is(span) svg {
-  color: #7c3aed !important;
-}
-
-/* CTAs across sections */
-:root[data-workspace-theme="light"] .landing-section-flow :is(button, a).liquid-glass-strong {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border: 1px solid var(--mw-border) !important;
-  color: #1e1338 !important;
-  box-shadow: 0 4px 16px rgba(99, 14, 212, 0.08) !important;
-}
-
-:root[data-workspace-theme="light"] .landing-section-flow :is(button, a).liquid-glass-strong:hover {
-  background: #efe9fc !important;
-  color: #5b21b6 !important;
-}
-
-/* ── 4. CV Analysis Showcase & Score Breakdown ───────────── */
-:root[data-workspace-theme="light"] .cv-analysis-glass-card {
-  background-color: rgba(255, 255, 255, 0.88) !important;
-  border: 1px solid var(--mw-border) !important;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08) !important;
-}
-
-:root[data-workspace-theme="light"] .cv-score-card-reveal .liquid-glass-strong {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border: 1px solid var(--mw-border) !important;
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-score-card-reveal h3 {
-  color: #1e1338 !important;
-}
-
-/* ── 5. Testimonials & Statistics (#testimonials) ─────────── */
-:root[data-workspace-theme="light"] #testimonials .liquid-glass-strong {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border: 1px solid var(--mw-border) !important;
-  box-shadow: 0 8px 30px -4px rgba(99, 14, 212, 0.08) !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials .liquid-glass {
-  background: rgba(255, 255, 255, 0.75) !important;
-  border: 1px solid var(--mw-border) !important;
-  box-shadow: 0 2px 12px rgba(99, 14, 212, 0.04) !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials h3 {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials h3.text-\[\#a3e635\] {
-  color: #6d28d9 !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials div.text-\[\#a3e635\] {
-  color: #7c3aed !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials h4 {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials p {
-  color: #4b4763 !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials .text-slate-300 {
-  color: #4b4763 !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials .text-slate-400 {
-  color: #6b6785 !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials .grid .text-white {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] #testimonials .grid .text-white\/80 {
-  color: #4b4763 !important;
-}
-
-/* ── 5b. Mentor Feature Showcase (#find-mentor) ─────────────── */
-:root[data-workspace-theme="light"] #find-mentor .liquid-glass-strong {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border: 1px solid var(--mw-border) !important;
-  box-shadow: 0 8px 30px -4px rgba(99, 14, 212, 0.08) !important;
-}
-
-:root[data-workspace-theme="light"] #find-mentor .liquid-glass {
-  background: rgba(255, 255, 255, 0.75) !important;
-  border: 1px solid var(--mw-border) !important;
-}
-
-:root[data-workspace-theme="light"] #find-mentor h3 {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] #find-mentor p {
-  color: #4b4763 !important;
-}
-
-/* ── 5c. Search Bar (.ms-wrap / .ms-inner) ─────────────────── */
-:root[data-workspace-theme="light"] .ms-wrap::before {
-  display: none !important;
-}
-
-:root[data-workspace-theme="light"] .ms-wrap::after {
-  display: none !important;
-}
-
-:root[data-workspace-theme="light"] .ms-inner {
-  background: #ffffff !important;
-  border: 1.5px solid #ddd3f5 !important;
-  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-}
-
-:root[data-workspace-theme="light"] .ms-wrap:hover .ms-inner,
-:root[data-workspace-theme="light"] .ms-wrap:focus-within .ms-inner {
-  border-color: #8037f4 !important;
-  box-shadow: 0 8px 30px -4px rgba(128, 55, 244, 0.16) !important;
-}
-
-:root[data-workspace-theme="light"] .ms-inner input {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .ms-inner input::placeholder {
-  color: #6b6785 !important;
-  opacity: 0.85 !important;
-}
-
-:root[data-workspace-theme="light"] .ms-inner svg {
-  color: #6b6785 !important;
-}
-
-:root[data-workspace-theme="light"] .ms-inner [data-slot="select-trigger"],
-:root[data-workspace-theme="light"] .ms-inner button[role="combobox"] {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .ms-inner [data-slot="select-trigger"]:hover,
-:root[data-workspace-theme="light"] .ms-inner button[role="combobox"]:hover {
-  background-color: #efe9fc !important;
-}
-
-:root[data-workspace-theme="light"] .ms-cta-btn {
-  background: #93f72b !important;
-  color: #131f00 !important;
-  border: 1px solid #7fd925 !important;
-  box-shadow: 0 2px 8px rgba(147, 247, 43, 0.28) !important;
-}
-
-:root[data-workspace-theme="light"] .ms-cta-btn:hover {
-  background: #a8ff4e !important;
-  color: #131f00 !important;
-}
-
-:root[data-workspace-theme="light"] .ms-cta-btn .ms-cta-icon {
-  background: rgba(19, 31, 0, 0.12) !important;
-  color: #131f00 !important;
-}
-
-/* ── 7. CV Analysis Hub Page (/cv-analysis) ──────────────── */
-:root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-white,
-:root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-\[\#1a1b23\] {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-\[\#c7f36b\],
-:root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-\[\#8037f4\] {
-  color: #8037f4 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-unified-col--copy p {
-  color: #4b4763 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-cta--primary {
-  background-color: #93f72b !important;
-  border-color: #7fd925 !important;
-  color: #131f00 !important;
-  box-shadow: 0 4px 14px rgba(147, 247, 43, 0.35) !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-cta--primary:hover {
-  background-color: #a8ff4e !important;
-  border-color: #7fd925 !important;
-  color: #131f00 !important;
-  box-shadow: 0 6px 20px rgba(147, 247, 43, 0.45) !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-cta--secondary {
-  background-color: #ffffff !important;
-  border: 1.5px solid #c4b5fd !important;
-  color: #8037f4 !important;
-  box-shadow: 0 2px 8px rgba(128, 55, 244, 0.08) !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-cta--secondary:hover {
-  background-color: #f5f3ff !important;
-  border-color: #8037f4 !important;
-  color: #6d28d9 !important;
-  box-shadow: 0 4px 14px rgba(128, 55, 244, 0.16) !important;
-}
-
-/* CV Demo Result Stack in Light Mode */
-:root[data-workspace-theme="light"] .cv-hub-demo-stack .liquid-glass-strong {
-  background: #ffffff !important;
-  border: 1px solid #ddd3f5 !important;
-  color: #1a1b23 !important;
-  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-demo-stack > div:not(.liquid-glass-strong) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-demo-stack h3 {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-hub-demo-stack p {
-  color: #5b5772 !important;
-}
-
-/* ── 8. Pricing & Glass Cards (MentorPageShell / pricing) ── */
-:root[data-workspace-theme="light"] .pricing-plan-card {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pricing-plan-card .pricing-border-beam-wrap::after {
-  background: #ffffff !important;
-}
-
-:root[data-workspace-theme="light"] .pricing-plan-card:hover .pricing-border-beam-wrap::after {
-  background: radial-gradient(circle at 50% 0%, var(--card-top-glow, rgba(128, 55, 244, 0.08)), transparent 75%), #ffffff !important;
-}
-
-:root[data-workspace-theme="light"] .pricing-plan-card :is(.text-white, .text-white\/90, .text-white\/80):not(button):not(button *):not([class*="bg-"]):not([class*="bg-"] *) {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pricing-plan-card :is(.text-slate-300, .text-slate-400, .text-white\/70, .text-white\/60):not(button):not(button *):not([class*="bg-"]):not([class*="bg-"] *) {
-  color: #5b5772 !important;
-}
-
-:root[data-workspace-theme="light"] .pricing-plan-card .border-t {
-  border-color: #ddd3f5 !important;
-}
-
-/* ── 9. Course Cards (Courses page / 3D Card) ── */
-:root[data-workspace-theme="light"] .pi-course-card-3d__front {
-  background: #ffffff !important;
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__front h3 {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__front p {
-  color: #5b5772 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__front .border-t {
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back {
-  background: #ffffff !important;
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface {
-  background: #ffffff !important;
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface h4 {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-b,
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-t {
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid > div {
-  background: #f6f3fc !important;
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:first-child {
-  color: #6b6785 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:last-child {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pricing-plan-card .border-t {
-  border-color: #ddd3f5 !important;
-}
-
-/* ── 9. Course Cards (Courses page / 3D Card) ── */
-:root[data-workspace-theme="light"] .pi-course-card-3d__front {
-  background: #ffffff !important;
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__front h3 {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__front p {
-  color: #5b5772 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__front .border-t {
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back {
-  background: #ffffff !important;
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface {
-  background: #ffffff !important;
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface h4 {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-b,
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-t {
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid > div {
-  background: #f6f3fc !important;
-  border-color: #ddd3f5 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:first-child {
-  color: #6b6785 !important;
-}
-
-:root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:last-child {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .glass-card {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border: 1px solid var(--mw-border) !important;
-  box-shadow: 0 4px 20px rgba(99, 14, 212, 0.06) !important;
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .mentor-stat-num {
-  color: #1e1338 !important;
-}
-
-:root[data-workspace-theme="light"] .mentor-label {
-  color: #6b6785 !important;
-}
-
-/* ── 10. Course & Mentor Detail Pages (/courses/:id, /mentors/:id) ── */
-:root[data-workspace-theme="light"] .mentor-booking-cta {
-  background-color: #93f72b !important;
-  background-image: none !important;
-  color: #131f00 !important;
-  border: 1px solid #7fd925 !important;
-  box-shadow: 0 8px 24px -4px rgba(147, 247, 43, 0.4) !important;
-}
-
-:root[data-workspace-theme="light"] .mentor-booking-cta:hover {
-  background-color: #a8ff4e !important;
-  color: #131f00 !important;
-  box-shadow: 0 12px 28px -4px rgba(147, 247, 43, 0.55) !important;
-}
-
-:root[data-workspace-theme="light"] .mentor-booking-cta :is(span, svg) {
-  color: #131f00 !important;
-}
-
-/* ── 11. CV Analysis History Hub (/cv-analysis/history) ─────── */
-:root[data-workspace-theme="light"] .cv-history-page .cv-history-header h1 {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-page .cv-history-header p {
-  color: #5b5772 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-search {
-  background: #ffffff !important;
-  border: 1.5px solid #ddd3f5 !important;
-  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-search:focus-within {
-  border-color: #8037f4 !important;
-  box-shadow: 0 8px 30px -4px rgba(128, 55, 244, 0.16) !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-search > svg {
-  color: #8037f4 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-search input {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-search input::placeholder {
-  color: #8a85a3 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-search button {
-  color: #6b6785 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-search button:hover {
-  color: #8037f4 !important;
-  background: #f3f0ff !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-page .cv-history-sort {
-  background: #ffffff !important;
-  border: 1.5px solid #ddd3f5 !important;
-  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08) !important;
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-page .cv-history-sort:hover {
-  border-color: #8037f4 !important;
-  color: #8037f4 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-page .cv-history-sort svg {
-  color: #8037f4 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-refresh {
-  background: #ffffff !important;
-  border: 1.5px solid #ddd3f5 !important;
-  box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08) !important;
-  color: #8037f4 !important;
-}
-
-:root[data-workspace-theme="light"] .cv-history-refresh:hover:not(:disabled) {
-  background: #f3f0ff !important;
-  border-color: #8037f4 !important;
-  color: #6d28d9 !important;
-  box-shadow: 0 6px 20px -2px rgba(128, 55, 244, 0.16) !important;
-}
-
-/* ── 12. Bookings & My Courses Header (/my-bookings, /my-courses) ── */
-:root[data-workspace-theme="light"] .bookings-page .bookings-header h1,
-:root[data-workspace-theme="light"] .my-courses-page .my-courses-header h1 {
-  color: #1a1b23 !important;
-}
-
-:root[data-workspace-theme="light"] .bookings-page .bookings-header p,
-:root[data-workspace-theme="light"] .my-courses-page .my-courses-header p {
-  color: #5b5772 !important;
-}
-
-/* LP-23: năng lực gợi ý trong trình soạn lộ trình. */
-:root[data-workspace-theme="light"] .lp-hint-text strong {
-  color: var(--mw-text);
-}
+ /* ── 1. Hero Section (.home-product-hero) ─────────────────── */
+ :root[data-workspace-theme="light"] .home-product-hero {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .home-product-hero-copy::before {
+   background: radial-gradient(ellipse at 50% 35%, rgba(139, 92, 246, 0.14) 0%, rgba(124, 58, 237, 0.04) 40%, transparent 70%) !important;
+ }
+
+ /* Badge "Nền tảng dành cho sinh viên IT" */
+ :root[data-workspace-theme="light"] .home-product-hero-badge {
+   color: #6d28d9 !important;
+   background: #f5f0ff !important;
+   border: 1px solid #ddd6fe !important;
+   box-shadow: 0 2px 10px rgba(128, 55, 244, 0.08) !important;
+   font-weight: 700 !important;
+ }
+
+ :root[data-workspace-theme="light"] .home-product-hero-badge svg {
+   color: #8037f4 !important;
+ }
+
+ /* Headline "Chuẩn bị vững vàng." */
+ :root[data-workspace-theme="light"] .home-product-hero-copy h1,
+ :root[data-workspace-theme="light"] .home-product-hero-copy h1>span {
+   color: #1e1338 !important;
+ }
+
+ /* "Tự tin" & highlight accents */
+ :root[data-workspace-theme="light"] .home-product-hero-copy h1 .home-product-hero-highlight,
+ :root[data-workspace-theme="light"] .home-product-hero-copy em {
+   color: #581c87 !important;
+   background: none !important;
+   -webkit-background-clip: border-box !important;
+   background-clip: border-box !important;
+   -webkit-text-fill-color: #581c87 !important;
+   filter: none !important;
+   text-shadow: none !important;
+   font-style: italic !important;
+ }
+
+ /* Subtitle description */
+ :root[data-workspace-theme="light"] .home-product-hero-copy p {
+   color: #1e1b2e !important;
+   font-weight: 500 !important;
+ }
+
+ /* Benefits below CTAs ("Lộ trình rõ ràng", etc.) */
+ :root[data-workspace-theme="light"] .home-product-hero-benefits,
+ :root[data-workspace-theme="light"] .home-product-hero-benefits li {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] .home-product-hero-benefits svg {
+   color: #93f72b !important;
+   fill: rgba(147, 247, 43, 0.15);
+ }
+
+ /* Hero Action Buttons */
+ :root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-primary {
+   background-color: #93f72b !important;
+   background-image: none !important;
+   color: #131f00 !important;
+   border: 1px solid #7fd925 !important;
+   box-shadow: none !important;
+ }
+
+ :root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-primary:hover {
+   background-color: #a8ff4e !important;
+   border-color: #7fd925 !important;
+   color: #131f00 !important;
+   transform: translateY(-2px);
+   box-shadow: none !important;
+ }
+
+ :root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-secondary {
+   background-color: #ffffff !important;
+   background-image: none !important;
+   color: #3b2d54 !important;
+   border: 1px solid #ddd3f5 !important;
+   box-shadow: 0 2px 10px rgba(124, 58, 237, 0.08) !important;
+ }
+
+ :root[data-workspace-theme="light"] .home-product-hero-actions :is(a, button).home-product-hero-secondary:hover {
+   background-color: #f6f1ff !important;
+   border-color: #7c3aed !important;
+   color: #6d28d9 !important;
+   transform: translateY(-2px);
+   box-shadow: 0 6px 18px rgba(124, 58, 237, 0.15) !important;
+ }
+
+ /* ── 2. Feature Summary Section (.feature-summary-section) ─ */
+ :root[data-workspace-theme="light"] .feature-summary-heading span {
+   color: #6b6785 !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-summary-heading h2 {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-summary-heading h2 span {
+   color: #7c3aed !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-window {
+   background: rgba(255, 255, 255, 0.88) !important;
+   color: #1e1338 !important;
+   border: 1px solid rgba(124, 58, 237, 0.18) !important;
+   border-bottom: 3px solid #7c3aed !important;
+   box-shadow: 0 10px 30px -4px rgba(99, 14, 212, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-window:is(:hover, :focus-within) {
+   background: rgba(255, 255, 255, 0.98) !important;
+   border-color: #7c3aed !important;
+   box-shadow: 0 16px 40px -4px rgba(99, 14, 212, 0.14) !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-cv-heading h3 {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-cv-number,
+ :root[data-workspace-theme="light"] .feature-interview-number {
+   color: #7c3aed !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-cv-icon,
+ :root[data-workspace-theme="light"] .feature-interview-icon,
+ :root[data-workspace-theme="light"] .feature-course-icon {
+   background: rgba(124, 58, 237, 0.08) !important;
+   border-color: rgba(124, 58, 237, 0.25) !important;
+   color: #7c3aed !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-window p,
+ :root[data-workspace-theme="light"] .feature-window-grid--horizontal .feature-window p {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] .feature-window-connector {
+   color: #a78bfa !important;
+ }
+
+ /* ── 3. Section Flow & Typography Tokens (homeTypography.js) */
+ :root[data-workspace-theme="light"] .landing-section-flow h2:not([class*="text-violet"]),
+ :root[data-workspace-theme="light"] .landing-section-flow .font-headline {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .landing-section-flow :is(.text-white, .text-white\/90, .text-white\/80) {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .landing-section-flow :is(.text-white\/70, .text-white\/60, .text-white\/50) {
+   color: #4b4763 !important;
+ }
+
+ /* Neon lime text on landing sections converts to high-contrast brand purple in light mode */
+ :root[data-workspace-theme="light"] .landing-section-flow :is(.text-\[\#93f72b\], .text-\[\#c7f36b\], .text-\[\#a3e635\]):not(button):not(a):not(svg) {
+   color: #8037f4 !important;
+ }
+
+ :root[data-workspace-theme="light"] .landing-section-flow svg:is(.text-\[\#93f72b\], .text-\[\#c7f36b\], .text-\[\#a3e635\]) {
+   color: #93f72b !important;
+   fill: rgba(147, 247, 43, 0.2) !important;
+ }
+
+ /* Badges across sections */
+ :root[data-workspace-theme="light"] .landing-section-flow .liquid-glass:is(span) {
+   color: #6d28d9 !important;
+   background: rgba(255, 255, 255, 0.85) !important;
+   border: 1px solid var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] .landing-section-flow .liquid-glass:is(span) svg {
+   color: #7c3aed !important;
+ }
+
+ /* CTAs across sections */
+ :root[data-workspace-theme="light"] .landing-section-flow :is(button, a).liquid-glass-strong {
+   background: rgba(255, 255, 255, 0.92) !important;
+   border: 1px solid var(--mw-border) !important;
+   color: #1e1338 !important;
+   box-shadow: 0 4px 16px rgba(99, 14, 212, 0.08) !important;
+ }
+
+ :root[data-workspace-theme="light"] .landing-section-flow :is(button, a).liquid-glass-strong:hover {
+   background: #efe9fc !important;
+   color: #5b21b6 !important;
+ }
+
+ /* ── 4. CV Analysis Showcase & Score Breakdown ───────────── */
+ :root[data-workspace-theme="light"] .cv-analysis-glass-card {
+   background-color: rgba(255, 255, 255, 0.88) !important;
+   border: 1px solid var(--mw-border) !important;
+   box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08) !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-score-card-reveal .liquid-glass-strong {
+   background: rgba(255, 255, 255, 0.88) !important;
+   border: 1px solid var(--mw-border) !important;
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-score-card-reveal h3 {
+   color: #1e1338 !important;
+ }
+
+ /* ── 5. Testimonials & Statistics (#testimonials) ─────────── */
+ :root[data-workspace-theme="light"] #testimonials .liquid-glass-strong {
+   background: rgba(255, 255, 255, 0.88) !important;
+   border: 1px solid var(--mw-border) !important;
+   box-shadow: 0 8px 30px -4px rgba(99, 14, 212, 0.08) !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials .liquid-glass {
+   background: rgba(255, 255, 255, 0.75) !important;
+   border: 1px solid var(--mw-border) !important;
+   box-shadow: 0 2px 12px rgba(99, 14, 212, 0.04) !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials h3 {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials h3.text-\[\#a3e635\] {
+   color: #6d28d9 !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials div.text-\[\#a3e635\] {
+   color: #7c3aed !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials h4 {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials p {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials .text-slate-300 {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials .text-slate-400 {
+   color: #6b6785 !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials .grid .text-white {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] #testimonials .grid .text-white\/80 {
+   color: #4b4763 !important;
+ }
+
+ /* ── 5b. Mentor Feature Showcase (#find-mentor) ─────────────── */
+ :root[data-workspace-theme="light"] #find-mentor .liquid-glass-strong {
+   background: rgba(255, 255, 255, 0.88) !important;
+   border: 1px solid var(--mw-border) !important;
+   box-shadow: 0 8px 30px -4px rgba(99, 14, 212, 0.08) !important;
+ }
+
+ :root[data-workspace-theme="light"] #find-mentor .liquid-glass {
+   background: rgba(255, 255, 255, 0.75) !important;
+   border: 1px solid var(--mw-border) !important;
+ }
+
+ :root[data-workspace-theme="light"] #find-mentor h3 {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] #find-mentor p {
+   color: #4b4763 !important;
+ }
+
+ /* ── 5c. Search Bar (.ms-wrap / .ms-inner) ─────────────────── */
+ :root[data-workspace-theme="light"] .ms-wrap::before {
+   display: none !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-wrap::after {
+   display: none !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-inner {
+   background: #ffffff !important;
+   border: 1.5px solid #ddd3f5 !important;
+   box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-wrap:hover .ms-inner,
+ :root[data-workspace-theme="light"] .ms-wrap:focus-within .ms-inner {
+   border-color: #8037f4 !important;
+   box-shadow: 0 8px 30px -4px rgba(128, 55, 244, 0.16) !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-inner input {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-inner input::placeholder {
+   color: #6b6785 !important;
+   opacity: 0.85 !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-inner svg {
+   color: #6b6785 !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-inner [data-slot="select-trigger"],
+ :root[data-workspace-theme="light"] .ms-inner button[role="combobox"] {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-inner [data-slot="select-trigger"]:hover,
+ :root[data-workspace-theme="light"] .ms-inner button[role="combobox"]:hover {
+   background-color: #efe9fc !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-cta-btn {
+   background: #93f72b !important;
+   color: #131f00 !important;
+   border: 1px solid #7fd925 !important;
+   box-shadow: 0 2px 8px rgba(147, 247, 43, 0.28) !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-cta-btn:hover {
+   background: #a8ff4e !important;
+   color: #131f00 !important;
+ }
+
+ :root[data-workspace-theme="light"] .ms-cta-btn .ms-cta-icon {
+   background: rgba(19, 31, 0, 0.12) !important;
+   color: #131f00 !important;
+ }
+
+ /* ── 7. CV Analysis Hub Page (/cv-analysis) ──────────────── */
+ :root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-white,
+ :root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-\[\#1a1b23\] {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-\[\#c7f36b\],
+ :root[data-workspace-theme="light"] .cv-hub-unified-col--copy h1 span.text-\[\#8037f4\] {
+   color: #8037f4 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-unified-col--copy p {
+   color: #4b4763 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-cta--primary {
+   background-color: #93f72b !important;
+   border-color: #7fd925 !important;
+   color: #131f00 !important;
+   box-shadow: 0 4px 14px rgba(147, 247, 43, 0.35) !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-cta--primary:hover {
+   background-color: #a8ff4e !important;
+   border-color: #7fd925 !important;
+   color: #131f00 !important;
+   box-shadow: 0 6px 20px rgba(147, 247, 43, 0.45) !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-cta--secondary {
+   background-color: #ffffff !important;
+   border: 1.5px solid #c4b5fd !important;
+   color: #8037f4 !important;
+   box-shadow: 0 2px 8px rgba(128, 55, 244, 0.08) !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-cta--secondary:hover {
+   background-color: #f5f3ff !important;
+   border-color: #8037f4 !important;
+   color: #6d28d9 !important;
+   box-shadow: 0 4px 14px rgba(128, 55, 244, 0.16) !important;
+ }
+
+ /* CV Demo Result Stack in Light Mode */
+ :root[data-workspace-theme="light"] .cv-hub-demo-stack .liquid-glass-strong {
+   background: #ffffff !important;
+   border: 1px solid #ddd3f5 !important;
+   color: #1a1b23 !important;
+   box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-demo-stack>div:not(.liquid-glass-strong) {
+   background: transparent !important;
+   border: none !important;
+   box-shadow: none !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-demo-stack h3 {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-hub-demo-stack p {
+   color: #5b5772 !important;
+ }
+
+ /* ── 8. Pricing & Glass Cards (MentorPageShell / pricing) ── */
+ :root[data-workspace-theme="light"] .pricing-plan-card {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pricing-plan-card .pricing-border-beam-wrap::after {
+   background: #ffffff !important;
+ }
+
+ :root[data-workspace-theme="light"] .pricing-plan-card:hover .pricing-border-beam-wrap::after {
+   background: radial-gradient(circle at 50% 0%, var(--card-top-glow, rgba(128, 55, 244, 0.08)), transparent 75%), #ffffff !important;
+ }
+
+ :root[data-workspace-theme="light"] .pricing-plan-card :is(.text-white, .text-white\/90, .text-white\/80):not(button):not(button *):not([class*="bg-"]):not([class*="bg-"] *) {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pricing-plan-card :is(.text-slate-300, .text-slate-400, .text-white\/70, .text-white\/60):not(button):not(button *):not([class*="bg-"]):not([class*="bg-"] *) {
+   color: #5b5772 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pricing-plan-card .border-t {
+   border-color: #ddd3f5 !important;
+ }
+
+ /* ── 9. Course Cards (Courses page / 3D Card) ── */
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front {
+   background: #ffffff !important;
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front h3 {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front p {
+   color: #5b5772 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front .border-t {
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back {
+   background: #ffffff !important;
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface {
+   background: #ffffff !important;
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface h4 {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-b,
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-t {
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid>div {
+   background: #f6f3fc !important;
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:first-child {
+   color: #6b6785 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:last-child {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pricing-plan-card .border-t {
+   border-color: #ddd3f5 !important;
+ }
+
+ /* ── 9. Course Cards (Courses page / 3D Card) ── */
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front {
+   background: #ffffff !important;
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front h3 {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front p {
+   color: #5b5772 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__front .border-t {
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back {
+   background: #ffffff !important;
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface {
+   background: #ffffff !important;
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface h4 {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-b,
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .border-t {
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid>div {
+   background: #f6f3fc !important;
+   border-color: #ddd3f5 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:first-child {
+   color: #6b6785 !important;
+ }
+
+ :root[data-workspace-theme="light"] .pi-course-card-3d__back-surface .grid p:last-child {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .glass-card {
+   background: rgba(255, 255, 255, 0.85) !important;
+   border: 1px solid var(--mw-border) !important;
+   box-shadow: 0 4px 20px rgba(99, 14, 212, 0.06) !important;
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .mentor-stat-num {
+   color: #1e1338 !important;
+ }
+
+ :root[data-workspace-theme="light"] .mentor-label {
+   color: #6b6785 !important;
+ }
+
+ /* ── Skill tags trong thẻ MentorListCard (/mentors, /mentors/:id) ── */
+ :root[data-workspace-theme="light"] .mentor-card-skill-tag,
+ html[data-workspace-theme="light"] .mentor-card-skill-tag {
+   background: #f5f0ff !important;
+   border-color: #ddd6fe !important;
+   color: #6d28d9 !important;
+   font-weight: 600 !important;
+ }
+
+ :root[data-workspace-theme="light"] .mentor-card-skill-tag:hover,
+ html[data-workspace-theme="light"] .mentor-card-skill-tag:hover {
+   background: #ede5ff !important;
+   border-color: #c4b5fd !important;
+   color: #581c87 !important;
+ }
+
+ /* ── Nhãn nhóm vị trí việc làm (/jobs, /jobs/:id) ── */
+ :root[data-workspace-theme="light"] .job-role-badge,
+ html[data-workspace-theme="light"] .job-role-badge {
+   background-color: #f5f0ff !important;
+   border-color: #ddd6fe !important;
+   color: #6d28d9 !important;
+   font-weight: 700 !important;
+ }
+
+ /* ── 10. Course & Mentor Detail Pages (/courses/:id, /mentors/:id) ── */
+ :root[data-workspace-theme="light"] .mentor-booking-cta {
+   background-color: #93f72b !important;
+   background-image: none !important;
+   color: #131f00 !important;
+   border: 1px solid #7fd925 !important;
+   box-shadow: 0 8px 24px -4px rgba(147, 247, 43, 0.4) !important;
+ }
+
+ :root[data-workspace-theme="light"] .mentor-booking-cta:hover {
+   background-color: #a8ff4e !important;
+   color: #131f00 !important;
+   box-shadow: 0 12px 28px -4px rgba(147, 247, 43, 0.55) !important;
+ }
+
+ :root[data-workspace-theme="light"] .mentor-booking-cta :is(span, svg) {
+   color: #131f00 !important;
+ }
+
+ /* ── 11. CV Analysis History Hub (/cv-analysis/history) ─────── */
+ :root[data-workspace-theme="light"] .cv-history-page .cv-history-header h1 {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-page .cv-history-header p {
+   color: #5b5772 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-search {
+   background: #ffffff !important;
+   border: 1.5px solid #ddd3f5 !important;
+   box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-search:focus-within {
+   border-color: #8037f4 !important;
+   box-shadow: 0 8px 30px -4px rgba(128, 55, 244, 0.16) !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-search>svg {
+   color: #8037f4 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-search input {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-search input::placeholder {
+   color: #8a85a3 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-search button {
+   color: #6b6785 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-search button:hover {
+   color: #8037f4 !important;
+   background: #f3f0ff !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-page .cv-history-sort {
+   background: #ffffff !important;
+   border: 1.5px solid #ddd3f5 !important;
+   box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08) !important;
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-page .cv-history-sort:hover {
+   border-color: #8037f4 !important;
+   color: #8037f4 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-page .cv-history-sort svg {
+   color: #8037f4 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-refresh {
+   background: #ffffff !important;
+   border: 1.5px solid #ddd3f5 !important;
+   box-shadow: 0 4px 20px -2px rgba(128, 55, 244, 0.08) !important;
+   color: #8037f4 !important;
+ }
+
+ :root[data-workspace-theme="light"] .cv-history-refresh:hover:not(:disabled) {
+   background: #f3f0ff !important;
+   border-color: #8037f4 !important;
+   color: #6d28d9 !important;
+   box-shadow: 0 6px 20px -2px rgba(128, 55, 244, 0.16) !important;
+ }
+
+ /* ── 12. Bookings & My Courses Header (/my-bookings, /my-courses) ── */
+ :root[data-workspace-theme="light"] .bookings-page .bookings-header h1,
+ :root[data-workspace-theme="light"] .my-courses-page .my-courses-header h1 {
+   color: #1a1b23 !important;
+ }
+
+ :root[data-workspace-theme="light"] .bookings-page .bookings-header p,
+ :root[data-workspace-theme="light"] .my-courses-page .my-courses-header p {
+   color: #5b5772 !important;
+ }
+
+ /* LP-23: năng lực gợi ý trong trình soạn lộ trình. */
+ :root[data-workspace-theme="light"] .lp-hint-text strong {
+   color: var(--mw-text);
+ }

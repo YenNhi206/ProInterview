@@ -145,10 +145,10 @@ export function AdminCompanies() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">
-            Quản lý Đối tác Doanh nghiệp
+          <h1 className="text-2xl font-black tracking-tight text-white [html[data-workspace-theme=light]_&]:text-slate-900">
+            Quản lý <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Đối tác Doanh nghiệp</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">
             Quản trị danh sách công ty, thiết lập tài khoản đại diện Company Moderator và theo dõi hoạt động tuyển dụng.
           </p>
         </div>

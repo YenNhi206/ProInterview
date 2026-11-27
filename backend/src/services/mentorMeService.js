@@ -3,6 +3,7 @@ import { Mentor } from "../models/Mentor.js";
 import { Notification } from "../models/Notification.js";
 import { Review } from "../models/Review.js";
 import { User } from "../models/User.js";
+import { sessionTypesForHourly } from "../utils/mentorPricing.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 
@@ -264,11 +265,15 @@ export async function applyForMentor(userId, body) {
     });
   } else {
     if (mentor.adminReview?.status === "approved") {
-      // Preserve approval/verification status when an approved mentor updates their profile
-      const { isVerified, adminReview, isActive, available, ...profileUpdate } = baseProfile;
+      // Mentor đã duyệt cập nhật hồ sơ: giữ trạng thái duyệt và giữ giá đang có hiệu lực.
+      // Đổi giá chỉ qua POST /api/mentor/request-price-change + admin duyệt.
+      const { isVerified, adminReview, isActive, available, pricePerHour, ...profileUpdate } = baseProfile;
       Object.assign(mentor, profileUpdate);
     } else {
+      // Hồ sơ chưa duyệt: giá mong muốn mới thay giá cũ, kể cả giá từng loại buổi,
+      // để lúc admin duyệt hồ sơ thì giá hiển thị và giá thu khớp nhau.
       Object.assign(mentor, baseProfile);
+      mentor.sessionTypes = sessionTypesForHourly(mentor.sessionTypes, baseProfile.pricePerHour);
     }
     if (!Array.isArray(mentor.sessionTypes) || mentor.sessionTypes.length === 0) {
       mentor.sessionTypes = [{ type: "mock_interview", durationMinutes: 60, price: baseProfile.pricePerHour }];
@@ -310,6 +315,7 @@ export function toPublicMentorMe(doc) {
     profileAwards: m.profileAwards ?? "",
     experienceYears: m.experienceYears ?? 0,
     pricePerHour: m.pricePerHour ?? 0,
+    pendingPricePerHour: m.pendingPricePerHour ?? null,
     sessionTypes: m.sessionTypes ?? [],
     available: m.available !== false,
     responseTime: m.responseTime ?? "",
@@ -355,22 +361,20 @@ export async function patchMyMentorProfile(userId, body) {
     const n = Number(body.experienceYears);
     if (Number.isFinite(n) && n >= 0) m.experienceYears = Math.round(n);
   }
-  if (body.pricePerHour != null) {
-    const n = Number(body.pricePerHour);
-    if (Number.isFinite(n) && n > 0) m.pricePerHour = Math.round(n);
-  }
+  // `pricePerHour` và giá trong `sessionTypes` KHÔNG sửa ở đây: đổi giá phải qua
+  // POST /api/mentor/request-price-change + admin duyệt (`approveMentorPrice`).
+  // Mentor vẫn đổi được loại buổi / thời lượng; giá mỗi loại tính lại từ giá đang có hiệu lực.
   if (Array.isArray(body.sessionTypes)) {
-    m.sessionTypes = body.sessionTypes
+    const types = body.sessionTypes
       .map((s) => {
         const dur = Math.round(Number(s?.durationMinutes));
-        const pr = Math.round(Number(s?.price));
         return {
           type: typeof s?.type === "string" ? s.type : undefined,
           durationMinutes: Number.isFinite(dur) && dur >= 15 && dur <= 480 ? dur : undefined,
-          price: Number.isFinite(pr) && pr > 0 ? pr : undefined,
         };
       })
       .filter((s) => s.type);
+    if (types.length) m.sessionTypes = sessionTypesForHourly(types, m.pricePerHour);
   }
   if (typeof body.available === "boolean") m.available = body.available;
   if (typeof body.responseTime === "string") m.responseTime = body.responseTime.trim();
