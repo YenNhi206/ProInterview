@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Timer,
   StickyNote as Notepad,
+  Notebook,
   CheckCircle,
   ChevronRight as CaretRight,
   Chrome as GoogleLogo,

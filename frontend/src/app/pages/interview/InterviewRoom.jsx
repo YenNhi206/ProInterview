@@ -1429,7 +1429,7 @@ export default function InterviewRoom() {
     return (
       <MentorPageShell>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4 text-center">
-          <AlertCircle className="h-12 w-12 text-violet-400" />
+          <WarningCircle className="h-12 w-12 text-violet-400" />
           <div>
             <h2 className="text-lg font-semibold text-violet-900 mb-2">Không thể tạo phiên phỏng vấn</h2>
             <p className="text-sm text-violet-600 max-w-sm">
