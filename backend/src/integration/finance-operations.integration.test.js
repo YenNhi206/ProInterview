@@ -229,3 +229,27 @@ it("logs Company Moderator actions separately with the company name", async () =
   const modLogs = await request(admin, "/api/admin/audit-log?actor=moderator&limit=200");
   assert.ok(!modLogs.entries.some((l) => String(l._id) === String(entry._id)));
 });
+
+it("mentor gửi yêu cầu rút tiền thì mọi admin đang hoạt động nhận thông báo; admin tự giải ngân thì không", async () => {
+  const f = await fixture();
+  await models.Mentor.updateOne({ _id: f.mentor._id }, { $set: { name: "Mentor Rút Tiền", "finance.availableBalance": 500000 } });
+  const lockedAdmin = await models.User.create({ name: "Admin khóa", email: `admin-locked-${f.mentor._id}@test.local`, role: "admin", isActive: false });
+  const countFor = (user) => models.Notification.countDocuments({ userId: user._id, type: "payout_requested" });
+  const before = await countFor(admin);
+
+  const r = await request(f.owner, "/api/mentor/payout", "POST", { amount: 200000 });
+  assert.equal(r.status, 201, r.error);
+  const notes = await models.Notification.find({ userId: admin._id, type: "payout_requested" }).sort({ createdAt: -1 }).lean();
+  assert.equal(notes.length, before + 1);
+  assert.equal(notes[0].title, "Có yêu cầu rút tiền mới");
+  assert.match(notes[0].body, /Mentor Rút Tiền/);
+  assert.match(notes[0].body, /200\.000₫/);
+  assert.equal(notes[0].metadata.actionUrl, "/admin/payouts");
+  assert.equal(String(notes[0].metadata.payoutRequestId), String(r.payout.id));
+  assert.equal(await countFor(lockedAdmin), 0);
+  assert.equal(await countFor(f.owner), 0);
+
+  const byAdmin = await request(admin, `/api/admin/mentors/${f.mentor._id}/payouts`, "POST", { amount: 100000, reason: "Giải ngân thay" });
+  assert.equal(byAdmin.status, 201);
+  assert.equal(await countFor(admin), before + 1);
+});

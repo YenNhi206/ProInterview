@@ -37,6 +37,9 @@ function booking(fields) {
     paymentStatus: "paid",
     vat: 0,
     paidAt: new Date(),
+    // Luồng thật ghi vào ví ngay khi buổi hoàn tất (tryCreditMentorForCompletedBooking).
+    mentorEarningsCreditedAt: new Date(),
+    earningsNetAmount: Math.max(0, Number(fields.totalAmount ?? 0) - Number(fields.platformFee ?? 0)),
     ...fields,
   });
 }

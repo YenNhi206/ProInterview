@@ -9,7 +9,9 @@ import { MentorPeerReview } from "../models/MentorPeerReview.js";
 import { User } from "../models/User.js";
 import { InterviewSession } from "../models/InterviewSession.js";
 import { MentorKnowledge } from "../models/MentorKnowledge.js";
-import { deliverNotification } from "./notificationDeliveryService.js";
+import { deliverNotification, notifyActiveAdmins } from "./notificationDeliveryService.js";
+import { EARNINGS_HOLD_DAYS } from "./mentorEarningsService.js";
+import { bookingIncomeRow, courseIncomeRow, summarizeIncome } from "./mentorFinanceHistory.js";
 import {
   mentorCommissionConfig,
   resolveBookingPlatformFeeRate,
@@ -91,6 +93,8 @@ function toPayoutHistoryRow(row) {
     transferRef: String(row.transferRef || ""),
     note: String(row.note || ""),
     providerRef: String(row.providerRef || ""),
+    bankName: String(row.payoutAccount?.bankName || ""),
+    accountMasked: maskAccountNumber(row.payoutAccount?.accountNumber || ""),
   };
 }
 
@@ -211,91 +215,55 @@ export async function getMentorFinance(userId) {
   const mentor = await getMentorByUserId(userId);
   if (!mentor?._id) return { ok: false, status: 404, error: "Không tìm thấy hồ sơ mentor." };
 
-  const completed = await Booking.find({
-    mentorId: mentor._id,
-    status: "completed",
-    paymentStatus: "paid",
-  })
-    .select("price totalAmount platformFee createdAt learningPathId sessionType")
-    .lean();
-  const bookingNet = (b) =>
-    Math.max(0, Math.round(Number(b.totalAmount ?? b.price ?? 0)) - Math.round(Number(b.platformFee || 0)));
-  // LP-16: buổi lộ trình (`learningPathId`) tách khỏi "đặt lịch" thường; buổi 0đ / học lại có net 0.
-  const isLearningPathBooking = (b) => Boolean(b.learningPathId);
-  const bookingIncomeTotal = completed.filter((b) => !isLearningPathBooking(b)).reduce((sum, b) => sum + bookingNet(b), 0);
-  const learningPathIncomeTotal = completed.filter(isLearningPathBooking).reduce((sum, b) => sum + bookingNet(b), 0);
-  const totalSessions = completed.length;
-
-  const mentorCourses = await Course.find({ mentorId: mentor._id }).select("_id").lean();
-  const mentorCourseIds = mentorCourses.map((c) => c._id);
-  const paidEnrollments =
-    mentorCourseIds.length > 0
-      ? await Enrollment.find({
-          courseId: { $in: mentorCourseIds },
-          paymentStatus: "paid",
-          pricePaid: { $gt: 0 },
-        })
-          .select("pricePaid platformFee platformFeeRate paidAt createdAt")
-          .lean()
-      : [];
-  const courseIncomeTotal = paidEnrollments.reduce((sum, row) => {
-    const gross = Math.round(Number(row.pricePaid || 0));
-    if (gross <= 0) return sum;
-    const explicitFee = Number(row.platformFee);
-    if (Number.isFinite(explicitFee) && explicitFee >= 0) {
-      return sum + Math.max(0, gross - Math.round(explicitFee));
-    }
-    const rateRaw = Number(row.platformFeeRate);
-    const rate = Number.isFinite(rateRaw) && rateRaw >= 0 && rateRaw <= 1 ? rateRaw : Number(process.env.COURSE_PLATFORM_FEE_RATE) || 0.35;
-    return sum + Math.max(0, gross - Math.round(gross * rate));
-  }, 0);
-  const computedTotalEarned = bookingIncomeTotal + learningPathIncomeTotal + courseIncomeTotal;
-
-  const payouts = await PayoutRequest.find({ mentorId: mentor._id })
-    .sort({ createdAt: -1 })
-    .limit(50)
-    .lean();
-  // Buổi 0đ (đánh giá đầu vào, học lại) không phải khoản thu → không hiện dòng 0đ trong lịch sử.
-  const incomeRows = completed
-    .filter((b) => bookingNet(b) > 0)
-    .slice(0, 50)
-    .map((b) => ({
-      id: String(b._id),
-      type: "income",
-      amount: bookingNet(b),
-      status: "completed",
-      date: b.createdAt,
-      description: isLearningPathBooking(b) ? "Thu từ buổi lộ trình" : "Thu từ booking",
-    }));
-  const courseIncomeRows = paidEnrollments.slice(0, 50).map((row) => {
-    const gross = Math.round(Number(row.pricePaid || 0));
-    const explicitFee = Number(row.platformFee);
-    const net = Number.isFinite(explicitFee) && explicitFee >= 0
-      ? Math.max(0, gross - Math.round(explicitFee))
-      : Math.max(
-          0,
-          gross -
-            Math.round(
-              gross *
-                (Number.isFinite(Number(row.platformFeeRate)) ? Number(row.platformFeeRate) : Number(process.env.COURSE_PLATFORM_FEE_RATE) || 0.35),
-            ),
-        );
-    return {
-      id: `enrollment-${String(row._id)}`,
-      type: "income",
-      amount: net,
-      status: "completed",
-      date: row.paidAt || row.createdAt,
-      description: "Thu từ khóa học",
-    };
-  });
-  const payoutRows = payouts.map(toPayoutHistoryRow);
-  const history = [...incomeRows, ...courseIncomeRows, ...payoutRows]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 100);
+  const now = new Date();
   const commissionCfg = mentorCommissionConfig();
   const bookingRateInfo = resolveBookingPlatformFeeRate(mentor);
   const courseRateInfo = resolveCoursePlatformFeeRate(mentor);
+
+  // Buổi đã hoàn tất + đã trả, và mọi buổi đã ghi vào ví (kể cả bị hoàn tiền sau đó) để lịch sử khớp sổ ví.
+  const bookings = await Booking.find({
+    mentorId: mentor._id,
+    $or: [{ status: "completed", paymentStatus: "paid" }, { mentorEarningsCreditedAt: { $ne: null } }],
+  })
+    .select(
+      "userId date timeSlot price totalAmount platformFee platformFeeRate status paymentStatus completedAt createdAt learningPathId sessionType mentorEarningsCreditedAt earningsNetAmount earningsClearAt earningsClearedAt",
+    )
+    .populate({ path: "userId", select: "name" })
+    .lean();
+  const totalSessions = bookings.filter((b) => b.status === "completed" && b.paymentStatus === "paid").length;
+
+  const mentorCourses = await Course.find({ mentorId: mentor._id }).select("_id").lean();
+  const mentorCourseIds = mentorCourses.map((c) => c._id);
+  const enrollments =
+    mentorCourseIds.length > 0
+      ? await Enrollment.find({
+          courseId: { $in: mentorCourseIds },
+          pricePaid: { $gt: 0 },
+          $or: [{ paymentStatus: "paid" }, { mentorEarningsCreditedAt: { $ne: null } }],
+        })
+          .select(
+            "courseId pricePaid platformFee platformFeeRate paymentStatus paidAt createdAt mentorEarningsCreditedAt earningsNetAmount earningsClearAt earningsClearedAt",
+          )
+          .populate({ path: "courseId", select: "title" })
+          .lean()
+      : [];
+
+  // Buổi 0đ (đánh giá đầu vào, học lại) không phải khoản thu → không hiện dòng 0đ trong lịch sử.
+  const incomeRows = [
+    ...bookings.map((b) => bookingIncomeRow(b, now)),
+    ...enrollments.map((e) => courseIncomeRow(e, now, courseRateInfo.rate)),
+  ].filter((r) => r.amount > 0 || r.grossAmount > 0);
+  const ledgerTotalEarned = Number(mentor.finance?.totalEarned || 0);
+  const { breakdown, reconciliation } = summarizeIncome(incomeRows, ledgerTotalEarned);
+
+  const payouts = await PayoutRequest.find({ mentorId: mentor._id })
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .lean();
+  const payoutRows = payouts.map(toPayoutHistoryRow);
+  const history = [...incomeRows, ...payoutRows]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 300);
   const bookingRate = bookingRateInfo.rate;
   const courseRate = courseRateInfo.rate;
   const earlyActive = isEarlyMentorRateActive(mentor);
@@ -307,14 +275,13 @@ export async function getMentorFinance(userId) {
     finance: {
       availableBalance: mentor.finance?.availableBalance ?? 0,
       clearingBalance: mentor.finance?.clearingBalance ?? 0,
-      holdDays: 3,
+      holdDays: EARNINGS_HOLD_DAYS,
       pendingBalance: mentor.finance?.pendingBalance ?? 0,
-      totalEarned: (mentor.finance?.totalEarned > 0 ? mentor.finance.totalEarned : null) ?? computedTotalEarned,
-      incomeBreakdown: {
-        booking: bookingIncomeTotal,
-        learningPath: learningPathIncomeTotal,
-        course: courseIncomeTotal,
-      },
+      // Số trong ví (sổ ghi có), không tính lại. Lệch với tổng các giao dịch thì `reconciliation.difference` ≠ 0.
+      totalEarned: ledgerTotalEarned,
+      // Chỉ cộng khoản đã ghi vào ví; khoản chưa ghi nằm ở `reconciliation.notCreditedTotal`.
+      incomeBreakdown: breakdown,
+      reconciliation,
       payoutAccount: normalizePayoutAccount(mentor.finance?.bankAccount || {}),
       payoutAccountMasked: maskAccountNumber(mentor.finance?.bankAccount?.accountNumber || ""),
       payoutAccountOwnerName: sanitizeText(mentor.finance?.bankAccount?.accountName || mentor.name || ""),
@@ -1005,6 +972,19 @@ export async function requestPayout(userId, body) {
     body: `Yêu cầu ${roundedAmount.toLocaleString("vi-VN")}₫ đang chờ admin duyệt.`,
     metadata: { actionUrl: "/mentor/finance" },
   });
+
+  // Báo admin có yêu cầu rút tiền mới; lỗi gửi thông báo không làm hỏng yêu cầu đã tạo.
+  try {
+    const mentorName = String(mentor.name || "").trim() || "Một cố vấn";
+    await notifyActiveAdmins({
+      type: "payout_requested",
+      title: "Có yêu cầu rút tiền mới",
+      body: `${mentorName} yêu cầu rút ${roundedAmount.toLocaleString("vi-VN")}₫, đang chờ duyệt.`,
+      metadata: { mentorId: mentor._id, payoutRequestId: payout._id, actionUrl: "/admin/payouts" },
+    });
+  } catch {
+    /* không chặn yêu cầu rút tiền nếu báo admin lỗi */
+  }
 
   return {
     ok: true,
