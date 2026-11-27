@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { NavUserAvatar } from "./NavUserAvatar.jsx";
 import {
   FileText,
   Mic,
