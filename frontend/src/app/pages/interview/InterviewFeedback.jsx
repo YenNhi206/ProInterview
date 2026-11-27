@@ -35,7 +35,13 @@ import { SHRM_NO_DATA_LABEL, effectiveEvaluation, reportableTargets, shrmLevelCo
 import { CourseRecommendations } from "../../components/courses/CourseRecommendations";
 import { BehavioralRadarChart, behaviorScoreColor, emotionLabel } from "../../components/interview/BehavioralRadarChart";
 import { getPlans } from "../../utils/auth/auth.js";
-import { evaluateInterviewSession } from "../../api/interviewsApi.js";
+import { evaluateInterviewSession, getInterviewSession } from "../../api/interviewsApi.js";
+import {
+  questionObjectsFromSession,
+  resolveFeedbackSessionId,
+  tabDataBelongsTo,
+  transcriptsFromSession,
+} from "../../utils/interview/feedbackSession.js";
 import { CUSTOMER_SHELL_GUTTER } from "../../components/layout/customerShellLayout";
 
 const IS = { strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" };
@@ -311,8 +317,19 @@ export function InterviewFeedback() {
   const plans = getPlans();
   const isPro = plans.starterPro || plans.elitePro;
 
+  // Buổi cần hiện: `?sessionId=` (link từ thông báo kiểm định) trước, rồi state, rồi buổi gần nhất của tab.
+  // sessionStorage chỉ giữ câu hỏi / transcript của buổi gần nhất trong tab: buổi khác thì tải từ server.
+  const [storedSessionId] = useState(() => sessionStorage.getItem("prointerview_sessionId"));
+  const sessionId = resolveFeedbackSessionId({
+    search: location.search,
+    stateSessionId: location.state?.sessionId,
+    storedSessionId,
+  });
+  const useTabData = tabDataBelongsTo(sessionId, storedSessionId);
+
   // Read transcripts recorded in InterviewRoom
-  const [transcripts] = useState(() => {
+  const [transcripts, setTranscripts] = useState(() => {
+    if (!useTabData) return [];
     try {
       const raw = sessionStorage.getItem("prointerview_transcripts");
       if (raw) return JSON.parse(raw);
@@ -321,7 +338,8 @@ export function InterviewFeedback() {
   });
 
   // Read question objects (for question text mapping)
-  const [questionObjects] = useState(() => {
+  const [questionObjects, setQuestionObjects] = useState(() => {
+    if (!useTabData) return null;
     try {
       const raw = sessionStorage.getItem("prointerview_question_objects");
       if (raw) return JSON.parse(raw);
@@ -342,9 +360,6 @@ export function InterviewFeedback() {
   /** Câu đang mở hộp thoại "Báo sai" (index trong realFeedback), null = đóng. */
   const [reportingIdx,         setReportingIdx]         = useState(null);
 
-  const sessionId = location.state?.sessionId
-    ?? sessionStorage.getItem("prointerview_sessionId");
-
   /** Gửi báo sai xong → câu đó hiện "Đang chờ kiểm định" ngay, không cần tải lại. */
   const markReported = (idx, targetType) => {
     setRealFeedback((prev) => prev?.map((q, i) => {
@@ -361,25 +376,53 @@ export function InterviewFeedback() {
 
     setEvaluating(true);
     setEvalError(null);
+    setRealFeedback(null); // đổi buổi (bấm thông báo khác khi đang ở trang này) thì không giữ điểm buổi cũ
 
-    const answers = transcripts.map((t, i) => ({
-      questionIndex: i,
-      transcript: t || "",
-      questionText: questionObjects?.[i]?.question || `Câu hỏi ${i + 1}`,
-    }));
+    // Buổi không phải của tab (mở từ thông báo): lấy câu hỏi + transcript của đúng buổi đó từ server, và KHÔNG gửi
+    // transcript của tab làm dữ liệu dự phòng khi chấm — server tự dùng câu trả lời đã lưu của buổi.
+    const readTab = (key, fallback) => {
+      try {
+        const raw = sessionStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_) {
+        return fallback;
+      }
+    };
+    const loadSession = useTabData
+      ? Promise.resolve().then(() => {
+          const qObjs = readTab("prointerview_question_objects", null);
+          const tabTranscripts = readTab("prointerview_transcripts", []);
+          setQuestionObjects(qObjs);
+          setTranscripts(tabTranscripts);
+          return { questionObjects: qObjs, answers: tabTranscripts, questions: qObjs };
+        })
+      : getInterviewSession(sessionId).then((r) => {
+          if (!r.success) throw new Error(r.error || "Không tìm thấy phiên phỏng vấn.");
+          const qObjs = questionObjectsFromSession(r.session);
+          setQuestionObjects(qObjs);
+          setTranscripts(transcriptsFromSession(r.session));
+          return { questionObjects: qObjs, answers: [], questions: null };
+        });
 
-    const questionsPayload = questionObjects
-      ? questionObjects.map(q => ({
-          question:       q.question,
-          layer:          q.layer,
-          competencyName: q.competencyName,
-          ddiKeyActionTargeted: q.ddiKeyActionTargeted,
-          shrmRubricExcellent:  q.shrmRubricExcellent,
-        }))
-      : [];
-
-    evaluateInterviewSession(sessionId, answers, questionsPayload)
-      .then(res => {
+    loadSession
+      .then(({ questionObjects: qObjs, answers: tabTranscripts, questions }) => {
+        const answers = tabTranscripts.map((t, i) => ({
+          questionIndex: i,
+          transcript: t || "",
+          questionText: qObjs?.[i]?.question || `Câu hỏi ${i + 1}`,
+        }));
+        const questionsPayload = questions
+          ? questions.map(q => ({
+              question:       q.question,
+              layer:          q.layer,
+              competencyName: q.competencyName,
+              ddiKeyActionTargeted: q.ddiKeyActionTargeted,
+              shrmRubricExcellent:  q.shrmRubricExcellent,
+            }))
+          : [];
+        return evaluateInterviewSession(sessionId, answers, questionsPayload).then((res) => ({ res, qObjs }));
+      })
+      .then(({ res, qObjs: questionObjects }) => {
         if (!res.success || !res.evaluation?.perQuestion?.length) {
           setEvalError(res.error || "AI chưa trả về kết quả đánh giá. Vui lòng thử lại.");
           return;
@@ -408,12 +451,14 @@ export function InterviewFeedback() {
         if (res.behavioralSummary) setBehavioralSummary(res.behavioralSummary);
         if (res.behavioralPerQuestion?.length) setBehavioralPerQuestion(res.behavioralPerQuestion);
       })
-      .catch(() => {
-        setEvalError("Không kết nối được máy chủ. Kiểm tra mạng và thử lại.");
+      .catch((err) => {
+        setEvalError(useTabData
+          ? "Không kết nối được máy chủ. Kiểm tra mạng và thử lại."
+          : (err?.message || "Không tìm thấy phiên phỏng vấn."));
       })
       .finally(() => setEvaluating(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [retryKey]);
+  }, [retryKey, sessionId]);
 
   // Auto-expand câu điểm thấp nhất khi real feedback load xong
   useEffect(() => {
