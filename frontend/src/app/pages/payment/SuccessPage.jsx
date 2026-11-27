@@ -1,99 +1,131 @@
 import React from "react";
 import { Link, useLocation } from "react-router";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
+import { useWorkspaceTheme } from "../../hooks/useWorkspaceTheme.js";
 
-const DEFAULT_SUBTITLE =
-  "Gói dịch vụ ProInterview của bạn đã được kích hoạt thành công.";
+const DEFAULT_SUBTITLE = "Gói dịch vụ ProInterview của bạn đã được kích hoạt.";
 
-/** Trang thành công, VNPay (`PaymentReturn`) hoặc CK (Checkout → state). */
+/**
+ * Trang thanh toán thành công: chuyển khoản (Checkout → state `flow: "transfer"`) hoặc VNPay (`PaymentReturn`).
+ * State: { flow, nextPath, subtitle, primaryCta, details: { amount, orderId, transNo, date } }.
+ * Giao diện theo docs/UI_STYLE_GUIDE.md; trang toàn màn hình (không có MentorPageShell) nên tự viết màu sáng / tối.
+ */
 export function SuccessPage() {
   const { state } = useLocation();
+  const light = useWorkspaceTheme(true).resolved === "light";
   const details = state?.details || {};
   const nextPath = state?.nextPath;
   const subtitle = state?.subtitle || DEFAULT_SUBTITLE;
-  const primaryCta = state?.primaryCta || (nextPath ? "Tiếp tục" : "Về trang chủ");
   const isTransfer = state?.flow === "transfer";
+  const primaryTo = nextPath || "/";
+  const primaryLabel = nextPath ? state?.primaryCta || "Tiếp tục" : "Về trang chủ";
+  const secondaryTo = nextPath ? "/" : "/pricing";
+  const secondaryLabel = nextPath ? "Về trang chủ" : "Xem bảng giá";
+
+  const rows = [
+    details.orderId && { label: isTransfer ? "Mã chuyển khoản" : "Mã đơn hàng", value: details.orderId, mono: true },
+    details.transNo && { label: "Mã giao dịch", value: details.transNo, mono: true },
+    details.date && { label: "Thời gian", value: details.date },
+  ].filter(Boolean);
+
+  const c = light
+    ? {
+        page: "bg-[#efebfa]",
+        panel: "border-[#ddd3f5] bg-white shadow-sm",
+        title: "text-[#23252f]",
+        body: "text-[#5b5772]",
+        icon: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        box: "border-[#ddd3f5] bg-[#f6f3fc]",
+        divider: "border-[#ddd3f5]",
+        label: "text-[#5b5772]",
+        value: "text-[#23252f]",
+        amount: "text-[#6d28d9]",
+        primary: "border-[#7fd925]",
+        secondary: "border-[#ddd3f5] bg-white text-[#23252f] hover:bg-[#efe9fc]",
+        focus: "focus-visible:outline-[#6d28d9]",
+      }
+    : {
+        page: "bg-[#120b2e]",
+        panel: "border-white/10 bg-[#18113c]/80 backdrop-blur-xl",
+        title: "text-white",
+        body: "text-slate-300",
+        icon: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+        badge: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+        box: "border-white/10 bg-white/[0.03]",
+        divider: "border-white/10",
+        label: "text-slate-400",
+        value: "text-white",
+        amount: "text-[#93f72b]",
+        primary: "border-[#b8ff78]",
+        secondary: "border-white/15 bg-white/5 text-white hover:border-violet-400/60 hover:bg-white/10",
+        focus: "focus-visible:outline-[#93f72b]",
+      };
+
+  const btn = `inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border px-6 text-base font-black transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-auto ${c.focus}`;
 
   return (
-    <div className="min-h-screen bg-[#07060E] text-white flex items-center justify-center p-6 overflow-hidden antialiased">
-      <div className="absolute top-[-10%] right-[-10%] h-[60vh] w-[60vh] rounded-full bg-emerald-500/10 blur-[120px]" />
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 w-full max-w-lg glass-card p-10 md:p-12 text-center"
+    <main className={`flex min-h-screen items-center justify-center px-4 py-10 antialiased ${c.page}`}>
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        aria-labelledby="payment-success-title"
+        className={`w-full max-w-md rounded-[24px] border p-6 text-center sm:p-8 ${c.panel}`}
       >
-        <div className="relative inline-block mb-10">
-          <div className="w-24 h-24 bg-emerald-500/20 rounded-[32px] flex items-center justify-center border border-emerald-500/30">
-            <CheckCircle2 className="w-12 h-12 text-emerald-400" />
-          </div>
-        </div>
+        <span className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full border ${c.icon}`}>
+          <Check size={32} strokeWidth={2.5} aria-hidden />
+        </span>
 
-        <h1 className="text-3xl md:text-4xl font-black tracking-tighter mb-4 bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent uppercase">
-          {isTransfer ? "Thanh toán thành công!" : "Giao dịch thành công!"}
+        <span className={`mt-5 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${c.badge}`}>
+          <ShieldCheck size={14} aria-hidden />
+          {isTransfer ? "Đã nhận chuyển khoản" : "Giao dịch đã xác nhận"}
+        </span>
+
+        <h1 id="payment-success-title" className={`font-headline mt-3 text-2xl font-black sm:text-3xl ${c.title}`}>
+          Thanh toán thành công
         </h1>
-        <p className="text-white/40 mb-10 text-[11px] font-bold uppercase tracking-widest leading-relaxed">
-          {subtitle}
-        </p>
+        <p className={`mx-auto mt-2 max-w-sm text-base font-medium leading-relaxed ${c.body}`}>{subtitle}</p>
 
-        {details.orderId && (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-6 text-left mb-10 overflow-hidden relative">
-            <div className="space-y-4">
-              <div className="flex justify-between items-end border-b border-white/[0.05] pb-3">
-                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Số tiền</span>
-                <span className="text-xl font-black text-[#93f72b]">{details.amount}</span>
+        {(details.amount || rows.length > 0) && (
+          <dl className={`mt-6 rounded-[16px] border p-4 text-left ${c.box}`}>
+            {details.amount && (
+              <div className={`flex items-baseline justify-between gap-3 ${rows.length ? `border-b pb-3 ${c.divider}` : ""}`}>
+                <dt className={`text-xs font-semibold ${c.label}`}>Số tiền</dt>
+                <dd className={`text-2xl font-black tabular-nums ${c.amount}`}>{details.amount}</dd>
               </div>
-              <div className="flex justify-between items-center text-[10px]">
-                <span className="text-white/30 font-black uppercase tracking-widest">
-                  {isTransfer ? "Mã chuyển khoản" : "Mã đơn hàng"}
-                </span>
-                <span className="font-mono font-bold text-white/80">{details.orderId}</span>
+            )}
+            {rows.length > 0 && (
+              <div className={`space-y-2 ${details.amount ? "pt-3" : ""}`}>
+                {rows.map((r) => (
+                  <div key={r.label} className="flex items-center justify-between gap-3">
+                    <dt className={`text-xs font-semibold ${c.label}`}>{r.label}</dt>
+                    <dd className={`min-w-0 break-words text-right text-sm font-bold tabular-nums ${r.mono ? "font-mono" : ""} ${c.value}`}>
+                      {r.value}
+                    </dd>
+                  </div>
+                ))}
               </div>
-              {details.transNo && (
-                <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-white/30 font-black uppercase tracking-widest">Mã giao dịch</span>
-                  <span className="font-mono text-white/80">{details.transNo}</span>
-                </div>
-              )}
-              {details.date && (
-                <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-white/30 font-black uppercase tracking-widest">Thời gian</span>
-                  <span className="text-white/80">{details.date}</span>
-                </div>
-              )}
-            </div>
-          </div>
+            )}
+          </dl>
         )}
 
-        <div className="flex flex-col gap-4">
-          {nextPath ? (
-            <Link
-              to={nextPath}
-              className="h-16 bg-[#93f72b] text-black rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_12px_45px_rgba(196,255,71,0.25)]"
-            >
-              {primaryCta} <ArrowRight size={18} />
-            </Link>
-          ) : (
-            <Link
-              to="/"
-              className="h-16 bg-[#93f72b] text-black rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_12px_45px_rgba(196,255,71,0.25)]"
-            >
-              Về trang chủ <ArrowRight size={18} />
-            </Link>
-          )}
+        {/* Điện thoại: nút chính ở trên; máy tính: nút phụ trái, nút chính phải (UI_STYLE_GUIDE 7.4). */}
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
+          <Link to={secondaryTo} data-button-surface="none" className={`${btn} ${c.secondary}`}>
+            {secondaryLabel}
+          </Link>
           <Link
-            to={nextPath ? "/" : "/pricing"}
-            className="h-16 bg-white/5 text-white/30 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] hover:text-white hover:bg-white/10 transition-all"
+            to={primaryTo}
+            data-button-surface="none"
+            className={`${btn} bg-[#93f72b] text-[#131f00] hover:bg-[#a8ff4e] ${c.primary}`}
           >
-            {nextPath ? "Về trang chủ" : "Xem bảng giá"}
+            {primaryLabel}
+            <ArrowRight size={18} aria-hidden />
           </Link>
         </div>
-      </motion.div>
-      <style>{`
-        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(40px); border-radius: 40px; border: 1px solid rgba(255,255,255,0.08); }
-        .bg-primary-fixed { background-color: #93f72b; }
-      `}</style>
-    </div>
+      </motion.section>
+    </main>
   );
 }
