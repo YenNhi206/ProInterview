@@ -108,6 +108,12 @@ export function MentorshipRequests() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sessionFilter, setSessionFilter] = useState("all");
 
+  // Link từ trang lộ trình (`#buoi-danh-gia`): cuộn tới khung buổi đánh giá 0đ sau khi tải xong yêu cầu.
+  useEffect(() => {
+    if (!request || location.hash !== "#buoi-danh-gia") return;
+    document.getElementById("buoi-danh-gia")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [request, location.hash]);
+
   useEffect(() => {
     if (confirmation && confirmationRef.current && !confirmationRef.current.open) {
       confirmationRef.current.showModal();
@@ -864,8 +870,8 @@ export function MentorshipRequests() {
 
             {/* Sidebar */}
             <aside className="mr-detail-sidebar" aria-label="Thông tin và tài liệu của nhu cầu">
-              {CHOSEN_STATUSES.includes(request.status) && chosen && (request.assessment || canScheduleAssessment) && (
-                <section className="mr-panel mr-detail-assessment">
+              {CHOSEN_STATUSES.includes(request.status) && chosen && (request.assessment || canScheduleAssessment || !mentor || request.canDownload) && (
+                <section className="mr-panel mr-detail-assessment" id="buoi-danh-gia">
                   <div className="mr-detail-section-label">
                     <ClipboardCheck size={17} className="text-[#93f72b]" />
                     <h2 className="text-sm font-bold text-white">Buổi đánh giá 0đ</h2>
@@ -898,6 +904,14 @@ export function MentorshipRequests() {
                         </p>
                       )}
                     </div>
+                  )}
+                  {/* Mentee: buổi 0đ do mentor hẹn; không có bước tự đặt và trả tiền. */}
+                  {!mentor && ["selected", "assessing"].includes(request.status) && assessmentClosed(request.assessment) && (
+                    <p className="mr-muted text-xs">
+                      {request.assessment
+                        ? "Buổi đánh giá trước không diễn ra. Mentor sẽ hẹn lại một buổi miễn phí, bạn sẽ nhận thông báo khi có lịch."
+                        : "Mentor sẽ hẹn một buổi đánh giá đầu vào miễn phí (0đ) để hai bên xem có phù hợp không. Bạn sẽ nhận thông báo khi có lịch; sau buổi này mentor mới đề xuất lộ trình."}
+                    </p>
                   )}
                   {canScheduleAssessment && (
                     <form className="mr-assessment-form mt-3" onSubmit={submitAssessment}>
@@ -986,18 +1000,12 @@ export function MentorshipRequests() {
                     >
                       Xem lịch hẹn <ArrowRight size={16} />
                     </Link>
-                  ) : !mentor ? (
-                    <>
-                      <p className="mr-muted">Chọn giờ phù hợp và xác nhận phí để hoàn tất đặt lịch.</p>
-                      <Link
-                        className="mr-primary"
-                        to={`/booking/${chosen.mentorPublicId}?mentorshipRequestId=${request.id}`}
-                      >
-                        Chọn lịch và thanh toán <ArrowRight size={16} />
-                      </Link>
-                    </>
                   ) : (
-                    <p className="mr-muted">Đang chờ mentee chọn giờ và hoàn tất đặt lịch hẹn.</p>
+                    <p className="mr-muted">
+                      {mentor
+                        ? "Bước tiếp theo: hẹn buổi đánh giá 0đ với mentee, sau đó soạn lộ trình."
+                        : "Bước tiếp theo: buổi đánh giá 0đ do mentor hẹn, sau đó mentor gửi lộ trình để bạn xem và thanh toán trọn gói."}
+                    </p>
                   )}
                 </section>
               )}

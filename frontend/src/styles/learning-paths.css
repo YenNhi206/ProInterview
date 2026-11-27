@@ -19,6 +19,8 @@
 .lp-ready-card h3 { font-size: 14px !important; font-weight: 550 !important; color: #f1e8fb; overflow-wrap: anywhere; }
 .lp-ready-card p { font-size: 11px; color: var(--lp-muted); }
 .lp-ready-card .mr-primary { align-self: flex-start; margin-top: 4px; }
+.lp-ready-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.lp-ready-actions .mr-primary, .lp-ready-actions .mr-secondary { margin-top: 0; display: inline-flex; align-items: center; gap: 6px; }
 .lp-ready-assess { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #c9b6de; }
 .lp-ready-assess svg { flex-shrink: 0; }
 .lp-ready-assess.is-done { color: #b9ee8c; }
@@ -118,6 +120,7 @@
 .lp-profile-need { margin-top: 12px; font-size: 12px; line-height: 1.85; color: #d1c2e0; white-space: pre-wrap; overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
 .lp-profile-link { margin-top: 12px; }
+.mr-primary.lp-profile-link { display: inline-flex; align-items: center; justify-content: center; width: 100%; }
 
 .lp-send { display: flex; flex-direction: column; gap: 14px; }
 .lp-send .mr-detail-section-label { color: #93f72b; }

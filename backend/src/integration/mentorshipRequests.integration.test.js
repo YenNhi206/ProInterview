@@ -41,6 +41,14 @@ before(async () => {
 after(async () => { if (server) await stopHttpServer(server); if (harness) await stopMongoHarness(harness); });
 const headers = user => ({ Authorization: `Bearer ${mintAccessToken(user._id)}` });
 describe("Mentorship requests: ownership, privacy and selection", () => {
+  it("báo mentor được chọn để hẹn buổi đánh giá 0đ", async () => {
+    const { Notification } = await import("../models/Notification.js");
+    const request = await selectedRequest();
+    const note = await Notification.findOne({ userId: mentors[0].user._id, title: "Bạn được chọn làm mentor" }).lean();
+    assert.ok(note);
+    assert.match(note.body, /đánh giá đầu vào 0đ/);
+    assert.equal(note.metadata.actionUrl, `/mentor/requests/${request._id}`);
+  });
   it("requires authentication and creates a real request with private multipart CV/JD", async () => {
     let res = await fetch(`${baseUrl}/api/mentorship-requests`);
     assert.equal(res.status, 401);

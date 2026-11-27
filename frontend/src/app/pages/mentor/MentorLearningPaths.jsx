@@ -93,6 +93,8 @@ export function MentorLearningPaths() {
               <div className="lp-ready-list">
                 {requests.map((r) => {
                   const done = r.assessment?.status === "completed";
+                  // Chưa có buổi 0đ (hoặc buổi trước bị hủy / vắng): bước đầu tiên là hẹn buổi 0đ.
+                  const needsAssessment = !r.assessment || ["cancelled", "no_show"].includes(r.assessment.status);
                   return (
                     <article className="lp-ready-card" key={r.id}>
                       <h3>{r.title}</h3>
@@ -101,9 +103,16 @@ export function MentorLearningPaths() {
                         {done ? <CalendarCheck2 size={14} /> : <CircleDashed size={14} />}
                         {done ? "Đã xong buổi đánh giá 0đ" : r.assessment ? `Buổi 0đ: ${r.assessment.timeSlot} · ${r.assessment.date}` : "Chưa hẹn buổi đánh giá 0đ"}
                       </span>
-                      <Link className="mr-primary" to={`/mentor/learning-paths/new?requestId=${r.id}`}>
-                        Soạn lộ trình <ArrowRight size={15} />
-                      </Link>
+                      <div className="lp-ready-actions">
+                        {needsAssessment && (
+                          <Link className="mr-primary" to={`/mentor/requests/${r.id}#buoi-danh-gia`}>
+                            Hẹn buổi đánh giá 0đ <ArrowRight size={15} />
+                          </Link>
+                        )}
+                        <Link className={needsAssessment ? "mr-secondary" : "mr-primary"} to={`/mentor/learning-paths/new?requestId=${r.id}`}>
+                          Soạn lộ trình <ArrowRight size={15} />
+                        </Link>
+                      </div>
                     </article>
                   );
                 })}
