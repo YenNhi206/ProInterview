@@ -7,7 +7,7 @@ import { PayoutRequest } from "../models/PayoutRequest.js";
 import { resolveCoursePlatformFeeRate } from "./mentorCommissionService.js";
 import { runInTransaction, supportsTransactions } from "../helpers/dbHelper.js";
 
-export const EARNINGS_HOLD_DAYS = 3;
+export const EARNINGS_HOLD_DAYS = 7;
 function clearAt(from) { return new Date(new Date(from || Date.now()).getTime() + EARNINGS_HOLD_DAYS * 86400000); }
 
 function parseFeeRate(envVal, fallback) {

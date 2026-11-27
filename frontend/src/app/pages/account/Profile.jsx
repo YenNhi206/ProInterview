@@ -408,7 +408,6 @@ export function Profile() {
         fields: splitCsv(cvProfile.fields),
         linkedinUrl: cvProfile.linkedinProfile,
         portfolioUrl: cvProfile.portfolioLink,
-        pricePerHour: cvProfile.targetRate,
         responseTime: cvProfile.responseTime,
         timezone: cvProfile.timezone,
       });
@@ -1147,31 +1146,34 @@ export function Profile() {
                     >
                       <div className="space-y-4">
                         <div>
-                          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
-                            Mức giá tư vấn (VNĐ / 60 phút)
+                          <label htmlFor="mentor-current-price" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Mức giá tư vấn đang áp dụng (VNĐ / 60 phút)
                           </label>
                           <div className="relative max-w-sm">
                             <input
+                              id="mentor-current-price"
                               type="text"
-                              inputMode="numeric"
-                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 pr-16 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
-                              placeholder="VD: 300.000"
+                              readOnly
+                              aria-describedby="mentor-price-hint"
+                              className="w-full cursor-not-allowed rounded-xl border border-white/12 bg-[#0b0820]/60 px-4 py-3 pr-16 text-sm font-medium text-slate-300"
                               value={
-                                cvProfile.targetRate
-                                  ? Number(cvProfile.targetRate).toLocaleString("vi-VN")
+                                mentorProfile?.pricePerHour
+                                  ? Number(mentorProfile.pricePerHour).toLocaleString("vi-VN")
                                   : ""
-                              }
-                              onChange={(e) =>
-                                setCvProfile({
-                                  ...cvProfile,
-                                  targetRate: e.target.value.replace(/\D/g, ""),
-                                })
                               }
                             />
                             <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-violet-300">
                               VNĐ
                             </span>
                           </div>
+                          <p id="mentor-price-hint" className="mt-1.5 text-[11px] text-slate-400">
+                            {mentorProfile?.pendingPricePerHour
+                              ? `Đang chờ Admin duyệt giá mới ${Number(mentorProfile.pendingPricePerHour).toLocaleString("vi-VN")} VNĐ. `
+                              : "Đổi giá cần Admin duyệt. "}
+                            <Link to="/mentor/finance" className="font-semibold text-violet-300 underline underline-offset-2 hover:text-violet-200">
+                              Gửi yêu cầu đổi giá ở trang Tài chính
+                            </Link>
+                          </p>
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2">
@@ -1268,7 +1270,7 @@ export function Profile() {
                                 </span>
                               </div>
                               <p className="mt-1.5 text-[11px] text-slate-400">
-                                Bạn có thể điều chỉnh mức thù lao bất cứ lúc nào sau khi hồ sơ được ban quản trị xét duyệt.
+                                Sau khi hồ sơ được duyệt, đổi giá bằng yêu cầu ở trang Tài chính và chờ Admin duyệt.
                               </p>
                             </div>
                           </motion.div>
