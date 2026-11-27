@@ -133,7 +133,8 @@ export function getAIResponse(
   const input = userInput.trim();
   const lower = input.toLowerCase();
 
-  const stay = (text) => ({ text, advanceTo, isEnd: false });
+  // Ở lại câu hiện tại (chưa trả lời đạt).
+  const stay = (text) => ({ text, advanceTo: currentQ, isEnd: false });
 
   // ── 1. Hard banned language ────────────────────────────────────────────────
   if (BANNED_PATTERNS.some((p) => p.test(input))) {
