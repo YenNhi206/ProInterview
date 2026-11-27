@@ -50,6 +50,16 @@ export function isSafeHttpUrl(url) {
   }
 }
 
+/**
+ * Link file CV mở được: http(s), hoặc đường dẫn nội bộ `/uploads/...` (file lưu trên backend;
+ * Vercel chuyển tiếp `/uploads/*` sang backend). Chặn `//host`, `..` và giá trị lạ.
+ */
+export function isSafeFileUrl(url) {
+  const raw = String(url ?? "").trim();
+  if (/^\/uploads\/[A-Za-z0-9._-]+$/.test(raw)) return true;
+  return isSafeHttpUrl(raw);
+}
+
 const text = (v) => String(v ?? "").trim();
 
 /**
@@ -67,7 +77,7 @@ export function cvSections(cv) {
     title: text(cv.title) || "CV",
     targetRole: text(cv.targetRole),
     fileName: text(cv.fileName),
-    fileUrl: isSafeHttpUrl(cv.fileUrl) ? text(cv.fileUrl) : "",
+    fileUrl: isSafeFileUrl(cv.fileUrl) ? text(cv.fileUrl) : "",
     summary: text(c.summary),
     skills,
     experiences: (c.experiences || [])

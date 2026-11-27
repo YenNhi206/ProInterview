@@ -6,6 +6,8 @@ import { CandidateProfile } from "../models/CandidateProfile.js";
 import { resolveStoredUploadUrl } from "../utils/resolveStoredUploadUrl.js";
 import { validateCvFile } from "./cvValidator.js";
 import { httpError } from "../utils/apiErrors.js";
+import { uploadToCloudinary } from "../utils/cloudinaryUpload.js";
+import { logger } from "../config/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOAD_ROOT = path.resolve(__dirname, "../../public/uploads");
@@ -75,18 +77,36 @@ export async function createCv(userId, data = {}, file = null) {
       size: file.size,
     });
 
-    await ensureUploadDir();
     const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
     const uniqueKey = `cv_${Date.now()}_${safeName}`;
-    const targetPath = path.join(UPLOAD_ROOT, uniqueKey);
 
+    // Ổ đĩa Render bị xóa mỗi lần khởi động lại / deploy → file CV phải lên Cloudinary để công ty
+    // (đơn ứng tuyển), best-fit và tách nội dung còn đọc được. Chưa cấu hình (dev) thì ghi đĩa như cũ.
+    let cdn = null;
     if (file.buffer) {
-      await fs.writeFile(targetPath, file.buffer);
+      try {
+        cdn = await uploadToCloudinary(file.buffer, {
+          folder: "prointerview/cv",
+          resource_type: "raw",
+          public_id: uniqueKey,
+          use_filename: false,
+          overwrite: false,
+        });
+      } catch (err) {
+        logger.error("cv_upload_cloudinary_failed", { userId: String(userId), error: err?.message });
+      }
+    }
+
+    if (cdn?.url) {
+      fileUrl = cdn.url;
+    } else {
+      await ensureUploadDir();
+      if (file.buffer) await fs.writeFile(path.join(UPLOAD_ROOT, uniqueKey), file.buffer);
+      fileUrl = `/uploads/${uniqueKey}`;
     }
 
     fileName = file.originalname;
     fileKey = uniqueKey;
-    fileUrl = `/uploads/${uniqueKey}`;
     fileSize = file.size || (file.buffer ? file.buffer.length : 0);
     mimeType = file.mimetype || "application/pdf";
   }

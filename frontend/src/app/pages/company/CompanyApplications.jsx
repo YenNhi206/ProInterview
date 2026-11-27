@@ -250,6 +250,13 @@ function CvSection({ cv }) {
       ) : null}
     >
       <div className="space-y-4 text-xs text-slate-300">
+        {!data.summary && !data.skills.length && !data.experiences.length && !data.projects.length && !data.educations.length && (
+          <Empty>
+            {data.fileUrl
+              ? `CV được nộp dưới dạng tệp${data.fileName ? ` (${data.fileName})` : ""}. Bấm "Mở file CV" để xem.`
+              : "Đơn này không còn tệp CV đính kèm và CV chưa có nội dung soạn trên hệ thống."}
+          </Empty>
+        )}
         {data.targetRole && <p><span className="text-slate-500">Vị trí mong muốn:</span> {data.targetRole}</p>}
         {data.summary && <p className="whitespace-pre-line leading-relaxed">{data.summary}</p>}
         {data.skills.length > 0 && (

@@ -32,6 +32,7 @@ import { companyMetricsSnapshot } from "./companyMetricsService.js";
 import { deliverNotification } from "./notificationDeliveryService.js";
 import { httpError } from "../utils/apiErrors.js";
 import { logger } from "../config/logger.js";
+import { resolveStoredUploadUrl } from "../utils/resolveStoredUploadUrl.js";
 
 export const APPLICATION_NOTE_MAX = 1000;
 export const COMPANY_APPLICATIONS_PAGE_MAX = 50;
@@ -266,12 +267,18 @@ function companyListItemDTO(app) {
   };
 }
 
+/** Đường dẫn file CV trong snapshot: `/uploads/...` (lưu đĩa) đổi sang URL mở được từ trình duyệt công ty. */
+function snapshotWithFileUrl(snapshot) {
+  if (!snapshot?.cv?.fileUrl) return snapshot ?? null;
+  return { ...snapshot, cv: { ...snapshot.cv, fileUrl: resolveStoredUploadUrl(snapshot.cv.fileUrl) } };
+}
+
 function companyDetailDTO(app) {
   if (app.status === "withdrawn") return withdrawnDTO(app);
   return {
     ...companyListItemDTO(app),
     consent: { at: app.consent?.at ?? null, scope: app.consent?.scope ?? [], version: app.consent?.version ?? "" },
-    snapshot: app.snapshot ?? null,
+    snapshot: snapshotWithFileUrl(app.snapshot),
     history: (app.history ?? []).map((h) => ({ status: h.status, at: h.at, note: h.note || "" })),
   };
 }
