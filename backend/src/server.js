@@ -1,3 +1,4 @@
+import "./config/timezone.js";
 import "./config/loadEnv.js";
 import { initSentry, Sentry } from "./config/sentry.js";
 
