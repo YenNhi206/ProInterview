@@ -929,7 +929,7 @@ export function Profile() {
                         Họ và tên <span className="text-rose-400">*</span>
                       </label>
                       <input
-                        className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                        className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-[#1a1b23] [html[data-workspace-theme=light]_&]:placeholder:!text-[#9d98b3]"
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                         placeholder="Nhập họ và tên..."
@@ -942,7 +942,7 @@ export function Profile() {
                         Số điện thoại
                       </label>
                       <input
-                        className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                        className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-[#1a1b23] [html[data-workspace-theme=light]_&]:placeholder:!text-[#9d98b3]"
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
                         placeholder="Nhập số điện thoại..."
@@ -956,7 +956,7 @@ export function Profile() {
                       </label>
                       <div className="relative">
                         <input
-                          className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 pr-24 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                          className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 pr-24 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-[#1a1b23] [html[data-workspace-theme=light]_&]:placeholder:!text-[#9d98b3]"
                           value={form.email}
                           onChange={(e) => setForm({ ...form, email: e.target.value })}
                           placeholder="Nhập email..."
@@ -1155,7 +1155,7 @@ export function Profile() {
                               type="text"
                               readOnly
                               aria-describedby="mentor-price-hint"
-                              className="w-full cursor-not-allowed rounded-xl border border-white/12 bg-[#0b0820]/60 px-4 py-3 pr-16 text-sm font-medium text-slate-300"
+                              className="w-full cursor-not-allowed rounded-xl border border-white/12 bg-[#0b0820]/60 px-4 py-3 pr-16 text-sm font-medium text-slate-300 [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-[#f3f0fb] [html[data-workspace-theme=light]_&]:!text-[#5b5772]"
                               value={
                                 mentorProfile?.pricePerHour
                                   ? Number(mentorProfile.pricePerHour).toLocaleString("vi-VN")
@@ -1182,7 +1182,7 @@ export function Profile() {
                               LinkedIn Profile
                             </label>
                             <input
-                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-[#1a1b23] [html[data-workspace-theme=light]_&]:placeholder:!text-[#9d98b3]"
                               placeholder="https://linkedin.com/in/..."
                               value={cvProfile.linkedinProfile}
                               onChange={(e) => setCvProfile({ ...cvProfile, linkedinProfile: e.target.value })}
@@ -1193,7 +1193,7 @@ export function Profile() {
                               Portfolio / Website cá nhân
                             </label>
                             <input
-                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                              className="w-full rounded-xl border border-white/12 bg-[#0b0820]/90 px-4 py-3 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-[#1a1b23] [html[data-workspace-theme=light]_&]:placeholder:!text-[#9d98b3]"
                               placeholder="https://yourportfolio.dev"
                               value={cvProfile.portfolioLink}
                               onChange={(e) => setCvProfile({ ...cvProfile, portfolioLink: e.target.value })}
@@ -1251,7 +1251,7 @@ export function Profile() {
                                 <input
                                   type="text"
                                   inputMode="numeric"
-                                  className="w-full rounded-xl border border-white/15 bg-slate-950/80 px-4 py-3 pr-16 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all"
+                                  className="w-full rounded-xl border border-white/15 bg-slate-950/80 px-4 py-3 pr-16 text-sm font-medium text-slate-100 placeholder:text-slate-500 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/25 transition-all [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-[#1a1b23] [html[data-workspace-theme=light]_&]:placeholder:!text-[#9d98b3]"
                                   placeholder="VD: 300.000"
                                   value={
                                     cvProfile.targetRate
@@ -1265,7 +1265,7 @@ export function Profile() {
                                     })
                                   }
                                 />
-                                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-violet-300">
+                                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-violet-300 [html[data-workspace-theme=light]_&]:!text-[#8037f4]">
                                   VNĐ
                                 </span>
                               </div>
@@ -1333,7 +1333,7 @@ export function Profile() {
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-violet-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-white shadow-2xl backdrop-blur-md"
+                className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-violet-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-white shadow-2xl backdrop-blur-md [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:!bg-white"
               >
                 <div className="rounded-full bg-emerald-400 p-1 text-slate-950">
                   <Check size={14} />
@@ -1347,7 +1347,7 @@ export function Profile() {
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-emerald-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-emerald-300 shadow-2xl backdrop-blur-md"
+                className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-emerald-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-emerald-300 shadow-2xl backdrop-blur-md [html[data-workspace-theme=light]_&]:border-emerald-300 [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-emerald-700"
               >
                 <Check size={18} /> Đã cập nhật thành công hồ sơ
               </motion.div>
@@ -1358,14 +1358,14 @@ export function Profile() {
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="fixed bottom-6 right-6 z-50 flex max-w-md items-center gap-4 rounded-2xl border border-violet-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-white shadow-2xl backdrop-blur-md"
+                className="fixed bottom-6 right-6 z-50 flex max-w-md items-center gap-4 rounded-2xl border border-violet-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-white shadow-2xl backdrop-blur-md [html[data-workspace-theme=light]_&]:border-violet-200 [html[data-workspace-theme=light]_&]:!bg-white"
               >
                 <div className="rounded-full bg-emerald-400 p-1 text-slate-950">
                   <Check size={14} />
                 </div>
                 <div>
                   <p>Hồ sơ mentor đã được gửi!</p>
-                  <p className="mt-1 text-[10px] font-medium lowercase first-letter:uppercase text-slate-300">
+                  <p className="mt-1 text-[10px] font-medium lowercase first-letter:uppercase text-slate-300 [html[data-workspace-theme=light]_&]:!text-[#5b5772]">
                     Ban quản trị sẽ xem xét và phản hồi kết quả trong vòng 24-48 giờ làm việc.
                   </p>
                 </div>
@@ -1377,14 +1377,14 @@ export function Profile() {
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="fixed bottom-6 right-6 z-50 flex max-w-md items-center gap-4 rounded-2xl border border-emerald-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-emerald-300 shadow-2xl backdrop-blur-md"
+                className="fixed bottom-6 right-6 z-50 flex max-w-md items-center gap-4 rounded-2xl border border-emerald-500/40 bg-slate-900/95 px-6 py-4 font-bold text-xs uppercase tracking-widest text-emerald-300 shadow-2xl backdrop-blur-md [html[data-workspace-theme=light]_&]:border-emerald-300 [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-emerald-700"
               >
                 <div className="rounded-full bg-violet-500 p-1 text-white">
                   <Check size={14} />
                 </div>
                 <div>
                   <p>Đã gửi duyệt lại hồ sơ mentor!</p>
-                  <p className="mt-1 text-[10px] font-semibold lowercase first-letter:uppercase text-slate-300">
+                  <p className="mt-1 text-[10px] font-semibold lowercase first-letter:uppercase text-slate-300 [html[data-workspace-theme=light]_&]:!text-[#5b5772]">
                     Ban quản trị sẽ xem xét lại hồ sơ cập nhật của bạn trong thời gian sớm nhất.
                   </p>
                 </div>
@@ -1409,10 +1409,10 @@ export function Profile() {
                 aria-modal="true"
                 aria-labelledby="mentor-resubmit-confirm-title"
                 aria-describedby="mentor-resubmit-confirm-desc"
-                className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/15 bg-slate-900 shadow-2xl text-white"
+                className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/15 bg-slate-900 shadow-2xl text-white [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="border-b border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 px-6 pb-5 pt-6 sm:px-7">
+                <div className="border-b border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 px-6 pb-5 pt-6 sm:px-7 [html[data-workspace-theme=light]_&]:border-[#ece6fb] [html[data-workspace-theme=light]_&]:!bg-none [html[data-workspace-theme=light]_&]:!bg-white">
                   <div className="flex items-start gap-4">
                     <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
                       <AlertTriangle size={22} strokeWidth={2.25} aria-hidden />
@@ -1420,13 +1420,13 @@ export function Profile() {
                     <div className="min-w-0 flex-1 pr-1">
                       <p
                         id="mentor-resubmit-confirm-title"
-                        className="text-base font-extrabold leading-snug tracking-tight text-white sm:text-lg"
+                        className="text-base font-extrabold leading-snug tracking-tight text-white sm:text-lg [html[data-workspace-theme=light]_&]:!text-[#1a1b23]"
                       >
                         {MENTOR_APPLY_RESUBMIT_CONFIRM_TITLE}
                       </p>
                       <p
                         id="mentor-resubmit-confirm-desc"
-                        className="mt-2 text-xs text-slate-300 leading-relaxed"
+                        className="mt-2 text-xs text-slate-300 leading-relaxed [html[data-workspace-theme=light]_&]:!text-[#5b5772]"
                       >
                         {MENTOR_APPLY_RESUBMIT_CONFIRM_BODY}
                       </p>
@@ -1434,7 +1434,7 @@ export function Profile() {
                     <button
                       type="button"
                       onClick={() => setResubmitConfirmOpen(false)}
-                      className="shrink-0 rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                      className="shrink-0 rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors cursor-pointer [html[data-workspace-theme=light]_&]:!text-[#5b5772] [html[data-workspace-theme=light]_&]:hover:!bg-violet-50 [html[data-workspace-theme=light]_&]:hover:!text-[#1a1b23]"
                       aria-label="Đóng"
                     >
                       <X size={18} strokeWidth={2.25} />
@@ -1445,7 +1445,7 @@ export function Profile() {
                   <button
                     type="button"
                     onClick={() => setResubmitConfirmOpen(false)}
-                    className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/10 transition-colors sm:w-auto cursor-pointer"
+                    className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/10 transition-colors sm:w-auto cursor-pointer [html[data-workspace-theme=light]_&]:border-[#ddd3f5] [html[data-workspace-theme=light]_&]:!bg-white [html[data-workspace-theme=light]_&]:!text-[#5b5772] [html[data-workspace-theme=light]_&]:hover:!bg-violet-50"
                   >
                     Huỷ
                   </button>
@@ -1453,7 +1453,7 @@ export function Profile() {
                     type="button"
                     disabled={applying}
                     onClick={confirmResubmitMentor}
-                    className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-lg hover:brightness-110 active:scale-[0.99] disabled:opacity-50 transition-all sm:w-auto cursor-pointer"
+                    className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-lg [html[data-workspace-theme=light]_&]:!text-white hover:brightness-110 active:scale-[0.99] disabled:opacity-50 transition-all sm:w-auto cursor-pointer"
                   >
                     {applying ? "Đang gửi…" : "Gửi lại hồ sơ"}
                   </button>
