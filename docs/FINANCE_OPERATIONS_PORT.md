@@ -5,7 +5,7 @@ Nguồn tham khảo: [BookingMentorPlatform, commit 9a5a8ed](https://github.com/
 ## Sử dụng
 
 - **Menu tài khoản → Lịch sử thanh toán** (`/payment-history`): lọc loại/trạng thái, phân trang, tải PDF từng giao dịch hoặc toàn đơn giỏ hàng.
-- **Mentor → Tài chính**: số dư đang giữ 3 ngày tách khỏi số dư khả dụng và tiền chờ rút.
+- **Mentor → Tài chính**: số dư đang giữ 7 ngày tách khỏi số dư khả dụng và tiền chờ rút.
 - **Admin → Giải ngân & đối soát** (`/admin/finance/operations`): giải phóng khoản đủ hạn, xem chênh lệch số dư và tiền nhận khi người trả bị khóa. Ghi nhận hoàn sau khi chuyển khoản thật, nhập mã giao dịch và lý do.
 - **Admin → Người dùng → Chi tiết**: xem tác động trước khi đóng; tạo yêu cầu giải ngân từ số dư khả dụng về tài khoản ngân hàng đã lưu của mentor. Tiếp tục duyệt/xác nhận đã chi tại **Rút tiền cố vấn**; mã chuyển khoản bắt buộc. Admin có thể xử lý số dư cuối nhỏ hơn ngưỡng tự rút 100.000đ.
 - **Admin → Nhật ký admin** (`/admin/audit-log`): lọc kết quả/phương thức, xem người thao tác, nội dung đã che bí mật và mã HTTP.
@@ -21,7 +21,7 @@ Snapshot `earningsNetAmount` giữ nguyên số tiền đã ghi có. Đối soá
 
 ## Dữ liệu cũ và triển khai
 
-- Không thu hồi hoặc chuyển lại số dư khả dụng đã ghi có trước khi triển khai. Chính sách giữ 3 ngày áp dụng cho khoản mới ghi có; dòng cũ không có `earningsClearAt` không được cộng lại.
+- Không thu hồi hoặc chuyển lại số dư khả dụng đã ghi có trước khi triển khai. Chính sách giữ 7 ngày áp dụng cho khoản mới ghi có; dòng cũ không có `earningsClearAt` không được cộng lại.
 - Trường mới: Booking/Enrollment `earningsClearAt`, `earningsClearedAt`, `earningsClearFailedAt`, `earningsNetAmount`; Mentor `finance.clearingBalance`, `status`, `closedAt/closedBy`; User `accountClosedAt`; Payment trạng thái `held_inactive_account` và snapshot hóa đơn; PayoutRequest người tạo thay/lý do; SecurityLog loại `admin_action`.
 - Các thao tác tiền dùng transaction khi MongoDB hỗ trợ replica set/Atlas. Standalone dùng cập nhật có điều kiện và hoàn tác lỗi đã biết; không bảo đảm nguyên tử nhiều document nếu tiến trình chết giữa chừng. Vận hành tiền thật nên dùng replica set/Atlas và kiểm tra báo cáo đối soát.
 - Thêm `pdfkit`; chạy `npm ci` ở backend khi triển khai và khởi động lại backend. Font DejaVu và giấy phép trong `backend/src/assets/fonts`.

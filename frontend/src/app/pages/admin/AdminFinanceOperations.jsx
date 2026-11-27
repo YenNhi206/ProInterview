@@ -30,7 +30,7 @@ export function AdminFinanceOperations() {
       <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-white [html[data-workspace-theme=light]_&]:text-slate-900 sm:text-3xl">
         <span className="admin-title-accent text-[#93f72b] [html[data-workspace-theme=light]_&]:text-[#6d28d9]">Giải ngân</span> &amp; đối soát
       </h1>
-      <p className="mt-1 text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">Thu nhập mới được giữ 3 ngày từ lúc hoàn tất buổi mentor hoặc thanh toán khóa học. Khoản có khiếu nại mở tiếp tục được giữ.</p>
+      <p className="mt-1 text-xs text-slate-400 [html[data-workspace-theme=light]_&]:text-slate-500">Thu nhập mới được giữ 7 ngày từ lúc hoàn tất buổi mentor hoặc thanh toán khóa học. Khoản có khiếu nại mở tiếp tục được giữ.</p>
     </div>
     <div className="flex flex-wrap gap-3">
       <button disabled={busy} onClick={release} className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-violet-600/30 transition hover:brightness-110 disabled:opacity-40">Giải phóng khoản đủ hạn</button>
