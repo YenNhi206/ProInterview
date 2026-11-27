@@ -37,8 +37,20 @@ import {
   requestMentorPriceChange,
 } from "../../api/mentorApi.js";
 import { toastApiError, toastApiSuccess } from "../../utils/shared/apiToast.js";
-import { formatVnd } from "../../utils/shared/formatVnd.js";
 import { AppSelect } from "../../components/ui/AppSelect";
+import {
+  ALL_MONTHS,
+  filterRows,
+  formatDateVN,
+  incomeStatusMeta,
+  incomeSubtitle,
+  incomeTitle,
+  listMonths,
+  monthLabel,
+  percentText,
+  summarizeRows,
+  withdrawTitle,
+} from "../../utils/mentor/financeHistory.js";
 import {
   SUPPORTED_BANKS,
   BANK_OTHER,
@@ -367,6 +379,7 @@ export function MentorFinance() {
   const navigate = useNavigate();
   const user = getUser();
   const [activeTab, setActiveTab] = useState("all");
+  const [activeMonth, setActiveMonth] = useState(ALL_MONTHS);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [finance, setFinance] = useState(null);
   const [selectedTx, setSelectedTx] = useState(null);
@@ -391,21 +404,22 @@ export function MentorFinance() {
   }, [navigate, user?.role]);
 
   const transactions = Array.isArray(finance?.history) ? finance.history : [];
+  const txMonths = useMemo(() => listMonths(transactions), [transactions]);
   const filteredTransactions = useMemo(
-    () =>
-      transactions.filter((tx) => {
-        if (activeTab === "all") return true;
-        if (activeTab === "income") return tx.type === "income";
-        return tx.type === "withdraw";
-      }),
-    [transactions, activeTab]
+    () => filterRows(transactions, { month: activeMonth, tab: activeTab }),
+    [transactions, activeTab, activeMonth]
+  );
+  // Tổng theo tháng đang chọn (cả thu nhập lẫn rút tiền), không phụ thuộc tab.
+  const monthSummary = useMemo(
+    () => summarizeRows(filterRows(transactions, { month: activeMonth })),
+    [transactions, activeMonth]
   );
   const {
     visibleItems: visibleTransactions,
     showExpandButton: showTxExpandButton,
     expanded: txExpanded,
     toggleExpanded: toggleTxExpanded,
-  } = useMentorListExpand(filteredTransactions, activeTab);
+  } = useMentorListExpand(filteredTransactions, `${activeTab}:${activeMonth}`);
 
   if (!user || user.role !== "mentor") return null;
 
@@ -416,6 +430,8 @@ export function MentorFinance() {
   const courseIncome = Number(finance?.incomeBreakdown?.course || 0);
   // LP-16: thu nhập từ các buổi lộ trình học (tách khỏi đặt lịch thường).
   const learningPathIncome = Number(finance?.incomeBreakdown?.learningPath || 0);
+  // Đối soát: tổng trong ví so với tổng các giao dịch đã ghi; khoản chưa ghi vào ví tách riêng.
+  const reconciliation = finance?.reconciliation || null;
   const payoutAccount = finance?.payoutAccount || {};
   const payoutAccountMasked = finance?.payoutAccountMasked || "";
   const payoutAccountOwnerName = finance?.payoutAccountOwnerName || getDisplayName(user, "Mentor");
@@ -481,16 +497,23 @@ export function MentorFinance() {
     return { text: compact ? "Đang xử lý" : "Đang xử lý", className: purpleTag };
   };
 
-  const txDisplayTitle = (tx) => {
-    if (tx?.type === "withdraw") return "Yêu cầu rút tiền";
-    const raw = String(tx?.description || "").toLowerCase();
-    if (tx?.type === "income") {
-      if (raw.includes("booking")) return "Thu nhập buổi tư vấn 1:1";
-      if (raw.includes("khóa học")) return "Thu nhập bán khóa học";
-      return "Thu nhập";
-    }
-    if (raw.includes("rút tiền")) return "Yêu cầu rút tiền";
-    return tx?.description || "Giao dịch";
+  const txDisplayTitle = (tx) => (tx?.type === "withdraw" ? withdrawTitle(tx) : incomeTitle(tx));
+  const txDisplaySubtitle = (tx) => {
+    if (tx?.type === "withdraw") return tx.rejectReason ? `Lý do từ chối: ${tx.rejectReason}` : "Yêu cầu rút tiền";
+    const sub = incomeSubtitle(tx);
+    return tx?.refunded ? [sub, "Đã hoàn tiền cho học viên"].filter(Boolean).join(" · ") : sub;
+  };
+
+  /** Tag trạng thái của khoản thu: giữ tiền (tím), đã khả dụng (xanh), chưa ghi vào ví (vàng). */
+  const incomeStatusTag = (tx) => {
+    const meta = incomeStatusMeta(tx);
+    const className =
+      meta.tone === "done"
+        ? "border border-[#93f72b]/30 bg-[#93f72b]/15 text-[#93f72b]"
+        : meta.tone === "warning"
+          ? "border border-amber-500/40 bg-amber-500/15 text-amber-300"
+          : "border border-violet-500/30 bg-violet-500/15 text-violet-300";
+    return { text: meta.label, className, detail: meta.detail };
   };
 
   return (
@@ -543,9 +566,9 @@ export function MentorFinance() {
               </p>
 
               <div className="mt-3.5 max-w-xl rounded-xl border border-white/10 bg-white/[0.03] p-3.5 text-xs leading-relaxed text-slate-300 backdrop-blur-sm">
-                <span className="font-semibold text-white">Đang giữ {finance?.holdDays || 3} ngày: </span>
+                <span className="font-semibold text-white">Đang giữ {finance?.holdDays || 7} ngày: </span>
                 <strong className="text-[#93f72b]">
-                  {Number(finance?.clearingBalance || 0).toLocaleString("vi-VN")} ₫
+                  {Number(finance?.clearingBalance || 0).toLocaleString("vi-VN")} Đ
                 </strong>
                 <p className="mt-1 text-[11px] text-slate-400">
                   Buổi mentor tính từ lúc hoàn tất; khóa học tính từ lúc thanh toán. Khoản có khiếu nại sẽ được giữ tới khi xử lý xong.
@@ -643,37 +666,19 @@ export function MentorFinance() {
           </div>
         </motion.section>
 
-        {/* 3 Bento KPI Cards */}
-        <MentorStatPanel className="mb-6">
+        {/* 2 thẻ KPI: số dư khả dụng đã hiện ở khối Ví mentor phía trên nên không lặp lại ở đây */}
+        <MentorStatPanel className="mb-6" columns={2}>
           <MentorStatFrame
             index={1}
-            accent="lime"
-            cornerIcon={Wallet}
-            moneyAmount={availableBalance}
-            title="Số dư khả dụng"
-            subtitle="Sẵn sàng rút về tài khoản"
-            compact
-            footer={
-              <button
-                type="button"
-                onClick={() => setShowWithdraw(true)}
-                className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[#93f72b] hover:underline"
-              >
-                Rút ngay <ArrowRight size={11} />
-              </button>
-            }
-          />
-          <MentorStatFrame
-            index={2}
             accent="purple"
             cornerIcon={Clock}
             moneyAmount={pendingBalance}
             title="Chờ giải ngân"
-            subtitle="Dự kiến sau 7 ngày"
+            subtitle="Đã yêu cầu rút, admin chuyển khoản trong 1–2 ngày làm việc"
             compact
           />
           <MentorStatFrame
-            index={3}
+            index={2}
             accent="purple"
             cornerIcon={TrendingUp}
             moneyAmount={totalEarned}
@@ -726,21 +731,51 @@ export function MentorFinance() {
               </div>
             </div>
 
+            {/* Chọn tháng + tổng của tháng: mentor đối chiếu được khi có nhiều giao dịch */}
+            <div className="border-b border-white/[0.08] px-5 py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="w-full sm:w-56">
+                  <AppSelect
+                    size="default"
+                    value={activeMonth}
+                    onValueChange={setActiveMonth}
+                    aria-label="Chọn tháng"
+                    options={[
+                      { value: ALL_MONTHS, label: monthLabel(ALL_MONTHS) },
+                      ...txMonths.map((m) => ({ value: m, label: monthLabel(m) })),
+                    ]}
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Thực nhận = Học viên trả − Phí nền tảng{monthSummary.adjustment ? " + Điều chỉnh" : ""}
+                </p>
+              </div>
+              {monthSummary.notCreditedCount > 0 && (
+                <p className="mt-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+                  Có {monthSummary.notCreditedCount} khoản ({formatMoney(monthSummary.notCreditedNet)}) chưa được ghi vào ví nên không tính vào Thực nhận. Liên hệ admin để đối soát.
+                </p>
+              )}
+            </div>
+
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[46rem]">
                 <thead>
                   <tr className="border-b border-white/[0.08] bg-white/[0.02] text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     <th className="px-5 py-3 text-left">Giao dịch</th>
-                    <th className="px-5 py-3 text-left">Ngày</th>
-                    <th className="px-5 py-3 text-left">Số tiền</th>
-                    <th className="min-w-[7.5rem] px-5 py-3 text-left">Trạng thái</th>
+                    <th className="px-4 py-3 text-left">Ngày</th>
+                    <th className="px-4 py-3 text-right">Học viên trả</th>
+                    <th className="px-4 py-3 text-right">Phí nền tảng</th>
+                    <th className="px-4 py-3 text-right">Thực nhận</th>
+                    <th className="min-w-[9rem] px-5 py-3 text-left">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.05]">
                   {visibleTransactions.map((tx) => {
-                    const statusMeta = payoutStatusMeta(tx.status, { compact: true });
                     const isWithdraw = tx.type === "withdraw";
+                    const statusMeta = isWithdraw
+                      ? payoutStatusMeta(tx.status, { compact: true })
+                      : incomeStatusTag(tx);
                     return (
                       <tr
                         key={tx.id}
@@ -764,24 +799,42 @@ export function MentorFinance() {
                             </div>
                             <div className="min-w-0">
                               <p className="text-xs font-bold text-white">{txDisplayTitle(tx)}</p>
-                              <p className="truncate text-[10px] text-slate-400 mt-0.5">{tx.id}</p>
+                              <p className="truncate text-[10px] text-slate-400 mt-0.5">{txDisplaySubtitle(tx)}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5">
-                          <p className="text-xs text-slate-300">
-                            {new Date(tx.date).toLocaleDateString("vi-VN")}
+                        <td className="whitespace-nowrap px-4 py-3.5">
+                          <p className="text-xs text-slate-300">{formatDateVN(tx.date)}</p>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                          <p className="text-xs tabular-nums text-slate-300">
+                            {isWithdraw ? "—" : formatMoney(tx.grossAmount)}
                           </p>
                         </td>
-                        <td className="whitespace-nowrap px-5 py-3.5">
+                        <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                          {isWithdraw ? (
+                            <p className="text-xs text-slate-400">—</p>
+                          ) : (
+                            <>
+                              <p className="text-xs tabular-nums text-slate-300">−{formatMoney(tx.platformFee)}</p>
+                              <p className="text-[10px] text-slate-400">{percentText(tx.platformFeeRate)}</p>
+                            </>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3.5 text-right">
                           <p
                             className={`text-xs font-bold tabular-nums ${
-                              tx.type === "income" ? "text-[#93f72b]" : "text-slate-300"
+                              isWithdraw ? "text-slate-300" : tx.credited === false ? "text-slate-400 line-through" : "text-[#93f72b]"
                             }`}
                           >
-                            {tx.type === "income" ? "+" : "−"}
-                            {formatVnd(tx.amount || 0)}
+                            {isWithdraw ? "−" : "+"}
+                            {formatMoney(tx.amount)}
                           </p>
+                          {!isWithdraw && Number(tx.adjustment) !== 0 && tx.adjustment != null && (
+                            <p className="text-[10px] text-slate-400">
+                              gồm điều chỉnh {tx.adjustment > 0 ? "+" : "−"}{formatMoney(Math.abs(tx.adjustment))}
+                            </p>
+                          )}
                         </td>
                         <td className="whitespace-nowrap px-5 py-3.5">
                           <span className={`glass-tag ${statusMeta.className}`}>
@@ -793,7 +846,7 @@ export function MentorFinance() {
                   })}
                   {!filteredTransactions.length && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-xs text-slate-400">
+                      <td colSpan={6} className="px-6 py-12 text-center text-xs text-slate-400">
                         Không có giao dịch phù hợp bộ lọc hiện tại.
                       </td>
                     </tr>
@@ -845,7 +898,21 @@ export function MentorFinance() {
                     {formatMoney(courseIncome)}
                   </span>
                 </li>
+                <li className="flex items-center justify-between gap-3 pt-2.5">
+                  <span className="text-xs font-bold text-white">Tổng đã ghi vào ví</span>
+                  <span className="font-black text-xs text-white">
+                    {formatMoney(bookingIncome + learningPathIncome + courseIncome)}
+                  </span>
+                </li>
               </ul>
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
+                Số sau khi trừ phí nền tảng, tính cả khoản đang giữ.
+              </p>
+              {Number(reconciliation?.notCreditedCount || 0) > 0 && (
+                <p className="mt-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+                  {reconciliation.notCreditedCount} khoản ({formatMoney(reconciliation.notCreditedTotal)}) chưa được ghi vào ví, không tính ở trên.
+                </p>
+              )}
             </div>
 
             {/* Price Per Hour Setting */}
@@ -963,6 +1030,8 @@ export function MentorFinance() {
                   status: "pending",
                   date: new Date().toISOString(),
                   description: "Yêu cầu rút tiền",
+                  bankName: res.payout?.bankName || "",
+                  accountMasked: res.payout?.payoutAccountMasked || "",
                 };
                 setFinance((prev) => ({
                   ...(prev || {}),
@@ -1003,44 +1072,101 @@ export function MentorFinance() {
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#93f72b]/50 to-transparent" />
 
               <div className="mb-5 flex items-start justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-lg font-black text-white">Chi tiết giao dịch</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{selectedTx.id}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Mã: {selectedTx.id}</p>
                 </div>
-                <span className={`glass-tag ${payoutStatusMeta(selectedTx.status).className}`}>
-                  {payoutStatusMeta(selectedTx.status).text}
-                </span>
+                {(() => {
+                  const meta = selectedTx.type === "income" ? incomeStatusTag(selectedTx) : payoutStatusMeta(selectedTx.status);
+                  return <span className={`glass-tag shrink-0 ${meta.className}`}>{meta.text}</span>;
+                })()}
               </div>
 
-              <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs text-slate-400">Số tiền giao dịch</p>
-                <p
-                  className={`mt-1 font-headline text-2xl font-black ${
-                    selectedTx.type === "income" ? "text-[#93f72b]" : "text-white"
-                  }`}
-                >
-                  {selectedTx.type === "income" ? "+" : "-"}
-                  {Number(selectedTx.amount || 0).toLocaleString("vi-VN")} Đ
-                </p>
-              </div>
+              {selectedTx.type === "income" ? (
+                <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-xs">
+                  <p className="mb-2 font-semibold text-white">Cách tính thực nhận</p>
+                  <dl className="space-y-1.5 tabular-nums">
+                    <div className="flex justify-between">
+                      <dt className="text-slate-400">Học viên thanh toán</dt>
+                      <dd className="font-semibold text-white">{formatMoney(selectedTx.grossAmount)}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-slate-400">Phí nền tảng ({percentText(selectedTx.platformFeeRate)})</dt>
+                      <dd className="font-semibold text-white">−{formatMoney(selectedTx.platformFee)}</dd>
+                    </div>
+                    {Number(selectedTx.adjustment) !== 0 && selectedTx.adjustment != null && (
+                      <div className="flex justify-between">
+                        <dt className="text-slate-400">Điều chỉnh{selectedTx.refunded ? " (hoàn tiền cho học viên)" : ""}</dt>
+                        <dd className="font-semibold text-white">
+                          {selectedTx.adjustment > 0 ? "+" : "−"}{formatMoney(Math.abs(selectedTx.adjustment))}
+                        </dd>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t border-white/10 pt-2">
+                      <dt className="font-bold text-white">Thực nhận</dt>
+                      <dd className={`font-headline text-lg font-black ${selectedTx.credited === false ? "text-slate-400 line-through" : "text-[#93f72b]"}`}>
+                        +{formatMoney(selectedTx.amount)}
+                      </dd>
+                    </div>
+                  </dl>
+                  {incomeStatusTag(selectedTx).detail && (
+                    <p className={`mt-3 rounded-lg px-3 py-2 leading-relaxed ${selectedTx.credited === false ? "border border-amber-500/30 bg-amber-500/10 text-amber-200" : "bg-white/[0.04] text-slate-300"}`}>
+                      {incomeStatusTag(selectedTx).detail}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                  <p className="text-xs text-slate-400">Số tiền rút</p>
+                  <p className="mt-1 font-headline text-2xl font-black text-white">−{formatMoney(selectedTx.amount)}</p>
+                </div>
+              )}
 
               <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between gap-4 border-b border-white/[0.05] pb-2">
+                  <span className="shrink-0 text-slate-400">Nội dung</span>
+                  <span className="text-right font-semibold text-white">{txDisplayTitle(selectedTx)}</span>
+                </div>
+                {txDisplaySubtitle(selectedTx) && selectedTx.type === "income" && (
+                  <div className="flex justify-between gap-4 border-b border-white/[0.05] pb-2">
+                    <span className="shrink-0 text-slate-400">Chi tiết</span>
+                    <span className="text-right font-semibold text-white">{txDisplaySubtitle(selectedTx)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-b border-white/[0.05] pb-2">
-                  <span className="text-slate-400">Loại giao dịch</span>
-                  <span className="font-semibold text-white">
-                    {selectedTx.type === "income" ? "Thu nhập" : "Rút tiền"}
+                  <span className="text-slate-400">
+                    {selectedTx.type === "income"
+                      ? selectedTx.source === "course" ? "Ngày học viên thanh toán" : "Ngày hoàn tất buổi"
+                      : "Ngày gửi yêu cầu"}
                   </span>
-                </div>
-                <div className="flex justify-between border-b border-white/[0.05] pb-2">
-                  <span className="text-slate-400">Nội dung</span>
-                  <span className="font-semibold text-white">{txDisplayTitle(selectedTx)}</span>
-                </div>
-                <div className="flex justify-between border-b border-white/[0.05] pb-2">
-                  <span className="text-slate-400">Thời gian khởi tạo</span>
                   <span className="font-semibold text-white">
                     {new Date(selectedTx.date).toLocaleString("vi-VN")}
                   </span>
                 </div>
+                {selectedTx.type === "income" && selectedTx.creditedAt && (
+                  <div className="flex justify-between border-b border-white/[0.05] pb-2">
+                    <span className="text-slate-400">Ghi vào ví lúc</span>
+                    <span className="font-semibold text-white">{new Date(selectedTx.creditedAt).toLocaleString("vi-VN")}</span>
+                  </div>
+                )}
+                {selectedTx.type === "income" && selectedTx.clearAt && (
+                  <div className="flex justify-between border-b border-white/[0.05] pb-2">
+                    <span className="text-slate-400">Hết thời gian giữ</span>
+                    <span className="font-semibold text-white">{formatDateVN(selectedTx.clearAt)}</span>
+                  </div>
+                )}
+                {selectedTx.type === "income" && selectedTx.clearedAt && (
+                  <div className="flex justify-between border-b border-white/[0.05] pb-2">
+                    <span className="text-slate-400">Vào số dư khả dụng</span>
+                    <span className="font-semibold text-white">{new Date(selectedTx.clearedAt).toLocaleString("vi-VN")}</span>
+                  </div>
+                )}
+                {selectedTx.type === "withdraw" && selectedTx.bankName && (
+                  <div className="flex justify-between border-b border-white/[0.05] pb-2">
+                    <span className="text-slate-400">Tài khoản nhận</span>
+                    <span className="font-semibold text-white">{selectedTx.bankName} {selectedTx.accountMasked}</span>
+                  </div>
+                )}
                 {selectedTx.reviewedAt && (
                   <div className="flex justify-between border-b border-white/[0.05] pb-2">
                     <span className="text-slate-400">Thời gian duyệt</span>

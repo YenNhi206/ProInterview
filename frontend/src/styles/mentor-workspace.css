@@ -82,6 +82,20 @@
   color: #17210b;
 }
 
+/* Số đếm cạnh mục menu (vd. hồ sơ mentor chờ duyệt). Màu theo chữ của mục nên đúng ở cả sáng, tối và mục đang chọn. */
+.mentor-workspace-nav-count {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 .mentor-workspace-nav-link:focus-visible {
   outline: 2px solid #93f72b;
   outline-offset: 3px;

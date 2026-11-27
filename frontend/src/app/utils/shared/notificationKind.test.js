@@ -17,6 +17,8 @@ test("N-06: loại thông báo mới có nhãn riêng, không rơi vào 'Cập n
     rubric_approved: "Rubric",
     rubric_rejected: "Rubric",
     ai_improvement_proposed: "Cải tiến AI",
+    mentor_application_submitted: "Duyệt mentor",
+    payout_requested: "Rút tiền",
   };
   for (const [type, label] of Object.entries(cases)) {
     assert.equal(notificationKind(type).label, label, type);

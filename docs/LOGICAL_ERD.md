@@ -670,7 +670,7 @@ erDiagram
     NOTIFICATION {
         ObjectId _id PK
         ObjectId userId FK "→ USER"
-        enum type "booking_* | payment_* | plan_* | course_* | feedback | system | learning_path_* | application_* | company_invite | rubric_* | job_post_hidden | ai_improvement_proposed"
+        enum type "booking_* | payment_* | plan_* | course_* | feedback | system | learning_path_* | application_* | company_invite | rubric_* | job_post_hidden | ai_improvement_proposed | mentor_application_submitted | payout_requested"
         string title
         string body
         bool isRead

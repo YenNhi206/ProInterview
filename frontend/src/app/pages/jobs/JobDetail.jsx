@@ -565,6 +565,11 @@ export function JobDetail() {
                         <span className={`rounded-full border px-4 py-2 text-sm font-bold ${APP_TONE_STYLE[APPLICATION_STATUS_TONE[myApplication.status]] || APP_TONE_STYLE.muted}`}>
                           {applied ? "Đã nộp đơn" : `Đã ứng tuyển · ${statusLabelOf(myApplication)}`}
                         </span>
+                        {myApplication.status === "withdrawn" && (
+                          <p className="max-w-[17rem] self-center text-[11px] leading-snug text-slate-400">
+                            Bạn đã rút đơn cho tin này nên không thể ứng tuyển lại.
+                          </p>
+                        )}
                         <Link to="/my-applications" className="text-xs font-bold text-violet-300 hover:text-white">Xem đơn ứng tuyển</Link>
                       </div>
                     ) : (

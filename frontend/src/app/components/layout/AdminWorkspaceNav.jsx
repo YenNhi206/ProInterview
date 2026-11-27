@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useAdminNavCounts } from "../../hooks/useAdminNavCounts.js";
 import {
   LayoutDashboard,
   Calendar,
@@ -64,13 +65,27 @@ export const ADMIN_SECONDARY_NAV = [
 ];
 
 export function AdminWorkspaceNav() {
+  const { pendingMentors, pendingPayouts } = useAdminNavCounts();
+  const mainNav = useMemo(
+    () =>
+      ADMIN_MAIN_NAV.map((item) => {
+        if (item.url === "/admin/mentors/pending") {
+          return { ...item, count: pendingMentors, countLabel: `${pendingMentors} hồ sơ chờ duyệt` };
+        }
+        if (item.url === "/admin/payouts") {
+          return { ...item, count: pendingPayouts, countLabel: `${pendingPayouts} yêu cầu rút tiền cần xử lý` };
+        }
+        return item;
+      }),
+    [pendingMentors, pendingPayouts],
+  );
   return (
     <WorkspaceNav
       homeUrl="/admin"
       heading="Quản trị hệ thống"
       badge="ADMIN"
       label="Quản trị"
-      mainNav={ADMIN_MAIN_NAV}
+      mainNav={mainNav}
       secondaryNav={ADMIN_SECONDARY_NAV}
       separatorIndex={-1}
     />

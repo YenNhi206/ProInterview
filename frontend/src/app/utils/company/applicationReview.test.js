@@ -5,6 +5,7 @@ import {
   applicationActions,
   cvSections,
   formatRubricScore,
+  isSafeFileUrl,
   isSafeHttpUrl,
 } from "./applicationReview.js";
 
@@ -30,6 +31,15 @@ describe("applicationReview (JB-16)", () => {
     assert.equal(isSafeHttpUrl("javascript:alert(1)"), false);
     assert.equal(isSafeHttpUrl("/uploads/cv.pdf"), false);
     assert.equal(isSafeHttpUrl(""), false);
+  });
+
+  it("file CV lưu trên backend (/uploads/...) vẫn mở được, chặn đường dẫn lạ", () => {
+    assert.equal(isSafeFileUrl("/uploads/cv_1764_VoYenNhi.pdf"), true);
+    assert.equal(isSafeFileUrl("https://res.cloudinary.com/x/raw/upload/cv.pdf"), true);
+    assert.equal(isSafeFileUrl("//evil.test/cv.pdf"), false);
+    assert.equal(isSafeFileUrl("/uploads/../.env"), false);
+    assert.equal(isSafeFileUrl("javascript:alert(1)"), false);
+    assert.equal(cvSections({ title: "CV", fileUrl: "/uploads/cv_1.pdf" }).fileUrl, "/uploads/cv_1.pdf");
   });
 
   it("cvSections bỏ mục rỗng, gộp kỹ năng không trùng, bỏ link không an toàn", () => {

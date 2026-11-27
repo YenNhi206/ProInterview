@@ -39,6 +39,7 @@ import {
   adminThCell,
 } from "../../components/admin/AdminPageShell.jsx";
 import { adminApi } from "../../api/adminApi.js";
+import { notifyAdminNavCountsChanged } from "../../utils/admin/adminNavCounts.js";
 import { isInternalTestEmail, resolveDisplayStatus } from "../../utils/analytics/interviewSessionDisplay.js";
 import { toastApiError, toastApiSuccess, tryApi } from "../../utils/shared/apiToast.js";
 import { AnimatePresence, motion } from "motion/react";
@@ -906,7 +907,10 @@ export function AdminPayouts() {
       successMessage: "Đã duyệt. Hãy chuyển khoản cho cố vấn rồi ghi nhận đã chi.",
     });
     setBusyId("");
-    if (res.success) await loadRows();
+    if (res.success) {
+      notifyAdminNavCountsChanged();
+      await loadRows();
+    }
   };
 
   const confirmMarkPaid = async () => {
@@ -927,6 +931,7 @@ export function AdminPayouts() {
     setBusyId("");
     if (!res.success) return;
     setMarkPaidModal({ open: false, payoutId: "", transferRef: "", note: "" });
+    notifyAdminNavCountsChanged();
     await loadRows();
   };
 
@@ -948,6 +953,7 @@ export function AdminPayouts() {
     setBusyId("");
     if (!res.success) return;
     setRejectModal({ open: false, payoutId: "", reasonKey: "account_invalid", note: "" });
+    notifyAdminNavCountsChanged();
     await loadRows();
   };
 

@@ -25,7 +25,8 @@ import { InterviewSession } from "../models/InterviewSession.js";
 import { CompanyRubric } from "../models/CompanyRubric.js";
 import { PromptVersion } from "../models/PromptVersion.js";
 import { AIImprovementProposal } from "../models/AIImprovementProposal.js";
-import { cacheGetOrSet } from "./cacheService.js";
+import { cacheGet, cacheSet } from "./cacheService.js";
+import { logger } from "../config/logger.js";
 
 const CACHE_TTL_SECONDS = 5 * 60;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -421,6 +422,22 @@ export async function getQualityStats(query = {}, { now = new Date(), useCache =
   const range = resolveRange(query, query.to ? now : roundedNow);
   if (!useCache) return { ok: true, stats: await computeStats(range, now) };
   const key = `moderator:quality:${range.from.toISOString()}:${range.to.toISOString()}`;
-  const { value, fromCache } = await cacheGetOrSet(key, async () => JSON.stringify(await computeStats(range, now)), CACHE_TTL_SECONDS);
-  return { ok: true, stats: JSON.parse(value), cached: fromCache };
+
+  // Dashboard chỉ đọc số liệu: Redis lỗi (production fail-fast ném lỗi) thì bỏ qua cache và tính trực
+  // tiếp, không trả 500. Lỗi khi tính số liệu (MongoDB, code) vẫn ném lên như cũ.
+  let cached = null;
+  try {
+    cached = await cacheGet(key);
+  } catch (err) {
+    logger.warn("moderator_quality_cache_bypass", { op: "GET", key, error: err?.message });
+  }
+  if (cached !== null) return { ok: true, stats: JSON.parse(cached), cached: true };
+
+  const stats = await computeStats(range, now);
+  try {
+    await cacheSet(key, JSON.stringify(stats), CACHE_TTL_SECONDS);
+  } catch (err) {
+    logger.warn("moderator_quality_cache_bypass", { op: "SET", key, error: err?.message });
+  }
+  return { ok: true, stats, cached: false };
 }

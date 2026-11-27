@@ -1,4 +1,4 @@
-import { Bell, BookOpen, Briefcase, Building2, CalendarDays, CalendarX2, CreditCard, EyeOff, MessageSquare, Route, ShieldCheck, Sparkles } from "lucide-react";
+import { Banknote, Bell, BookOpen, Briefcase, Building2, CalendarDays, CalendarX2, CreditCard, EyeOff, MessageSquare, Route, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 
 /**
  * Icon, nhãn và tông màu cho một loại thông báo (`Notification.type` ở backend).
@@ -14,6 +14,8 @@ export function notificationKind(type = "") {
   if (type === "rubric_rejected") return { icon: ShieldCheck, label: "Rubric", tone: "coral" };
   if (type.startsWith("rubric")) return { icon: ShieldCheck, label: "Rubric", tone: "green" };
   if (type.startsWith("ai_improvement")) return { icon: Sparkles, label: "Cải tiến AI", tone: "amber" };
+  if (type === "mentor_application_submitted") return { icon: UserPlus, label: "Duyệt mentor", tone: "violet" };
+  if (type === "payout_requested") return { icon: Banknote, label: "Rút tiền", tone: "amber" };
   if (type === "booking_cancelled") return { icon: CalendarX2, label: "Lịch hẹn", tone: "coral" };
   if (type.includes("booking")) return { icon: CalendarDays, label: "Lịch hẹn", tone: "violet" };
   if (type.startsWith("payment")) return { icon: CreditCard, label: "Thanh toán", tone: type === "payment_failed" ? "coral" : "green" };

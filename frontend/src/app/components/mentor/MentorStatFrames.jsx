@@ -21,10 +21,12 @@ const ACCENT = {
 };
 
 /** Khối 3 cột thống kê mentor — 3 cards bento sang trọng */
-export function MentorStatPanel({ children, className = "" }) {
+/** `columns`: số cột từ màn hình `sm` trở lên (mặc định 3). */
+export function MentorStatPanel({ children, className = "", columns = 3 }) {
+  const colsClass = columns === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3";
   return (
     <div
-      className={`mb-8 grid gap-5 sm:grid-cols-3 ${className}`.trim()}
+      className={`mb-8 grid gap-5 ${colsClass} ${className}`.trim()}
     >
       {children}
     </div>

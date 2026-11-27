@@ -4,10 +4,25 @@ import { Notification } from "../models/Notification.js";
 import { Review } from "../models/Review.js";
 import { User } from "../models/User.js";
 import { sessionTypesForHourly } from "../utils/mentorPricing.js";
+import { notifyActiveAdmins } from "./notificationDeliveryService.js";
 
 const MONGO_ERR = "MongoDB chưa kết nối. Kiểm tra MONGO_URI trong .env.";
 
 export const MENTOR_PENDING_NOTIFICATION_TITLE = "Đăng ký mentor — đang chờ duyệt";
+export const MENTOR_APPLICATION_ADMIN_URL = "/admin/mentors/pending";
+
+/** Báo cho mọi admin đang hoạt động: có hồ sơ mentor mới hoặc gửi lại, kèm link trang duyệt. */
+async function notifyAdminsOfMentorApplication(mentor, { resubmitted }) {
+  const name = String(mentor.name || "").trim() || "Một người dùng";
+  await notifyActiveAdmins({
+    type: "mentor_application_submitted",
+    title: resubmitted ? "Hồ sơ mentor được gửi lại" : "Có hồ sơ đăng ký mentor mới",
+    body: resubmitted
+      ? `${name} đã cập nhật và gửi lại hồ sơ mentor, đang chờ duyệt.`
+      : `${name} vừa gửi hồ sơ đăng ký mentor, đang chờ duyệt.`,
+    metadata: { mentorId: mentor._id, actionUrl: MENTOR_APPLICATION_ADMIN_URL },
+  });
+}
 
 /** Tạo / mở lại thông báo «chờ duyệt mentor» (có thể đánh dấu đã đọc qua API notifications). */
 export async function ensureMentorPendingNotification(userId) {
@@ -256,6 +271,7 @@ export async function applyForMentor(userId, body) {
   };
 
   let mentor = await Mentor.findOne({ userId: uid });
+  const previousReviewStatus = mentor?.adminReview?.status ?? null;
   if (!mentor) {
     mentor = await Mentor.create({
       userId: uid,
@@ -287,6 +303,15 @@ export async function applyForMentor(userId, body) {
     await ensureMentorPendingNotification(uid);
   } catch {
     /* không chặn đăng ký nếu tạo thông báo lỗi */
+  }
+
+  // Mentor đã duyệt chỉ sửa hồ sơ thì không cần admin duyệt lại → không báo.
+  if (previousReviewStatus !== "approved") {
+    try {
+      await notifyAdminsOfMentorApplication(mentor, { resubmitted: previousReviewStatus !== null });
+    } catch {
+      /* không chặn đăng ký nếu báo admin lỗi */
+    }
   }
 
   return { ok: true, mentor: toPublicMentorMe(mentor) };
