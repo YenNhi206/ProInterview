@@ -163,6 +163,7 @@ export async function applyToJob(userId, jobId, body = {}) {
 
   await notifyCompanyModerators(job.companyId, {
     type: "application_submitted",
+    companyPrefKey: "application_submitted",
     title: "Có đơn ứng tuyển mới",
     body: `${user?.name || "Một ứng viên"} vừa ứng tuyển "${job.title}".`,
     metadata: { applicationId: app._id, jobPostId: job._id, companyId: job.companyId, actionUrl: `/company/applications/${app._id}` },
@@ -208,6 +209,7 @@ export async function withdrawApplication(userId, appId) {
   }
   await notifyCompanyModerators(updated.companyId, {
     type: "application_status_changed",
+    companyPrefKey: "application_withdrawn",
     title: "Ứng viên đã rút đơn",
     body: `${updated.candidateName || "Ứng viên"} đã rút đơn ứng tuyển "${updated.jobTitle}".`,
     metadata: { applicationId: updated._id, jobPostId: updated.jobPostId, companyId: updated.companyId, actionUrl: "/company/applications" },

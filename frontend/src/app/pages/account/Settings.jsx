@@ -5,18 +5,9 @@ import {
   Bell,
   CheckCircle,
   ShieldCheck,
-  CalendarPlus,
-  Clock,
-  Star,
-  ArrowLeftRight,
-  Wallet,
-  ClipboardCheck,
   KeyRound,
   UserCheck,
   ArrowUpRight,
-  CalendarCheck,
-  CalendarX,
-  CreditCard,
   LogOut,
   Sparkles,
   AlertCircle,
@@ -38,14 +29,14 @@ import { AccountDangerZone } from "../../components/account/AccountDangerZone";
 import { CUSTOMER_SHELL_GUTTER, CUSTOMER_SHELL_MAX } from "../../components/layout/customerShellLayout";
 import { saveCameraConsent } from "../../api/interviewsApi.js";
 import { hasCameraConsent } from "../../utils/interview/cameraConsent.js";
+import { roleLabel } from "../../utils/auth/roleLabels.js";
+import { notificationConfigForRole, defaultNotificationItems } from "./notificationPrefsConfig.js";
 import "../../../styles/settings.css";
 import "../../../styles/commerce-theme.css";
 
-const NOTIF_PREFS_KEY_CUSTOMER = "prointerview_notif_prefs";
-const NOTIF_PREFS_KEY_MENTOR   = "prointerview_notif_prefs_mentor";
-
-function notifStorageKey(role) {
-  return role === "mentor" ? NOTIF_PREFS_KEY_MENTOR : NOTIF_PREFS_KEY_CUSTOMER;
+/** Khóa localStorage cũ của customer giữ nguyên để không mất lựa chọn đã lưu. */
+function notifStorageKey(slice) {
+  return slice === "customer" ? "prointerview_notif_prefs" : `prointerview_notif_prefs_${slice}`;
 }
 
 function loadNotifPrefs(storageKey) {
@@ -66,8 +57,8 @@ function mergeNotifPrefs(defaults, storageKey) {
   });
 }
 
-function mergeNotifFromServer(defaults, serverPrefs, isMentor) {
-  const slice = isMentor ? serverPrefs?.mentor : serverPrefs?.customer;
+function mergeNotifFromServer(defaults, serverPrefs, sliceName) {
+  const slice = serverPrefs?.[sliceName];
   if (!slice || typeof slice !== "object") return defaults;
   return defaults.map((d) => ({
     ...d,
@@ -134,175 +125,93 @@ function SectionCard({ children, className = "", title, subtitle, icon: Icon, ba
 }
 
 /* ─── Notifications Tab (2-Column Grid) ───────────────────── */
-const DEFAULT_CUSTOMER_NOTIFS = [
-  { id: "booking_confirmed", label: "Xác nhận lịch hẹn", description: "Khi thanh toán được duyệt và lịch hẹn được xác nhận thành công.", value: true, icon: CalendarCheck },
-  { id: "interview_reminder", label: "Nhắc trước buổi hẹn", description: "Nhắc qua email và thông báo trước phiên cố vấn khoảng 1 giờ.", value: true, icon: Clock },
-  { id: "booking_cancelled", label: "Thay đổi hoặc hủy lịch", description: "Cập nhật đổi lịch, hủy lịch và thông tin hoàn tiền từ mentor.", value: true, icon: CalendarX },
-  { id: "mentor_feedback", label: "Phản hồi từ mentor", description: "Nhận góp ý, đánh giá và nhận xét sau buổi phỏng vấn.", value: true, icon: UserCheck },
-  { id: "streak_reminder", label: "Nhắc luyện tập AI", description: "Nhắc luyện phỏng vấn cùng Pio AI để duy trì mục tiêu tuần.", value: true, icon: Star },
-  { id: "plan_expiring", label: "Gói sắp hết hạn", description: "Nhắc trước 7 ngày khi gói Pro hoặc Elite của bạn sắp hết hạn.", value: true, icon: CreditCard },
-];
+function NotificationGroupCard({ group, items, toggle, saving }) {
+  const headingId = "settings-group-" + group.id;
+  const GroupIcon = group.icon;
+  return (
+    <section
+      className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0a24]/95 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl p-5 sm:p-7"
+      aria-labelledby={headingId}
+    >
+      <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-white/[0.08]">
+        <div className="flex items-center gap-3">
+          <div className="size-9 rounded-xl bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.18)] shrink-0">
+            <GroupIcon size={17} strokeWidth={2} aria-hidden="true" />
+          </div>
+          <div>
+            <h3 id={headingId} className="text-sm sm:text-base font-bold text-white tracking-tight">
+              {group.title}
+            </h3>
+            <p className="text-xs text-slate-300/80 leading-snug">{group.subtitle}</p>
+          </div>
+        </div>
+        <span className="text-xs font-bold text-violet-300 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/30">
+          {items.filter((i) => i.value).length}/{items.length} bật
+        </span>
+      </div>
 
-const DEFAULT_MENTOR_NOTIFS = [
-  { id: "booking_request", label: "Buổi mentor đã thanh toán", description: "Thông báo khi học viên hoàn tất thanh toán đặt lịch.", value: true, icon: CalendarPlus },
-  { id: "session_reminder", label: "Nhắc buổi mentor sắp tới", description: "Email và thông báo ứng dụng trước phiên cố vấn 1 giờ.", value: true, icon: Clock },
-  { id: "mentee_review", label: "Đánh giá từ học viên", description: "Học viên gửi nhận xét và chấm điểm sau buổi học với bạn.", value: true, icon: Star },
-  { id: "booking_change", label: "Đổi hoặc hủy lịch", description: "Học viên yêu cầu đổi lịch hoặc hủy phiên cố vấn.", value: true, icon: ArrowLeftRight },
-  { id: "payout_update", label: "Cập nhật tài chính & thu nhập", description: "Thông báo thu nhập, quyết toán và chuyển khoản từ hệ thống.", value: true, icon: Wallet },
-  { id: "peer_review_course", label: "Đánh giá chéo khóa học", description: "Có khóa học đồng nghiệp cần bạn thực hiện thẩm định.", value: true, icon: ClipboardCheck },
-];
+      <div className="space-y-3">
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#0c0822]/60 hover:bg-[#120d2e]/80 hover:border-violet-500/30 transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
+                    item.value
+                      ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.25)]"
+                      : "bg-white/5 border border-white/10 text-slate-500"
+                  }`}
+                >
+                  <Icon size={16} strokeWidth={2} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
+                    {item.label}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed" id={"pref-" + item.id + "-description"}>
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+              <div className="shrink-0 pl-1">
+                <ToggleSwitch
+                  enabled={item.value}
+                  disabled={saving}
+                  onChange={() => toggle(item.id)}
+                  labelledBy={"pref-" + item.id}
+                  describedBy={"pref-" + item.id + "-description"}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
-function NotificationsTab({ isMentor, push, toggle, saving, userEmail }) {
-  const groupAppointments = {
-    id: "appointments",
-    title: "Lịch hẹn & Phiên cố vấn",
-    icon: CalendarCheck,
-    subtitle: "Thông báo về phiên cố vấn 1:1 & lịch phỏng vấn",
-    items: push.slice(0, 4),
-  };
-
-  const groupAccount = {
-    id: "account",
-    title: isMentor ? "Tài chính & Khóa học" : "Luyện tập & Gói tài khoản",
-    icon: isMentor ? Wallet : Star,
-    subtitle: isMentor ? "Cập nhật doanh thu & hoạt động mentor" : "Nhắc luyện tập cùng Pio AI & gói dịch vụ",
-    items: push.slice(4),
-  };
+function NotificationsTab({ config, push, toggle, saving, userEmail }) {
+  const cards = config.groups.map((group) => (
+    <NotificationGroupCard
+      key={group.id}
+      group={group}
+      items={push.filter((item) => item.groupId === group.id)}
+      toggle={toggle}
+      saving={saving}
+    />
+  ));
+  const [firstCard, ...restCards] = cards;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-      {/* Column 1: Lịch hẹn (4 items) */}
-      <section
-        className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0a24]/95 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl p-5 sm:p-7"
-        aria-labelledby="settings-group-appointments"
-      >
-        <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-white/[0.08]">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-xl bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.18)] shrink-0">
-              <CalendarCheck size={17} strokeWidth={2} aria-hidden="true" />
-            </div>
-            <div>
-              <h3 id="settings-group-appointments" className="text-sm sm:text-base font-bold text-white tracking-tight">
-                {groupAppointments.title}
-              </h3>
-              <p className="text-xs text-slate-300/80 leading-snug">
-                {groupAppointments.subtitle}
-              </p>
-            </div>
-          </div>
-          <span className="text-xs font-bold text-violet-300 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/30">
-            {groupAppointments.items.filter((i) => i.value).length}/{groupAppointments.items.length} bật
-          </span>
-        </div>
+      {firstCard}
 
-        <div className="space-y-3">
-          {groupAppointments.items.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.id}
-                className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#0c0822]/60 hover:bg-[#120d2e]/80 hover:border-violet-500/30 transition-all duration-200 group"
-              >
-                <div className="flex items-center gap-3.5 min-w-0 pr-2">
-                  <div
-                    className={`size-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
-                      item.value
-                        ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.25)]"
-                        : "bg-white/5 border border-white/10 text-slate-500"
-                    }`}
-                  >
-                    <Icon size={16} strokeWidth={2} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
-                      {item.label}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed" id={"pref-" + item.id + "-description"}>
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-                <div className="shrink-0 pl-1">
-                  <ToggleSwitch
-                    enabled={item.value}
-                    disabled={saving}
-                    onChange={() => toggle(item.id)}
-                    labelledBy={"pref-" + item.id}
-                    describedBy={"pref-" + item.id + "-description"}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Column 2: Luyện tập & Tài khoản + Delivery status */}
       <div className="space-y-6">
-        <section
-          className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#18133d]/85 via-[#130f32]/90 to-[#0e0a24]/95 shadow-[0_20px_50px_rgba(5,3,20,0.45)] backdrop-blur-2xl p-5 sm:p-7"
-          aria-labelledby="settings-group-account"
-        >
-          <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-white/[0.08]">
-            <div className="flex items-center gap-3">
-              <div className="size-9 rounded-xl bg-violet-500/15 border border-violet-400/25 flex items-center justify-center text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.18)] shrink-0">
-                <groupAccount.icon size={17} strokeWidth={2} aria-hidden="true" />
-              </div>
-              <div>
-                <h3 id="settings-group-account" className="text-sm sm:text-base font-bold text-white tracking-tight">
-                  {groupAccount.title}
-                </h3>
-                <p className="text-xs text-slate-300/80 leading-snug">
-                  {groupAccount.subtitle}
-                </p>
-              </div>
-            </div>
-            <span className="text-xs font-bold text-violet-300 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/30">
-              {groupAccount.items.filter((i) => i.value).length}/{groupAccount.items.length} bật
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {groupAccount.items.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#0c0822]/60 hover:bg-[#120d2e]/80 hover:border-violet-500/30 transition-all duration-200 group"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0 pr-2">
-                    <div
-                      className={`size-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
-                        item.value
-                          ? "bg-violet-500/20 border border-violet-400/35 text-violet-300 shadow-[0_0_12px_rgba(124,58,237,0.25)]"
-                          : "bg-white/5 border border-white/10 text-slate-500"
-                      }`}
-                    >
-                      <Icon size={16} strokeWidth={2} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-200 transition-colors leading-tight" id={"pref-" + item.id}>
-                        {item.label}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed" id={"pref-" + item.id + "-description"}>
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="shrink-0 pl-1">
-                    <ToggleSwitch
-                      enabled={item.value}
-                      disabled={saving}
-                      onChange={() => toggle(item.id)}
-                      labelledBy={"pref-" + item.id}
-                      describedBy={"pref-" + item.id + "-description"}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        {restCards}
 
         {/* Sync & Channels Card */}
         <div className="p-4 sm:p-5 rounded-3xl border border-white/10 bg-gradient-to-r from-violet-950/30 via-[#130f30]/80 to-indigo-950/30 backdrop-blur-2xl flex items-center justify-between gap-4 shadow-lg">
@@ -320,6 +229,10 @@ function NotificationsTab({ isMentor, push, toggle, saving, userEmail }) {
             Thời gian thực
           </span>
         </div>
+
+        <p className="px-1 text-xs leading-relaxed text-slate-400">
+          Thông báo hệ thống quan trọng (bảo mật, thay đổi tài khoản) luôn được gửi và không tắt được.
+        </p>
       </div>
     </div>
   );
@@ -488,7 +401,10 @@ function SecurityTab({ profileFromServer, onProfileSynced }) {
 
       {/* Column 2: Phiên đăng nhập & Đóng tài khoản */}
       <div className="space-y-6">
-        <CameraConsentSection sessionUser={sessionUser} onProfileSynced={onProfileSynced} />
+        {/* Camera chỉ dùng trong phỏng vấn AI của ứng viên. */}
+        {(!sessionUser?.role || sessionUser.role === "customer") && (
+          <CameraConsentSection sessionUser={sessionUser} onProfileSynced={onProfileSynced} />
+        )}
         <LoginSessionsSection SectionCard={SectionCard} />
         <AccountDangerZone SectionCard={SectionCard} />
       </div>
@@ -561,22 +477,24 @@ export function Settings() {
   }, []);
 
   const handleLogout = async () => { await logout(); navigate("/"); };
-  const isMentor = profileFromServer?.role === "mentor";
+  const role = profileFromServer?.role;
+  const isCandidate = !role || role === "customer";
+  const notifConfig = notificationConfigForRole(role);
+  const notifSlice = notifConfig.slice;
   const displayName = getDisplayName(profileFromServer) || "Thành viên";
   const userEmail = profileFromServer?.email || "";
 
-  // Notification Preferences State:
-  const defaults = isMentor ? DEFAULT_MENTOR_NOTIFS : DEFAULT_CUSTOMER_NOTIFS;
-  const storageKey = notifStorageKey(isMentor ? "mentor" : "customer");
-  const initialPrefs = () => {
-    if (profileFromServer?.notificationPrefs) {
-      return mergeNotifFromServer(defaults, profileFromServer.notificationPrefs, isMentor);
-    }
-    return mergeNotifPrefs(defaults, storageKey);
+  // Notification Preferences State (theo role — xem notificationPrefsConfig.js):
+  const storageKey = notifStorageKey(notifSlice);
+  const buildPrefs = () => {
+    const defaults = defaultNotificationItems(notifConfig);
+    return profileFromServer?.notificationPrefs
+      ? mergeNotifFromServer(defaults, profileFromServer.notificationPrefs, notifSlice)
+      : mergeNotifPrefs(defaults, storageKey);
   };
 
-  const [push, setPush] = useState(initialPrefs);
-  const [baseline, setBaseline] = useState(initialPrefs);
+  const [push, setPush] = useState(buildPrefs);
+  const [baseline, setBaseline] = useState(buildPrefs);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -584,13 +502,16 @@ export function Settings() {
   const allOn = push.every((t) => t.value);
 
   useEffect(() => {
-    const defs = isMentor ? DEFAULT_MENTOR_NOTIFS : DEFAULT_CUSTOMER_NOTIFS;
-    const next = profileFromServer?.notificationPrefs
-      ? mergeNotifFromServer(defs, profileFromServer.notificationPrefs, isMentor)
-      : mergeNotifPrefs(defs, storageKey);
-    setPush((current) => current.some((item, index) => item.value !== baseline[index]?.value) ? current : next);
+    const next = buildPrefs();
+    // Đổi role (vd. getUser() cache cũ → /me trả role thật) thì danh sách khác hẳn: thay toàn bộ.
+    const sameList = (list) => list.length === next.length && list.every((item, i) => item.id === next[i].id);
+    setPush((current) => {
+      if (!sameList(current)) return next;
+      return current.some((item, index) => item.value !== baseline[index]?.value) ? current : next;
+    });
     setBaseline(next);
-  }, [isMentor, profileFromServer?.notificationPrefs, storageKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifSlice, profileFromServer?.notificationPrefs, storageKey]);
 
   const toggle = (id) => {
     setPush((prev) => prev.map((t) => (t.id === id ? { ...t, value: !t.value } : t)));
@@ -610,9 +531,7 @@ export function Settings() {
     setSaving(true);
     setError("");
     const prefMap = Object.fromEntries(push.map(({ id, value }) => [id, value]));
-    const payload = isMentor
-      ? { notificationPrefs: { mentor: prefMap } }
-      : { notificationPrefs: { customer: prefMap } };
+    const payload = { notificationPrefs: { [notifSlice]: prefMap } };
     const res = await updateUser(payload);
     setSaving(false);
     if (!res.success) {
@@ -662,7 +581,7 @@ export function Settings() {
                 Cài đặt tài khoản
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-violet-300 bg-violet-500/20 border border-violet-400/30 px-3 py-1 rounded-full">
                   <Sliders size={12} />
-                  {isMentor ? "Mentor" : "Học viên"}
+                  {isCandidate ? "Học viên" : roleLabel(role)}
                 </span>
               </h1>
               <p className="text-slate-300/80 text-xs sm:text-sm mt-1.5 font-medium leading-relaxed max-w-2xl">
@@ -835,8 +754,8 @@ export function Settings() {
             >
               {activeTab === "notifications" && (
                 <NotificationsTab
-                  key={isMentor ? "mentor" : "customer"}
-                  isMentor={isMentor}
+                  key={notifSlice}
+                  config={notifConfig}
                   push={push}
                   toggle={toggle}
                   saving={saving}

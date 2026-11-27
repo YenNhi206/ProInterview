@@ -411,6 +411,9 @@ export function MentorLearningPathEditor() {
                 <div><dt>Buổi đánh giá 0đ</dt><dd>{context.assessment ? `${ASSESSMENT_STATUS[context.assessment.status] || context.assessment.status} · ${context.assessment.timeSlot} ${context.assessment.date}` : "Chưa hẹn"}</dd></div>
                 <div><dt>Tài liệu</dt><dd><FileText size={12} style={{ display: "inline", marginRight: 6 }} />{[context.request?.cvName, context.request?.jdName].filter(Boolean).join(" · ") || "—"}</dd></div>
               </dl>
+              {context.mentorshipRequestId && (!context.assessment || ["cancelled", "no_show"].includes(context.assessment.status)) && (
+                <Link className="mr-primary lp-profile-link" to={`${requestLink}#buoi-danh-gia`}>Hẹn buổi đánh giá 0đ →</Link>
+              )}
               <Link className="mr-text-button lp-profile-link" to={requestLink}>Xem yêu cầu và tải CV/JD →</Link>
             </section>
 

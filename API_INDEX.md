@@ -213,7 +213,7 @@ Routers mount: `/api/auth`, `/api/mentors`, `/api/bookings`, `/api/plans`, `/api
 | `plan`, `planExpiresAt` | |
 | `hasGoogleLogin` | `true` nếu có `googleId` / `googleSub` (không rỗng) |
 | `isEmailVerified` | Trạng thái xác minh email (tài khoản email/password) |
-| `notificationPrefs` | Tuỳ chọn thông báo theo role |
+| `notificationPrefs` | Tuỳ chọn thông báo theo role, chỉ một nhánh: `customer`, `mentor`, `moderator`, `company` (company_moderator) hoặc `admin`. `PATCH /api/auth/me` nhận `{ notificationPrefs: { <nhánh của role>: { <khóa>: bool } } }`; khóa: `backend/src/constants/notificationPrefs.js` |
 
 **FE:** `frontend/src/app/utils/auth.js`, `Settings.jsx`, …
 

@@ -206,6 +206,7 @@ async function notifyModerators(proposals) {
     for (const m of moderators) {
       await deliverNotification(m._id, {
         type: "ai_improvement_proposed",
+        moderatorPrefKey: "ai_improvement_proposed",
         title: "Có đề xuất cải tiến AI mới",
         body: p.summary,
         metadata: { proposalId: p._id, actionUrl: "/moderator/ai-improvements" },

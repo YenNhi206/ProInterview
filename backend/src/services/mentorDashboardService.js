@@ -978,6 +978,7 @@ export async function requestPayout(userId, body) {
     const mentorName = String(mentor.name || "").trim() || "Một cố vấn";
     await notifyActiveAdmins({
       type: "payout_requested",
+      adminPrefKey: "payout_requested",
       title: "Có yêu cầu rút tiền mới",
       body: `${mentorName} yêu cầu rút ${roundedAmount.toLocaleString("vi-VN")}₫, đang chờ duyệt.`,
       metadata: { mentorId: mentor._id, payoutRequestId: payout._id, actionUrl: "/admin/payouts" },

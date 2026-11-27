@@ -128,6 +128,14 @@ export async function selectOffer(actor, requestId, offerId) {
   const updated = await MentorshipRequest.findOneAndUpdate({ _id: id(requestId), userId: actor.userId, status: "open", offers: { $elemMatch: { _id: offerId, status: "pending" } } }, { $set: { status: "selected", selectedOfferId: offerId, selectedMentorId: selected.mentorId } }, { returnDocument: "after" }).lean();
   if (!updated) throw httpError(409, "Yêu cầu không còn mở hoặc đề nghị không khả dụng.");
 
+  // Bước tiếp theo của mentor là hẹn buổi đánh giá 0đ (C-06, M-02): báo để mentor không bỏ lỡ.
+  await deliverNotification(mentor.userId, {
+    type: "system",
+    title: "Bạn được chọn làm mentor",
+    body: `Mentee đã chọn đề nghị của bạn cho "${updated.title || updated.position || "nhu cầu mentor"}". Hãy hẹn buổi đánh giá đầu vào 0đ trước khi soạn lộ trình.`,
+    metadata: { mentorId: mentor._id, actionUrl: `/mentor/requests/${updated._id}` },
+  }).catch(() => {});
+
   return loadRequest(requestId);
 }
 export async function closeRequest(actor, requestId) {
