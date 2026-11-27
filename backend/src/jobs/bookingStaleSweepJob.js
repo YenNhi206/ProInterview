@@ -56,7 +56,7 @@ export async function runStaleSweep(now = new Date()) {
       metadata: { bookingId: booking._id, actionUrl: `/session/${booking._id}` },
     });
     for (const admin of admins) await deliverNotification(admin._id, {
-      ...common, title: "Buổi hẹn quá giờ — cần rà soát",
+      ...common, adminPrefKey: "booking_stale", title: "Buổi hẹn quá giờ — cần rà soát",
       body: `Buổi ${slotLabel} giữa ${booking.mentorId?.name || "mentor"} và ${booking.userId?.name || "học viên"} đã quá giờ kết thúc hơn 60 phút.`,
       metadata: { bookingId: booking._id, actionUrl: `/admin/bookings/${booking._id}` },
     });

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { Notification } from "../models/Notification.js";
 import { User } from "../models/User.js";
-import { mergeNotificationPrefs } from "../constants/notificationPrefs.js";
+import { mergeNotificationPrefs, notificationPrefKeyForRole } from "../constants/notificationPrefs.js";
 
 function isMongoReady() {
   return mongoose.connection.readyState === 1;
@@ -22,7 +22,9 @@ export async function notifyActiveAdmins(payload) {
 /**
  * Tạo thông báo in-app nếu user bật loại tương ứng trong Cài đặt.
  * @param {string|import('mongoose').Types.ObjectId} userId
- * @param {{ mentorPrefKey?: string, customerPrefKey?: string, type: string, title: string, body: string, metadata?: object }} payload
+ * Khóa cài đặt chọn theo role người nhận: `customerPrefKey`, `mentorPrefKey`, `moderatorPrefKey`,
+ * `companyPrefKey`, `adminPrefKey` (xem `constants/notificationPrefs.js`). Không có khóa → luôn gửi.
+ * @param {{ mentorPrefKey?: string, customerPrefKey?: string, moderatorPrefKey?: string, companyPrefKey?: string, adminPrefKey?: string, type: string, title: string, body: string, metadata?: object }} payload
  */
 export async function deliverNotification(userId, payload) {
   if (!isMongoReady()) return { delivered: false, reason: "mongo_unavailable" };
@@ -33,8 +35,7 @@ export async function deliverNotification(userId, payload) {
   if (!user) return { delivered: false, reason: "user_not_found" };
 
   const prefs = mergeNotificationPrefs(user.role, user.settings?.notificationPrefs);
-  const prefKey =
-    user.role === "mentor" ? payload.mentorPrefKey : payload.customerPrefKey;
+  const prefKey = notificationPrefKeyForRole(user.role, payload);
   if (prefKey && prefs[prefKey] === false) {
     return { delivered: false, skipped: true, prefKey };
   }

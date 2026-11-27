@@ -16,6 +16,7 @@ async function notifyAdminsOfMentorApplication(mentor, { resubmitted }) {
   const name = String(mentor.name || "").trim() || "Một người dùng";
   await notifyActiveAdmins({
     type: "mentor_application_submitted",
+    adminPrefKey: "mentor_application_submitted",
     title: resubmitted ? "Hồ sơ mentor được gửi lại" : "Có hồ sơ đăng ký mentor mới",
     body: resubmitted
       ? `${name} đã cập nhật và gửi lại hồ sơ mentor, đang chờ duyệt.`

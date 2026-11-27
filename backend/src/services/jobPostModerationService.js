@@ -196,6 +196,7 @@ export async function setJobVisibility(jobId, { hidden, reason = "" }, moderator
     closedReports = await resolveOpenJobReports(updated._id, { moderatorId, note, exceptItemId });
     await notifyCompanyModerators(updated, {
       type: "job_post_hidden",
+      companyPrefKey: "job_post_visibility",
       title: "Tin tuyển dụng bị ẩn",
       body: `Tin "${updated.title}" đã bị Platform Moderator ẩn. Lý do: ${note}`,
       metadata: { jobPostId: updated._id, companyId: updated.companyId, actionUrl: "/company/jobs" },
@@ -203,6 +204,7 @@ export async function setJobVisibility(jobId, { hidden, reason = "" }, moderator
   } else {
     await notifyCompanyModerators(updated, {
       type: "system",
+      companyPrefKey: "job_post_visibility",
       title: "Tin tuyển dụng hiển thị lại",
       body: `Tin "${updated.title}" đã được Platform Moderator bỏ ẩn và hiển thị lại.`,
       metadata: { jobPostId: updated._id, companyId: updated.companyId, actionUrl: "/company/jobs" },
