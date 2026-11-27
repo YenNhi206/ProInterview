@@ -58,7 +58,7 @@
     "warmup:company-videos": "node src/scripts/warmupCompanyQuestionVideos.js",
     "warmup:company-videos:dry": "node src/scripts/warmupCompanyQuestionVideos.js --dry-run",
     "test": "npm run test:node && npm run test:dto && npm run test:python-cv",
-    "test:node": "node --test --test-concurrency=1 \"src/**/*.test.js\"",
+    "test:node": "node --test src/utils/vnMoneyWords.test.js --test-concurrency=1 \"src/**/*.test.js\"",
     "test:cart": "node --test src/integration/cart-booking-sweep.integration.test.js",
     "test:payments": "node --test src/integration/payments-transfer.integration.test.js",
     "test:python-cv": "cd ../cv_jd_matching && python -m unittest discover -s tests -p test_*.py -v",
@@ -101,8 +101,5 @@
     "jest": "^30.4.2",
     "mongodb-memory-server": "^11.1.0",
     "nodemon": "^3.1.14"
-  },
-  "engines": {
-    "node": ">=22"
   }
 }
