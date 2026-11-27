@@ -1590,6 +1590,37 @@
    color: #5b21b6 !important;
  }
 
+ /* Bảng dữ liệu và thanh tìm kiếm admin ở chế độ sáng
+    (admin-typography.css tô chữ ô bảng gần trắng và ép #fff khi hover, không giới hạn ở chế độ tối) */
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table thead tr {
+   background-color: rgba(241, 245, 249, 0.95) !important;
+   border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table thead th {
+   color: #64748b !important;
+   font-weight: 700 !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody td {
+   color: #1e293b !important;
+   border-bottom: 1px solid rgba(241, 245, 249, 0.9) !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody tr:hover {
+   background: rgba(243, 232, 255, 0.45) !important;
+   box-shadow: inset 4px 0 0 #7c3aed !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody tr:hover td,
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] table tbody tr:hover td :is(.text-slate-900, .text-slate-800, .text-slate-700) {
+   color: #0f172a !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] input[type="search"] {
+   background-color: #ffffff !important;
+   border-color: rgba(203, 213, 225, 0.8) !important;
+   color: #1e293b !important;
+ }
+ :root[data-workspace-theme="light"] .admin-shell [data-admin-content] input[type="search"]::placeholder {
+   color: #94a3b8 !important;
+ }
+
  /* ── Customer / Candidate App Shell Light Theme ────────────── */
  :root[data-workspace-theme="light"] .app-user-shell {
    color: var(--mw-text);
