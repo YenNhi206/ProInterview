@@ -8,6 +8,18 @@ function isMongoReady() {
 }
 
 /**
+ * Gửi cùng một thông báo cho mọi admin đang hoạt động (admin bị khóa không nhận).
+ * @param {{ type: string, title: string, body: string, metadata?: object }} payload
+ * @returns {Promise<number>} số admin đã nhận
+ */
+export async function notifyActiveAdmins(payload) {
+  if (!isMongoReady()) return 0;
+  const admins = await User.find({ role: "admin", isActive: { $ne: false } }).select("_id").lean();
+  const results = await Promise.all(admins.map((admin) => deliverNotification(admin._id, payload)));
+  return results.filter((r) => r?.delivered).length;
+}
+
+/**
  * Tạo thông báo in-app nếu user bật loại tương ứng trong Cài đặt.
  * @param {string|import('mongoose').Types.ObjectId} userId
  * @param {{ mentorPrefKey?: string, customerPrefKey?: string, type: string, title: string, body: string, metadata?: object }} payload

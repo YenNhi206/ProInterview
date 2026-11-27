@@ -31,6 +31,8 @@ const NEW_TYPES = [
   "rubric_rejected",
   "job_post_hidden",
   "ai_improvement_proposed",
+  "mentor_application_submitted",
+  "payout_requested",
 ];
 
 const LEGACY_TYPES = [

@@ -604,6 +604,7 @@ ensureCollection("notifications", {
       "learning_path_paid", "learning_path_session_result", "learning_path_cancelled",
       "application_submitted", "application_status_changed", "company_invite",
       "rubric_approved", "rubric_rejected", "job_post_hidden", "ai_improvement_proposed",
+      "mentor_application_submitted", "payout_requested",
     ),
     isRead: bool,
   },

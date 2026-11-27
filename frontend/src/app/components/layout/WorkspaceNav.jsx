@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useLayoutEffect, useState 
 import { Link, NavLink, useLocation, useNavigate } from "react-router";
 import { Check, ChevronDown, LogOut, Menu, Monitor, Moon, Sun, User, Settings, ChevronsUpDown } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter.jsx";
+import { navCountLabel } from "../../utils/admin/adminNavCounts.js";
 import { NavUserAvatar } from "./NavUserAvatar.jsx";
 import { useAuthSession } from "../../hooks/useAuthSession";
 import { useWorkspaceTheme } from "../../hooks/useWorkspaceTheme.js";
@@ -86,6 +87,11 @@ function WorkspaceMenu({ config, onClose, active }) {
       >
         <Icon size={17} strokeWidth={1.8} />
         <span>{item.title}</span>
+        {navCountLabel(item.count) && (
+          <span className="mentor-workspace-nav-count" aria-label={item.countLabel || `${item.count}`}>
+            {navCountLabel(item.count)}
+          </span>
+        )}
       </NavLink>
     );
   };

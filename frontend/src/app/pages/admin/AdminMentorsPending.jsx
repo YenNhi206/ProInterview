@@ -6,6 +6,7 @@ import { getInitials } from "../../utils/auth/auth.js";
 import { formatEducationDisplay } from "../../utils/profile/profileEducationHistory.js";
 import { formatWorkHistoryLines, parseWorkHistory } from "../../utils/profile/profileWorkHistory.js";
 import { toast } from "sonner";
+import { filterPendingMentors, notifyAdminNavCountsChanged } from "../../utils/admin/adminNavCounts.js";
 
 import { formatVnd as formatVndUtil } from "../../utils/shared/formatVnd.js";
 
@@ -171,10 +172,7 @@ export function AdminMentorsPending() {
     setLoading(true);
     const res = await adminApi.getMentors();
     if (res.success) {
-      const pending = res.mentors.filter(
-        (m) => !m.isActive && !m.isVerified && m?.adminReview?.status !== "rejected",
-      );
-      setMentors(pending);
+      setMentors(filterPendingMentors(res.mentors));
     } else {
       toast.error(res.error || "Không thể tải danh sách hồ sơ chờ duyệt.");
     }
@@ -190,6 +188,7 @@ export function AdminMentorsPending() {
     if (res.success) {
       toast.success("Đã duyệt hồ sơ cố vấn thành công!");
       setMentors((prev) => prev.filter((m) => m._id !== id));
+      notifyAdminNavCountsChanged();
     } else {
       toast.error(res.error || "Không thể duyệt hồ sơ cố vấn.");
     }
@@ -223,6 +222,7 @@ export function AdminMentorsPending() {
     if (res.success) {
       toast.success("Đã từ chối hồ sơ cố vấn.");
       setMentors((prev) => prev.filter((m) => m._id !== mentorId));
+      notifyAdminNavCountsChanged();
       closeRejectModal();
     } else {
       toast.error(res.error || "Không thể từ chối hồ sơ cố vấn.");

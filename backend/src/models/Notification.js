@@ -35,6 +35,10 @@ export const NOTIFICATION_TYPE_GROUPS = {
   jobPost: ["job_post_hidden"],
   /** Job đào đề xuất cải tiến AI cho Platform Mod. */
   aiImprovement: ["ai_improvement_proposed"],
+  /** Admin nhận khi có người gửi (hoặc gửi lại) hồ sơ đăng ký mentor. */
+  mentorApplication: ["mentor_application_submitted"],
+  /** Admin nhận khi mentor gửi yêu cầu rút tiền. */
+  payout: ["payout_requested"],
 };
 
 export const NOTIFICATION_TYPES = Object.values(NOTIFICATION_TYPE_GROUPS).flat();
@@ -66,6 +70,7 @@ const notificationSchema = new Schema(
       companyId: { type: Schema.Types.ObjectId, ref: "Company" },
       rubricId: { type: Schema.Types.ObjectId, ref: "CompanyRubric" },
       proposalId: { type: Schema.Types.ObjectId, ref: "AIImprovementProposal" },
+      payoutRequestId: { type: Schema.Types.ObjectId, ref: "PayoutRequest" },
       actionUrl: { type: String },
     },
   },
