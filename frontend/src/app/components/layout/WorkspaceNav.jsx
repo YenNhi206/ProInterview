@@ -95,20 +95,20 @@ function WorkspaceMenu({ config, onClose, active }) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col justify-between overflow-hidden">
       {/* Brand Header: Logo + Role Badge (Cố định ở trên) */}
-      <div className="mentor-workspace-brand-row mb-2 shrink-0 flex items-center justify-between px-1.5 pt-1 pb-1">
+      <div className="mentor-workspace-brand-row mb-2 shrink-0 flex items-center justify-between px-0.5 pt-0.5 pb-1">
         <Link
           to={homeUrl}
           onClick={onClose}
-          className="mentor-workspace-brand flex w-full min-w-0 items-center justify-between gap-1.5"
+          className="mentor-workspace-brand flex w-full min-w-0 items-center justify-between gap-1"
           title="Về bảng điều khiển"
           aria-label="Về bảng điều khiển"
         >
           <img
             src="/Logo.png"
             alt="ProInterview"
-            className="h-8 w-auto max-w-[126px] shrink-0 object-contain object-left contrast-[1.12] brightness-[0.94]"
+            className="h-7 w-auto max-w-[104px] shrink-0 object-contain object-left contrast-[1.12] brightness-[0.94]"
           />
-          <span className="mentor-workspace-badge shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[8px] font-black tracking-wider shadow-[0_0_10px_rgba(139,92,246,0.25)]">
+          <span className="mentor-workspace-badge shrink-0 whitespace-nowrap rounded-full px-1.5 py-0.5 text-[7.5px] font-black tracking-wide shadow-[0_0_10px_rgba(139,92,246,0.25)]">
             {badgeText}
           </span>
         </Link>

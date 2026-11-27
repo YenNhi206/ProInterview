@@ -105,8 +105,8 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 230px;
-    padding: 24px 16px 24px 20px;
+    width: 240px;
+    padding: 20px 12px 20px 14px;
     z-index: 30;
     background: rgba(18, 11, 46, 0.85);
     backdrop-filter: blur(16px);
@@ -122,7 +122,7 @@
   }
 
   .mentor-workspace-main {
-    margin-left: 230px;
+    margin-left: 240px;
     padding-top: 0;
     transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -895,9 +895,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  margin: 0 0 16px;
-  padding: 8px 4px 16px 6px;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding: 6px 2px 14px 2px;
   border-bottom: 1px solid var(--mw-border);
 }
 
@@ -907,13 +907,13 @@
   justify-content: space-between !important;
   width: 100% !important;
   flex: 1 1 0% !important;
-  gap: 6px !important;
+  gap: 4px !important;
   padding: 0 !important;
 }
 
 .mentor-workspace .mentor-workspace-brand-row .mentor-workspace-brand img {
-  width: 124px;
-  max-width: 128px;
+  width: 102px;
+  max-width: 104px;
   height: auto;
   flex-shrink: 0;
   display: block;
@@ -926,16 +926,17 @@
 
 .mentor-workspace-badge {
   flex-shrink: 0;
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 999px;
   border: 1px solid rgba(163, 230, 53, .4);
   background: rgba(163, 230, 53, .15);
   color: #a3e635;
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: .08em;
-  line-height: 1.5;
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1.4;
   box-shadow: 0 0 10px rgba(147, 247, 43, .2);
+  white-space: nowrap;
 }
 
 .mentor-workspace-mobile-nav .mentor-workspace-brand-row {

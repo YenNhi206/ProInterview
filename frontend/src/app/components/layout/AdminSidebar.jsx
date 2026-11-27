@@ -165,7 +165,7 @@ export function AdminSidebar() {
                 <span
                   className={
                     light
-                      ? "shrink-0 rounded-full border border-emerald-600/30 bg-emerald-500/15 px-2 py-0.5 text-[8px] font-black tracking-wider text-emerald-800"
+                      ? "shrink-0 rounded-full border border-[#ddd6fe] bg-[#f5f0ff] px-2 py-0.5 text-[8px] font-black tracking-wider text-[#6d28d9]"
                       : "shrink-0 rounded-full border border-lime-400/40 bg-lime-400/15 px-2 py-0.5 text-[8px] font-black tracking-wider text-lime-400 shadow-[0_0_10px_rgba(147,247,43,0.2)]"
                   }
                 >
