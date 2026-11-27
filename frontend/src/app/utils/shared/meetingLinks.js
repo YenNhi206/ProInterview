@@ -157,8 +157,33 @@ export function isBookingAtOrPastStart(booking) {
   return Date.now() >= start;
 }
 
-export function canMentorCompleteBooking(booking) {
-  return isBookingAtOrPastStart(booking);
+/**
+ * Mentor chỉ kết thúc được sau giờ bắt đầu ít nhất 15 phút — khớp `completeMentorBooking` ở backend
+ * (cùng thời gian chờ học viên báo mentor vắng mặt).
+ */
+export const MENTOR_COMPLETE_GRACE_MINUTES = 15;
+
+/** Số phút còn lại tới lúc mentor được kết thúc buổi (0 = kết thúc được; null = không đọc được lịch). */
+export function minutesUntilMentorCanComplete(booking, now = Date.now()) {
+  const start = parseBookingStartMs(booking);
+  if (!Number.isFinite(start)) return null;
+  const allowedAt = start + MENTOR_COMPLETE_GRACE_MINUTES * 60 * 1000;
+  return Math.max(0, Math.ceil((allowedAt - now) / 60000));
+}
+
+export function canMentorCompleteBooking(booking, now = Date.now()) {
+  return minutesUntilMentorCanComplete(booking, now) === 0;
+}
+
+/** Lý do chưa kết thúc được, hiện cho mentor; "" khi đã kết thúc được. */
+export function mentorCompleteBlockMessage(booking, now = Date.now()) {
+  const mins = minutesUntilMentorCanComplete(booking, now);
+  if (mins === null) return "Không đọc được giờ buổi hẹn.";
+  if (mins === 0) return "";
+  if (mins > MENTOR_COMPLETE_GRACE_MINUTES) {
+    return `Chưa tới giờ bắt đầu. Bạn có thể ở trong phòng; kết thúc buổi được từ ${MENTOR_COMPLETE_GRACE_MINUTES} phút sau giờ bắt đầu.`;
+  }
+  return `Buổi mới bắt đầu. Bạn kết thúc được sau ${MENTOR_COMPLETE_GRACE_MINUTES} phút kể từ giờ bắt đầu (còn ${mins} phút).`;
 }
 
 export function canEnterMeetingRoom(booking, { asMentor = false } = {}) {
