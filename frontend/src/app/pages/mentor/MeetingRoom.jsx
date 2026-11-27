@@ -25,6 +25,7 @@ import {
   buildProInterviewMeetUrl,
   canEnterMeetingRoom,
   canMentorCompleteBooking,
+  mentorCompleteBlockMessage,
   formatUntilStart,
   getMinutesUntilBookingStart,
   isBookingInLiveWindow,
@@ -229,12 +230,7 @@ export function MeetingRoom() {
 
   const handleOpenEndSessionPanel = () => {
     if (bookingSchedule && !canMentorCompleteBooking(bookingSchedule)) {
-      const mins = getMinutesUntilBookingStart(bookingSchedule);
-      toastApiError(
-        mins > 0
-          ? `Chưa tới giờ bắt đầu (còn ${formatUntilStart(mins)}). Bạn có thể ở trong phòng nhưng chưa thể kết thúc buổi.`
-          : "Chưa tới giờ bắt đầu buổi học. Bạn có thể ở trong phòng nhưng chưa thể kết thúc buổi.",
-      );
+      toastApiError(mentorCompleteBlockMessage(bookingSchedule));
       return;
     }
     setShowEndSessionPanel(true);
@@ -359,13 +355,7 @@ export function MeetingRoom() {
         sessionLabel={bookingMeta.role}
         hasLiveNotes={liveCapture.hasContent}
         canConfirm={canCompleteSession}
-        blockReason={
-          canCompleteSession
-            ? ""
-            : bookingSchedule
-              ? `Chưa tới giờ bắt đầu buổi (còn ${formatUntilStart(getMinutesUntilBookingStart(bookingSchedule))}).`
-              : "Chưa tới giờ bắt đầu buổi."
-        }
+        blockReason={canCompleteSession || !bookingSchedule ? "" : mentorCompleteBlockMessage(bookingSchedule)}
       />
 
       <header className="relative z-20 shrink-0 px-3 pt-3 sm:px-5 sm:pt-4">
@@ -468,7 +458,7 @@ export function MeetingRoom() {
                     title={
                       canCompleteSession
                         ? "Kết thúc buổi học"
-                        : "Chưa tới giờ bắt đầu — không thể kết thúc sớm"
+                        : mentorCompleteBlockMessage(bookingSchedule)
                     }
                   >
                     <ShieldCheck size={15} strokeWidth={2.25} /> Kết thúc buổi

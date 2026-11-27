@@ -39,6 +39,7 @@ import { loadMentorRescheduleSlotOptions } from "../../utils/booking/bookingResc
 import { isBookingSlotInFuture } from "../../utils/booking/bookingSchedule.js";
 import {
   canMentorCompleteBooking,
+  mentorCompleteBlockMessage,
   formatUntilStart,
   getMinutesUntilBookingStart,
   isBookingPastScheduledEnd,
@@ -287,12 +288,7 @@ export function MentorMeetingDetail() {
   });
   const completeBlockedHint =
     !canCompleteSession && !isCompleted
-      ? `Chưa tới giờ bắt đầu (còn ${formatUntilStart(
-          getMinutesUntilBookingStart({
-            date: meeting.scheduledDate,
-            timeSlot: meeting.scheduledTime,
-          }),
-        )}). Có thể vào phòng trước, kết thúc sau khi buổi bắt đầu.`
+      ? mentorCompleteBlockMessage({ date: meeting.scheduledDate, timeSlot: meeting.scheduledTime })
       : "";
 
   const handleMentorReschedule = async () => {
@@ -443,12 +439,7 @@ export function MentorMeetingDetail() {
       durationMinutes: meeting.duration,
     };
     if (!canMentorCompleteBooking(schedule)) {
-      const mins = getMinutesUntilBookingStart(schedule);
-      toastApiError(
-        mins > 0
-          ? `Chưa tới giờ bắt đầu (còn ${formatUntilStart(mins)}). Bạn có thể vào phòng trước nhưng chưa thể kết thúc buổi.`
-          : "Chưa tới giờ bắt đầu buổi học.",
-      );
+      toastApiError(mentorCompleteBlockMessage(schedule));
       return;
     }
     if (!window.confirm("Kết thúc buổi học? Học viên sẽ có thể đánh giá sau khi hoàn thành.")) return;
@@ -543,7 +534,7 @@ export function MentorMeetingDetail() {
               <div>
                 <p className="text-sm font-bold text-orange-900">Buổi đã qua giờ kết thúc</p>
                 <p className="mt-1 text-xs leading-relaxed text-orange-800/90">
-                  Hãy bấm <strong>Kết thúc buổi</strong> để học viên đánh giá và thu nhập được ghi nhận. Nếu quên, hệ thống tự hoàn thành sau 30 phút.
+                  Hãy bấm <strong>Kết thúc buổi</strong> để học viên đánh giá và thu nhập được ghi nhận. Nếu chưa kết thúc sau giờ kết thúc 60 phút, hệ thống nhắc bạn và báo admin rà soát.
                 </p>
               </div>
             </div>
