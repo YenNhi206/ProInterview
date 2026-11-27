@@ -22,6 +22,9 @@ services:
         value: "22"
       - key: NODE_ENV
         value: production
+      # Giờ booking là giờ Việt Nam; thiếu thì server UTC hiểu sai giờ buổi học (xem src/config/timezone.js).
+      - key: TZ
+        value: Asia/Ho_Chi_Minh
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
